@@ -59,14 +59,20 @@ namespace {  // Common
 		}
 	}
 
-	bool findMaterialInOBJ(const std::string& fileContents, std::string& output) {
-		auto head = fileContents.find("mtllib ") + 7;
-		if (head == string::npos) return false;
-		auto tail = fileContents.find("\n", head);
-		if (tail == string::npos) return false;
+	size_t findMaterialInOBJ(const std::string& fileContents, std::vector<std::string>& output) {
+		unsigned int lastTail = 0;
 
-		output = fileContents.substr(head, tail - head);
-		return true;
+		while (true) {
+			const auto head = fileContents.find("mtllib ", lastTail) + 7;
+			if (head == string::npos) break;
+			const auto tail = fileContents.find("\n", head - 7);  // I have absolutely no idea why I need to subtract 7 here.
+			if (tail == string::npos) break;
+
+			output.push_back(fileContents.substr(head, tail - head));
+			lastTail = tail;
+		}
+		
+		return output.size();
 	}
 
 }
@@ -279,13 +285,11 @@ namespace {
 
 namespace {
 	
-	unsigned int processMaterial(const aiScene* const scene, std::vector<dal::MaterialInfo>& materials)
-	{
-		materials.resize(scene->mNumMaterials);
-
+	unsigned int processMaterial(const aiScene* const scene, std::vector<dal::MaterialInfo>& materials) {
 		for (unsigned int i = 0; i < scene->mNumMaterials; i++) {
 			const auto iMaterial = scene->mMaterials[i];
-			auto& iMatInfo = materials.at(i);
+			materials.emplace_back();
+			auto& iMatInfo = materials.back();
 
 			{
 				float floatBuf;
@@ -543,15 +547,16 @@ namespace dal {
 		info.clear();
 
 		Assimp::Importer importer;
-		const aiScene* const scene = importer.ReadFileFromMemory(buf, bufSize, aiProcess_Triangulate | aiProcess_FlipUVs);
+		const aiScene* const scene = importer.ReadFileFromMemory(buf, bufSize, aiProcess_Triangulate);
+		//const aiScene* const scene = importer.ReadFileFromMemory(buf, bufSize, aiProcess_Triangulate | aiProcess_FlipUVs);
 		if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
 			LoggerGod::getinst().putError("Assimp read fail: "s + importer.GetErrorString());
 			return false;
 		}
 
 		std::vector<MaterialInfo> materials;
-		if (processMaterial(scene, materials) == 0) return false;
-		
+		processMaterial(scene, materials);
+	
 		return processNode(info, materials, scene, scene->mRootNode);
 	}
 

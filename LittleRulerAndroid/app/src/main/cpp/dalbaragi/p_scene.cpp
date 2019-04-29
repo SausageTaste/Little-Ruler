@@ -212,7 +212,7 @@ namespace {
 		{
 
 		}
-
+		
 		virtual void start(void) override {
 			/* OBJ */ {
 				dal::AssetFileIn file;
@@ -229,6 +229,20 @@ namespace {
 
 				dal::ModelInfo modelInfo;
 				dal::parseOBJ_assimp(modelInfo, buf.get(), bufSize);
+
+				if (modelInfo.size() == out_infoObj.mObjects.size()) {
+					int index = -1;
+					for (auto& unit : modelInfo) {
+						index++;
+						if (unit.m_mesh.m_vertices.size() != out_infoObj.mObjects.at(index).mVertices.size()) {
+							out_infoObj.mObjects.at(index).mVertices = unit.m_mesh.m_vertices;
+							out_infoObj.mObjects.at(index).mTexcoords = unit.m_mesh.m_texcoords;
+							out_infoObj.mObjects.at(index).mNormals = unit.m_mesh.m_normals;
+
+							dal::LoggerGod::getinst().putTrace("Replaced: "s + in_objName + "->"s + out_infoObj.mObjects.at(index).mName);
+						}
+					}
+				}
 			}
 
 			/* MTL */ {
@@ -322,7 +336,7 @@ namespace dal {
 			info.m_instanceInfo.back().rescale = 3.0f;
 			this->addObject(info);
 		}
-
+		
 		{
 			ModelBuildInfo_Load info;
 			info.m_modelName = "yuri.obj";
@@ -371,6 +385,7 @@ namespace dal {
 			info.m_instanceInfo.back().rescale = 3.0f;
 			this->addObject(info);
 		}
+		
 
 	}
 
