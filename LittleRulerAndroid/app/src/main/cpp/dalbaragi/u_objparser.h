@@ -10,33 +10,33 @@
 
 namespace dal {
 
-	struct OBJObjectInfo_old {
+	struct OBJObjectInfo_deprecated {
 		std::vector<float> mVertices, mTexcoords, mNormals;
 		std::vector<glm::vec3> debugVertices, debugNormals;
 		std::vector<glm::vec2> debugTexcoords;
 		std::string mName, mMaterialName;
 
-		OBJObjectInfo_old(const char* const name) : mName(name) {
+		OBJObjectInfo_deprecated(const char* const name) : mName(name) {
 
 		}
 	};
 
-	struct OBJInfo_old {
-		std::vector<OBJObjectInfo_old> mObjects;
+	struct OBJInfo_deprecated {
+		std::vector<OBJObjectInfo_deprecated> mObjects;
 		std::vector<std::string> mMaterialFiles;
 	};
 
-	struct MTLMaterialInfo_old {
+	struct MTLMaterialInfo_deprecated {
 		glm::vec3 mDiffuseColor;
 		std::string mDiffuseMap, m_specularMap, mName;
 
-		MTLMaterialInfo_old(const char* const name) : mName(name) {
+		MTLMaterialInfo_deprecated(const char* const name) : mName(name) {
 
 		}
 	};
 
-	struct MTLInfo_old {
-		std::vector<MTLMaterialInfo_old> mMateirals;
+	struct MTLInfo_deprecated {
+		std::vector<MTLMaterialInfo_deprecated> mMateirals;
 	};
 
 
@@ -61,10 +61,10 @@ namespace dal {
 	using ModelInfo = std::list<RenderUnitInfo>;
 
 
-	bool parseOBJ(OBJInfo_old* const con, const uint8_t* const buf, const size_t bufSize);
+	bool parseOBJ_deprecated(OBJInfo_deprecated* const con, const uint8_t* const buf, const size_t bufSize);
 
-	bool parseMTL(MTLInfo_old* info, const uint8_t* const buf, const size_t bufSize);
+	bool parseMTL_deprecated(MTLInfo_deprecated* info, const uint8_t* const buf, const size_t bufSize);
 
-	bool parseOBJ_assimp(ModelInfo& info, const uint8_t* const buf, const size_t bufSize);
+	bool parseOBJ_assimp(ModelInfo& info, const char* const assetPath);
 
 }

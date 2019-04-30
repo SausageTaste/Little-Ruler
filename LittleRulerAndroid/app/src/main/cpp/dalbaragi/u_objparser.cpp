@@ -10,12 +10,119 @@
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
+#include <assimp/IOStream.hpp>
+#include <assimp/IOSystem.hpp>
 
 #include "s_logger_god.h"
 #include "u_fileclass.h"
 
+#include <cstdio>
+
 
 using namespace std;
+
+
+namespace {
+
+	class AssIOStreamAsset : public Assimp::IOStream {
+
+	private:
+		dal::AssetFileStream m_handle;
+
+	public:
+		AssIOStreamAsset(void) = default;
+
+		bool open(const char* const path) {
+			return m_handle.open(path);
+		}
+
+		virtual size_t FileSize(void) const override {
+			return m_handle.getFileSize();
+		}
+
+		virtual void Flush(void) override {
+
+		}
+
+		virtual size_t Read(void* pvBuffer, size_t pSize, size_t pCount) override {
+			return m_handle.read(static_cast<uint8_t*>(pvBuffer), pSize* pCount);
+		}
+
+		virtual aiReturn Seek(size_t pOffset, aiOrigin pOrigin) override {
+			dal::AssetFileStream::Whence whence;
+
+			switch (pOrigin) {
+
+			case aiOrigin_SET:
+				whence = dal::AssetFileStream::Whence::beg;
+				break;
+			case aiOrigin_CUR:
+				whence = dal::AssetFileStream::Whence::cur;
+				break;
+			case aiOrigin_END:
+				whence = dal::AssetFileStream::Whence::end;
+				break;
+			default:
+				dal::LoggerGod::getinst().putError("Invalid pOrigin value for AssIOStreamAsset::Seek: "s + std::to_string(pOrigin));
+				return aiReturn_FAILURE;
+
+			}
+
+			return m_handle.seek(pOffset, whence) ? aiReturn_SUCCESS : aiReturn_FAILURE;
+		}
+
+		virtual size_t Tell() const override {
+			return m_handle.tell();
+		}
+
+		virtual size_t Write(const void* pvBuffer, size_t pSize, size_t pCount) override {
+			dal::LoggerGod::getinst().putError("Writing is not supported for assets.");
+			throw - 1;
+		}
+
+	};
+
+
+	class AssIOSystem_Asset : public Assimp::IOSystem {
+
+	private:
+		std::vector<std::string> m_stackDir;
+		static const std::string m_emptyStr;
+
+	public:
+		virtual void Close(Assimp::IOStream* pFile) override {
+			delete pFile;
+		}
+
+		virtual bool Exists(const char* pFile) const override {
+			dal::AssetFileStream file;
+			return file.open(pFile);
+		}
+
+		virtual char getOsSeparator() const override {
+			return '/';
+		}
+
+		virtual Assimp::IOStream* Open(const char* pFile, const char* pMode = "rb") {
+			if (pMode[0] == 'w') {
+				dal::LoggerGod::getinst().putError("Writing is not supported for assets.");
+				return nullptr;
+			}
+
+			auto file = new AssIOStreamAsset();
+			if (file->open(pFile)) {
+				return file;
+			}
+			else {
+				delete file;
+				return nullptr;
+			}
+
+		}
+
+	};
+
+}
 
 
 namespace {  // Common
@@ -294,12 +401,19 @@ namespace {
 			{
 				float floatBuf;
 
-				if (aiGetMaterialFloat(iMaterial, AI_MATKEY_SHININESS, &floatBuf) == aiReturn_SUCCESS) {
+				if (aiReturn_SUCCESS == aiGetMaterialFloat(iMaterial, AI_MATKEY_SHININESS, &floatBuf)) {
 					iMatInfo.m_shininess = floatBuf;
 				}
 
-				if (aiGetMaterialFloat(iMaterial, AI_MATKEY_SHININESS_STRENGTH, &floatBuf) == aiReturn_SUCCESS) {
+				if (aiReturn_SUCCESS == aiGetMaterialFloat(iMaterial, AI_MATKEY_SHININESS_STRENGTH, &floatBuf)) {
 					iMatInfo.m_specStrength = floatBuf;
+				}
+
+				aiColor4D vec4Buf;
+				if (aiReturn_SUCCESS == aiGetMaterialColor(iMaterial, AI_MATKEY_COLOR_DIFFUSE, &vec4Buf)) {
+					iMatInfo.m_diffuseColor.r = vec4Buf.r;
+					iMatInfo.m_diffuseColor.g = vec4Buf.g;
+					iMatInfo.m_diffuseColor.b = vec4Buf.b;
 				}
 			}
 
@@ -375,7 +489,7 @@ namespace {
 
 namespace dal {
 
-	bool parseOBJ(OBJInfo_old* const con, const uint8_t* const buf, const size_t bufSize) {
+	bool parseOBJ_deprecated(OBJInfo_deprecated* const con, const uint8_t* const buf, const size_t bufSize) {
 		con->mMaterialFiles.clear();
 		con->mObjects.clear();
 
@@ -384,8 +498,8 @@ namespace dal {
 
 		vector<glm::vec3> vertices, normals;
 		vector<glm::vec2> texcoords;
-		OBJObjectInfo_old dummyObj{ "dummy" };
-		OBJObjectInfo_old* curObject = &dummyObj;
+		OBJObjectInfo_deprecated dummyObj{ "dummy" };
+		OBJObjectInfo_deprecated* curObject = &dummyObj;
 
 		// Fetch all needed data
 		for (unsigned int i = 0; i < bufSize; i++) {
@@ -486,11 +600,11 @@ namespace dal {
 		return true;
 	}
 
-	bool parseMTL(MTLInfo_old* info, const uint8_t* const buf, const size_t bufSize) {
+	bool parseMTL_deprecated(MTLInfo_deprecated* info, const uint8_t* const buf, const size_t bufSize) {
 		array<char, 256> bufLine;
 		unsigned int curIndex = 0;
 
-		MTLMaterialInfo_old* curMaterial = nullptr;
+		MTLMaterialInfo_deprecated* curMaterial = nullptr;
 
 		for (unsigned int i = 0; i < bufSize; i++) {
 			if (buf[i] == '\n') {
@@ -543,11 +657,12 @@ namespace dal {
 		return true;
 	}
 
-	bool parseOBJ_assimp(ModelInfo& info, const uint8_t* const buf, const size_t bufSize) {
+	bool parseOBJ_assimp(ModelInfo& info, const char* const assetPath) {
 		info.clear();
 
 		Assimp::Importer importer;
-		const aiScene* const scene = importer.ReadFileFromMemory(buf, bufSize, aiProcess_Triangulate);
+		importer.SetIOHandler(new AssIOSystem_Asset);
+		const aiScene* const scene = importer.ReadFile(assetPath, aiProcess_Triangulate);
 		//const aiScene* const scene = importer.ReadFileFromMemory(buf, bufSize, aiProcess_Triangulate | aiProcess_FlipUVs);
 		if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
 			LoggerGod::getinst().putError("Assimp read fail: "s + importer.GetErrorString());

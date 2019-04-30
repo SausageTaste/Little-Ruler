@@ -124,8 +124,8 @@ namespace dal {
 
 		/* Compile shaders general */ {
 			string vertSrc, fragSrc;
-			readFileAsStr("glsl/general_v.glsl", &vertSrc);
-			readFileAsStr("glsl/general_f.glsl", &fragSrc);
+			file::readFileAsStr("glsl/general_v.glsl", &vertSrc);
+			file::readFileAsStr("glsl/general_f.glsl", &fragSrc);
 
 			auto verShader = compileShader(ShaderType::VERTEX, vertSrc.c_str());
 			auto fragShader = compileShader(ShaderType::FRAGMENT, fragSrc.c_str());
@@ -141,8 +141,8 @@ namespace dal {
 
 		/* Compile shaders fill screen */ {
 			string vertSrc, fragSrc;
-			readFileAsStr("glsl/fillscreen_v.glsl", &vertSrc);
-			readFileAsStr("glsl/fillscreen_f.glsl", &fragSrc);
+			file::readFileAsStr("glsl/fillscreen_v.glsl", &vertSrc);
+			file::readFileAsStr("glsl/fillscreen_f.glsl", &fragSrc);
 
 			auto verShader = compileShader(ShaderType::VERTEX, vertSrc.c_str());
 			auto fragShader = compileShader(ShaderType::FRAGMENT, fragSrc.c_str());
@@ -158,8 +158,8 @@ namespace dal {
 
 		/* Compile shaders fill screen */ {
 			string vertSrc, fragSrc;
-			readFileAsStr("glsl/depth_v.glsl", &vertSrc);
-			readFileAsStr("glsl/depth_f.glsl", &fragSrc);
+			file::readFileAsStr("glsl/depth_v.glsl", &vertSrc);
+			file::readFileAsStr("glsl/depth_f.glsl", &fragSrc);
 
 			auto verShader = compileShader(ShaderType::VERTEX, vertSrc.c_str());
 			auto fragShader = compileShader(ShaderType::FRAGMENT, fragSrc.c_str());

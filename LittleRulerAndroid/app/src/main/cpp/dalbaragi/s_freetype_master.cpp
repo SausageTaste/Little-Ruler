@@ -17,7 +17,7 @@ namespace dal {
 			throw -1;
 		}
 
-		AssetFileIn file;
+		AssetFileStream file;
 		const char* fontName = "fonts/NanumGothic.ttf";
 		file.open(fontName);
 		auto arrSize = file.getFileSize();

@@ -185,93 +185,37 @@ namespace {
 
 	}
 
-	const char* const g_objMtlLoadTask_name = "ObjMtlLoadTask";
+	const char* const g_objMtlLoadTask_name = "ModelLoadTask";
 
 }
 
 
 namespace {
 
-	class ObjMtlLoadTask : public dal::iTask {
+	class ModelLoadTask : public dal::iTask {
 
 	public:
-		// Inputs
-		std::string in_objName;
-		
-		// Outputs
+		const std::string in_modelName;
+
 		bool out_success;
-
-		dal::OBJInfo_old out_infoObj;
-		dal::MTLInfo_old out_infoMtl;
+		dal::ModelInfo out_info;
 
 	public:
-		ObjMtlLoadTask(const char* const objName)
+		ModelLoadTask(const char* const modelName)
 		:	iTask(g_objMtlLoadTask_name),
-			in_objName(objName),
+			in_modelName(modelName),
 			out_success(false)
 		{
 
 		}
-		
+
 		virtual void start(void) override {
-			/* OBJ */ {
-				dal::AssetFileIn file;
-				if (file.open(("models/"s + this->in_objName).c_str()) == false) goto errorFin;
-
-				const auto bufSize = file.getFileSize();
-				if (bufSize <= 0) goto errorFin;
-
-				auto buf = std::unique_ptr<uint8_t>(new uint8_t[bufSize]);
-				if (file.read(buf.get(), bufSize) == false) goto errorFin;
-
-				file.close();
-				if (dal::parseOBJ(&this->out_infoObj, buf.get(), bufSize) == false) goto errorFin;
-
-				dal::ModelInfo modelInfo;
-				dal::parseOBJ_assimp(modelInfo, buf.get(), bufSize);
-
-				if (modelInfo.size() == out_infoObj.mObjects.size()) {
-					int index = -1;
-					for (auto& unit : modelInfo) {
-						index++;
-						if (unit.m_mesh.m_vertices.size() != out_infoObj.mObjects.at(index).mVertices.size()) {
-							out_infoObj.mObjects.at(index).mVertices = unit.m_mesh.m_vertices;
-							out_infoObj.mObjects.at(index).mTexcoords = unit.m_mesh.m_texcoords;
-							out_infoObj.mObjects.at(index).mNormals = unit.m_mesh.m_normals;
-
-							dal::LoggerGod::getinst().putTrace("Replaced: "s + in_objName + "->"s + out_infoObj.mObjects.at(index).mName);
-						}
-					}
-				}
-			}
-
-			/* MTL */ {
-				for (auto& mtlName : this->out_infoObj.mMaterialFiles) {
-					dal::AssetFileIn file;
-					if (file.open(("models/"s + mtlName).c_str()) == false) goto errorFin;
-
-					const auto bufSize = file.getFileSize();
-					if (bufSize <= 0) goto errorFin;
-
-					auto buf = std::unique_ptr<uint8_t>(new uint8_t[bufSize]);
-					if (file.read(buf.get(), bufSize) == false) goto errorFin;
-
-					file.close();
-					if (dal::parseMTL(&this->out_infoMtl, buf.get(), bufSize) == false) goto errorFin;
-				}
-			}
-
-			out_success = true;
-			return;
-
-		errorFin:
-			out_success = false;
-			return;
+			out_success = dal::parseOBJ_assimp(out_info, ("models/"s + this->in_modelName).c_str());
 		}
 
 	};
 
-	std::unordered_set<void*> g_sentTasks_objLoad;
+	std::unordered_set<void*> g_sentTasks_modelLoad;
 
 }
 
@@ -386,7 +330,6 @@ namespace dal {
 			this->addObject(info);
 		}
 		
-
 	}
 
 	SceneMaster::~SceneMaster(void) {
@@ -396,44 +339,38 @@ namespace dal {
 	void SceneMaster::notify(iTask* const task) {
 		std::unique_ptr<iTask> taskPtr{task};
 
-		if (g_sentTasks_objLoad.find(task) != g_sentTasks_objLoad.end()) {
-			g_sentTasks_objLoad.erase(task);
-			assert(task->checkNameIs(g_objMtlLoadTask_name));
+		if (g_sentTasks_modelLoad.find(task) != g_sentTasks_modelLoad.end()) {
+			g_sentTasks_modelLoad.erase(task);
 
-			auto loaded = reinterpret_cast<ObjMtlLoadTask*>(task);
-			if (loaded->out_success != true) {
-				LoggerGod::getinst().putError("Failed to load model: "s + loaded->in_objName);
+			auto loaded = reinterpret_cast<ModelLoadTask*>(task);
+			if (true != loaded->out_success) {
+				LoggerGod::getinst().putError("Failed to load model: "s + loaded->in_modelName);
 				return;
 			}
 
 			ModelInst* model;
-			assert(this->findModel(loaded->in_objName.c_str(), &model, nullptr));
+			assert(this->findModel(loaded->in_modelName.c_str(), &model, nullptr));
 
-			for (auto& obj : loaded->out_infoObj.mObjects) {
+			for (auto& unitInfo : loaded->out_info) {
 				model->m_renderUnits.emplace_back();
 				auto& unit = model->m_renderUnits.back();
 
 				unit.m_mesh.buildData(
-					obj.mVertices.data(),  obj.mVertices.size(),
-					obj.mTexcoords.data(), obj.mTexcoords.size(),
-					obj.mNormals.data(),   obj.mNormals.size()
+					unitInfo.m_mesh.m_vertices.data(),  unitInfo.m_mesh.m_vertices.size(),
+					unitInfo.m_mesh.m_texcoords.data(), unitInfo.m_mesh.m_texcoords.size(),
+					unitInfo.m_mesh.m_normals.data(),   unitInfo.m_mesh.m_normals.size()
 				);
-				unit.m_name = obj.mName;
+				unit.m_name = unitInfo.m_name;
 
-				for (auto& mtl : loaded->out_infoMtl.mMateirals) {
-					if (mtl.mName == obj.mMaterialName) {
-						unit.m_material.mDiffuseColor = mtl.mDiffuseColor;
-						unit.m_material.setName(mtl.mName.c_str());
+				unit.m_material.mDiffuseColor = unitInfo.m_material.m_diffuseColor;
+				unit.m_material.mShininess = unitInfo.m_material.m_shininess;
+				unit.m_material.mSpecularStrength = unitInfo.m_material.m_specStrength;
 
-						if (mtl.mDiffuseMap.size() > 0) {
-							auto tex = m_texMas.request_diffuseMap(mtl.mDiffuseMap.c_str());
-							unit.m_material.setDiffuseMap(tex);
-						}
-						break;
-					}
+				if (!unitInfo.m_material.m_diffuseMap.empty()) {
+					auto tex = m_texMas.request_diffuseMap(unitInfo.m_material.m_diffuseMap.c_str());
+					unit.m_material.setDiffuseMap(tex);
 				}
 			}
-
 		}
 		else {
 			LoggerGod::getinst().putFatal("Not registered task revieved in TextureMaster::notify.");
@@ -454,19 +391,6 @@ namespace dal {
 					unit->m_mesh.draw();
 				}
 			}
-			/*
-			for (auto& unit : model.m_renderUnits) {
-				unit.m_material.sendUniform(uniloc);
-				if (!unit.m_mesh.isReady()) continue;
-
-				for (auto& inst : model.m_inst) {
-					glm::mat4 mat;
-					inst.getViewMat(&mat);
-					glUniformMatrix4fv(uniloc.uModelMat, 1, GL_FALSE, &mat[0][0]);
-					unit.m_mesh.draw();
-				}
-			}
-			*/
 		}
 	}
 
@@ -515,8 +439,8 @@ namespace dal {
 		modelInst.m_name = info.m_modelName;
 		modelInst.m_inst.assign(info.m_instanceInfo.begin(), info.m_instanceInfo.end());
 
-		auto task = new ObjMtlLoadTask(info.m_modelName);
-		g_sentTasks_objLoad.insert(task);
+		auto task = new ModelLoadTask(info.m_modelName);
+		g_sentTasks_modelLoad.insert(task);
 		TaskGod::getinst().orderTask(task, this);
 	}
 

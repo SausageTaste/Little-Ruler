@@ -41,11 +41,11 @@ namespace dal {
 	}
 
 	void Mainloop::giveWhatFilesystemWants(void* androidAssetManager) {
-		initFilesystem(androidAssetManager);
+		file::initFilesystem(androidAssetManager);
 	}
 
 	bool Mainloop::isWhatFilesystemWantsGiven(void) {
-		return isFilesystemReady();
+		return file::isFilesystemReady();
 	}
 
 	// Public
@@ -88,7 +88,7 @@ namespace dal {
 		}
 
 		const auto elapsed = initTimer.check_getElapsed_capFPS();
-		printf("Init time: %f\n", elapsed);
+		LoggerGod::getinst().putInfo("Init time: "s + to_string(elapsed));
 	}
 
 	Mainloop::~Mainloop(void) {

@@ -21,6 +21,8 @@
 #include <windows.h>
 #elif defined(__ANDROID__)
 #include <android/asset_manager.h>
+#include <zconf.h> // Just for SEEK_SET
+
 #endif
 
 
@@ -69,7 +71,6 @@ namespace {
 				}();
 
 				if (found) {
-					dal::LoggerGod::getinst().putInfo("Resource path: "s + pattern);
 					path = pattern += "Resources/assets/";
 					break;
 				}
@@ -87,19 +88,13 @@ namespace {
 }
 
 
-using namespace std::string_literals;
-
-
 namespace {
 
-	bool readFileAsPNG(
-		const char* const path, std::vector<uint8_t>* output,
-		int* const width, int* const height
-	) {
+	bool readFileAsPNG(const char* const path, std::vector<uint8_t>* output, int* const width, int* const height) {
 		std::vector<uint8_t> buf;
 		
 		/* Fill buffer */ {
-			dal::AssetFileIn file;
+			dal::AssetFileStream file;
 			file.open(path);
 			auto bufSize = file.getFileSize();
 
@@ -124,16 +119,13 @@ namespace {
 		return true;
 	}
 
-	bool readFileAsTGA(
-		const char* const path, std::vector<uint8_t>* output,
-		int* const width, int* const height, int* const pixSize
-	) {
-		dal::AssetFileIn file;
+	bool readFileAsTGA(const char* const path, std::vector<uint8_t>* output, int* const width, int* const height, int* const pixSize) {
+		dal::AssetFileStream file;
 		file.open(path);
 		const auto bufSize = file.getFileSize();
 		auto buf = std::unique_ptr<uint8_t>{ new uint8_t[bufSize] };
 		const auto res = file.read(buf.get(), bufSize);
-		if (!res) {
+		if (res == 0) {
 			return false;
 		}
 
@@ -150,82 +142,14 @@ namespace {
 		return true;
 	}
 
-}
-
-
-namespace dal {
-
-	bool initFilesystem(void* mgr) {
-
-#if defined(_WIN32)
-		return true;
-#elif defined(__ANDROID__)
-		if (mgr == nullptr) {
-			return false;
-		}
-		else {
-			gAssetMgr = (AAssetManager*)mgr;
-			return true;
-		}
-#endif
-
-	}
-
-	bool isFilesystemReady(void) {
-#if defined(_WIN32)
-		return true;
-#elif defined(__ANDROID__)
-		return gAssetMgr != nullptr;
-#endif
-	}
-
-	bool readFileAsStr(const char* const path, std::string* bufStr) {
-		AssetFileIn file;
-		if (file.open(path) != true) {
-			return false;
-		}
-
-		auto bufSize = file.getFileSize();
-		auto buf = std::unique_ptr<uint8_t>(new uint8_t[bufSize + 1]);
-		file.read(buf.get(), bufSize);
-		buf.get()[bufSize] = '\0';
-
-		bufStr->clear();
-		*bufStr = reinterpret_cast<char*>(buf.get());
-		return true;
-	}
-
-	bool readImageFile(const char* const path, std::vector<uint8_t>* const output, int* const width, int* const height, int* const pixSize) {
-		const auto len = strlen(path);
-		assert(path[len - 4] == '.');
-
-		std::string paramExt{ path + len - 3 };
-		if (paramExt == "tga"s) {
-			const auto res = readFileAsTGA(path, output, width, height, pixSize);
-			assert(*pixSize == 4 || *pixSize == 3);
-			return res;
-		}
-		else if (paramExt == "png"s) {
-			const auto res = readFileAsPNG(path, output, width, height);
-			const size_t calcSize = size_t(*width) * size_t(*height) * size_t(4);
-			assert(output->size() == calcSize);
-			*pixSize = 4;
-			return res;
-		}
-		else {
-			LoggerGod::getinst().putError("Not supported image file type: "s + path);
-			return false;
-		}
-	}
-
 	void getFileList(const char* const path, std::vector<std::string>* results) {
 
 #if defined(_WIN32)
-		LoggerGod::getinst().putFatal("Not implemented.");
+		dal::LoggerGod::getinst().putFatal("Not implemented.");
 #elif defined(__ANDROID__)
 		// Check error
-		if (!isFilesystemReady()) {
-			LoggerGod::getinst().putError("Filesystem is not initialized");
+		if (!dal::file::isFilesystemReady()) {
+			dal::LoggerGod::getinst().putError("Filesystem is not initialized");
 		}
 
 		// Do
@@ -244,6 +168,76 @@ namespace dal {
 
 
 namespace dal {
+	namespace file {
+
+		bool initFilesystem(void* mgr) {
+
+#if defined(_WIN32)
+			return true;
+#elif defined(__ANDROID__)
+			if (mgr == nullptr) {
+				return false;
+			}
+			else {
+				gAssetMgr = (AAssetManager*)mgr;
+				return true;
+			}
+#endif
+
+		}
+
+		bool isFilesystemReady(void) {
+#if defined(_WIN32)
+			return true;
+#elif defined(__ANDROID__)
+			return gAssetMgr != nullptr;
+#endif
+		}
+
+		bool readFileAsStr(const char* const path, std::string* bufStr) {
+			AssetFileStream file;
+			if (file.open(path) != true) {
+				return false;
+			}
+
+			auto bufSize = file.getFileSize();
+			auto buf = std::unique_ptr<uint8_t>(new uint8_t[bufSize + 1]);
+			file.read(buf.get(), bufSize);
+			buf.get()[bufSize] = '\0';
+
+			bufStr->clear();
+			*bufStr = reinterpret_cast<char*>(buf.get());
+			return true;
+		}
+
+		bool readImageFile(const char* const path, std::vector<uint8_t> * const output, int* const width, int* const height, int* const pixSize) {
+			const auto len = strlen(path);
+			assert(path[len - 4] == '.');
+
+			std::string paramExt{ path + len - 3 };
+			if (paramExt == "tga"s) {
+				const auto res = readFileAsTGA(path, output, width, height, pixSize);
+				assert(*pixSize == 4 || *pixSize == 3);
+				return res;
+			}
+			else if (paramExt == "png"s) {
+				const auto res = readFileAsPNG(path, output, width, height);
+				const size_t calcSize = size_t(*width) * size_t(*height) * size_t(4);
+				assert(output->size() == calcSize);
+				*pixSize = 4;
+				return res;
+			}
+			else {
+				LoggerGod::getinst().putError("Not supported image file type: "s + path);
+				return false;
+			}
+		}
+
+	}
+}
+
+
+namespace dal {
 
 	struct InFileclassPimpl {
 #if defined(_WIN32)
@@ -254,7 +248,7 @@ namespace dal {
 	};
 
 
-	AssetFileIn::AssetFileIn(void)
+	AssetFileStream::AssetFileStream(void)
 	:	pimpl(new InFileclassPimpl()),
 		m_fileContentsSize(0),
 		m_opened(false)
@@ -262,25 +256,24 @@ namespace dal {
 
 	}
 
-	AssetFileIn::AssetFileIn(const char* const path)
-		: AssetFileIn()
+	AssetFileStream::AssetFileStream(const char* const path)
+		: AssetFileStream()
 	{
 		const auto res = this->open(path);
 		if (!res)  throw -1;
 	}
 
-	AssetFileIn::~AssetFileIn(void) {
+	AssetFileStream::~AssetFileStream(void) {
 		if (m_opened) this->close();
 
 		delete this->pimpl;
 	}
 
-	bool AssetFileIn::open(const char* const path) {
+	bool AssetFileStream::open(const char* const path) {
 
 #if defined(_WIN32)
 		m_path = getResourceDir() + path;
-		LoggerGod::getinst().putInfo(m_path);
-
+		
 		this->pimpl->mIFile.open(m_path.c_str(), std::ios::binary);
 		if (!this->pimpl->mIFile){
 			LoggerGod::getinst().putError("Failed to open file: "s + m_path);
@@ -311,7 +304,7 @@ namespace dal {
 		return true;
 	}
 
-	void AssetFileIn::close(void) {
+	void AssetFileStream::close(void) {
 
 #if defined(_WIN32)
 		this->pimpl->mIFile.close();
@@ -323,7 +316,7 @@ namespace dal {
 		m_opened = false;
 	}
 
-	bool AssetFileIn::read(uint8_t* const buf, size_t bufSize) {
+	size_t AssetFileStream::read(uint8_t* const buf, const size_t bufSize) {
 		auto sizeToRead = bufSize < m_fileContentsSize ? bufSize : m_fileContentsSize;
 
 #if defined(_WIN32)
@@ -333,20 +326,72 @@ namespace dal {
 			LoggerGod::getinst().putError(
 				"File not read completely, only "s + std::to_string(this->pimpl->mIFile.gcount()) + "could be read:"s + m_path
 			);
-			return false;
+			return 0;
 		}
 #elif defined(__ANDROID__)
 		if (AAsset_read(this->pimpl->mOpenedAsset, buf, sizeToRead) < 0) {
 			LoggerGod::getinst().putError("Failed to read file:"s + m_path);
-			return false;
+			return 0;
 		}
 #endif
 
-		return true;
+		return sizeToRead;
 	}
 
-	size_t AssetFileIn::getFileSize(void) const {
+	size_t AssetFileStream::getFileSize(void) const {
 		return this->m_fileContentsSize;
+	}
+
+	bool AssetFileStream::seek(const size_t offset, const Whence whence) {
+
+#if defined(_WIN32)
+		switch (whence) {
+		case Whence::beg:
+			pimpl->mIFile.seekg(offset, std::ios_base::beg);
+			break;
+		case Whence::cur:
+			pimpl->mIFile.seekg(offset, std::ios_base::cur);
+			break;
+		case Whence::end:
+			pimpl->mIFile.seekg(offset, std::ios_base::end);
+			break;
+		}
+
+		return !pimpl->mIFile.fail();
+#elif defined(__ANDROID__)
+		decltype(SEEK_SET) cwhence;
+
+		switch (whence) {
+			case Whence::beg:
+				cwhence = SEEK_SET;
+				break;
+			case Whence::cur:
+				cwhence = SEEK_CUR;
+				break;
+			case Whence::end:
+				cwhence = SEEK_END;
+				break;
+		}
+
+		return AAsset_seek(pimpl->mOpenedAsset, static_cast<off_t>(offset), cwhence) != -1;
+#endif
+
+	}
+
+	size_t AssetFileStream::tell(void) const {
+
+#if defined(_WIN32)
+		return static_cast<size_t>(this->pimpl->mIFile.tellg());
+#elif defined(__ANDROID__)
+		const auto curPos = AAsset_getRemainingLength(pimpl->mOpenedAsset);
+		return m_fileContentsSize - static_cast<size_t>(curPos);
+#endif
+
+	}
+
+	size_t AssetFileStream::write(const uint8_t* const buf, const size_t bufSize) {
+		LoggerGod::getinst().putFatal("Not implemented: AssetFileStream::write");
+		throw - 1;
 	}
 
 }

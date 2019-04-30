@@ -79,8 +79,8 @@ namespace dal {
 
 		std::deque<ModelInst> m_freeModels;
 
-		RenderUnit_Static mLoadedUnits[120];
-		std::list<ModelInstanceInfo> mLoadedInsts[120];
+		//RenderUnit_Static mLoadedUnits[120];
+		//std::list<ModelInstanceInfo> mLoadedInsts[120];
 
 	public:
 		SceneMaster(TextureMaster& texMas);
