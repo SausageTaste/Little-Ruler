@@ -1,9 +1,16 @@
 import numpy as np
 
 import level.primitive_data as pri
+import level.base_info as bas
 
 
-class VertexArray:
+class VertexArray(bas.BuildInfo):
+    s_field_self = "vertex_array"
+
+    s_field_vertices = "vertices"
+    s_field_texcoords = "texcoords"
+    s_field_normals = "normals"
+
     def __init__(self, v: np.ndarray, t: np.ndarray, n: np.ndarray):
         if isinstance(v, np.ndarray): raise ValueError("v is " + type(v).__name__)
         if isinstance(t, np.ndarray): raise ValueError("t is " + type(t).__name__)
@@ -12,6 +19,34 @@ class VertexArray:
         self.__vertices = v
         self.__texcoords = t
         self.__normals = n
+
+    def getIntegrityReport(self) -> bas.IntegrityReport:
+        report = bas.IntegrityReport(self.s_field_self)
+
+        if self.__vertices.size == 0:
+            report.emplaceBack(self.s_field_vertices, "Empty")
+
+        if self.__texcoords.size == 0:
+            report.emplaceBack(self.s_field_texcoords, "Empty")
+
+        if self.__normals.size == 0:
+            report.emplaceBack(self.s_field_normals, "Empty")
+
+        if self.__normals.size != self.__vertices.size or self.__vertices.size * 2 != self.__texcoords * 3:
+            errMsg = "Incorrect size of vertices: vert({}), tex({}), nor({})".format(
+                self.__vertices.size, self.__texcoords.size, self.__normals.size
+            )
+            report.emplaceBack("Data error", errMsg)
+
+        return report
+
+    def getJson(self) -> dict:
+        return {
+            self.s_field_vertices : self.__vertices.tobytes(),
+            self.s_field_texcoords : self.__texcoords.tobytes(),
+            self.s_field_normals : self.__normals.tobytes(),
+        }
+
 
 
 def generateAABBMesh(p1: pri.Vec3, p2: pri.Vec3) -> VertexArray:

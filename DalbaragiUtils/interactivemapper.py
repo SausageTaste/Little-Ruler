@@ -8,8 +8,11 @@ def main():
     level = lvb.LevelBuilder("test_level")
 
     model = bfi.BuildInfo_ModelImported()
-    model.m_model_name = "yuri.obj"
+    #model.m_model_name = "yuri.obj"
     model.m_actor.m_pos.z = 2
+    level.add(model)
+
+    model = bfi.Build_ModelDefined()
     level.add(model)
 
     level.throwIfNotIntegral()
