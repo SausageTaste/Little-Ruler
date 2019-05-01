@@ -26,17 +26,17 @@ namespace dal {
 	};
 
 
-	class ModelInstanceInfo {
+	class ActorInfo {
 
 	public:
-		std::string m_instName;
+		std::string m_actorName;
 		glm::vec3 pos;
 		glm::quat myQuat;
 		float rescale;
 
-		ModelInstanceInfo(void);
-		ModelInstanceInfo(glm::vec3 initPos);
-		ModelInstanceInfo(const float x, const float y , const float z);
+		ActorInfo(void);
+		ActorInfo(glm::vec3 initPos);
+		ActorInfo(const float x, const float y , const float z);
 		void getViewMat(glm::mat4* mat) const;
 		void rotate(const float v, const glm::vec3& selector);
 
@@ -53,7 +53,7 @@ namespace dal {
 	struct ModelInst {
 		std::string m_name;
 		std::deque<Pair_MeshMaterial> m_renderUnits;
-		std::list<ModelInstanceInfo> m_inst;
+		std::list<ActorInfo> m_inst;
 	};
 
 
@@ -63,12 +63,12 @@ namespace dal {
 		glm::vec3 m_p1, m_p2;
 		float m_shininess = 32.0f, m_specStrength = 1.0f;
 		float m_texScaleX = 1.0f, m_texScaleY = 1.0f;
-		std::list<ModelInstanceInfo> m_instanceInfo;
+		std::list<ActorInfo> m_instanceInfo;
 	};
 
 	struct ModelBuildInfo_Load {
 		const char* m_modelName;
-		std::list<ModelInstanceInfo> m_instanceInfo;
+		std::list<ActorInfo> m_instanceInfo;
 	};
 
 
@@ -80,7 +80,7 @@ namespace dal {
 		std::deque<ModelInst> m_freeModels;
 
 		//RenderUnit_Static mLoadedUnits[120];
-		//std::list<ModelInstanceInfo> mLoadedInsts[120];
+		//std::list<ActorInfo> mLoadedInsts[120];
 
 	public:
 		SceneMaster(TextureMaster& texMas);

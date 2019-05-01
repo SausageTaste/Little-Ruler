@@ -226,30 +226,30 @@ namespace dal {
 		return this->mesh.isReady();
 	}
 
-	ModelInstanceInfo::ModelInstanceInfo(void) : rescale(1.0f) {
+	ActorInfo::ActorInfo(void) : rescale(1.0f) {
 
 	}
 
-	ModelInstanceInfo::ModelInstanceInfo(glm::vec3 initPos)
+	ActorInfo::ActorInfo(glm::vec3 initPos)
 		: pos(initPos),
 		rescale(1.0f)
 	{
 
 	}
 
-	ModelInstanceInfo::ModelInstanceInfo(const float x, const float y, const float z)
+	ActorInfo::ActorInfo(const float x, const float y, const float z)
 		: pos(x, y, z), rescale(1.0f)
 	{
 
 	}
 
-	void ModelInstanceInfo::getViewMat(glm::mat4* mat) const {
+	void ActorInfo::getViewMat(glm::mat4* mat) const {
 		auto scaleMat = glm::scale(glm::mat4{ 1.0f }, { rescale, rescale , rescale });
 		auto translateMat = glm::translate(glm::mat4{ 1.0f }, this->pos);
 		*mat = translateMat * glm::mat4_cast(myQuat) * scaleMat;
 	}
 
-	void ModelInstanceInfo::rotate(const float v, const glm::vec3& selector) {
+	void ActorInfo::rotate(const float v, const glm::vec3& selector) {
 		this->myQuat = glm::angleAxis(v, selector) * this->myQuat;
 		this->myQuat = glm::normalize(this->myQuat);
 	}
