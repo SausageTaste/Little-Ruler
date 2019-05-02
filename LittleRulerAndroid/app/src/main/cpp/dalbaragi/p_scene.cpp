@@ -337,7 +337,7 @@ namespace dal {
 	}
 
 	void SceneMaster::notify(iTask* const task) {
-		std::unique_ptr<iTask> taskPtr{task};
+		std::unique_ptr<iTask> taskPtr{ task };
 
 		if (g_sentTasks_modelLoad.find(task) != g_sentTasks_modelLoad.end()) {
 			g_sentTasks_modelLoad.erase(task);
@@ -349,7 +349,10 @@ namespace dal {
 			}
 
 			ModelInst* model;
-			assert(this->findModel(loaded->in_modelName.c_str(), &model, nullptr));
+			if (!this->findModel(loaded->in_modelName.c_str(), &model, nullptr)) {
+				LoggerGod::getinst().putError("Recieved a ModelLoadTask but coresponding model not found: "s + loaded->in_modelName);
+				return;
+			}
 
 			for (auto& unitInfo : loaded->out_info) {
 				model->m_renderUnits.emplace_back();
