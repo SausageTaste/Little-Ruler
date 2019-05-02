@@ -1,103 +1,44 @@
-import level.utils as uti
 import level.mesh_info as mes
-import level.base_info as bas
+import level.level_item as bas
+import level.element_interface as eim
+import level.primitive_data as pri
 
 
-class BuildInfo_ModelDefined(bas.BuildInfo):
-    s_field_self = "model_defined"
-
-    s_field_mesh = "mesh"
-    s_field_model_name: str = "model_name"
+class BuildInfo_ModelDefined(eim.ILevelItem):
+    __s_field_model_name: str = "model_name"
+    __s_field_mesh = "mesh"
+    __s_field_material = "material"
+    __s_field_actors = "actors"
 
     def __init__(self):
-        self.__name: str = ""
-        self.__mesh: mes.VertexArray = None
+        self.__name = pri.IdentifierStr()
+        self.__mesh = mes.VertexArray()
         self.__material = bas.Material()
-        self.__actor = bas.ActorInfo()
+        self.__actors = bas.UniformList(bas.ActorInfo)
 
-    def getJson(self) -> dict:
-        return {
-            self.s_field_type : self.s_field_self,
-            self.s_field_mesh : self.__mesh.getJson(),
-            self.__material.s_field_self : self.__material.getJson(),
-            self.__actor.s_field_self : self.__actor.getJson(),
-        }
+        super().__init__({
+            self.__s_field_model_name : self.__name,
+            self.__s_field_mesh       : self.__mesh,
+            self.__s_field_material   : self.__material,
+            self.__s_field_actors     : self.__actors,
+        })
 
-    def getIntegrityReport(self) -> bas.IntegrityReport:
-        report = bas.IntegrityReport(self.s_field_self)
-        report.setObjName(self.__name)
-
-        if len(self.__name) == 0:
-            report.emplaceBack(self.s_field_model_name, "Not defined", bas.ERROR_LEVEL_WARN)
-
-        if self.__mesh is None:
-            report.emplaceBack(self.s_field_mesh, "Mesh is None")
-        else:
-            childReport = self.__mesh.getIntegrityReport()
-            if childReport.any(): report.addChild(childReport)
-
-        childReport = self.__material.getIntegrityReport()
-        if childReport.any(): report.addChild(childReport)
-
-        childReport = self.__actor.getIntegrityReport()
-        if childReport.any(): report.addChild(childReport)
-
-        return report
-
-    def setMesh(self, mesh: mes.VertexArray):
-        if not isinstance(mesh, mes.VertexArray): ValueError()
-        self.__mesh = mesh
-
-    @property
-    def m_actor(self):
-        return self.__actor
+    def getFieldTypeOfSelf(self) -> str:
+        return "model_defined"
 
 
-class BuildInfo_ModelImported(bas.BuildInfo):
-    s_field_self = "model_imported"
-
-    s_field_model_name:str = "model_name"
+class BuildInfo_ModelImported(eim.ILevelItem):
+    __s_field_model_name:str = "model_name"
+    __s_field_actors = "actors"
 
     def __init__(self):
-        self.__model_name: str = ""
-        self.m_actor = bas.ActorInfo()
+        self.__model_name = pri.IdentifierStr()
+        self.__actors = bas.UniformList(bas.ActorInfo)
 
-    def overrideFromJson(self, data:dict) -> None:
-        if self.s_field_model_name in data.keys():
-            self.m_model_name = data[self.s_field_model_name]
-        else:
-            self.m_model_name = ""
-            print("error in overrideFromJson: Model name not defined")
-        if self.m_actor.s_field_self in data.keys():
-            self.m_actor.overrideFromJson(data[self.m_actor.s_field_self])
-        else:
-            self.m_actor = bas.ActorInfo()
+        super().__init__({
+            self.__s_field_model_name : self.__model_name,
+            self.__s_field_actors      : self.__actors,
+        })
 
-    def getJson(self) -> dict:
-        self.throwIfNotIntegral()
-
-        return {
-            self.s_field_type : self.s_field_self,
-            self.s_field_model_name : self.m_model_name,
-            self.m_actor.s_field_self : self.m_actor.getJson(),
-        }
-
-    def getIntegrityReport(self) -> bas.IntegrityReport:
-        report = bas.IntegrityReport(self.s_field_self)
-        report.setObjName(self.m_model_name)
-
-        if len(self.__model_name) == 0:
-            report.emplaceBack(self.s_field_model_name, "Not defined", bas.ERROR_LEVEL_WARN)
-
-        childReport = self.m_actor.getIntegrityReport()
-        if childReport.any(): report.addChild(childReport)
-
-        return report
-
-    @property
-    def m_model_name(self):
-        return self.__model_name
-    @m_model_name.setter
-    def m_model_name(self, v: str):
-        uti.throwIfNotValidStrId(v)
-        self.__model_name = str(v)
+    def getFieldTypeOfSelf(self) -> str:
+        return "model_imported"

@@ -1,77 +1,55 @@
 import numpy as np
-import base64
 
 import level.primitive_data as pri
-import level.base_info as bas
+import level.element_interface as ein
 
 
-class VertexArray(bas.BuildInfo):
-    s_field_self = "vertex_array"
+class VertexArray(ein.ILevelAttrib):
+    __s_field_vertices = "vertices"
+    __s_field_texcoords = "texcoords"
+    __s_field_normals = "normals"
 
-    s_field_vertices = "vertices"
-    s_field_texcoords = "texcoords"
-    s_field_normals = "normals"
+    def __init__(self):
+        self.__vertices = pri.FloatArray()
+        self.__texcoords = pri.FloatArray()
+        self.__normals = pri.FloatArray()
 
-    def __init__(self, v: np.ndarray, t: np.ndarray, n: np.ndarray):
-        if not isinstance(v, np.ndarray): raise ValueError("v is " + type(v).__name__)
-        if not isinstance(t, np.ndarray): raise ValueError("t is " + type(t).__name__)
-        if not isinstance(n, np.ndarray): raise ValueError("n is " + type(n).__name__)
+        super().__init__({
+            self.__s_field_vertices : self.__vertices,
+            self.__s_field_texcoords : self.__texcoords,
+            self.__s_field_normals : self.__normals
+        })
+
+    def setArray(self, v: np.ndarray, t: np.ndarray, n: np.ndarray):
+        if not isinstance(v, np.ndarray) or not isinstance(t, np.ndarray) or not isinstance(n, np.ndarray):
+            raise ValueError()
 
         self.__vertices = v
         self.__texcoords = t
         self.__normals = n
 
-    def getIntegrityReport(self) -> bas.IntegrityReport:
-        report = bas.IntegrityReport(self.s_field_self)
-
-        if self.__vertices.size == 0:
-            report.emplaceBack(self.s_field_vertices, "Empty")
-
-        if self.__texcoords.size == 0:
-            report.emplaceBack(self.s_field_texcoords, "Empty")
-
-        if self.__normals.size == 0:
-            report.emplaceBack(self.s_field_normals, "Empty")
-
-
-        vertSize: int = self.__vertices.size
-        texSzie: int = self.__texcoords.size
-        normSize: int = self.__normals.size
-
-        if (vertSize != normSize) or (2*vertSize != 3*texSzie):
-            errMsg = "Incorrect size of vertices: vert({}), tex({}), nor({})".format(
-                self.__vertices.size, self.__texcoords.size, self.__normals.size
-            )
-            report.emplaceBack("Data error", errMsg)
-
-        return report
-
-    def getJson(self) -> dict:
-        a = base64.encodebytes(self.__vertices.tobytes())
-        print(a)
-        return {
-            self.s_field_vertices : base64.encodebytes(self.__vertices.tobytes()).decode(),
-            self.s_field_texcoords : base64.encodebytes(self.__texcoords.tobytes()).decode(),
-            self.s_field_normals : base64.encodebytes(self.__normals.tobytes()).decode(),
-        }
-
-
 
 def generateAABBMesh(p1: pri.Vec3, p2: pri.Vec3) -> VertexArray:
-    if p1.x < p2.x:
-        xOne = p1.x; xTwo = p2.x
-    else:
-        xOne = p2.x; xTwo = p1.x
+    x1, y1, z1 = p1.getXYZ()
+    x2, y2, z2 = p2.getXYZ()
 
-    if p1.y < p2.y:
-        yOne = p1.y; yTwo = p2.y
+    if x1 < x2:
+        xOne = x1; xTwo = x2
     else:
-        yOne = p2.y; yTwo = p1.y
+        xOne = x2; xTwo = x1
 
-    if p1.z < p2.z:
-        zOne = p1.z; zTwo = p2.z
+    if y1 < y2:
+        yOne = y1; yTwo = y2
     else:
-        zOne = p2.z; zTwo = p1.z
+        yOne = y2; yTwo = y1
+
+    if z1 < z2:
+        zOne = z1; zTwo = z2
+    else:
+        zOne = z2; zTwo = z1
+
+    del x1, y1, z1
+    del x2, y2, z2
 
     vertices = np.array([
         xOne, yTwo, zTwo,
@@ -203,4 +181,6 @@ def generateAABBMesh(p1: pri.Vec3, p2: pri.Vec3) -> VertexArray:
         0, -1, 0,
     ], np.float32)
 
-    return VertexArray(vertices, texCoords, normals)
+    va = VertexArray()
+    va.setArray(vertices, texCoords, normals)
+    return va
