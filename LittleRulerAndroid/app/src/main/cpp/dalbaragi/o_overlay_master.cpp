@@ -45,10 +45,10 @@ namespace dal {
 		}
 
 		/* Event Master */ {
+			this->mHandlerName = "OverlayMaster";
 			EventGod::getinst().registerHandler(this, EventType::window_resize);
 			EventGod::getinst().registerHandler(this, EventType::touch_tap);
 			EventGod::getinst().registerHandler(this, EventType::global_fsm_change);
-			this->mHandlerName = "OverlayMaster";
 		}
 
 		/* Misc */ {

@@ -599,6 +599,7 @@ namespace dal {
 	{
 		gTouchMaster.giveTouchPointDrawer(&mBoxesForTouchPoint);
 
+		mHandlerName = "InputApplier";
 		EventGod::getinst().registerHandler(this, EventType::global_fsm_change);
 	}
 

@@ -74,8 +74,9 @@ namespace dal {
 		}
 
 		/* Misc */ {
-			EventGod::getinst().registerHandler(this, EventType::quit_game);
 			mHandlerName = "dal::Mainloop";
+			EventGod::getinst().registerHandler(this, EventType::quit_game);
+			
 			this->mTimer.setCapFPS(300);
 		}
 
