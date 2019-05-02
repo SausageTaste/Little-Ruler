@@ -1,4 +1,5 @@
 import numpy as np
+import base64
 
 import level.primitive_data as pri
 import level.base_info as bas
@@ -12,9 +13,9 @@ class VertexArray(bas.BuildInfo):
     s_field_normals = "normals"
 
     def __init__(self, v: np.ndarray, t: np.ndarray, n: np.ndarray):
-        if isinstance(v, np.ndarray): raise ValueError("v is " + type(v).__name__)
-        if isinstance(t, np.ndarray): raise ValueError("t is " + type(t).__name__)
-        if isinstance(n, np.ndarray): raise ValueError("n is " + type(n).__name__)
+        if not isinstance(v, np.ndarray): raise ValueError("v is " + type(v).__name__)
+        if not isinstance(t, np.ndarray): raise ValueError("t is " + type(t).__name__)
+        if not isinstance(n, np.ndarray): raise ValueError("n is " + type(n).__name__)
 
         self.__vertices = v
         self.__texcoords = t
@@ -32,7 +33,12 @@ class VertexArray(bas.BuildInfo):
         if self.__normals.size == 0:
             report.emplaceBack(self.s_field_normals, "Empty")
 
-        if self.__normals.size != self.__vertices.size or self.__vertices.size * 2 != self.__texcoords * 3:
+
+        vertSize: int = self.__vertices.size
+        texSzie: int = self.__texcoords.size
+        normSize: int = self.__normals.size
+
+        if (vertSize != normSize) or (2*vertSize != 3*texSzie):
             errMsg = "Incorrect size of vertices: vert({}), tex({}), nor({})".format(
                 self.__vertices.size, self.__texcoords.size, self.__normals.size
             )
@@ -41,10 +47,12 @@ class VertexArray(bas.BuildInfo):
         return report
 
     def getJson(self) -> dict:
+        a = base64.encodebytes(self.__vertices.tobytes())
+        print(a)
         return {
-            self.s_field_vertices : self.__vertices.tobytes(),
-            self.s_field_texcoords : self.__texcoords.tobytes(),
-            self.s_field_normals : self.__normals.tobytes(),
+            self.s_field_vertices : base64.encodebytes(self.__vertices.tobytes()).decode(),
+            self.s_field_texcoords : base64.encodebytes(self.__texcoords.tobytes()).decode(),
+            self.s_field_normals : base64.encodebytes(self.__normals.tobytes()).decode(),
         }
 
 

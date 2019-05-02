@@ -6,7 +6,8 @@ import level.base_info as bas
 
 
 LEVEL_COMPONENT_TYPE = Union[
-    bif.BuildInfo_ModelImported
+    bif.BuildInfo_ModelImported,
+    bif.BuildInfo_ModelDefined
 ]
 
 
@@ -15,9 +16,9 @@ class LevelBuilder(bas.BuildInfo):
         uti.throwIfNotValidStrId(name)
 
         self.__levelName: str = str(name)
-        self.__infoDatas:List[LEVEL_COMPONENT_TYPE] = []
+        self.__infoDatas:List[bas.BuildInfo] = []
 
-    def add(self, obj: LEVEL_COMPONENT_TYPE):
+    def add(self, obj: bas.BuildInfo):
         if isinstance(obj, bas.BuildInfo):
             #obj.throwIfNotIntegral()
             self.__infoDatas.append(obj)
@@ -38,7 +39,7 @@ class LevelBuilder(bas.BuildInfo):
 
         for obj in self.__infoDatas:
             report = obj.getIntegrityReport()
-            if report.any(): report.m_children.append(report)
+            if report.any(): report.addChild(report)
 
         return report
 

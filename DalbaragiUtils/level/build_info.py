@@ -3,7 +3,7 @@ import level.mesh_info as mes
 import level.base_info as bas
 
 
-class Build_ModelDefined(bas.BuildInfo):
+class BuildInfo_ModelDefined(bas.BuildInfo):
     s_field_self = "model_defined"
 
     s_field_mesh = "mesh"
@@ -25,23 +25,28 @@ class Build_ModelDefined(bas.BuildInfo):
 
     def getIntegrityReport(self) -> bas.IntegrityReport:
         report = bas.IntegrityReport(self.s_field_self)
+        report.setObjName(self.__name)
 
         if len(self.__name) == 0:
-            report.m_data[self.s_field_model_name] = "[Warning] Not defined"
+            report.emplaceBack(self.s_field_model_name, "Not defined", bas.ERROR_LEVEL_WARN)
 
         if self.__mesh is None:
-            report.m_data[self.s_field_mesh] = "[Error] Mesh is null"
+            report.emplaceBack(self.s_field_mesh, "Mesh is None")
         else:
             childReport = self.__mesh.getIntegrityReport()
-            if childReport.any(): report.m_children.append(childReport)
+            if childReport.any(): report.addChild(childReport)
 
         childReport = self.__material.getIntegrityReport()
-        if childReport.any(): report.m_children.append(childReport)
+        if childReport.any(): report.addChild(childReport)
 
         childReport = self.__actor.getIntegrityReport()
-        if childReport.any(): report.m_children.append(childReport)
+        if childReport.any(): report.addChild(childReport)
 
         return report
+
+    def setMesh(self, mesh: mes.VertexArray):
+        if not isinstance(mesh, mes.VertexArray): ValueError()
+        self.__mesh = mesh
 
     @property
     def m_actor(self):
@@ -79,13 +84,13 @@ class BuildInfo_ModelImported(bas.BuildInfo):
 
     def getIntegrityReport(self) -> bas.IntegrityReport:
         report = bas.IntegrityReport(self.s_field_self)
-        report.m_typeObjectName = self.m_model_name
+        report.setObjName(self.m_model_name)
 
         if len(self.__model_name) == 0:
-            report.m_data["model_name"] = "[Warning] Not defined"
+            report.emplaceBack(self.s_field_model_name, "Not defined", bas.ERROR_LEVEL_WARN)
 
         childReport = self.m_actor.getIntegrityReport()
-        if childReport.any(): report.m_children.append(childReport)
+        if childReport.any(): report.addChild(childReport)
 
         return report
 

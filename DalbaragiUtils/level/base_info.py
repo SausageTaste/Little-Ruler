@@ -28,7 +28,10 @@ class IntegrityReport:
         self.__typeObjectName = str(s)
 
     def any(self) -> bool:
-        if len(self.__data) != 0: return True
+        for err in self.__data:
+            if err.m_significant == ERROR_LEVEL_ERROR:
+                return True
+
         for child in self.__children:
             if child.any(): return True
 
@@ -61,6 +64,9 @@ class IntegrityReport:
 
     def emplaceBack(self, identifier:str="", msg:str="", errLevel:str=ERROR_LEVEL_ERROR):
         self.__data.append(ErrorJourner(identifier, msg, errLevel))
+
+    def addChild(self, report: "IntegrityReport") -> None:
+        self.__children.append(report)
 
 
 class BuildInfo(abc.ABC):
