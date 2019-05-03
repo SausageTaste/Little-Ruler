@@ -6,14 +6,15 @@ from typing import List, Optional
 import level.datastruct.level_builder as lvb
 
 
-def getOnlyFileName(path: str) -> str:
-    return os.path.split(os.path.splitext(path)[0])[1]
-
 class CompileWorkReciepe:
     def __init__(self):
         self.m_fileNames: List[str] = []
 
-def getWorkProperties() -> Optional["CompileWorkReciepe"]:
+
+def getOnlyFileName(path: str) -> str:
+    return os.path.split(os.path.splitext(path)[0])[1]
+
+def getWorkProperties() -> Optional[CompileWorkReciepe]:
 
 
     work = CompileWorkReciepe()
@@ -49,6 +50,7 @@ def main():
             level = lvb.LevelBuilder(fileName)
             level.setJson(data)
             print(level.getIntegrityReport().getFormattedStr())
+            level.saveToFile("outputs/")
 
 
 if __name__ == '__main__':

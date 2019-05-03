@@ -1,13 +1,12 @@
-from typing import List
-
 import numpy as np
 
 import level.datastruct.interface as ein
 from level.datastruct.interface import json_t
 import level.datastruct.attrib_leaf as pri
+import level.datastruct.error_reporter as ere
 
 
-class ActorInfo(ein.ILevelItem):
+class ActorInfo(ein.ILevelAttrib):
     __s_field_actor_name = "actor_name"
     __s_field_pos = "pos"
     __s_field_quat = "quat"
@@ -22,9 +21,6 @@ class ActorInfo(ein.ILevelItem):
             self.__s_field_pos: self.__pos,
             self.__s_field_quat: self.__quat,
         })
-
-    def getFieldTypeOfSelf(self) -> str:
-        return "actor"
 
 
 class Material(ein.ILevelAttrib):
@@ -53,7 +49,7 @@ class Material(ein.ILevelAttrib):
 class UniformList(ein.ILevelAttribLeaf):
     def __init__(self, templateType: type):
         self.__type = templateType
-        self.__list:List[ein.ILevelElement] = []
+        self.__list:list= []
 
     def setDefault(self) -> None:
         self.__list = []
@@ -72,14 +68,26 @@ class UniformList(ein.ILevelAttribLeaf):
             elem.setJson(x)
             self.__list.append(elem)
 
-    def getIntegrityReport(self, usageName: str = "") -> ein.IntegrityReport:
-        report = ein.IntegrityReport("UniformList<{}>".format(self.__type.__name__), usageName)
+    def getIntegrityReport(self, usageName: str = "") -> ere.IntegrityReport:
+        report = ere.IntegrityReport("UniformList< {} >".format(str(self.__type)[1:-1]), usageName)
 
         for i, x in enumerate(self.__list):
             childReport = x.getIntegrityReport("index {}".format(i))
             if childReport.hasWarningOrWorse(): report.addChild(childReport)
 
+        if len(self.__list) == 0:
+            report.emplaceBack("size", "List is empty.")
+
         return report
+
+    def pushBack(self, item):
+        if not isinstance(item, self.__type):
+            errMsg = "Value '{}' is not a proper value for UniformList< {} >.".format(
+                type(item), str(self.__type)[1:-1]
+            )
+            raise ValueError(errMsg)
+
+        self.__list.append(item)
 
 
 class VertexArray(ein.ILevelAttrib):
@@ -128,7 +136,7 @@ class VertexArray(ein.ILevelAttrib):
         del x1, y1, z1
         del x2, y2, z2
 
-        self.__vertices = np.array([
+        self.__vertices.setArray(np.array([
             xOne, yTwo, zTwo,
             xOne, yOne, zTwo,
             xTwo, yOne, zTwo,
@@ -170,8 +178,8 @@ class VertexArray(ein.ILevelAttrib):
             xOne, yOne, zTwo,
             xTwo, yOne, zOne,
             xTwo, yOne, zTwo,
-        ], np.float32)
-        self.__texcoords = np.array([
+        ], np.float32))
+        self.__texcoords.setArray(np.array([
             0, 1,
             0, 0,
             1, 0,
@@ -213,8 +221,8 @@ class VertexArray(ein.ILevelAttrib):
             0, 1,
             1, 0,
             1, 1,
-        ], np.float32)
-        self.__normals = np.array([
+        ], np.float32))
+        self.__normals.setArray(np.array([
             0, 0, 1,
             0, 0, 1,
             0, 0, 1,
@@ -256,4 +264,12 @@ class VertexArray(ein.ILevelAttrib):
             0, -1, 0,
             0, -1, 0,
             0, -1, 0,
-        ], np.float32)
+        ], np.float32))
+
+    def getIntegrityReport(self, usageName: str = "") -> ere.IntegrityReport:
+        report = ein.ILevelAttrib.getIntegrityReport(self, usageName)
+
+        if self.__vertices.getSize() <= 0:
+            report.emplaceBack("arrays", "Vertex array is empty. What's the point of this?")
+
+        return report

@@ -1,8 +1,11 @@
 import math
-import numpy as np
-from typing import Tuple
 import base64
-from level.datastruct.interface import ILevelAttribLeaf, json_t, IntegrityReport, ErrorJournal
+from typing import Tuple
+
+import numpy as np
+
+from level.datastruct.interface import ILevelAttribLeaf, json_t
+import level.datastruct.error_reporter as ere
 
 
 class Vec3(ILevelAttribLeaf):
@@ -36,8 +39,8 @@ class Vec3(ILevelAttribLeaf):
     def getJson(self) -> json_t:
         return [self.__x, self.__y, self.__z]
 
-    def getIntegrityReport(self, usageName: str = "") -> IntegrityReport:
-        return IntegrityReport("attrib::Vec3", usageName)
+    def getIntegrityReport(self, usageName: str = "") -> ere.IntegrityReport:
+        return ere.IntegrityReport(type(self).__name__, usageName)
 
     def getXYZ(self) -> Tuple[float, float , float]:
         return self.__x, self.__y, self.__z
@@ -84,8 +87,8 @@ class Vec4(ILevelAttribLeaf):
         self.__z = data[2]
         self.__w = data[3]
 
-    def getIntegrityReport(self, usageName: str = "") -> IntegrityReport:
-        return IntegrityReport("attrib::Vec4", usageName)
+    def getIntegrityReport(self, usageName: str = "") -> ere.IntegrityReport:
+        return ere.IntegrityReport(type(self).__name__, usageName)
 
 
 class IdentifierStr(ILevelAttribLeaf):
@@ -103,11 +106,11 @@ class IdentifierStr(ILevelAttribLeaf):
         self.__raiseIfInvalidID(data)
         self.__text = str(data)
 
-    def getIntegrityReport(self, usageName: str = "") -> IntegrityReport:
-        report = IntegrityReport("attrib::IdentifierStr", usageName)
+    def getIntegrityReport(self, usageName: str = "") -> ere.IntegrityReport:
+        report = ere.IntegrityReport(type(self).__name__, usageName)
 
         if not self.__text:
-            report.emplaceBack("str", "Name is not defined.", ErrorJournal.ERROR_LEVEL_WARN)
+            report.emplaceBack("str", "Name is not defined.", ere.ErrorJournal.ERROR_LEVEL_WARN)
 
         return report
 
@@ -146,18 +149,13 @@ class FloatData(ILevelAttribLeaf):
     def getJson(self) -> json_t:
         return self.__value
 
-    def getIntegrityReport(self, usageName: str = "") -> IntegrityReport:
-        return IntegrityReport("attrib::Float", usageName)
+    def getIntegrityReport(self, usageName: str = "") -> ere.IntegrityReport:
+        return ere.IntegrityReport(type(self).__name__, usageName)
 
 
 class FloatArray(ILevelAttribLeaf):
-    def __init__(self, arr: np.ndarray = None):
-        if arr is None:
-            self.__arr = np.array([], dtype=np.float32)
-        elif isinstance(arr, np.ndarray):
-            self.__arr = arr
-        else:
-            raise ValueError()
+    def __init__(self):
+        self.__arr = np.array([], dtype=np.float32)
 
     def setDefault(self) -> None:
         self.__arr = np.array([], dtype=np.float32)
@@ -166,12 +164,19 @@ class FloatArray(ILevelAttribLeaf):
         return base64.encodebytes(self.__arr.tobytes()).decode("utf8")
 
     def setJson(self, data: json_t) -> None:
-        self.__arr = np.frombuffer(data.encode("utf8"), dtype=np.float32)
+        self.__arr = np.frombuffer(base64.decodebytes(data.encode("utf8")), dtype=np.float32)
 
-    def getIntegrityReport(self, usageName: str = "") -> IntegrityReport:
-        report = IntegrityReport("attrib::FloatArray", usageName)
+    def getIntegrityReport(self, usageName: str = "") -> ere.IntegrityReport:
+        report = ere.IntegrityReport(type(self).__name__, usageName)
 
         if self.__arr.size == 0:
-            report.emplaceBack("array", "Array in empty.", ErrorJournal.ERROR_LEVEL_WARN)
+            report.emplaceBack("array", "Array in empty.", ere.ErrorJournal.ERROR_LEVEL_WARN)
 
         return report
+
+    def getSize(self) -> int:
+        return int(self.__arr.size)
+
+    def setArray(self, arr: np.ndarray) -> None:
+        if not isinstance(arr, np.ndarray): raise ValueError()
+        self.__arr = arr

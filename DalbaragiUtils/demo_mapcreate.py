@@ -1,38 +1,22 @@
-import json
-import os
-
 import level.datastruct.item_builder as bfi
 import level.datastruct.level_builder as lvb
-
-
-def saveToFile(level: lvb.LevelBuilder):
-    OUTPUT_FOLDER_NAME: str = "intermediates"
-    report = level.getIntegrityReport()
-    if report.isFatal():
-        raise RuntimeError(report.getFormattedStr())
-
-    jsonData = level.getJson()
-
-    if not os.path.isdir(OUTPUT_FOLDER_NAME):
-        os.mkdir(OUTPUT_FOLDER_NAME)
-
-    filePath: str = "{}/{}.json".format(OUTPUT_FOLDER_NAME, level.getLevelName())
-    with open(filePath, "w", encoding="utf8") as file:
-        json.dump(jsonData, file, indent=4, sort_keys=True)
+import level.datastruct.attrib_leaf as atl
+import level.datastruct.attrib_complex as aco
 
 
 def main():
     level = lvb.LevelBuilder("test_level")
 
     model = bfi.BuildInfo_ModelImported()
+    model.addActor(aco.ActorInfo())
     level.add(model)
 
     model = bfi.BuildInfo_ModelDefined()
+    model.getMeshHandle().setAABB(atl.Vec3(-50, -1, -50), atl.Vec3(50, 0, 50))
+    model.addActor(aco.ActorInfo())
     level.add(model)
 
-    saveToFile(level)
-
-
+    level.saveToFile()
 
 
 if __name__ == '__main__':

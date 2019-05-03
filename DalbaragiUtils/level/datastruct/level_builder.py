@@ -1,9 +1,11 @@
 from typing import List
+import os, json
 
 import level.datastruct.item_builder as bif
 import level.datastruct.interface as ein
 from level.datastruct.interface import json_t
 import level.datastruct.attrib_leaf as pri
+import level.datastruct.error_reporter as ere
 
 
 class LevelBuilder(ein.ILevelElement):
@@ -33,8 +35,8 @@ class LevelBuilder(ein.ILevelElement):
 
         return data
 
-    def getIntegrityReport(self, usageName: str = "") -> ein.IntegrityReport:
-        report = ein.IntegrityReport("Level", self.__levelName.getStr())
+    def getIntegrityReport(self, usageName: str = "") -> ere.IntegrityReport:
+        report = ere.IntegrityReport("Level", self.__levelName.getStr())
 
         for obj in self.__infoDatas:
             reportChild = obj.getIntegrityReport(obj.getFieldTypeOfSelf())
@@ -59,3 +61,20 @@ class LevelBuilder(ein.ILevelElement):
 
     def getLevelName(self) -> str:
         return self.__levelName.getStr()
+
+    def saveToFile(self, outputFolder: str = "intermediates/"):
+        report = self.getIntegrityReport()
+        if report.isFatal():
+            raise RuntimeError(report.getFormattedStr())
+        else:
+            print(report.getFormattedStr())
+
+        jsonData = self.getJson()
+
+        if not os.path.isdir(outputFolder):
+            os.mkdir(outputFolder)
+
+        filePath: str = "{}/{}.json".format(outputFolder, self.getLevelName())
+        with open(filePath, "w", encoding="utf8") as file:
+            json.dump(jsonData, file, indent=4, sort_keys=True)
+
