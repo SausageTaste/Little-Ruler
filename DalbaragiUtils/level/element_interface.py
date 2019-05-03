@@ -157,5 +157,19 @@ class ILevelAttrib(ILevelElement):
 
 
 class ILevelItem(ILevelAttrib):
-    @abc.abstractmethod
-    def getFieldTypeOfSelf(self) -> str: pass
+    @staticmethod
+    def getFieldTypeOfSelf() -> str: pass
+
+    def getJson(self) -> json_t:
+        data = { self.s_field_type : self.getFieldTypeOfSelf() }
+
+        for field, element in self.__attribs.items():
+            data[field] = element.getJson()
+
+        return data
+
+    def setJson(self, data: json_t) -> None:
+        if data[self.s_field_type] != self.getFieldTypeOfSelf():
+            raise ValueError()
+
+        ILevelAttrib.setJson(self, data)

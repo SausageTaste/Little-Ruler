@@ -23,7 +23,8 @@ class BuildInfo_ModelDefined(eim.ILevelItem):
             self.__s_field_actors     : self.__actors,
         })
 
-    def getFieldTypeOfSelf(self) -> str:
+    @staticmethod
+    def getFieldTypeOfSelf() -> str:
         return "model_defined"
 
 
@@ -40,5 +41,6 @@ class BuildInfo_ModelImported(eim.ILevelItem):
             self.__s_field_actors      : self.__actors,
         })
 
-    def getFieldTypeOfSelf(self) -> str:
+    @staticmethod
+    def getFieldTypeOfSelf() -> str:
         return "model_imported"
