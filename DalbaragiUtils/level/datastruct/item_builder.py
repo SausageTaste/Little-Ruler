@@ -1,7 +1,6 @@
-import level.mesh_info as mes
-import level.level_item as bas
-import level.element_interface as eim
-import level.primitive_data as pri
+import level.datastruct.attrib_complex as bas
+import level.datastruct.interface as eim
+import level.datastruct.attrib_leaf as pri
 
 
 class BuildInfo_ModelDefined(eim.ILevelItem):
@@ -12,7 +11,7 @@ class BuildInfo_ModelDefined(eim.ILevelItem):
 
     def __init__(self):
         self.__name = pri.IdentifierStr()
-        self.__mesh = mes.VertexArray()
+        self.__mesh = bas.VertexArray()
         self.__material = bas.Material()
         self.__actors = bas.UniformList(bas.ActorInfo)
 

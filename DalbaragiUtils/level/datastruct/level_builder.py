@@ -1,16 +1,9 @@
-from typing import List, Union
+from typing import List
 
-import level.build_info as bif
-import level.level_item as bas
-import level.element_interface as ein
-from level.element_interface import json_t
-import level.primitive_data as pri
-
-
-LEVEL_COMPONENT_TYPE = Union[
-    bif.BuildInfo_ModelImported,
-    bif.BuildInfo_ModelDefined
-]
+import level.datastruct.item_builder as bif
+import level.datastruct.interface as ein
+from level.datastruct.interface import json_t
+import level.datastruct.attrib_leaf as pri
 
 
 class LevelBuilder(ein.ILevelElement):
@@ -44,8 +37,8 @@ class LevelBuilder(ein.ILevelElement):
         report = ein.IntegrityReport("Level", self.__levelName.getStr())
 
         for obj in self.__infoDatas:
-            report = obj.getIntegrityReport(obj.getFieldTypeOfSelf())
-            if report.hasWarningOrWorse(): report.addChild(report)
+            reportChild = obj.getIntegrityReport(obj.getFieldTypeOfSelf())
+            if reportChild.hasWarningOrWorse(): report.addChild(reportChild)
 
         return report
 
@@ -63,3 +56,6 @@ class LevelBuilder(ein.ILevelElement):
             newElem = self.__mapItems[elemJson[ein.ILevelItem.s_field_type]]()
             newElem.setJson(elemJson)
             self.__infoDatas.append(newElem)
+
+    def getLevelName(self) -> str:
+        return self.__levelName.getStr()

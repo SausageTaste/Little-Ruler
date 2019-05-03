@@ -49,7 +49,7 @@ class IntegrityReport:
             if err.isFatal():
                 return True
 
-        for _, child in self.__children:
+        for child in self.__children:
             if child.isFatal(): return True
 
         return False
@@ -59,13 +59,13 @@ class IntegrityReport:
             if err.hasWarningOrWorse():
                 return True
 
-        for _, child in self.__children:
+        for child in self.__children:
             if child.hasWarningOrWorse(): return True
 
         return False
 
     def getFormattedStr(self, indent: int = 0) -> str:
-        text = "\t" * indent
+        text = "\n" + "\t" * indent
         text += self.__typeName
         if self.__usageName:
             text += " (" + self.__usageName + ")\n"
@@ -76,9 +76,9 @@ class IntegrityReport:
             text += "\t" * (indent + 1)
             text += x.getFormattedStr()
 
-        for childUsage, child in self.__children:
+        for child in self.__children:
             if child.hasWarningOrWorse():
-                text += child.getFormattedStr(indent + 1)
+                text += child.getFormattedStr(indent + 1) + "\n"
 
         return text
 
@@ -161,10 +161,8 @@ class ILevelItem(ILevelAttrib):
     def getFieldTypeOfSelf() -> str: pass
 
     def getJson(self) -> json_t:
-        data = { self.s_field_type : self.getFieldTypeOfSelf() }
-
-        for field, element in self.__attribs.items():
-            data[field] = element.getJson()
+        data = ILevelAttrib.getJson(self)
+        data[self.s_field_type] = self.getFieldTypeOfSelf()
 
         return data
 

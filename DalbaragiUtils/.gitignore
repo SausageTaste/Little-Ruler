@@ -1,3 +1,6 @@
 /.idea
 *.json
+/__pycache__
 /level/__pycache__
+/level/datastruct/__pycache__
+/intermediates

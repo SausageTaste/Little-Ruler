@@ -2,7 +2,7 @@ import math
 import numpy as np
 from typing import Tuple
 import base64
-from level.element_interface import ILevelAttribLeaf, json_t, IntegrityReport, ErrorJournal
+from level.datastruct.interface import ILevelAttribLeaf, json_t, IntegrityReport, ErrorJournal
 
 
 class Vec3(ILevelAttribLeaf):
@@ -169,4 +169,9 @@ class FloatArray(ILevelAttribLeaf):
         self.__arr = np.frombuffer(data.encode("utf8"), dtype=np.float32)
 
     def getIntegrityReport(self, usageName: str = "") -> IntegrityReport:
-        return IntegrityReport("attrib::FloatArray", usageName)
+        report = IntegrityReport("attrib::FloatArray", usageName)
+
+        if self.__arr.size == 0:
+            report.emplaceBack("array", "Array in empty.", ErrorJournal.ERROR_LEVEL_WARN)
+
+        return report
