@@ -63,7 +63,7 @@
 ### Android
 * 안드로이드 장치를 이용해 디버깅 apk를 설치하려면 **Android Studio**로 `LittleRuler/LittleRulerAndroid` 프로젝트 폴더를 열어서 실행하시면 됩니다.
 * 서명이 안 되어 있기 때문에 apk 파일을 직접 설치할 수는 없는 것 같습니다. ADB(Android Debug Bridge)로 설치해 주세요.
-* 2019년 5월 2일부로 개발자 등록 완료하였습니다. 곧 apk 파일도 다운로드 할 수 있도록 하겠습니다.
+* 2019년 5월 2일부로 개발자 등록 완료하였습니다. [이곳](https://drive.google.com/open?id=1xwQg17bW5f346rpXe2RFgifUFEycAm3t)에서 apk를 다운로드 할 수 있습니다. Google Play Protect가 꺼져 있어야 설치 가능합니다. [참고](https://stackoverflow.com/questions/51080755/installation-app-blocked-by-play-protect)
 
 <br>
 
