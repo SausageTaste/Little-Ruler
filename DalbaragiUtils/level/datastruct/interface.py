@@ -20,6 +20,9 @@ class ILevelElement(abc.ABC):
     @abc.abstractmethod
     def getIntegrityReport(self, usageName: str = "") -> ere.IntegrityReport: pass
 
+    @abc.abstractmethod
+    def getBinary(self) -> bytearray: pass
+
 
 class ILevelAttribLeaf(ILevelElement):
     @abc.abstractmethod
@@ -33,6 +36,9 @@ class ILevelAttribLeaf(ILevelElement):
 
     @abc.abstractmethod
     def getIntegrityReport(self, usageName: str = "") -> ere.IntegrityReport: pass
+
+    @abc.abstractmethod
+    def getBinary(self) -> bytearray: pass
 
 
 class ILevelAttrib(ILevelElement):
