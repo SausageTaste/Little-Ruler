@@ -50,7 +50,7 @@ def main():
             level = lvb.LevelBuilder(fileName)
             level.setJson(data)
             print(level.getIntegrityReport().getFormattedStr())
-            level.saveToFile("outputs/")
+            lvb.saveLevelBinary(level)
 
 
 if __name__ == '__main__':

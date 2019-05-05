@@ -8,6 +8,9 @@ import level.datastruct.attrib_leaf as pri
 import level.datastruct.error_reporter as ere
 
 
+
+
+
 class LevelBuilder(ein.ILevelElement):
     __mapItems = {
         bif.BuildInfo_ModelDefined.getFieldTypeOfSelf(): bif.BuildInfo_ModelDefined,
@@ -32,6 +35,14 @@ class LevelBuilder(ein.ILevelElement):
 
         for obj in self.__infoDatas:
             data.append(obj.getJson())
+
+        return data
+
+    def getBinary(self) -> bytearray:
+        data = bytearray()
+
+        for elem in self.__infoDatas:
+            data += elem.getBinary()
 
         return data
 
@@ -62,19 +73,38 @@ class LevelBuilder(ein.ILevelElement):
     def getLevelName(self) -> str:
         return self.__levelName.getStr()
 
-    def saveToFile(self, outputFolder: str = "intermediates/"):
-        report = self.getIntegrityReport()
-        if report.isFatal():
-            raise RuntimeError(report.getFormattedStr())
-        else:
-            print(report.getFormattedStr())
 
-        jsonData = self.getJson()
+def saveLevelBinary(level: LevelBuilder, outputFolder: str = "outputs/"):
+    report = level.getIntegrityReport()
+    if report.isFatal():
+        raise RuntimeError(report.getFormattedStr())
+    else:
+        print(report.getFormattedStr())
 
-        if not os.path.isdir(outputFolder):
-            os.mkdir(outputFolder)
+    if not os.path.isdir(outputFolder):
+        os.mkdir(outputFolder)
 
-        filePath: str = "{}/{}.json".format(outputFolder, self.getLevelName())
-        with open(filePath, "w", encoding="utf8") as file:
-            json.dump(jsonData, file, indent=4, sort_keys=True)
+    filePath: str = "{}/{}.dlb".format(outputFolder, level.getLevelName())
+    with open(filePath, "wb") as file:
+        file.write(level.getBinary())
 
+
+def saveLevelJson(level: LevelBuilder, outputFolder: str = "intermediates/"):
+    report = level.getIntegrityReport()
+    if report.isFatal():
+        raise RuntimeError(report.getFormattedStr())
+    else:
+        print(report.getFormattedStr())
+
+    if not os.path.isdir(outputFolder):
+        os.mkdir(outputFolder)
+
+    filePath: str = "{}/{}.json".format(outputFolder, level.getLevelName())
+
+    jsonData = level.getJson()
+    with open(filePath, "w") as file:
+        try:
+            json.dump(jsonData, file, indent=4)
+        except TypeError:
+            print(jsonData)
+            raise

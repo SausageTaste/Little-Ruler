@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Dict
 
 
 class ErrorJournal:
@@ -89,3 +89,17 @@ class IntegrityReport:
 
     def addChild(self, report: "IntegrityReport") -> None:
         self.__children.append(report)
+
+
+class TypeCodeInspector:
+    __data: Dict[int, type] = {}
+
+    @classmethod
+    def reportUsage(cls, typeCode: int, user: type) -> None:
+        if typeCode in cls.__data.keys():
+            if cls.__data[typeCode] != user:
+                raise RuntimeError("Two different types are using same type code: {} VS {} for '{}'".format(
+                    cls.__data[typeCode], user, typeCode))
+            else: return
+        else:
+            cls.__data[typeCode] = user

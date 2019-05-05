@@ -1,8 +1,11 @@
+import abc
 from typing import Dict
 
 import level.datastruct.attrib_complex as bas
 import level.datastruct.interface as eim
 import level.datastruct.attrib_leaf as pri
+import level.datastruct.bytesutils as but
+import level.datastruct.error_reporter as ere
 
 
 class ILevelItemModel(eim.ILevelItem):
@@ -11,15 +14,31 @@ class ILevelItemModel(eim.ILevelItem):
 
     def __init__(self, attribDict: Dict[str, eim.ILevelElement]):
         self.__model_id = pri.IdentifierStr()
-        self.__actors = bas.UniformList(bas.ActorInfo)
+        self.__actors = pri.UniformList(bas.ActorInfo)
 
         attribDict[self.__s_field_model_id] = self.__model_id
         attribDict[self.__s_field_actors] = self.__actors
 
         super().__init__(attribDict)
 
+    # As listed
+    def getBinary(self) -> bytearray:
+        data = self.__model_id.getBinary()
+        data += self.__actors.getBinary()
+        return data
+
+    @classmethod
+    @abc.abstractmethod
+    def getTypeCode(cls) -> bytearray: pass
+
     def addActor(self, actor: bas.ActorInfo):
         self.__actors.pushBack(actor)
+
+    def getModelID(self) -> str:
+        return self.__model_id.getStr()
+
+    def setModelID(self, v: str) -> None:
+        self.__model_id.setStr(v)
 
 
 class BuildInfo_ModelDefined(ILevelItemModel):
@@ -35,6 +54,21 @@ class BuildInfo_ModelDefined(ILevelItemModel):
             self.__s_field_material   : self.__material,
         })
 
+    # int2 : Type code
+    # from ILevelItemModel
+    # as listed
+    def getBinary(self) -> bytearray:
+        data = self.getTypeCode()
+        data += ILevelItemModel.getBinary(self)
+        data += self.__mesh.getBinary()
+        data += self.__material.getBinary()
+        return data
+
+    @classmethod
+    def getTypeCode(cls) -> bytearray:
+        ere.TypeCodeInspector.reportUsage(1, cls)
+        return bytearray(but.get2BytesInt(1))
+
     @staticmethod
     def getFieldTypeOfSelf() -> str:
         return "model_defined"
@@ -42,10 +76,33 @@ class BuildInfo_ModelDefined(ILevelItemModel):
     def getMeshHandle(self) -> bas.VertexArray:
         return self.__mesh
 
+    def getMaterialHandle(self) -> bas.Material:
+        return self.__material
+
 
 class BuildInfo_ModelImported(ILevelItemModel):
     def __init__(self):
         super().__init__({})
+
+    # int2 : Type code
+    # from ILevelItemModel
+    def getBinary(self) -> bytearray:
+        data = self.getTypeCode()
+        data += ILevelItemModel.getBinary(self)
+        return data
+
+    @classmethod
+    def getTypeCode(cls) -> bytearray:
+        ere.TypeCodeInspector.reportUsage(2, cls)
+        return bytearray(but.get2BytesInt(2))
+
+    def getIntegrityReport(self, usageName: str = "") -> ere.IntegrityReport:
+        report = ILevelItemModel.getIntegrityReport(self)
+
+        if "" == self.getModelID():
+            report.emplaceBack("model_name", "Model name to import must be defined.")
+
+        return report
 
     @staticmethod
     def getFieldTypeOfSelf() -> str:

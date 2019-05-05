@@ -1,18 +1,24 @@
+import sys
 import math
 import base64
-from typing import Tuple
+from typing import Tuple, List, Type
 
 import numpy as np
 
-from level.datastruct.interface import ILevelAttribLeaf, json_t
+from level.datastruct.interface import json_t
+import level.datastruct.interface as ein
 import level.datastruct.error_reporter as ere
+import level.datastruct.bytesutils as but
 
 
-class Vec3(ILevelAttribLeaf):
+class Vec3(ein.ILevelAttribLeaf):
     def __init__(self, x:float=0.0, y:float=0.0, z:float=0.0):
         self.__x = float(x)
         self.__y = float(y)
         self.__z = float(z)
+
+    def __str__(self):
+        return "< Vec3 {{ {}, {}, {} }} >".format(self.__x, self.__y, self.__z)
 
     def getLength(self) -> float:
         return math.sqrt(self.getLengthSquare())
@@ -42,16 +48,60 @@ class Vec3(ILevelAttribLeaf):
     def getIntegrityReport(self, usageName: str = "") -> ere.IntegrityReport:
         return ere.IntegrityReport(type(self).__name__, usageName)
 
+    # Vector of 3 float4 : Vec4 values
+    def getBinary(self) -> bytearray:
+        data = bytearray()
+
+        data += but.get4BytesFloat(self.__x)
+        data += but.get4BytesFloat(self.__y)
+        data += but.get4BytesFloat(self.__z)
+
+        print(self, [x for x in data])
+        return data
+
     def getXYZ(self) -> Tuple[float, float , float]:
         return self.__x, self.__y, self.__z
 
 
-class Vec4(ILevelAttribLeaf):
+class Vec4(ein.ILevelAttribLeaf):
     def __init__(self, x:float=0.0, y:float=0.0, z:float=0.0, w:float=0.0):
         self.__x = float(x)
         self.__y = float(y)
         self.__z = float(z)
         self.__w = float(w)
+
+    def __str__(self):
+        return "< Vec3 {{ {}, {}, {}, {} }} >".format(self.__x, self.__y, self.__z, self.__w)
+
+    def setDefault(self) -> None:
+        self.__x = 0.0
+        self.__y = 0.0
+        self.__z = 0.0
+        self.__w = 0.0
+
+    def getJson(self) -> json_t:
+        return [self.__x, self.__y, self.__z, self.__w]
+
+    def setJson(self, data: json_t) -> None:
+        self.__x = data[0]
+        self.__y = data[1]
+        self.__z = data[2]
+        self.__w = data[3]
+
+    # Vector of 4 float4 : Vec4 values
+    def getBinary(self) -> bytearray:
+        data = bytearray()
+
+        data += but.get4BytesFloat(self.__x)
+        data += but.get4BytesFloat(self.__y)
+        data += but.get4BytesFloat(self.__z)
+        data += but.get4BytesFloat(self.__w)
+
+        print(self, [x for x in data])
+        return data
+
+    def getIntegrityReport(self, usageName: str = "") -> ere.IntegrityReport:
+        return ere.IntegrityReport(type(self).__name__, usageName)
 
     def getLength(self) -> float:
         return math.sqrt(self.getLengthSquare())
@@ -72,29 +122,14 @@ class Vec4(ILevelAttribLeaf):
         self.__z = data[2]
         self.__w = data[3]
 
-    def setDefault(self) -> None:
-        self.__x = 0.0
-        self.__y = 0.0
-        self.__z = 0.0
-        self.__w = 0.0
 
-    def getJson(self) -> json_t:
-        return [self.__x, self.__y, self.__z, self.__w]
-
-    def setJson(self, data: json_t) -> None:
-        self.__x = data[0]
-        self.__y = data[1]
-        self.__z = data[2]
-        self.__w = data[3]
-
-    def getIntegrityReport(self, usageName: str = "") -> ere.IntegrityReport:
-        return ere.IntegrityReport(type(self).__name__, usageName)
-
-
-class IdentifierStr(ILevelAttribLeaf):
+class IdentifierStr(ein.ILevelAttribLeaf):
     def __init__(self, t: str = ""):
         self.__raiseIfInvalidID(t)
         self.__text = str(t)
+
+    def __str__(self):
+        return "< IdentifierStr {} >".format(repr(self.__text))
 
     def setDefault(self) -> None:
         self.__text = ""
@@ -106,6 +141,13 @@ class IdentifierStr(ILevelAttribLeaf):
         self.__raiseIfInvalidID(data)
         self.__text = str(data)
 
+    # Vector of char : NULL terminated utf-8 str
+    def getBinary(self) -> bytearray:
+        data =  bytearray(self.__text.encode(encoding="utf8")) + '\0'.encode()
+
+        print(self, [x for x in data])
+        return data
+
     def getIntegrityReport(self, usageName: str = "") -> ere.IntegrityReport:
         report = ere.IntegrityReport(type(self).__name__, usageName)
 
@@ -116,6 +158,10 @@ class IdentifierStr(ILevelAttribLeaf):
 
     def getStr(self) -> str:
         return self.__text
+
+    def setStr(self, v: str) -> None:
+        self.__raiseIfInvalidID(v)
+        self.__text = str(v)
 
     @staticmethod
     def __isValidIdentifier(text: str):
@@ -136,9 +182,12 @@ class IdentifierStr(ILevelAttribLeaf):
         if not self.__isValidIdentifier(text): raise ValueError("Invalid identifier: " + str(text))
 
 
-class FloatData(ILevelAttribLeaf):
+class FloatData(ein.ILevelAttribLeaf):
     def __init__(self, v: float = 0.0):
         self.__value = float(v)
+
+    def __str__(self):
+        return "< FloatData {{ {} }} >".format(self.__value)
 
     def setDefault(self) -> None:
         self.__value = 0.0
@@ -149,22 +198,52 @@ class FloatData(ILevelAttribLeaf):
     def getJson(self) -> json_t:
         return self.__value
 
+    # float4 : Value
+    def getBinary(self) -> bytearray:
+        data = bytearray(but.get4BytesFloat(self.__value))
+
+        print(self, [x for x in data])
+        return data
+
     def getIntegrityReport(self, usageName: str = "") -> ere.IntegrityReport:
         return ere.IntegrityReport(type(self).__name__, usageName)
 
 
-class FloatArray(ILevelAttribLeaf):
+class FloatArray(ein.ILevelAttribLeaf):
     def __init__(self):
         self.__arr = np.array([], dtype=np.float32)
+
+    def __str__(self):
+        if self.__arr.size > 5:
+            numStr = str([x for x in self.__arr[0:5]])[1:-1]
+            return "< FloatArray size={} {{ {}, ... }} >".format(self.__arr.size, numStr)
+        else:
+            numStr = str(list(self.__arr))[1:-1]
+            return "< FloatArray size={} {{ {} }} >".format(self.__arr.size, numStr)
 
     def setDefault(self) -> None:
         self.__arr = np.array([], dtype=np.float32)
 
     def getJson(self) -> json_t:
+        if sys.byteorder != "little":
+            raise RuntimeError("Big endian system is not supported yet.")
         return base64.encodebytes(self.__arr.tobytes()).decode("utf8")
 
     def setJson(self, data: json_t) -> None:
         self.__arr = np.frombuffer(base64.decodebytes(data.encode("utf8")), dtype=np.float32)
+
+    # int4                    : Number of float values
+    # Vector of finite float4 : Finite float array
+    def getBinary(self) -> bytearray:
+        if sys.byteorder != "little":
+            raise RuntimeError("Big endian system is not supported yet.")
+
+        data = bytearray()
+        data += but.get4BytesInt(self.__arr.size)
+        data += self.__arr.tobytes()
+
+        print(self, [x for x in data])
+        return data
 
     def getIntegrityReport(self, usageName: str = "") -> ere.IntegrityReport:
         report = ere.IntegrityReport(type(self).__name__, usageName)
@@ -180,3 +259,66 @@ class FloatArray(ILevelAttribLeaf):
     def setArray(self, arr: np.ndarray) -> None:
         if not isinstance(arr, np.ndarray): raise ValueError()
         self.__arr = arr
+
+
+class UniformList(ein.ILevelAttribLeaf):
+    def __init__(self, templateType: Type[ein.ILevelAttrib]):
+        if not isinstance(templateType(), ein.ILevelAttrib):
+            ValueError("Type '{}' is not derived from {}.".format(templateType, ein.ILevelAttrib))
+
+        self.__type: Type[ein.ILevelAttrib] = templateType
+        self.__list: List[ein.ILevelAttrib] = []
+
+    def __str__(self):
+        return "< UniformList<{}> size={} >".format(str(self.__type)[8:-2], len(self.__list))
+
+    def setDefault(self) -> None:
+        self.__list = []
+
+    def getJson(self) -> json_t:
+        data = []
+
+        for x in self.__list:
+            data.append(x.getJson())
+
+        return data
+
+    def setJson(self, data: json_t) -> None:
+        for x in data:
+            elem = self.__type()
+            elem.setJson(x)
+            self.__list.append(elem)
+
+    # One int2                                   : Template type code
+    # One int4                                   : Number of elements
+    # sizeof(self.__type) * (Number of elements) : Contents
+    def getBinary(self) -> bytearray:
+        data = self.__type.getTypeCode()
+        data += but.get4BytesInt(len(self.__list))
+
+        for item in self.__list:
+            data += item.getBinary()
+
+        print(self, [x for x in data])
+        return data
+
+    def getIntegrityReport(self, usageName: str = "") -> ere.IntegrityReport:
+        report = ere.IntegrityReport("UniformList< {} >".format(str(self.__type)[1:-1]), usageName)
+
+        for i, x in enumerate(self.__list):
+            childReport = x.getIntegrityReport("index {}".format(i))
+            if childReport.hasWarningOrWorse(): report.addChild(childReport)
+
+        if len(self.__list) == 0:
+            report.emplaceBack("size", "List is empty.")
+
+        return report
+
+    def pushBack(self, item):
+        if not isinstance(item, self.__type):
+            errMsg = "Value '{}' is not a proper value for UniformList< {} >.".format(
+                type(item), str(self.__type)[1:-1]
+            )
+            raise ValueError(errMsg)
+
+        self.__list.append(item)

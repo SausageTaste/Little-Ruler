@@ -1,4 +1,4 @@
-import abc
+import abc, json
 from typing import Union, Dict
 
 import level.datastruct.error_reporter as ere
@@ -18,10 +18,10 @@ class ILevelElement(abc.ABC):
     def setJson(self, data: json_t) -> None: pass
 
     @abc.abstractmethod
-    def getIntegrityReport(self, usageName: str = "") -> ere.IntegrityReport: pass
+    def getBinary(self) -> bytearray: pass
 
     @abc.abstractmethod
-    def getBinary(self) -> bytearray: pass
+    def getIntegrityReport(self, usageName: str = "") -> ere.IntegrityReport: pass
 
 
 class ILevelAttribLeaf(ILevelElement):
@@ -35,17 +35,21 @@ class ILevelAttribLeaf(ILevelElement):
     def setJson(self, data: json_t) -> None: pass
 
     @abc.abstractmethod
-    def getIntegrityReport(self, usageName: str = "") -> ere.IntegrityReport: pass
+    def getBinary(self) -> bytearray: pass
 
     @abc.abstractmethod
-    def getBinary(self) -> bytearray: pass
+    def getIntegrityReport(self, usageName: str = "") -> ere.IntegrityReport: pass
 
 
 class ILevelAttrib(ILevelElement):
     s_field_type = "type"
 
-    def __init__(self, attribDict: Dict[str, ILevelElement]):
-        self.__attribs: Dict[str, ILevelElement] = attribDict
+    def __init__(self, attribDict: Dict[str, ILevelElement] = None):
+        if attribDict is None:
+            self.__attribs: Dict[str, ILevelElement] = {}
+            raise RuntimeError("ILevelAttrib.__init__ hadn't got any paremeters, which is not a proper usage.")
+        else:
+            self.__attribs: Dict[str, ILevelElement] = attribDict
 
     def setDefault(self) -> None:
         for element in self.__attribs.values():
@@ -56,6 +60,7 @@ class ILevelAttrib(ILevelElement):
 
         for field, element in self.__attribs.items():
             data[field] = element.getJson()
+            json.dumps(data[field])
 
         return data
 
@@ -65,6 +70,14 @@ class ILevelAttrib(ILevelElement):
                 element.setJson(data[field])
             else:
                 element.setDefault()
+
+    @abc.abstractmethod
+    def getBinary(self) -> bytearray:
+        pass
+
+    @classmethod
+    @abc.abstractmethod
+    def getTypeCode(cls) -> bytearray: pass
 
     def getIntegrityReport(self, usageName: str = "") -> ere.IntegrityReport:
         report = ere.IntegrityReport("ILevelItem", usageName)
@@ -92,3 +105,10 @@ class ILevelItem(ILevelAttrib):
             raise ValueError()
 
         ILevelAttrib.setJson(self, data)
+
+    @abc.abstractmethod
+    def getBinary(self) -> bytearray: pass
+
+    @staticmethod
+    @abc.abstractmethod
+    def getFieldTypeOfSelf() -> str: pass

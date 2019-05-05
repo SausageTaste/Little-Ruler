@@ -1,9 +1,9 @@
 import numpy as np
 
 import level.datastruct.interface as ein
-from level.datastruct.interface import json_t
 import level.datastruct.attrib_leaf as pri
 import level.datastruct.error_reporter as ere
+import level.datastruct.bytesutils as but
 
 
 class ActorInfo(ein.ILevelAttrib):
@@ -21,6 +21,19 @@ class ActorInfo(ein.ILevelAttrib):
             self.__s_field_pos: self.__pos,
             self.__s_field_quat: self.__quat,
         })
+
+    # After that all as listed in init.
+    def getBinary(self) -> bytearray:
+        data = bytearray()
+        data += self.__actor_name.getBinary()
+        data += self.__pos.getBinary()
+        data += self.__quat.getBinary()
+        return data
+
+    @classmethod
+    def getTypeCode(cls) -> bytearray:
+        ere.TypeCodeInspector.reportUsage(3, cls)
+        return bytearray(but.get2BytesInt(3))
 
 
 class Material(ein.ILevelAttrib):
@@ -45,49 +58,26 @@ class Material(ein.ILevelAttrib):
             self.__s_field_specularMap : self.__specularMap,
         })
 
-
-class UniformList(ein.ILevelAttribLeaf):
-    def __init__(self, templateType: type):
-        self.__type = templateType
-        self.__list:list= []
-
-    def setDefault(self) -> None:
-        self.__list = []
-
-    def getJson(self) -> json_t:
-        data = []
-
-        for x in self.__list:
-            data.append(x.getJson())
-
+    # After that all as listed in init.
+    def getBinary(self) -> bytearray:
+        data = bytearray()
+        data += self.__diffuseColor.getBinary()
+        data += self.__shininess.getBinary()
+        data += self.__specularStrength.getBinary()
+        data += self.__diffuseMap.getBinary()
+        data += self.__specularMap.getBinary()
         return data
 
-    def setJson(self, data: json_t) -> None:
-        for x in data:
-            elem = self.__type()
-            elem.setJson(x)
-            self.__list.append(elem)
+    @classmethod
+    def getTypeCode(cls) -> bytearray:
+        ere.TypeCodeInspector.reportUsage(4, cls)
+        return bytearray(but.get2BytesInt(4))
 
-    def getIntegrityReport(self, usageName: str = "") -> ere.IntegrityReport:
-        report = ere.IntegrityReport("UniformList< {} >".format(str(self.__type)[1:-1]), usageName)
+    def setDiffuseMap(self, v: str):
+        self.__diffuseMap.setStr(v)
 
-        for i, x in enumerate(self.__list):
-            childReport = x.getIntegrityReport("index {}".format(i))
-            if childReport.hasWarningOrWorse(): report.addChild(childReport)
-
-        if len(self.__list) == 0:
-            report.emplaceBack("size", "List is empty.")
-
-        return report
-
-    def pushBack(self, item):
-        if not isinstance(item, self.__type):
-            errMsg = "Value '{}' is not a proper value for UniformList< {} >.".format(
-                type(item), str(self.__type)[1:-1]
-            )
-            raise ValueError(errMsg)
-
-        self.__list.append(item)
+    def setSpecularMap(self, v: str):
+        self.__specularMap.setStr(v)
 
 
 class VertexArray(ein.ILevelAttrib):
@@ -105,6 +95,29 @@ class VertexArray(ein.ILevelAttrib):
             self.__s_field_texcoords : self.__texcoords,
             self.__s_field_normals : self.__normals
         })
+
+    # As listed in init
+    def getBinary(self) -> bytearray:
+        data = bytearray()
+
+        data += self.__vertices.getBinary()
+        data += self.__texcoords.getBinary()
+        data += self.__normals.getBinary()
+
+        return data
+
+    @classmethod
+    def getTypeCode(cls) -> bytearray:
+        ere.TypeCodeInspector.reportUsage(5, cls)
+        return bytearray(but.get2BytesInt(5))
+
+    def getIntegrityReport(self, usageName: str = "") -> ere.IntegrityReport:
+        report = ein.ILevelAttrib.getIntegrityReport(self, usageName)
+
+        if self.__vertices.getSize() <= 0:
+            report.emplaceBack("arrays", "Vertex array is empty. What's the point of this?")
+
+        return report
 
     def setArray(self, v: np.ndarray, t: np.ndarray, n: np.ndarray):
         if not isinstance(v, np.ndarray) or not isinstance(t, np.ndarray) or not isinstance(n, np.ndarray):
@@ -265,11 +278,3 @@ class VertexArray(ein.ILevelAttrib):
             0, -1, 0,
             0, -1, 0,
         ], np.float32))
-
-    def getIntegrityReport(self, usageName: str = "") -> ere.IntegrityReport:
-        report = ein.ILevelAttrib.getIntegrityReport(self, usageName)
-
-        if self.__vertices.getSize() <= 0:
-            report.emplaceBack("arrays", "Vertex array is empty. What's the point of this?")
-
-        return report

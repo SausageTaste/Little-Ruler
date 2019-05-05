@@ -9,14 +9,17 @@ def main():
 
     model = bfi.BuildInfo_ModelImported()
     model.addActor(aco.ActorInfo())
+    model.setModelID("yuri.obj")
     level.add(model)
 
     model = bfi.BuildInfo_ModelDefined()
+    model.setModelID("floor")
     model.getMeshHandle().setAABB(atl.Vec3(-50, -1, -50), atl.Vec3(50, 0, 50))
+    model.getMaterialHandle().setDiffuseMap("grass.png")
     model.addActor(aco.ActorInfo())
     level.add(model)
 
-    level.saveToFile()
+    lvb.saveLevelJson(level)
 
 
 if __name__ == '__main__':
