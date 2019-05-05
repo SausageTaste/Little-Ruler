@@ -392,7 +392,7 @@ namespace {
 
 namespace {
 	
-	unsigned int processMaterial(const aiScene* const scene, std::vector<dal::MaterialInfo>& materials) {
+	unsigned int processMaterial(const aiScene* const scene, std::vector<dal::RenderUnitInfo::MaterialInfo>& materials) {
 		for (unsigned int i = 0; i < scene->mNumMaterials; i++) {
 			const auto iMaterial = scene->mMaterials[i];
 			materials.emplace_back();
@@ -465,7 +465,7 @@ namespace {
 		return true;
 	}
 
-	bool processNode(dal::ModelInfo& info, std::vector<dal::MaterialInfo> materials, const aiScene* const scene, aiNode* const node) {
+	bool processNode(dal::ModelInfo& info, std::vector<dal::RenderUnitInfo::MaterialInfo> materials, const aiScene* const scene, aiNode* const node) {
 		for (unsigned int i = 0; i < node->mNumMeshes; i++) {
 			aiMesh* ai_mesh = scene->mMeshes[node->mMeshes[i]];
 			info.emplace_back();
@@ -661,6 +661,7 @@ namespace dal_deprecated {
 
 
 namespace dal {
+
 	bool parseOBJ_assimp(ModelInfo& info, const char* const assetPath) {
 		info.clear();
 
@@ -673,7 +674,7 @@ namespace dal {
 			return false;
 		}
 
-		std::vector<MaterialInfo> materials;
+		std::vector<RenderUnitInfo::MaterialInfo> materials;
 		processMaterial(scene, materials);
 	
 		return processNode(info, materials, scene, scene->mRootNode);

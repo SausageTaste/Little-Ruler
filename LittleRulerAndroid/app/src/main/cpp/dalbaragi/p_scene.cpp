@@ -9,6 +9,7 @@
 #include "u_fileclass.h"
 #include "s_logger_god.h"
 #include "u_timer.h"
+#include "u_maploader.h"
 
 
 using namespace std::string_literals;
@@ -330,6 +331,17 @@ namespace dal {
 			this->addObject(info);
 		}
 		
+		{
+			AssetFileStream file{ "maps/test_map.dlb" };
+			const auto bufSize = file.getFileSize();
+			std::unique_ptr<uint8_t> buf{ new uint8_t[bufSize] };
+			auto res = file.read(buf.get(), bufSize);
+			if (!res) throw - 1;
+			LoadedMap info;
+			info.m_mapName = "test_map";
+			res = parseMap_dlb(info, buf.get(), bufSize);
+			if (!res) throw - 1;
+		}
 	}
 
 	SceneMaster::~SceneMaster(void) {

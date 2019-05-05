@@ -51,6 +51,7 @@ def main():
             level.setJson(data)
             print(level.getIntegrityReport().getFormattedStr())
             lvb.saveLevelBinary(level)
+            print([x for x in level.getBinary()[25:]])
 
 
 if __name__ == '__main__':

@@ -43,6 +43,7 @@ class LevelBuilder(ein.ILevelElement):
 
         for elem in self.__infoDatas:
             data += elem.getBinary()
+            print(elem.getFieldTypeOfSelf(), [x for x in elem.getBinary()])
 
         return data
 
