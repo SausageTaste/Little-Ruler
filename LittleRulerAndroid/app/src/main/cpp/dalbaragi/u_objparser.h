@@ -7,8 +7,10 @@
 
 #include <glm/glm.hpp>
 
+#include "u_loadinfo.h"
 
-namespace dal {
+
+namespace dal_deprecated {
 
 	struct OBJObjectInfo_deprecated {
 		std::vector<float> mVertices, mTexcoords, mNormals;
@@ -40,30 +42,13 @@ namespace dal {
 	};
 
 
-	struct MeshInfo {
-		std::vector<float> m_vertices, m_texcoords, m_normals;
-		std::string m_name;
-		
-	};
-
-	struct MaterialInfo {
-		glm::vec3 m_diffuseColor;
-		std::string m_diffuseMap, m_specularMap;
-		float m_shininess = 32.0f, m_specStrength = 1.0f;
-	};
-
-	struct RenderUnitInfo {
-		std::string m_name;
-		MeshInfo m_mesh;
-		MaterialInfo m_material;
-	};
-
-	using ModelInfo = std::list<RenderUnitInfo>;
-
-
 	bool parseOBJ_deprecated(OBJInfo_deprecated* const con, const uint8_t* const buf, const size_t bufSize);
 
 	bool parseMTL_deprecated(MTLInfo_deprecated* info, const uint8_t* const buf, const size_t bufSize);
+}
+
+
+namespace dal {
 
 	bool parseOBJ_assimp(ModelInfo& info, const char* const assetPath);
 

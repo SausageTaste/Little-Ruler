@@ -487,7 +487,7 @@ namespace {
 }
 
 
-namespace dal {
+namespace dal_deprecated {
 
 	bool parseOBJ_deprecated(OBJInfo_deprecated* const con, const uint8_t* const buf, const size_t bufSize) {
 		con->mMaterialFiles.clear();
@@ -542,11 +542,11 @@ namespace dal {
 
 						const auto numOfNums = parseAllNumbersInLine(line, numBuf, arrSize);
 						assert(numOfNums == arrSize);
-						
+
 						for (int i = 0; i < 3; i++) {
-							const auto& vertex   = vertices.at( numBuf[3 * i + 0] - 1);
-							const auto& texcoord = texcoords.at(numBuf[3 * i + 1] - 1);
-							const auto& normal   = normals.at(  numBuf[3 * i + 2] - 1);
+							const auto& vertex = vertices.at(numBuf[3 * i + 0] - 1);
+							const auto & texcoord = texcoords.at(numBuf[3 * i + 1] - 1);
+							const auto & normal = normals.at(numBuf[3 * i + 2] - 1);
 
 							curObject->mVertices.push_back(vertex.x);
 							curObject->mVertices.push_back(vertex.y);
@@ -562,7 +562,7 @@ namespace dal {
 							curObject->mNormals.push_back(normal.z);
 							curObject->debugNormals.push_back(normal);
 						}
-						
+
 					}
 					else if (head == OBJ_HeadOfLine::def_object) {
 						char strBuf[128];
@@ -583,7 +583,7 @@ namespace dal {
 					else {
 						//gLogger.putWarn("Not processed: "s + line);
 					}
-						
+
 				}
 				curIndex = 0;
 			}
@@ -600,7 +600,7 @@ namespace dal {
 		return true;
 	}
 
-	bool parseMTL_deprecated(MTLInfo_deprecated* info, const uint8_t* const buf, const size_t bufSize) {
+	bool parseMTL_deprecated(MTLInfo_deprecated * info, const uint8_t * const buf, const size_t bufSize) {
 		array<char, 256> bufLine;
 		unsigned int curIndex = 0;
 
@@ -657,6 +657,10 @@ namespace dal {
 		return true;
 	}
 
+}
+
+
+namespace dal {
 	bool parseOBJ_assimp(ModelInfo& info, const char* const assetPath) {
 		info.clear();
 
