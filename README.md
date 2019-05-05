@@ -98,6 +98,8 @@
 
 # 외부 라이브러리
 
+### C++ 14
+
 * [Open Asset Import Lib (Assimp)](http://www.assimp.org/)
 * [FreeType](https://www.freetype.org/)
 * [The OpenGL Extension Wrangler Library (GLEW)](http://glew.sourceforge.net/)
@@ -107,3 +109,7 @@
 * [Simple DirectMedia Layer 2 (SDL2)](https://www.libsdl.org/)
 * [TGA](https://github.com/ColumbusUtrigas/TGA)
 * [zlib](https://www.zlib.net/)
+
+### Python 3.6.8
+
+* [NumPy](https://www.numpy.org/)
