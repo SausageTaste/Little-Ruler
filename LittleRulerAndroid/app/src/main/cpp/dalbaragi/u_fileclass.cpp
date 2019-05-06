@@ -22,7 +22,6 @@
 #elif defined(__ANDROID__)
 #include <android/asset_manager.h>
 #include <zconf.h> // Just for SEEK_SET
-
 #endif
 
 
@@ -95,15 +94,6 @@ namespace {
 }
 
 
-
-
-namespace {
-
-	
-
-}
-
-
 namespace {
 
 	bool readFileAsPNG(const char* const path, std::vector<uint8_t>* output, size_t* const width, size_t* const height) {
@@ -168,7 +158,7 @@ namespace {
 		dal::LoggerGod::getinst().putFatal("Not implemented.");
 #elif defined(__ANDROID__)
 		// Check error
-		if (!dal::file::isFilesystemReady()) {
+		if (!dal::filec::isFilesystemReady()) {
 			dal::LoggerGod::getinst().putError("Filesystem is not initialized");
 		}
 
@@ -295,7 +285,7 @@ namespace dal {
 
 		bool getResource_buffer(const char* const path, std::vector<uint8_t>& buffer) {
 			ResourcePath resPath; parseResPath(path, resPath);
-			getResource_buffer(resPath, buffer);
+			return getResource_buffer(resPath, buffer);
 		}
 
 		bool getResource_buffer(const ResourcePath& path, std::vector<uint8_t>& buffer) {
@@ -477,4 +467,3 @@ namespace dal {
 	}
 
 }
-
