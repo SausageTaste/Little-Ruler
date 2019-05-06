@@ -201,11 +201,14 @@ namespace {
 		bool out_success;
 		dal::ModelInfo out_info;
 
+		dal::ModelInst* const data_coresponding;
+
 	public:
-		ModelLoadTask(const char* const modelName)
+		ModelLoadTask(const char* const modelName, dal::ModelInst* const coresponding)
 		:	iTask(g_objMtlLoadTask_name),
 			in_modelName(modelName),
-			out_success(false)
+			out_success(false),
+			data_coresponding(coresponding)
 		{
 
 		}
@@ -220,7 +223,7 @@ namespace {
 
 }
 
-
+/*
 namespace dal {
 
 	bool RenderUnit_Static::isReady(void) const {
@@ -256,7 +259,7 @@ namespace dal {
 	}
 
 }
-
+*/
 
 namespace dal {
 
@@ -277,16 +280,16 @@ namespace dal {
 		{
 			ModelBuildInfo_Load info;
 			info.m_modelName = "palanquin.obj";
-			info.m_instanceInfo.emplace_back(0.0f, -2.0f, 0.0f);
-			info.m_instanceInfo.back().rescale = 3.0f;
+			info.m_instanceInfo.emplace_back();
+			info.m_instanceInfo.back().pos = { 0.0f, -2.0f, 0.0f };
 			this->addObject(info);
 		}
 		
 		{
 			ModelBuildInfo_Load info;
 			info.m_modelName = "yuri.obj";
-			info.m_instanceInfo.emplace_back(4.0f, -2.0f, 0.0f);
-			info.m_instanceInfo.back().rescale = 2.8f;
+			info.m_instanceInfo.emplace_back();
+			info.m_instanceInfo.back().pos = { 4.0f, -2.0f, 0.0f };
 			info.m_instanceInfo.back().rotate(glm::radians(180.0f), { 0.0f, 1.0f, 0.0f });
 			this->addObject(info);
 		}
@@ -294,45 +297,45 @@ namespace dal {
 		{
 			ModelBuildInfo_Load info;
 			info.m_modelName = "honoka.obj";
-			info.m_instanceInfo.emplace_back(-4.0f, -2.0f, 0.0f);
-			info.m_instanceInfo.back().rescale = 1.2f;
+			info.m_instanceInfo.emplace_back();
+			info.m_instanceInfo.back().pos = { -4.0f, -2.0f, 0.0f };
 			this->addObject(info);
 		}
 
 		{
 			ModelBuildInfo_Load info;
 			info.m_modelName = "honoka_bunny.obj";
-			info.m_instanceInfo.emplace_back(-8.0f, -2.0f, 0.0f);
-			info.m_instanceInfo.back().rescale = 1.2f;
+			info.m_instanceInfo.emplace_back();
+			info.m_instanceInfo.back().pos = { -8.0f, -2.0f, 0.0f };
 			this->addObject(info);
 		}
 
 		{
 			ModelBuildInfo_Load info;
 			info.m_modelName = "honoka_apron.obj";
-			info.m_instanceInfo.emplace_back(8.0f, -2.0f, 0.0f);
-			info.m_instanceInfo.back().rescale = 3.0f;
+			info.m_instanceInfo.emplace_back();
+			info.m_instanceInfo.back().pos = { 8.0f, -2.0f, 0.0f };
 			this->addObject(info);
 		}
 
 		{
 			ModelBuildInfo_Load info;
 			info.m_modelName = "honoka_nude.obj";
-			info.m_instanceInfo.emplace_back(12.0f, -2.0f, 0.0f);
-			info.m_instanceInfo.back().rescale = 3.0f;
+			info.m_instanceInfo.emplace_back();
+			info.m_instanceInfo.back().pos = { 12.0f, -2.0f, 0.0f };
 			this->addObject(info);
 		}
 
 		{
 			ModelBuildInfo_Load info;
 			info.m_modelName = "brit.obj";
-			info.m_instanceInfo.emplace_back(-12.0f, -2.0f, 0.0f);
-			info.m_instanceInfo.back().rescale = 3.0f;
+			info.m_instanceInfo.emplace_back();
+			info.m_instanceInfo.back().pos = { -12.0f, -2.0f, 0.0f };
 			this->addObject(info);
 		}
 		
 		{
-			AssetFileStream file{ "maps/test_map.dlb" };
+			AssetFileStream file{ "maps/test_level.dlb" };
 			const auto bufSize = file.getFileSize();
 			std::unique_ptr<uint8_t> buf{ new uint8_t[bufSize] };
 			auto res = file.read(buf.get(), bufSize);
@@ -340,7 +343,8 @@ namespace dal {
 			LoadedMap info;
 			info.m_mapName = "test_map";
 			res = parseMap_dlb(info, buf.get(), bufSize);
-			if (!res) throw - 1;
+			if (!res) LoggerGod::getinst().putError("Failed level loading test.");
+			this->addMapChunk(info);
 		}
 	}
 
@@ -360,15 +364,9 @@ namespace dal {
 				return;
 			}
 
-			ModelInst* model;
-			if (!this->findModel(loaded->in_modelName.c_str(), &model, nullptr)) {
-				LoggerGod::getinst().putError("Recieved a ModelLoadTask but coresponding model not found: "s + loaded->in_modelName);
-				return;
-			}
-
 			for (auto& unitInfo : loaded->out_info) {
-				model->m_renderUnits.emplace_back();
-				auto& unit = model->m_renderUnits.back();
+				loaded->data_coresponding->m_renderUnits.emplace_back();
+				auto& unit = loaded->data_coresponding->m_renderUnits.back();
 
 				unit.m_mesh.buildData(
 					unitInfo.m_mesh.m_vertices.data(),  unitInfo.m_mesh.m_vertices.size(),
@@ -400,8 +398,7 @@ namespace dal {
 				if (!unit->m_mesh.isReady()) continue;
 
 				for (auto& inst : model.m_inst) {
-					glm::mat4 mat;
-					inst.getViewMat(&mat);
+					auto mat = inst.getViewMat();
 					glUniformMatrix4fv(uniloc.uModelMat, 1, GL_FALSE, &mat[0][0]);
 					unit->m_mesh.draw();
 				}
@@ -413,8 +410,7 @@ namespace dal {
 		for (auto& model : m_freeModels) {
 			for (auto& unit : model.m_renderUnits) {
 				for (auto& inst : model.m_inst) {
-					glm::mat4 mat;
-					inst.getViewMat(&mat);
+					auto mat = inst.getViewMat();
 					glUniformMatrix4fv(uniloc.uModelMat, 1, GL_FALSE, &mat[0][0]);
 					unit.m_mesh.draw();
 				}
@@ -454,9 +450,53 @@ namespace dal {
 		modelInst.m_name = info.m_modelName;
 		modelInst.m_inst.assign(info.m_instanceInfo.begin(), info.m_instanceInfo.end());
 
-		auto task = new ModelLoadTask(info.m_modelName);
+		auto task = new ModelLoadTask(info.m_modelName, &modelInst);
 		g_sentTasks_modelLoad.insert(task);
 		TaskGod::getinst().orderTask(task, this);
+	}
+
+	void SceneMaster::addMapChunk(const LoadedMap& map) {
+		this->m_mapChunks.emplace_back();
+		auto& newMap = this->m_mapChunks.back();
+
+		for (auto& definedModel : map.m_definedModels) {
+			newMap.m_actors.emplace_back();
+			auto& model = newMap.m_actors.back();
+
+			// ID
+			model.m_name = definedModel.m_modelID;
+
+			// Actors
+			model.m_inst.assign(definedModel.m_actors.begin(), definedModel.m_actors.end());
+
+			// Render units
+			model.m_renderUnits.emplace_back();
+			auto& renderUnit = model.m_renderUnits.back();
+			renderUnit.m_mesh.buildData(
+				definedModel.m_renderUnit.m_mesh.m_vertices.data(), definedModel.m_renderUnit.m_mesh.m_vertices.size(),
+				definedModel.m_renderUnit.m_mesh.m_texcoords.data(), definedModel.m_renderUnit.m_mesh.m_texcoords.size(),
+				definedModel.m_renderUnit.m_mesh.m_normals.data(), definedModel.m_renderUnit.m_mesh.m_normals.size()
+			);
+
+			// Material
+			renderUnit.m_material.mSpecularStrength = definedModel.m_renderUnit.m_material.m_specStrength;
+			renderUnit.m_material.mShininess = definedModel.m_renderUnit.m_material.m_shininess;
+			if (!definedModel.m_renderUnit.m_material.m_diffuseMap.empty()) {
+				renderUnit.m_material.setDiffuseMap(m_texMas.request_diffuseMap(definedModel.m_renderUnit.m_material.m_diffuseMap.c_str()));
+			}
+		}
+
+		for (auto& importedModel : map.m_importedModels) {
+			newMap.m_actors.emplace_back();
+			auto& model = newMap.m_actors.back();
+
+			model.m_name = importedModel.m_modelID;
+			model.m_inst.assign(importedModel.m_actors.begin(), importedModel.m_actors.end());
+
+			auto task = new ModelLoadTask(importedModel.m_modelID.c_str(), &model);
+			g_sentTasks_modelLoad.insert(task);
+			TaskGod::getinst().orderTask(task, this);
+		}
 	}
 
 	// Private

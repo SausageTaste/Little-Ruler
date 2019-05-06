@@ -13,23 +13,17 @@ namespace dal {
 	private:
 		std::string mName;
 
-		GLuint mVao;
+		GLuint mVao = 0;
 
-		GLuint mVertexArrayBuffer;
-		GLuint mTexCoordArrayBuffer;
-		GLuint mNormalArrayBuffe;
+		GLuint mVertexArrayBuffer = 0;
+		GLuint mTexCoordArrayBuffer = 0;
+		GLuint mNormalArrayBuffe = 0;
 
-		unsigned int mVertexSize;
+		unsigned int mVertexSize = 0;
 
 		//////// Functions ////////
 
 	public:
-		MeshStatic(void);
-		~MeshStatic(void);
-
-		MeshStatic(const MeshStatic&);
-		MeshStatic& operator=(const MeshStatic&);
-
 		void draw(void) const;
 
 		int buildData(

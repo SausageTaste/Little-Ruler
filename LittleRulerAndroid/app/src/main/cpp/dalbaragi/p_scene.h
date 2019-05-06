@@ -12,34 +12,17 @@
 #include "p_texture.h"
 #include "p_uniloc.h"
 #include "s_threader.h"
+#include "u_loadinfo.h"
+#include "p_resource.h"
 
 
 namespace dal {
 
-	class RenderUnit_Static {
-
-	public:
+	struct RenderUnit_Static {
 		MeshStatic mesh;
 		Material material;
 
 		bool isReady(void) const;
-	};
-
-
-	class ActorInfo {
-
-	public:
-		std::string m_actorName;
-		glm::vec3 pos;
-		glm::quat myQuat;
-		float rescale;
-
-		ActorInfo(void);
-		ActorInfo(glm::vec3 initPos);
-		ActorInfo(const float x, const float y , const float z);
-		void getViewMat(glm::mat4* mat) const;
-		void rotate(const float v, const glm::vec3& selector);
-
 	};
 
 
@@ -53,7 +36,7 @@ namespace dal {
 	struct ModelInst {
 		std::string m_name;
 		std::deque<Pair_MeshMaterial> m_renderUnits;
-		std::list<ActorInfo> m_inst;
+		std::list<Actor> m_inst;
 	};
 
 
@@ -63,24 +46,28 @@ namespace dal {
 		glm::vec3 m_p1, m_p2;
 		float m_shininess = 32.0f, m_specStrength = 1.0f;
 		float m_texScaleX = 1.0f, m_texScaleY = 1.0f;
-		std::list<ActorInfo> m_instanceInfo;
+		std::list<Actor> m_instanceInfo;
 	};
 
 	struct ModelBuildInfo_Load {
-		const char* m_modelName;
-		std::list<ActorInfo> m_instanceInfo;
+		const char* m_modelName = nullptr;
+		std::list<Actor> m_instanceInfo;
 	};
 
 
 	class SceneMaster : iTaskDoneListener {
 
 	private:
+		struct MapChunk {
+			std::deque<ModelInst> m_actors;
+		};
+
 		TextureMaster& m_texMas;
 
 		std::deque<ModelInst> m_freeModels;
+		std::list<MapChunk> m_mapChunks;
 
-		//RenderUnit_Static mLoadedUnits[120];
-		//std::list<ActorInfo> mLoadedInsts[120];
+		std::unordered_set<ModelInst*> m_modelsNotComplete;
 
 	public:
 		SceneMaster(TextureMaster& texMas);
@@ -93,6 +80,8 @@ namespace dal {
 
 		void addObject(const ModelBuildInfo_AABB& info);
 		void addObject(const ModelBuildInfo_Load& info);
+		
+		void addMapChunk(const LoadedMap& map);
 
 	private:
 		bool findModel(const char* const name, ModelInst** model, const char** level);

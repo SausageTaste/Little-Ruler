@@ -1,5 +1,7 @@
 #pragma once
 
+#include <string>
+
 
 #if defined(_WIN32)
 	#include <gl\glew.h>

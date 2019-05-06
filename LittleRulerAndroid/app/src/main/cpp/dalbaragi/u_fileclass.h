@@ -8,17 +8,24 @@ namespace dal {
 
 	namespace file {
 
+		struct ImageFileData {
+			std::vector<uint8_t> m_buf;
+			size_t m_width = 0, m_height = 0, m_pixSize = 0;
+		};
+
 		bool initFilesystem(void* mgr);
 		bool isFilesystemReady(void);
 
-		bool readFileAsStr(const char* const path, std::string* buf);
-		bool readImageFile(const char* const path, std::vector<uint8_t>* const output, int* const width, int* const height, int* const pixSize);
+		bool getAsset_text(const char* const path, std::string* buf);
+		bool getResource_image(const char* const path, ImageFileData& data);
+		bool getResource_buffer(const char* const path, std::vector<uint8_t>& buffer);
 
 	}
 
+}
 
-	struct InFileclassPimpl;
 
+namespace dal {
 
 	class AssetFileStream {
 
@@ -26,7 +33,9 @@ namespace dal {
 		enum class Whence { beg, cur, end };
 
 	private:
+		struct InFileclassPimpl;
 		InFileclassPimpl* pimpl;
+
 		size_t m_fileContentsSize;
 		bool m_opened;
 		std::string m_path;

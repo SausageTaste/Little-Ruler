@@ -71,7 +71,7 @@ class Vec4(ein.ILevelAttribLeaf):
         self.__w = float(w)
 
     def __str__(self):
-        return "< Vec3 {{ {}, {}, {}, {} }} >".format(self.__x, self.__y, self.__z, self.__w)
+        return "< Vec4 {{ {}, {}, {}, {} }} >".format(self.__x, self.__y, self.__z, self.__w)
 
     def setDefault(self) -> None:
         self.__x = 0.0

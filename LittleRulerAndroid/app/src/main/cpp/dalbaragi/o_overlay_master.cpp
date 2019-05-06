@@ -20,8 +20,8 @@ namespace dal {
 	{
 		/* Compile shaders overlay */ {
 			std::string vertSrc, fragSrc;
-			file::readFileAsStr("glsl/overlay_v.glsl", &vertSrc);
-			file::readFileAsStr("glsl/overlay_f.glsl", &fragSrc);
+			file::getAsset_text("glsl/overlay_v.glsl", &vertSrc);
+			file::getAsset_text("glsl/overlay_f.glsl", &fragSrc);
 
 			auto verShader = compileShader(ShaderType::VERTEX, vertSrc.c_str());
 			auto fragShader = compileShader(ShaderType::FRAGMENT, fragSrc.c_str());

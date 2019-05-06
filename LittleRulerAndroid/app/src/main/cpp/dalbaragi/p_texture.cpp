@@ -14,12 +14,6 @@ using namespace std::string_literals;
 
 namespace dal {
 
-	Texture::~Texture(void) {
-		if (mTexID != 0) {
-			this->deleteTex();
-		}
-	}
-
 	void Texture::init_diffueMap(const uint8_t* const image, const unsigned int width, const unsigned int height) {
 		mWidth = width;
 		mHeight = height;
@@ -28,7 +22,7 @@ namespace dal {
 
 		this->genTexture("init_diffueMap");
 
-		glBindTexture(GL_TEXTURE_2D, mTexID);
+		glBindTexture(GL_TEXTURE_2D, m_texID);
 
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 		//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
@@ -47,7 +41,7 @@ namespace dal {
 
 		this->genTexture("init_diffueMap");
 
-		glBindTexture(GL_TEXTURE_2D, mTexID);
+		glBindTexture(GL_TEXTURE_2D, m_texID);
 
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 		//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
@@ -66,7 +60,7 @@ namespace dal {
 
 		this->genTexture("init_depthMap");
 
-		glBindTexture(GL_TEXTURE_2D, mTexID); {
+		glBindTexture(GL_TEXTURE_2D, m_texID); {
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -84,7 +78,7 @@ namespace dal {
 		mWidth = width;
 		mHeight = height;
 
-		glBindTexture(GL_TEXTURE_2D, mTexID);
+		glBindTexture(GL_TEXTURE_2D, m_texID);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, width, height, 0, GL_RED, GL_UNSIGNED_BYTE, image);
 
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -94,24 +88,24 @@ namespace dal {
 	}
 
 	void Texture::deleteTex(void) {
-		glDeleteTextures(1, &this->mTexID);
-		this->mTexID = 0;
+		glDeleteTextures(1, &this->m_texID);
+		this->m_texID = 0;
 	}
 
 	void Texture::sendUniform(const GLint uniloc_sampler, const unsigned int index) const {
 		glActiveTexture(GL_TEXTURE0 + index);
-		glBindTexture(GL_TEXTURE_2D, this->mTexID);
+		glBindTexture(GL_TEXTURE_2D, this->m_texID);
 		glUniform1i(uniloc_sampler, index);
 	}
 
 	bool Texture::isInitiated(void) const {
-		return this->mTexID != 0;
+		return this->m_texID != 0;
 	}
 
 	// Getters
 
 	GLuint Texture::getTexID(void) {
-		return mTexID;
+		return m_texID;
 	}
 
 	unsigned int Texture::getWidth(void) const {
@@ -123,8 +117,8 @@ namespace dal {
 	}
 
 	void Texture::genTexture(const char* const str4Log) {
-		glGenTextures(1, &mTexID);
-		if (mTexID == 0) {
+		glGenTextures(1, &m_texID);
+		if (m_texID == 0) {
 			dal::LoggerGod::getinst().putFatal("Failed to init dal::Texture::init_depthMap::"s + str4Log);
 			throw -1;
 		}
@@ -170,7 +164,6 @@ namespace dal {
 	TexLoadTask::TexLoadTask(const char* const texName)
 	:	iTask("TexLoadTask"),
 		m_texName(texName),
-		m_width(0), m_height(0), m_pixSize(0),
 		m_success(false)
 	{
 
@@ -178,7 +171,9 @@ namespace dal {
 
 	void TexLoadTask::start(void) {
 		const auto path = "texture/"s + m_texName;
-		auto res = dal::file::readImageFile(path.c_str(), &m_buf, &m_width, &m_height, &m_pixSize);
+		
+		auto res = dal::file::getResource_image(path.c_str(), m_data);
+
 		m_success = res;
 	}
 
@@ -188,12 +183,11 @@ namespace dal {
 namespace dal {
 
 	TextureMaster::TextureMaster(void) {
-		std::vector<uint8_t> buf;
-		int w, h, pixSize;
-		file::readImageFile("texture/grass1.png", &buf, &w, &h, &pixSize);
+		file::ImageFileData data;
+		file::getResource_image("texture/grass1.png", data);
 		m_nullDiffuse = std::make_shared<dal::TextureHandle>();
 		m_nullDiffuse->m_tex = new dal::Texture();
-		m_nullDiffuse->m_tex->init_diffueMap(buf.data(), w, h);
+		m_nullDiffuse->m_tex->init_diffueMap(data.m_buf.data(), data.m_width, data.m_height);
 
 		m_nullTex = std::make_shared<dal::TextureHandle>();
 	}
@@ -285,15 +279,15 @@ namespace dal {
 
 	void TextureMaster::precessReturnedTask(TexLoadTask* const task) {
 		auto loadedTex = new dal::Texture();
-		if (task->m_pixSize == 3) {
-			loadedTex->init_diffueMap3(task->m_buf.data(), task->m_width, task->m_height);
+		if (task->m_data.m_pixSize == 3) {
+			loadedTex->init_diffueMap3(task->m_data.m_buf.data(), task->m_data.m_width, task->m_data.m_height);
 		}
-		else if (task->m_pixSize == 4) {
-			loadedTex->init_diffueMap(task->m_buf.data(), task->m_width, task->m_height);
+		else if (task->m_data.m_pixSize == 4) {
+			loadedTex->init_diffueMap(task->m_data.m_buf.data(), task->m_data.m_width, task->m_data.m_height);
 		}
 		else {
 			LoggerGod::getinst().putError(
-				"Unknown pixel size: "s + task->m_texName + ", "s + std::to_string(task->m_pixSize)
+				"Unknown pixel size: "s + task->m_texName + ", "s + std::to_string(task->m_data.m_pixSize)
 			);
 			delete loadedTex;
 			return;

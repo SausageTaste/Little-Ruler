@@ -88,9 +88,59 @@ namespace {
 }
 
 
+
+
 namespace {
 
-	bool readFileAsPNG(const char* const path, std::vector<uint8_t>* output, int* const width, int* const height) {
+	struct ResourcePath {
+		std::string m_package, m_additionalDir, m_name, m_ext;
+	};
+
+	bool parseResPath(const char* const path, ResourcePath& result) {
+		std::string pathStr{ path };
+
+		const auto packagePos = pathStr.find("::");
+		size_t excludePos = 0;
+		if      (0 == packagePos) {
+			result.m_package = "::";
+			excludePos = 2;
+		}
+		else if (std::string::npos == packagePos) {
+			result.m_package = "";
+		}
+		else {
+			result.m_package = pathStr.substr(0, packagePos);
+			excludePos = packagePos + 2;
+		}
+
+		const auto dirPos = pathStr.rfind("/");
+		if (std::string::npos == dirPos) {
+			result.m_additionalDir = "";
+		}
+		else {
+			result.m_additionalDir = pathStr.substr(dirPos, dirPos - excludePos);
+			excludePos = dirPos + 1;
+		}
+
+		const auto extPos = pathStr.rfind(".");
+		if (std::string::npos == extPos) {
+			result.m_name = pathStr.substr(excludePos, pathStr.size() - excludePos);
+			result.m_ext = "";
+		}
+		else {
+			result.m_name = pathStr.substr(excludePos, extPos - excludePos);
+			result.m_ext = pathStr.substr(extPos + 1, pathStr.size() - extPos - 1);
+		}
+
+		return true;
+	}
+
+}
+
+
+namespace {
+
+	bool readFileAsPNG(const char* const path, std::vector<uint8_t>* output, size_t* const width, size_t* const height) {
 		std::vector<uint8_t> buf;
 		
 		/* Fill buffer */ {
@@ -119,7 +169,7 @@ namespace {
 		return true;
 	}
 
-	bool readFileAsTGA(const char* const path, std::vector<uint8_t>* output, int* const width, int* const height, int* const pixSize) {
+	bool readFileAsTGA(const char* const path, std::vector<uint8_t>* output, size_t* const width, size_t* const height, size_t* const pixSize) {
 		dal::AssetFileStream file;
 		file.open(path);
 		const auto bufSize = file.getFileSize();
@@ -129,7 +179,11 @@ namespace {
 			return false;
 		}
 
-		dal::AutoFree<uint8_t> result{ tga_load_memory(buf.get(), bufSize, width, height, pixSize) };
+		int w, h, p;
+		dal::AutoFree<uint8_t> result{ tga_load_memory(buf.get(), bufSize, &w, &h, &p) };
+		*width = static_cast<size_t>(w);
+		*height = static_cast<size_t>(h);
+		*pixSize = static_cast<size_t>(p);
 		if (result.isNull()) {
 			dal::LoggerGod::getinst().putFatal("Failed to parse tga file: "s + path);
 			return false;
@@ -194,7 +248,7 @@ namespace dal {
 #endif
 		}
 
-		bool readFileAsStr(const char* const path, std::string* bufStr) {
+		bool getAsset_text(const char* const path, std::string* bufStr) {
 			AssetFileStream file;
 			if (file.open(path) != true) {
 				return false;
@@ -210,7 +264,7 @@ namespace dal {
 			return true;
 		}
 
-		bool readImageFile(const char* const path, std::vector<uint8_t> * const output, int* const width, int* const height, int* const pixSize) {
+		bool readImageFile(const char* const path, std::vector<uint8_t> * const output, size_t* const width, size_t* const height, size_t* const pixSize) {
 			const auto len = strlen(path);
 			assert(path[len - 4] == '.');
 
@@ -233,13 +287,40 @@ namespace dal {
 			}
 		}
 
+		bool getResource_image(const char* const path, ImageFileData& data) {
+			const auto len = strlen(path);
+			assert(path[len - 4] == '.');
+
+			std::string paramExt{ path + len - 3 };
+			if (paramExt == "tga"s) {
+				const auto res = readFileAsTGA(path, &data.m_buf, &data.m_width, &data.m_height, &data.m_pixSize);
+				assert(data.m_pixSize == 4 || data.m_pixSize == 3);
+				return res;
+			}
+			else if (paramExt == "png"s) {
+				const auto res = readFileAsPNG(path, &data.m_buf, &data.m_width, &data.m_height);
+				const size_t calcSize = size_t(data.m_width) * size_t(data.m_height) * size_t(4);
+				assert(data.m_buf.size() == calcSize);
+				data.m_pixSize = 4;
+				return res;
+			}
+			else {
+				LoggerGod::getinst().putError("Not supported image file type: "s + path);
+				return false;
+			}
+		}
+
+		bool getResource_buffer(const char* const path, std::vector<uint8_t>& buffer) {
+			return false;
+		}
+
 	}
 }
 
 
 namespace dal {
 
-	struct InFileclassPimpl {
+	struct AssetFileStream::InFileclassPimpl {
 #if defined(_WIN32)
 		std::ifstream mIFile;
 #elif defined(__ANDROID__)
@@ -249,7 +330,7 @@ namespace dal {
 
 
 	AssetFileStream::AssetFileStream(void)
-	:	pimpl(new InFileclassPimpl()),
+		: pimpl(new InFileclassPimpl()),
 		m_fileContentsSize(0),
 		m_opened(false)
 	{
@@ -260,7 +341,7 @@ namespace dal {
 		: AssetFileStream()
 	{
 		const auto res = this->open(path);
-		if (!res)  throw -1;
+		if (!res)  throw - 1;
 	}
 
 	AssetFileStream::~AssetFileStream(void) {
@@ -273,9 +354,9 @@ namespace dal {
 
 #if defined(_WIN32)
 		m_path = getResourceDir() + path;
-		
+
 		this->pimpl->mIFile.open(m_path.c_str(), std::ios::binary);
-		if (!this->pimpl->mIFile){
+		if (!this->pimpl->mIFile) {
 			LoggerGod::getinst().putError("Failed to open file: "s + m_path);
 			m_opened = false;
 			return false;
@@ -316,7 +397,7 @@ namespace dal {
 		m_opened = false;
 	}
 
-	size_t AssetFileStream::read(uint8_t* const buf, const size_t bufSize) {
+	size_t AssetFileStream::read(uint8_t * const buf, const size_t bufSize) {
 		auto sizeToRead = bufSize < m_fileContentsSize ? bufSize : m_fileContentsSize;
 
 #if defined(_WIN32)
@@ -362,15 +443,15 @@ namespace dal {
 		decltype(SEEK_SET) cwhence;
 
 		switch (whence) {
-			case Whence::beg:
-				cwhence = SEEK_SET;
-				break;
-			case Whence::cur:
-				cwhence = SEEK_CUR;
-				break;
-			case Whence::end:
-				cwhence = SEEK_END;
-				break;
+		case Whence::beg:
+			cwhence = SEEK_SET;
+			break;
+		case Whence::cur:
+			cwhence = SEEK_CUR;
+			break;
+		case Whence::end:
+			cwhence = SEEK_END;
+			break;
 		}
 
 		return AAsset_seek(pimpl->mOpenedAsset, static_cast<off_t>(offset), cwhence) != -1;
@@ -389,7 +470,7 @@ namespace dal {
 
 	}
 
-	size_t AssetFileStream::write(const uint8_t* const buf, const size_t bufSize) {
+	size_t AssetFileStream::write(const uint8_t * const buf, const size_t bufSize) {
 		LoggerGod::getinst().putFatal("Not implemented: AssetFileStream::write");
 		throw - 1;
 	}

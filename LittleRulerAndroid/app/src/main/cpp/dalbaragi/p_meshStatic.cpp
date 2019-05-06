@@ -10,42 +10,6 @@ using namespace std;
 
 namespace dal {
 
-	MeshStatic::MeshStatic(void)
-	:	mVao(0),
-		mVertexArrayBuffer(0),
-		mTexCoordArrayBuffer(0),
-		mNormalArrayBuffe(0),
-		mVertexSize(0)
-	{
-
-	}
-	
-	MeshStatic::MeshStatic(const MeshStatic& other)
-	:	mName(other.mName),
-		mVao(other.mVao),
-		mVertexArrayBuffer(other.mVertexArrayBuffer),
-		mTexCoordArrayBuffer(other.mTexCoordArrayBuffer),
-		mNormalArrayBuffe(other.mNormalArrayBuffe),
-		mVertexSize(other.mVertexSize)
-	{
-
-	}
-
-	MeshStatic& MeshStatic::operator=(const MeshStatic& other) {
-		mName = other.mName;
-		mVao = other.mVao;
-		mVertexArrayBuffer = other.mVertexArrayBuffer;
-		mTexCoordArrayBuffer = other.mTexCoordArrayBuffer;
-		mNormalArrayBuffe = other.mNormalArrayBuffe;
-		mVertexSize = other.mVertexSize;
-
-		return *this;
-	}
-
-	MeshStatic::~MeshStatic(void) {
-
-	}
-
 	void MeshStatic::draw(void) const {
 #ifdef _DEBUG
 		if (!this->isReady())
@@ -137,7 +101,12 @@ namespace dal {
 		};
 		glDeleteBuffers(3, bufferIds);
 
+		this->mVertexArrayBuffer = 0;
+		this->mTexCoordArrayBuffer = 0;
+		this->mNormalArrayBuffe = 0;
+
 		glDeleteVertexArrays(1, &this->mVao);
+		this->mVao = 0;
 
 		this->mVertexSize = 0;
 

@@ -15,20 +15,15 @@ namespace dal {
 	public:
 		std::string mName;
 
-		float mShininess;
-		float mSpecularStrength;
-		float mTexScaleX, mTexScaleY;
-		glm::vec3 mDiffuseColor;
+		float mShininess = 32.0f;
+		float mSpecularStrength = 1.0f;
+		float mTexScaleX = 1.0f, mTexScaleY = 1.0f;
+		glm::vec3 mDiffuseColor{ 1.0f, 1.0f, 1.0f };
 		
 	private:
 		TextureHandle_ptr mDiffuseMap = TextureMaster::getNullTex();
 
 	public:
-		Material(void);
-
-		Material(const Material&);
-		Material& operator=(const Material&);
-
 		// If paremeter value is 0, old value remains.
 		void setTexScale(float x, float y);
 		void setDiffuseMap(TextureHandle_ptr tex);

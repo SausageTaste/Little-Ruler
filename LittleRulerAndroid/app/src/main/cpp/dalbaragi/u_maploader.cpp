@@ -17,6 +17,17 @@ namespace {
 
 
 namespace {
+	namespace typeCodes {
+
+		constexpr int attrib_actor = 3;
+		constexpr int item_modelImported = 2;
+		constexpr int item_modelDefined = 1;
+
+	}
+}
+
+
+namespace {
 
 	bool isBigEndian() {
 		short int number = 0x1;
@@ -132,7 +143,10 @@ namespace {  // Make attribs
 			printf("Offset %d\n", header - begin);
 
 			info.pos = { numBuf[0], numBuf[1], numBuf[2] };
-			info.myQuat = { numBuf[3], numBuf[4] ,numBuf[5] ,numBuf[6] };
+			info.myQuat.x = numBuf[3];
+			info.myQuat.y = numBuf[4];
+			info.myQuat.z = numBuf[5];
+			info.myQuat.w = numBuf[6];
 		}
 		
 		return header;
@@ -148,14 +162,15 @@ namespace {  // Make items
 		info.m_importedModels.emplace_back();
 		auto& importedModel = info.m_importedModels.back();
 
-		{
+		{ // Get model id
 			const auto charPtr = reinterpret_cast<const char*>(begin);
 			importedModel.m_modelID = charPtr;
 			header += std::strlen(charPtr) + 1;
 		}
 
-		{
+		{ // Get actors
 			const auto listElementTypeCode = makeInt2(header);
+			assert(typeCodes::attrib_actor == listElementTypeCode);
 			header += 2;
 			const auto listSize = makeInt4(header);
 			header += 4;
@@ -170,11 +185,86 @@ namespace {  // Make items
 		return header;
 	}
 
+	const uint8_t* makeModelDefined(dal::LoadedMap& info, const uint8_t* const begin, const uint8_t* const end) {
+		const uint8_t* header = begin;
+		info.m_definedModels.emplace_back();
+		auto& definedModel = info.m_definedModels.back();
+
+		{ // Get model id
+			const auto charPtr = reinterpret_cast<const char*>(header);
+			definedModel.m_modelID = charPtr;
+			header += std::strlen(charPtr) + 1;
+		}
+
+		{ // Get actors
+			const auto listElementTypeCode = makeInt2(header); header += 2;
+			assert(typeCodes::attrib_actor == listElementTypeCode);
+			
+			const auto listSize = makeInt4(header); header += 4;
+			
+
+			for (int i = 0; i < listSize; i++) {
+				definedModel.m_actors.emplace_back();
+				auto& actor = definedModel.m_actors.back();
+				header = makeAttrib_actor(actor, header, end);
+			}
+		}
+
+		{ // Get vertex arrays
+			std::vector<float>* arrays[3] = {
+				&definedModel.m_renderUnit.m_mesh.m_vertices,
+				&definedModel.m_renderUnit.m_mesh.m_texcoords,
+				&definedModel.m_renderUnit.m_mesh.m_normals
+			};
+
+			for (int i = 0; i < 3; i++) {
+				const auto arrSize = makeInt4(header); header += 4;
+
+				auto& arr = arrays[i];
+				arr->resize(arrSize);
+				
+				for (int j = 0; j < arrSize; j++) {
+					const auto value = makeFloat4(header); header += 4;
+					arr->at(j) = value;
+				}
+			}
+		}
+
+		auto& material = definedModel.m_renderUnit.m_material;
+
+		{ // Get diffuse color(3), shininess(1), specular strength(1)
+			float floatBuf[5];
+			for (int i = 0; i < 5; i++) {
+				floatBuf[i] = makeFloat4(header); header += 4;
+			}
+
+			material.m_diffuseColor = { floatBuf[0], floatBuf[1], floatBuf[2] };
+			material.m_shininess = floatBuf[3];
+			material.m_specStrength = floatBuf[4];
+		}
+
+		{ // Get diffuse map name
+			const auto charPtr = reinterpret_cast<const char*>(header);
+			material.m_diffuseMap = charPtr;
+			header += std::strlen(charPtr) + 1;
+		}
+
+		{ // Get specular map name
+			const auto charPtr = reinterpret_cast<const char*>(header);
+			material.m_specularMap = charPtr;
+			header += std::strlen(charPtr) + 1;
+		}
+
+		return end;
+	}
+
 	decltype(makeModelImported)* selectMakerFunc(const int typeCode) {
 
 		switch (typeCode) {
 
-		case 2:
+		case typeCodes::item_modelDefined:
+			return makeModelDefined;
+		case typeCodes::item_modelImported:
 			return makeModelImported;
 		default:
 			g_logger.putError("Unknown map item typeCode: "s + std::to_string(typeCode));
@@ -194,13 +284,14 @@ namespace dal {
 		const uint8_t* header = buf;
 
 		while (true) {
-			const auto typeCode = makeInt2(buf);
+			const auto typeCode = makeInt2(header);
 			auto makerFunc = selectMakerFunc(typeCode);
 			if (nullptr == makerFunc) return false;
 			header += 2;
 
 			header = makerFunc(info, header, end);
-			if (header == end) return true;
+			if (header == end)
+				return true;
 		}
 
 		return false;

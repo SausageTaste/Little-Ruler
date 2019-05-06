@@ -8,6 +8,7 @@
 
 #include "p_dalopengl.h"
 #include "s_threader.h"
+#include "u_fileclass.h"
 
 
 namespace dal {
@@ -20,14 +21,12 @@ namespace dal {
 		//////// Attribs ////////
 
 	private:
-		GLuint mTexID = 0;
+		GLuint m_texID = 0;
 		unsigned int mWidth = 0, mHeight = 0;
 
 		//////// Methods ////////
 
 	public:
-		~Texture(void);
-
 		void init_diffueMap(const uint8_t* const image, const unsigned int width, const unsigned int height);
 		void init_diffueMap3(const uint8_t* const image, const unsigned int width, const unsigned int height);
 		void init_depthMap(const unsigned int width, const unsigned int height);
@@ -79,8 +78,7 @@ namespace dal {
 
 	public:
 		std::string m_texName;
-		std::vector<unsigned char> m_buf;
-		int m_width, m_height, m_pixSize;
+		file::ImageFileData m_data;
 		bool m_success;
 
 		//////// Methods ////////
