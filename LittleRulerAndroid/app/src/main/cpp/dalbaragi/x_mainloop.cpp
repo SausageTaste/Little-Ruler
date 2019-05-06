@@ -41,11 +41,11 @@ namespace dal {
 	}
 
 	void Mainloop::giveWhatFilesystemWants(void* androidAssetManager) {
-		file::initFilesystem(androidAssetManager);
+		filec::initFilesystem(androidAssetManager);
 	}
 
 	bool Mainloop::isWhatFilesystemWantsGiven(void) {
-		return file::isFilesystemReady();
+		return filec::isFilesystemReady();
 	}
 
 	// Public

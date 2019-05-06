@@ -6,7 +6,7 @@
 
 namespace dal {
 
-	namespace file {
+	namespace filec {
 
 		struct ImageFileData {
 			std::vector<uint8_t> m_buf;

@@ -78,7 +78,7 @@ namespace dal {
 
 	public:
 		std::string m_texName;
-		file::ImageFileData m_data;
+		filec::ImageFileData m_data;
 		bool m_success;
 
 		//////// Methods ////////

@@ -335,14 +335,12 @@ namespace dal {
 		}
 		
 		{
-			AssetFileStream file{ "maps/test_level.dlb" };
-			const auto bufSize = file.getFileSize();
-			std::unique_ptr<uint8_t> buf{ new uint8_t[bufSize] };
-			auto res = file.read(buf.get(), bufSize);
+			std::vector<uint8_t> buffer;
+			auto res = filec::getResource_buffer("asset::maps/test_level.dlb", buffer);
 			if (!res) throw - 1;
 			LoadedMap info;
 			info.m_mapName = "test_map";
-			res = parseMap_dlb(info, buf.get(), bufSize);
+			res = parseMap_dlb(info, buffer.data(), buffer.size());
 			if (!res) LoggerGod::getinst().putError("Failed level loading test.");
 			this->addMapChunk(info);
 		}

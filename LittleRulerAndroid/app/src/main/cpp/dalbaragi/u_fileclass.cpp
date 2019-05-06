@@ -31,6 +31,13 @@ using namespace std::string_literals;
 
 namespace {
 
+	const std::string PACKAGE_ASSET{ "asset" };
+
+}
+
+
+namespace {
+
 #if defined(_WIN32)
 	int getDirList(const char* const path, std::vector<std::string>& con) {
 		con.clear();
@@ -113,13 +120,13 @@ namespace {
 			excludePos = packagePos + 2;
 		}
 
-		const auto dirPos = pathStr.rfind("/");
+		const auto dirPos = pathStr.rfind("/") + 1;
 		if (std::string::npos == dirPos) {
 			result.m_additionalDir = "";
 		}
 		else {
-			result.m_additionalDir = pathStr.substr(dirPos, dirPos - excludePos);
-			excludePos = dirPos + 1;
+			result.m_additionalDir = pathStr.substr(excludePos, dirPos - excludePos);
+			excludePos = dirPos;
 		}
 
 		const auto extPos = pathStr.rfind(".");
@@ -222,7 +229,7 @@ namespace {
 
 
 namespace dal {
-	namespace file {
+	namespace filec {
 
 		bool initFilesystem(void* mgr) {
 
@@ -264,29 +271,6 @@ namespace dal {
 			return true;
 		}
 
-		bool readImageFile(const char* const path, std::vector<uint8_t> * const output, size_t* const width, size_t* const height, size_t* const pixSize) {
-			const auto len = strlen(path);
-			assert(path[len - 4] == '.');
-
-			std::string paramExt{ path + len - 3 };
-			if (paramExt == "tga"s) {
-				const auto res = readFileAsTGA(path, output, width, height, pixSize);
-				assert(*pixSize == 4 || *pixSize == 3);
-				return res;
-			}
-			else if (paramExt == "png"s) {
-				const auto res = readFileAsPNG(path, output, width, height);
-				const size_t calcSize = size_t(*width) * size_t(*height) * size_t(4);
-				assert(output->size() == calcSize);
-				*pixSize = 4;
-				return res;
-			}
-			else {
-				LoggerGod::getinst().putError("Not supported image file type: "s + path);
-				return false;
-			}
-		}
-
 		bool getResource_image(const char* const path, ImageFileData& data) {
 			const auto len = strlen(path);
 			assert(path[len - 4] == '.');
@@ -311,11 +295,25 @@ namespace dal {
 		}
 
 		bool getResource_buffer(const char* const path, std::vector<uint8_t>& buffer) {
-			return false;
+			ResourcePath resPath; parseResPath(path, resPath);
+			if (PACKAGE_ASSET != resPath.m_package) throw - 1;
+
+			const auto filePath = resPath.m_additionalDir + resPath.m_name + '.' + resPath.m_ext;
+			AssetFileStream file;
+			const auto openRes = file.open(filePath.c_str());
+			if (!openRes) return false;
+
+			buffer.resize(file.getFileSize());
+			const auto reeadRes = file.read(buffer.data(), buffer.size());
+			if (!reeadRes) return false;
+
+			return true;
 		}
 
 	}
 }
+
+
 
 
 namespace dal {
@@ -476,3 +474,4 @@ namespace dal {
 	}
 
 }
+
