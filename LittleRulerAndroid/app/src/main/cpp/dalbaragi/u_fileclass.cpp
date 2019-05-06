@@ -99,48 +99,7 @@ namespace {
 
 namespace {
 
-	struct ResourcePath {
-		std::string m_package, m_additionalDir, m_name, m_ext;
-	};
-
-	bool parseResPath(const char* const path, ResourcePath& result) {
-		std::string pathStr{ path };
-
-		const auto packagePos = pathStr.find("::");
-		size_t excludePos = 0;
-		if      (0 == packagePos) {
-			result.m_package = "::";
-			excludePos = 2;
-		}
-		else if (std::string::npos == packagePos) {
-			result.m_package = "";
-		}
-		else {
-			result.m_package = pathStr.substr(0, packagePos);
-			excludePos = packagePos + 2;
-		}
-
-		const auto dirPos = pathStr.rfind("/") + 1;
-		if (std::string::npos == dirPos) {
-			result.m_additionalDir = "";
-		}
-		else {
-			result.m_additionalDir = pathStr.substr(excludePos, dirPos - excludePos);
-			excludePos = dirPos;
-		}
-
-		const auto extPos = pathStr.rfind(".");
-		if (std::string::npos == extPos) {
-			result.m_name = pathStr.substr(excludePos, pathStr.size() - excludePos);
-			result.m_ext = "";
-		}
-		else {
-			result.m_name = pathStr.substr(excludePos, extPos - excludePos);
-			result.m_ext = pathStr.substr(extPos + 1, pathStr.size() - extPos - 1);
-		}
-
-		return true;
-	}
+	
 
 }
 
@@ -229,6 +188,46 @@ namespace {
 
 
 namespace dal {
+
+	bool parseResPath(const char* const path, ResourcePath& result) {
+		std::string pathStr{ path };
+
+		const auto packagePos = pathStr.find("::");
+		size_t excludePos = 0;
+		if (0 == packagePos) {
+			result.m_package = "::";
+			excludePos = 2;
+		}
+		else if (std::string::npos == packagePos) {
+			result.m_package = "";
+		}
+		else {
+			result.m_package = pathStr.substr(0, packagePos);
+			excludePos = packagePos + 2;
+		}
+
+		const auto dirPos = pathStr.rfind("/") + 1;
+		if (std::string::npos == dirPos) {
+			result.m_additionalDir = "";
+		}
+		else {
+			result.m_additionalDir = pathStr.substr(excludePos, dirPos - excludePos);
+			excludePos = dirPos;
+		}
+
+		const auto extPos = pathStr.rfind(".");
+		if (std::string::npos == extPos) {
+			result.m_name = pathStr.substr(excludePos, pathStr.size() - excludePos);
+			result.m_ext = "";
+		}
+		else {
+			result.m_name = pathStr.substr(excludePos, extPos - excludePos);
+			result.m_ext = pathStr.substr(extPos + 1, pathStr.size() - extPos - 1);
+		}
+
+		return true;
+	}
+
 	namespace filec {
 
 		bool initFilesystem(void* mgr) {
@@ -296,9 +295,13 @@ namespace dal {
 
 		bool getResource_buffer(const char* const path, std::vector<uint8_t>& buffer) {
 			ResourcePath resPath; parseResPath(path, resPath);
-			if (PACKAGE_ASSET != resPath.m_package) throw - 1;
+			getResource_buffer(resPath, buffer);
+		}
 
-			const auto filePath = resPath.m_additionalDir + resPath.m_name + '.' + resPath.m_ext;
+		bool getResource_buffer(const ResourcePath& path, std::vector<uint8_t>& buffer) {
+			if (PACKAGE_ASSET != path.m_package) throw - 1;
+
+			const auto filePath = path.m_additionalDir + path.m_name + '.' + path.m_ext;
 			AssetFileStream file;
 			const auto openRes = file.open(filePath.c_str());
 			if (!openRes) return false;
