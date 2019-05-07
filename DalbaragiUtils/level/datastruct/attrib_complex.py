@@ -44,7 +44,7 @@ class Material(ein.ILevelAttrib):
     __s_field_specularMap = "specular_map"
 
     def __init__(self):
-        self.__diffuseColor = pri.Vec3()
+        self.__diffuseColor = pri.Vec3(1, 1, 1)
         self.__shininess = pri.FloatData(32)
         self.__specularStrength = pri.FloatData(1)
         self.__diffuseMap = pri.IdentifierStr()
