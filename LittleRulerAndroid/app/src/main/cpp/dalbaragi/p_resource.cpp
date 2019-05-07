@@ -19,7 +19,6 @@ namespace {
 namespace dal {
 
 	struct Model {
-		const std::string m_id;
 		std::vector<RenderUnit> m_renderUnits;
 	};
 
@@ -37,50 +36,69 @@ namespace {
 
 namespace dal {
 
-	struct ResourceMaster::ModelHandle::Pimpl {
+	struct ModelHandle::Pimpl {
+		std::string m_id;
 		Model* m_model = nullptr;
-		unsigned int m_refCount = 0;
+		unsigned int m_refCount = 1;
 	};
 
-	ResourceMaster::ModelHandle::ModelHandle(Model* model) {
-		this->pimpl = new Pimpl();
-		this->pimpl->m_refCount = 1;
+
+	ModelHandle::ModelHandle(void) : pimpl(new Pimpl) {
+
+	}
+
+	ModelHandle::ModelHandle(const char* const modelID, Model* const model) : pimpl(new Pimpl) {
 		this->pimpl->m_model = model;
 	}
 
-	ResourceMaster::ModelHandle::ModelHandle(const ResourceMaster::ModelHandle& other) {
+	ModelHandle::ModelHandle(const ModelHandle& other) {
 		this->pimpl = other.pimpl;
 		this->pimpl->m_refCount++;
 	}
 
-	ResourceMaster::ModelHandle::ModelHandle(ResourceMaster::ModelHandle&& other) noexcept {
+	ModelHandle::ModelHandle(ModelHandle&& other) noexcept {
 		this->pimpl = other.pimpl;
 		other.pimpl = nullptr;
 	}
 
-	ResourceMaster::ModelHandle& ResourceMaster::ModelHandle::operator=(const ResourceMaster::ModelHandle& other) {
+	ModelHandle& ModelHandle::operator=(const ModelHandle& other) {
 		this->pimpl = other.pimpl;
 		this->pimpl->m_refCount++;
 
 		return *this;
 	}
 
-	ResourceMaster::ModelHandle& ResourceMaster::ModelHandle::operator=(ResourceMaster::ModelHandle&& other) noexcept {
+	ModelHandle& ModelHandle::operator=(ModelHandle&& other) noexcept {
 		this->pimpl = other.pimpl;
 		other.pimpl = nullptr;
 
 		return *this;
 	}
 
-	ResourceMaster::ModelHandle::~ModelHandle(void) {
+	ModelHandle::~ModelHandle(void) {
 		if (nullptr == this->pimpl) return;
 
 		this->pimpl->m_refCount--;
 
 		if (this->pimpl->m_refCount <= 0) {
-			g_logger.putWarn("A model handler's refference all lost without being destroyed: "s + this->pimpl->m_model->m_id);
+			g_logger.putWarn("A model handler's refference all lost without being destroyed: "s + this->pimpl->m_id);
 			delete this->pimpl;
 			this->pimpl = nullptr;
+		}
+	}
+
+	void ModelHandle::renderGeneral(const UnilocGeneral& uniloc, const std::list<Actor>& actors) const {
+		if (nullptr == this->pimpl->m_model) return;
+
+		for (auto& unit : this->pimpl->m_model->m_renderUnits) {
+			unit.m_material.sendUniform(uniloc);
+			if (!unit.m_mesh.isReady()) continue;
+
+			for (auto& inst : actors) {
+				auto mat = inst.getViewMat();
+				glUniformMatrix4fv(uniloc.uModelMat, 1, GL_FALSE, &mat[0][0]);
+				unit.m_mesh.draw();
+			}
 		}
 	}
 
@@ -90,31 +108,55 @@ namespace dal {
 // Package
 namespace dal {
 
-	void ResourceMaster::Package::setName(const char* const packageName) {
+	void Package::setName(const char* const packageName) {
 		this->m_name = packageName;
 	}
 
-	void ResourceMaster::Package::setName(const std::string& packageName) {
+	void Package::setName(const std::string& packageName) {
 		this->m_name = packageName;
 	}
 
-	ResourceMaster::ModelHandle ResourceMaster::Package::orderModel(const char* const modelID) {
-		
-		std::string modelIDStr{ modelID };
+	ModelHandle Package::orderModel(const ResourceFilePath& resPath) {
+		std::string modelIDStr{ resPath.m_name + resPath.m_ext };
 
 		decltype(this->m_models.end()) iter = this->m_models.find(modelIDStr);
 		if (this->m_models.end() != iter) {
 			return iter->second;
 		}
 		else {
-			g_logger.putTrace("Load model: "s + modelID);
-			ResourceMaster::ModelHandle a{ nullptr };
+			g_logger.putTrace("Load model: "s + resPath.m_package + "::" + resPath.m_dir + modelIDStr);
+			ModelHandle a{ modelIDStr.c_str(), nullptr };
 			return a;
 		}
-		
+	}
 
-		//ResourceMaster::ModelHandle a{ nullptr };
-		//return a;
+	ModelHandle Package::buildModel(const buildinfo::ModelDefined& info) {
+		auto model = g_modelPool.alloc();
+		ModelHandle handle{ info.m_modelID.c_str(), model };
+
+		{
+			// Render units
+			model->m_renderUnits.emplace_back();
+			auto& renderUnit = model->m_renderUnits.back();
+			renderUnit.m_mesh.buildData(
+				info.m_renderUnit.m_mesh.m_vertices.data(), info.m_renderUnit.m_mesh.m_vertices.size(),
+				info.m_renderUnit.m_mesh.m_texcoords.data(), info.m_renderUnit.m_mesh.m_texcoords.size(),
+				info.m_renderUnit.m_mesh.m_normals.data(), info.m_renderUnit.m_mesh.m_normals.size()
+			);
+
+			// Material
+			renderUnit.m_material.mSpecularStrength = info.m_renderUnit.m_material.m_specStrength;
+			renderUnit.m_material.mShininess = info.m_renderUnit.m_material.m_shininess;
+			renderUnit.m_material.mDiffuseColor = info.m_renderUnit.m_material.m_diffuseColor;
+
+			/*
+			if (!definedModel.m_renderUnit.m_material.m_diffuseMap.empty()) {
+				renderUnit.m_material.setDiffuseMap(m_texMas.request_diffuseMap(definedModel.m_renderUnit.m_material.m_diffuseMap.c_str()));
+			}
+			*/
+		}
+
+		return handle;
 	}
 
 }
@@ -123,31 +165,35 @@ namespace dal {
 // ResourceMaster
 namespace dal {
 
-	ResourceMaster::ModelHandle ResourceMaster::orderModel(const char* const packageName_modelID) {
+	ModelHandle ResourceMaster::orderModel(const char* const packageName_dir_modelID) {
 		ResourceFilePath path;
-		parseResFilePath(packageName_modelID, path);
+		parseResFilePath(packageName_dir_modelID, path);
 
-		auto package = this->orderPackage(path.m_package);
+		auto& package = this->orderPackage(path.m_package);
 
-		auto modelName = path.m_name + path.m_ext;
-		return package->orderModel(modelName.c_str());
+		return package.orderModel(path);
 	}
 
-	ResourceMaster::Package* ResourceMaster::orderPackage(const std::string& packName) {
+	ModelHandle ResourceMaster::buildModel(const buildinfo::ModelDefined& info, const char* const packageName) {
+		auto& package = this->orderPackage(packageName);
+		return package.buildModel(info);
+	}
+
+	// Private
+
+	Package& ResourceMaster::orderPackage(const std::string& packName) {
 		std::string packNameStr{ packName };
 		
 		decltype(this->m_packages.end()) iter = this->m_packages.find(packNameStr);
 		if (iter != this->m_packages.end()) {
-			return &iter->second;
+			return iter->second;
 		}
 		else { // If not found
-			ResourceMaster::Package package;
+			Package package;
 			package.setName(packName);
 			auto res = this->m_packages.emplace(packName, package);
-			return &res.first->second;
+			return res.first->second;
 		}
-		
-		return nullptr;
 	}
 
 }

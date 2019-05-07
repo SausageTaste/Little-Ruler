@@ -40,6 +40,12 @@ namespace dal {
 	};
 
 
+	struct ModelNActor {
+		std::list<Actor> m_inst;
+		ModelHandle m_model;
+	};
+
+
 	struct ModelBuildInfo_AABB {
 		const char* m_modelName = nullptr;
 		const char* m_textureName = nullptr;
@@ -59,7 +65,7 @@ namespace dal {
 
 	private:
 		struct MapChunk {
-			std::deque<ModelInst> m_actors;
+			std::vector<ModelNActor> m_actors;
 		};
 
 		TextureMaster& m_texMas;
@@ -68,6 +74,8 @@ namespace dal {
 		std::list<MapChunk> m_mapChunks;
 
 		std::unordered_set<ModelInst*> m_modelsNotComplete;
+
+		ResourceMaster m_resMas;
 
 	public:
 		SceneMaster(TextureMaster& texMas);
@@ -81,9 +89,10 @@ namespace dal {
 		void addObject(const ModelBuildInfo_AABB& info);
 		void addObject(const ModelBuildInfo_Load& info);
 		
-		void addMapChunk(const LoadedMap& map);
+		void loadMap(const char* const mapID);
 
 	private:
+		void addMap(const LoadedMap& map);
 		bool findModel(const char* const name, ModelInst** model, const char** level);
 
 	};

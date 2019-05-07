@@ -286,63 +286,7 @@ namespace dal {
 		}
 		
 		{
-			ModelBuildInfo_Load info;
-			info.m_modelName = "yuri.obj";
-			info.m_instanceInfo.emplace_back();
-			info.m_instanceInfo.back().pos = { 4.0f, -2.0f, 0.0f };
-			info.m_instanceInfo.back().rotate(glm::radians(180.0f), { 0.0f, 1.0f, 0.0f });
-			this->addObject(info);
-		}
-		
-		{
-			ModelBuildInfo_Load info;
-			info.m_modelName = "honoka.obj";
-			info.m_instanceInfo.emplace_back();
-			info.m_instanceInfo.back().pos = { -4.0f, -2.0f, 0.0f };
-			this->addObject(info);
-		}
-
-		{
-			ModelBuildInfo_Load info;
-			info.m_modelName = "honoka_bunny.obj";
-			info.m_instanceInfo.emplace_back();
-			info.m_instanceInfo.back().pos = { -8.0f, -2.0f, 0.0f };
-			this->addObject(info);
-		}
-
-		{
-			ModelBuildInfo_Load info;
-			info.m_modelName = "honoka_apron.obj";
-			info.m_instanceInfo.emplace_back();
-			info.m_instanceInfo.back().pos = { 8.0f, -2.0f, 0.0f };
-			this->addObject(info);
-		}
-
-		{
-			ModelBuildInfo_Load info;
-			info.m_modelName = "honoka_nude.obj";
-			info.m_instanceInfo.emplace_back();
-			info.m_instanceInfo.back().pos = { 12.0f, -2.0f, 0.0f };
-			this->addObject(info);
-		}
-
-		{
-			ModelBuildInfo_Load info;
-			info.m_modelName = "brit.obj";
-			info.m_instanceInfo.emplace_back();
-			info.m_instanceInfo.back().pos = { -12.0f, -2.0f, 0.0f };
-			this->addObject(info);
-		}
-		
-		{
-			std::vector<uint8_t> buffer;
-			auto res = filec::getResource_buffer("asset::maps/test_level.dlb", buffer);
-			if (!res) throw - 1;
-			LoadedMap info;
-			info.m_mapName = "test_map";
-			res = parseMap_dlb(info, buffer.data(), buffer.size());
-			if (!res) LoggerGod::getinst().putError("Failed level loading test.");
-			this->addMapChunk(info);
+			this->loadMap("asset::maps/test_level.dlb");
 		}
 	}
 
@@ -402,6 +346,12 @@ namespace dal {
 				}
 			}
 		}
+
+		for (auto& map : m_mapChunks) {
+			for (auto& modelActor : map.m_actors) {
+				modelActor.m_model.renderGeneral(uniloc, modelActor.m_inst);
+			}
+		}
 	}
 
 	void SceneMaster::renderDepthMp(const UnilocDepthmp& uniloc) const {
@@ -453,47 +403,44 @@ namespace dal {
 		TaskGod::getinst().orderTask(task, this);
 	}
 
-	void SceneMaster::addMapChunk(const LoadedMap& map) {
+	void SceneMaster::loadMap(const char* const mapID) {
+		ResourceFilePath path;
+		parseResFilePath(mapID, path);
+
+		std::vector<uint8_t> buffer;
+		auto res = filec::getResource_buffer(mapID, buffer);
+		if (!res) throw - 1;
+
+		LoadedMap info;
+		info.m_mapName = path.m_name;
+		info.m_packageName = path.m_package;
+
+		res = parseMap_dlb(info, buffer.data(), buffer.size());
+		if (!res) LoggerGod::getinst().putError("Failed to parse level: "s + mapID);
+		this->addMap(info);
+	}
+		
+	void SceneMaster::addMap(const LoadedMap& map) {
 		this->m_mapChunks.emplace_back();
 		auto& newMap = this->m_mapChunks.back();
 
 		for (auto& definedModel : map.m_definedModels) {
 			newMap.m_actors.emplace_back();
-			auto& model = newMap.m_actors.back();
+			auto& modelActor = newMap.m_actors.back();
 
-			// ID
-			model.m_name = definedModel.m_modelID;
+			modelActor.m_model = this->m_resMas.buildModel(definedModel, map.m_packageName.c_str());
 
 			// Actors
-			model.m_inst.assign(definedModel.m_actors.begin(), definedModel.m_actors.end());
-
-			// Render units
-			model.m_renderUnits.emplace_back();
-			auto& renderUnit = model.m_renderUnits.back();
-			renderUnit.m_mesh.buildData(
-				definedModel.m_renderUnit.m_mesh.m_vertices.data(), definedModel.m_renderUnit.m_mesh.m_vertices.size(),
-				definedModel.m_renderUnit.m_mesh.m_texcoords.data(), definedModel.m_renderUnit.m_mesh.m_texcoords.size(),
-				definedModel.m_renderUnit.m_mesh.m_normals.data(), definedModel.m_renderUnit.m_mesh.m_normals.size()
-			);
-
-			// Material
-			renderUnit.m_material.mSpecularStrength = definedModel.m_renderUnit.m_material.m_specStrength;
-			renderUnit.m_material.mShininess = definedModel.m_renderUnit.m_material.m_shininess;
-			if (!definedModel.m_renderUnit.m_material.m_diffuseMap.empty()) {
-				renderUnit.m_material.setDiffuseMap(m_texMas.request_diffuseMap(definedModel.m_renderUnit.m_material.m_diffuseMap.c_str()));
-			}
+			modelActor.m_inst.assign(definedModel.m_actors.begin(), definedModel.m_actors.end());
 		}
 
 		for (auto& importedModel : map.m_importedModels) {
 			newMap.m_actors.emplace_back();
 			auto& model = newMap.m_actors.back();
 
-			model.m_name = importedModel.m_modelID;
-			model.m_inst.assign(importedModel.m_actors.begin(), importedModel.m_actors.end());
+			model.m_model = this->m_resMas.orderModel((map.m_packageName + "::" + importedModel.m_modelID).c_str());
 
-			auto task = new ModelLoadTask(importedModel.m_modelID.c_str(), &model);
-			g_sentTasks_modelLoad.insert(task);
-			TaskGod::getinst().orderTask(task, this);
+			model.m_inst.assign(importedModel.m_actors.begin(), importedModel.m_actors.end());
 		}
 	}
 
