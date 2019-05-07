@@ -264,7 +264,7 @@ namespace dal {
 namespace dal {
 
 	SceneMaster::SceneMaster(TextureMaster& texMas) : m_texMas(texMas) {
-		{
+		/*{
 			ModelBuildInfo_AABB info;
 			info.m_p1 = { -50.0f, -1.0f, -50.0f };
 			info.m_p2 = { 50.0f, 0.0f, 50.0f };
@@ -275,7 +275,7 @@ namespace dal {
 			info.m_instanceInfo.emplace_back();
 			info.m_instanceInfo.back().pos = { 0.0f, -2.0f, 0.0f };
 			this->addObject(info);
-		}
+		}*/
 
 		{
 			ModelBuildInfo_Load info;
