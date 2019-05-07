@@ -11,28 +11,20 @@
 
 namespace dal {
 
-	class iTask {
-
-	private:
-#ifdef _DEBUG
-		std::string m_name;
-#endif
+	class ITask {
 
 	public:
-		iTask(const char* const name);
-		virtual ~iTask(void) = default;
+		virtual ~ITask(void) = default;
 		virtual void start(void) = 0;
-
-		bool checkNameIs(const char* const str);
 
 	};
 
 
-	class iTaskDoneListener {
+	class ITaskDoneListener {
 		
 	public:
-		virtual ~iTaskDoneListener(void) = default;
-		virtual void notify(iTask* const task) = 0;
+		virtual ~ITaskDoneListener(void) = default;
+		virtual void notifyTask(ITask* const task) = 0;
 
 	};
 
@@ -42,7 +34,7 @@ namespace dal {
 		//////// Attribs ////////
 
 	private:
-		std::unordered_map<iTask*, iTaskDoneListener*> m_notificationRecievers;
+		std::unordered_map<ITask*, ITaskDoneListener*> m_notificationRecievers;
 		uint64_t m_workCount;
 
 		//////// Methods ////////
@@ -55,11 +47,11 @@ namespace dal {
 
 		void update(void);
 
-		// If client is null, there will be no notification and iTask object will be deleted.
-		void orderTask(iTask* const task, iTaskDoneListener* const client);
+		// If client is null, there will be no notification and ITask object will be deleted.
+		void orderTask(ITask* const task, ITaskDoneListener* const client);
 
 	private:
-		iTaskDoneListener* findNotifiReciever(iTask* task);
+		ITaskDoneListener* findNotifiReciever(ITask* task);
 
 	};
 

@@ -52,7 +52,7 @@ namespace {
 	class WorkerClass {
 
 	private:
-		ThreadQueue<dal::iTask> m_inQ, m_outQ;
+		ThreadQueue<dal::ITask> m_inQ, m_outQ;
 
 		atomic_bool m_flagExit;
 
@@ -73,11 +73,11 @@ namespace {
 			m_outQ.push(task);
 		}
 
-		void allocateTask(dal::iTask* const task) {
+		void allocateTask(dal::ITask* const task) {
 			m_inQ.push(task);
 		}
 
-		dal::iTask* get(void) {
+		dal::ITask* get(void) {
 			return m_outQ.pop();
 		}
 
@@ -93,25 +93,6 @@ namespace {
 	vector<thread> g_threads;
 
 #endif
-
-}
-
-
-namespace dal {
-
-	iTask::iTask(const char* const name) {
-#ifdef _DEBUG
-		m_name = name != nullptr ? name : "__noname__";
-#endif
-	}
-
-	bool iTask::checkNameIs(const char* const str) {
-#ifdef _DEBUG
-		return m_name == std::string(str);
-#else
-		return true;
-#endif
-	}
 
 }
 
@@ -156,7 +137,7 @@ namespace dal {
 
 			auto listener = this->findNotifiReciever(task);
 			if (listener != nullptr) {
-				listener->notify(task);
+				listener->notifyTask(task);
 				return;
 			}
 			else {
@@ -167,7 +148,7 @@ namespace dal {
 
 	}
 
-	void TaskGod::orderTask(iTask* const task, iTaskDoneListener* const client) {
+	void TaskGod::orderTask(ITask* const task, ITaskDoneListener* const client) {
 		if (task == nullptr) return;
 
 #if DAL_THREAD_COUNT > 0
@@ -181,7 +162,7 @@ namespace dal {
 		task->start();
 
 		if (client != nullptr) {
-			client->notify(task);
+			client->notifyTask(task);
 		}
 		else {
 			delete task;
@@ -190,7 +171,7 @@ namespace dal {
 
 	}
 
-	iTaskDoneListener* TaskGod::findNotifiReciever(iTask* task) {
+	ITaskDoneListener* TaskGod::findNotifiReciever(ITask* task) {
 		auto result = this->m_notificationRecievers.find(task);
 		if (result == this->m_notificationRecievers.end())
 			return nullptr;

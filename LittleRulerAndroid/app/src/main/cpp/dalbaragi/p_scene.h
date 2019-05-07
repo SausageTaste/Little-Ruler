@@ -61,7 +61,7 @@ namespace dal {
 	};
 
 
-	class SceneMaster : iTaskDoneListener {
+	class SceneMaster : ITaskDoneListener {
 
 	private:
 		struct MapChunk {
@@ -81,7 +81,7 @@ namespace dal {
 		SceneMaster(TextureMaster& texMas);
 		~SceneMaster(void);
 
-		virtual void notify(iTask* const task) override;
+		virtual void notifyTask(ITask* const task) override;
 
 		void renderGeneral(const UnilocGeneral& uniloc) const;
 		void renderDepthMp(const UnilocDepthmp& uniloc) const;

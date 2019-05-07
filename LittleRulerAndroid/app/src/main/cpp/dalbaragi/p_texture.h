@@ -72,7 +72,7 @@ namespace dal {
 	};
 
 
-	class TexLoadTask : public dal::iTask {
+	class TexLoadTask : public dal::ITask {
 
 		//////// Attribs ////////
 
@@ -93,7 +93,7 @@ namespace dal {
 	using TextureHandle_ptr = std::shared_ptr<dal::TextureHandle>;
 
 
-	class TextureMaster : public iTaskDoneListener {
+	class TextureMaster : public ITaskDoneListener {
 
 	private:
 		
@@ -119,7 +119,7 @@ namespace dal {
 
 		void update(void);
 
-		virtual void notify(iTask* const task) override;
+		virtual void notifyTask(ITask* const task) override;
 
 		TextureHandle_ptr getNull_diffuseMap(void);
 		TextureHandle_ptr getNull_maskMap(void);

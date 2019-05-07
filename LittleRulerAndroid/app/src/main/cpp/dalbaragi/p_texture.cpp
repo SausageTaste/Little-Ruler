@@ -162,8 +162,7 @@ namespace dal {
 namespace dal {
 
 	TexLoadTask::TexLoadTask(const char* const texName)
-	:	iTask("TexLoadTask"),
-		m_texName(texName),
+	:	m_texName(texName),
 		m_success(false)
 	{
 
@@ -206,7 +205,7 @@ namespace dal {
 		}
 	}
 
-	void TextureMaster::notify(iTask* const task) {
+	void TextureMaster::notifyTask(ITask* const task) {
 		if (g_sentTasks_texLoad.find(task) != g_sentTasks_texLoad.end()) {
 			g_sentTasks_texLoad.erase(task);
 
@@ -220,7 +219,7 @@ namespace dal {
 			}
 		}
 		else {
-			LoggerGod::getinst().putFatal("Not registered task revieved in TextureMaster::notify.");
+			LoggerGod::getinst().putFatal("Not registered task revieved in TextureMaster::notifyTask.");
 			throw -1;
 		}
 	}

@@ -193,7 +193,7 @@ namespace {
 
 namespace {
 
-	class ModelLoadTask : public dal::iTask {
+	class ModelLoadTask : public dal::ITask {
 
 	public:
 		const std::string in_modelName;
@@ -205,8 +205,7 @@ namespace {
 
 	public:
 		ModelLoadTask(const char* const modelName, dal::ModelInst* const coresponding)
-		:	iTask(g_objMtlLoadTask_name),
-			in_modelName(modelName),
+		:	in_modelName(modelName),
 			out_success(false),
 			data_coresponding(coresponding)
 		{
@@ -257,8 +256,8 @@ namespace dal {
 
 	}
 
-	void SceneMaster::notify(iTask* const task) {
-		std::unique_ptr<iTask> taskPtr{ task };
+	void SceneMaster::notifyTask(ITask* const task) {
+		std::unique_ptr<ITask> taskPtr{ task };
 
 		if (g_sentTasks_modelLoad.find(task) != g_sentTasks_modelLoad.end()) {
 			g_sentTasks_modelLoad.erase(task);
@@ -291,7 +290,7 @@ namespace dal {
 			}
 		}
 		else {
-			LoggerGod::getinst().putFatal("Not registered task revieved in TextureMaster::notify.");
+			LoggerGod::getinst().putFatal("Not registered task revieved in TextureMaster::notifyTask.");
 			throw -1;
 		}
 	}
