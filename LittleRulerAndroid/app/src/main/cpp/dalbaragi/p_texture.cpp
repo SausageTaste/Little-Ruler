@@ -170,7 +170,7 @@ namespace dal {
 	}
 
 	void TexLoadTask::start(void) {
-		const auto path = "texture/"s + m_texName;
+		const auto path = "asset::texture/"s + m_texName;
 		
 		auto res = dal::filec::getResource_image(path.c_str(), m_data);
 
@@ -184,7 +184,7 @@ namespace dal {
 
 	TextureMaster::TextureMaster(void) {
 		filec::ImageFileData data;
-		filec::getResource_image("texture/grass1.png", data);
+		filec::getResource_image("asset::texture/grass1.png", data);
 		m_nullDiffuse = std::make_shared<dal::TextureHandle>();
 		m_nullDiffuse->m_tex = new dal::Texture();
 		m_nullDiffuse->m_tex->init_diffueMap(data.m_buf.data(), data.m_width, data.m_height);

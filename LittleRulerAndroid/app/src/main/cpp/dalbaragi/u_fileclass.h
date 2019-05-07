@@ -6,13 +6,7 @@
 
 namespace dal {
 
-	struct ResourcePath {
-		std::string m_package, m_additionalDir, m_name, m_ext;
-	};
-
-	bool parseResPath(const char* const path, ResourcePath& result);
-
-
+	
 	namespace filec {
 
 		struct ImageFileData {
@@ -27,7 +21,6 @@ namespace dal {
 		bool getResource_image(const char* const path, ImageFileData& data);
 
 		bool getResource_buffer(const char* const path, std::vector<uint8_t>& buffer);
-		bool getResource_buffer(const ResourcePath& path, std::vector<uint8_t>& buffer);
 
 	}
 }

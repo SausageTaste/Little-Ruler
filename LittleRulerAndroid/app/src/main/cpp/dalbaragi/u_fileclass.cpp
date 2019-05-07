@@ -30,15 +30,9 @@ using namespace std::string_literals;
 
 namespace {
 
-	const std::string PACKAGE_ASSET{ "asset" };
-
-}
-
-
-namespace {
-
 #if defined(_WIN32)
-	int getDirList(const char* const path, std::vector<std::string>& con) {
+
+	size_t getWindowsDirList(const char* const path, std::vector<std::string>& con) {
 		con.clear();
 
 		std::string pattern{ path };
@@ -64,11 +58,11 @@ namespace {
 	const std::string& getResourceDir(void) {
 		static std::string path;
 
-		if (path.empty()) {
+		if (path == "") {
 			std::vector<std::string> folders;
 			std::string pattern("./");
 
-			while (getDirList(pattern.c_str(), folders) > 0) {
+			while (getWindowsDirList(pattern.c_str(), folders) > 0) {
 				const auto found = [&folders](void) -> bool {
 					for (auto& item : folders) {
 						if (item == "Resources"s) return true;
@@ -86,10 +80,121 @@ namespace {
 		}
 
 		return path;
-	}
+}
+
 #elif defined(__ANDROID__)
+
 	AAssetManager* gAssetMgr = nullptr;
+
 #endif
+
+	auto& g_logger = dal::LoggerGod::getinst();
+
+	const std::string PACKAGE_NAME_ASSET{ "asset" };
+
+}
+
+
+namespace {
+
+	struct ResourceFilePath {
+		std::string m_package, m_dir, m_name, m_ext;
+	};
+
+	struct ResourceFolderPath {
+		std::string m_package, m_dir;
+	};
+
+
+	bool parseResFilePath(const char* const path, ResourceFilePath& result) {
+		std::string pathStr{ path };
+
+		const auto packagePos = pathStr.find("::");
+		size_t excludePos = 0;
+		if (0 == packagePos) {
+			result.m_package = "";
+			excludePos = 2;
+		}
+		else if (std::string::npos == packagePos) {
+			result.m_package = "";
+		}
+		else {
+			result.m_package = pathStr.substr(0, packagePos);
+			excludePos = packagePos + 2;
+		}
+
+		const auto dirPos = pathStr.rfind("/") + 1;
+		if (std::string::npos == dirPos) {
+			result.m_dir = "";
+		}
+		else {
+			result.m_dir = pathStr.substr(excludePos, dirPos - excludePos);
+			excludePos = dirPos;
+		}
+
+		const auto extPos = pathStr.rfind(".");
+		if (std::string::npos == extPos) {
+			result.m_name = pathStr.substr(excludePos, pathStr.size() - excludePos);
+			result.m_ext = "";
+		}
+		else {
+			result.m_name = pathStr.substr(excludePos, extPos - excludePos);
+			result.m_ext = pathStr.substr(extPos, pathStr.size() - extPos);
+		}
+
+		return true;
+	}
+
+	bool parseResFolderPath(const char* const path, ResourceFolderPath& result) {
+		ResourceFilePath temp;
+
+		if (!parseResFilePath(path, temp)) return false;
+		if (!temp.m_ext.empty()) {
+			g_logger.putError("Folder path cannot have extension.");
+			return false;
+		}
+
+		result.m_package = temp.m_package;
+		result.m_dir = temp.m_dir + temp.m_name;
+
+		return true;
+	}
+
+
+	size_t listDir(ResourceFolderPath& path, std::vector<std::string>& res) {
+		if (PACKAGE_NAME_ASSET != path.m_package) {
+			g_logger.putWarn("Non asset is not supported yet.");
+			return 0;
+		}
+		else {
+#if defined(_WIN32)
+			const auto exactPath = getResourceDir() + path.m_dir;
+			getWindowsDirList(exactPath.c_str(), res);
+#elif defined(__ANDROID__)
+			// Check error
+			if (!dal::filec::isFilesystemReady()) {
+				dal::LoggerGod::getinst().putError("Filesystem is not initialized");
+			}
+
+			// Do
+			const auto exactPath = path.m_dir;
+			const auto assetDir = AAssetManager_openDir(gAssetMgr, exactPath.c_str());
+			while (true) {
+				const auto fileName = AAssetDir_getNextFileName(assetDir);
+				if (fileName == nullptr)
+					break;
+				else
+					res.emplace_back(fileName);
+			}
+			AAssetDir_close(assetDir);
+#endif
+			return res.size();
+		}
+	}
+
+	bool checkResPathValidity(const ResourceFilePath& path) {
+		return true;
+	}
 
 }
 
@@ -151,72 +256,11 @@ namespace {
 		
 		return true;
 	}
-
-	void getFileList(const char* const path, std::vector<std::string>* results) {
-
-#if defined(_WIN32)
-		dal::LoggerGod::getinst().putFatal("Not implemented.");
-#elif defined(__ANDROID__)
-		// Check error
-		if (!dal::filec::isFilesystemReady()) {
-			dal::LoggerGod::getinst().putError("Filesystem is not initialized");
-		}
-
-		// Do
-		AAssetDir* assetDir = AAssetManager_openDir(gAssetMgr, path);
-		while (true) {
-			auto fileName = AAssetDir_getNextFileName(assetDir);
-			if (fileName == nullptr) break;
-			results->push_back(fileName);
-		}
-		AAssetDir_close(assetDir);
-#endif
-
-	}
-
+	
 }
 
 
 namespace dal {
-
-	bool parseResPath(const char* const path, ResourcePath& result) {
-		std::string pathStr{ path };
-
-		const auto packagePos = pathStr.find("::");
-		size_t excludePos = 0;
-		if (0 == packagePos) {
-			result.m_package = "::";
-			excludePos = 2;
-		}
-		else if (std::string::npos == packagePos) {
-			result.m_package = "";
-		}
-		else {
-			result.m_package = pathStr.substr(0, packagePos);
-			excludePos = packagePos + 2;
-		}
-
-		const auto dirPos = pathStr.rfind("/") + 1;
-		if (std::string::npos == dirPos) {
-			result.m_additionalDir = "";
-		}
-		else {
-			result.m_additionalDir = pathStr.substr(excludePos, dirPos - excludePos);
-			excludePos = dirPos;
-		}
-
-		const auto extPos = pathStr.rfind(".");
-		if (std::string::npos == extPos) {
-			result.m_name = pathStr.substr(excludePos, pathStr.size() - excludePos);
-			result.m_ext = "";
-		}
-		else {
-			result.m_name = pathStr.substr(excludePos, extPos - excludePos);
-			result.m_ext = pathStr.substr(extPos + 1, pathStr.size() - extPos - 1);
-		}
-
-		return true;
-	}
 
 	namespace filec {
 
@@ -229,7 +273,7 @@ namespace dal {
 				return false;
 			}
 			else {
-				gAssetMgr = (AAssetManager*)mgr;
+				gAssetMgr = reinterpret_cast<AAssetManager*>(mgr);
 				return true;
 			}
 #endif
@@ -252,26 +296,39 @@ namespace dal {
 
 			auto bufSize = file.getFileSize();
 			auto buf = std::unique_ptr<uint8_t>(new uint8_t[bufSize + 1]);
-			file.read(buf.get(), bufSize);
+			if (!file.read(buf.get(), bufSize)) return false;
 			buf.get()[bufSize] = '\0';
 
 			bufStr->clear();
 			*bufStr = reinterpret_cast<char*>(buf.get());
+
 			return true;
 		}
 
 		bool getResource_image(const char* const path, ImageFileData& data) {
-			const auto len = strlen(path);
-			assert(path[len - 4] == '.');
+			ResourceFilePath resPath;
+			if (!parseResFilePath(path, resPath)) return false;
+			std::string newPath = resPath.m_dir + resPath.m_name + resPath.m_ext;
 
-			std::string paramExt{ path + len - 3 };
-			if (paramExt == "tga"s) {
-				const auto res = readFileAsTGA(path, &data.m_buf, &data.m_width, &data.m_height, &data.m_pixSize);
+			if (PACKAGE_NAME_ASSET != resPath.m_package) throw - 1;
+
+			ResourceFolderPath folPath;
+			folPath.m_package = resPath.m_package;
+			folPath.m_dir = resPath.m_dir;
+			std::vector<std::string> dirs;
+			listDir(folPath, dirs);
+
+			for (auto& x : dirs) {
+				g_logger.putInfo(folPath.m_package + "::" + folPath.m_dir + x);
+			}
+
+			if (resPath.m_ext == ".tga"s) {
+				const auto res = readFileAsTGA(newPath.c_str(), &data.m_buf, &data.m_width, &data.m_height, &data.m_pixSize);
 				assert(data.m_pixSize == 4 || data.m_pixSize == 3);
 				return res;
 			}
-			else if (paramExt == "png"s) {
-				const auto res = readFileAsPNG(path, &data.m_buf, &data.m_width, &data.m_height);
+			else if (resPath.m_ext == ".png"s) {
+				const auto res = readFileAsPNG(newPath.c_str(), &data.m_buf, &data.m_width, &data.m_height);
 				const size_t calcSize = size_t(data.m_width) * size_t(data.m_height) * size_t(4);
 				assert(data.m_buf.size() == calcSize);
 				data.m_pixSize = 4;
@@ -284,26 +341,37 @@ namespace dal {
 		}
 
 		bool getResource_buffer(const char* const path, std::vector<uint8_t>& buffer) {
-			ResourcePath resPath; parseResPath(path, resPath);
-			return getResource_buffer(resPath, buffer);
-		}
+			ResourceFilePath resPath;
+			if (!parseResFilePath(path, resPath)) return false;
+			
+			if (PACKAGE_NAME_ASSET != resPath.m_package) throw - 1;
 
-		bool getResource_buffer(const ResourcePath& path, std::vector<uint8_t>& buffer) {
-			if (PACKAGE_ASSET != path.m_package) throw - 1;
+			ResourceFolderPath folPath;
+			folPath.m_package = resPath.m_package;
+			folPath.m_dir = resPath.m_dir;
+			std::vector<std::string> dirs;
+			listDir(folPath, dirs);
 
-			const auto filePath = path.m_additionalDir + path.m_name + '.' + path.m_ext;
+
+			for (auto& x : dirs) {
+				g_logger.putInfo(folPath.m_package + "::" + folPath.m_dir + x);
+			}
+
+
+			const auto filePath = resPath.m_dir + resPath.m_name + resPath.m_ext;
 			AssetFileStream file;
 			const auto openRes = file.open(filePath.c_str());
-			if (!openRes) return false;
+			if (!openRes) { throw - 1;  return false; }
 
 			buffer.resize(file.getFileSize());
 			const auto reeadRes = file.read(buffer.data(), buffer.size());
-			if (!reeadRes) return false;
+			if (!reeadRes) { throw - 1; return false; }
 
 			return true;
 		}
 
 	}
+
 }
 
 
@@ -396,7 +464,7 @@ namespace dal {
 
 		if (!this->pimpl->mIFile) {
 			LoggerGod::getinst().putError(
-				"File not read completely, only "s + std::to_string(this->pimpl->mIFile.gcount()) + "could be read:"s + m_path
+				"File not read completely, only "s + std::to_string(this->pimpl->mIFile.gcount()) + " could be read:"s + m_path
 			);
 			return 0;
 		}
