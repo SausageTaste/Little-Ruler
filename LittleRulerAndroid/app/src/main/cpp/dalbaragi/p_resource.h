@@ -50,7 +50,7 @@ namespace dal {
 		ModelHandle orderModel(const ResourceFilePath& resPath);
 		ModelHandle buildModel(const buildinfo::ModelDefined& info);
 
-	};\
+	};
 
 
 	class ResourceMaster {

@@ -223,43 +223,6 @@ namespace {
 
 }
 
-/*
-namespace dal {
-
-	bool RenderUnit_Static::isReady(void) const {
-		return this->mesh.isReady();
-	}
-
-	ActorInfo::ActorInfo(void) : rescale(1.0f) {
-
-	}
-
-	ActorInfo::ActorInfo(glm::vec3 initPos)
-		: pos(initPos),
-		rescale(1.0f)
-	{
-
-	}
-
-	ActorInfo::ActorInfo(const float x, const float y, const float z)
-		: pos(x, y, z), rescale(1.0f)
-	{
-
-	}
-
-	void ActorInfo::getViewMat(glm::mat4* mat) const {
-		auto scaleMat = glm::scale(glm::mat4{ 1.0f }, { rescale, rescale , rescale });
-		auto translateMat = glm::translate(glm::mat4{ 1.0f }, this->pos);
-		*mat = translateMat * glm::mat4_cast(myQuat) * scaleMat;
-	}
-
-	void ActorInfo::rotate(const float v, const glm::vec3& selector) {
-		this->myQuat = glm::angleAxis(v, selector) * this->myQuat;
-		this->myQuat = glm::normalize(this->myQuat);
-	}
-
-}
-*/
 
 namespace dal {
 
