@@ -30,9 +30,9 @@ namespace dal {
 		public:
 			ModelHandle(Model* model);
 			ModelHandle(const ModelHandle& other);
-			ModelHandle(ModelHandle&& other);
+			ModelHandle(ModelHandle&& other) noexcept;
 			ModelHandle& operator=(const ModelHandle& other);
-			ModelHandle& operator=(ModelHandle&& other);
+			ModelHandle& operator=(ModelHandle&& other) noexcept;
 			~ModelHandle(void);
 
 		};

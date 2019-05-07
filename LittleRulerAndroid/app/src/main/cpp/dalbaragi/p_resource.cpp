@@ -53,7 +53,7 @@ namespace dal {
 		this->pimpl->m_refCount++;
 	}
 
-	ResourceMaster::ModelHandle::ModelHandle(ResourceMaster::ModelHandle&& other) {
+	ResourceMaster::ModelHandle::ModelHandle(ResourceMaster::ModelHandle&& other) noexcept {
 		this->pimpl = other.pimpl;
 		other.pimpl = nullptr;
 	}
@@ -65,7 +65,7 @@ namespace dal {
 		return *this;
 	}
 
-	ResourceMaster::ModelHandle& ResourceMaster::ModelHandle::operator=(ResourceMaster::ModelHandle&& other) {
+	ResourceMaster::ModelHandle& ResourceMaster::ModelHandle::operator=(ResourceMaster::ModelHandle&& other) noexcept {
 		this->pimpl = other.pimpl;
 		other.pimpl = nullptr;
 
