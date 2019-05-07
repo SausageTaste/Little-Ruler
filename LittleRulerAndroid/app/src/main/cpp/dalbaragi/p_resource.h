@@ -8,38 +8,68 @@
 #include "p_material.h"
 #include "p_meshStatic.h"
 #include "p_texture.h"
+#include "u_pool.h"
 
 
 namespace dal {
+
+	struct Model;
+
 
 	class ResourceMaster {
 
 		//////// Definitions ////////
 
+	public:
+		class ModelHandle {
+
+		private:
+			struct Pimpl;
+			Pimpl* pimpl;
+
+		public:
+			ModelHandle(Model* model);
+			ModelHandle(const ModelHandle& other);
+			ModelHandle(ModelHandle&& other);
+			ModelHandle& operator=(const ModelHandle& other);
+			ModelHandle& operator=(ModelHandle&& other);
+			~ModelHandle(void);
+
+		};
+
+		class TextureHandle_V2 {
+
+
+
+		};
+
 	private:
-		struct RenderUnit {
-			MeshStatic m_mesh;
-			Material m_material;
-		};
+		class Package {
 
-		struct Model {
-			const std::string m_id;
-			std::vector<RenderUnit> m_renderUnits;
-		};
+		private:
+			std::string m_name;
+			std::unordered_map<std::string, ModelHandle> m_models;
+			std::unordered_map<std::string, TextureHandle_V2> m_textures;
 
-		struct Package {
-			const std::string m_name;
-			std::unordered_map<std::string, Model> m_models;
-			std::unordered_map<std::string, Texture> m_textures;
+		public:
+			void setName(const char* const packageName);
+			void setName(const std::string& packageName);
+			ModelHandle orderModel(const char* const modelID);
+
 		};
 
 		//////// Attribs ////////
 
+	private:
 		std::unordered_map<std::string, Package> m_packages;
 
 		//////// Methods ////////
 
 	public:
+		ModelHandle orderModel(const char* const modelID);
+
+	private:
+		Package* orderPackage(const std::string& packName);
 
 	};
 

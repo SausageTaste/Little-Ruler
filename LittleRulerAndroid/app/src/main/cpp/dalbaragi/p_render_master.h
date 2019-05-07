@@ -34,7 +34,7 @@ namespace dal {
 		OverlayMaster m_overlayMas;
 
 	private:
-		unsigned int mFbufWidth, mFbufHeight, mWidWidth, mWidHeight;
+		unsigned int mWidWidth, mWidHeight, mFbufWidth, mFbufHeight;
 		GLuint mMainFbuffer;
 		GLuint mMainFbuf_colorMap;
 		GLuint mMainRenderbuffer;

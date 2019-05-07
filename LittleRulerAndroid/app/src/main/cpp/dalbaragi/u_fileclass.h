@@ -6,6 +6,19 @@
 
 namespace dal {
 
+	struct ResourceFilePath {
+		std::string m_package, m_dir, m_name, m_ext;
+	};
+
+	struct ResourceFolderPath {
+		std::string m_package, m_dir;
+	};
+
+
+	bool parseResFilePath(const char* const path, ResourceFilePath& result);
+
+	bool parseResFolderPath(const char* const path, ResourceFolderPath& result);
+
 	
 	namespace filec {
 
