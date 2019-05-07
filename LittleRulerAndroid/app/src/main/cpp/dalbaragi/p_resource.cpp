@@ -125,14 +125,16 @@ namespace dal {
 		}
 		else {
 			g_logger.putTrace("Load model: "s + resPath.m_package + "::" + resPath.m_dir + modelIDStr);
-			ModelHandle a{ modelIDStr.c_str(), nullptr };
-			return a;
+			ModelHandle handle{ modelIDStr.c_str(), nullptr };
+			this->m_models.emplace(modelIDStr, handle);
+			return handle;
 		}
 	}
 
 	ModelHandle Package::buildModel(const buildinfo::ModelDefined& info) {
 		auto model = g_modelPool.alloc();
 		ModelHandle handle{ info.m_modelID.c_str(), model };
+		this->m_models.emplace(info.m_modelID, handle);
 
 		{
 			// Render units
