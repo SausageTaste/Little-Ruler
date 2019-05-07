@@ -2,6 +2,7 @@
 
 #include "s_logger_god.h"
 #include "u_fileclass.h"
+#include "s_threader.h"
 
 
 using namespace std::string_literals;
@@ -15,6 +16,18 @@ namespace {
 	};
 
 }
+
+
+namespace {
+
+	class LoadTask_Texture : public dal::ITask {
+
+	private:
+
+	};
+
+}
+
 
 namespace dal {
 
