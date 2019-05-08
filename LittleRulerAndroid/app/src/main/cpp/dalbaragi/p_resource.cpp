@@ -4,6 +4,7 @@
 #include "s_logger_god.h"
 #include "u_fileclass.h"
 #include "s_threader.h"
+#include "u_objparser.h"
 
 
 using namespace std::string_literals;
@@ -12,6 +13,7 @@ using namespace std::string_literals;
 namespace {
 
 	struct RenderUnit {
+		std::string m_meshName;
 		dal::MeshStatic m_mesh;
 		dal::Material2 m_material;
 	};
@@ -39,7 +41,44 @@ namespace {
 
 	};
 
-	std::unordered_set<LoadTask_Texture*> g_sentTasks_texture;
+	class LoadTask_Model : public dal::ITask {
+
+	public:
+		const std::string in_modelID;
+
+		bool out_success;
+		dal::ModelInfo out_info;
+
+		dal::ModelHandle data_coresponding;
+		dal::Package* const data_package;
+
+	public:
+		LoadTask_Model(const std::string& modelID, dal::ModelHandle const coresponding, dal::Package* const package)
+		:	in_modelID(modelID),
+			out_success(false),
+			data_coresponding(coresponding),
+			data_package(package)
+		{
+
+		}
+
+		virtual void start(void) override {
+			dal::ResourceFilePath path;
+			dal::parseResFilePath(in_modelID.c_str(), path);
+			if ("asset" != path.m_package) {
+				out_success = false;
+				return;
+			}
+			auto modelPath = "models/"s + path.m_dir + path.m_name + path.m_ext;
+			out_success = dal::parseOBJ_assimp(out_info, (modelPath).c_str());
+		}
+
+	};
+
+
+	std::unordered_set<void*> g_sentTasks_texture;
+
+	std::unordered_set<void*> g_sentTasks_model;
 
 }
 
@@ -255,6 +294,32 @@ namespace dal {
 		this->pimpl->m_model = nullptr;
 	}
 
+	Model* ModelHandle::replace(Model* model) {
+		if (nullptr == this->pimpl) {
+			this->pimpl = new Pimpl;
+			this->pimpl->m_model = model;
+			return nullptr;
+		}
+		else {
+			auto tmp = this->pimpl->m_model;
+			this->pimpl->m_model = model;
+			return tmp;
+		}
+	}
+
+	std::string ModelHandle::replace(const std::string& id) {
+		if (nullptr == this->pimpl) {
+			this->pimpl = new Pimpl;
+			this->pimpl->m_id = id;
+			return "";
+		}
+		else {
+			auto tmp = this->pimpl->m_id;
+			this->pimpl->m_id = id;
+			return tmp;
+		}
+	}
+
 }
 
 
@@ -269,7 +334,7 @@ namespace dal {
 		this->m_name = packageName;
 	}
 
-	ModelHandle Package::orderModel(const ResourceFilePath& resPath) {
+	ModelHandle Package::orderModel(const ResourceFilePath& resPath, ResourceMaster* const resMas) {
 		std::string modelIDStr{ resPath.m_name + resPath.m_ext };
 
 		decltype(this->m_models.end()) iter = this->m_models.find(modelIDStr);
@@ -277,8 +342,14 @@ namespace dal {
 			return iter->second;
 		}
 		else {
+			const auto modelID{ resPath.m_package + "::" + resPath.m_dir + modelIDStr };
 			g_logger.putTrace("Load model: "s + resPath.m_package + "::" + resPath.m_dir + modelIDStr);
 			ModelHandle handle{ modelIDStr.c_str(), nullptr };
+
+			auto task = new LoadTask_Model{ modelID, handle, this };
+			g_sentTasks_model.insert(task);
+			TaskGod::getinst().orderTask(task, resMas);
+			
 			this->m_models.emplace(modelIDStr, handle);
 			return handle;
 		}
@@ -362,13 +433,57 @@ namespace dal {
 		this->m_packages.clear();
 	}
 
+	void ResourceMaster::notifyTask(ITask* const task) {
+		std::unique_ptr<ITask> safeHoho{ task };
+
+		if (g_sentTasks_model.find(task) != g_sentTasks_model.end()) {
+			g_sentTasks_model.erase(task);
+
+			auto loaded = reinterpret_cast<LoadTask_Model*>(task);
+			if (!loaded->out_success) {
+				LoggerGod::getinst().putError("Failed to load model: "s + loaded->in_modelID);
+				throw - 1;
+			}
+
+			auto model = g_modelPool.alloc();
+			auto shouldBeNULL = loaded->data_coresponding.replace(model);
+			assert(nullptr == shouldBeNULL);
+			auto shouldBeEmptyStr = loaded->data_coresponding.replace(loaded->in_modelID);
+			assert(shouldBeEmptyStr.empty());
+
+			for (auto& unitInfo : loaded->out_info) {
+				model->m_renderUnits.emplace_back();
+				auto& unit = model->m_renderUnits.back();
+
+				unit.m_mesh.buildData(
+					unitInfo.m_mesh.m_vertices.data(), unitInfo.m_mesh.m_vertices.size(),
+					unitInfo.m_mesh.m_texcoords.data(), unitInfo.m_mesh.m_texcoords.size(),
+					unitInfo.m_mesh.m_normals.data(), unitInfo.m_mesh.m_normals.size()
+				);
+				unit.m_meshName = unitInfo.m_name;
+
+				unit.m_material.m_diffuseColor = unitInfo.m_material.m_diffuseColor;
+				unit.m_material.m_shininess = unitInfo.m_material.m_shininess;
+				unit.m_material.m_specularStrength = unitInfo.m_material.m_specStrength;
+
+				if (!unitInfo.m_material.m_diffuseMap.empty()) {
+					auto texHandle = loaded->data_package->orderDiffuseMap(unitInfo.m_material.m_diffuseMap.c_str());
+					unit.m_material.setDiffuseMap(texHandle);
+				}
+			}
+		}
+		else {
+			g_logger.putWarn("ResourceMaster got a task that it doesn't know.");
+		}
+	}
+
 	ModelHandle ResourceMaster::orderModel(const char* const packageName_dir_modelID) {
 		ResourceFilePath path;
 		parseResFilePath(packageName_dir_modelID, path);
 
 		auto& package = this->orderPackage(path.m_package);
 
-		return package.orderModel(path);
+		return package.orderModel(path, this);
 	}
 
 	ModelHandle ResourceMaster::buildModel(const loadedinfo::ModelDefined& info, const char* const packageName) {

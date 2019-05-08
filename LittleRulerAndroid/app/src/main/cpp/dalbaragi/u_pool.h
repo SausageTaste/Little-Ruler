@@ -11,6 +11,7 @@ namespace dal {
 		bool m_allocFlags[SIZE];
 
 		unsigned int m_nextToAlloc = 0;
+		unsigned int m_allocSize = 0;
 
 	public:
 		constexpr unsigned int getSize(void) {
@@ -22,8 +23,9 @@ namespace dal {
 			if (m_nextToAlloc == SIZE) return nullptr;
 
 			const auto allocatedIndex = m_nextToAlloc;
-			m_nextToAlloc = this->getFirstFreeIndex(allocatedIndex);
 			m_allocFlags[allocatedIndex] = true;
+			m_nextToAlloc = this->getFirstFreeIndex(allocatedIndex);
+			m_allocSize++;
 			return &m_pool[allocatedIndex];
 		}
 
@@ -31,6 +33,7 @@ namespace dal {
 			const auto freeIndex = this->getIndex(p);
 			m_allocFlags[freeIndex] = false;
 			this->m_nextToAlloc = freeIndex;
+			m_allocSize--;
 		}
 
 	private:

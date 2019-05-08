@@ -9,7 +9,7 @@
 
 #include "s_logger_god.h"
 
-#define DAL_THREAD_COUNT 1
+#define DAL_THREAD_COUNT 0
 
 
 using namespace std;

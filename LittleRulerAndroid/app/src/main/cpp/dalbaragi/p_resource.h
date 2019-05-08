@@ -15,6 +15,7 @@ namespace dal {
 
 	struct Model;
 	class Package;
+	class ResourceMaster;
 
 
 	class TextureHandle2 {
@@ -78,6 +79,8 @@ namespace dal {
 		bool isReady(void) const;
 		void renderGeneral(const UnilocGeneral& uniloc, const std::list<Actor>& actors) const;
 		void destroyModel(void);
+		Model* replace(Model* model);
+		std::string replace(const std::string& model);
 
 	};
 
@@ -93,7 +96,7 @@ namespace dal {
 		void setName(const char* const packageName);
 		void setName(const std::string& packageName);
 
-		ModelHandle orderModel(const ResourceFilePath& resPath);
+		ModelHandle orderModel(const ResourceFilePath& resPath, ResourceMaster* const resMas);
 		ModelHandle buildModel(const loadedinfo::ModelDefined& info);
 		TextureHandle2 orderDiffuseMap(const char* const texID);
 
@@ -105,7 +108,7 @@ namespace dal {
 	};
 
 
-	class ResourceMaster {
+	class ResourceMaster : public ITaskDoneListener {
 
 		//////// Attribs ////////
 
@@ -115,7 +118,9 @@ namespace dal {
 		//////// Methods ////////
 
 	public:
-		~ResourceMaster(void);
+		virtual ~ResourceMaster(void) override;
+
+		virtual void notifyTask(ITask* const task) override;
 
 		ModelHandle orderModel(const char* const packageName_dir_modelID);
 
