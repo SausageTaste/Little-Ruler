@@ -26,7 +26,7 @@ namespace {
 	public:
 		dal::ResourceFilePath in_id;
 
-		dal::buildinfo::ImageFileData out_img;
+		dal::loadedinfo::ImageFileData out_img;
 
 		bool out_success;
 
@@ -284,7 +284,7 @@ namespace dal {
 		}
 	}
 
-	ModelHandle Package::buildModel(const buildinfo::ModelDefined& info) {
+	ModelHandle Package::buildModel(const loadedinfo::ModelDefined& info) {
 		auto model = g_modelPool.alloc();
 		ModelHandle handle{ info.m_modelID.c_str(), model };
 		this->m_models.emplace(info.m_modelID, handle);
@@ -318,7 +318,7 @@ namespace dal {
 	TextureHandle2 Package::orderDiffuseMap(const char* const texID) {
 		auto iter = this->m_textures.find(texID);
 		if (this->m_textures.end() == iter) {
-			buildinfo::ImageFileData img;
+			loadedinfo::ImageFileData img;
 			std::string filePath{ this->m_name + "::texture/"s + texID };
 			const auto res = dal::filec::getResource_image(filePath.c_str(), img);
 			if (!res) throw - 1;
@@ -329,7 +329,7 @@ namespace dal {
 		}
 	}
 
-	TextureHandle2 Package::buildDiffuseMap(const char* const texID, const buildinfo::ImageFileData& info) {
+	TextureHandle2 Package::buildDiffuseMap(const char* const texID, const loadedinfo::ImageFileData& info) {
 		auto tex = g_texturePool.alloc();
 		tex->init_diffueMap(info.m_buf.data(), info.m_width, info.m_height);
 		TextureHandle2 handle{ texID, tex };
@@ -371,7 +371,7 @@ namespace dal {
 		return package.orderModel(path);
 	}
 
-	ModelHandle ResourceMaster::buildModel(const buildinfo::ModelDefined& info, const char* const packageName) {
+	ModelHandle ResourceMaster::buildModel(const loadedinfo::ModelDefined& info, const char* const packageName) {
 		auto& package = this->orderPackage(packageName);
 		return package.buildModel(info);
 	}

@@ -39,7 +39,7 @@ namespace dal {
 	};
 
 
-	namespace buildinfo {
+	namespace loadedinfo {
 
 		struct MapItemModel {
 			std::string m_modelID;
@@ -65,8 +65,8 @@ namespace dal {
 	struct LoadedMap {
 
 		std::string m_mapName, m_packageName;
-		std::list<buildinfo::ModelDefined> m_definedModels;
-		std::list<buildinfo::ModelImported> m_importedModels;
+		std::list<loadedinfo::ModelDefined> m_definedModels;
+		std::list<loadedinfo::ModelImported> m_importedModels;
 
 	};
 

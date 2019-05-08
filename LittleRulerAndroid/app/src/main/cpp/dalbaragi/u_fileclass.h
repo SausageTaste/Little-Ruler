@@ -28,7 +28,7 @@ namespace dal {
 		bool isFilesystemReady(void);
 
 		bool getAsset_text(const char* const path, std::string* buf);
-		bool getResource_image(const char* const path, buildinfo::ImageFileData& data);
+		bool getResource_image(const char* const path, loadedinfo::ImageFileData& data);
 
 		bool getResource_buffer(const char* const path, std::vector<uint8_t>& buffer);
 

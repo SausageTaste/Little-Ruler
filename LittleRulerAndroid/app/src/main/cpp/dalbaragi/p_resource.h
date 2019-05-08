@@ -94,13 +94,13 @@ namespace dal {
 		void setName(const std::string& packageName);
 
 		ModelHandle orderModel(const ResourceFilePath& resPath);
-		ModelHandle buildModel(const buildinfo::ModelDefined& info);
+		ModelHandle buildModel(const loadedinfo::ModelDefined& info);
 		TextureHandle2 orderDiffuseMap(const char* const texID);
 
 		void clear(void);
 
 	private:
-		TextureHandle2 buildDiffuseMap(const char* const texID, const buildinfo::ImageFileData& info);
+		TextureHandle2 buildDiffuseMap(const char* const texID, const loadedinfo::ImageFileData& info);
 
 	};
 
@@ -119,7 +119,7 @@ namespace dal {
 
 		ModelHandle orderModel(const char* const packageName_dir_modelID);
 
-		ModelHandle buildModel(const buildinfo::ModelDefined& info, const char* const packageName);
+		ModelHandle buildModel(const loadedinfo::ModelDefined& info, const char* const packageName);
 
 	private:
 		Package& orderPackage(const std::string& packName);

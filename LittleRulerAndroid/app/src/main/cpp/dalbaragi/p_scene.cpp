@@ -382,6 +382,8 @@ namespace dal {
 		this->addMap(info);
 	}
 		
+	// Private
+
 	void SceneMaster::addMap(const LoadedMap& map) {
 		this->m_mapChunks.emplace_back();
 		auto& newMap = this->m_mapChunks.back();
@@ -405,8 +407,6 @@ namespace dal {
 			model.m_inst.assign(importedModel.m_actors.begin(), importedModel.m_actors.end());
 		}
 	}
-
-	// Private
 
 	bool SceneMaster::findModel(const char* const name, ModelInst** const model, const char** const level) {
 		for (auto& modelInst : m_freeModels) {

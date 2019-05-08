@@ -218,13 +218,13 @@ namespace dal {
 			excludePos = packagePos + 2;
 		}
 
-		const auto dirPos = pathStr.rfind("/") + 1;
+		const auto dirPos = pathStr.rfind("/");
 		if (std::string::npos == dirPos) {
 			result.m_dir = "";
 		}
 		else {
-			result.m_dir = pathStr.substr(excludePos, dirPos - excludePos);
-			excludePos = dirPos;
+			result.m_dir = pathStr.substr(excludePos, dirPos + 1 - excludePos);
+			excludePos = dirPos + 1;
 		}
 
 		const auto extPos = pathStr.rfind(".");
@@ -298,7 +298,7 @@ namespace dal {
 			return true;
 		}
 
-		bool getResource_image(const char* const path, buildinfo::ImageFileData& data) {
+		bool getResource_image(const char* const path, loadedinfo::ImageFileData& data) {
 			ResourceFilePath resPath;
 			if (!parseResFilePath(path, resPath)) return false;
 			std::string newPath = resPath.m_dir + resPath.m_name + resPath.m_ext;
