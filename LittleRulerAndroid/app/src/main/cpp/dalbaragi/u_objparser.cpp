@@ -16,8 +16,6 @@
 #include "s_logger_god.h"
 #include "u_fileclass.h"
 
-#include <cstdio>
-
 
 using namespace std::string_literals;
 
@@ -202,8 +200,8 @@ namespace {
 	bool processNode(dal::ModelInfo& info, std::vector<dal::RenderUnitInfo::MaterialInfo> materials, const aiScene* const scene, aiNode* const node) {
 		for (unsigned int i = 0; i < node->mNumMeshes; i++) {
 			aiMesh* ai_mesh = scene->mMeshes[node->mMeshes[i]];
-			info.emplace_back();
-			auto& renUnit = info.back();
+			info.emplace_front();
+			auto& renUnit = info.front();
 			if ( !processMesh(renUnit, ai_mesh) ) return false;
 
 			if (ai_mesh->mMaterialIndex != 0) {
