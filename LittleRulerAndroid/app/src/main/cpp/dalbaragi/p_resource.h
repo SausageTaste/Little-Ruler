@@ -77,7 +77,10 @@ namespace dal {
 		~ModelHandle(void);
 
 		bool isReady(void) const;
+
 		void renderGeneral(const UnilocGeneral& uniloc, const std::list<Actor>& actors) const;
+		void renderDepthMap(const UnilocDepthmp& uniloc, const std::list<Actor>& actors) const;
+
 		void destroyModel(void);
 		Model* replace(Model* model);
 		std::string replace(const std::string& model);

@@ -34,7 +34,6 @@ namespace dal {
 	RenderMaster::RenderMaster(void)
 	:	mCameraPos(0.0, 0.0, 5.0),
 		mCameraViewDir(0.0, 0.0),
-		m_scene(m_texMas),
 		m_overlayMas(m_texMas),
 		mWidWidth(0), mWidHeight(0),
 		mFbufWidth(10), mFbufHeight(10),

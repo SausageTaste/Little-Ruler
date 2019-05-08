@@ -287,6 +287,20 @@ namespace dal {
 		}
 	}
 
+	void ModelHandle::renderDepthMap(const UnilocDepthmp& uniloc, const std::list<Actor>& actors) const {
+		if (!this->isReady()) return;
+
+		for (auto& unit : this->pimpl->m_model->m_renderUnits) {
+			if (!unit.m_mesh.isReady()) continue;
+
+			for (auto& inst : actors) {
+				auto mat = inst.getViewMat();
+				glUniformMatrix4fv(uniloc.uModelMat, 1, GL_FALSE, &mat[0][0]);
+				unit.m_mesh.draw();
+			}
+		}
+	}
+
 	void ModelHandle::destroyModel(void) {
 		if (nullptr == this->pimpl->m_model) return;
 
