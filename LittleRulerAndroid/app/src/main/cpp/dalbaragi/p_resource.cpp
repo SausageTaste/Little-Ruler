@@ -576,7 +576,17 @@ namespace dal {
 
 	TextureHandle2 Package::buildDiffuseMap(const char* const texID, const loadedinfo::ImageFileData& info) {
 		auto tex = g_texturePool.alloc();
-		tex->init_diffueMap(info.m_buf.data(), info.m_width, info.m_height);
+
+		if (3 == info.m_pixSize) {
+			tex->init_diffueMap3(info.m_buf.data(), info.m_width, info.m_height);
+		}
+		else if (4 == info.m_pixSize) {
+			tex->init_diffueMap(info.m_buf.data(), info.m_width, info.m_height);
+		}
+		else {
+			g_logger.putError("Not supported pixel size: "s + texID + ", " + std::to_string(info.m_pixSize));
+		}
+		
 		TextureHandle2 handle{ texID, tex };
 		this->m_textures.emplace(texID, handle);
 		return handle;
