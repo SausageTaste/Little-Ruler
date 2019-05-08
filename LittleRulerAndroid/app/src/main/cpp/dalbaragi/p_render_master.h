@@ -47,15 +47,15 @@ namespace dal {
 		};
 
 		class MainFramebuffer {
-			unsigned int mFbufWidth = 256, mFbufHeight = 256;
-			float mRenderScale = 1.0f;
+			unsigned int m_bufWidth = 256, m_bufHeight = 256;
+			float m_renderScale = 1.0f;
 
-			GLuint mMainFbuffer = 0;
-			GLuint mMainFbuf_colorMap = 0;
-			GLuint mMainRenderbuffer = 0;
-			GLuint mMainVBO = 0;
-			GLuint mMainBufVertices = 0;
-			GLuint mMainBufTexCoords = 0;
+			GLuint m_mainFbuf = 0;
+			GLuint m_colorMap = 0;
+			GLuint m_mainRenderbuf = 0;
+			GLuint m_vbo = 0;
+			GLuint m_vertexArr = 0;
+			GLuint m_texcoordArr = 0;
 
 		public:
 			MainFramebuffer(void);
@@ -83,12 +83,12 @@ namespace dal {
 		OverlayMaster m_overlayMas;
 
 	private:
-		unsigned int mWidWidth, mWidHeight;
+		unsigned int m_winWidth, m_winHeight;
 
-		glm::mat4 mProjectMat;
+		glm::mat4 m_projectMat;
 
-		DirectionalLight mDlight1;
-		PointLight mPlight1;
+		DirectionalLight m_dlight1;
+		PointLight m_plight1;
 
 	public:
 		RenderMaster(void);
