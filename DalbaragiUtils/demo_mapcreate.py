@@ -8,13 +8,34 @@ def main():
     level = lvb.LevelBuilder("test_level")
 
     model = bfi.BuildInfo_ModelImported()
-    model.addActor(aco.ActorInfo())
+
+    actor = aco.ActorInfo()
+    actor.setName("Yuri")
+    actor.getQuatHandle().rotate(180, (0, 1, 0))
+    actor.getPosHandle().setZ(-5)
+    model.addActor(actor)
+
+    actor = aco.ActorInfo()
+    actor.setName("Yuri2")
+    actor.getQuatHandle().rotate(90, (0, 1, 0))
+    actor.getPosHandle().setX(5)
+    model.addActor(actor)
+
     model.setModelID("yuri.obj")
     level.add(model)
 
+    ########
+
+    model = bfi.BuildInfo_ModelImported()
+    model.addActor(aco.ActorInfo())
+    model.setModelID("palanquin.obj")
+    level.add(model)
+
+    ########
+
     model = bfi.BuildInfo_ModelDefined()
     model.setModelID("floor")
-    model.getMeshHandle().setAABB(atl.Vec3(-50, -3, -50), atl.Vec3(50, -2, 50))
+    model.getMeshHandle().setAABB(atl.Vec3(-50, -1, -50), atl.Vec3(50, -0, 50))
     model.getMaterialHandle().setDiffuseMap("grass1.png")
     model.addActor(aco.ActorInfo())
     level.add(model)

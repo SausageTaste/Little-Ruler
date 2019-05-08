@@ -4,6 +4,7 @@ import base64
 from typing import Tuple, List, Type
 
 import numpy as np
+import glm
 
 from level.datastruct.interface import json_t
 import level.datastruct.interface as ein
@@ -62,6 +63,15 @@ class Vec3(ein.ILevelAttribLeaf):
     def getXYZ(self) -> Tuple[float, float , float]:
         return self.__x, self.__y, self.__z
 
+    def setX(self, v: float):
+        self.__x = float(v)
+
+    def setY(self, v: float):
+        self.__y = float(v)
+
+    def setZ(self, v: float):
+        self.__z = float(v)
+
 
 class Vec4(ein.ILevelAttribLeaf):
     def __init__(self, x:float=0.0, y:float=0.0, z:float=0.0, w:float=0.0):
@@ -116,11 +126,54 @@ class Vec4(ein.ILevelAttribLeaf):
         self.__z /= length
         self.__w /= length
 
-    def overrideFromJson(self, data: list) -> None:
-        self.__x = data[0]
-        self.__y = data[1]
-        self.__z = data[2]
-        self.__w = data[3]
+
+class Quat(ein.ILevelAttribLeaf):
+    def __init__(self):
+        self.__quat = glm.quat(1, 0, 0, 0)
+
+    def __str__(self):
+        return "< Quat {{ {}, {}, {}, {} }} >".format(self.__quat.x, self.__quat.y, self.__quat.z, self.__quat.w)
+
+    def setDefault(self) -> None:
+        self.__quat = glm.quat(1, 0, 0, 0)
+
+    def getJson(self) -> json_t:
+        return [self.__quat.x, self.__quat.y, self.__quat.z, self.__quat.w]
+
+    def setJson(self, data: json_t) -> None:
+        self.__quat.x = data[0]
+        self.__quat.y = data[1]
+        self.__quat.z = data[2]
+        self.__quat.w = data[3]
+
+    def getBinary(self) -> bytearray:
+        data = bytearray()
+
+        data += but.get4BytesFloat(self.__quat.x)
+        data += but.get4BytesFloat(self.__quat.y)
+        data += but.get4BytesFloat(self.__quat.z)
+        data += but.get4BytesFloat(self.__quat.w)
+
+        print(self, [x for x in data])
+        return data
+
+    def getIntegrityReport(self, usageName: str = "") -> ere.IntegrityReport:
+        return ere.IntegrityReport(type(self).__name__, usageName)
+
+    def rotate(self, degree: float, selector: Tuple[float, float, float]):
+        selcet = glm.vec3(*selector)
+        what = glm.angleAxis(glm.radians(degree), selcet) * self.__quat
+        # Why do I need to do this???
+        self.__quat = glm.quat(what.z, what.y, -what.x, -what.w)
+        self.__normalize()
+
+    def __normalize(self) -> None:
+        # Why should I do this!!!!
+        length = math.sqrt(self.__quat.x**2 + self.__quat.y**2 + self.__quat.z**2 + self.__quat.w**2)
+        self.__quat.x /= length
+        self.__quat.y /= length
+        self.__quat.z /= length
+        self.__quat.w /= length
 
 
 class IdentifierStr(ein.ILevelAttribLeaf):

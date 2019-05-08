@@ -14,13 +14,11 @@ class CompileWorkReciepe:
 def getOnlyFileName(path: str) -> str:
     return os.path.split(os.path.splitext(path)[0])[1]
 
-def getWorkProperties() -> Optional[CompileWorkReciepe]:
-
-
+def getWorkProperties(args: list) -> Optional[CompileWorkReciepe]:
     work = CompileWorkReciepe()
     errOnce = False
 
-    for arg in sys.argv[1:]:
+    for arg in args[1:]:
         if arg.endswith(".json"):
             if os.path.isfile(arg):
                 work.m_fileNames.append(arg)
@@ -37,8 +35,8 @@ def getWorkProperties() -> Optional[CompileWorkReciepe]:
         return work
 
 
-def main():
-    work = getWorkProperties()
+def main(args: list):
+    work = getWorkProperties(args)
     if work is None:
         print("\nTerminate due to error during parsing args.")
         return
@@ -55,4 +53,4 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    main(sys.argv)

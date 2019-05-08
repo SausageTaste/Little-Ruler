@@ -14,7 +14,7 @@ class ActorInfo(ein.ILevelAttrib):
     def __init__(self):
         self.__actor_name = pri.IdentifierStr()
         self.__pos = pri.Vec3()
-        self.__quat = pri.Vec4(0, 0, 0, 1)
+        self.__quat = pri.Quat()
 
         super().__init__({
             self.__s_field_actor_name: self.__actor_name,
@@ -34,6 +34,15 @@ class ActorInfo(ein.ILevelAttrib):
     def getTypeCode(cls) -> bytearray:
         ere.TypeCodeInspector.reportUsage(3, cls)
         return bytearray(but.get2BytesInt(3))
+
+    def getPosHandle(self) -> pri.Vec3:
+        return self.__pos
+
+    def getQuatHandle(self) -> pri.Quat:
+        return self.__quat
+
+    def setName(self, v: str):
+        self.__actor_name.setStr(v)
 
 
 class Material(ein.ILevelAttrib):
