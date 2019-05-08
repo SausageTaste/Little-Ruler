@@ -386,6 +386,7 @@ namespace dal {
 
 	}
 	ModelHandle::ModelHandle(const char* const modelID, Model* const model) : pimpl(new Pimpl) {
+		this->pimpl->m_id = modelID;
 		this->pimpl->m_model = model;
 	}
 	ModelHandle::ModelHandle(const ModelHandle& other) {
@@ -637,8 +638,6 @@ namespace dal {
 			auto model = g_modelPool.alloc();
 			auto shouldBeNULL = loaded->data_coresponding.replace(model);
 			assert(nullptr == shouldBeNULL);
-			auto shouldBeEmptyStr = loaded->data_coresponding.replace(loaded->in_modelID);
-			assert(shouldBeEmptyStr.empty());
 
 			for (auto& unitInfo : loaded->out_info) {
 				model->m_renderUnits.emplace_back();
