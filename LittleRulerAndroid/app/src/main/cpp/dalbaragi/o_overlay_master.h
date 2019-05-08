@@ -8,7 +8,6 @@
 #include "s_event.h"
 #include "o_widget_textbox.h"
 #include "p_globalfsm.h"
-#include "p_texture.h"
 #include "o_text_cache.h"
 #include "p_resource.h"
 
@@ -37,7 +36,7 @@ namespace dal {
 		
 		//////// Funcs ////////
 
-		OverlayMaster(TextureMaster& texMaster, ResourceMaster& resMas);
+		OverlayMaster(ResourceMaster& resMas);
 		virtual ~OverlayMaster(void) override;
 		virtual void onEvent(const EventStatic& e) override;
 		

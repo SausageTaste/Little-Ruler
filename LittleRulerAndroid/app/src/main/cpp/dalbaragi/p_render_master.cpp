@@ -35,15 +35,14 @@ namespace dal {
 	:	mCameraPos(0.0, 0.0, 5.0),
 		mCameraViewDir(0.0, 0.0),
 		m_scene(m_resMas),
-		m_overlayMas(m_texMas, m_resMas),
+		m_overlayMas(m_resMas),
 		mWidWidth(0), mWidHeight(0),
 		mFbufWidth(10), mFbufHeight(10),
 		mRenderScale(0.9f),
 		mProjectMat(1.0),
 		mShaderGeneral("mShaderGeneral"),
 		mShaderFScreen("mShaderFScreen"),
-		mShaderDepthmp("mShaderDepthmp"),
-		mDlight1(&m_texMas)
+		mShaderDepthmp("mShaderDepthmp")
 	{
 		/* Establish framebuffer */ {
 			glGenFramebuffers(1, &mMainFbuffer);
@@ -200,7 +199,7 @@ namespace dal {
 	}
 
 	void RenderMaster::update(const float deltaTime) {
-		m_texMas.update();
+
 	}
 
 	void RenderMaster::render(void) {

@@ -14,19 +14,19 @@ namespace {
 
 namespace dal {
 
-	DepthmapForLights::DepthmapForLights(TextureMaster* const texMaster)
+	DepthmapForLights::DepthmapForLights(void)
 		: width(DEPTHMAP_RES), height(DEPTHMAP_RES)
 	{
-		mDepthmap = texMaster->request_depthMap(width, height);
+		this->mDepthmap = ResourceMaster::getDepthMap(width, height);
 
 		glGenFramebuffers(1, &mFBO);
 		glBindFramebuffer(GL_FRAMEBUFFER, mFBO); {
 			const GLenum none = GL_NONE;
 			glDrawBuffers(1, &none);
 
-			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, mDepthmap->getTexID(), 0);
+			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, mDepthmap.getTex(), 0);
 			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, mDepthmap->getTexID()); {
+			glBindTexture(GL_TEXTURE_2D, mDepthmap.getTex()); {
 				if (GL_FRAMEBUFFER_COMPLETE != glCheckFramebufferStatus(GL_FRAMEBUFFER)) throw -1;
 			} glBindTexture(GL_TEXTURE_2D, 0);
 
@@ -35,10 +35,10 @@ namespace dal {
 	}
 
 	GLuint DepthmapForLights::getTextureID(void) {
-		return mDepthmap->getTexID();
+		return mDepthmap.getTex();
 	}
 
-	TextureHandle_ptr DepthmapForLights::getDepthMap(void) {
+	TextureHandle2 DepthmapForLights::getDepthMap(void) {
 		return mDepthmap;
 	}
 
@@ -61,10 +61,9 @@ namespace dal {
 
 namespace dal {
 
-	DirectionalLight::DirectionalLight(TextureMaster* const texMaster)
+	DirectionalLight::DirectionalLight(void)
 		: mDirection(-0.3, -1, -1),
 		mColor(1, 1, 1),
-		mShadowMap(texMaster),
 		mHalfShadowEdgeSize(15.0f)
 	{
 		this->mDirection = glm::normalize(this->mDirection);
@@ -77,7 +76,7 @@ namespace dal {
 		auto projViewMat = this->makeProjViewMap();
 		glUniformMatrix4fv(uniloc.uDlightProjViewMat[index], 1, GL_FALSE, &projViewMat[0][0]);
 
-		glActiveTexture(GL_TEXTURE1 + index);
+		glActiveTexture(GL_TEXTURE1 + static_cast<GLuint>(index));
 		glBindTexture(GL_TEXTURE_2D, mShadowMap.getTextureID());
 		glUniform1i(uniloc.uDlightDepthMap[index], 1 + index);
 	}
@@ -104,7 +103,7 @@ namespace dal {
 		return mShadowMap.getTextureID();
 	}
 
-	TextureHandle_ptr DirectionalLight::getShadowMap(void) {
+	TextureHandle2 DirectionalLight::getShadowMap(void) {
 		return mShadowMap.getDepthMap();
 	}
 

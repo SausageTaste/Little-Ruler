@@ -1,5 +1,7 @@
 #include "p_resource.h"
 
+#include <unordered_set>
+
 #include "p_dalopengl.h"
 #include "s_logger_god.h"
 #include "u_fileclass.h"
@@ -17,6 +19,153 @@ namespace {
 		dal::MeshStatic m_mesh;
 		dal::Material2 m_material;
 	};
+
+}
+
+
+namespace dal {
+
+	class Texture {
+
+		//////// Attribs ////////
+
+	private:
+		GLuint m_texID = 0;
+		unsigned int mWidth = 0, mHeight = 0;
+
+		//////// Methods ////////
+
+	public:
+		void init_diffueMap(const uint8_t* const image, const unsigned int width, const unsigned int height);
+		void init_diffueMap3(const uint8_t* const image, const unsigned int width, const unsigned int height);
+		void init_depthMap(const unsigned int width, const unsigned int height);
+		void init_maskMap(const uint8_t* const image, const unsigned int width, const unsigned int height);
+		void deleteTex(void);
+
+		void sendUniform(const GLint uniloc_sampler, const unsigned int index) const;
+		bool isInitiated(void) const;
+
+		// Getters
+
+		GLuint getTexID(void);
+		unsigned int getWidth(void) const;
+		unsigned int getHeight(void) const;
+
+	private:
+		void genTexture(const char* const str4Log);
+
+	};
+
+
+	void Texture::init_diffueMap(const uint8_t* const image, const unsigned int width, const unsigned int height) {
+		mWidth = width;
+		mHeight = height;
+
+		glPixelStorei(GL_UNPACK_ALIGNMENT, 0);
+
+		this->genTexture("init_diffueMap");
+
+		glBindTexture(GL_TEXTURE_2D, m_texID);
+
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+		//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image);
+		glGenerateMipmap(GL_TEXTURE_2D);
+
+		glBindTexture(GL_TEXTURE_2D, 0);
+	}
+
+	void Texture::init_diffueMap3(const uint8_t* const image, const unsigned int width, const unsigned int height) {
+		mWidth = width;
+		mHeight = height;
+
+		glPixelStorei(GL_UNPACK_ALIGNMENT, 0);
+
+		this->genTexture("init_diffueMap");
+
+		glBindTexture(GL_TEXTURE_2D, m_texID);
+
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+		//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
+		glGenerateMipmap(GL_TEXTURE_2D);
+
+		glBindTexture(GL_TEXTURE_2D, 0);
+	}
+
+	void Texture::init_depthMap(const unsigned int width, const unsigned int height) {
+		mWidth = width;
+		mHeight = height;
+
+		glPixelStorei(GL_UNPACK_ALIGNMENT, 0);
+
+		this->genTexture("init_depthMap");
+
+		glBindTexture(GL_TEXTURE_2D, m_texID); {
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
+
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT16, width, height, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_SHORT, nullptr);
+		} glBindTexture(GL_TEXTURE_2D, 0);
+	}
+
+	void Texture::init_maskMap(const uint8_t* const image, const unsigned int width, const unsigned int height) {
+		this->genTexture("init_maskMap");
+		mWidth = width;
+		mHeight = height;
+
+		glBindTexture(GL_TEXTURE_2D, m_texID);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, width, height, 0, GL_RED, GL_UNSIGNED_BYTE, image);
+
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	}
+
+	void Texture::deleteTex(void) {
+		glDeleteTextures(1, &this->m_texID);
+		this->m_texID = 0;
+	}
+
+	void Texture::sendUniform(const GLint uniloc_sampler, const unsigned int index) const {
+		glActiveTexture(GL_TEXTURE0 + index);
+		glBindTexture(GL_TEXTURE_2D, this->m_texID);
+		glUniform1i(uniloc_sampler, index);
+	}
+
+	bool Texture::isInitiated(void) const {
+		return this->m_texID != 0;
+	}
+
+	// Getters
+
+	GLuint Texture::getTexID(void) {
+		return m_texID;
+	}
+
+	unsigned int Texture::getWidth(void) const {
+		return mWidth;
+	}
+
+	unsigned int Texture::getHeight(void) const {
+		return mHeight;
+	}
+
+	void Texture::genTexture(const char* const str4Log) {
+		glGenTextures(1, &m_texID);
+		if (m_texID == 0) {
+			dal::LoggerGod::getinst().putFatal("Failed to init dal::Texture::init_depthMap::"s + str4Log);
+			throw - 1;
+		}
+	}
 
 }
 
@@ -176,9 +325,15 @@ namespace dal {
 		}
 	}
 
+	GLuint TextureHandle2::getTex(void) {
+		if (!this->isReady()) return 0;
+		else return this->pimpl->m_tex->getTexID();
+	}
+
 	void TextureHandle2::destroyTexture(void) {
 		if (nullptr == this->pimpl->m_tex) return;
 
+		this->pimpl->m_tex->deleteTex();
 		g_texturePool.free(this->pimpl->m_tex);
 		this->pimpl->m_tex = nullptr;
 	}
@@ -186,6 +341,7 @@ namespace dal {
 }
 
 
+// Material
 namespace dal {
 
 	void Material2::setTexScale(float x, float y) {
@@ -303,6 +459,10 @@ namespace dal {
 
 	void ModelHandle::destroyModel(void) {
 		if (nullptr == this->pimpl->m_model) return;
+
+		for (auto& unit : this->pimpl->m_model->m_renderUnits) {
+			unit.m_mesh.destroyData();
+		}
 
 		g_modelPool.free(this->pimpl->m_model);
 		this->pimpl->m_model = nullptr;

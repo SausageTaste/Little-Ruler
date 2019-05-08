@@ -2,7 +2,6 @@
 
 #include <glm/glm.hpp>
 
-#include "p_texture.h"
 #include "p_resource.h"
 
 
@@ -21,7 +20,7 @@ namespace dal {
 		CharacterUnit mAsciiChars[128];
 
 	public:
-		CharMaskMapCache(TextureMaster& texMaster, ResourceMaster& resMas);
+		CharMaskMapCache(ResourceMaster& resMas);
 		const CharacterUnit& at(unsigned int index) const;
 
 	};

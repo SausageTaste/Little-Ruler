@@ -3,7 +3,7 @@
 #include <glm/glm.hpp>
 
 #include "p_uniloc.h"
-#include "p_texture.h"
+#include "p_resource.h"
 
 
 namespace dal {
@@ -15,13 +15,13 @@ namespace dal {
 
 		unsigned int width, height;
 
-		TextureHandle_ptr mDepthmap;
+		TextureHandle2 mDepthmap;
 
 	public:
-		DepthmapForLights(TextureMaster* const texMaster);
+		DepthmapForLights(void);
 
 		GLuint getTextureID(void);
-		TextureHandle_ptr getDepthMap(void);
+		TextureHandle2 getDepthMap(void);
 
 		void startRender(void);
 
@@ -40,7 +40,7 @@ namespace dal {
 		float mHalfShadowEdgeSize;
 
 	public:
-		DirectionalLight(TextureMaster* const texMaster);
+		DirectionalLight(void);
 
 		void sendUniform(const UnilocGeneral& uniloc, int index);
 
@@ -52,7 +52,7 @@ namespace dal {
 
 		GLuint getShadowMapTexture(void);
 
-		TextureHandle_ptr getShadowMap(void);
+		TextureHandle2 getShadowMap(void);
 
 	};
 

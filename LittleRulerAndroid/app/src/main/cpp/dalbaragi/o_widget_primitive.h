@@ -3,7 +3,6 @@
 #include "glm/glm.hpp"
 
 #include "p_uniloc.h"
-#include "p_texture.h"
 #include "p_resource.h"
 
 

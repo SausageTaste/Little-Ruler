@@ -14,9 +14,9 @@ using namespace std::string_literals;
 
 namespace dal {
 
-	OverlayMaster::OverlayMaster(TextureMaster& texMaster, ResourceMaster& resMas)
+	OverlayMaster::OverlayMaster(ResourceMaster& resMas)
 		: m_resMas(resMas),
-		m_asciiCache(texMaster, resMas),
+		m_asciiCache(resMas),
 		mGlobalFSM(GlobalFSM::game), mShaderOverlay("OverlayMaster::overlay")
 	{
 		/* Compile shaders overlay */ {

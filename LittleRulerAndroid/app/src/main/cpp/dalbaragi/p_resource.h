@@ -6,15 +6,17 @@
 
 #include "u_loadinfo.h"
 #include "p_meshStatic.h"
-#include "p_texture.h"
 #include "u_pool.h"
 #include "p_uniloc.h"
+#include "s_threader.h"
+#include "u_fileclass.h"
 
 
 namespace dal {
 
 	struct Model;
 	class Package;
+	class Texture;
 	class ResourceMaster;
 
 
@@ -35,6 +37,7 @@ namespace dal {
 
 		bool isReady(void) const;
 		void sendUniform(const GLint uniloc_sampler, const GLint uniloc_hasTex, const unsigned int index) const;
+		GLuint getTex(void);
 		void destroyTexture(void);
 
 	};

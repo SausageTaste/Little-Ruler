@@ -11,7 +11,7 @@ using namespace std;
 
 namespace dal {
 
-	CharMaskMapCache::CharMaskMapCache(TextureMaster& texMaster, ResourceMaster& resMas) {
+	CharMaskMapCache::CharMaskMapCache(ResourceMaster& resMas) {
 		auto& face = dal::FreetypeGod::getinst().getFace();
 		auto& logger = dal::LoggerGod::getinst();
 

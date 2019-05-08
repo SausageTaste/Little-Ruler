@@ -10,7 +10,6 @@
 #include "p_shader.h"
 #include "p_uniloc.h"
 #include "p_meshStatic.h"
-#include "p_texture.h"
 #include "p_light.h"
 #include "o_overlay_master.h"
 #include "p_dalopengl.h"
@@ -27,7 +26,6 @@ namespace dal {
 
 	private:
 		ResourceMaster m_resMas;
-		TextureMaster m_texMas;
 		SceneMaster m_scene;
 
 	public:

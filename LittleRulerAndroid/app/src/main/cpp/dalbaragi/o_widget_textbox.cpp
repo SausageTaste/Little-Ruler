@@ -6,7 +6,6 @@
 #include "s_logger_god.h"
 #include "m_collision2d.h"
 #include "s_scripting.h"
-#include "p_texture.h"
 
 
 using namespace std;
