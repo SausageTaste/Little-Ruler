@@ -19,6 +19,7 @@ namespace dal {
 		void rotate(const float v, const glm::vec3& selector);
 	};
 
+
 	struct RenderUnitInfo {
 
 		struct MeshInfo {
