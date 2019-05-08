@@ -11,7 +11,7 @@
 #include "p_glglobal.h"
 
 
-using namespace std;
+using namespace std::string_literals;
 
 
 namespace {
@@ -122,7 +122,7 @@ namespace dal {
 		}
 
 		/* Compile shaders general */ {
-			string vertSrc, fragSrc;
+			std::string vertSrc, fragSrc;
 			filec::getAsset_text("glsl/general_v.glsl", &vertSrc);
 			filec::getAsset_text("glsl/general_f.glsl", &fragSrc);
 
@@ -139,7 +139,7 @@ namespace dal {
 		}
 
 		/* Compile shaders fill screen */ {
-			string vertSrc, fragSrc;
+			std::string vertSrc, fragSrc;
 			filec::getAsset_text("glsl/fillscreen_v.glsl", &vertSrc);
 			filec::getAsset_text("glsl/fillscreen_f.glsl", &fragSrc);
 
@@ -156,7 +156,7 @@ namespace dal {
 		}
 
 		/* Compile shaders fill screen */ {
-			string vertSrc, fragSrc;
+			std::string vertSrc, fragSrc;
 			filec::getAsset_text("glsl/depth_v.glsl", &vertSrc);
 			filec::getAsset_text("glsl/depth_f.glsl", &fragSrc);
 

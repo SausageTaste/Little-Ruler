@@ -6,7 +6,7 @@
 #include "u_fileclass.h"
 
 
-using namespace std;
+using namespace std::string_literals;
 
 
 namespace dal {

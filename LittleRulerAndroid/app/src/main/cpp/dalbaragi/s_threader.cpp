@@ -12,7 +12,7 @@
 #define DAL_THREAD_COUNT 0
 
 
-using namespace std;
+using namespace std::string_literals;
 
 
 namespace {

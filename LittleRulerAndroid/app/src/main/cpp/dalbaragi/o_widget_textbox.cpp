@@ -8,7 +8,7 @@
 #include "s_scripting.h"
 
 
-using namespace std;
+using namespace std::string_literals;
 
 
 namespace dal {

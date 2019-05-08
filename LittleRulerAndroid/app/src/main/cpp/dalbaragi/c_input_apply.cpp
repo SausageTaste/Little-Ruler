@@ -12,7 +12,7 @@
 #include "s_scripting.h"
 
 
-using namespace std;
+using namespace std::string_literals;
 
 
 namespace {
@@ -35,7 +35,7 @@ namespace {
 			TouchDuty currentDuty = TouchDuty::idle;
 
 			glm::vec2 lastDownPos;
-			float lastDownSec;
+			float lastDownSec = 0.0f;
 
 			glm::vec2 accumRel;
 			glm::vec2 lastPos;
@@ -46,7 +46,7 @@ namespace {
 	private:
 		static constexpr unsigned int kMaxMultiTouchNum = 10;
 		TouchState touchStates[kMaxMultiTouchNum];
-		array<dal::QuadPrimitive, 11>* mBoxesForTouchPoint = nullptr;
+		std::array<dal::QuadPrimitive, 11>* mBoxesForTouchPoint = nullptr;
 
 		//////// Methods ////////
 
@@ -251,7 +251,7 @@ namespace {
 			}
 		}
 
-		void giveTouchPointDrawer(array<dal::QuadPrimitive, 11>* v) {
+		void giveTouchPointDrawer(std::array<dal::QuadPrimitive, 11>* v) {
 			mBoxesForTouchPoint = v;
 		}
 
@@ -381,11 +381,11 @@ namespace {
 			return toReturn;
 		}
 
-		void fetch_menuControl(string* str) {
+		void fetch_menuControl(std::string* str) {
 			static bool shiftPressed = false;
 
 			auto& kq = dal::KeyboardEvtQueueGod::getinst();
-			vector<char> buf;
+			std::vector<char> buf;
 
 			for (unsigned int i = 0; i < kq.getSize(); i++) {
 				auto& keyEvent = kq.at(i);
@@ -461,10 +461,12 @@ namespace {
 			const auto index = int(key) - int(dal::KeySpec::unknown);
 #ifdef _DEBUG
 			if (index >= dal::KEY_SPEC_SIZE) {
-				dal::LoggerGod::getinst().putFatal("Buffer overflow in KeyboardMaster::getState: index is "s + to_string(index));
+				dal::LoggerGod::getinst().putFatal("Buffer overflow in KeyboardMaster::getState: index is "s + std::to_string(index));
 			}
 #endif
-			return mKeyStates[index];
+			else {
+				return mKeyStates[index];
+			}
 		}
 
 	} gKeyboardMaster;
@@ -581,7 +583,7 @@ namespace {
 	void applyMenuControl(dal::iKeyboardListener* mKeyListener) {
 		gTouchMaster.fetch_menuControl();
 
-		string str;
+		std::string str;
 		gKeyboardMaster.fetch_menuControl(&str);
 
 		if (mKeyListener == nullptr) return;
@@ -593,7 +595,7 @@ namespace {
 
 namespace dal {
 
-	InputApplier::InputApplier(array<QuadPrimitive, 11>& mBoxesForTouchPoint)
+	InputApplier::InputApplier(std::array<QuadPrimitive, 11>& mBoxesForTouchPoint)
 	:	mFSM(GlobalFSM::game),
 		mKeyListener(nullptr)
 	{

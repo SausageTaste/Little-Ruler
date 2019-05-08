@@ -5,7 +5,7 @@
 #include "s_logger_god.h"
 
 
-using namespace std;
+using namespace std::string_literals;
 
 
 namespace dal {
@@ -110,7 +110,7 @@ namespace dal {
 
 		this->mVertexSize = 0;
 
-		LoggerGod::getinst().putInfo("destroyed MeshStatic with "s + to_string(this->mVertexSize) + " vertices."s);
+		LoggerGod::getinst().putInfo("destroyed MeshStatic with "s + std::to_string(this->mVertexSize) + " vertices."s);
 	}
 
 	bool MeshStatic::isReady(void) const {

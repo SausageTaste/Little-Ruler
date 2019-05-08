@@ -5,7 +5,7 @@
 #include "s_logger_god.h"
 
 
-using namespace std;
+using namespace std::string_literals;
 
 
 namespace dal {
@@ -22,7 +22,7 @@ namespace dal {
 		return map[int(type)];
 	}
 
-	string iEventHandler::getHandlerName(void) {
+	std::string iEventHandler::getHandlerName(void) {
 		return mHandlerName;
 	}
 

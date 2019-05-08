@@ -12,7 +12,7 @@
 #include "s_input_queue.h"
 
 
-using namespace std;
+using namespace std::string_literals;
 
 
 namespace {
@@ -27,7 +27,7 @@ namespace {
 			return dal::KeySpec(index);
 		}
 		else {
-			static const unordered_map<uint32_t, dal::KeySpec> map{
+			static const std::unordered_map<uint32_t, dal::KeySpec> map{
 				{SDLK_BACKQUOTE, dal::KeySpec::backquote},
 				{SDLK_MINUS, dal::KeySpec::minus},
 				{SDLK_EQUALS, dal::KeySpec::equal},
@@ -117,7 +117,7 @@ namespace {
 		WindowSDL(const char* const title, int winWidth, int winHeight, bool fullscreen) {
 			/* Init window */ {
 				if (SDL_Init(SDL_INIT_VIDEO) < 0) {
-					cout << "Failed to initiate SDL." << endl;
+					std::cout << "Failed to initiate SDL." << std::endl;
 					throw -1;
 				}
 
@@ -141,7 +141,7 @@ namespace {
 				}
 
 				if (mWindow == nullptr) {
-					cout << "Creating window failed, SDL Error: " << SDL_GetError() << endl;
+					std::cout << "Creating window failed, SDL Error: " << SDL_GetError() << '\n';
 					throw -1;
 				}
 			}
@@ -149,12 +149,12 @@ namespace {
 			/* Create context */ {
 				mContext = SDL_GL_CreateContext(mWindow);
 				if (mContext == NULL) {
-					cout << "Creating OpenGL context failed, SDL Error: " << SDL_GetError() << endl;
+					std::cout << "Creating OpenGL context failed, SDL Error: " << SDL_GetError() << '\n';
 					throw -1;
 				}
 
 				if (SDL_GL_SetSwapInterval(0) < 0) {
-					cout << "Unable to set VSync, SDL Error: " << SDL_GetError() << endl;
+					std::cout << "Unable to set VSync, SDL Error: " << SDL_GetError() << std::endl;
 					throw -1;
 				}
 			}
@@ -178,7 +178,7 @@ namespace {
 			glewExperimental = GL_TRUE;
 			GLenum glewError = glewInit();
 			if (glewError != GLEW_OK) {
-				cout << "Initializing GLEW failed, glew error: " << glewGetErrorString(glewError) << endl;
+				std::cout << "Initializing GLEW failed, glew error: " << glewGetErrorString(glewError) << '\n';
 				throw -1;
 			}
 		}

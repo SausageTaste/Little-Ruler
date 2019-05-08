@@ -19,7 +19,7 @@
 #include <cstdio>
 
 
-using namespace std;
+using namespace std::string_literals;
 
 
 namespace {
@@ -130,7 +130,7 @@ namespace {  // Common
 	auto& gLogger = dal::LoggerGod::getinst();
 
 	unsigned int getIndexOfMostSimilar(const char* const str, const char *const *const map, size_t mapSize) {
-		vector<bool> excludeMap;
+		std::vector<bool> excludeMap;
 		excludeMap.resize(mapSize);
 
 		const auto len = strlen(str) + 1;
@@ -171,9 +171,9 @@ namespace {  // Common
 
 		while (true) {
 			const auto head = fileContents.find("mtllib ", lastTail) + 7;
-			if (head == string::npos) break;
+			if (head == std::string::npos) break;
 			const auto tail = fileContents.find("\n", head - 7);  // I have absolutely no idea why I need to subtract 7 here.
-			if (tail == string::npos) break;
+			if (tail == std::string::npos) break;
 
 			output.push_back(fileContents.substr(head, tail - head));
 			lastTail = tail;
@@ -261,7 +261,7 @@ namespace {
 							gLogger.putWarn("Buffer is full in ::parseAllNumbersInLine."); continue;
 						}
 						else {
-							buf[inputBufIndex] = stof(numBuf);
+							buf[inputBufIndex] = std::stof(numBuf);
 							inputBufIndex++;
 						}
 					}
@@ -278,7 +278,7 @@ namespace {
 					gLogger.putWarn("Buffer is full in ::parseAllNumbersInLine.");
 				}
 				else {
-					buf[inputBufIndex] = stof(numBuf);
+					buf[inputBufIndex] = std::stof(numBuf);
 					inputBufIndex++;
 				}
 			}
@@ -323,7 +323,7 @@ namespace {
 							gLogger.putWarn("Buffer is full in ::parseAllNumbersInLine."); continue;
 						}
 						else {
-							buf[inputBufIndex] = stoi(numBuf);
+							buf[inputBufIndex] = std::stoi(numBuf);
 							inputBufIndex++;
 						}
 					}
@@ -340,7 +340,7 @@ namespace {
 					gLogger.putWarn("Buffer is full in ::parseAllNumbersInLine.");
 				}
 				else {
-					buf[inputBufIndex] = stoi(numBuf);
+					buf[inputBufIndex] = std::stoi(numBuf);
 					inputBufIndex++;
 				}
 			}
@@ -493,11 +493,11 @@ namespace dal_deprecated {
 		con->mMaterialFiles.clear();
 		con->mObjects.clear();
 
-		array<char, 256> bufLine;
+		std::array<char, 256> bufLine;
 		unsigned int curIndex = 0;
 
-		vector<glm::vec3> vertices, normals;
-		vector<glm::vec2> texcoords;
+		std::vector<glm::vec3> vertices, normals;
+		std::vector<glm::vec2> texcoords;
 		OBJObjectInfo_deprecated dummyObj{ "dummy" };
 		OBJObjectInfo_deprecated* curObject = &dummyObj;
 
@@ -601,7 +601,7 @@ namespace dal_deprecated {
 	}
 
 	bool parseMTL_deprecated(MTLInfo_deprecated * info, const uint8_t * const buf, const size_t bufSize) {
-		array<char, 256> bufLine;
+		std::array<char, 256> bufLine;
 		unsigned int curIndex = 0;
 
 		MTLMaterialInfo_deprecated* curMaterial = nullptr;

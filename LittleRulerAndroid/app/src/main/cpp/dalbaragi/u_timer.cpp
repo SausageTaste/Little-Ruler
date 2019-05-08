@@ -8,27 +8,27 @@
 #define PRINT_OVESRLEEP 0
 
 
-using namespace std;
+using namespace std::string_literals;
 
 
 namespace {
 
-	void sleepHotUntil(const chrono::time_point<chrono::steady_clock>& until) {
-		while (chrono::steady_clock::now() < until) {};
+	void sleepHotUntil(const std::chrono::time_point<std::chrono::steady_clock>& until) {
+		while (std::chrono::steady_clock::now() < until) {};
 	}
 
-	void sleepColdUntil(const chrono::time_point<chrono::steady_clock>& until) {
-		this_thread::sleep_until(until);
+	void sleepColdUntil(const std::chrono::time_point<std::chrono::steady_clock>& until) {
+		std::this_thread::sleep_until(until);
 	}
 
-	void sleepHybridUntil(const chrono::time_point<chrono::steady_clock>& until) {
-		const auto delta = chrono::duration_cast<chrono::microseconds>(until - chrono::steady_clock::now()).count() * 1 /4;
-		this_thread::sleep_for(chrono::microseconds{ delta });
-		while (chrono::steady_clock::now() < until) {};
+	void sleepHybridUntil(const std::chrono::time_point<std::chrono::steady_clock>& until) {
+		const auto delta = std::chrono::duration_cast<std::chrono::microseconds>(until - std::chrono::steady_clock::now()).count() * 1 /4;
+		std::this_thread::sleep_for(std::chrono::microseconds{ delta });
+		while (std::chrono::steady_clock::now() < until) {};
 	}
 
-	constexpr int microsecBySec =    1000000;
-	constexpr int nanosecBySec  = 1000000000;
+	constexpr int k_microsecBySec =    1000000;
+	constexpr int k_nanosecBySec  = 1000000000;
 
 }
 
@@ -36,12 +36,12 @@ namespace {
 namespace dal {
 
 	float getTime_sec(void) {
-		return float(chrono::steady_clock::now().time_since_epoch().count()) / float(nanosecBySec);
+		return float(std::chrono::steady_clock::now().time_since_epoch().count()) / float(k_nanosecBySec);
 	}
 
 	void sleepFor(const float v) {
-		auto until = chrono::steady_clock::now();
-		until += chrono::microseconds{ uint64_t(double(v) * double(microsecBySec)) };
+		auto until = std::chrono::steady_clock::now();
+		until += std::chrono::microseconds{ uint64_t(double(v) * double(k_microsecBySec)) };
 		sleepHybridUntil(until);
 	}
 
@@ -52,7 +52,7 @@ namespace dal {
 
 	Timer::Timer(void)
 		: mDesiredDeltaMicrosec(0),
-		mLastChecked(chrono::steady_clock::now())
+		mLastChecked(std::chrono::steady_clock::now())
 	{
 
 	}
@@ -62,22 +62,22 @@ namespace dal {
 	}
 
 	void Timer::check(void) {
-		this->mLastChecked = chrono::steady_clock::now();
+		this->mLastChecked = std::chrono::steady_clock::now();
 	}
 
 	float Timer::check_getElapsed_capFPS(void) {
 		this->waitToCapFPS();
 
-		auto now = chrono::steady_clock::now();
-		auto deltaTime_microsec = (float)chrono::duration_cast<chrono::microseconds>(now - this->mLastChecked).count();
+		auto now = std::chrono::steady_clock::now();
+		auto deltaTime_microsec = (float)std::chrono::duration_cast<std::chrono::microseconds>(now - this->mLastChecked).count();
 		this->mLastChecked = now;
 
-		return float(deltaTime_microsec / float(microsecBySec));
+		return float(deltaTime_microsec / float(k_microsecBySec));
 	}
 
 	float Timer::getElapsed(void) const {
-		auto deltaTime_microsec = (float)chrono::duration_cast<chrono::microseconds>(chrono::steady_clock::now() - this->mLastChecked).count();
-		return float(deltaTime_microsec / float(microsecBySec));
+		auto deltaTime_microsec = (float)std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - this->mLastChecked).count();
+		return float(deltaTime_microsec / float(k_microsecBySec));
 	}
 
 	bool Timer::hasElapsed(float sec) const {
@@ -85,11 +85,11 @@ namespace dal {
 	}
 
 	void Timer::setCapFPS(uint32_t v) {
-		mDesiredDeltaMicrosec = microsecBySec / v;
+		mDesiredDeltaMicrosec = k_microsecBySec / v;
 	}
 
 	void Timer::waitToCapFPS(void) {
-		const auto wakeTime = this->mLastChecked + chrono::microseconds{ mDesiredDeltaMicrosec };
+		const auto wakeTime = this->mLastChecked + std::chrono::microseconds{ mDesiredDeltaMicrosec };
 #if PRINT_OVESRLEEP == 1
 		const auto startSleep = chrono::steady_clock::now();
 #endif

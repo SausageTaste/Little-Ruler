@@ -6,7 +6,7 @@
 #include "s_logger_god.h"
 
 
-using namespace std;
+using namespace std::string_literals;
 
 
 namespace {

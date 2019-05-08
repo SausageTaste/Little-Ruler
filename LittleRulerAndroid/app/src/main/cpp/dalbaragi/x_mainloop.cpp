@@ -11,7 +11,7 @@
 #include "s_threader.h"
 
 
-using namespace std;
+using namespace std::string_literals;
 
 
 namespace dal {
@@ -54,7 +54,6 @@ namespace dal {
 	:	mFlagQuit(false),
 		mInputApply(mRenderMan.m_overlayMas.mBoxesForTouchPoint)
 	{
-
 		/* Check window res */ {
 			auto& query = ConfigsGod::getinst();
 			auto width = query.getWinWidth();
@@ -89,7 +88,7 @@ namespace dal {
 		}
 
 		const auto elapsed = initTimer.check_getElapsed_capFPS();
-		LoggerGod::getinst().putInfo("Init time: "s + to_string(elapsed));
+		LoggerGod::getinst().putInfo("Init time: "s + std::to_string(elapsed));
 	}
 
 	Mainloop::~Mainloop(void) {

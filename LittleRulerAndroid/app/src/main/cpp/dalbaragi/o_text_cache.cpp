@@ -6,7 +6,7 @@
 #include "s_freetype_master.h"
 
 
-using namespace std;
+using namespace std::string_literals;
 
 
 namespace dal {
@@ -18,7 +18,7 @@ namespace dal {
 		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 		for (unsigned int i = 0; i < 128; i++) {
 			if (FT_Load_Char(face, i, FT_LOAD_RENDER)) {
-				logger.putError("Failed to load Glyph: "s + to_string(char(i)));
+				logger.putError("Failed to load Glyph: "s + std::to_string(char(i)));
 				continue;
 			}
 
