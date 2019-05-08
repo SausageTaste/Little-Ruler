@@ -12,6 +12,7 @@
 using namespace std::string_literals;
 
 
+// Render Unit
 namespace {
 
 	struct RenderUnit {
@@ -23,6 +24,7 @@ namespace {
 }
 
 
+// Texture
 namespace dal {
 
 	class Texture {
@@ -152,25 +154,44 @@ namespace dal {
 }
 
 
+// Tasks
 namespace {
 
 	class LoadTask_Texture : public dal::ITask {
 
 	public:
-		dal::ResourceFilePath in_id;
+		const std::string in_texID;
 
 		dal::loadedinfo::ImageFileData out_img;
 
-		bool out_success;
+		bool out_success = false;
+
+		dal::TextureHandle2 data_handle;
+
+	public:
+		LoadTask_Texture(const std::string& texID, const dal::TextureHandle2& handle)
+		:	in_texID(texID),
+			data_handle(handle)
+		{
+
+		}
 
 		virtual void start(void) override {
-			std::string filePath{ in_id.m_package + in_id.m_dir + in_id.m_name + in_id.m_ext };
+			dal::ResourceFilePath path;
+			dal::parseResFilePath(in_texID.c_str(), path);
+			if ("asset" != path.m_package) {
+				out_success = false;
+				return;
+			}
 
-			out_success = dal::filec::getResource_image(filePath.c_str(), out_img);
+			auto texPath = "texture/"s + path.m_dir + path.m_name + path.m_ext;
+
+			out_success = dal::filec::getResource_image(texPath.c_str(), out_img);
 			return;
 		}
 
 	};
+
 
 	class LoadTask_Model : public dal::ITask {
 
@@ -214,6 +235,7 @@ namespace {
 }
 
 
+// Model
 namespace dal {
 
 	struct Model {
@@ -223,6 +245,7 @@ namespace dal {
 }
 
 
+// Logger and pools
 namespace {
 
 	auto& g_logger = dal::LoggerGod::getinst();
