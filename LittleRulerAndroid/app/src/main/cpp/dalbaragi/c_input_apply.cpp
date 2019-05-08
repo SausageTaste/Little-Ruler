@@ -464,9 +464,7 @@ namespace {
 				dal::LoggerGod::getinst().putFatal("Buffer overflow in KeyboardMaster::getState: index is "s + std::to_string(index));
 			}
 #endif
-			else {
-				return mKeyStates[index];
-			}
+			return mKeyStates[index];
 		}
 
 	} gKeyboardMaster;
