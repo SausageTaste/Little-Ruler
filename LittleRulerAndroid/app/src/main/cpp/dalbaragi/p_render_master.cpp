@@ -28,6 +28,95 @@ namespace {
 
 }
 
+ // Shader master
+namespace dal {
+
+	RenderMaster::ShaderMaster::ShaderMaster(void)
+	:	m_general("shader_general"),
+		m_depthmap("shader_fscreen"),
+		m_fscreen("shader_depthmap")
+	{
+		// Compile shaders general
+		{
+			std::string vertSrc, fragSrc;
+			filec::getAsset_text("glsl/general_v.glsl", &vertSrc);
+			filec::getAsset_text("glsl/general_f.glsl", &fragSrc);
+
+			auto verShader = compileShader(ShaderType::VERTEX, vertSrc.c_str());
+			auto fragShader = compileShader(ShaderType::FRAGMENT, fragSrc.c_str());
+
+			this->m_general.attachShader(verShader);
+			this->m_general.attachShader(fragShader);
+			this->m_general.link();
+			this->m_generalUniloc.init(this->m_general);
+
+			glDeleteShader(verShader);
+			glDeleteShader(fragShader);
+		}
+
+		// Compile shaders fill screen
+		{
+			std::string vertSrc, fragSrc;
+			filec::getAsset_text("glsl/fillscreen_v.glsl", &vertSrc);
+			filec::getAsset_text("glsl/fillscreen_f.glsl", &fragSrc);
+
+			auto verShader = compileShader(ShaderType::VERTEX, vertSrc.c_str());
+			auto fragShader = compileShader(ShaderType::FRAGMENT, fragSrc.c_str());
+
+			this->m_fscreen.attachShader(verShader);
+			this->m_fscreen.attachShader(fragShader);
+			this->m_fscreen.link();
+			this->m_fscreenUniloc.init(this->m_fscreen);
+
+			glDeleteShader(verShader);
+			glDeleteShader(fragShader);
+		}
+
+		// Compile shaders fill screen
+		{
+			std::string vertSrc, fragSrc;
+			filec::getAsset_text("glsl/depth_v.glsl", &vertSrc);
+			filec::getAsset_text("glsl/depth_f.glsl", &fragSrc);
+
+			auto verShader = compileShader(ShaderType::VERTEX, vertSrc.c_str());
+			auto fragShader = compileShader(ShaderType::FRAGMENT, fragSrc.c_str());
+
+			this->m_depthmap.attachShader(verShader);
+			this->m_depthmap.attachShader(fragShader);
+			this->m_depthmap.link();
+			this->m_depthmapUniloc.init(this->m_depthmap);
+
+			glDeleteShader(verShader);
+			glDeleteShader(fragShader);
+		}
+	}
+
+	void RenderMaster::ShaderMaster::useGeneral(void) {
+		this->m_general.use();
+	}
+
+	void RenderMaster::ShaderMaster::useDepthMp(void) {
+		this->m_depthmap.use();
+	}
+
+	void RenderMaster::ShaderMaster::useFScreen(void) {
+		this->m_fscreen.use();
+	}
+
+	const UnilocGeneral& RenderMaster::ShaderMaster::getGeneral(void) const {
+		return this->m_generalUniloc;
+	}
+
+	const UnilocDepthmp& RenderMaster::ShaderMaster::getDepthMp(void) const {
+		return this->m_depthmapUniloc;
+	}
+
+	const UnilocFScreen& RenderMaster::ShaderMaster::getFScreen(void) const {
+		return this->m_fscreenUniloc;
+	}
+
+}
+
 
 namespace dal {
 
@@ -39,10 +128,7 @@ namespace dal {
 		mWidWidth(0), mWidHeight(0),
 		mFbufWidth(10), mFbufHeight(10),
 		mRenderScale(0.9f),
-		mProjectMat(1.0),
-		mShaderGeneral("mShaderGeneral"),
-		mShaderFScreen("mShaderFScreen"),
-		mShaderDepthmp("mShaderDepthmp")
+		mProjectMat(1.0)
 	{
 		// Establish framebuffer
 		{
@@ -125,60 +211,6 @@ namespace dal {
 			glBindVertexArray(0);
 		}
 
-		// Compile shaders general
-		{
-			std::string vertSrc, fragSrc;
-			filec::getAsset_text("glsl/general_v.glsl", &vertSrc);
-			filec::getAsset_text("glsl/general_f.glsl", &fragSrc);
-
-			auto verShader = compileShader(ShaderType::VERTEX, vertSrc.c_str());
-			auto fragShader = compileShader(ShaderType::FRAGMENT, fragSrc.c_str());
-
-			this->mShaderGeneral.attachShader(verShader);
-			this->mShaderGeneral.attachShader(fragShader);
-			this->mShaderGeneral.link();
-			this->mUnilocGeneral.init(this->mShaderGeneral);
-
-			glDeleteShader(verShader);
-			glDeleteShader(fragShader);
-		}
-
-		// Compile shaders fill screen
-		{
-			std::string vertSrc, fragSrc;
-			filec::getAsset_text("glsl/fillscreen_v.glsl", &vertSrc);
-			filec::getAsset_text("glsl/fillscreen_f.glsl", &fragSrc);
-
-			auto verShader = compileShader(ShaderType::VERTEX, vertSrc.c_str());
-			auto fragShader = compileShader(ShaderType::FRAGMENT, fragSrc.c_str());
-
-			this->mShaderFScreen.attachShader(verShader);
-			this->mShaderFScreen.attachShader(fragShader);
-			this->mShaderFScreen.link();
-			this->mUnilocFScreen.init(this->mShaderFScreen);
-
-			glDeleteShader(verShader);
-			glDeleteShader(fragShader);
-		}
-
-		// Compile shaders fill screen
-		{
-			std::string vertSrc, fragSrc;
-			filec::getAsset_text("glsl/depth_v.glsl", &vertSrc);
-			filec::getAsset_text("glsl/depth_f.glsl", &fragSrc);
-
-			auto verShader = compileShader(ShaderType::VERTEX, vertSrc.c_str());
-			auto fragShader = compileShader(ShaderType::FRAGMENT, fragSrc.c_str());
-
-			this->mShaderDepthmp.attachShader(verShader);
-			this->mShaderDepthmp.attachShader(fragShader);
-			this->mShaderDepthmp.link();
-			this->mUnilocDepthmp.init(this->mShaderDepthmp);
-
-			glDeleteShader(verShader);
-			glDeleteShader(fragShader);
-		}
-
 		// Lights
 		{
 			mPlight1.mPos = { 0, 2, 3 };
@@ -214,11 +246,11 @@ namespace dal {
 	void RenderMaster::render(void) {
 		// Shadow map
 		{
-			this->mShaderDepthmp.use();
+			this->m_shader.useDepthMp();
 
-			mDlight1.startRenderShadowmap(mUnilocDepthmp);
+			mDlight1.startRenderShadowmap(this->m_shader.getDepthMp());
 			
-			m_scene.renderDepthMp(mUnilocDepthmp);
+			m_scene.renderDepthMp(this->m_shader.getDepthMp());
 
 			mDlight1.finishRenderShadowmap();
 		}
@@ -232,35 +264,36 @@ namespace dal {
 
 			GLSwitch::setFor_generalRender();
 
-			this->mShaderGeneral.use();
+			this->m_shader.useGeneral();
+			auto& unilocGeneral = this->m_shader.getGeneral();
 
 			const auto identityMat = glm::mat4(1.0f);
 
-			glUniformMatrix4fv(this->mUnilocGeneral.uProjectMat, 1, GL_FALSE, &mProjectMat[0][0]);
+			glUniformMatrix4fv(unilocGeneral.uProjectMat, 1, GL_FALSE, &mProjectMat[0][0]);
 			
 			auto viewMat = makeCameraViewMat(mCameraPos, mCameraViewDir);
-			glUniformMatrix4fv(this->mUnilocGeneral.uViewMat, 1, GL_FALSE, &viewMat[0][0]);
+			glUniformMatrix4fv(unilocGeneral.uViewMat, 1, GL_FALSE, &viewMat[0][0]);
 
-			glUniformMatrix4fv(this->mUnilocGeneral.uModelMat, 1, GL_FALSE, &identityMat[0][0]);
+			glUniformMatrix4fv(unilocGeneral.uModelMat, 1, GL_FALSE, &identityMat[0][0]);
 
-			glUniform3f(mUnilocGeneral.uViewPos, mCameraPos.x, mCameraPos.y, mCameraPos.z);
-			glUniform3f(mUnilocGeneral.uBaseAmbient, 0.3f, 0.3f, 0.3f);
+			glUniform3f(unilocGeneral.uViewPos, mCameraPos.x, mCameraPos.y, mCameraPos.z);
+			glUniform3f(unilocGeneral.uBaseAmbient, 0.3f, 0.3f, 0.3f);
 
 			// Lights
 
-			mDlight1.sendUniform(mUnilocGeneral, 0);
-			glUniform1i(mUnilocGeneral.uDlightCount, 1);
+			mDlight1.sendUniform(unilocGeneral, 0);
+			glUniform1i(unilocGeneral.uDlightCount, 1);
 
-			mPlight1.sendUniform(mUnilocGeneral, 0);
-			glUniform1i(mUnilocGeneral.uPlightCount, 1);
+			mPlight1.sendUniform(unilocGeneral, 0);
+			glUniform1i(unilocGeneral.uPlightCount, 1);
 
 			// Render meshes
 
-			m_scene.renderGeneral(mUnilocGeneral);
+			m_scene.renderGeneral(unilocGeneral);
 		}
 
 		// Render framebuffer to quad 
-	{
+		{
 			glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 			glViewport(0, 0, mWidWidth, mWidHeight);
@@ -269,7 +302,7 @@ namespace dal {
 
 			GLSwitch::setFor_fillingScreen();
 
-			mShaderFScreen.use();
+			this->m_shader.useFScreen();
 			glBindVertexArray(mMainVBO);
 			
 			glBindTexture(GL_TEXTURE_2D, mMainFbuf_colorMap);

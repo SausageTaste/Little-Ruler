@@ -20,6 +20,32 @@ namespace dal {
 
 	class RenderMaster : iEventHandler {
 
+	private:
+		class ShaderMaster {
+
+		private:
+			ShaderProgram m_general;
+			UnilocGeneral m_generalUniloc;
+
+			ShaderProgram m_depthmap;
+			UnilocDepthmp m_depthmapUniloc;
+
+			ShaderProgram m_fscreen;
+			UnilocFScreen m_fscreenUniloc;
+
+		public:
+			ShaderMaster(void);
+
+			void useGeneral(void);
+			void useDepthMp(void);
+			void useFScreen(void);
+
+			const UnilocGeneral& getGeneral(void) const;
+			const UnilocDepthmp& getDepthMp(void) const;
+			const UnilocFScreen& getFScreen(void) const;
+
+		};
+
 	public:
 		glm::vec3 mCameraPos;
 		glm::vec2 mCameraViewDir;
@@ -27,6 +53,7 @@ namespace dal {
 	private:
 		ResourceMaster m_resMas;
 		SceneMaster m_scene;
+		ShaderMaster m_shader;
 
 	public:
 		OverlayMaster m_overlayMas;
@@ -43,16 +70,6 @@ namespace dal {
 		float mRenderScale;
 
 		glm::mat4 mProjectMat;
-
-		// Shaders
-		ShaderProgram mShaderGeneral;
-		UnilocGeneral mUnilocGeneral;
-
-		ShaderProgram mShaderFScreen;
-		UnilocFScreen mUnilocFScreen;
-
-		ShaderProgram mShaderDepthmp;
-		UnilocDepthmp mUnilocDepthmp;
 
 		DirectionalLight mDlight1;
 		PointLight mPlight1;
