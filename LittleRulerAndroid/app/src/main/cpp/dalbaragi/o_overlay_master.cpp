@@ -16,7 +16,7 @@ namespace dal {
 
 	OverlayMaster::OverlayMaster(TextureMaster& texMaster, ResourceMaster& resMas)
 		: m_resMas(resMas),
-		m_asciiCache(texMaster),
+		m_asciiCache(texMaster, resMas),
 		mGlobalFSM(GlobalFSM::game), mShaderOverlay("OverlayMaster::overlay")
 	{
 		/* Compile shaders overlay */ {

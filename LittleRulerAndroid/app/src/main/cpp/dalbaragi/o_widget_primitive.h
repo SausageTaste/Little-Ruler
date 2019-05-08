@@ -4,6 +4,7 @@
 
 #include "p_uniloc.h"
 #include "p_texture.h"
+#include "p_resource.h"
 
 
 namespace dal {
@@ -23,8 +24,8 @@ namespace dal {
 		glm::vec2 mPointDev1;  
 		glm::vec2 mPointDev2;
 
-		TextureHandle_ptr mDiffuseMap;
-		TextureHandle_ptr mMaskMap;
+		TextureHandle2 mDiffuseMap;
+		TextureHandle2 mMaskMap;
 
 	//////// funcs ////////
 
@@ -43,8 +44,8 @@ namespace dal {
 		void setColor(glm::vec3 v);
 		void setTransparency(const float a);
 
-		void setDiffuseMap(TextureHandle_ptr tex);
-		void setMaskMap(TextureHandle_ptr tex);
+		void setDiffuseMap(const TextureHandle2& tex);
+		void setMaskMap(const TextureHandle2& tex);
 
 		void getPointScr1(float* x, float* y) const;
 		const glm::vec2& getPointScr2(void) const;

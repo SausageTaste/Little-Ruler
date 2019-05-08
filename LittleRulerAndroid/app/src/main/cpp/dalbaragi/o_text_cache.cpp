@@ -11,25 +11,25 @@ using namespace std;
 
 namespace dal {
 
-	CharMaskMapCache::CharMaskMapCache(TextureMaster& texMaster) {
+	CharMaskMapCache::CharMaskMapCache(TextureMaster& texMaster, ResourceMaster& resMas) {
 		auto& face = dal::FreetypeGod::getinst().getFace();
 		auto& logger = dal::LoggerGod::getinst();
 
 		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-		for (int i = 0; i < 128; i++) {
+		for (unsigned int i = 0; i < 128; i++) {
 			if (FT_Load_Char(face, i, FT_LOAD_RENDER)) {
 				logger.putError("Failed to load Glyph: "s + to_string(char(i)));
 				continue;
 			}
 
 			auto& charac = mAsciiChars[i];
-			charac.tex = texMaster.request_maskMap(
-				face->glyph->bitmap.buffer, face->glyph->bitmap.width, face->glyph->bitmap.rows
-			);
+			charac.tex = ResourceMaster::getMaskMap(
+					face->glyph->bitmap.buffer, face->glyph->bitmap.width, face->glyph->bitmap.rows
+					);
 
 			charac.size = { face->glyph->bitmap.width, face->glyph->bitmap.rows };
 			charac.bearing = { face->glyph->bitmap_left, face->glyph->bitmap_top };
-			charac.advance = face->glyph->advance.x;
+			charac.advance = static_cast<int32_t>(face->glyph->advance.x);
 		}
 	}
 

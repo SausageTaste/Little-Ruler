@@ -57,7 +57,7 @@ namespace dal {
 
 		float largestHeight = 0.0f;
 		for (auto c : mText) {
-			const auto height = float(asciiCache.at((int)c).size.y);
+			const auto height = float(asciiCache.at((unsigned int)c).size.y);
 			if (height > largestHeight) {
 				largestHeight = float(height);
 			}
@@ -66,7 +66,7 @@ namespace dal {
 		mScale = textPortion * mMainBox.getHeight() / largestHeight;
 
 		for (auto c : mText) {
-			auto& charac = asciiCache.at((int)c);
+			auto& charac = asciiCache.at((unsigned int)c);
 
 			const float xPos = x + charac.bearing.x * mScale;
 			const float verticalReplaceAsScale = ((1.0f - textPortion) / 2.0f * mMainBox.getHeight());

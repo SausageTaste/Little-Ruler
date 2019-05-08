@@ -8,7 +8,7 @@ namespace dal {
 
 	private:
 		T m_pool[SIZE];
-		bool m_allocFlags[SIZE];
+		bool m_allocFlags[SIZE] = { false };
 
 		unsigned int m_nextToAlloc = 0;
 		unsigned int m_allocSize = 0;

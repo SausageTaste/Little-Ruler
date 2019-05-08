@@ -3,15 +3,16 @@
 #include <glm/glm.hpp>
 
 #include "p_texture.h"
+#include "p_resource.h"
 
 
 namespace dal {
 
 	struct CharacterUnit {
-		TextureHandle_ptr tex;
-		glm::ivec2        size;
-		glm::ivec2        bearing;
-		int32_t           advance = 0;
+		TextureHandle2 tex;
+		glm::ivec2     size;
+		glm::ivec2     bearing;
+		int32_t        advance = 0;
 	};
 
 	class CharMaskMapCache {
@@ -20,7 +21,7 @@ namespace dal {
 		CharacterUnit mAsciiChars[128];
 
 	public:
-		CharMaskMapCache(TextureMaster& texMaster);
+		CharMaskMapCache(TextureMaster& texMaster, ResourceMaster& resMas);
 		const CharacterUnit& at(unsigned int index) const;
 
 	};

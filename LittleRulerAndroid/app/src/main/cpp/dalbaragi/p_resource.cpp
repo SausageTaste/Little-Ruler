@@ -96,8 +96,8 @@ namespace {
 
 	auto& g_logger = dal::LoggerGod::getinst();
 
-	dal::StaticPool<dal::Model, 100> g_modelPool;
-	dal::StaticPool<dal::Texture, 100> g_texturePool;
+	dal::StaticPool<dal::Model, 20> g_modelPool;
+	dal::StaticPool<dal::Texture, 200> g_texturePool;
 
 }
 
@@ -503,6 +503,22 @@ namespace dal {
 	ModelHandle ResourceMaster::buildModel(const loadedinfo::ModelDefined& info, const char* const packageName) {
 		auto& package = this->orderPackage(packageName);
 		return package.buildModel(info);
+	}
+
+	// Static
+
+	TextureHandle2 ResourceMaster::getDepthMap(const unsigned int width, const unsigned int height) {
+		auto tex = g_texturePool.alloc();
+		tex->init_depthMap(width, height);
+		TextureHandle2 handle{ "", tex };
+		return handle;
+	}
+
+	TextureHandle2 ResourceMaster::getMaskMap(const uint8_t* const buf, const unsigned int width, const unsigned int height) {
+		auto tex = g_texturePool.alloc();
+		assert(nullptr != tex);
+		tex->init_maskMap(buf, width, height);
+		return TextureHandle2{ "", tex };
 	}
 
 	// Private

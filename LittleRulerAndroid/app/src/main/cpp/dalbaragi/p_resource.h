@@ -5,10 +5,10 @@
 #include <unordered_map>
 
 #include "u_loadinfo.h"
-#include "p_material.h"
 #include "p_meshStatic.h"
 #include "p_texture.h"
 #include "u_pool.h"
+#include "p_uniloc.h"
 
 
 namespace dal {
@@ -128,6 +128,9 @@ namespace dal {
 		ModelHandle orderModel(const char* const packageName_dir_modelID);
 
 		ModelHandle buildModel(const loadedinfo::ModelDefined& info, const char* const packageName);
+
+		static TextureHandle2 getDepthMap(const unsigned int width, const unsigned int height);
+		static TextureHandle2 getMaskMap(const uint8_t* const buf, const unsigned int width, const unsigned int height);
 
 	private:
 		Package& orderPackage(const std::string& packName);
