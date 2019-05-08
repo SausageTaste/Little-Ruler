@@ -9,7 +9,7 @@
 #include "p_globalfsm.h"
 
 
-using namespace std;
+using namespace std::string_literals;
 
 
 namespace dal {
@@ -87,11 +87,12 @@ namespace dal {
 		case EventType::touch_tap:
 			if (mGlobalFSM == GlobalFSM::menu && mLineEdit.isInside({ e.floatArg1, e.floatArg2 })) {
 				LoggerGod::getinst().putInfo("Tap on LineEdit.");
-				EventStatic e;
-				e.type = EventType::global_fsm_change;
-				e.intArg1 = int(GlobalFSM::menu);
-				e.keyListner = &mLineEdit;
-				EventGod::getinst().notifyAll(e);
+
+				EventStatic newEvent;
+				newEvent.type = EventType::global_fsm_change;
+				newEvent.intArg1 = int(GlobalFSM::menu);
+				newEvent.keyListner = &mLineEdit;
+				EventGod::getinst().notifyAll(newEvent);
 			}
 			break;
 		case EventType::global_fsm_change:
@@ -111,7 +112,7 @@ namespace dal {
 
 		mShaderOverlay.use();
 
-		for (int i = 0; i < 11; i++) {
+		for (unsigned int i = 0; i < 11; i++) {
 			mBoxesForTouchPoint.at(i).renderOverlay(mUnilocOverlay);
 		}
 
@@ -124,7 +125,7 @@ namespace dal {
 	}
 
 	void OverlayMaster::setDisplayedFPS(unsigned int fps) {
-		mDisplayFPS.setText(to_string(fps).c_str());
+		mDisplayFPS.setText(std::to_string(fps).c_str());
 	}
 
 }
