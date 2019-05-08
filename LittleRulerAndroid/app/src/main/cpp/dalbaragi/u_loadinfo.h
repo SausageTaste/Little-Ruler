@@ -38,6 +38,7 @@ namespace dal {
 
 	};
 
+
 	namespace buildinfo {
 
 		struct MapItemModel {
@@ -53,7 +54,13 @@ namespace dal {
 
 		};
 
+		struct ImageFileData {
+			std::vector<uint8_t> m_buf;
+			size_t m_width = 0, m_height = 0, m_pixSize = 0;
+		};
+
 	}
+
 
 	struct LoadedMap {
 

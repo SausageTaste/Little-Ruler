@@ -298,7 +298,7 @@ namespace dal {
 			return true;
 		}
 
-		bool getResource_image(const char* const path, ImageFileData& data) {
+		bool getResource_image(const char* const path, buildinfo::ImageFileData& data) {
 			ResourceFilePath resPath;
 			if (!parseResFilePath(path, resPath)) return false;
 			std::string newPath = resPath.m_dir + resPath.m_name + resPath.m_ext;

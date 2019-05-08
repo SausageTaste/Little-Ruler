@@ -1,5 +1,6 @@
 #include "p_resource.h"
 
+#include "p_dalopengl.h"
 #include "s_logger_god.h"
 #include "u_fileclass.h"
 #include "s_threader.h"
@@ -12,7 +13,7 @@ namespace {
 
 	struct RenderUnit {
 		dal::MeshStatic m_mesh;
-		dal::Material m_material;
+		dal::Material2 m_material;
 	};
 
 }
@@ -22,9 +23,23 @@ namespace {
 
 	class LoadTask_Texture : public dal::ITask {
 
-	private:
+	public:
+		dal::ResourceFilePath in_id;
+
+		dal::buildinfo::ImageFileData out_img;
+
+		bool out_success;
+
+		virtual void start(void) override {
+			std::string filePath{ in_id.m_package + in_id.m_dir + in_id.m_name + in_id.m_ext };
+
+			out_success = dal::filec::getResource_image(filePath.c_str(), out_img);
+			return;
+		}
 
 	};
+
+	std::unordered_set<LoadTask_Texture*> g_sentTasks_texture;
 
 }
 
@@ -43,10 +58,121 @@ namespace {
 	auto& g_logger = dal::LoggerGod::getinst();
 
 	dal::StaticPool<dal::Model, 100> g_modelPool;
+	dal::StaticPool<dal::Texture, 100> g_texturePool;
 
 }
 
 
+// TextureHandle
+namespace dal {
+
+	struct TextureHandle2::Pimpl {
+		std::string m_id;
+		Texture* m_tex = nullptr;
+		unsigned int m_refCount = 1;
+	};
+
+
+	TextureHandle2::TextureHandle2(void) {
+
+	}
+	TextureHandle2::TextureHandle2(const char* const texID, Texture* const texture)
+	:	pimpl(new Pimpl) 
+	{
+		this->pimpl->m_tex = texture;
+		this->pimpl->m_id = texID;
+	}
+	TextureHandle2::TextureHandle2(const TextureHandle2& other) : pimpl(other.pimpl) {
+		this->pimpl->m_refCount++;
+	}
+	TextureHandle2::TextureHandle2(TextureHandle2&& other) noexcept {
+		auto temp = this->pimpl;
+		this->pimpl = other.pimpl;
+		other.pimpl = temp;
+	}
+	TextureHandle2& TextureHandle2::operator=(const TextureHandle2& other) {
+		this->pimpl = other.pimpl;
+		this->pimpl->m_refCount++;
+
+		return *this;
+	}
+	TextureHandle2& TextureHandle2::operator=(TextureHandle2&& other) noexcept {
+		auto temp = this->pimpl;
+		this->pimpl = other.pimpl;
+		other.pimpl = temp;
+
+		return *this;
+	}
+	TextureHandle2::~TextureHandle2(void) {
+		if (nullptr == this->pimpl) return;
+
+		this->pimpl->m_refCount--;
+
+		if (this->pimpl->m_refCount <= 0) {
+			if (nullptr != this->pimpl->m_tex) {
+				g_logger.putWarn("A texture handler's refference all lost without being destroyed: "s + this->pimpl->m_id);
+				this->destroyTexture();
+			}
+			
+			delete this->pimpl;
+			this->pimpl = nullptr;
+		}
+	}
+
+	bool TextureHandle2::isReady(void) const {
+		if (nullptr == this->pimpl) return false;
+		if (nullptr == this->pimpl->m_tex) return false;
+		if (!this->pimpl->m_tex->isInitiated()) return false;
+
+		return true;
+	}
+
+	void TextureHandle2::sendUniform(const GLint uniloc_sampler, const GLint uniloc_hasTex, const unsigned int index) const {
+		if (this->isReady()) {
+			glUniform1i(uniloc_hasTex, 1);
+			this->pimpl->m_tex->sendUniform(uniloc_sampler, index);
+		}
+		else {
+			glUniform1i(uniloc_hasTex, 0);
+		}
+	}
+
+	void TextureHandle2::destroyTexture(void) {
+		if (nullptr == this->pimpl->m_tex) return;
+
+		g_texturePool.free(this->pimpl->m_tex);
+		this->pimpl->m_tex = nullptr;
+	}
+
+}
+
+
+namespace dal {
+
+	void Material2::setTexScale(float x, float y) {
+		this->m_texScale = { x, y };
+	}
+
+	void Material2::setDiffuseMap(TextureHandle2 tex) {
+		this->m_diffuseMap = tex;
+	}
+
+	void Material2::sendUniform(const UnilocGeneral& uniloc) const {
+		glUniform1f(uniloc.uShininess, this->m_shininess);
+		glUniform1f(uniloc.uSpecularStrength, this->m_specularStrength);
+
+		glUniform1f(uniloc.uTexScaleX, this->m_texScale.x);
+		glUniform1f(uniloc.uTexScaleY, this->m_texScale.y);
+
+		glUniform3f(uniloc.uDiffuseColor, this->m_diffuseColor.x, this->m_diffuseColor.y, this->m_diffuseColor.z);
+
+		this->m_diffuseMap.sendUniform(uniloc.uDiffuseMap, uniloc.uHasDiffuseMap, 0);
+	}
+
+}
+
+
+// ModelHandle
 namespace dal {
 
 	struct ModelHandle::Pimpl {
@@ -56,52 +182,59 @@ namespace dal {
 	};
 
 
-	ModelHandle::ModelHandle(void) : pimpl(new Pimpl) {
+	ModelHandle::ModelHandle(void) {
 
 	}
-
 	ModelHandle::ModelHandle(const char* const modelID, Model* const model) : pimpl(new Pimpl) {
 		this->pimpl->m_model = model;
 	}
-
 	ModelHandle::ModelHandle(const ModelHandle& other) {
 		this->pimpl = other.pimpl;
 		this->pimpl->m_refCount++;
 	}
-
 	ModelHandle::ModelHandle(ModelHandle&& other) noexcept {
+		auto temp = this->pimpl;
 		this->pimpl = other.pimpl;
-		other.pimpl = nullptr;
+		other.pimpl = temp;
 	}
-
 	ModelHandle& ModelHandle::operator=(const ModelHandle& other) {
 		this->pimpl = other.pimpl;
 		this->pimpl->m_refCount++;
 
 		return *this;
 	}
-
 	ModelHandle& ModelHandle::operator=(ModelHandle&& other) noexcept {
+		auto temp = this->pimpl;
 		this->pimpl = other.pimpl;
-		other.pimpl = nullptr;
+		other.pimpl = temp;
 
 		return *this;
 	}
-
 	ModelHandle::~ModelHandle(void) {
 		if (nullptr == this->pimpl) return;
 
 		this->pimpl->m_refCount--;
 
 		if (this->pimpl->m_refCount <= 0) {
-			g_logger.putWarn("A model handler's refference all lost without being destroyed: "s + this->pimpl->m_id);
+			if (nullptr != this->pimpl->m_model) {
+				g_logger.putWarn("A model handler's refference all lost without being destroyed: "s + this->pimpl->m_id);
+				this->destroyModel();
+			}
+			
 			delete this->pimpl;
 			this->pimpl = nullptr;
 		}
 	}
 
+	bool ModelHandle::isReady(void) const {
+		if (nullptr == this->pimpl) return false;
+		if (nullptr == this->pimpl->m_model) return false;
+		
+		return true;
+	}
+
 	void ModelHandle::renderGeneral(const UnilocGeneral& uniloc, const std::list<Actor>& actors) const {
-		if (nullptr == this->pimpl->m_model) return;
+		if (!this->isReady()) return;
 
 		for (auto& unit : this->pimpl->m_model->m_renderUnits) {
 			unit.m_material.sendUniform(uniloc);
@@ -113,6 +246,13 @@ namespace dal {
 				unit.m_mesh.draw();
 			}
 		}
+	}
+
+	void ModelHandle::destroyModel(void) {
+		if (nullptr == this->pimpl->m_model) return;
+
+		g_modelPool.free(this->pimpl->m_model);
+		this->pimpl->m_model = nullptr;
 	}
 
 }
@@ -160,18 +300,53 @@ namespace dal {
 			);
 
 			// Material
-			renderUnit.m_material.mSpecularStrength = info.m_renderUnit.m_material.m_specStrength;
-			renderUnit.m_material.mShininess = info.m_renderUnit.m_material.m_shininess;
-			renderUnit.m_material.mDiffuseColor = info.m_renderUnit.m_material.m_diffuseColor;
+			renderUnit.m_material.m_specularStrength = info.m_renderUnit.m_material.m_specStrength;
+			renderUnit.m_material.m_shininess = info.m_renderUnit.m_material.m_shininess;
+			renderUnit.m_material.m_diffuseColor = info.m_renderUnit.m_material.m_diffuseColor;
 
-			/*
-			if (!definedModel.m_renderUnit.m_material.m_diffuseMap.empty()) {
-				renderUnit.m_material.setDiffuseMap(m_texMas.request_diffuseMap(definedModel.m_renderUnit.m_material.m_diffuseMap.c_str()));
+			
+			if (!info.m_renderUnit.m_material.m_diffuseMap.empty()) {
+				auto texHandle = this->orderDiffuseMap(info.m_renderUnit.m_material.m_diffuseMap.c_str());
+				renderUnit.m_material.setDiffuseMap(texHandle);
 			}
-			*/
+			
 		}
 
 		return handle;
+	}
+
+	TextureHandle2 Package::orderDiffuseMap(const char* const texID) {
+		auto iter = this->m_textures.find(texID);
+		if (this->m_textures.end() == iter) {
+			buildinfo::ImageFileData img;
+			std::string filePath{ this->m_name + "::texture/"s + texID };
+			const auto res = dal::filec::getResource_image(filePath.c_str(), img);
+			if (!res) throw - 1;
+			return this->buildDiffuseMap(texID, img);
+		}
+		else {
+			return iter->second;
+		}
+	}
+
+	TextureHandle2 Package::buildDiffuseMap(const char* const texID, const buildinfo::ImageFileData& info) {
+		auto tex = g_texturePool.alloc();
+		tex->init_diffueMap(info.m_buf.data(), info.m_width, info.m_height);
+		TextureHandle2 handle{ texID, tex };
+		this->m_textures.emplace(texID, handle);
+		return handle;
+	}
+
+	void Package::clear(void) {
+		for (auto& model : this->m_models) {
+			model.second.destroyModel();
+		}
+		this->m_models.clear();
+
+		for (auto& tex : this->m_textures) {
+			tex.second.destroyTexture();
+		}
+		this->m_textures.clear();
 	}
 
 }
@@ -179,6 +354,13 @@ namespace dal {
 
 // ResourceMaster
 namespace dal {
+
+	ResourceMaster::~ResourceMaster(void) {
+		for (auto& package : this->m_packages) {
+			package.second.clear();
+		}
+		this->m_packages.clear();
+	}
 
 	ModelHandle ResourceMaster::orderModel(const char* const packageName_dir_modelID) {
 		ResourceFilePath path;

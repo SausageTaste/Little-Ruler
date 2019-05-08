@@ -182,7 +182,7 @@ namespace dal {
 namespace dal {
 
 	TextureMaster::TextureMaster(void) {
-		filec::ImageFileData data;
+		buildinfo::ImageFileData data;
 		filec::getResource_image("asset::texture/grass1.png", data);
 		m_nullDiffuse = std::make_shared<dal::TextureHandle>();
 		m_nullDiffuse->m_tex = new dal::Texture();

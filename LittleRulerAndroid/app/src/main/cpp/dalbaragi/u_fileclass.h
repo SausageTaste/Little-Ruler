@@ -3,6 +3,8 @@
 #include <vector>
 #include <string>
 
+#include "u_loadinfo.h"
+
 
 namespace dal {
 
@@ -22,16 +24,11 @@ namespace dal {
 	
 	namespace filec {
 
-		struct ImageFileData {
-			std::vector<uint8_t> m_buf;
-			size_t m_width = 0, m_height = 0, m_pixSize = 0;
-		};
-
 		bool initFilesystem(void* mgr);
 		bool isFilesystemReady(void);
 
 		bool getAsset_text(const char* const path, std::string* buf);
-		bool getResource_image(const char* const path, ImageFileData& data);
+		bool getResource_image(const char* const path, buildinfo::ImageFileData& data);
 
 		bool getResource_buffer(const char* const path, std::vector<uint8_t>& buffer);
 
