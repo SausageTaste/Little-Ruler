@@ -44,7 +44,8 @@ namespace dal {
 		mShaderFScreen("mShaderFScreen"),
 		mShaderDepthmp("mShaderDepthmp")
 	{
-		/* Establish framebuffer */ {
+		// Establish framebuffer
+		{
 			glGenFramebuffers(1, &mMainFbuffer);
 			glBindFramebuffer(GL_FRAMEBUFFER, mMainFbuffer);
 			
@@ -72,7 +73,8 @@ namespace dal {
 			glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		}
 
-		/* Establish vbo for fbuffer */ {
+		// Establish vbo for fbuffer
+		{
 			glGenVertexArrays(1, &mMainVBO);
 			if (mMainVBO <= 0) throw -1;
 			glGenBuffers(1, &mMainBufVertices);
@@ -82,7 +84,8 @@ namespace dal {
 
 			glBindVertexArray(mMainVBO);
 
-			/* Vertices */ {
+			// Vertices
+			{
 				GLfloat vertices[12] = {
 					-1,  1,
 					-1, -1,
@@ -100,7 +103,8 @@ namespace dal {
 				glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, nullptr);
 			}
 
-			/* TexCoords */ {
+			// TexCoords
+			{
 				GLfloat texCoords[12] = {
 					0, 1,
 					0, 0,
@@ -121,7 +125,8 @@ namespace dal {
 			glBindVertexArray(0);
 		}
 
-		/* Compile shaders general */ {
+		// Compile shaders general
+		{
 			std::string vertSrc, fragSrc;
 			filec::getAsset_text("glsl/general_v.glsl", &vertSrc);
 			filec::getAsset_text("glsl/general_f.glsl", &fragSrc);
@@ -138,7 +143,8 @@ namespace dal {
 			glDeleteShader(fragShader);
 		}
 
-		/* Compile shaders fill screen */ {
+		// Compile shaders fill screen
+		{
 			std::string vertSrc, fragSrc;
 			filec::getAsset_text("glsl/fillscreen_v.glsl", &vertSrc);
 			filec::getAsset_text("glsl/fillscreen_f.glsl", &fragSrc);
@@ -155,7 +161,8 @@ namespace dal {
 			glDeleteShader(fragShader);
 		}
 
-		/* Compile shaders fill screen */ {
+		// Compile shaders fill screen
+		{
 			std::string vertSrc, fragSrc;
 			filec::getAsset_text("glsl/depth_v.glsl", &vertSrc);
 			filec::getAsset_text("glsl/depth_f.glsl", &fragSrc);
@@ -172,7 +179,8 @@ namespace dal {
 			glDeleteShader(fragShader);
 		}
 
-		/* Lights */ {
+		// Lights
+		{
 			mPlight1.mPos = { 0, 2, 3 };
 			mPlight1.mMaxDistance = 20.0f;
 			mPlight1.mColor = { 0.0, 0.0, 0.0 };
@@ -181,7 +189,8 @@ namespace dal {
 			mDlight1.mDirection = { 0.3, -1.0, -2.0 };
 		}
 
-		/* Misc */ {
+		// Misc
+		{
 			mHandlerName = "RenderMaster"s;
 			EventGod::getinst().registerHandler(this, EventType::window_resize);
 
@@ -203,7 +212,8 @@ namespace dal {
 	}
 
 	void RenderMaster::render(void) {
-		/* Shadow map */ {
+		// Shadow map
+		{
 			this->mShaderDepthmp.use();
 
 			mDlight1.startRenderShadowmap(mUnilocDepthmp);
@@ -213,7 +223,8 @@ namespace dal {
 			mDlight1.finishRenderShadowmap();
 		}
 
-		/* Render to framebuffer */ {
+		// Render to framebuffer 
+		{
 			glBindFramebuffer(GL_FRAMEBUFFER, mMainFbuffer);
 
 			glViewport(0, 0, mFbufWidth, mFbufHeight);
@@ -248,7 +259,8 @@ namespace dal {
 			m_scene.renderGeneral(mUnilocGeneral);
 		}
 
-		/* Render framebuffer to quad */ {
+		// Render framebuffer to quad 
+	{
 			glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 			glViewport(0, 0, mWidWidth, mWidHeight);
