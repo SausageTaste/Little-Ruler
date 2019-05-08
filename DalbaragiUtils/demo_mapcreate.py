@@ -41,6 +41,7 @@ def main():
     level.add(model)
 
     lvb.saveLevelJson(level)
+    print("Saved: " + level.getLevelName() + ".json")
 
 
 if __name__ == '__main__':

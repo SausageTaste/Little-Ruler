@@ -57,7 +57,6 @@ class Vec3(ein.ILevelAttribLeaf):
         data += but.get4BytesFloat(self.__y)
         data += but.get4BytesFloat(self.__z)
 
-        print(self, [x for x in data])
         return data
 
     def getXYZ(self) -> Tuple[float, float , float]:
@@ -107,7 +106,6 @@ class Vec4(ein.ILevelAttribLeaf):
         data += but.get4BytesFloat(self.__z)
         data += but.get4BytesFloat(self.__w)
 
-        print(self, [x for x in data])
         return data
 
     def getIntegrityReport(self, usageName: str = "") -> ere.IntegrityReport:
@@ -154,7 +152,6 @@ class Quat(ein.ILevelAttribLeaf):
         data += but.get4BytesFloat(self.__quat.z)
         data += but.get4BytesFloat(self.__quat.w)
 
-        print(self, [x for x in data])
         return data
 
     def getIntegrityReport(self, usageName: str = "") -> ere.IntegrityReport:
@@ -198,7 +195,6 @@ class IdentifierStr(ein.ILevelAttribLeaf):
     def getBinary(self) -> bytearray:
         data =  bytearray(self.__text.encode(encoding="utf8")) + '\0'.encode()
 
-        print(self, [x for x in data])
         return data
 
     def getIntegrityReport(self, usageName: str = "") -> ere.IntegrityReport:
@@ -255,7 +251,6 @@ class FloatData(ein.ILevelAttribLeaf):
     def getBinary(self) -> bytearray:
         data = bytearray(but.get4BytesFloat(self.__value))
 
-        print(self, [x for x in data])
         return data
 
     def getIntegrityReport(self, usageName: str = "") -> ere.IntegrityReport:
@@ -295,7 +290,6 @@ class FloatArray(ein.ILevelAttribLeaf):
         data += but.get4BytesInt(self.__arr.size)
         data += self.__arr.tobytes()
 
-        print(self, [x for x in data])
         return data
 
     def getIntegrityReport(self, usageName: str = "") -> ere.IntegrityReport:
@@ -352,7 +346,6 @@ class UniformList(ein.ILevelAttribLeaf):
         for item in self.__list:
             data += item.getBinary()
 
-        print(self, [x for x in data])
         return data
 
     def getIntegrityReport(self, usageName: str = "") -> ere.IntegrityReport:

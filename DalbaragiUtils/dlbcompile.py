@@ -47,9 +47,9 @@ def main(args: list):
             data = json.load(file)
             level = lvb.LevelBuilder(fileName)
             level.setJson(data)
-            print(level.getIntegrityReport().getFormattedStr())
             lvb.saveLevelBinary(level)
-            print([x for x in level.getBinary()[25:]])
+
+            print("Compile done: " + fileName + ".dlb")
 
 
 if __name__ == '__main__':

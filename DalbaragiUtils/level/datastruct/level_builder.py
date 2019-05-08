@@ -43,7 +43,6 @@ class LevelBuilder(ein.ILevelElement):
 
         for elem in self.__infoDatas:
             data += elem.getBinary()
-            print(elem.getFieldTypeOfSelf(), [x for x in elem.getBinary()])
 
         return data
 
@@ -79,8 +78,6 @@ def saveLevelBinary(level: LevelBuilder, outputFolder: str = "outputs/"):
     report = level.getIntegrityReport()
     if report.isFatal():
         raise RuntimeError(report.getFormattedStr())
-    else:
-        print(report.getFormattedStr())
 
     if not os.path.isdir(outputFolder):
         os.mkdir(outputFolder)
@@ -94,8 +91,6 @@ def saveLevelJson(level: LevelBuilder, outputFolder: str = "intermediates/"):
     report = level.getIntegrityReport()
     if report.isFatal():
         raise RuntimeError(report.getFormattedStr())
-    else:
-        print(report.getFormattedStr())
 
     if not os.path.isdir(outputFolder):
         os.mkdir(outputFolder)
