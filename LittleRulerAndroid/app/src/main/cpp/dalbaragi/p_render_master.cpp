@@ -120,21 +120,12 @@ namespace dal {
 
 namespace dal {
 
-	RenderMaster::RenderMaster(void)
-	:	mCameraPos(0.0, 0.0, 5.0),
-		mCameraViewDir(0.0, 0.0),
-		m_scene(m_resMas),
-		m_overlayMas(m_resMas),
-		mWidWidth(0), mWidHeight(0),
-		mFbufWidth(10), mFbufHeight(10),
-		mRenderScale(0.9f),
-		mProjectMat(1.0)
-	{
+	RenderMaster::MainFramebuffer::MainFramebuffer(void) {
 		// Establish framebuffer
 		{
 			glGenFramebuffers(1, &mMainFbuffer);
 			glBindFramebuffer(GL_FRAMEBUFFER, mMainFbuffer);
-			
+
 			glPixelStorei(GL_UNPACK_ALIGNMENT, 0);
 
 			glGenTextures(1, &mMainFbuf_colorMap);
@@ -144,16 +135,16 @@ namespace dal {
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mMainFbuf_colorMap, 0);
 			glBindTexture(GL_TEXTURE_2D, 0);
-			
+
 			glGenRenderbuffers(1, &mMainRenderbuffer);
 			glBindRenderbuffer(GL_RENDERBUFFER, mMainRenderbuffer);
 			glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, mFbufWidth, mFbufHeight);
 			glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, mMainRenderbuffer);
 			glBindRenderbuffer(GL_RENDERBUFFER, 0);
-			
+
 			if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
 				LoggerGod::getinst().putFatal("Failed to create framebuffer.");
-				throw -1;
+				throw - 1;
 			}
 
 			glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -162,11 +153,11 @@ namespace dal {
 		// Establish vbo for fbuffer
 		{
 			glGenVertexArrays(1, &mMainVBO);
-			if (mMainVBO <= 0) throw -1;
+			if (mMainVBO <= 0) throw - 1;
 			glGenBuffers(1, &mMainBufVertices);
-			if (mMainBufVertices <= 0) throw -1;
+			if (mMainBufVertices <= 0) throw - 1;
 			glGenBuffers(1, &mMainBufTexCoords);
-			if (mMainBufTexCoords <= 0) throw -1;
+			if (mMainBufTexCoords <= 0) throw - 1;
 
 			glBindVertexArray(mMainVBO);
 
@@ -210,7 +201,57 @@ namespace dal {
 
 			glBindVertexArray(0);
 		}
+	}
 
+	RenderMaster::MainFramebuffer::~MainFramebuffer(void) {
+		glDeleteFramebuffers(1, &mMainFbuffer);
+	}
+
+	void RenderMaster::MainFramebuffer::setRenderScale(float v, unsigned int win_width, unsigned int win_height) {
+		mRenderScale = v;
+		auto w = static_cast<unsigned int>(float(win_width) * v);
+		auto h = static_cast<unsigned int>(float(win_height) * v);
+		this->resizeFbuffer(w, h);
+	}
+
+	void RenderMaster::MainFramebuffer::resizeFbuffer(unsigned int newWin_width, unsigned int newWin_height) {
+		mFbufWidth = (unsigned int)(float(newWin_width) * mRenderScale);
+		mFbufHeight = (unsigned int)(float(newWin_height) * mRenderScale);
+
+		glBindTexture(GL_TEXTURE_2D, mMainFbuf_colorMap);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, mFbufWidth, mFbufHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
+		glBindTexture(GL_TEXTURE_2D, 0);
+
+		glBindRenderbuffer(GL_RENDERBUFFER, mMainRenderbuffer);
+		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, mFbufWidth, mFbufHeight);
+		glBindRenderbuffer(GL_RENDERBUFFER, 0);
+	}
+
+	void RenderMaster::MainFramebuffer::startRenderOn(void) {
+		glBindFramebuffer(GL_FRAMEBUFFER, mMainFbuffer);
+		glViewport(0, 0, mFbufWidth, mFbufHeight);
+	}
+
+	void RenderMaster::MainFramebuffer::renderOnScreen(void) {
+		glBindVertexArray(mMainVBO);
+
+		glBindTexture(GL_TEXTURE_2D, mMainFbuf_colorMap);
+		glDrawArrays(GL_TRIANGLES, 0, 6);
+	}
+
+}
+
+
+namespace dal {
+
+	RenderMaster::RenderMaster(void)
+	:	mCameraPos(0.0, 0.0, 5.0),
+		mCameraViewDir(0.0, 0.0),
+		m_scene(m_resMas),
+		m_overlayMas(m_resMas),
+		mWidWidth(512), mWidHeight(512),
+		mProjectMat(1.0)
+	{
 		// Lights
 		{
 			mPlight1.mPos = { 0, 2, 3 };
@@ -226,7 +267,7 @@ namespace dal {
 			mHandlerName = "RenderMaster"s;
 			EventGod::getinst().registerHandler(this, EventType::window_resize);
 
-			float radio = float(mFbufWidth) / float(mFbufHeight);
+			float radio = float(mWidWidth) / float(mWidHeight);
 			this->mProjectMat = glm::perspective(glm::radians(90.0f), radio, 0.01f, 100.0f);
 
 			GLSwitch::setOnlyOnce();
@@ -234,8 +275,6 @@ namespace dal {
 	}
 
 	RenderMaster::~RenderMaster(void) {
-		glDeleteFramebuffers(1, &mMainFbuffer);
-
 		EventGod::getinst().deregisterHandler(this, EventType::window_resize);
 	}
 
@@ -257,11 +296,8 @@ namespace dal {
 
 		// Render to framebuffer 
 		{
-			glBindFramebuffer(GL_FRAMEBUFFER, mMainFbuffer);
-
-			glViewport(0, 0, mFbufWidth, mFbufHeight);
+			this->m_fbuffer.startRenderOn();
 			glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
-
 			GLSwitch::setFor_generalRender();
 
 			this->m_shader.useGeneral();
@@ -303,21 +339,14 @@ namespace dal {
 			GLSwitch::setFor_fillingScreen();
 
 			this->m_shader.useFScreen();
-			glBindVertexArray(mMainVBO);
-			
-			glBindTexture(GL_TEXTURE_2D, mMainFbuf_colorMap);
-			//glBindTexture(GL_TEXTURE_2D, mDlight1.getShadowMap()->getTexID());
-			glDrawArrays(GL_TRIANGLES, 0, 6);
+			this->m_fbuffer.renderOnScreen();
 		}
 
 		this->m_overlayMas.render();
 	}
 
 	void RenderMaster::setRenderScale(float v) {
-		mRenderScale = v;
-		auto w = (unsigned int)(float(mWidWidth) * v);
-		auto h = (unsigned int)(float(mWidHeight) * v);
-		this->resizeFbuffer(w, h);
+		this->m_fbuffer.setRenderScale(v, mWidWidth, mWidHeight);
 	}
 
 	void RenderMaster::onEvent(const EventStatic& e) {
@@ -325,28 +354,15 @@ namespace dal {
 			mWidWidth = (unsigned int)e.intArg1;
 			mWidHeight = (unsigned int)e.intArg2;
 
-			auto resizedWidth = (unsigned int)(float(mWidWidth) * mRenderScale);
-			auto resizedHeight = (unsigned int)(float(mWidHeight) * mRenderScale);
-
-			this->resizeFbuffer(resizedWidth, resizedHeight);
+			this->resizeFbuffer(mWidWidth, mWidHeight);
 		}
 	}
 
 	void RenderMaster::resizeFbuffer(unsigned int w, unsigned int h) {
-		mFbufWidth = w;
-		mFbufHeight = h;
-
 		float radio = float(w) / float(h);
 		this->mProjectMat = glm::perspective(glm::radians(90.0f), radio, 0.01f, 100.0f);
-
-		glBindTexture(GL_TEXTURE_2D, mMainFbuf_colorMap);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, mFbufWidth, mFbufHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
-		glBindTexture(GL_TEXTURE_2D, 0);
 		
-		glBindRenderbuffer(GL_RENDERBUFFER, mMainRenderbuffer);
-		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, mFbufWidth, mFbufHeight);
-		glBindRenderbuffer(GL_RENDERBUFFER, 0);
-		
+		this->m_fbuffer.resizeFbuffer(w, h);
 	}
 
 }

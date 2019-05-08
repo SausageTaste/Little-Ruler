@@ -46,6 +46,29 @@ namespace dal {
 
 		};
 
+		class MainFramebuffer {
+			unsigned int mFbufWidth = 256, mFbufHeight = 256;
+			float mRenderScale = 1.0f;
+
+			GLuint mMainFbuffer = 0;
+			GLuint mMainFbuf_colorMap = 0;
+			GLuint mMainRenderbuffer = 0;
+			GLuint mMainVBO = 0;
+			GLuint mMainBufVertices = 0;
+			GLuint mMainBufTexCoords = 0;
+
+		public:
+			MainFramebuffer(void);
+			~MainFramebuffer(void);
+
+			void setRenderScale(float v, unsigned int widWidth, unsigned int widHeight);
+			void resizeFbuffer(unsigned int w, unsigned int h);
+
+			void startRenderOn(void);
+			void renderOnScreen(void);
+
+		};
+
 	public:
 		glm::vec3 mCameraPos;
 		glm::vec2 mCameraViewDir;
@@ -54,20 +77,13 @@ namespace dal {
 		ResourceMaster m_resMas;
 		SceneMaster m_scene;
 		ShaderMaster m_shader;
+		MainFramebuffer m_fbuffer;
 
 	public:
 		OverlayMaster m_overlayMas;
 
 	private:
-		unsigned int mWidWidth, mWidHeight, mFbufWidth, mFbufHeight;
-		GLuint mMainFbuffer;
-		GLuint mMainFbuf_colorMap;
-		GLuint mMainRenderbuffer;
-		GLuint mMainVBO;
-		GLuint mMainBufVertices;
-		GLuint mMainBufTexCoords;
-
-		float mRenderScale;
+		unsigned int mWidWidth, mWidHeight;
 
 		glm::mat4 mProjectMat;
 
