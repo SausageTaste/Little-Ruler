@@ -27,6 +27,7 @@ namespace dal {
 		glm::vec2 mCameraViewDir;
 
 	private:
+		ResourceMaster m_resMas;
 		TextureMaster m_texMas;
 		SceneMaster m_scene;
 

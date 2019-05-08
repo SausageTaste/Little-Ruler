@@ -6,6 +6,7 @@
 #include "u_timer.h"
 #include "x_persist.h"
 #include "o_overlay_master.h"
+#include "p_resource.h"
 
 
 namespace dal {

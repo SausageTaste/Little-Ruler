@@ -12,7 +12,9 @@ using namespace std::string_literals;
 
 namespace dal {
 
-	SceneMaster::SceneMaster(void) {
+	SceneMaster::SceneMaster(ResourceMaster& resMas)
+	:	m_resMas(resMas)
+	{
 		this->loadMap("asset::maps/test_level.dlb");
 	}
 

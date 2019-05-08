@@ -27,13 +27,13 @@ namespace dal {
 		//////// Attribs ////////
 
 	private:
-		ResourceMaster m_resMas;
+		ResourceMaster& m_resMas;
 		std::list<MapChunk> m_mapChunks;
 
 		//////// Methods ////////
 
 	public:
-		SceneMaster(void);
+		SceneMaster(ResourceMaster& resMas);
 
 		void renderGeneral(const UnilocGeneral& uniloc) const;
 		void renderDepthMp(const UnilocDepthmp& uniloc) const;
