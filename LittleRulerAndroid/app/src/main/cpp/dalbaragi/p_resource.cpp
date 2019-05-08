@@ -184,7 +184,7 @@ namespace {
 				return;
 			}
 
-			auto texPath = "texture/"s + path.m_dir + path.m_name + path.m_ext;
+			auto texPath = "asset::texture/"s + path.m_dir + path.m_name + path.m_ext;
 
 			out_success = dal::filec::getResource_image(texPath.c_str(), out_img);
 			return;
@@ -333,6 +333,12 @@ namespace dal {
 	GLuint TextureHandle2::getTex(void) {
 		if (!this->isReady()) return 0;
 		else return this->pimpl->m_tex->getTexID();
+	}
+
+	Texture* TextureHandle2::replace(Texture* const tex) {
+		auto tmp = this->pimpl->m_tex;
+		this->pimpl->m_tex = tex;
+		return tmp;
 	}
 
 	void TextureHandle2::destroyTexture(void) {
@@ -523,7 +529,6 @@ namespace dal {
 		}
 		else {
 			const auto modelID{ resPath.m_package + "::" + resPath.m_dir + modelIDStr };
-			g_logger.putTrace("Load model: "s + resPath.m_package + "::" + resPath.m_dir + modelIDStr);
 			ModelHandle handle{ modelIDStr.c_str(), nullptr };
 
 			auto task = new LoadTask_Model{ modelID, handle, this };
@@ -535,7 +540,7 @@ namespace dal {
 		}
 	}
 
-	ModelHandle Package::buildModel(const loadedinfo::ModelDefined& info) {
+	ModelHandle Package::buildModel(const loadedinfo::ModelDefined& info, ResourceMaster* const resMas) {
 		auto model = g_modelPool.alloc();
 		ModelHandle handle{ info.m_modelID.c_str(), model };
 		this->m_models.emplace(info.m_modelID, handle);
@@ -557,7 +562,7 @@ namespace dal {
 
 			
 			if (!info.m_renderUnit.m_material.m_diffuseMap.empty()) {
-				auto texHandle = this->orderDiffuseMap(info.m_renderUnit.m_material.m_diffuseMap.c_str());
+				auto texHandle = this->orderDiffuseMap(info.m_renderUnit.m_material.m_diffuseMap.c_str(), resMas);
 				renderUnit.m_material.setDiffuseMap(texHandle);
 			}
 			
@@ -566,14 +571,18 @@ namespace dal {
 		return handle;
 	}
 
-	TextureHandle2 Package::orderDiffuseMap(const char* const texID) {
+	TextureHandle2 Package::orderDiffuseMap(const char* const texID, ResourceMaster* const resMas) {
 		auto iter = this->m_textures.find(texID);
 		if (this->m_textures.end() == iter) {
-			loadedinfo::ImageFileData img;
-			std::string filePath{ this->m_name + "::texture/"s + texID };
-			const auto res = dal::filec::getResource_image(filePath.c_str(), img);
-			if (!res) throw - 1;
-			return this->buildDiffuseMap(texID, img);
+			auto newPath = "asset::"s + texID;
+			TextureHandle2 handle{ texID, nullptr };
+
+			auto task = new LoadTask_Texture(newPath, handle);
+			g_sentTasks_texture.insert(task);
+			TaskGod::getinst().orderTask(task, resMas);
+
+			this->m_textures.emplace(texID, handle);
+			return handle;
 		}
 		else {
 			return iter->second;
@@ -655,10 +664,33 @@ namespace dal {
 				unit.m_material.m_specularStrength = unitInfo.m_material.m_specStrength;
 
 				if (!unitInfo.m_material.m_diffuseMap.empty()) {
-					auto texHandle = loaded->data_package->orderDiffuseMap(unitInfo.m_material.m_diffuseMap.c_str());
+					auto texHandle = loaded->data_package->orderDiffuseMap(unitInfo.m_material.m_diffuseMap.c_str(), this);
 					unit.m_material.setDiffuseMap(texHandle);
 				}
 			}
+		}
+		else if (g_sentTasks_texture.find(task) != g_sentTasks_texture.end()) {
+			g_sentTasks_texture.erase(task);
+
+			auto loaded = reinterpret_cast<LoadTask_Texture*>(task);
+			if (!loaded->out_success) {
+				LoggerGod::getinst().putError("Failed to load texture: "s + loaded->in_texID);
+				throw - 1;
+			}
+
+			auto tex = g_texturePool.alloc();
+			if (loaded->out_img.m_pixSize == 3) {
+				tex->init_diffueMap3(loaded->out_img.m_buf.data(), loaded->out_img.m_width, loaded->out_img.m_height);
+			}
+			else if (loaded->out_img.m_pixSize == 4) {
+				tex->init_diffueMap(loaded->out_img.m_buf.data(), loaded->out_img.m_width, loaded->out_img.m_height);
+			}
+			else {
+				throw - 1;
+			}
+
+			auto shouldBeNull = loaded->data_handle.replace(tex);
+			assert(nullptr == shouldBeNull);
 		}
 		else {
 			g_logger.putWarn("ResourceMaster got a task that it doesn't know.");
@@ -676,7 +708,7 @@ namespace dal {
 
 	ModelHandle ResourceMaster::buildModel(const loadedinfo::ModelDefined& info, const char* const packageName) {
 		auto& package = this->orderPackage(packageName);
-		return package.buildModel(info);
+		return package.buildModel(info, this);
 	}
 
 	// Static

@@ -38,6 +38,7 @@ namespace dal {
 		bool isReady(void) const;
 		void sendUniform(const GLint uniloc_sampler, const GLint uniloc_hasTex, const unsigned int index) const;
 		GLuint getTex(void);
+		Texture* replace(Texture* const tex);
 		void destroyTexture(void);
 
 	};
@@ -103,8 +104,8 @@ namespace dal {
 		void setName(const std::string& packageName);
 
 		ModelHandle orderModel(const ResourceFilePath& resPath, ResourceMaster* const resMas);
-		ModelHandle buildModel(const loadedinfo::ModelDefined& info);
-		TextureHandle2 orderDiffuseMap(const char* const texID);
+		ModelHandle buildModel(const loadedinfo::ModelDefined& info, ResourceMaster* const resMas);
+		TextureHandle2 orderDiffuseMap(const char* const texID, ResourceMaster* const resMas);
 
 		void clear(void);
 
