@@ -9,7 +9,7 @@
 
 #include "s_logger_god.h"
 
-#define DAL_THREAD_COUNT 0
+#define DAL_THREAD_COUNT 1
 
 
 using namespace std::string_literals;
@@ -23,18 +23,18 @@ namespace {
 	class ThreadQueue {
 
 	private:
-		queue<T*> m_q;
-		mutex m_mut;
+		std::queue<T*> m_q;
+		std::mutex m_mut;
 
 	public:
 		void push(T* t) {
-			unique_lock<mutex> lck{ m_mut, defer_lock };
+			std::unique_lock<std::mutex> lck{ m_mut, std::defer_lock };
 
 			m_q.push(t);
 		}
 
 		T* pop(void) {
-			unique_lock<mutex> lck{ m_mut, defer_lock };
+			std::unique_lock<std::mutex> lck{ m_mut, std::defer_lock };
 
 			if (m_q.empty()) {
 				return nullptr;
@@ -54,7 +54,7 @@ namespace {
 	private:
 		ThreadQueue<dal::ITask> m_inQ, m_outQ;
 
-		atomic_bool m_flagExit;
+		std::atomic_bool m_flagExit;
 
 	public:
 		void operator()(void) {
@@ -89,8 +89,8 @@ namespace {
 
 
 	constexpr unsigned int NUM_WORKERS = DAL_THREAD_COUNT;
-	array<WorkerClass, NUM_WORKERS> g_workers;
-	vector<thread> g_threads;
+	std::array<WorkerClass, NUM_WORKERS> g_workers;
+	std::vector<std::thread> g_threads;
 
 #endif
 
@@ -103,7 +103,7 @@ namespace dal {
 
 #if DAL_THREAD_COUNT > 0
 		for (auto& worker : g_workers) {
-			g_threads.emplace_back(ref(worker));
+			g_threads.emplace_back(std::ref(worker));
 		}
 #endif
 
