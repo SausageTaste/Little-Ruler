@@ -55,7 +55,7 @@ namespace dal {
 		/* Misc */ {
 			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-			for (int i = 0; i < 10; i++) {
+			for (unsigned int i = 0; i < 10; i++) {
 				mBoxesForTouchPoint.at(i).moveCenterTo_screenCoord(-100.0f, -100.0f);
 			}
 
