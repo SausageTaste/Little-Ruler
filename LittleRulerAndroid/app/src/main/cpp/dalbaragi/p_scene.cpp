@@ -3,12 +3,7 @@
 #include <unordered_set>
 #include <cassert>
 
-#include <glm/gtc/matrix_transform.hpp>
-
-#include "u_objparser.h"
-#include "u_fileclass.h"
 #include "s_logger_god.h"
-#include "u_timer.h"
 #include "u_maploader.h"
 
 
@@ -19,10 +14,6 @@ namespace dal {
 
 	SceneMaster::SceneMaster(void) {
 		this->loadMap("asset::maps/test_level.dlb");
-	}
-
-	SceneMaster::~SceneMaster(void) {
-
 	}
 
 	void SceneMaster::renderGeneral(const UnilocGeneral& uniloc) const {
@@ -69,8 +60,6 @@ namespace dal {
 			auto& modelActor = newMap.m_actors.back();
 
 			modelActor.m_model = this->m_resMas.buildModel(definedModel, map.m_packageName.c_str());
-
-			// Actors
 			modelActor.m_inst.assign(definedModel.m_actors.begin(), definedModel.m_actors.end());
 		}
 
@@ -79,7 +68,6 @@ namespace dal {
 			auto& model = newMap.m_actors.back();
 
 			model.m_model = this->m_resMas.orderModel((map.m_packageName + "::" + importedModel.m_modelID).c_str());
-
 			model.m_inst.assign(importedModel.m_actors.begin(), importedModel.m_actors.end());
 		}
 	}

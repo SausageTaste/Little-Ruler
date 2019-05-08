@@ -1,15 +1,8 @@
 #pragma once
 
-#include <string>
 #include <vector>
-#include <deque>
 #include <list>
 
-#include <glm/gtc/quaternion.hpp>
-
-#include "p_meshStatic.h"
-#include "p_material.h"
-#include "p_texture.h"
 #include "p_uniloc.h"
 #include "u_loadinfo.h"
 #include "p_resource.h"
@@ -17,10 +10,9 @@
 
 namespace dal {
 
-	
-
-
 	class SceneMaster {
+
+		//////// Definitions ////////
 
 	private:
 		struct ModelNActor {
@@ -32,16 +24,16 @@ namespace dal {
 			std::vector<ModelNActor> m_actors;
 		};
 
-	private:
-		//TextureMaster& m_texMas;
+		//////// Attribs ////////
 
+	private:
+		ResourceMaster m_resMas;
 		std::list<MapChunk> m_mapChunks;
 
-		ResourceMaster m_resMas;
+		//////// Methods ////////
 
 	public:
 		SceneMaster(void);
-		~SceneMaster(void);
 
 		void renderGeneral(const UnilocGeneral& uniloc) const;
 		void renderDepthMp(const UnilocDepthmp& uniloc) const;
@@ -50,6 +42,7 @@ namespace dal {
 
 	private:
 		void addMap(const LoadedMap& map);
+
 	};
 
 }
