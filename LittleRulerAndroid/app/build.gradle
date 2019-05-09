@@ -35,7 +35,7 @@ android {
         main {
             // let gradle pack the shared library into apk
             jniLibs.srcDirs = ['../../Library/assimp-3.3.1/so']
-            assets.srcDirs = ['../../Resources/assets']
+            assets.srcDirs = ['../../Resources/asset']
         }
     }
 
