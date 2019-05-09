@@ -119,49 +119,6 @@ namespace {
 
 namespace {
 
-	/*
-	size_t listDir(dal::ResourceFolderPath& path, std::vector<std::string>& res) {
-		if (PACKAGE_NAME_ASSET != path.m_package) {
-			g_logger.putWarn("Non asset is not supported yet.");
-			return 0;
-		}
-		else {
-#if defined(_WIN32)
-			const auto exactPath = getResourceDir() + path.m_dir;
-			getWindowsDirList(exactPath.c_str(), res);
-#elif defined(__ANDROID__)
-			// Check error
-			if (!dal::filec::isFilesystemReady()) {
-				dal::LoggerGod::getinst().putError("Filesystem is not initialized");
-			}
-
-			// Do
-			//const auto exactPath = path.m_dir;
-			const auto exactPath = ""s;
-			const auto assetDir = AAssetManager_openDir(gAssetMgr, exactPath.c_str());
-			while (true) {
-				const auto fileName = AAssetDir_getNextFileName(assetDir);
-				if (fileName == nullptr)
-					break;
-				else
-					res.emplace_back(fileName);
-			}
-			AAssetDir_close(assetDir);
-#endif
-			return res.size();
-		}
-	}
-	*/
-
-	bool checkResPathValidity(const dal::ResourceID& path) {
-		return true;
-	}
-
-}
-
-
-namespace {
-
 	bool readFileAsPNG(const char* const path, std::vector<uint8_t>* output, size_t* const width, size_t* const height) {
 		std::vector<uint8_t> buf;
 		
