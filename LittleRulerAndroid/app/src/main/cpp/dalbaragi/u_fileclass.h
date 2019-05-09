@@ -33,6 +33,8 @@ namespace dal {
 
 	namespace filec {
 
+		void test(void);
+
 		bool initFilesystem(void* mgr);
 		bool isFilesystemReady(void);
 

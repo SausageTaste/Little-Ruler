@@ -89,12 +89,7 @@ namespace dal {
 
 		// Test
 		{
-			std::vector<std::string> dirs;
-			filec::listResources("asset::texture", dirs);
-			LoggerGod::getinst().putDebug("TEST: found: "s + std::to_string(dirs.size()));
-			for (auto& cont : dirs) {
-				LoggerGod::getinst().putDebug("\t"s + cont);
-			}
+			filec::test();
 		}
 
 		const auto elapsed = initTimer.check_getElapsed_capFPS();

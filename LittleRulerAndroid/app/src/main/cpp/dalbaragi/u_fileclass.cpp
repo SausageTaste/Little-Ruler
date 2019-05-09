@@ -34,10 +34,9 @@ namespace {
 
 #if defined(_WIN32)
 
-	size_t getWindowsDirList(const char* const path, std::vector<std::string>& con) {
+	size_t getListFolFile_win(std::string pattern, std::vector<std::string>& con) {
 		con.clear();
 
-		std::string pattern{ path };
 		if (pattern.back() != '/') pattern.push_back('/');
 		pattern.push_back('*');
 
@@ -45,6 +44,10 @@ namespace {
 		HANDLE hFind;
 		if ((hFind = FindFirstFile(pattern.c_str(), &data)) != INVALID_HANDLE_VALUE) {
 			do {
+				const auto fileName = std::string{ data.cFileName };
+				if (fileName == "."s) continue;
+				if (".."s == fileName) continue;
+
 				con.push_back(data.cFileName);
 				if (con.back() == "System Volume Information"s) {
 					con.clear();
@@ -57,14 +60,14 @@ namespace {
 		return con.size();
 	}
 
-	const std::string& getResourceDir(void) {
+	const std::string& getResourceDir_win(void) {
 		static std::string path;
 
 		if (path == "") {
 			std::vector<std::string> folders;
 			std::string pattern("./");
 
-			while (getWindowsDirList(pattern.c_str(), folders) > 0) {
+			while (getListFolFile_win(pattern.c_str(), folders) > 0) {
 				const auto found = [&folders](void) -> bool {
 					for (auto& item : folders) {
 						if (item == "Resources"s) return true;
@@ -83,6 +86,39 @@ namespace {
 
 		return path;
 }
+
+	bool isFile_win(const std::string path) {
+		if (FILE* file = fopen(path.c_str(), "r")) {
+			fclose(file);
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+
+	bool findMatching_win(std::string & result, std::string path, const std::string & criteria) {
+		if (!path.empty() && path.back() != '/') path.push_back('/');
+
+		std::vector<std::string> dirs;
+		getListFolFile_win(path, dirs);
+		for (const auto& one : dirs) {
+			auto newPath = path + one;
+			if (isFile_win(newPath)) {
+				if (one == criteria) {
+					result = path + one;
+					return true;
+				}
+			}
+			else {
+				if (findMatching_win(result, newPath, criteria)) {
+					return true;
+				}
+			}
+		}
+
+		return false;
+	};
 
 #elif defined(__ANDROID__)
 
@@ -113,6 +149,26 @@ namespace {
 		"models/",
 		"texture/"
 	};
+
+	bool resolveRes(const std::string& package, const std::string& fileName, std::string& result) {
+		if (PACKAGE_NAME_ASSET != package) {
+			g_logger.putError("Cannot resolve " + package + "::" + fileName + ", only asset is supported yes.");
+			return false;
+		}
+		if (package.empty()) {
+			g_logger.putError("Cannot resolve " + fileName + " without package defined.");
+			return false;
+		}
+
+#if defined(_WIN32)
+		auto path = getResourceDir_win() + package + '/';
+
+		return findMatching_win(result, path, fileName);
+#elif defined(__ANDROID__)
+
+#endif
+		return false;
+	}
 
 }
 
@@ -268,6 +324,12 @@ namespace dal {
 namespace dal {
 	namespace filec {
 
+		void test(void) {
+			std::string result;
+			auto success = resolveRes("asset", "0021di.png", result);
+			printf("File test result: %s\n", result.c_str());
+		}
+
 		bool initFilesystem(void* mgr) {
 
 #if defined(_WIN32)
@@ -334,6 +396,9 @@ namespace dal {
 			if (PACKAGE_NAME_ASSET != path.getPackage()) throw - 1;
 
 			const auto filePath = path.getOptionalDir() + path.makeFileName();
+			std::string resolved;
+			resolveRes(path.getPackage(), path.makeFileName(), resolved);
+
 			AssetFileStream file;
 			const auto openRes = file.open(filePath.c_str());
 			if (!openRes) { throw - 1;  return false; }
@@ -385,7 +450,7 @@ namespace dal {
 	bool AssetFileStream::open(const char* const path) {
 
 #if defined(_WIN32)
-		m_path = getResourceDir() + "asset/" + path;
+		m_path = getResourceDir_win() + "asset/" + path;
 
 		this->pimpl->mIFile.open(m_path.c_str(), std::ios::binary);
 		if (!this->pimpl->mIFile) {
