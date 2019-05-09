@@ -73,7 +73,7 @@ namespace {
 				}();
 
 				if (found) {
-					path = pattern += "Resources/assets/";
+					path = pattern += "Resources/";
 					break;
 				}
 
@@ -88,9 +88,31 @@ namespace {
 
 	AAssetManager* gAssetMgr = nullptr;
 
+	size_t getFileList_android(std::string path, std::vector<std::string>& dirs) {
+		dirs.clear();
+		if (!path.empty() && path.back() == '/') path.pop_back();
+
+		AAssetDir* assetDir = AAssetManager_openDir(gAssetMgr, path.c_str());
+		while (true) {
+			auto filename = AAssetDir_getNextFileName(assetDir);
+			if (filename == nullptr) break;
+			dirs.emplace_back(filename);
+		}
+		AAssetDir_close(assetDir);
+
+		return dirs.size();
+	}
+
 #endif
 
 	const std::string PACKAGE_NAME_ASSET{ "asset" };
+
+	constexpr unsigned int g_assetDirCount = 3;
+	const char* const g_assetDirs[g_assetDirCount] = {
+		"maps/",
+		"models/",
+		"texture/"
+	};
 
 }
 
@@ -230,13 +252,16 @@ namespace dal {
 
 		const auto extPos = pathStr.rfind(".");
 		if (std::string::npos == extPos) {
-			this->m_bareName = pathStr.substr(excludePos, pathStr.size() - excludePos);
+			this->m_dir += pathStr.substr(excludePos, pathStr.size() - excludePos);
+			this->m_bareName = "";
 			this->m_ext = "";
 		}
 		else {
 			this->m_bareName = pathStr.substr(excludePos, extPos - excludePos);
 			this->m_ext = pathStr.substr(extPos, pathStr.size() - extPos);
 		}
+
+		if (!this->m_dir.empty() && this->m_dir.back() != '/') this->m_dir.push_back('/');
 	}
 
 	ResourceID::ResourceID(const char* const resourceID) : ResourceID(std::string{ resourceID }) {
@@ -312,9 +337,7 @@ namespace dal {
 
 		bool getAsset_text(const char* const path, std::string* bufStr) {
 			AssetFileStream file;
-			if (file.open(path) != true) {
-				return false;
-			}
+			if (!file.open( path)) return false;
 
 			auto bufSize = file.getFileSize();
 			auto buf = std::unique_ptr<uint8_t>(new uint8_t[bufSize + 1]);
@@ -405,7 +428,7 @@ namespace dal {
 	bool AssetFileStream::open(const char* const path) {
 
 #if defined(_WIN32)
-		m_path = getResourceDir() + path;
+		m_path = getResourceDir() + "asset/" + path;
 
 		this->pimpl->mIFile.open(m_path.c_str(), std::ios::binary);
 		if (!this->pimpl->mIFile) {
