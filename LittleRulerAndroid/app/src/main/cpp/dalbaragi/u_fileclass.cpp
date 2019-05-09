@@ -30,6 +30,8 @@ using namespace std::string_literals;
 
 namespace {
 
+	auto& g_logger = dal::LoggerGod::getinst();
+
 #if defined(_WIN32)
 
 	size_t getWindowsDirList(const char* const path, std::vector<std::string>& con) {
@@ -88,8 +90,6 @@ namespace {
 
 #endif
 
-	auto& g_logger = dal::LoggerGod::getinst();
-
 	const std::string PACKAGE_NAME_ASSET{ "asset" };
 
 }
@@ -131,7 +131,7 @@ namespace {
 	}
 	*/
 
-	bool checkResPathValidity(const dal::ResourceFilePath& path) {
+	bool checkResPathValidity(const dal::ResourceID& path) {
 		return true;
 	}
 
@@ -199,62 +199,91 @@ namespace {
 }
 
 
+// Resource ID
 namespace dal {
 
-	bool parseResFilePath(const char* const path, ResourceFilePath& result) {
-		std::string pathStr{ path };
+	ResourceID::ResourceID(const std::string& resourceID) {
+		const auto& pathStr = resourceID;
 
 		const auto packagePos = pathStr.find("::");
 		size_t excludePos = 0;
 		if (0 == packagePos) {
-			result.m_package = "";
+			this->m_package = "";
 			excludePos = 2;
 		}
 		else if (std::string::npos == packagePos) {
-			result.m_package = "";
+			this->m_package = "";
 		}
 		else {
-			result.m_package = pathStr.substr(0, packagePos);
+			this->m_package = pathStr.substr(0, packagePos);
 			excludePos = packagePos + 2;
 		}
 
 		const auto dirPos = pathStr.rfind("/");
 		if (std::string::npos == dirPos) {
-			result.m_dir = "";
+			this->m_dir = "";
 		}
 		else {
-			result.m_dir = pathStr.substr(excludePos, dirPos + 1 - excludePos);
+			this->m_dir = pathStr.substr(excludePos, dirPos + 1 - excludePos);
 			excludePos = dirPos + 1;
 		}
 
 		const auto extPos = pathStr.rfind(".");
 		if (std::string::npos == extPos) {
-			result.m_name = pathStr.substr(excludePos, pathStr.size() - excludePos);
-			result.m_ext = "";
+			this->m_bareName = pathStr.substr(excludePos, pathStr.size() - excludePos);
+			this->m_ext = "";
 		}
 		else {
-			result.m_name = pathStr.substr(excludePos, extPos - excludePos);
-			result.m_ext = pathStr.substr(extPos, pathStr.size() - extPos);
+			this->m_bareName = pathStr.substr(excludePos, extPos - excludePos);
+			this->m_ext = pathStr.substr(extPos, pathStr.size() - extPos);
 		}
-
-		return true;
 	}
 
-	bool parseResFolderPath(const char* const path, ResourceFolderPath & result) {
-		ResourceFilePath temp;
+	ResourceID::ResourceID(const char* const resourceID) : ResourceID(std::string{ resourceID }) {
 
-		if (!parseResFilePath(path, temp)) return false;
-		if (!temp.m_ext.empty()) {
-			g_logger.putError("Folder path cannot have extension.");
-			return false;
-		}
-
-		result.m_package = temp.m_package;
-		result.m_dir = temp.m_dir + temp.m_name;
-
-		return true;
 	}
 
+	ResourceID::ResourceID(const std::string & package, const std::string & optionalDir, const std::string & bareName, const std::string & ext)
+		: m_package(package),
+		m_dir(optionalDir),
+		m_bareName(bareName),
+		m_ext(ext)
+	{
+
+	}
+
+	const std::string& ResourceID::getPackage(void) const {
+		return this->m_package;
+	}
+
+	const std::string& ResourceID::getOptionalDir(void) const {
+		return this->m_dir;
+	}
+
+	const std::string& ResourceID::getBareName(void) const {
+		return this->m_bareName;
+	}
+
+	const std::string& ResourceID::getExt(void) const {
+		return this->m_ext;
+	}
+
+	std::string ResourceID::makeIDStr(void) const {
+		return this->m_package + "::" + this->m_dir + this->m_bareName + this->m_ext;
+	}
+
+	std::string ResourceID::makeFileName(void) const {
+		return this->m_bareName + this->m_ext;
+	}
+
+	std::string ResourceID::makeFilePath(void) const {
+		return this->m_dir + this->m_bareName + this->m_ext;
+	}
+
+}
+
+
+namespace dal {
 	namespace filec {
 
 		bool initFilesystem(void* mgr) {
@@ -298,19 +327,17 @@ namespace dal {
 			return true;
 		}
 
-		bool getResource_image(const char* const path, loadedinfo::ImageFileData& data) {
-			ResourceFilePath resPath;
-			if (!parseResFilePath(path, resPath)) return false;
-			std::string newPath = resPath.m_dir + resPath.m_name + resPath.m_ext;
+		bool getResource_image(const ResourceID& path, loadedinfo::ImageFileData& data) {
+			std::string newPath = "texture/" + path.makeFileName();
 
-			if (PACKAGE_NAME_ASSET != resPath.m_package) throw - 1;
+			if (PACKAGE_NAME_ASSET != path.getPackage()) throw - 1;
 
-			if (resPath.m_ext == ".tga"s) {
+			if (path.getExt() == ".tga"s) {
 				const auto res = readFileAsTGA(newPath.c_str(), &data.m_buf, &data.m_width, &data.m_height, &data.m_pixSize);
 				assert(data.m_pixSize == 4 || data.m_pixSize == 3);
 				return res;
 			}
-			else if (resPath.m_ext == ".png"s) {
+			else if (path.getExt() == ".png"s) {
 				const auto res = readFileAsPNG(newPath.c_str(), &data.m_buf, &data.m_width, &data.m_height);
 				const size_t calcSize = size_t(data.m_width) * size_t(data.m_height) * size_t(4);
 				assert(data.m_buf.size() == calcSize);
@@ -318,18 +345,15 @@ namespace dal {
 				return res;
 			}
 			else {
-				LoggerGod::getinst().putError("Not supported image file type: "s + path);
+				LoggerGod::getinst().putError("Not supported image file type: "s + path.makeIDStr());
 				return false;
 			}
 		}
 
-		bool getResource_buffer(const char* const path, std::vector<uint8_t>& buffer) {
-			ResourceFilePath resPath;
-			if (!parseResFilePath(path, resPath)) return false;
-			
-			if (PACKAGE_NAME_ASSET != resPath.m_package) throw - 1;
+		bool getResource_buffer(const ResourceID& path, std::vector<uint8_t>& buffer) {
+			if (PACKAGE_NAME_ASSET != path.getPackage()) throw - 1;
 
-			const auto filePath = resPath.m_dir + resPath.m_name + resPath.m_ext;
+			const auto filePath = path.getOptionalDir() + path.makeFileName();
 			AssetFileStream file;
 			const auto openRes = file.open(filePath.c_str());
 			if (!openRes) { throw - 1;  return false; }
@@ -342,12 +366,10 @@ namespace dal {
 		}
 
 	}
-
 }
 
 
-
-
+// Asset File Stream
 namespace dal {
 
 	struct AssetFileStream::InFileclassPimpl {

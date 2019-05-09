@@ -12,6 +12,14 @@
 using namespace std::string_literals;
 
 
+// Misc
+namespace {
+
+	auto& g_logger = dal::LoggerGod::getinst();
+
+}
+
+
 // Render Unit
 namespace {
 
@@ -160,7 +168,7 @@ namespace {
 	class LoadTask_Texture : public dal::ITask {
 
 	public:
-		const std::string in_texID;
+		const dal::ResourceID in_texID;
 
 		dal::loadedinfo::ImageFileData out_img;
 
@@ -169,7 +177,7 @@ namespace {
 		dal::TextureHandle2 data_handle;
 
 	public:
-		LoadTask_Texture(const std::string& texID, const dal::TextureHandle2& handle)
+		LoadTask_Texture(const dal::ResourceID& texID, const dal::TextureHandle2& handle)
 		:	in_texID(texID),
 			data_handle(handle)
 		{
@@ -177,16 +185,14 @@ namespace {
 		}
 
 		virtual void start(void) override {
-			dal::ResourceFilePath path;
-			dal::parseResFilePath(in_texID.c_str(), path);
-			if ("asset" != path.m_package) {
+			dal::ResourceID path;
+			if ("asset" != this->in_texID.getPackage()) {
+				g_logger.putError("Other packages than 'asset' are not supported yes.");
 				out_success = false;
 				return;
 			}
 
-			auto texPath = "asset::texture/"s + path.m_dir + path.m_name + path.m_ext;
-
-			out_success = dal::filec::getResource_image(texPath.c_str(), out_img);
+			out_success = dal::filec::getResource_image(in_texID, out_img);
 			return;
 		}
 
@@ -196,7 +202,7 @@ namespace {
 	class LoadTask_Model : public dal::ITask {
 
 	public:
-		const std::string in_modelID;
+		const dal::ResourceID in_modelID;
 
 		bool out_success;
 		dal::ModelInfo out_info;
@@ -205,7 +211,7 @@ namespace {
 		dal::Package* const data_package;
 
 	public:
-		LoadTask_Model(const std::string& modelID, dal::ModelHandle const coresponding, dal::Package* const package)
+		LoadTask_Model(const dal::ResourceID& modelID, dal::ModelHandle const coresponding, dal::Package* const package)
 		:	in_modelID(modelID),
 			out_success(false),
 			data_coresponding(coresponding),
@@ -215,13 +221,11 @@ namespace {
 		}
 
 		virtual void start(void) override {
-			dal::ResourceFilePath path;
-			dal::parseResFilePath(in_modelID.c_str(), path);
-			if ("asset" != path.m_package) {
+			if ("asset" != in_modelID.getPackage()) {
 				out_success = false;
 				return;
 			}
-			auto modelPath = "models/"s + path.m_dir + path.m_name + path.m_ext;
+			auto modelPath = "models/"s + this->in_modelID.makeFilePath();
 			out_success = dal::parseOBJ_assimp(out_info, (modelPath).c_str());
 		}
 
@@ -245,10 +249,8 @@ namespace dal {
 }
 
 
-// Logger and pools
+// Pools
 namespace {
-
-	auto& g_logger = dal::LoggerGod::getinst();
 
 	dal::StaticPool<dal::Model, 20> g_modelPool;
 	dal::StaticPool<dal::Texture, 200> g_texturePool;
@@ -256,7 +258,7 @@ namespace {
 }
 
 
-// TextureHandle
+// Texture Handle
 namespace dal {
 
 	struct TextureHandle2::Pimpl {
@@ -269,7 +271,7 @@ namespace dal {
 	TextureHandle2::TextureHandle2(void) {
 
 	}
-	TextureHandle2::TextureHandle2(const char* const texID, Texture* const texture)
+	TextureHandle2::TextureHandle2(const std::string& texID, Texture* const texture)
 	:	pimpl(new Pimpl) 
 	{
 		this->pimpl->m_tex = texture;
@@ -378,7 +380,7 @@ namespace dal {
 }
 
 
-// ModelHandle
+// Model Handle
 namespace dal {
 
 	struct ModelHandle::Pimpl {
@@ -391,7 +393,7 @@ namespace dal {
 	ModelHandle::ModelHandle(void) {
 
 	}
-	ModelHandle::ModelHandle(const char* const modelID, Model* const model) : pimpl(new Pimpl) {
+	ModelHandle::ModelHandle(const std::string& modelID, Model* const model) : pimpl(new Pimpl) {
 		this->pimpl->m_id = modelID;
 		this->pimpl->m_model = model;
 	}
@@ -520,18 +522,19 @@ namespace dal {
 		this->m_name = packageName;
 	}
 
-	ModelHandle Package::orderModel(const ResourceFilePath& resPath, ResourceMaster* const resMas) {
-		std::string modelIDStr{ resPath.m_name + resPath.m_ext };
+	ModelHandle Package::orderModel(const ResourceID& resPath, ResourceMaster* const resMas) {
+		std::string modelIDStr{ resPath.makeFileName() };
 
 		decltype(this->m_models.end()) iter = this->m_models.find(modelIDStr);
 		if (this->m_models.end() != iter) {
 			return iter->second;
 		}
 		else {
-			const auto modelID{ resPath.m_package + "::" + resPath.m_dir + modelIDStr };
+			const auto modelID{ resPath.makeIDStr() };
 			ModelHandle handle{ modelIDStr.c_str(), nullptr };
 
-			auto task = new LoadTask_Model{ modelID, handle, this };
+			ResourceID idWithPackage{ this->m_name, resPath.getOptionalDir(), resPath.getBareName(), resPath.getExt() };
+			auto task = new LoadTask_Model{ idWithPackage, handle, this };
 			g_sentTasks_model.insert(task);
 			TaskGod::getinst().orderTask(task, resMas);
 			
@@ -571,17 +574,17 @@ namespace dal {
 		return handle;
 	}
 
-	TextureHandle2 Package::orderDiffuseMap(const char* const texID, ResourceMaster* const resMas) {
-		auto iter = this->m_textures.find(texID);
+	TextureHandle2 Package::orderDiffuseMap(const ResourceID& texID, ResourceMaster* const resMas) {
+		auto iter = this->m_textures.find(texID.makeFileName());
 		if (this->m_textures.end() == iter) {
-			auto newPath = "asset::"s + texID;
-			TextureHandle2 handle{ texID, nullptr };
+			TextureHandle2 handle{ texID.makeFileName().c_str(), nullptr };
 
-			auto task = new LoadTask_Texture(newPath, handle);
+			ResourceID idWithPackage{ this->m_name, texID.getOptionalDir(), texID.getBareName(), texID.getExt() };
+			auto task = new LoadTask_Texture(idWithPackage, handle);
 			g_sentTasks_texture.insert(task);
 			TaskGod::getinst().orderTask(task, resMas);
 
-			this->m_textures.emplace(texID, handle);
+			this->m_textures.emplace(texID.makeFileName(), handle);
 			return handle;
 		}
 		else {
@@ -589,7 +592,7 @@ namespace dal {
 		}
 	}
 
-	TextureHandle2 Package::buildDiffuseMap(const char* const texID, const loadedinfo::ImageFileData& info) {
+	TextureHandle2 Package::buildDiffuseMap(const ResourceID& texID, const loadedinfo::ImageFileData& info) {
 		auto tex = g_texturePool.alloc();
 
 		if (3 == info.m_pixSize) {
@@ -599,11 +602,11 @@ namespace dal {
 			tex->init_diffueMap(info.m_buf.data(), info.m_width, info.m_height);
 		}
 		else {
-			g_logger.putError("Not supported pixel size: "s + texID + ", " + std::to_string(info.m_pixSize));
+			g_logger.putError("Not supported pixel size: "s + texID.makeIDStr() + ", " + std::to_string(info.m_pixSize));
 		}
 		
-		TextureHandle2 handle{ texID, tex };
-		this->m_textures.emplace(texID, handle);
+		TextureHandle2 handle{ texID.makeFileName(), tex };
+		this->m_textures.emplace(texID.makeFileName(), handle);
 		return handle;
 	}
 
@@ -640,7 +643,7 @@ namespace dal {
 
 			auto loaded = reinterpret_cast<LoadTask_Model*>(task);
 			if (!loaded->out_success) {
-				LoggerGod::getinst().putError("Failed to load model: "s + loaded->in_modelID);
+				LoggerGod::getinst().putError("Failed to load model: "s + loaded->in_modelID.makeIDStr());
 				throw - 1;
 			}
 
@@ -664,7 +667,7 @@ namespace dal {
 				unit.m_material.m_specularStrength = unitInfo.m_material.m_specStrength;
 
 				if (!unitInfo.m_material.m_diffuseMap.empty()) {
-					auto texHandle = loaded->data_package->orderDiffuseMap(unitInfo.m_material.m_diffuseMap.c_str(), this);
+					auto texHandle = loaded->data_package->orderDiffuseMap(unitInfo.m_material.m_diffuseMap, this);
 					unit.m_material.setDiffuseMap(texHandle);
 				}
 			}
@@ -674,7 +677,7 @@ namespace dal {
 
 			auto loaded = reinterpret_cast<LoadTask_Texture*>(task);
 			if (!loaded->out_success) {
-				LoggerGod::getinst().putError("Failed to load texture: "s + loaded->in_texID);
+				LoggerGod::getinst().putError("Failed to load texture: "s + loaded->in_texID.makeIDStr());
 				throw - 1;
 			}
 
@@ -697,13 +700,10 @@ namespace dal {
 		}
 	}
 
-	ModelHandle ResourceMaster::orderModel(const char* const packageName_dir_modelID) {
-		ResourceFilePath path;
-		parseResFilePath(packageName_dir_modelID, path);
+	ModelHandle ResourceMaster::orderModel(const ResourceID& resID) {
+		auto& package = this->orderPackage(resID.getPackage());
 
-		auto& package = this->orderPackage(path.m_package);
-
-		return package.orderModel(path, this);
+		return package.orderModel(resID, this);
 	}
 
 	ModelHandle ResourceMaster::buildModel(const loadedinfo::ModelDefined& info, const char* const packageName) {

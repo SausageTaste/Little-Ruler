@@ -38,7 +38,7 @@ namespace dal {
 		void renderGeneral(const UnilocGeneral& uniloc) const;
 		void renderDepthMp(const UnilocDepthmp& uniloc) const;
 
-		void loadMap(const char* const mapID);
+		void loadMap(const const ResourceID& mapID);
 
 	private:
 		void addMap(const LoadedMap& map);

@@ -34,20 +34,17 @@ namespace dal {
 		}
 	}
 
-	void SceneMaster::loadMap(const char* const mapID) {
-		ResourceFilePath path;
-		parseResFilePath(mapID, path);
-
+	void SceneMaster::loadMap(const ResourceID& mapID) {
 		std::vector<uint8_t> buffer;
 		auto res = filec::getResource_buffer(mapID, buffer);
 		if (!res) throw - 1;
 
 		LoadedMap info;
-		info.m_mapName = path.m_name;
-		info.m_packageName = path.m_package;
+		info.m_mapName = mapID.getBareName();
+		info.m_packageName = mapID.getPackage();
 
 		res = parseMap_dlb(info, buffer.data(), buffer.size());
-		if (!res) LoggerGod::getinst().putError("Failed to parse level: "s + mapID);
+		if (!res) LoggerGod::getinst().putError("Failed to parse level: "s + mapID.makeIDStr());
 		this->addMap(info);
 	}
 		

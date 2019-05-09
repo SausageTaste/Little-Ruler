@@ -8,29 +8,38 @@
 
 namespace dal {
 
-	struct ResourceFilePath {
-		std::string m_package, m_dir, m_name, m_ext;
+	class ResourceID {
+
+	private:
+		std::string m_package, m_dir, m_bareName, m_ext;
+
+	public:
+		ResourceID(void) = default;
+		ResourceID(const char* const resourceID);
+		ResourceID(const std::string& resourceID);
+		ResourceID(const std::string& package, const std::string& optionalDir, const std::string& bareName, const std::string& ext);
+
+		const std::string& getPackage(void) const;
+		const std::string& getOptionalDir(void) const;
+		const std::string& getBareName(void) const;
+		const std::string& getExt(void) const;
+
+		std::string makeIDStr(void) const;
+		std::string makeFileName(void) const;
+		std::string makeFilePath(void) const;
+
 	};
 
-	struct ResourceFolderPath {
-		std::string m_package, m_dir;
-	};
 
-
-	bool parseResFilePath(const char* const path, ResourceFilePath& result);
-
-	bool parseResFolderPath(const char* const path, ResourceFolderPath& result);
-
-	
 	namespace filec {
 
 		bool initFilesystem(void* mgr);
 		bool isFilesystemReady(void);
 
 		bool getAsset_text(const char* const path, std::string* buf);
-		bool getResource_image(const char* const path, loadedinfo::ImageFileData& data);
 
-		bool getResource_buffer(const char* const path, std::vector<uint8_t>& buffer);
+		bool getResource_image(const ResourceID& path, loadedinfo::ImageFileData& data);
+		bool getResource_buffer(const ResourceID& path, std::vector<uint8_t>& buffer);
 
 	}
 }

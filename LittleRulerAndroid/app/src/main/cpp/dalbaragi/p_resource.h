@@ -28,7 +28,7 @@ namespace dal {
 
 	public:
 		TextureHandle2(void);
-		TextureHandle2(const char* const texID, Texture* const texture);
+		TextureHandle2(const std::string& texID, Texture* const texture);
 		TextureHandle2(const TextureHandle2& other);
 		TextureHandle2(TextureHandle2&& other) noexcept;
 		TextureHandle2& operator=(const TextureHandle2& other);
@@ -73,7 +73,7 @@ namespace dal {
 
 	public:
 		ModelHandle(void);
-		ModelHandle(const char* const modelID, Model* const model);
+		ModelHandle(const std::string& modelID, Model* const model);
 		ModelHandle(const ModelHandle& other);
 		ModelHandle(ModelHandle&& other) noexcept;
 		ModelHandle& operator=(const ModelHandle& other);
@@ -103,14 +103,14 @@ namespace dal {
 		void setName(const char* const packageName);
 		void setName(const std::string& packageName);
 
-		ModelHandle orderModel(const ResourceFilePath& resPath, ResourceMaster* const resMas);
+		ModelHandle orderModel(const ResourceID& resPath, ResourceMaster* const resMas);
 		ModelHandle buildModel(const loadedinfo::ModelDefined& info, ResourceMaster* const resMas);
-		TextureHandle2 orderDiffuseMap(const char* const texID, ResourceMaster* const resMas);
+		TextureHandle2 orderDiffuseMap(const ResourceID& texID, ResourceMaster* const resMas);
 
 		void clear(void);
 
 	private:
-		TextureHandle2 buildDiffuseMap(const char* const texID, const loadedinfo::ImageFileData& info);
+		TextureHandle2 buildDiffuseMap(const ResourceID& texID, const loadedinfo::ImageFileData& info);
 
 	};
 
@@ -129,7 +129,7 @@ namespace dal {
 
 		virtual void notifyTask(ITask* const task) override;
 
-		ModelHandle orderModel(const char* const packageName_dir_modelID);
+		ModelHandle orderModel(const ResourceID& resID);
 
 		ModelHandle buildModel(const loadedinfo::ModelDefined& info, const char* const packageName);
 
