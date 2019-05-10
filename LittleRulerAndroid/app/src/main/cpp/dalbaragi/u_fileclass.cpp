@@ -33,6 +33,16 @@ namespace {
 
 	auto& g_logger = dal::LoggerGod::getinst();
 
+	const std::string PACKAGE_NAME_ASSET{ "asset" };
+	const std::string RESOURCE_FOLDER_NAME{ "Resource" };
+
+	constexpr unsigned int g_assetDirCount = 3;
+	const char* const g_assetDirs[g_assetDirCount] = {
+		"maps/",
+		"models/",
+		"texture/"
+	};
+
 #if defined(_WIN32)
 
 	size_t getListFolFile_win(std::string pattern, std::vector<std::string>& con) {
@@ -71,13 +81,13 @@ namespace {
 			while (getListFolFile_win(pattern.c_str(), folders) > 0) {
 				const auto found = [&folders](void) -> bool {
 					for (auto& item : folders) {
-						if (item == "Resources"s) return true;
+						if (item == RESOURCE_FOLDER_NAME) return true;
 					}
 					return false;
 				}();
 
 				if (found) {
-					path = pattern += "Resources/";
+					path = pattern += RESOURCE_FOLDER_NAME + '/';
 					break;
 				}
 
@@ -141,15 +151,6 @@ namespace {
 	}
 
 #endif
-
-	const std::string PACKAGE_NAME_ASSET{ "asset" };
-
-	constexpr unsigned int g_assetDirCount = 3;
-	const char* const g_assetDirs[g_assetDirCount] = {
-		"maps/",
-		"models/",
-		"texture/"
-	};
 
 	bool resolveRes(dal::ResourceID& result) {
 		const auto fileName = result.makeFileName();
