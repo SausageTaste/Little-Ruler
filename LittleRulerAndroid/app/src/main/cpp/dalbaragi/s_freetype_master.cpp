@@ -17,14 +17,12 @@ namespace dal {
 			throw -1;
 		}
 
-		AssetFileStream file;
-		const char* fontName = "fonts/NanumGothic.ttf";
-		file.open(fontName);
-		auto arrSize = file.getFileSize();
-		FT_Byte* fontData = new FT_Byte[arrSize];
-		file.read(fontData, arrSize);
+		const char* const fontName = "asset::fonts/NanumGothic.ttf";
+		auto buffer = new std::vector<FT_Byte>;  // Freetype needs this not deleted.
+		if (!filec::getResource_buffer(fontName, *buffer)) throw - 1;
 
-		if (FT_New_Memory_Face(mFLibrary, fontData, (FT_Long)arrSize, 0, &mFace)) {
+		const auto error = FT_New_Memory_Face(mFLibrary, buffer->data(), static_cast<FT_Long>(buffer->size()), 0, &mFace);
+		if (error) {
 			LoggerGod::getinst().putFatal("Failed to find font: "s + fontName);
 			throw -1;
 		}
