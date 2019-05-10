@@ -9,6 +9,7 @@
 #include "u_fileclass.h"
 #include "s_logger_god.h"
 #include "p_glglobal.h"
+#include "s_scripting.h"
 
 
 using namespace std::string_literals;
@@ -279,6 +280,8 @@ namespace dal {
 
 			float radio = static_cast<float>(m_winWidth) / static_cast<float>(m_winHeight);
 			this->m_projectMat = glm::perspective(glm::radians(90.0f), radio, 0.01f, 100.0f);
+
+			script::init_renderMas(this);
 
 			GLSwitch::setOnlyOnce();
 		}

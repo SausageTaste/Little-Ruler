@@ -9,6 +9,13 @@ extern "C" {
 
 namespace dal {
 
+	namespace script {
+
+		void init_renderMas(void* p);
+
+	}
+
+
 	class Lua {
 
 	private:
