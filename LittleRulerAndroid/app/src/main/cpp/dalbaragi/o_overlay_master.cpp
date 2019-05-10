@@ -64,10 +64,6 @@ namespace dal {
 			mBoxesForTouchPoint[2].setColor(0.0f, 0.0f, 1.0f);
 			mBoxesForTouchPoint[10].setColor(1.0f, 1.0f, 0.0f);
 			mBoxesForTouchPoint[10].setTransparency(0.5f);
-
-			mDebugPlane.setWidth(200);
-			mDebugPlane.setHeight(200);
-			mDebugPlane.moveCornerTo_screenCoord(10, 50);
 		}
 	}
 
@@ -93,10 +89,13 @@ namespace dal {
 				newEvent.intArg1 = int(GlobalFSM::menu);
 				newEvent.keyListner = &mLineEdit;
 				EventGod::getinst().notifyAll(newEvent);
+
+				mLineEdit.setTextColor(1.0f, 1.0f, 1.0f);
 			}
 			break;
 		case EventType::global_fsm_change:
 			mGlobalFSM = GlobalFSM(e.intArg1);
+			mLineEdit.setTextColor(0.4f, 0.4f, 0.4f);
 			break;
 		default:
 			LoggerGod::getinst().putWarn("Unhanlded event in OverlayMaster.");
@@ -120,7 +119,6 @@ namespace dal {
 
 		if (mGlobalFSM == GlobalFSM::menu) {
 			mLineEdit.renderOverlay(m_asciiCache, mUnilocOverlay);
-			mDebugPlane.renderOverlay(mUnilocOverlay);
 		}
 	}
 

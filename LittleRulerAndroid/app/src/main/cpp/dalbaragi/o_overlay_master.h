@@ -32,7 +32,6 @@ namespace dal {
 
 	public:
 		std::array<QuadPrimitive, 11> mBoxesForTouchPoint;
-		QuadPrimitive mDebugPlane;
 		
 		//////// Funcs ////////
 

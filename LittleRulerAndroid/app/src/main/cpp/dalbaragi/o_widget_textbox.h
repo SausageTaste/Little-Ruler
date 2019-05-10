@@ -30,6 +30,7 @@ namespace dal {
 		void setPos(float x, float y);
 		void setSize(float w, float h);
 		void setText(const char* const t);
+		void setTextColor(const float r, const float g, const float b);
 
 		bool isInside(const glm::vec2& p) const;
 

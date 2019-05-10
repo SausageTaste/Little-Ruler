@@ -28,6 +28,7 @@ namespace dal {
 				this->onReturn();
 				break;
 			case '\b':
+				if (mText.empty()) break;
 				mText.pop_back();
 				break;
 			case '\t':
@@ -104,6 +105,10 @@ namespace dal {
 
 	void TextBox::setText(const char* const t) {
 		mText = t;
+	}
+
+	void TextBox::setTextColor(const float r, const float g, const float b) {
+		this->mCharDrawer.setColor(r, g, b);
 	}
 
 	bool TextBox::isInside(const glm::vec2& p) const {
