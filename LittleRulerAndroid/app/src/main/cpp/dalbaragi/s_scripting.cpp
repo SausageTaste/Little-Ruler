@@ -5,6 +5,7 @@
 
 #include "s_configs.h"
 #include "s_logger_god.h"
+
 #include "p_render_master.h"
 
 
@@ -131,7 +132,7 @@ namespace dal {
 	void Lua::addGlobalFunction(const char* const identifier, lua_CFunction funcPointer) {
 		const struct luaL_Reg funcArr[] = {
 			{identifier, funcPointer},
-			{NULL, NULL} /* end of array */
+			{nullptr, nullptr} /* end of array */
 		};
 
 		lua_getglobal(L, "_G");
