@@ -340,12 +340,6 @@ namespace dal {
 namespace dal {
 	namespace filec {
 
-		void test(void) {
-			ResourceID result{ "asset::NanumGothic.ttf" };
-			auto success = resolveRes(result);
-			printf("File test result: %s\n", result.makeIDStr().c_str());
-		}
-
 		bool initFilesystem(void* mgr) {
 
 #if defined(_WIN32)

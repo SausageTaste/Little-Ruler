@@ -89,7 +89,7 @@ namespace dal {
 
 		// Test
 		{
-			filec::test();
+
 		}
 
 		const auto elapsed = initTimer.check_getElapsed_capFPS();
