@@ -8,6 +8,7 @@
 #include <string>
 #include <vector>
 #include <memory>
+#include <iostream>
 #include <cassert>
 
 #include <lodepng.h>
@@ -150,20 +151,29 @@ namespace {
 		"texture/"
 	};
 
-	bool resolveRes(const std::string& package, const std::string& fileName, std::string& result) {
-		if (PACKAGE_NAME_ASSET != package) {
-			g_logger.putError("Cannot resolve " + package + "::" + fileName + ", only asset is supported yes.");
+	bool resolveRes(dal::ResourceID& result) {
+		const auto fileName = result.makeFileName();
+
+		if (PACKAGE_NAME_ASSET != result.getPackage()) {
+			g_logger.putError("Cannot resolve " + result.getPackage() + "::" + fileName + ", only asset is supported yes.");
 			return false;
 		}
-		if (package.empty()) {
+		if (result.getPackage().empty()) {
 			g_logger.putError("Cannot resolve " + fileName + " without package defined.");
 			return false;
 		}
 
 #if defined(_WIN32)
-		auto path = getResourceDir_win() + package + '/';
-
-		return findMatching_win(result, path, fileName);
+		const auto& path = getResourceDir_win() + result.getPackage() + '/';
+		std::string resultStr;
+		if (findMatching_win(resultStr, path, fileName)) {
+			result.setOptionalDir(resultStr.substr(path.size(), resultStr.find(fileName) - path.size()));
+			g_logger.putInfo("Resource resolved: " + result.makeIDStr());
+			return true;
+		}
+		else {
+			return false;
+		}
 #elif defined(__ANDROID__)
 
 #endif
@@ -318,6 +328,11 @@ namespace dal {
 		return this->m_dir + this->m_bareName + this->m_ext;
 	}
 
+
+	void ResourceID::setOptionalDir(const std::string t) {
+		this->m_dir = t;
+	}
+
 }
 
 
@@ -325,9 +340,9 @@ namespace dal {
 	namespace filec {
 
 		void test(void) {
-			std::string result;
-			auto success = resolveRes("asset", "0021di.png", result);
-			printf("File test result: %s\n", result.c_str());
+			ResourceID result{ "asset::NanumGothic.ttf" };
+			auto success = resolveRes(result);
+			printf("File test result: %s\n", result.makeIDStr().c_str());
 		}
 
 		bool initFilesystem(void* mgr) {
@@ -369,10 +384,13 @@ namespace dal {
 			return true;
 		}
 
-		bool getResource_image(const ResourceID& path, loadedinfo::ImageFileData& data) {
-			std::string newPath = "texture/" + path.makeFileName();
-
+		bool getResource_image(ResourceID path, loadedinfo::ImageFileData& data) {
 			if (PACKAGE_NAME_ASSET != path.getPackage()) throw - 1;
+
+			if (path.getOptionalDir().empty()) {
+				resolveRes(path);
+			}
+			auto newPath = path.makeFilePath();
 
 			if (path.getExt() == ".tga"s) {
 				const auto res = readFileAsTGA(newPath.c_str(), &data.m_buf, &data.m_width, &data.m_height, &data.m_pixSize);
@@ -392,16 +410,17 @@ namespace dal {
 			}
 		}
 
-		bool getResource_buffer(const ResourceID& path, std::vector<uint8_t>& buffer) {
+		bool getResource_buffer(ResourceID path, std::vector<uint8_t>& buffer) {
 			if (PACKAGE_NAME_ASSET != path.getPackage()) throw - 1;
 
-			const auto filePath = path.getOptionalDir() + path.makeFileName();
-			std::string resolved;
-			resolveRes(path.getPackage(), path.makeFileName(), resolved);
+			if (path.getOptionalDir().empty()) {
+				resolveRes(path);
+			}
+
+			const auto filePath = path.makeFilePath();
 
 			AssetFileStream file;
-			const auto openRes = file.open(filePath.c_str());
-			if (!openRes) { throw - 1;  return false; }
+			if (!file.open(filePath.c_str())) { throw - 1;  return false; }
 
 			buffer.resize(file.getFileSize());
 			const auto reeadRes = file.read(buffer.data(), buffer.size());
@@ -450,6 +469,8 @@ namespace dal {
 	bool AssetFileStream::open(const char* const path) {
 
 #if defined(_WIN32)
+		m_path = path;
+		if (m_path.find(getResourceDir_win()))
 		m_path = getResourceDir_win() + "asset/" + path;
 
 		this->pimpl->mIFile.open(m_path.c_str(), std::ios::binary);

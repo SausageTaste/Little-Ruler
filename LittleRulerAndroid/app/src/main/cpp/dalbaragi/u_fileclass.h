@@ -28,6 +28,8 @@ namespace dal {
 		std::string makeFileName(void) const;
 		std::string makeFilePath(void) const;
 
+		void setOptionalDir(const std::string t);
+
 	};
 
 
@@ -40,8 +42,8 @@ namespace dal {
 
 		bool getAsset_text(const char* const path, std::string* buf);
 
-		bool getResource_image(const ResourceID& path, loadedinfo::ImageFileData& data);
-		bool getResource_buffer(const ResourceID& path, std::vector<uint8_t>& buffer);
+		bool getResource_image(ResourceID path, loadedinfo::ImageFileData& data);
+		bool getResource_buffer(ResourceID path, std::vector<uint8_t>& buffer);
 
 	}
 }

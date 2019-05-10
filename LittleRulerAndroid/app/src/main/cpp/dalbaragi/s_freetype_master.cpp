@@ -17,7 +17,7 @@ namespace dal {
 			throw -1;
 		}
 
-		const char* const fontName = "asset::fonts/NanumGothic.ttf";
+		const char* const fontName = "asset::NanumGothic.ttf";
 		auto buffer = new std::vector<FT_Byte>;  // Freetype needs this not deleted.
 		if (!filec::getResource_buffer(fontName, *buffer)) throw - 1;
 
