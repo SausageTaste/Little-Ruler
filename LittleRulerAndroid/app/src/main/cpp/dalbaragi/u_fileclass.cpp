@@ -370,10 +370,6 @@ namespace dal {
 		bool resolveRes(dal::ResourceID& result) {
 			const auto fileName = result.makeFileName();
 
-			if (PACKAGE_NAME_ASSET != result.getPackage()) {
-				g_logger.putError("Cannot resolve " + result.getPackage() + "::" + fileName + ", only asset is supported yet.");
-				return false;
-			}
 			if (result.getPackage().empty()) {
 				g_logger.putError("Cannot resolve " + fileName + " without package defined.");
 				return false;
@@ -392,14 +388,20 @@ namespace dal {
 				return false;
 			}
 #elif defined(__ANDROID__)
-			std::string foundStr;
-			if (findMatchingAsset(foundStr, g_assetFolders, "", result.makeFileName())) {
-				result.setOptionalDir(foundStr);
-				g_logger.putInfo("Resource resolved: " + result.makeIDStr());
-				return true;
+			if (PACKAGE_NAME_ASSET == result.getPackage()) {
+				std::string foundStr;
+				if (findMatchingAsset(foundStr, g_assetFolders, "", result.makeFileName())) {
+					result.setOptionalDir(foundStr);
+					g_logger.putInfo("Resource resolved: " + result.makeIDStr());
+					return true;
+				}
+				else {
+					g_logger.putInfo("Resource resolve failed: " + result.makeIDStr());
+					return false;
+				}
 			}
 			else {
-				g_logger.putInfo("Resource resolve failed: " + result.makeIDStr());
+				g_logger.putError("Cannot resolve " + result.getPackage() + "::" + fileName + ", only asset is supported yet.");
 				return false;
 			}
 #endif
