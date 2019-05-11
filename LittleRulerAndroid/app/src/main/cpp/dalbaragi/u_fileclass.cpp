@@ -371,7 +371,7 @@ namespace dal {
 			const auto fileName = result.makeFileName();
 
 			if (PACKAGE_NAME_ASSET != result.getPackage()) {
-				g_logger.putError("Cannot resolve " + result.getPackage() + "::" + fileName + ", only asset is supported yes.");
+				g_logger.putError("Cannot resolve " + result.getPackage() + "::" + fileName + ", only asset is supported yet.");
 				return false;
 			}
 			if (result.getPackage().empty()) {
