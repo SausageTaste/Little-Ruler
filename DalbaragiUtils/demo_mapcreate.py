@@ -44,17 +44,6 @@ def main():
 
     ########
 
-    model = bfi.BuildInfo_ModelImported()
-
-    actor = aco.ActorInfo()
-    actor.getPosHandle().setX(4)
-    model.addActor(actor)
-
-    model.setModelID("honoka_nude.obj")
-    level.add(model)
-
-    ########
-
     model = bfi.BuildInfo_ModelDefined()
     model.setModelID("floor")
     model.getMeshHandle().setAABB(atl.Vec3(-50, -1, -50), atl.Vec3(50, -0, 50))
