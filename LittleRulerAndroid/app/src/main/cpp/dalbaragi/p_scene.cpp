@@ -15,7 +15,7 @@ namespace dal {
 	SceneMaster::SceneMaster(ResourceMaster& resMas)
 	:	m_resMas(resMas)
 	{
-		this->loadMap("asset::maps/test_level.dlb");
+		this->loadMap("asset::map/test_level.dlb");
 	}
 
 	void SceneMaster::renderGeneral(const UnilocGeneral& uniloc) const {

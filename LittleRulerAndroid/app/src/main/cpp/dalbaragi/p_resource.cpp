@@ -225,8 +225,8 @@ namespace {
 				out_success = false;
 				return;
 			}
-			auto modelPath = "models/"s + this->in_modelID.makeFilePath();
-			out_success = dal::parseOBJ_assimp(out_info, (modelPath).c_str());
+
+			out_success = dal::parseOBJ_assimp(out_info, this->in_modelID);
 		}
 
 	};
@@ -636,6 +636,11 @@ namespace dal {
 	}
 
 	void ResourceMaster::notifyTask(ITask* const task) {
+		if (nullptr == task) {
+			g_logger.putFatal("ResourceMaster::notifyTask has got a nullptr. Why??");
+			throw - 1;
+		}
+
 		std::unique_ptr<ITask> safeHoho{ task };
 
 		if (g_sentTasks_model.find(task) != g_sentTasks_model.end()) {
@@ -643,7 +648,7 @@ namespace dal {
 
 			auto loaded = reinterpret_cast<LoadTask_Model*>(task);
 			if (!loaded->out_success) {
-				LoggerGod::getinst().putError("Failed to load model: "s + loaded->in_modelID.makeIDStr());
+				LoggerGod::getinst().putFatal("Failed to load model: "s + loaded->in_modelID.makeIDStr());
 				throw - 1;
 			}
 

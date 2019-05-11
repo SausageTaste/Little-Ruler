@@ -152,35 +152,6 @@ namespace {
 
 #endif
 
-	bool resolveRes(dal::ResourceID& result) {
-		const auto fileName = result.makeFileName();
-
-		if (PACKAGE_NAME_ASSET != result.getPackage()) {
-			g_logger.putError("Cannot resolve " + result.getPackage() + "::" + fileName + ", only asset is supported yes.");
-			return false;
-		}
-		if (result.getPackage().empty()) {
-			g_logger.putError("Cannot resolve " + fileName + " without package defined.");
-			return false;
-		}
-
-#if defined(_WIN32)
-		const auto& path = getResourceDir_win() + result.getPackage() + '/';
-		std::string resultStr;
-		if (findMatching_win(resultStr, path, fileName)) {
-			result.setOptionalDir(resultStr.substr(path.size(), resultStr.find(fileName) - path.size()));
-			g_logger.putInfo("Resource resolved: " + result.makeIDStr());
-			return true;
-		}
-		else {
-			return false;
-		}
-#elif defined(__ANDROID__)
-
-#endif
-		return false;
-	}
-
 }
 
 
@@ -339,6 +310,35 @@ namespace dal {
 
 namespace dal {
 	namespace filec {
+
+		bool resolveRes(dal::ResourceID& result) {
+			const auto fileName = result.makeFileName();
+
+			if (PACKAGE_NAME_ASSET != result.getPackage()) {
+				g_logger.putError("Cannot resolve " + result.getPackage() + "::" + fileName + ", only asset is supported yes.");
+				return false;
+			}
+			if (result.getPackage().empty()) {
+				g_logger.putError("Cannot resolve " + fileName + " without package defined.");
+				return false;
+			}
+
+#if defined(_WIN32)
+			const auto& path = getResourceDir_win() + result.getPackage() + '/';
+			std::string resultStr;
+			if (findMatching_win(resultStr, path, fileName)) {
+				result.setOptionalDir(resultStr.substr(path.size(), resultStr.find(fileName) - path.size()));
+				g_logger.putInfo("Resource resolved: " + result.makeIDStr());
+				return true;
+			}
+			else {
+				return false;
+			}
+#elif defined(__ANDROID__)
+
+#endif
+			return false;
+		}
 
 		bool initFilesystem(void* mgr) {
 

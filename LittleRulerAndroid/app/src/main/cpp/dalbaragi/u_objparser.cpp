@@ -221,12 +221,18 @@ namespace {
 
 namespace dal {
 
-	bool parseOBJ_assimp(ModelInfo& info, const char* const assetPath) {
+	bool parseOBJ_assimp(ModelInfo& info, ResourceID assetPath) {
 		info.clear();
+
+		if (assetPath.getOptionalDir().empty()) {
+			filec::resolveRes(assetPath);
+		}
+
+		assert("asset"s == assetPath.getPackage());
 
 		Assimp::Importer importer;
 		importer.SetIOHandler(new AssIOSystem_Asset);
-		const aiScene* const scene = importer.ReadFile(assetPath, aiProcess_Triangulate);
+		const aiScene* const scene = importer.ReadFile(assetPath.makeFilePath().c_str(), aiProcess_Triangulate);
 		//const aiScene* const scene = importer.ReadFileFromMemory(buf, bufSize, aiProcess_Triangulate | aiProcess_FlipUVs);
 		if ((nullptr == scene) || (scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE) || (nullptr == scene->mRootNode)) {
 			LoggerGod::getinst().putError("Assimp read fail: "s + importer.GetErrorString());

@@ -35,6 +35,8 @@ namespace dal {
 
 	namespace filec {
 
+		bool resolveRes(dal::ResourceID& result);
+
 		bool initFilesystem(void* mgr);
 		bool isFilesystemReady(void);
 
