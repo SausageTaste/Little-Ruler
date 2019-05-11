@@ -36,12 +36,25 @@ namespace {
 	const std::string PACKAGE_NAME_ASSET{ "asset" };
 	const std::string RESOURCE_FOLDER_NAME{ "Resource" };
 
-	constexpr unsigned int g_assetDirCount = 3;
-	const char* const g_assetDirs[g_assetDirCount] = {
-		"maps/",
-		"models/",
-		"texture/"
+	struct DirNode {
+		std::string m_name;
+		std::vector<DirNode> m_subfolders;
 	};
+
+	DirNode g_assetFolders = {
+		"asset", {
+			{ "font", {}},
+			{ "glsl", {}},
+			{ "map", {}},
+			{ "model", {}},
+			{ "texture", {
+					{"dva", {}},
+					{"mess", {}}
+			}}
+		}
+	};
+
+
 
 #if defined(_WIN32)
 
@@ -148,6 +161,46 @@ namespace {
 		AAssetDir_close(assetDir);
 
 		return dirs.size();
+	}
+
+	bool isAssetFile(const char* const path) {
+		auto opend = AAssetManager_open(gAssetMgr, path, AASSET_MODE_UNKNOWN);
+		if (nullptr == opend) {
+			return false;
+		}
+		else {
+			AAsset_close(opend);
+			return true;
+		}
+	}
+
+	// Returns only optional directory.
+	bool findMatchingAsset(std::string& result, const DirNode& node, const std::string&  accumPath, const std::string & criteria) {
+		for (auto& folNode : node.m_subfolders) {
+			std::string newPath;
+			if (accumPath.empty()) {
+				newPath = folNode.m_name;
+			}
+			else {
+				newPath = accumPath + '/' + folNode.m_name;
+			}
+
+			g_logger.putTrace("Test folder: "s + newPath);
+
+			std::vector<std::string> dirs;
+			getFileList_android(newPath, dirs);
+			for (auto& fileName : dirs) {
+				g_logger.putTrace("Test file: "s + newPath + '/' + fileName);
+				if (criteria == fileName) {
+					result = newPath;
+					return true;
+				}
+			}
+
+			if (findMatchingAsset(result, folNode, newPath, criteria)) return true;
+		}
+
+		return false;
 	}
 
 #endif
@@ -303,6 +356,9 @@ namespace dal {
 
 	void ResourceID::setOptionalDir(const std::string t) {
 		this->m_dir = t;
+		if (!this->m_dir.empty() && '/' != this->m_dir.back()) {
+			this->m_dir.push_back('/');
+		}
 	}
 
 }
@@ -332,12 +388,22 @@ namespace dal {
 				return true;
 			}
 			else {
+				g_logger.putInfo("Resource resolve failed: " + result.makeIDStr());
 				return false;
 			}
 #elif defined(__ANDROID__)
-
+			std::string foundStr;
+			if (findMatchingAsset(foundStr, g_assetFolders, "", result.makeFileName())) {
+				result.setOptionalDir(foundStr);
+				g_logger.putInfo("Resource resolved: " + result.makeIDStr());
+				return true;
+			}
+			else {
+				g_logger.putInfo("Resource resolve failed: " + result.makeIDStr());
+				return false;
+			}
 #endif
-			return false;
+
 		}
 
 		bool initFilesystem(void* mgr) {
