@@ -30,96 +30,6 @@ namespace {
 }
 
 
-// Shader Master
-namespace dal {
-
-	RenderMaster::ShaderMaster::ShaderMaster(void)
-	:	m_general("shader_general"),
-		m_depthmap("shader_fscreen"),
-		m_fscreen("shader_depthmap")
-	{
-		// Compile shaders general
-		{
-			std::string vertSrc, fragSrc;
-			filec::getAsset_text("glsl/general_v.glsl", &vertSrc);
-			filec::getAsset_text("glsl/general_f.glsl", &fragSrc);
-
-			auto verShader = compileShader(ShaderType::VERTEX, vertSrc.c_str());
-			auto fragShader = compileShader(ShaderType::FRAGMENT, fragSrc.c_str());
-
-			this->m_general.attachShader(verShader);
-			this->m_general.attachShader(fragShader);
-			this->m_general.link();
-			this->m_generalUniloc.init(this->m_general);
-
-			glDeleteShader(verShader);
-			glDeleteShader(fragShader);
-		}
-
-		// Compile shaders fill screen
-		{
-			std::string vertSrc, fragSrc;
-			filec::getAsset_text("glsl/fillscreen_v.glsl", &vertSrc);
-			filec::getAsset_text("glsl/fillscreen_f.glsl", &fragSrc);
-
-			auto verShader = compileShader(ShaderType::VERTEX, vertSrc.c_str());
-			auto fragShader = compileShader(ShaderType::FRAGMENT, fragSrc.c_str());
-
-			this->m_fscreen.attachShader(verShader);
-			this->m_fscreen.attachShader(fragShader);
-			this->m_fscreen.link();
-			this->m_fscreenUniloc.init(this->m_fscreen);
-
-			glDeleteShader(verShader);
-			glDeleteShader(fragShader);
-		}
-
-		// Compile shaders fill screen
-		{
-			std::string vertSrc, fragSrc;
-			filec::getAsset_text("glsl/depth_v.glsl", &vertSrc);
-			filec::getAsset_text("glsl/depth_f.glsl", &fragSrc);
-
-			auto verShader = compileShader(ShaderType::VERTEX, vertSrc.c_str());
-			auto fragShader = compileShader(ShaderType::FRAGMENT, fragSrc.c_str());
-
-			this->m_depthmap.attachShader(verShader);
-			this->m_depthmap.attachShader(fragShader);
-			this->m_depthmap.link();
-			this->m_depthmapUniloc.init(this->m_depthmap);
-
-			glDeleteShader(verShader);
-			glDeleteShader(fragShader);
-		}
-	}
-
-	void RenderMaster::ShaderMaster::useGeneral(void) {
-		this->m_general.use();
-	}
-
-	void RenderMaster::ShaderMaster::useDepthMp(void) {
-		this->m_depthmap.use();
-	}
-
-	void RenderMaster::ShaderMaster::useFScreen(void) {
-		this->m_fscreen.use();
-	}
-
-	const UnilocGeneral& RenderMaster::ShaderMaster::getGeneral(void) const {
-		return this->m_generalUniloc;
-	}
-
-	const UnilocDepthmp& RenderMaster::ShaderMaster::getDepthMp(void) const {
-		return this->m_depthmapUniloc;
-	}
-
-	const UnilocFScreen& RenderMaster::ShaderMaster::getFScreen(void) const {
-		return this->m_fscreenUniloc;
-	}
-
-}
-
-
 // Main Framebuffer
 namespace dal {
 
@@ -251,6 +161,7 @@ namespace dal {
 	}
 
 }
+
 
 // Render Master
 namespace dal {
