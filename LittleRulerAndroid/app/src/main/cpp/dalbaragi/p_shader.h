@@ -19,12 +19,12 @@ namespace dal {
 		std::string mName;
 
 	public:
-		ShaderProgram(const char* name);
+		explicit ShaderProgram(const char* name);
 
 		void attachShader(GLuint shader);
 
 		void link(void);
-
+		GLuint get(void) const;
 		void use(void) const;
 
 		GLint getUniformLocation(const char* const identifier) const;

@@ -87,6 +87,10 @@ namespace dal {
 		}
 	}
 
+	GLuint ShaderProgram::get(void) const {
+		return this->mProgramID;
+	}
+
 	void ShaderProgram::use(void) const {
 		glUseProgram(this->mProgramID);
 	}

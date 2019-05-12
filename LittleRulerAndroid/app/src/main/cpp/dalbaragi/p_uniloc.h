@@ -1,6 +1,6 @@
 #pragma once
 
-#include "p_shader.h"
+#include "p_dalopengl.h"
 
 
 namespace dal {
@@ -48,8 +48,7 @@ namespace dal {
 		//////// Funcs ////////
 
 	public:
-		UnilocGeneral(void);
-		void init(const ShaderProgram& shader);
+		void init(const GLuint shader);
 
 	};
 
@@ -76,8 +75,7 @@ namespace dal {
 		//////// Funcs ////////
 
 	public:
-		UnilocOverlay(void);
-		void init(const ShaderProgram& shader);
+		void init(const GLuint shader);
 
 	};
 
@@ -96,7 +94,7 @@ namespace dal {
 		//////// Funcs ////////
 
 	public:
-		void init(const ShaderProgram& shader);
+		void init(const GLuint shader);
 
 	};
 
@@ -115,7 +113,7 @@ namespace dal {
 		//////// Funcs ////////
 
 	public:
-		void init(const ShaderProgram& shader);
+		void init(const GLuint shader);
 
 	};
 

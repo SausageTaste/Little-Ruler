@@ -1,7 +1,9 @@
 #include "p_uniloc.h"
 
 #include <string>
+#include <cassert>
 
+#include "p_dalopengl.h"
 #include "s_logger_god.h"
 
 
@@ -10,67 +12,63 @@ using namespace std::string_literals;
 
 namespace dal {
 
-	UnilocGeneral::UnilocGeneral(void) {
+	void UnilocGeneral::init(const GLuint shader) {
+		this->iPosition = glGetAttribLocation(shader, "iPosition"); assert(this->iPosition == 0);
+		this->iTexCoord = glGetAttribLocation(shader, "iTexCoord"); assert(this->iTexCoord == 1);
+		this->iNormal = glGetAttribLocation(shader, "iNormal"); assert(this->iNormal == 2);
 
-	}
+		this->uProjectMat = glGetUniformLocation(shader, "uProjectMat");
+		this->uViewMat = glGetUniformLocation(shader, "uViewMat");
+		this->uModelMat = glGetUniformLocation(shader, "uModelMat");
 
-	void UnilocGeneral::init(const ShaderProgram& shader) {
-		this->iPosition = shader.getAttribLocation("iPosition");
-		this->iTexCoord = shader.getAttribLocation("iTexCoord");
-		this->iNormal = shader.getAttribLocation("iNormal");
+		this->uDlightProjViewMat[0] = glGetUniformLocation(shader, "uDlightProjViewMat[0]");
+		this->uDlightProjViewMat[1] = glGetUniformLocation(shader, "uDlightProjViewMat[1]");
+		this->uDlightProjViewMat[2] = glGetUniformLocation(shader, "uDlightProjViewMat[2]");
 
-		this->uProjectMat = shader.getUniformLocation("uProjectMat");
-		this->uViewMat = shader.getUniformLocation("uViewMat");
-		this->uModelMat = shader.getUniformLocation("uModelMat");
-
-		this->uDlightProjViewMat[0] = shader.getUniformLocation("uDlightProjViewMat[0]");
-		this->uDlightProjViewMat[1] = shader.getUniformLocation("uDlightProjViewMat[1]");
-		this->uDlightProjViewMat[2] = shader.getUniformLocation("uDlightProjViewMat[2]");
-
-		this->uTexScaleX = shader.getUniformLocation("uTexScaleX");
-		this->uTexScaleY = shader.getUniformLocation("uTexScaleY");
+		this->uTexScaleX = glGetUniformLocation(shader, "uTexScaleX");
+		this->uTexScaleY = glGetUniformLocation(shader, "uTexScaleY");
 
 		// Fragment shader
 
-		this->uViewPos = shader.getUniformLocation("uViewPos");
-		this->uBaseAmbient = shader.getUniformLocation("uBaseAmbient");
-		this->uDlightCount = shader.getUniformLocation("uDlightCount");
-		this->uPlightCount = shader.getUniformLocation("uPlightCount");
+		this->uViewPos = glGetUniformLocation(shader, "uViewPos");
+		this->uBaseAmbient = glGetUniformLocation(shader, "uBaseAmbient");
+		this->uDlightCount = glGetUniformLocation(shader, "uDlightCount");
+		this->uPlightCount = glGetUniformLocation(shader, "uPlightCount");
 
-		this->uShininess = shader.getUniformLocation("uShininess");
-		this->uSpecularStrength = shader.getUniformLocation("uSpecularStrength");
+		this->uShininess = glGetUniformLocation(shader, "uShininess");
+		this->uSpecularStrength = glGetUniformLocation(shader, "uSpecularStrength");
 
-		this->uDiffuseColor = shader.getUniformLocation("uDiffuseColor");
-		this->uHasDiffuseMap = shader.getUniformLocation("uHasDiffuseMap");
-		this->uDiffuseMap = shader.getUniformLocation("uDiffuseMap");
+		this->uDiffuseColor = glGetUniformLocation(shader, "uDiffuseColor");
+		this->uHasDiffuseMap = glGetUniformLocation(shader, "uHasDiffuseMap");
+		this->uDiffuseMap = glGetUniformLocation(shader, "uDiffuseMap");
 
 		// Directional Lights
 
-		this->uDlightDirecs[0] = shader.getUniformLocation("uDlightDirecs[0]");
-		this->uDlightDirecs[1] = shader.getUniformLocation("uDlightDirecs[1]");
-		this->uDlightDirecs[2] = shader.getUniformLocation("uDlightDirecs[2]");
+		this->uDlightDirecs[0] = glGetUniformLocation(shader, "uDlightDirecs[0]");
+		this->uDlightDirecs[1] = glGetUniformLocation(shader, "uDlightDirecs[1]");
+		this->uDlightDirecs[2] = glGetUniformLocation(shader, "uDlightDirecs[2]");
 
-		this->uDlightColors[0] = shader.getUniformLocation("uDlightColors[0]");
-		this->uDlightColors[1] = shader.getUniformLocation("uDlightColors[1]");
-		this->uDlightColors[2] = shader.getUniformLocation("uDlightColors[2]");
+		this->uDlightColors[0] = glGetUniformLocation(shader, "uDlightColors[0]");
+		this->uDlightColors[1] = glGetUniformLocation(shader, "uDlightColors[1]");
+		this->uDlightColors[2] = glGetUniformLocation(shader, "uDlightColors[2]");
 
-		this->uDlightDepthMap[0] = shader.getUniformLocation("uDlightDepthMap[0]");
-		this->uDlightDepthMap[1] = shader.getUniformLocation("uDlightDepthMap[1]");
-		this->uDlightDepthMap[2] = shader.getUniformLocation("uDlightDepthMap[2]");
+		this->uDlightDepthMap[0] = glGetUniformLocation(shader, "uDlightDepthMap[0]");
+		this->uDlightDepthMap[1] = glGetUniformLocation(shader, "uDlightDepthMap[1]");
+		this->uDlightDepthMap[2] = glGetUniformLocation(shader, "uDlightDepthMap[2]");
 
 		// Point Lights
 
-		this->uPlightPoses[0] = shader.getUniformLocation("uPlightPoses[0]");
-		this->uPlightPoses[1] = shader.getUniformLocation("uPlightPoses[1]");
-		this->uPlightPoses[2] = shader.getUniformLocation("uPlightPoses[2]");
+		this->uPlightPoses[0] = glGetUniformLocation(shader, "uPlightPoses[0]");
+		this->uPlightPoses[1] = glGetUniformLocation(shader, "uPlightPoses[1]");
+		this->uPlightPoses[2] = glGetUniformLocation(shader, "uPlightPoses[2]");
 
-		this->uPlightColors[0] = shader.getUniformLocation("uPlightColors[0]");
-		this->uPlightColors[1] = shader.getUniformLocation("uPlightColors[1]");
-		this->uPlightColors[2] = shader.getUniformLocation("uPlightColors[2]");
+		this->uPlightColors[0] = glGetUniformLocation(shader, "uPlightColors[0]");
+		this->uPlightColors[1] = glGetUniformLocation(shader, "uPlightColors[1]");
+		this->uPlightColors[2] = glGetUniformLocation(shader, "uPlightColors[2]");
 
-		this->uPlightMaxDists[0] = shader.getUniformLocation("uPlightMaxDists[0]");
-		this->uPlightMaxDists[1] = shader.getUniformLocation("uPlightMaxDists[1]");
-		this->uPlightMaxDists[2] = shader.getUniformLocation("uPlightMaxDists[2]");
+		this->uPlightMaxDists[0] = glGetUniformLocation(shader, "uPlightMaxDists[0]");
+		this->uPlightMaxDists[1] = glGetUniformLocation(shader, "uPlightMaxDists[1]");
+		this->uPlightMaxDists[2] = glGetUniformLocation(shader, "uPlightMaxDists[2]");
 	}
 
 }
@@ -78,25 +76,21 @@ namespace dal {
 
 namespace dal {
 
-	UnilocOverlay::UnilocOverlay(void) {
+	void UnilocOverlay::init(const GLuint shader) {
+		uPoint1 = glGetUniformLocation(shader, "uPoint1");
+		uPoint2 = glGetUniformLocation(shader, "uPoint2");
 
-	}
-
-	void UnilocOverlay::init(const ShaderProgram& shader) {
-		uPoint1 = shader.getUniformLocation("uPoint1");
-		uPoint2 = shader.getUniformLocation("uPoint2");
-
-		mUpsideDown_maskMap = shader.getUniformLocation("mUpsideDown_maskMap");
+		mUpsideDown_maskMap = glGetUniformLocation(shader, "mUpsideDown_maskMap");
 
 		// Fragment shader
 
-		uColor = shader.getUniformLocation("uColor");
+		uColor = glGetUniformLocation(shader, "uColor");
 
-		mDiffuseMap = shader.getUniformLocation("mDiffuseMap");
-		mHasDiffuseMap = shader.getUniformLocation("mHasDiffuseMap");
+		mDiffuseMap = glGetUniformLocation(shader, "mDiffuseMap");
+		mHasDiffuseMap = glGetUniformLocation(shader, "mHasDiffuseMap");
 
-		mMaskMap = shader.getUniformLocation("mMaskMap");
-		mHasMaskMap = shader.getUniformLocation("mHasMaskMap");
+		mMaskMap = glGetUniformLocation(shader, "mMaskMap");
+		mHasMaskMap = glGetUniformLocation(shader, "mHasMaskMap");
 	}
 
 }
@@ -104,13 +98,13 @@ namespace dal {
 
 namespace dal {
 
-	void UnilocFScreen::init(const ShaderProgram& shader) {
-		iPosition = shader.getAttribLocation("iPosition");
-		iTexCoord = shader.getAttribLocation("iTexCoord");
+	void UnilocFScreen::init(const GLuint shader) {
+		iPosition = glGetAttribLocation(shader, "iPosition"); assert(iPosition == 0);
+		iTexCoord = glGetAttribLocation(shader, "iTexCoord"); assert(iTexCoord == 1);
 
 		// Fragment shader
 
-		uTexture = shader.getUniformLocation("uTexture");
+		uTexture = glGetUniformLocation(shader, "uTexture");
 	}
 
 }
@@ -118,13 +112,13 @@ namespace dal {
 
 namespace dal {
 
-	void UnilocDepthmp::init(const ShaderProgram& shader) {
-		iPosition = shader.getAttribLocation("iPosition");
+	void UnilocDepthmp::init(const GLuint shader) {
+		iPosition = glGetAttribLocation(shader, "iPosition"); assert(iPosition == 0);
 
 		// Fragment shader
 
-		uProjViewMat = shader.getUniformLocation("uProjViewMat");
-		uModelMat = shader.getUniformLocation("uModelMat");
+		uProjViewMat = glGetUniformLocation(shader, "uProjViewMat");
+		uModelMat = glGetUniformLocation(shader, "uModelMat");
 	}
 
 }
