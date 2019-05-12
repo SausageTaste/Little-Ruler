@@ -435,6 +435,10 @@ namespace dal {
 		}
 	}
 
+	bool ModelHandle::operator==(const ModelHandle& other) const {
+		return this->pimpl == other.pimpl;
+	}
+
 	bool ModelHandle::isReady(void) const {
 		if (nullptr == this->pimpl) return false;
 		if (nullptr == this->pimpl->m_model) return false;

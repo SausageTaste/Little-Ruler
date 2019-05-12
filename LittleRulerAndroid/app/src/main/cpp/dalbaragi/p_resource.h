@@ -80,6 +80,8 @@ namespace dal {
 		ModelHandle& operator=(ModelHandle&& other) noexcept;
 		~ModelHandle(void);
 
+		bool operator==(const ModelHandle& other) const;
+
 		bool isReady(void) const;
 
 		void renderGeneral(const UnilocGeneral& uniloc, const std::list<Actor>& actors) const;

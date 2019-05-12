@@ -85,6 +85,17 @@ namespace {
 		return 0;
 	}
 
+	int moon_addActor(lua_State* L) {
+		auto renMas = ExternalDependencies::get_renderMas();
+
+		const auto numParams = lua_gettop(L);
+		if (numParams < 2) return 0;
+
+		auto modelID = lua_tostring(L, 1);
+		auto actorName = lua_tostring(L, 2);
+		renMas->m_scene.addActorForModel(modelID, actorName);
+	}
+
 }
 
 
@@ -108,6 +119,7 @@ namespace dal {
 		this->addGlobalFunction("print", moon_print);
 
 		this->addGlobalFunction("setRenderScale", moon_setRenderScale);
+		this->addGlobalFunction("addActor", moon_addActor);
 	}
 
 	Lua::~Lua(void) {

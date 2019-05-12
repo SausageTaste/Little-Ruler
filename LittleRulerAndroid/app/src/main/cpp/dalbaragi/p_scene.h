@@ -21,7 +21,8 @@ namespace dal {
 		};
 
 		struct MapChunk {
-			std::vector<ModelNActor> m_actors;
+			std::string m_name;
+			std::vector<ModelNActor> m_modelActors;
 		};
 
 		//////// Attribs ////////
@@ -29,6 +30,7 @@ namespace dal {
 	private:
 		ResourceMaster& m_resMas;
 		std::list<MapChunk> m_mapChunks;
+		MapChunk* m_persistantMap;
 
 		//////// Methods ////////
 
@@ -37,6 +39,8 @@ namespace dal {
 
 		void renderGeneral(const UnilocGeneral& uniloc) const;
 		void renderDepthMp(const UnilocDepthmp& uniloc) const;
+
+		Actor* addActorForModel(const ResourceID& resID, const std::string& actorName);
 
 		void loadMap(const const ResourceID& mapID);
 
