@@ -20,13 +20,11 @@ namespace dal {
 
 	private:
 		ResourceMaster& m_resMas;
-		ShaderMaster& m_shaderMas;
+		const ShaderMaster& m_shaderMas;
 
 		CharMaskMapCache m_asciiCache;
 
 		GlobalFSM mGlobalFSM;
-
-		
 
 		TextBox mDisplayFPS;
 		TextBox mLineEdit;
@@ -36,7 +34,7 @@ namespace dal {
 		
 		//////// Funcs ////////
 
-		OverlayMaster(ResourceMaster& resMas, ShaderMaster& shaderMas);
+		OverlayMaster(ResourceMaster& resMas, const ShaderMaster& shaderMas);
 		virtual ~OverlayMaster(void) override;
 		virtual void onEvent(const EventStatic& e) override;
 		

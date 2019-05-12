@@ -14,7 +14,7 @@ using namespace std::string_literals;
 
 namespace dal {
 
-	OverlayMaster::OverlayMaster(ResourceMaster& resMas, ShaderMaster& shaderMas)
+	OverlayMaster::OverlayMaster(ResourceMaster& resMas, const ShaderMaster& shaderMas)
 		: m_resMas(resMas),
 		m_shaderMas(shaderMas),
 		m_asciiCache(resMas),

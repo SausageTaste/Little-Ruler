@@ -24,10 +24,10 @@ namespace dal {
 	public:
 		ShaderMaster(void);
 
-		void useGeneral(void);
-		void useDepthMp(void);
-		void useFScreen(void);
-		void useOverlay(void);
+		void useGeneral(void) const;
+		void useDepthMp(void) const;
+		void useFScreen(void) const;
+		void useOverlay(void) const;
 
 		const UnilocGeneral& getGeneral(void) const;
 		const UnilocDepthmp& getDepthMp(void) const;

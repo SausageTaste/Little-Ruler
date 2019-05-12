@@ -24,7 +24,7 @@ namespace dal {
 			this->m_general.attachShader(verShader);
 			this->m_general.attachShader(fragShader);
 			this->m_general.link();
-			this->m_generalUniloc.init(this->m_general);
+			this->m_generalUniloc.init(this->m_general.get());
 
 			glDeleteShader(verShader);
 			glDeleteShader(fragShader);
@@ -42,7 +42,7 @@ namespace dal {
 			this->m_fscreen.attachShader(verShader);
 			this->m_fscreen.attachShader(fragShader);
 			this->m_fscreen.link();
-			this->m_fscreenUniloc.init(this->m_fscreen);
+			this->m_fscreenUniloc.init(this->m_fscreen.get());
 
 			glDeleteShader(verShader);
 			glDeleteShader(fragShader);
@@ -60,7 +60,7 @@ namespace dal {
 			this->m_depthmap.attachShader(verShader);
 			this->m_depthmap.attachShader(fragShader);
 			this->m_depthmap.link();
-			this->m_depthmapUniloc.init(this->m_depthmap);
+			this->m_depthmapUniloc.init(this->m_depthmap.get());
 
 			glDeleteShader(verShader);
 			glDeleteShader(fragShader);
@@ -77,26 +77,26 @@ namespace dal {
 			this->m_overlay.attachShader(verShader);
 			this->m_overlay.attachShader(fragShader);
 			this->m_overlay.link();
-			this->m_overlayUniloc.init(this->m_overlay);
+			this->m_overlayUniloc.init(this->m_overlay.get());
 
 			glDeleteShader(verShader);
 			glDeleteShader(fragShader);
 		}
 	}
 
-	void ShaderMaster::useGeneral(void) {
+	void ShaderMaster::useGeneral(void) const {
 		this->m_general.use();
 	}
 
-	void ShaderMaster::useDepthMp(void) {
+	void ShaderMaster::useDepthMp(void) const {
 		this->m_depthmap.use();
 	}
 
-	void ShaderMaster::useFScreen(void) {
+	void ShaderMaster::useFScreen(void) const {
 		this->m_fscreen.use();
 	}
 
-	void ShaderMaster::useOverlay(void) {
+	void ShaderMaster::useOverlay(void) const {
 		this->m_overlay.use();
 	}
 
