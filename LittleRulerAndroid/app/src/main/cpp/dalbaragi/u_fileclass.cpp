@@ -54,8 +54,6 @@ namespace {
 		}
 	};
 
-
-
 #if defined(_WIN32)
 
 	size_t getListFolFile_win(std::string pattern, std::vector<std::string>& con) {
@@ -208,6 +206,7 @@ namespace {
 }
 
 
+// Image reader functions
 namespace {
 
 	bool readFileAsPNG(const char* const path, std::vector<uint8_t>* output, size_t* const width, size_t* const height) {
@@ -250,7 +249,7 @@ namespace {
 		}
 
 		int w, h, p;
-		dal::AutoFree<uint8_t> result{ tga_load_memory(buf.get(), bufSize, &w, &h, &p) };
+		dal::AutoFree<uint8_t> result{ tga_load_memory(buf.get(), static_cast<int>(bufSize), &w, &h, &p) };
 		*width = static_cast<size_t>(w);
 		*height = static_cast<size_t>(h);
 		*pixSize = static_cast<size_t>(p);
@@ -483,11 +482,11 @@ namespace dal {
 			const auto filePath = path.makeFilePath();
 
 			AssetFileStream file;
-			if (!file.open(filePath.c_str())) { throw - 1;  return false; }
+			if (!file.open(filePath.c_str())) { return false; }
 
 			buffer.resize(file.getFileSize());
 			const auto reeadRes = file.read(buffer.data(), buffer.size());
-			if (!reeadRes) { throw - 1; return false; }
+			if (!reeadRes) { return false; }
 
 			return true;
 		}
