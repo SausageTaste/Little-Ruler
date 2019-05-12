@@ -9,7 +9,8 @@ namespace dal {
 	ShaderMaster::ShaderMaster(void)
 		: m_general("shader_general"),
 		m_depthmap("shader_fscreen"),
-		m_fscreen("shader_depthmap")
+		m_fscreen("shader_depthmap"),
+		m_overlay("shader_overlay")
 	{
 		// Compile shaders general
 		{
@@ -47,7 +48,7 @@ namespace dal {
 			glDeleteShader(fragShader);
 		}
 
-		// Compile shaders fill screen
+		// Compile shaders depth map
 		{
 			std::string vertSrc, fragSrc;
 			filec::getAsset_text("glsl/depth_v.glsl", &vertSrc);
@@ -60,6 +61,23 @@ namespace dal {
 			this->m_depthmap.attachShader(fragShader);
 			this->m_depthmap.link();
 			this->m_depthmapUniloc.init(this->m_depthmap);
+
+			glDeleteShader(verShader);
+			glDeleteShader(fragShader);
+		}
+
+		/* Compile shaders overlay */ {
+			std::string vertSrc, fragSrc;
+			filec::getAsset_text("glsl/overlay_v.glsl", &vertSrc);
+			filec::getAsset_text("glsl/overlay_f.glsl", &fragSrc);
+
+			auto verShader = compileShader(ShaderType::VERTEX, vertSrc.c_str());
+			auto fragShader = compileShader(ShaderType::FRAGMENT, fragSrc.c_str());
+
+			this->m_overlay.attachShader(verShader);
+			this->m_overlay.attachShader(fragShader);
+			this->m_overlay.link();
+			this->m_overlayUniloc.init(this->m_overlay);
 
 			glDeleteShader(verShader);
 			glDeleteShader(fragShader);
@@ -78,6 +96,10 @@ namespace dal {
 		this->m_fscreen.use();
 	}
 
+	void ShaderMaster::useOverlay(void) {
+		this->m_overlay.use();
+	}
+
 	const UnilocGeneral& ShaderMaster::getGeneral(void) const {
 		return this->m_generalUniloc;
 	}
@@ -88,6 +110,10 @@ namespace dal {
 
 	const UnilocFScreen& ShaderMaster::getFScreen(void) const {
 		return this->m_fscreenUniloc;
+	}
+
+	const UnilocOverlay& ShaderMaster::getOverlay(void) const {
+		return this->m_overlayUniloc;
 	}
 
 }

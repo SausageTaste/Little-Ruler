@@ -14,28 +14,12 @@ using namespace std::string_literals;
 
 namespace dal {
 
-	OverlayMaster::OverlayMaster(ResourceMaster& resMas)
+	OverlayMaster::OverlayMaster(ResourceMaster& resMas, ShaderMaster& shaderMas)
 		: m_resMas(resMas),
+		m_shaderMas(shaderMas),
 		m_asciiCache(resMas),
-		mGlobalFSM(GlobalFSM::game), mShaderOverlay("OverlayMaster::overlay")
+		mGlobalFSM(GlobalFSM::game)
 	{
-		/* Compile shaders overlay */ {
-			std::string vertSrc, fragSrc;
-			filec::getAsset_text("glsl/overlay_v.glsl", &vertSrc);
-			filec::getAsset_text("glsl/overlay_f.glsl", &fragSrc);
-
-			auto verShader = compileShader(ShaderType::VERTEX, vertSrc.c_str());
-			auto fragShader = compileShader(ShaderType::FRAGMENT, fragSrc.c_str());
-
-			this->mShaderOverlay.attachShader(verShader);
-			this->mShaderOverlay.attachShader(fragShader);
-			this->mShaderOverlay.link();
-			this->mUnilocOverlay.init(this->mShaderOverlay);
-
-			glDeleteShader(verShader);
-			glDeleteShader(fragShader);
-		}
-
 		/* Characters */ {
 			mDisplayFPS.setPos(10.0f, 10.0f);
 			mDisplayFPS.setSize(100.0f, 20.0f);
@@ -109,16 +93,17 @@ namespace dal {
 
 		GLSwitch::setFor_overlay();
 
-		mShaderOverlay.use();
+		this->m_shaderMas.useOverlay();
+		auto& uniloc = this->m_shaderMas.getOverlay();
 
 		for (unsigned int i = 0; i < 11; i++) {
-			mBoxesForTouchPoint.at(i).renderOverlay(mUnilocOverlay);
+			mBoxesForTouchPoint.at(i).renderOverlay(uniloc);
 		}
 
-		mDisplayFPS.renderOverlay(m_asciiCache, mUnilocOverlay);
+		mDisplayFPS.renderOverlay(m_asciiCache, uniloc);
 
 		if (mGlobalFSM == GlobalFSM::menu) {
-			mLineEdit.renderOverlay(m_asciiCache, mUnilocOverlay);
+			mLineEdit.renderOverlay(m_asciiCache, uniloc);
 		}
 	}
 

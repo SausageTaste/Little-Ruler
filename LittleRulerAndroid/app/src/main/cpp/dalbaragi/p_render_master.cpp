@@ -170,7 +170,7 @@ namespace dal {
 	:	mCameraPos(0.0, 0.0, 5.0),
 		mCameraViewDir(0.0, 0.0),
 		m_scene(m_resMas),
-		m_overlayMas(m_resMas),
+		m_overlayMas(m_resMas, m_shader),
 		m_winWidth(512), m_winHeight(512),
 		m_projectMat(1.0)
 	{

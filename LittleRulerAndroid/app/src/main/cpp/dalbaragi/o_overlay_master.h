@@ -3,7 +3,7 @@
 #include <array>
 
 #include "o_widget_primitive.h"
-#include "p_shader.h"
+#include "p_shader_master.h"
 #include "p_uniloc.h"
 #include "s_event.h"
 #include "o_widget_textbox.h"
@@ -20,12 +20,13 @@ namespace dal {
 
 	private:
 		ResourceMaster& m_resMas;
+		ShaderMaster& m_shaderMas;
+
 		CharMaskMapCache m_asciiCache;
 
 		GlobalFSM mGlobalFSM;
 
-		ShaderProgram mShaderOverlay;
-		UnilocOverlay mUnilocOverlay;
+		
 
 		TextBox mDisplayFPS;
 		TextBox mLineEdit;
@@ -35,7 +36,7 @@ namespace dal {
 		
 		//////// Funcs ////////
 
-		OverlayMaster(ResourceMaster& resMas);
+		OverlayMaster(ResourceMaster& resMas, ShaderMaster& shaderMas);
 		virtual ~OverlayMaster(void) override;
 		virtual void onEvent(const EventStatic& e) override;
 		
