@@ -26,7 +26,7 @@ namespace {
 	struct RenderUnit {
 		std::string m_meshName;
 		dal::MeshStatic m_mesh;
-		dal::Material2 m_material;
+		dal::Material m_material;
 	};
 
 }
@@ -357,15 +357,15 @@ namespace dal {
 // Material
 namespace dal {
 
-	void Material2::setTexScale(float x, float y) {
+	void Material::setTexScale(float x, float y) {
 		this->m_texScale = { x, y };
 	}
 
-	void Material2::setDiffuseMap(TextureHandle2 tex) {
+	void Material::setDiffuseMap(TextureHandle2 tex) {
 		this->m_diffuseMap = tex;
 	}
 
-	void Material2::sendUniform(const UnilocGeneral& uniloc) const {
+	void Material::sendUniform(const UnilocGeneral& uniloc) const {
 		glUniform1f(uniloc.uShininess, this->m_shininess);
 		glUniform1f(uniloc.uSpecularStrength, this->m_specularStrength);
 

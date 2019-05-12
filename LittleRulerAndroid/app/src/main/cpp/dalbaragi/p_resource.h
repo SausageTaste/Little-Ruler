@@ -44,7 +44,7 @@ namespace dal {
 	};
 
 
-	class Material2 {
+	class Material {
 
 	public:
 		float m_shininess = 32.0f;
