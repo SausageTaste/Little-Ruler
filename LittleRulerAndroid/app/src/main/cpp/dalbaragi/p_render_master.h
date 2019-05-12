@@ -73,9 +73,11 @@ namespace dal {
 		glm::vec3 mCameraPos;
 		glm::vec2 mCameraViewDir;
 
-	private:
+	public:
 		ResourceMaster m_resMas;
 		SceneMaster m_scene;
+
+	private:
 		ShaderMaster m_shader;
 		MainFramebuffer m_fbuffer;
 
