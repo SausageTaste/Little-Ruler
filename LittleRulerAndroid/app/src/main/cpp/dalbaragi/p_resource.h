@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include <unordered_map>
+#include <utility>
 
 #include "u_loadinfo.h"
 #include "p_meshStatic.h"
@@ -36,6 +37,8 @@ namespace dal {
 		~TextureHandle2(void);
 
 		bool isReady(void) const;
+		unsigned int getRefCount(void) const;
+
 		void sendUniform(const GLint uniloc_sampler, const GLint uniloc_hasTex, const unsigned int index) const;
 		GLuint getTex(void);
 		Texture* replace(Texture* const tex);
@@ -83,6 +86,7 @@ namespace dal {
 		bool operator==(const ModelHandle& other) const;
 
 		bool isReady(void) const;
+		unsigned int getRefCount(void) const;
 
 		void renderGeneral(const UnilocGeneral& uniloc, const std::list<Actor>& actors) const;
 		void renderDepthMap(const UnilocDepthmp& uniloc, const std::list<Actor>& actors) const;
@@ -96,6 +100,15 @@ namespace dal {
 
 	class Package {
 
+	public:
+		struct ResourceReport {
+			std::string m_packageName;
+			std::vector<std::pair<std::string, unsigned int>> m_models;
+			std::vector<std::pair<std::string, unsigned int>> m_textures;
+
+			void print(void) const;
+		};
+
 	private:
 		std::string m_name;
 		std::unordered_map<std::string, ModelHandle> m_models;
@@ -108,6 +121,8 @@ namespace dal {
 		ModelHandle orderModel(const ResourceID& resPath, ResourceMaster* const resMas);
 		ModelHandle buildModel(const loadedinfo::ModelDefined& info, ResourceMaster* const resMas);
 		TextureHandle2 orderDiffuseMap(const ResourceID& texID, ResourceMaster* const resMas);
+
+		void getResReport(ResourceReport& report) const;
 
 		void clear(void);
 
@@ -137,6 +152,8 @@ namespace dal {
 
 		static TextureHandle2 getDepthMap(const unsigned int width, const unsigned int height);
 		static TextureHandle2 getMaskMap(const uint8_t* const buf, const unsigned int width, const unsigned int height);
+
+		size_t getResReports(std::vector<Package::ResourceReport>& reports) const;
 
 	private:
 		Package& orderPackage(const std::string& packName);

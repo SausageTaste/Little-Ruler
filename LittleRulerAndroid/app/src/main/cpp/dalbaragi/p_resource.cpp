@@ -322,6 +322,12 @@ namespace dal {
 		return true;
 	}
 
+	unsigned int TextureHandle2::getRefCount(void) const {
+		if (nullptr == this->pimpl) return 0;
+
+		return this->pimpl->m_refCount;
+	}
+
 	void TextureHandle2::sendUniform(const GLint uniloc_sampler, const GLint uniloc_hasTex, const unsigned int index) const {
 		if (this->isReady()) {
 			glUniform1i(uniloc_hasTex, 1);
@@ -345,6 +351,10 @@ namespace dal {
 
 	void TextureHandle2::destroyTexture(void) {
 		if (nullptr == this->pimpl->m_tex) return;
+
+		if (this->pimpl->m_refCount > 1) {
+			g_logger.putWarn("Destroying texture handle with ref count: " + std::to_string(this->pimpl->m_refCount));
+		}
 
 		this->pimpl->m_tex->deleteTex();
 		g_texturePool.free(this->pimpl->m_tex);
@@ -446,6 +456,12 @@ namespace dal {
 		return true;
 	}
 
+	unsigned int ModelHandle::getRefCount(void) const {
+		if (nullptr == this->pimpl) return 0;
+
+		return this->pimpl->m_refCount;
+	}
+
 	void ModelHandle::renderGeneral(const UnilocGeneral& uniloc, const std::list<Actor>& actors) const {
 		if (!this->isReady()) return;
 
@@ -477,6 +493,10 @@ namespace dal {
 
 	void ModelHandle::destroyModel(void) {
 		if (nullptr == this->pimpl->m_model) return;
+
+		if (this->pimpl->m_refCount > 1) {
+			g_logger.putWarn("Destroying model handle with ref count: " + std::to_string(this->pimpl->m_refCount));
+		}
 
 		for (auto& unit : this->pimpl->m_model->m_renderUnits) {
 			unit.m_mesh.destroyData();
@@ -517,6 +537,22 @@ namespace dal {
 
 // Package
 namespace dal {
+
+	void Package::ResourceReport::print(void) const {
+		g_logger.putInfo("Package : "s + m_packageName);
+		g_logger.putInfo("\tModels");
+
+		for (auto& x : m_models) {
+			g_logger.putInfo("\t\t"s + x.first + " (" + std::to_string(x.second) + ")");
+		}
+
+		g_logger.putInfo("\tTextures");
+
+		for (auto& x : m_textures) {
+			g_logger.putInfo("\t\t"s + x.first + " (" + std::to_string(x.second) + ")");
+		}
+	}
+
 
 	void Package::setName(const char* const packageName) {
 		this->m_name = packageName;
@@ -612,6 +648,22 @@ namespace dal {
 		TextureHandle2 handle{ texID.makeFileName(), tex };
 		this->m_textures.emplace(texID.makeFileName(), handle);
 		return handle;
+	}
+
+	void Package::getResReport(ResourceReport& report) const {
+		report.m_packageName = this->m_name;
+
+		report.m_models.clear();
+		report.m_models.reserve(this->m_models.size());
+		for (auto& x : this->m_models) {
+			report.m_models.emplace_back(x.first, x.second.getRefCount());
+		}
+
+		report.m_textures.clear();
+		report.m_textures.reserve(this->m_textures.size());
+		for (auto& x : this->m_textures) {
+			report.m_textures.emplace_back(x.first, x.second.getRefCount());
+		}
 	}
 
 	void Package::clear(void) {
@@ -718,6 +770,19 @@ namespace dal {
 	ModelHandle ResourceMaster::buildModel(const loadedinfo::ModelDefined& info, const char* const packageName) {
 		auto& package = this->orderPackage(packageName);
 		return package.buildModel(info, this);
+	}
+
+	size_t ResourceMaster::getResReports(std::vector<Package::ResourceReport>& reports) const {
+		reports.clear();
+		reports.resize(this->m_packages.size());
+
+		int i = 0;
+		for (auto& x : this->m_packages) {
+			x.second.getResReport(reports[i]);
+			i++;
+		}
+
+		return reports.size();
 	}
 
 	// Static

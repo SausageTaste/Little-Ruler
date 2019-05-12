@@ -22,6 +22,10 @@ namespace dal {
 		this->loadMap("asset::map/test_level.dlb");
 	}
 
+	SceneMaster::~SceneMaster(void) {
+
+	}
+
 	void SceneMaster::renderGeneral(const UnilocGeneral& uniloc) const {
 		for (auto& map : m_mapChunks) {
 			for (auto& modelActor : map.m_modelActors) {

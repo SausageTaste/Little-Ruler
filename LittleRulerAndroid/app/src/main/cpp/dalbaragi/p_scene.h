@@ -36,6 +36,7 @@ namespace dal {
 
 	public:
 		SceneMaster(ResourceMaster& resMas);
+		~SceneMaster(void);
 
 		void renderGeneral(const UnilocGeneral& uniloc) const;
 		void renderDepthMp(const UnilocDepthmp& uniloc) const;

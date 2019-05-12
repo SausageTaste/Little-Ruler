@@ -94,6 +94,20 @@ namespace {
 		auto modelID = lua_tostring(L, 1);
 		auto actorName = lua_tostring(L, 2);
 		renMas->m_scene.addActorForModel(modelID, actorName);
+
+		return 0;
+	}
+
+	int moon_printResReports(lua_State* L) {
+		auto renMas = ExternalDependencies::get_renderMas();
+		std::vector<dal::Package::ResourceReport> reports;
+		renMas->m_resMas.getResReports(reports);
+
+		for (auto& x : reports) {
+			x.print();
+		}
+
+		return 0;
 	}
 
 }
@@ -120,6 +134,7 @@ namespace dal {
 
 		this->addGlobalFunction("setRenderScale", moon_setRenderScale);
 		this->addGlobalFunction("addActor", moon_addActor);
+		this->addGlobalFunction("printResReports", moon_printResReports);
 	}
 
 	Lua::~Lua(void) {
