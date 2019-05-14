@@ -2,12 +2,12 @@
 
 #include <array>
 
-#include "p_shader_master.h"
 #include "s_event.h"
-#include "o_widget_textbox.h"
-#include "p_globalfsm.h"
-#include "o_text_cache.h"
 #include "p_resource.h"
+#include "p_globalfsm.h"
+#include "p_shader_master.h"
+#include "o_text_cache.h"
+#include "o_widget_textbox.h"
 
 
 namespace dal {
