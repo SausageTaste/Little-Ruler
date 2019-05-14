@@ -4,9 +4,9 @@
 #include <gl\glew.h>
 #include <SDL_opengl.h>
 
+#include <memory>
 #include <iostream>
 #include <unordered_map>
-#include <memory>
 
 #include "x_mainloop.h"
 #include "s_input_queue.h"
@@ -214,6 +214,5 @@ namespace dal {
 	}
 
 }
-
 
 #endif

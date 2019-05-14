@@ -7,6 +7,7 @@
 #include "o_widget_primitive.h"
 #include "s_event.h"
 #include "p_globalfsm.h"
+#include "o_overlay_master.h"
 
 
 namespace dal {
@@ -15,11 +16,12 @@ namespace dal {
 
 	private:
 		GlobalFSM mFSM;
+		OverlayMaster& m_overlayMas;
 
 		iKeyboardListener* mKeyListener;
 
 	public:
-		InputApplier(std::array<QuadPrimitive, 11>& mBoxesForTouchPoint);
+		InputApplier(OverlayMaster& overlayMas);
 		~InputApplier(void);
 
 		virtual void onEvent(const EventStatic& e) override;

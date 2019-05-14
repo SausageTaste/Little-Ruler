@@ -9,7 +9,6 @@
 #include "s_configs.h"
 #include "s_event.h"
 #include "u_timer.h"
-#include "s_scripting.h"
 
 
 using namespace std::string_literals;
@@ -593,11 +592,12 @@ namespace {
 
 namespace dal {
 
-	InputApplier::InputApplier(std::array<QuadPrimitive, 11>& mBoxesForTouchPoint)
+	InputApplier::InputApplier(OverlayMaster& overlayMas)
 	:	mFSM(GlobalFSM::game),
+		m_overlayMas(overlayMas),
 		mKeyListener(nullptr)
 	{
-		gTouchMaster.giveTouchPointDrawer(&mBoxesForTouchPoint);
+		gTouchMaster.giveTouchPointDrawer(&overlayMas.mBoxesForTouchPoint);
 
 		mHandlerName = "InputApplier";
 		EventGod::getinst().registerHandler(this, EventType::global_fsm_change);

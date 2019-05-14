@@ -16,15 +16,15 @@ namespace dal {
 		//// Vars ////
 
 	private:
-		Timer initTimer;
+		Timer m_initTimer;
 
-		bool mFlagQuit;
+		bool m_flagQuit;
 
-		Timer mTimer;
-		Timer mTimerForFPSReport;
+		Timer m_timer;
+		Timer m_timerForFPSReport;
 
-		RenderMaster mRenderMan;
-		InputApplier mInputApply;
+		RenderMaster m_renderMan;
+		InputApplier m_inputApply;
 
 		//// Funcs ////
 

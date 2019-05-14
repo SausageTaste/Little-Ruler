@@ -2,9 +2,7 @@
 
 #include <array>
 
-#include "o_widget_primitive.h"
 #include "p_shader_master.h"
-#include "p_uniloc.h"
 #include "s_event.h"
 #include "o_widget_textbox.h"
 #include "p_globalfsm.h"

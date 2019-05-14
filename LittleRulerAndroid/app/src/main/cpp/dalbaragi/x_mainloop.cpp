@@ -51,8 +51,8 @@ namespace dal {
 	// Public
 
 	Mainloop::Mainloop(PersistState* savedState)
-	:	mFlagQuit(false),
-		mInputApply(mRenderMan.m_overlayMas.mBoxesForTouchPoint)
+	:	m_flagQuit(false),
+		m_inputApply(m_renderMan.m_overlayMas)
 	{
 		/* Check window res */ {
 			auto& query = ConfigsGod::getinst();
@@ -76,13 +76,13 @@ namespace dal {
 			mHandlerName = "dal::Mainloop";
 			EventGod::getinst().registerHandler(this, EventType::quit_game);
 			
-			this->mTimer.setCapFPS(300);
+			this->m_timer.setCapFPS(300);
 		}
 
 		/* Restore from saved state */ {
 			if (savedState != nullptr) {
-				mRenderMan.mCameraPos = savedState->cameraPos;
-				mRenderMan.mCameraViewDir = savedState->cameraViewDir;
+				m_renderMan.mCameraPos = savedState->cameraPos;
+				m_renderMan.mCameraViewDir = savedState->cameraViewDir;
 				delete savedState;
 			}
 		}
@@ -92,7 +92,7 @@ namespace dal {
 
 		}
 
-		const auto elapsed = initTimer.check_getElapsed_capFPS();
+		const auto elapsed = m_initTimer.check_getElapsed_capFPS();
 		LoggerGod::getinst().putInfo("Init time: "s + std::to_string(elapsed));
 	}
 
@@ -101,20 +101,20 @@ namespace dal {
 	}
 
 	int Mainloop::update(void) {
-		if (mFlagQuit) return -1;
+		if (m_flagQuit) return -1;
 
-		const auto deltaTime = mTimer.check_getElapsed_capFPS();
-		if (mTimerForFPSReport.hasElapsed(0.1f)) {
-			mRenderMan.m_overlayMas.setDisplayedFPS((unsigned int)(1.0f / deltaTime));
-			mTimerForFPSReport.check();
+		const auto deltaTime = m_timer.check_getElapsed_capFPS();
+		if (m_timerForFPSReport.hasElapsed(0.1f)) {
+			m_renderMan.m_overlayMas.setDisplayedFPS((unsigned int)(1.0f / deltaTime));
+			m_timerForFPSReport.check();
 		}
 
-		mInputApply.apply(deltaTime, &mRenderMan.mCameraPos, &mRenderMan.mCameraViewDir);
+		m_inputApply.apply(deltaTime, &m_renderMan.mCameraPos, &m_renderMan.mCameraViewDir);
 
 		TaskGod::getinst().update();
 
-		this->mRenderMan.update(deltaTime);
-		this->mRenderMan.render();
+		this->m_renderMan.update(deltaTime);
+		this->m_renderMan.render();
 
 		return 0;
 	}
@@ -129,8 +129,8 @@ namespace dal {
 
 	PersistState* Mainloop::getSavedState(void) {
 		auto s = new PersistState();
-		s->cameraPos = mRenderMan.mCameraPos;
-		s->cameraViewDir = mRenderMan.mCameraViewDir;
+		s->cameraPos = m_renderMan.mCameraPos;
+		s->cameraViewDir = m_renderMan.mCameraViewDir;
 		return s;
 	}
 
@@ -138,7 +138,7 @@ namespace dal {
 		switch (e.type) {
 
 		case EventType::quit_game:
-			this->mFlagQuit = true;
+			this->m_flagQuit = true;
 			break;
 		default:
 			LoggerGod::getinst().putWarn("dal::Mainloop can't handle this event:");

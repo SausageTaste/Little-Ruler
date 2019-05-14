@@ -6,7 +6,6 @@
 #include "s_logger_god.h"
 #include "p_glglobal.h"
 #include "s_freetype_master.h"
-#include "p_globalfsm.h"
 
 
 using namespace std::string_literals;
