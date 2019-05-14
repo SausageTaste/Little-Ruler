@@ -18,14 +18,14 @@ namespace dal {
 		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 		for (unsigned int i = 0; i < 128; i++) {
 			if (FT_Load_Char(face, i, FT_LOAD_RENDER)) {
-				logger.putError("Failed to load Glyph: "s + std::to_string(char(i)));
+				logger.putError("Failed to load Glyph: "s + std::to_string(static_cast<char>(i)));
 				continue;
 			}
 
 			auto& charac = mAsciiChars[i];
 			charac.tex = ResourceMaster::getMaskMap(
-					face->glyph->bitmap.buffer, face->glyph->bitmap.width, face->glyph->bitmap.rows
-					);
+				face->glyph->bitmap.buffer, face->glyph->bitmap.width, face->glyph->bitmap.rows
+			);
 
 			charac.size = { face->glyph->bitmap.width, face->glyph->bitmap.rows };
 			charac.bearing = { face->glyph->bitmap_left, face->glyph->bitmap_top };

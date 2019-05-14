@@ -27,7 +27,7 @@ namespace dal {
 			throw -1;
 		}
 
-		FT_Set_Pixel_Sizes(mFace, 0, 20);
+		FT_Set_Pixel_Sizes(mFace, 0, 17);
 
 		if (FT_Load_Char(mFace, 'X', FT_LOAD_RENDER)) {
 			LoggerGod::getinst().putFatal("Failed to load Glyph.");

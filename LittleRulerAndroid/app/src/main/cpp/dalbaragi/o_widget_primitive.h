@@ -46,9 +46,8 @@ namespace dal {
 		void setDiffuseMap(const TextureHandle2& tex);
 		void setMaskMap(const TextureHandle2& tex);
 
-		void getPointScr1(float* x, float* y) const;
+		const glm::vec2& getPointScr1(void) const;
 		const glm::vec2& getPointScr2(void) const;
-		float getPointScr2X(void) const;
 		float getWidth(void) const;
 		float getHeight(void) const;
 

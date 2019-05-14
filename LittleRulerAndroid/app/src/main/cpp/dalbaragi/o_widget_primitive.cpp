@@ -136,17 +136,12 @@ namespace dal {
 		this->mMaskMap = tex;
 	}
 
-	void QuadPrimitive::getPointScr1(float* x, float* y) const {
-		*x = mPointScr1.x;
-		*y = mPointScr1.y;
+	const glm::vec2& QuadPrimitive::getPointScr1(void) const {
+		return mPointScr1;
 	}
 
 	const glm::vec2& QuadPrimitive::getPointScr2(void) const {
 		return mPointScr2;
-	}
-
-	float QuadPrimitive::getPointScr2X(void) const {
-		return mPointScr2.x;
 	}
 
 	float QuadPrimitive::getWidth(void) const {

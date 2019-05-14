@@ -50,6 +50,32 @@ namespace dal {
 
 	void TextBox::renderOverlay(const CharMaskMapCache& asciiCache, const UnilocOverlay& uniloc) {
 		mMainBox.renderOverlay(uniloc);
+
+		auto& p1 = mMainBox.getPointScr1();
+		auto& p2 = mMainBox.getPointScr2();
+
+		float xAdvance = p1.x;
+		const float boxHeight = p2.y - p1.y;
+		const float yHeight = p2.y - boxHeight / 4.0f;
+
+		for (auto c : mText) {
+			auto& charac = asciiCache.at((unsigned int)c);
+
+			const float xPos = xAdvance + charac.bearing.x;
+			const float yPos = yHeight - charac.bearing.y;
+
+			const float xPos2 = xPos + charac.size.x;
+			const float yPos2 = yPos + charac.size.y;
+
+			mCharDrawer.setMaskMap(charac.tex);
+			mCharDrawer.setPointScrs(xPos, yPos, xPos2, yPos2);
+			mCharDrawer.renderOverlay(uniloc);
+
+			xAdvance += (charac.advance >> 6);
+		}
+
+		/*
+		mMainBox.renderOverlay(uniloc);
 		const float textPortion = 0.8f;
 		
 		float x, y;
@@ -63,7 +89,8 @@ namespace dal {
 			}
 		}
 
-		mScale = textPortion * mMainBox.getHeight() / largestHeight;
+		//mScale = textPortion * mMainBox.getHeight() / largestHeight;
+		mScale = 1.0f;
 
 		for (auto c : mText) {
 			auto& charac = asciiCache.at((unsigned int)c);
@@ -88,6 +115,7 @@ namespace dal {
 
 			x += (charac.advance >> 6) * mScale;
 		}
+		*/
 	}
 
 	void TextBox::onResize(void) {
@@ -112,9 +140,7 @@ namespace dal {
 	}
 
 	bool TextBox::isInside(const glm::vec2& p) const {
-		float x, y;
-		mMainBox.getPointScr1(&x, &y);
-		const auto p1 = glm::vec2{ x, y };
+		const auto p1 = mMainBox.getPointScr1();
 		const auto& p2 = mMainBox.getPointScr2();
 
 		AABB_2D box;

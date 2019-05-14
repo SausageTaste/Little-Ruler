@@ -24,8 +24,8 @@ namespace dal {
 			mDisplayFPS.setSize(100.0f, 20.0f);
 
 			mLineEdit.setPos(10.0f, 40.0f);
-			mLineEdit.setSize(500, 20.0f);
-			mLineEdit.setText("Hello world!");
+			mLineEdit.setSize(500.0f, 20.0f);
+			mLineEdit.setText("print(\"Hello world!\")");
 		}
 
 		/* Event Master */ {
