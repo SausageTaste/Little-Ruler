@@ -553,6 +553,25 @@ namespace dal {
 		}
 	}
 
+	std::string Package::ResourceReport::getStr(void) const {
+		std::string result;
+
+		result.append("Package : "s + m_packageName + '\n');
+		result.append("\tModels" + '\n');
+
+		for (auto& x : m_models) {
+			result.append("\t\t"s + x.first + " (" + std::to_string(x.second) + ")" + '\n');
+		}
+
+		result.append("\tTextures" + '\n');
+
+		for (auto& x : m_textures) {
+			result.append("\t\t"s + x.first + " (" + std::to_string(x.second) + ")" + '\n');
+		}
+
+		return result;
+	}
+
 
 	void Package::setName(const char* const packageName) {
 		this->m_name = packageName;

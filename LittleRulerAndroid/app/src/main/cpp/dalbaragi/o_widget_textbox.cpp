@@ -219,13 +219,20 @@ namespace dal {
 		{
 			static QuadPrimitive charDrawer;
 
-			float xAdvance = this->getPosX() + 5.0f;
-			float yHeight = this->getPosY() + 20.0f;
+			auto info = this->getScreenSpace();
+
+			const float xInit = info.p1.x + 5.0f;
+			float xAdvance = xInit;
+			float yHeight = info.p1.y + 20.0f;
 
 			for (auto c : this->m_text) {
 				if ('\n' == c) {
 					yHeight += 20.0f;
-					xAdvance = this->getPosX() + 5.0f;
+					xAdvance = xInit;
+					continue;
+				}
+				else if ('\t' == c) {
+					xAdvance += 10.0f;
 					continue;
 				}
 
@@ -246,6 +253,11 @@ namespace dal {
 		}
 
 		
+	}
+
+	int TextBox::addScroll(int v) {
+		this->m_scroll += v;
+		return this->m_scroll;
 	}
 
 	// Private

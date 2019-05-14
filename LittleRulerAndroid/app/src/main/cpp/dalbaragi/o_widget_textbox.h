@@ -68,10 +68,14 @@ namespace dal {
 		QuadRenderer m_quadRender;
 		const CharMaskMapCache& m_asciiCache;
 
+		int m_scroll = 0;
+
 	public:
 		explicit TextBox(const CharMaskMapCache& asciiCache);
 		TextStream* setStrBuf(TextStream* const strBuf);
 		virtual void renderOverlay(const UnilocOverlay& uniloc) override;
+
+		int addScroll(int v);
 
 	private:
 		void fetchStream(void);

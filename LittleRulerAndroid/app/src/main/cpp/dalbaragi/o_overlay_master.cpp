@@ -6,9 +6,17 @@
 #include "s_logger_god.h"
 #include "p_glglobal.h"
 #include "s_freetype_master.h"
+#include "s_configs.h"
 
 
 using namespace std::string_literals;
+
+
+namespace {
+
+	auto& g_logger = dal::LoggerGod::getinst();
+
+}
 
 
 namespace dal {
@@ -36,6 +44,7 @@ namespace dal {
 			this->m_texBox.setPosY(70.0f);
 			this->m_texBox.setWidth(400.0f);
 			this->m_texBox.setHeight(300.0f);
+			this->m_texBox.setAlignMode(ScreenQuad::AlignMode::upper_right);
 		}
 
 		/* Event Master */ {
@@ -65,24 +74,26 @@ namespace dal {
 	}
 
 	void OverlayMaster::onEvent(const EventStatic& e) {
-		switch (e.type) {
+		if (EventType::window_resize == e.type) {
+			const auto width = ConfigsGod::getinst().getWinWidth();
+			const auto height = ConfigsGod::getinst().getWinHeight();
 
-		case EventType::window_resize:
 			mDisplayFPS.onResize();
 			mLineEdit.onResize();
-			break;
-		case EventType::global_fsm_change:
+			this->m_texBox.onResize(width, height);
+		}
+		else if (EventType::global_fsm_change == e.type) {
 			mGlobalFSM = GlobalFSM(e.intArg1);
 			mLineEdit.setTextColor(0.4f, 0.4f, 0.4f);
-			break;
-		default:
+		}
+		else {
 			LoggerGod::getinst().putWarn("Unhanlded event in OverlayMaster.");
-			break;
-
 		}
 	}
 
 	void OverlayMaster::onClick(const float x, const float y) {
+		g_logger.putTrace("Click: "s + std::to_string(x) + ", " + std::to_string(y));
+
 		if (mGlobalFSM == GlobalFSM::menu && mLineEdit.isInside({ x, y })) {
 			this->m_keyTaker = &this->mLineEdit;
 			mLineEdit.setTextColor(1.0f, 1.0f, 1.0f);
@@ -91,6 +102,12 @@ namespace dal {
 			this->m_keyTaker = nullptr;
 			mLineEdit.setTextColor(0.4f, 0.4f, 0.4f);
 		}
+	}
+
+	void OverlayMaster::onDrag(const glm::vec2& start, const glm::vec2& end) {
+		g_logger.putTrace(
+			"Drag: "s + std::to_string(start.x) + ", " + std::to_string(start.y) + " -> " + std::to_string(end.x) + ", " + std::to_string(end.y)
+		);
 	}
 
 	void OverlayMaster::onKeyInput(const std::string& str) {

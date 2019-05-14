@@ -132,11 +132,15 @@ namespace {
 
 	int moon_printResReports(lua_State* L) {
 		auto renMas = ExternalDependencies::get_renderMas();
+		auto output = ExternalDependencies::get_output();
+
 		std::vector<dal::Package::ResourceReport> reports;
 		renMas->m_resMas.getResReports(reports);
 
 		for (auto& x : reports) {
-			x.print();
+			const auto str = x.getStr();
+			output->append(str.c_str());
+			output->append("\n");
 		}
 
 		return 0;
@@ -168,9 +172,9 @@ namespace dal {
 
 		this->addGlobalFunction("print", moon_print);
 
-		this->addGlobalFunction("setRenderScale", moon_setRenderScale);
-		this->addGlobalFunction("addActor", moon_addActor);
-		this->addGlobalFunction("printResReports", moon_printResReports);
+		this->addGlobalFunction("set_render_scale", moon_setRenderScale);
+		this->addGlobalFunction("add_actor", moon_addActor);
+		this->addGlobalFunction("print_res_reports", moon_printResReports);
 	}
 
 	Lua::~Lua(void) {

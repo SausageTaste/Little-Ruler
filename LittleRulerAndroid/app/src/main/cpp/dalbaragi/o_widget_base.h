@@ -41,9 +41,18 @@ namespace dal {
 
 	class ScreenQuad {
 
+	public:
+		enum class AlignMode {
+			upper_left,
+			upper_right
+		};
+
 	private:
 		float m_xPos, m_yPos, m_width, m_height;
 		QuadInfo m_deviceSpace;
+		AlignMode m_alignMode = AlignMode::upper_left;
+
+		float m_parentWidth = 1.0f, m_parentHeight = 1.0f;
 
 	public:
 		float getPosX(void) const { return m_xPos; }
@@ -55,16 +64,21 @@ namespace dal {
 		void setPosY(const float v);
 		void setWidth(const float v);
 		void setHeight(const float v);
+		void setAlignMode(const AlignMode mode);
 		
+		QuadInfo getScreenSpace(void) const;
 		const QuadInfo& getDeviceSpace(void) const;
+		void onResize(const unsigned int width, const unsigned int height);
 
 	private:
 		void makeDeviceSpace(void);
+		void makeDeviceSpace_upperLeft(void);
+		void makeDeviceSpace_upperRight(void);
 
 	};
 
 
-	class QuadRenderer : public ScreenQuad {
+	class QuadRenderer {
 
 	private:
 		glm::vec4 m_color{ 0, 0, 0, 1 };

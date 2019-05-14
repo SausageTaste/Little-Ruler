@@ -107,6 +107,7 @@ namespace dal {
 			std::vector<std::pair<std::string, unsigned int>> m_textures;
 
 			void print(void) const;
+			std::string getStr(void) const;
 		};
 
 	private:

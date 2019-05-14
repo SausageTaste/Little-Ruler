@@ -1,8 +1,6 @@
 #include "o_widget_base.h"
 
-#include "s_configs.h"
 #include "p_dalopengl.h"
-
 
 
 namespace {
@@ -72,8 +70,6 @@ namespace {
 }
 
 
-
-
 namespace dal {
 
 	void ScreenQuad::setPosX(const float v) {
@@ -100,19 +96,87 @@ namespace dal {
 		this->makeDeviceSpace();
 	}
 
+	void ScreenQuad::setAlignMode(const AlignMode mode) {
+		this->m_alignMode = mode;
+	}
+
+	QuadInfo ScreenQuad::getScreenSpace(void) const {
+		QuadInfo info;
+
+		switch (this->m_alignMode)
+		{
+		case AlignMode::upper_left:
+			info.p1 = { this->m_xPos, this->m_yPos };
+			info.p2 = { this->m_xPos + this->m_width, this->m_yPos + this->m_height };
+			break;
+		case AlignMode::upper_right:
+			info.p1 = { this->m_parentWidth - this->m_xPos - this->m_width, this->m_yPos };
+			info.p2 = { this->m_parentWidth - this->m_xPos, this->m_yPos + this->m_height };
+			break;
+		default:
+			throw - 1;
+		}
+
+		{
+			if (info.p1.x > info.p2.x) {
+				throw - 1;
+			}
+			if (info.p1.y > info.p2.y) {
+				throw - 1;
+			}
+		}
+
+		return info;
+	}
+
 	const QuadInfo& ScreenQuad::getDeviceSpace(void) const {
 		return this->m_deviceSpace;
 	}
 
-	void ScreenQuad::makeDeviceSpace(void) {
-		const float winWidth = ConfigsGod::getinst().getWinWidth();
-		const float winHeight = ConfigsGod::getinst().getWinHeight();
+	void ScreenQuad::onResize(const unsigned int width, const unsigned int height) {
+		this->m_parentWidth = static_cast<float>(width);
+		this->m_parentHeight = static_cast<float>(height);
 
+		this->makeDeviceSpace();
+	}
+
+	//
+
+	void ScreenQuad::makeDeviceSpace(void) {
+		switch (this->m_alignMode)
+		{
+		case AlignMode::upper_left:
+			this->makeDeviceSpace_upperLeft(); break;
+		case AlignMode::upper_right:
+			this->makeDeviceSpace_upperRight(); break;
+		default:
+			break;
+		}
+	}
+
+	void ScreenQuad::makeDeviceSpace_upperLeft(void) {
 		glm::vec2 screenPos1{ this->m_xPos, this->m_yPos + this->m_height };
 		glm::vec2 screenPos2{ this->m_xPos + this->m_width, this->m_yPos };
 
-		this->m_deviceSpace.p1 = screen2device(screenPos1, winWidth, winHeight);
-		this->m_deviceSpace.p2 = screen2device(screenPos2, winWidth, winHeight);
+		this->m_deviceSpace.p1 = screen2device(screenPos1, this->m_parentWidth, this->m_parentHeight);
+		this->m_deviceSpace.p2 = screen2device(screenPos2, this->m_parentWidth, this->m_parentHeight);
+
+		/* Validate PointDev order */ {
+			if (this->m_deviceSpace.p1.x > this->m_deviceSpace.p2.x) {
+				throw - 1;
+			}
+			if (this->m_deviceSpace.p1.y > this->m_deviceSpace.p2.y) {
+				throw - 1;
+			}
+		}
+	}
+
+	void ScreenQuad::makeDeviceSpace_upperRight(void) {
+		glm::vec2 screenPos1{ this->m_parentWidth - this->m_xPos - this->m_width, this->m_yPos + this->m_height };
+		glm::vec2 screenPos2{ this->m_parentWidth - this->m_xPos, this->m_yPos };
+
+		this->m_deviceSpace.p1 = screen2device(screenPos1, this->m_parentWidth, this->m_parentHeight);
+		this->m_deviceSpace.p2 = screen2device(screenPos2, this->m_parentWidth, this->m_parentHeight);
 
 		/* Validate PointDev order */ {
 			if (this->m_deviceSpace.p1.x > this->m_deviceSpace.p2.x) {
@@ -125,6 +189,7 @@ namespace dal {
 	}
 
 }
+
 
 namespace dal {
 

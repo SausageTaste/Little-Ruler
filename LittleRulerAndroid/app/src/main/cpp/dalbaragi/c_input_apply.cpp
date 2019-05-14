@@ -190,10 +190,12 @@ namespace {
 		}
 
 		void fetch_menuControl(dal::OverlayMaster& overlay) {
-			/* Update touchStates[i] */ {
+			// Update touchStates[i]
+			{
 				for (unsigned int i = 0; i < dal::TouchEvtQueueGod::getinst().getSize(); i++) {
 					const auto& touch = dal::TouchEvtQueueGod::getinst().at(i);
 					auto& state = touchStates[touch.id];
+					const auto startPos = state.lastPos;
 
 					switch (touch.type) {
 
@@ -207,6 +209,7 @@ namespace {
 					case dal::TouchType::move:
 						state.accumRel += glm::vec2{ touch.x, touch.y } -state.lastPos;
 						state.lastPos = { touch.x, touch.y };
+						overlay.onDrag(startPos, state.lastPos);
 						break;
 					case dal::TouchType::up:
 						state.currentDuty = TouchDuty::idle;
@@ -219,7 +222,8 @@ namespace {
 				dal::TouchEvtQueueGod::getinst().clear();
 			}
 
-			/* Apply to boxes */ {
+			// Apply to boxes
+			{
 				if (mBoxesForTouchPoint != nullptr) {
 					mBoxesForTouchPoint->at(10).moveCenterTo_screenCoord(-100.0f, -100.0f);
 

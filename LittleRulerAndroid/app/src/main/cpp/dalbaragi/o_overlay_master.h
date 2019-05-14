@@ -43,6 +43,7 @@ namespace dal {
 		virtual void onEvent(const EventStatic& e) override;
 
 		void onClick(const float x, const float y);
+		void onDrag(const glm::vec2& start, const glm::vec2& end);
 		void onKeyInput(const std::string& c);
 		
 		void render(void);
