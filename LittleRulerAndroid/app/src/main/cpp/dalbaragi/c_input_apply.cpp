@@ -292,10 +292,6 @@ namespace {
 		//////// Methods ////////
 
 	public:
-		KeyboardMaster(void) {
-
-		}
-
 		bool fetch_noclipMove(NoclipMoveInfo* info, const float deltaTime) {
 			bool toReturn = false;
 
@@ -389,7 +385,7 @@ namespace {
 			for (unsigned int i = 0; i < kq.getSize(); i++) {
 				auto& keyEvent = kq.at(i);
 
-				if (keyEvent.key == dal::KeySpec::lshfit) {
+				if (keyEvent.key == dal::KeySpec::lshfit || keyEvent.key == dal::KeySpec::rshfit) {
 					shiftPressed = keyEvent.type == dal::KeyboardType::down;
 				}
 				else if (keyEvent.key == dal::KeySpec::escape && keyEvent.type == dal::KeyboardType::down) {
@@ -412,7 +408,7 @@ namespace {
 		}
 
 	private:
-		static char encodeToAscii(const dal::KeySpec key, bool shift) {
+		static char encodeToAscii(const dal::KeySpec key, const bool shift) {
 			const auto keyInt = int(key);
 
 			if ( int(dal::KeySpec::a) <= keyInt&& keyInt <= int(dal::KeySpec::z) ) {
@@ -456,7 +452,7 @@ namespace {
 			}
 		}
 
-		KeyState& getState(dal::KeySpec key) {
+		KeyState& getState(const dal::KeySpec key) {
 			const auto index = int(key) - int(dal::KeySpec::unknown);
 #ifdef _DEBUG
 			if (index >= dal::KEY_SPEC_SIZE) {
