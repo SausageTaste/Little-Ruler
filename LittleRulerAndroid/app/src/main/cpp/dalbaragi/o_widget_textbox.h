@@ -1,5 +1,6 @@
 #pragma once
 
+#include <array>
 #include <string>
 #include <glm/glm.hpp>
 
@@ -10,7 +11,7 @@
 
 namespace dal {
 
-	class TextBox : public iKeyboardListener {
+	class LineEdit : public iKeyboardListener {
 
 	private:
 		QuadPrimitive mMainBox;
@@ -20,7 +21,7 @@ namespace dal {
 		float mScale;
 
 	public:
-		TextBox(void);
+		LineEdit(void);
 		virtual void give(const char* const str) override;
 		void onReturn(void);
 
@@ -33,6 +34,50 @@ namespace dal {
 		void setTextColor(const float r, const float g, const float b);
 
 		bool isInside(const glm::vec2& p) const;
+
+	};
+
+
+	class StringBuffer {
+
+	private:
+		std::array<char, 1024> m_buffer;
+		unsigned int m_topIndex = 0;
+
+	public:
+		bool append(const char* const str) {
+			const auto len = std::strlen(str);
+			const auto remaining = this->getReserved() - this->getSize();
+
+			if (len > remaining) {
+				LoggerGod::getinst().putError("StringBuffer is full.");
+				return false;
+			}
+
+			std::memcpy(&this->m_buffer[this->m_topIndex], str, len);
+			this->m_topIndex += len;
+			return true;
+		}
+
+		unsigned int getSize(void) const {
+			return this->m_topIndex;
+		}
+
+		unsigned int getReserved(void) const {
+			return this->m_buffer.size();
+		}
+
+	};
+
+
+	class TextBox {
+
+	private:
+		QuadPrimitive m_mainBox;
+		StringBuffer* m_strBuffer = nullptr;
+
+	public:
+		StringBuffer* setStrBuf(StringBuffer* const strBuf);
 
 	};
 

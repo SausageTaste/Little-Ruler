@@ -13,14 +13,14 @@ using namespace std::string_literals;
 
 namespace dal {
 
-	TextBox::TextBox(void)
+	LineEdit::LineEdit(void)
 	:	mScale(1.0f)
 	{
 		mCharDrawer.setColor(1.0, 1.0, 1.0);
 		mMainBox.setColor(0.0, 0.0, 0.0);
 	}
 
-	void TextBox::give(const char* const str) {
+	void LineEdit::give(const char* const str) {
 		auto len = strlen(str);
 		for (unsigned int i = 0; i < len; i++) {
 			switch (str[i]) {
@@ -43,12 +43,12 @@ namespace dal {
 		}
 	}
 
-	void TextBox::onReturn(void) {
+	void LineEdit::onReturn(void) {
 		Lua::getinst().doString(mText.c_str());
 		mText.clear();
 	}
 
-	void TextBox::renderOverlay(const CharMaskMapCache& asciiCache, const UnilocOverlay& uniloc) {
+	void LineEdit::renderOverlay(const CharMaskMapCache& asciiCache, const UnilocOverlay& uniloc) {
 		mMainBox.renderOverlay(uniloc);
 
 		auto& p1 = mMainBox.getPointScr1();
@@ -118,34 +118,45 @@ namespace dal {
 		*/
 	}
 
-	void TextBox::onResize(void) {
+	void LineEdit::onResize(void) {
 		mMainBox.convertScrIntoDev();
 	}
 
-	void TextBox::setPos(float x, float y) {
+	void LineEdit::setPos(float x, float y) {
 		this->mMainBox.moveCornerTo_screenCoord(x, y);
 	}
 
-	void TextBox::setSize(float w, float h) {
+	void LineEdit::setSize(float w, float h) {
 		this->mMainBox.setWidth(w);
 		this->mMainBox.setHeight(h);
 	}
 
-	void TextBox::setText(const char* const t) {
+	void LineEdit::setText(const char* const t) {
 		mText = t;
 	}
 
-	void TextBox::setTextColor(const float r, const float g, const float b) {
+	void LineEdit::setTextColor(const float r, const float g, const float b) {
 		this->mCharDrawer.setColor(r, g, b);
 	}
 
-	bool TextBox::isInside(const glm::vec2& p) const {
+	bool LineEdit::isInside(const glm::vec2& p) const {
 		const auto p1 = mMainBox.getPointScr1();
 		const auto& p2 = mMainBox.getPointScr2();
 
 		AABB_2D box;
 		box.setPoints(p1, p2);
 		return box.isInside(p);
+	}
+
+}
+
+
+namespace dal {
+
+	StringBuffer* TextBox::setStrBuf(StringBuffer* const strBuf) {
+		auto tmp = this->m_strBuffer;
+		this->m_strBuffer = strBuf;
+		return tmp;
 	}
 
 }

@@ -24,8 +24,8 @@ namespace dal {
 
 		GlobalFSM mGlobalFSM;
 
-		TextBox mDisplayFPS;
-		TextBox mLineEdit;
+		LineEdit mDisplayFPS;
+		LineEdit mLineEdit;
 
 	public:
 		std::array<QuadPrimitive, 11> mBoxesForTouchPoint;
