@@ -8,6 +8,7 @@
 #include "p_shader_master.h"
 #include "o_text_cache.h"
 #include "o_widget_textbox.h"
+#include "o_widget_base.h"
 
 
 namespace dal {
@@ -27,6 +28,8 @@ namespace dal {
 		LineEdit mDisplayFPS;
 		LineEdit mLineEdit;
 
+		IKeyInputTaker* m_keyTaker;
+
 	public:
 		std::array<QuadPrimitive, 11> mBoxesForTouchPoint;
 		
@@ -35,6 +38,9 @@ namespace dal {
 		OverlayMaster(ResourceMaster& resMas, const ShaderMaster& shaderMas);
 		virtual ~OverlayMaster(void) override;
 		virtual void onEvent(const EventStatic& e) override;
+
+		void onClick(const float x, const float y);
+		void onKeyInput(const std::string& c);
 		
 		void render(void);
 

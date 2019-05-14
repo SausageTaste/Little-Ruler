@@ -17,7 +17,8 @@ namespace dal {
 		: m_resMas(resMas),
 		m_shaderMas(shaderMas),
 		m_asciiCache(resMas),
-		mGlobalFSM(GlobalFSM::game)
+		mGlobalFSM(GlobalFSM::game),
+		m_keyTaker(nullptr)
 	{
 		/* Characters */ {
 			mDisplayFPS.setPos(10.0f, 10.0f);
@@ -31,7 +32,6 @@ namespace dal {
 		/* Event Master */ {
 			this->mHandlerName = "OverlayMaster";
 			EventGod::getinst().registerHandler(this, EventType::window_resize);
-			EventGod::getinst().registerHandler(this, EventType::touch_tap);
 			EventGod::getinst().registerHandler(this, EventType::global_fsm_change);
 		}
 
@@ -52,7 +52,6 @@ namespace dal {
 
 	OverlayMaster::~OverlayMaster(void) {
 		EventGod::getinst().deregisterHandler(this, EventType::window_resize);
-		EventGod::getinst().deregisterHandler(this, EventType::touch_tap);
 		EventGod::getinst().deregisterHandler(this, EventType::global_fsm_change);
 	}
 
@@ -63,19 +62,6 @@ namespace dal {
 			mDisplayFPS.onResize();
 			mLineEdit.onResize();
 			break;
-		case EventType::touch_tap:
-			if (mGlobalFSM == GlobalFSM::menu && mLineEdit.isInside({ e.floatArg1, e.floatArg2 })) {
-				LoggerGod::getinst().putInfo("Tap on LineEdit.");
-
-				EventStatic newEvent;
-				newEvent.type = EventType::global_fsm_change;
-				newEvent.intArg1 = int(GlobalFSM::menu);
-				newEvent.keyListner = &mLineEdit;
-				EventGod::getinst().notifyAll(newEvent);
-
-				mLineEdit.setTextColor(1.0f, 1.0f, 1.0f);
-			}
-			break;
 		case EventType::global_fsm_change:
 			mGlobalFSM = GlobalFSM(e.intArg1);
 			mLineEdit.setTextColor(0.4f, 0.4f, 0.4f);
@@ -84,6 +70,25 @@ namespace dal {
 			LoggerGod::getinst().putWarn("Unhanlded event in OverlayMaster.");
 			break;
 
+		}
+	}
+
+	void OverlayMaster::onClick(const float x, const float y) {
+		if (mGlobalFSM == GlobalFSM::menu && mLineEdit.isInside({ x, y })) {
+			this->m_keyTaker = &this->mLineEdit;
+			mLineEdit.setTextColor(1.0f, 1.0f, 1.0f);
+		}
+		else {
+			this->m_keyTaker = nullptr;
+			mLineEdit.setTextColor(0.4f, 0.4f, 0.4f);
+		}
+	}
+
+	void OverlayMaster::onKeyInput(const std::string& str) {
+		if (nullptr == this->m_keyTaker) return;
+
+		for (const auto c : str) {
+			this->m_keyTaker->onKeyInput(c);
 		}
 	}
 

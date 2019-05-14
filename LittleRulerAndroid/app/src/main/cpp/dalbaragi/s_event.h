@@ -9,8 +9,6 @@ namespace dal {
 	enum class EventType {
 		quit_game = 0,
 		window_resize,
-		touch_event,
-		touch_tap,
 		global_fsm_change,
 		eof,
 	};
@@ -72,8 +70,6 @@ namespace dal {
 
 		void registerHandler(iEventHandler* handler, const EventType type);
 		void deregisterHandler(iEventHandler* handler, const EventType type);
-
-		void notifyAll_touchEvent(const float x, const float y, const int type, const int id);
 
 		void notifyAll(const EventStatic& e);
 

@@ -43,7 +43,6 @@ namespace dal {
 			mArray[mCurIndex].id = id;
 			mArray[mCurIndex].timeSec = timeSec;
 			mCurIndex++;
-			EventGod::getinst().notifyAll_touchEvent(x, y, static_cast<int>(type), id);
 			return true;
 		}
 		else {

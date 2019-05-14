@@ -69,17 +69,6 @@ namespace dal {
 		);
 	}
 
-	void EventGod::notifyAll_touchEvent(const float x, const float y, const int type, const int id) {
-		EventStatic e;
-		e.type = EventType::touch_event;
-		e.floatArg1 = x;
-		e.floatArg2 = y;
-		e.intArg1 = type;
-		e.intArg2 = id;
-
-		this->notifyAll(e);
-	}
-
 	void EventGod::notifyAll(const EventStatic& e) {
 		auto& handlerContainer = mHandlers[int(e.type)];
 		

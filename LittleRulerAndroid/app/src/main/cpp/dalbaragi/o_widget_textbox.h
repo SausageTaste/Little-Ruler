@@ -7,11 +7,12 @@
 #include "o_widget_primitive.h"
 #include "s_event.h"
 #include "o_text_cache.h"
+#include "o_widget_base.h"
 
 
 namespace dal {
 
-	class LineEdit : public iKeyboardListener {
+	class LineEdit : public IKeyInputTaker {
 
 	private:
 		QuadPrimitive mMainBox;
@@ -22,9 +23,8 @@ namespace dal {
 
 	public:
 		LineEdit(void);
-		virtual void give(const char* const str) override;
 		void onReturn(void);
-
+		void onKeyInput(const char c) override;
 		void renderOverlay(const CharMaskMapCache& asciiCache, const UnilocOverlay& uniloc);
 		void onResize(void);
 
@@ -45,27 +45,11 @@ namespace dal {
 		unsigned int m_topIndex = 0;
 
 	public:
-		bool append(const char* const str) {
-			const auto len = std::strlen(str);
-			const auto remaining = this->getReserved() - this->getSize();
+		bool append(const char* const str);
 
-			if (len > remaining) {
-				LoggerGod::getinst().putError("StringBuffer is full.");
-				return false;
-			}
+		unsigned int getSize(void) const;
 
-			std::memcpy(&this->m_buffer[this->m_topIndex], str, len);
-			this->m_topIndex += len;
-			return true;
-		}
-
-		unsigned int getSize(void) const {
-			return this->m_topIndex;
-		}
-
-		unsigned int getReserved(void) const {
-			return this->m_buffer.size();
-		}
+		unsigned int getReserved(void) const;
 
 	};
 

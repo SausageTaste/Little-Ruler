@@ -18,8 +18,6 @@ namespace dal {
 		GlobalFSM mFSM;
 		OverlayMaster& m_overlayMas;
 
-		iKeyboardListener* mKeyListener;
-
 	public:
 		InputApplier(OverlayMaster& overlayMas);
 		~InputApplier(void);

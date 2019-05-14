@@ -1,6 +1,7 @@
 #include "c_input_apply.h"
 
 #include <string>
+#include <array>
 #include <vector>
 
 #include <glm/gtc/matrix_transform.hpp>
@@ -56,7 +57,7 @@ namespace {
 			}
 		}
 
-		bool fetch_noclipMove(NoclipMoveInfo* info) {
+		bool fetch_noclipMove(NoclipMoveInfo* info, dal::OverlayMaster& overlay) {
 			//auto& logger = dal::LoggerGod::getinst();
 
 			bool flagToReturn = false;
@@ -119,13 +120,8 @@ namespace {
 						break;
 					case dal::TouchType::up:
 						state.currentDuty = TouchDuty::idle;
-
 						if (isTap(state, touch)) {
-							dal::EventStatic e;
-							e.floatArg1 = state.lastDownPos.x;
-							e.floatArg2 = state.lastDownPos.y;
-							e.type = dal::EventType::touch_tap;
-							dal::EventGod::getinst().notifyAll(e);
+							overlay.onClick(state.lastDownPos.x, state.lastDownPos.y);
 						}
 						break;
 					}
@@ -193,7 +189,7 @@ namespace {
 			return flagToReturn;
 		}
 
-		void fetch_menuControl(void) {
+		void fetch_menuControl(dal::OverlayMaster& overlay) {
 			/* Update touchStates[i] */ {
 				for (unsigned int i = 0; i < dal::TouchEvtQueueGod::getinst().getSize(); i++) {
 					const auto& touch = dal::TouchEvtQueueGod::getinst().at(i);
@@ -214,13 +210,8 @@ namespace {
 						break;
 					case dal::TouchType::up:
 						state.currentDuty = TouchDuty::idle;
-
 						if (isTap(state, touch)) {
-							dal::EventStatic e;
-							e.floatArg1 = state.lastDownPos.x;
-							e.floatArg2 = state.lastDownPos.y;
-							e.type = dal::EventType::touch_tap;
-							dal::EventGod::getinst().notifyAll(e);
+							overlay.onClick(state.lastDownPos.x, state.lastDownPos.y);
 						}
 						break;
 					}
@@ -287,7 +278,7 @@ namespace {
 		//////// Atrribs ////////
 
 	private:
-		KeyState mKeyStates[dal::KEY_SPEC_SIZE];
+		std::array<KeyState, dal::KEY_SPEC_SIZE> mKeyStates;
 
 		//////// Methods ////////
 
@@ -453,13 +444,8 @@ namespace {
 		}
 
 		KeyState& getState(const dal::KeySpec key) {
-			const auto index = int(key) - int(dal::KeySpec::unknown);
-#ifdef _DEBUG
-			if (index >= dal::KEY_SPEC_SIZE) {
-				dal::LoggerGod::getinst().putFatal("Buffer overflow in KeyboardMaster::getState: index is "s + std::to_string(index));
-			}
-#endif
-			return mKeyStates[index];
+			const auto index = static_cast<unsigned int>(key) - static_cast<unsigned int>(dal::KeySpec::unknown);
+			return mKeyStates.at(index);
 		}
 
 	} gKeyboardMaster;
@@ -469,7 +455,7 @@ namespace {
 
 namespace {
 
-	void apply_flyDirectional(const float deltaTime, glm::vec3* targetPos, glm::vec2* targetViewDir) {
+	void apply_flyDirectional(const float deltaTime, glm::vec3* targetPos, glm::vec2* targetViewDir, dal::OverlayMaster& overlay) {
 		//auto logger = LoggerGod::getinst();
 
 		glm::vec2 totalMovePlane{ 0.0 };  // This means it must represent move direction when targetViewDir == { 0, 0 }.
@@ -485,7 +471,7 @@ namespace {
 			}
 
 			NoclipMoveInfo touchInfo;
-			if (gTouchMaster.fetch_noclipMove(&touchInfo)) {
+			if (gTouchMaster.fetch_noclipMove(&touchInfo, overlay)) {
 				totalMovePlane += glm::vec2{ touchInfo.xMovePlane, touchInfo.zMovePlane };
 				*targetViewDir += glm::vec2{ touchInfo.xView, touchInfo.yView };
 				moveUpOrDown += touchInfo.vertical;
@@ -521,7 +507,7 @@ namespace {
 
 	}
 
-	void apply_flyPlane(const float deltaTime, glm::vec3* targetPos, glm::vec2* targetViewDir) {
+	void apply_flyPlane(const float deltaTime, glm::vec3* targetPos, glm::vec2* targetViewDir, dal::OverlayMaster& overlay) {
 		//auto logger = LoggerGod::getinst();
 
 		glm::vec2 totalMovePlane{ 0.0 };  // This means it must represent move direction when targetViewDir == { 0, 0 }.
@@ -537,7 +523,7 @@ namespace {
 			}
 
 			NoclipMoveInfo touchInfo;
-			if (gTouchMaster.fetch_noclipMove(&touchInfo)) {
+			if (gTouchMaster.fetch_noclipMove(&touchInfo, overlay)) {
 				totalMovePlane += glm::vec2{ touchInfo.xMovePlane, touchInfo.zMovePlane };
 				*targetViewDir += glm::vec2{ touchInfo.xView, touchInfo.yView };
 				moveUpOrDown += touchInfo.vertical;
@@ -573,14 +559,15 @@ namespace {
 
 	}
 
-	void applyMenuControl(dal::iKeyboardListener* mKeyListener) {
-		gTouchMaster.fetch_menuControl();
+	void applyMenuControl(dal::OverlayMaster& overlay) {
+		gTouchMaster.fetch_menuControl(overlay);
 
 		std::string str;
 		gKeyboardMaster.fetch_menuControl(&str);
 
-		if (mKeyListener == nullptr) return;
-		if (str.size() > 0) mKeyListener->give(str.c_str());
+		if (str.size() > 0) {
+			overlay.onKeyInput(str);
+		}
 	}
 
 }
@@ -590,8 +577,7 @@ namespace dal {
 
 	InputApplier::InputApplier(OverlayMaster& overlayMas)
 	:	mFSM(GlobalFSM::game),
-		m_overlayMas(overlayMas),
-		mKeyListener(nullptr)
+		m_overlayMas(overlayMas)
 	{
 		gTouchMaster.giveTouchPointDrawer(&overlayMas.mBoxesForTouchPoint);
 
@@ -610,7 +596,6 @@ namespace dal {
 
 		case EventType::global_fsm_change:
 			mFSM = GlobalFSM(e.intArg1);
-			mKeyListener = e.keyListner;
 			break;
 		default:
 			LoggerGod::getinst().putWarn("InputApplier can't handle this event: "s + getEventTypeStr(e.type));
@@ -625,13 +610,13 @@ namespace dal {
 
 		case GlobalFSM::game:
 #if defined(_WIN32)
-			apply_flyPlane(deltaTime, targetPos, targetViewDir);
+			apply_flyPlane(deltaTime, targetPos, targetViewDir, this->m_overlayMas);
 #else defined(__ANDROID__)
 			apply_flyDirectional(deltaTime, targetPos, targetViewDir);
 #endif
 			break;
 		case GlobalFSM::menu:
-			applyMenuControl(mKeyListener);
+			applyMenuControl(this->m_overlayMas);
 			break;
 		
 		}

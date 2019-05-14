@@ -1,7 +1,7 @@
 #include "o_widget_textbox.h"
 
 #include <cstring>
-
+#include <string>
 
 #include "s_logger_god.h"
 #include "m_collision2d.h"
@@ -20,26 +20,25 @@ namespace dal {
 		mMainBox.setColor(0.0, 0.0, 0.0);
 	}
 
-	void LineEdit::give(const char* const str) {
-		auto len = strlen(str);
-		for (unsigned int i = 0; i < len; i++) {
-			switch (str[i]) {
-			case '\n':
-				this->onReturn();
-				break;
-			case '\b':
-				if (mText.empty()) break;
-				mText.pop_back();
-				break;
-			case '\t':
-				mText += "    "s;
-				break;
-			case '\0':
-				return;
-			default:
-				mText.push_back(str[i]);
-				break;
-			}
+	void LineEdit::onKeyInput(const char c) {
+		switch (c) {
+
+		case '\n':
+			this->onReturn();
+			break;
+		case '\b':
+			if (mText.empty()) break;
+			mText.pop_back();
+			break;
+		case '\t':
+			mText += "    ";  // 4 whitespaces. 
+			break;
+		case '\0':
+			return;
+		default:
+			mText += c;
+			break;
+
 		}
 	}
 
@@ -146,6 +145,33 @@ namespace dal {
 		AABB_2D box;
 		box.setPoints(p1, p2);
 		return box.isInside(p);
+	}
+
+}
+
+
+namespace dal {
+
+	bool StringBuffer::append(const char* const str) {
+		const auto len = std::strlen(str);
+		const auto remaining = this->getReserved() - this->getSize();
+
+		if (len > remaining) {
+			LoggerGod::getinst().putError("StringBuffer is full.");
+			return false;
+		}
+
+		std::memcpy(&this->m_buffer[this->m_topIndex], str, len);
+		this->m_topIndex += len;
+		return true;
+	}
+
+	unsigned int StringBuffer::getSize(void) const {
+		return this->m_topIndex;
+	}
+
+	unsigned int StringBuffer::getReserved(void) const {
+		return this->m_buffer.size();
 	}
 
 }
