@@ -8,6 +8,7 @@
 #include "s_event.h"
 #include "o_text_cache.h"
 #include "o_widget_base.h"
+#include "s_scripting.h"
 
 
 namespace dal {
@@ -38,30 +39,42 @@ namespace dal {
 	};
 
 
-	class StringBuffer {
+	class TextStream : public LuaStdOutput {
 
 	private:
 		std::array<char, 1024> m_buffer;
 		unsigned int m_topIndex = 0;
 
 	public:
-		bool append(const char* const str);
+		virtual bool append(const char* const str) override;
+		bool append(const std::string& str);
+		const char* get(void);
+		void clear(void);
 
 		unsigned int getSize(void) const;
-
 		unsigned int getReserved(void) const;
+
+	private:
+		bool append(const char* const ptr, const size_t size);
 
 	};
 
 
-	class TextBox {
+	class TextBox : public ScreenQuad, public RenderableOverlay {
 
 	private:
-		QuadPrimitive m_mainBox;
-		StringBuffer* m_strBuffer = nullptr;
+		TextStream* m_strBuffer = nullptr;
+		std::string m_text;
+		QuadRenderer m_quadRender;
+		const CharMaskMapCache& m_asciiCache;
 
 	public:
-		StringBuffer* setStrBuf(StringBuffer* const strBuf);
+		explicit TextBox(const CharMaskMapCache& asciiCache);
+		TextStream* setStrBuf(TextStream* const strBuf);
+		virtual void renderOverlay(const UnilocOverlay& uniloc) override;
+
+	private:
+		void fetchStream(void);
 
 	};
 

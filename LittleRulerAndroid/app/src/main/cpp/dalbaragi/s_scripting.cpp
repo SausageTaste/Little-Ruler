@@ -20,6 +20,21 @@ namespace {
 }
 
 
+namespace {
+
+	class DefaultOutputStream : public dal::LuaStdOutput {
+
+		virtual bool append(const char* const str) override {
+			std::cout << str;
+
+			return true;
+		}
+
+	} g_defaultOutput;
+
+}
+
+
 // External Dependencies
 namespace {
 
@@ -27,6 +42,7 @@ namespace {
 
 	private:
 		static dal::RenderMaster* s_renderMas;
+		static dal::LuaStdOutput* s_output;
 
 	public:
 		static void init_renderMas(void* p) {
@@ -42,9 +58,18 @@ namespace {
 			return s_renderMas;
 		}
 
+		static void set_output(dal::LuaStdOutput* ptr) {
+			s_output = ptr;
+		}
+
+		static dal::LuaStdOutput* get_output(void) {
+			return s_output;
+		}
+
 	};
 
 	dal::RenderMaster* ExternalDependencies::s_renderMas = nullptr;
+	dal::LuaStdOutput* ExternalDependencies::s_output = &g_defaultOutput;
 
 }
 
@@ -53,15 +78,22 @@ namespace {
 namespace {
 
 	int moon_print(lua_State* L) {
+		auto output = ExternalDependencies::get_output();
+		if (output == nullptr) {
+			return 0;
+		}
+
 		int nargs = lua_gettop(L);
-		std::cout << "[ LUA ] ";
+
 		for (int i = 1; i <= nargs; ++i) {
 			auto aText = lua_tostring(L, i);
 			if (nullptr == aText) continue;
-			std::cout << aText;
-		}
-		std::cout << std::endl;
 
+			output->append(aText);
+			output->append(" ");
+		}
+
+		output->append("\n");
 		return 0;
 	}
 
@@ -120,6 +152,10 @@ namespace dal {
 			ExternalDependencies::init_renderMas(p);
 		}
 
+		void set_outputStream(LuaStdOutput* const ptr) {
+			ExternalDependencies::set_output(ptr);
+		}
+
 	}
 }
 
@@ -151,7 +187,13 @@ namespace dal {
 		auto err = luaL_dostring(L, t);
 		if (err) {
 			auto srrMsg = lua_tostring(L, -1);
-			LoggerGod::getinst().putInfo(srrMsg);
+
+			auto output = ExternalDependencies::get_output();
+			if (output != nullptr) {
+				output->append(srrMsg);
+				output->append("\n");
+			}
+
 			lua_pop(L, 1);
 		}
 	}

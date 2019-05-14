@@ -28,6 +28,9 @@ namespace dal {
 		LineEdit mDisplayFPS;
 		LineEdit mLineEdit;
 
+		TextStream m_strBuffer;
+		TextBox m_texBox;
+
 		IKeyInputTaker* m_keyTaker;
 
 	public:

@@ -18,15 +18,24 @@ namespace dal {
 		m_shaderMas(shaderMas),
 		m_asciiCache(resMas),
 		mGlobalFSM(GlobalFSM::game),
+		m_texBox(m_asciiCache),
 		m_keyTaker(nullptr)
 	{
 		/* Characters */ {
+			script::set_outputStream(&this->m_strBuffer);
+
 			mDisplayFPS.setPos(10.0f, 10.0f);
 			mDisplayFPS.setSize(100.0f, 20.0f);
 
 			mLineEdit.setPos(10.0f, 40.0f);
-			mLineEdit.setSize(500.0f, 20.0f);
+			mLineEdit.setSize(400.0f, 20.0f);
 			mLineEdit.setText("print(\"Hello world!\")");
+
+			this->m_texBox.setStrBuf(&this->m_strBuffer);
+			this->m_texBox.setPosX(10.0f);
+			this->m_texBox.setPosY(70.0f);
+			this->m_texBox.setWidth(400.0f);
+			this->m_texBox.setHeight(300.0f);
 		}
 
 		/* Event Master */ {
@@ -108,6 +117,7 @@ namespace dal {
 
 		if (mGlobalFSM == GlobalFSM::menu) {
 			mLineEdit.renderOverlay(m_asciiCache, uniloc);
+			this->m_texBox.renderOverlay(uniloc);
 		}
 	}
 

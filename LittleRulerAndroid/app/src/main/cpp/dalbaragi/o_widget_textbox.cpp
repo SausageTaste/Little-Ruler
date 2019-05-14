@@ -152,26 +152,46 @@ namespace dal {
 
 namespace dal {
 
-	bool StringBuffer::append(const char* const str) {
-		const auto len = std::strlen(str);
-		const auto remaining = this->getReserved() - this->getSize();
-
-		if (len > remaining) {
-			LoggerGod::getinst().putError("StringBuffer is full.");
-			return false;
-		}
-
-		std::memcpy(&this->m_buffer[this->m_topIndex], str, len);
-		this->m_topIndex += len;
-		return true;
+	bool TextStream::append(const char* const str) {
+		return this->append(str, std::strlen(str));
 	}
 
-	unsigned int StringBuffer::getSize(void) const {
+	bool TextStream::append(const std::string& str) {
+		return this->append(str.c_str(), str.size());
+	}
+
+	const char* TextStream::get(void) {
+		if (0 == this->m_topIndex) return nullptr;
+
+		this->m_buffer.at(this->m_topIndex) = '\0';
+		return this->m_buffer.data();
+	}
+
+	void TextStream::clear(void) {
+		this->m_topIndex = 0;
+	}
+
+	unsigned int TextStream::getSize(void) const {
 		return this->m_topIndex;
 	}
 
-	unsigned int StringBuffer::getReserved(void) const {
+	unsigned int TextStream::getReserved(void) const {
 		return this->m_buffer.size();
+	}
+
+	// Private
+
+	bool TextStream::append(const char* const ptr, const size_t size) {
+		const auto remaining = this->getReserved() - this->getSize();
+
+		if (size > remaining) {
+			LoggerGod::getinst().putError("TextStream is full.");
+			return false;
+		}
+
+		std::memcpy(&this->m_buffer[this->m_topIndex], ptr, size);
+		this->m_topIndex += size;
+		return true;
 	}
 
 }
@@ -179,10 +199,66 @@ namespace dal {
 
 namespace dal {
 
-	StringBuffer* TextBox::setStrBuf(StringBuffer* const strBuf) {
+	TextBox::TextBox(const CharMaskMapCache& asciiCache)
+	:	m_asciiCache(asciiCache)
+	{
+
+	}
+
+	TextStream* TextBox::setStrBuf(TextStream* const strBuf) {
 		auto tmp = this->m_strBuffer;
 		this->m_strBuffer = strBuf;
 		return tmp;
+	}
+
+	void TextBox::renderOverlay(const UnilocOverlay& uniloc) {
+		this->fetchStream();
+
+		m_quadRender.renderQuad(uniloc, this->getDeviceSpace());
+
+		{
+			static QuadPrimitive charDrawer;
+
+			float xAdvance = this->getPosX() + 5.0f;
+			float yHeight = this->getPosY() + 20.0f;
+
+			for (auto c : this->m_text) {
+				if ('\n' == c) {
+					yHeight += 20.0f;
+					xAdvance = this->getPosX() + 5.0f;
+					continue;
+				}
+
+				auto& charac = this->m_asciiCache.at((unsigned int)c);
+				
+				const float xPos = xAdvance + charac.bearing.x;
+				const float yPos = yHeight - charac.bearing.y;
+
+				const float xPos2 = xPos + charac.size.x;
+				const float yPos2 = yPos + charac.size.y;
+
+				charDrawer.setMaskMap(charac.tex);
+				charDrawer.setPointScrs(xPos, yPos, xPos2, yPos2);
+				charDrawer.renderOverlay(uniloc);
+
+				xAdvance += (charac.advance >> 6);
+			}
+		}
+
+		
+	}
+
+	// Private
+
+	void TextBox::fetchStream(void) {
+		if (nullptr == this->m_strBuffer) return;
+		
+		auto str = this->m_strBuffer->get();
+		if (nullptr == str) return;
+
+		this->m_text += str;
+		this->m_strBuffer->clear();
+		LoggerGod::getinst().putInfo("Fetched: "s + str);
 	}
 
 }
