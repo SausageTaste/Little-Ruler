@@ -2,6 +2,7 @@
 
 #include "p_dalopengl.h"
 #include "m_collision2d.h"
+#include "s_configs.h"
 
 
 namespace {
@@ -73,8 +74,34 @@ namespace {
 
 namespace dal {
 
+	QuadInfo QuadInfo::screen2device(void) const {
+		const auto winWidth = ConfigsGod::getinst().getWinWidth();
+		const auto winHeight = ConfigsGod::getinst().getWinHeight();
+
+		QuadInfo newinfo;
+
+		newinfo.p1 = ::screen2device(this->p1, winWidth, winHeight);
+		newinfo.p2 = ::screen2device(this->p2, winWidth, winHeight);
+
+		/* Validate PointDev order */ {
+			if (newinfo.p1.x > newinfo.p2.x) {
+				std::swap(newinfo.p1.x, newinfo.p2.x);
+			}
+			if (newinfo.p1.y > newinfo.p2.y) {
+				std::swap(newinfo.p1.y, newinfo.p2.y);
+			}
+		}
+
+		return newinfo;
+	}
+
+}
+
+
+namespace dal {
+
 	bool ScreenQuad::isInside(const float x, const float y) {
-		const auto quad = this->getScreenSpace();
+		const auto quad = this->makeScreenSpace();
 
 		AABB_2D box;
 		box.setPoints(quad.p1, quad.p2);
@@ -109,18 +136,41 @@ namespace dal {
 		this->m_alignMode = mode;
 	}
 
-	QuadInfo ScreenQuad::getScreenSpace(void) const {
+	QuadInfo ScreenQuad::makeScreenSpace(void) const {
 		QuadInfo info;
+
+		QuadInfo parInfo;
+		if (nullptr != this->m_parent) {
+			parInfo = this->m_parent->makeScreenSpace();
+		}
+		else {
+			const auto winWidth = ConfigsGod::getinst().getWinWidth();
+			const auto winHeight = ConfigsGod::getinst().getWinHeight();
+			parInfo.p1 = { 0.0, 0.0 };
+			parInfo.p2 = { winWidth, winHeight };
+		}
 
 		switch (this->m_alignMode)
 		{
 		case AlignMode::upper_left:
-			info.p1 = { this->m_xPos, this->m_yPos };
-			info.p2 = { this->m_xPos + this->m_width, this->m_yPos + this->m_height };
+			info.p1 = {
+				parInfo.p1.x + this->m_xPos,
+				parInfo.p1.y + this->m_yPos
+			};
+			info.p2 = {
+				parInfo.p1.x + this->m_xPos + this->m_width,
+				parInfo.p1.y + this->m_yPos + this->m_height
+			};
 			break;
 		case AlignMode::upper_right:
-			info.p1 = { this->m_parentWidth - this->m_xPos - this->m_width, this->m_yPos };
-			info.p2 = { this->m_parentWidth - this->m_xPos, this->m_yPos + this->m_height };
+			info.p1 = {
+				parInfo.p2.x - this->m_xPos - this->m_width,
+				parInfo.p1.y + this->m_yPos
+			};
+			info.p2 = {
+				parInfo.p2.x - this->m_xPos,
+				parInfo.p1.y + this->m_yPos + this->m_height
+			};
 			break;
 		default:
 			throw - 1;
@@ -143,58 +193,13 @@ namespace dal {
 	}
 
 	void ScreenQuad::onResize(const unsigned int width, const unsigned int height) {
-		this->m_parentWidth = static_cast<float>(width);
-		this->m_parentHeight = static_cast<float>(height);
-
 		this->makeDeviceSpace();
 	}
 
-	//
+	// Private
 
 	void ScreenQuad::makeDeviceSpace(void) {
-		switch (this->m_alignMode)
-		{
-		case AlignMode::upper_left:
-			this->makeDeviceSpace_upperLeft(); break;
-		case AlignMode::upper_right:
-			this->makeDeviceSpace_upperRight(); break;
-		default:
-			break;
-		}
-	}
-
-	void ScreenQuad::makeDeviceSpace_upperLeft(void) {
-		glm::vec2 screenPos1{ this->m_xPos, this->m_yPos + this->m_height };
-		glm::vec2 screenPos2{ this->m_xPos + this->m_width, this->m_yPos };
-
-		this->m_deviceSpace.p1 = screen2device(screenPos1, this->m_parentWidth, this->m_parentHeight);
-		this->m_deviceSpace.p2 = screen2device(screenPos2, this->m_parentWidth, this->m_parentHeight);
-
-		/* Validate PointDev order */ {
-			if (this->m_deviceSpace.p1.x > this->m_deviceSpace.p2.x) {
-				throw - 1;
-			}
-			if (this->m_deviceSpace.p1.y > this->m_deviceSpace.p2.y) {
-				throw - 1;
-			}
-		}
-	}
-
-	void ScreenQuad::makeDeviceSpace_upperRight(void) {
-		glm::vec2 screenPos1{ this->m_parentWidth - this->m_xPos - this->m_width, this->m_yPos + this->m_height };
-		glm::vec2 screenPos2{ this->m_parentWidth - this->m_xPos, this->m_yPos };
-
-		this->m_deviceSpace.p1 = screen2device(screenPos1, this->m_parentWidth, this->m_parentHeight);
-		this->m_deviceSpace.p2 = screen2device(screenPos2, this->m_parentWidth, this->m_parentHeight);
-
-		/* Validate PointDev order */ {
-			if (this->m_deviceSpace.p1.x > this->m_deviceSpace.p2.x) {
-				throw - 1;
-			}
-			if (this->m_deviceSpace.p1.y > this->m_deviceSpace.p2.y) {
-				throw - 1;
-			}
-		}
+		this->m_deviceSpace = this->makeScreenSpace().screen2device();
 	}
 
 }
@@ -221,6 +226,17 @@ namespace dal {
 		glUniform1i(uniloc.mUpsideDown_maskMap, 1);
 
 		RealQuadRenderer::getinst().renderOverlay();
+	}
+
+}
+
+
+namespace dal {
+
+	Widget::Widget(Widget* parent)
+	: m_parent(parent)
+	{
+		this->setParent(parent);
 	}
 
 }

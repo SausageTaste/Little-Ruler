@@ -9,6 +9,8 @@ namespace dal {
 
 	struct QuadInfo {
 		glm::vec2 p1, p2;
+
+		QuadInfo screen2device(void) const;
 	};
 
 
@@ -31,15 +33,6 @@ namespace dal {
 	};
 
 
-	class RenderableOverlay {
-
-	public:
-		virtual ~RenderableOverlay(void) = default;
-		virtual void renderOverlay(const UnilocOverlay& uniloc) = 0;
-
-	};
-
-
 	class ScreenQuad : public IClickable {
 
 	public:
@@ -49,15 +42,17 @@ namespace dal {
 		};
 
 	private:
+		ScreenQuad* m_parent;
+
 		float m_xPos, m_yPos, m_width, m_height;
 		QuadInfo m_deviceSpace;
 		AlignMode m_alignMode = AlignMode::upper_left;
 
-		float m_parentWidth = 1.0f, m_parentHeight = 1.0f;
-
 	public:
 		virtual void onClick(const float x, const float y) override {}
 		virtual bool isInside(const float x, const float y) override;
+
+		void setParent(ScreenQuad* parent) { this->m_parent = parent; }
 
 		float getPosX(void) const { return m_xPos; }
 		float getPosY(void) const { return m_yPos; }
@@ -70,14 +65,12 @@ namespace dal {
 		void setHeight(const float v);
 		void setAlignMode(const AlignMode mode);
 		
-		QuadInfo getScreenSpace(void) const;
+		QuadInfo makeScreenSpace(void) const;
 		const QuadInfo& getDeviceSpace(void) const;
 		void onResize(const unsigned int width, const unsigned int height);
 
 	private:
 		void makeDeviceSpace(void);
-		void makeDeviceSpace_upperLeft(void);
-		void makeDeviceSpace_upperRight(void);
 
 	};
 
@@ -85,7 +78,7 @@ namespace dal {
 	class QuadRenderer {
 
 	private:
-		glm::vec4 m_color{ 0, 0, 0, 1 };
+		glm::vec4 m_color{ 1.0f, 1.0f, 1.0f, 1.0f };
 		TextureHandle2 m_diffuseMap, m_maskMap;
 
 	public:
@@ -94,6 +87,20 @@ namespace dal {
 		void setMaskMap(const TextureHandle2& tex) { m_maskMap = tex; }
 
 		void renderQuad(const UnilocOverlay& uniloc, const QuadInfo& devSpc);
+
+	};
+
+
+	class Widget : public ScreenQuad, public IKeyInputTaker {
+
+	private:
+		Widget* m_parent;
+
+	public:
+		explicit Widget(Widget* parent = nullptr);
+		virtual ~Widget(void) = default;
+		virtual void renderOverlay(const UnilocOverlay& uniloc) = 0;
+		virtual void onKeyInput(const char c) {}
 
 	};
 

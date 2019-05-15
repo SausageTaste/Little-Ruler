@@ -38,6 +38,29 @@ namespace dal {
 	};
 
 
+	class LineEdit2 : public Widget {
+
+	private:
+		std::string mText;
+
+	public:
+		LineEdit2(void);
+		void onReturn(void);
+		void onKeyInput(const char c) override;
+		void renderOverlay(const CharMaskMapCache& asciiCache, const UnilocOverlay& uniloc);
+		void onResize(void);
+
+		void setPos(float x, float y);
+		void setSize(float w, float h);
+		void setText(const char* const t);
+		void setTextColor(const float r, const float g, const float b);
+
+		bool isInside(const glm::vec2& p) const;
+
+
+	};
+
+
 	class TextStream : public LuaStdOutput {
 
 	private:
@@ -59,7 +82,7 @@ namespace dal {
 	};
 
 
-	class TextBox : public ScreenQuad, public RenderableOverlay {
+	class TextBox : public Widget {
 
 	private:
 		TextStream* m_strBuffer = nullptr;
@@ -75,6 +98,10 @@ namespace dal {
 		explicit TextBox(const CharMaskMapCache& asciiCache);
 		TextStream* setStrBuf(TextStream* const strBuf);
 		virtual void renderOverlay(const UnilocOverlay& uniloc) override;
+
+		void setColor(float r, float g, float b, float a) {
+			this->m_quadRender.setColor(r, g, b, a);
+		}
 
 		int addScroll(int v);
 

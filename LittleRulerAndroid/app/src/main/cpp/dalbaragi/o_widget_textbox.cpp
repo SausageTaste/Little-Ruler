@@ -11,6 +11,13 @@
 using namespace std::string_literals;
 
 
+namespace {
+
+	dal::QuadRenderer g_charDrawer;
+
+}
+
+
 namespace dal {
 
 	LineEdit::LineEdit(void) {
@@ -150,6 +157,103 @@ namespace dal {
 
 namespace dal {
 
+	LineEdit2::LineEdit2(void) {
+		mLineEdit.setPos(10.0f, 40.0f);
+		mLineEdit.setSize(400.0f, 20.0f);
+
+		this->setPos(10.0, 40.0);
+		this->setSize()
+	}
+
+	void LineEdit2::onKeyInput(const char c) {
+		switch (c) {
+
+		case '\n':
+			this->onReturn();
+			break;
+		case '\b':
+			if (mText.empty()) break;
+			mText.pop_back();
+			break;
+		case '\t':
+			mText += "    ";  // 4 whitespaces. 
+			break;
+		case '\0':
+			return;
+		default:
+			mText += c;
+			break;
+
+		}
+	}
+
+	void LineEdit2::onReturn(void) {
+		Lua::getinst().doString(mText.c_str());
+		mText.clear();
+	}
+
+	void LineEdit2::renderOverlay(const CharMaskMapCache& asciiCache, const UnilocOverlay& uniloc) {
+		mMainBox.renderOverlay(uniloc);
+
+		auto& p1 = mMainBox.getPointScr1();
+		auto& p2 = mMainBox.getPointScr2();
+
+		float xAdvance = p1.x;
+		const float boxHeight = p2.y - p1.y;
+		const float yHeight = p2.y - boxHeight / 4.0f;
+
+		for (auto c : mText) {
+			auto& charac = asciiCache.at((unsigned int)c);
+
+			const float xPos = xAdvance + charac.bearing.x;
+			const float yPos = yHeight - charac.bearing.y;
+
+			const float xPos2 = xPos + charac.size.x;
+			const float yPos2 = yPos + charac.size.y;
+
+			mCharDrawer.setMaskMap(charac.tex);
+			mCharDrawer.setPointScrs(xPos, yPos, xPos2, yPos2);
+			mCharDrawer.renderOverlay(uniloc);
+
+			xAdvance += (charac.advance >> 6);
+		}
+	}
+
+	void LineEdit2::onResize(void) {
+		mMainBox.convertScrIntoDev();
+	}
+
+	void LineEdit2::setPos(float x, float y) {
+		this->mMainBox.moveCornerTo_screenCoord(x, y);
+	}
+
+	void LineEdit2::setSize(float w, float h) {
+		this->mMainBox.setWidth(w);
+		this->mMainBox.setHeight(h);
+	}
+
+	void LineEdit2::setText(const char* const t) {
+		mText = t;
+	}
+
+	void LineEdit2::setTextColor(const float r, const float g, const float b) {
+		this->mCharDrawer.setColor(r, g, b);
+	}
+
+	bool LineEdit2::isInside(const glm::vec2 & p) const {
+		const auto p1 = mMainBox.getPointScr1();
+		const auto& p2 = mMainBox.getPointScr2();
+
+		AABB_2D box;
+		box.setPoints(p1, p2);
+		return box.isInside(p);
+	}
+
+}
+
+
+namespace dal {
+
 	bool TextStream::append(const char* const str) {
 		return this->append(str, std::strlen(str));
 	}
@@ -200,7 +304,10 @@ namespace dal {
 	TextBox::TextBox(const CharMaskMapCache& asciiCache)
 	:	m_asciiCache(asciiCache)
 	{
+		constexpr float c = 30.0f / 255.0f;
+		this->m_quadRender.setColor(c, c, c, 1.0f);
 
+		this->m_text.append("Sungmin Woo\nwoos8899@gmail.com\n\n");
 	}
 
 	TextStream* TextBox::setStrBuf(TextStream* const strBuf) {
@@ -211,13 +318,10 @@ namespace dal {
 
 	void TextBox::renderOverlay(const UnilocOverlay& uniloc) {
 		this->fetchStream();
-
 		m_quadRender.renderQuad(uniloc, this->getDeviceSpace());
 
 		{
-			static QuadPrimitive charDrawer;
-
-			auto info = this->getScreenSpace();
+			auto info = this->makeScreenSpace();
 
 			const float xInit = info.p1.x + 5.0f;
 			float xAdvance = xInit;
@@ -241,28 +345,23 @@ namespace dal {
 					yHeight += 20.0f;
 					xAdvance = xInit;
 				}
+
+				QuadInfo charQuad;
 				
-				const float xPos = xAdvance + charac.bearing.x;
-				const float yPos = yHeight - charac.bearing.y;
+				charQuad.p1.x = xAdvance + charac.bearing.x;
+				charQuad.p1.y = yHeight - charac.bearing.y;
+				if (charQuad.p1.y < info.p1.y) continue;
 
-				if (yPos < info.p1.y) continue;
+				charQuad.p2.x = charQuad.p1.x + charac.size.x;
+				charQuad.p2.y = charQuad.p1.y + charac.size.y;
+				if (charQuad.p2.y > info.p2.y) return;
 
-				const float xPos2 = xPos + charac.size.x;
-				const float yPos2 = yPos + charac.size.y;
-
-				if (yPos2 > info.p2.y) return;
-
-				charDrawer.setMaskMap(charac.tex);
-				charDrawer.setPointScrs(xPos, yPos, xPos2, yPos2);
-				charDrawer.renderOverlay(uniloc);
+				g_charDrawer.setMaskMap(charac.tex);
+				g_charDrawer.renderQuad(uniloc, charQuad.screen2device());
 
 				xAdvance += (charac.advance >> 6);
-
-				
 			}
 		}
-
-		
 	}
 
 	int TextBox::addScroll(int v) {
