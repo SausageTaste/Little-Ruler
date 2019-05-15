@@ -37,9 +37,9 @@ target_include_directories(interface4jni PRIVATE ${library_dir}/lua-5.3.5/includ
 
 
 # Freetype
-add_library(lib_freetype STATIC IMPORTED)
+add_library(lib_freetype SHARED IMPORTED)
 set_target_properties(lib_freetype PROPERTIES IMPORTED_LOCATION
-        ${library_dir}/freetype-2.10.0/a/${ANDROID_ABI}/libfreetyped.a)
+        ${library_dir}/freetype-2.10.0/so/${ANDROID_ABI}/libfreetype.so)
 target_include_directories(interface4jni PRIVATE ${library_dir}/freetype-2.10.0/include)
 
 
