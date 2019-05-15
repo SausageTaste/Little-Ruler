@@ -70,6 +70,8 @@ namespace dal {
 		int m_scroll = 0;
 
 	public:
+		virtual void onClick(const float x, const float y) override;
+
 		explicit TextBox(const CharMaskMapCache& asciiCache);
 		TextStream* setStrBuf(TextStream* const strBuf);
 		virtual void renderOverlay(const UnilocOverlay& uniloc) override;

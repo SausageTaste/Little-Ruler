@@ -17,6 +17,7 @@ namespace dal {
 	public:
 		virtual ~IClickable(void) = default;
 		virtual void onClick(const float x, const float y) = 0;
+		virtual bool isInside(const float x, const float y) = 0;
 
 	};
 
@@ -39,7 +40,7 @@ namespace dal {
 	};
 
 
-	class ScreenQuad {
+	class ScreenQuad : public IClickable {
 
 	public:
 		enum class AlignMode {
@@ -55,6 +56,9 @@ namespace dal {
 		float m_parentWidth = 1.0f, m_parentHeight = 1.0f;
 
 	public:
+		virtual void onClick(const float x, const float y) override {}
+		virtual bool isInside(const float x, const float y) override;
+
 		float getPosX(void) const { return m_xPos; }
 		float getPosY(void) const { return m_yPos; }
 		float getWidth(void) const { return m_width; }

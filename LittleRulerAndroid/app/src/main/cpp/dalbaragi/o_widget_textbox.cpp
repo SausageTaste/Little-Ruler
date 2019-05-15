@@ -221,7 +221,7 @@ namespace dal {
 
 			const float xInit = info.p1.x + 5.0f;
 			float xAdvance = xInit;
-			float yHeight = info.p1.y + 20.0f;
+			float yHeight = info.p1.y + 20.0f - this->m_scroll;
 
 			for (auto c : this->m_text) {
 				if ('\n' == c) {
@@ -230,23 +230,35 @@ namespace dal {
 					continue;
 				}
 				else if ('\t' == c) {
-					xAdvance += 10.0f;
+					xAdvance += 20.0f;
 					continue;
 				}
 
 				auto& charac = this->m_asciiCache.at((unsigned int)c);
+
+				// Returns if line is full.
+				if (xAdvance + charac.size.x >= info.p2.x) {
+					yHeight += 20.0f;
+					xAdvance = xInit;
+				}
 				
 				const float xPos = xAdvance + charac.bearing.x;
 				const float yPos = yHeight - charac.bearing.y;
 
+				if (yPos < info.p1.y) continue;
+
 				const float xPos2 = xPos + charac.size.x;
 				const float yPos2 = yPos + charac.size.y;
+
+				if (yPos2 > info.p2.y) return;
 
 				charDrawer.setMaskMap(charac.tex);
 				charDrawer.setPointScrs(xPos, yPos, xPos2, yPos2);
 				charDrawer.renderOverlay(uniloc);
 
 				xAdvance += (charac.advance >> 6);
+
+				
 			}
 		}
 
@@ -256,6 +268,18 @@ namespace dal {
 	int TextBox::addScroll(int v) {
 		this->m_scroll += v;
 		return this->m_scroll;
+	}
+
+	void TextBox::onClick(const float x, const float y) {
+		constexpr int scrollSpeed = 20;
+		const auto halfHeightScreen = this->getPosY() + this->getHeight() * 0.5f;
+
+		if (halfHeightScreen < y) {
+			this->m_scroll += scrollSpeed;
+		}
+		else {
+			this->m_scroll -= scrollSpeed;
+		}
 	}
 
 	// Private
@@ -268,7 +292,6 @@ namespace dal {
 
 		this->m_text += str;
 		this->m_strBuffer->clear();
-		LoggerGod::getinst().putInfo("Fetched: "s + str);
 	}
 
 }

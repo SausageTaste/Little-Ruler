@@ -9,6 +9,7 @@
 #include "o_text_cache.h"
 #include "o_widget_textbox.h"
 #include "o_widget_base.h"
+#include "s_logger_god.h"
 
 
 namespace dal {

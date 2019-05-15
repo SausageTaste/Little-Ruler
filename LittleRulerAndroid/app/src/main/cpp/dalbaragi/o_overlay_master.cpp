@@ -94,13 +94,19 @@ namespace dal {
 	void OverlayMaster::onClick(const float x, const float y) {
 		g_logger.putTrace("Click: "s + std::to_string(x) + ", " + std::to_string(y));
 
-		if (mGlobalFSM == GlobalFSM::menu && mLineEdit.isInside({ x, y })) {
+		if (GlobalFSM::menu != this->mGlobalFSM) return;
+
+		if (mLineEdit.isInside({ x, y })) {
 			this->m_keyTaker = &this->mLineEdit;
 			mLineEdit.setTextColor(1.0f, 1.0f, 1.0f);
 		}
 		else {
 			this->m_keyTaker = nullptr;
 			mLineEdit.setTextColor(0.4f, 0.4f, 0.4f);
+		}
+
+		if (this->m_texBox.isInside(x, y)) {
+			this->m_texBox.onClick(x, y);
 		}
 	}
 

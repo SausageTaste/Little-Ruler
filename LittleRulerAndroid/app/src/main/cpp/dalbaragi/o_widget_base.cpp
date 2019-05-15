@@ -1,6 +1,7 @@
 #include "o_widget_base.h"
 
 #include "p_dalopengl.h"
+#include "m_collision2d.h"
 
 
 namespace {
@@ -71,6 +72,14 @@ namespace {
 
 
 namespace dal {
+
+	bool ScreenQuad::isInside(const float x, const float y) {
+		const auto quad = this->getScreenSpace();
+
+		AABB_2D box;
+		box.setPoints(quad.p1, quad.p2);
+		return box.isInside({ x, y });
+	}
 
 	void ScreenQuad::setPosX(const float v) {
 		this->m_xPos = v;
