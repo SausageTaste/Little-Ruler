@@ -183,12 +183,9 @@ namespace {
 				newPath = accumPath + '/' + folNode.m_name;
 			}
 
-			g_logger.putTrace("Test folder: "s + newPath);
-
 			std::vector<std::string> dirs;
 			getFileList_android(newPath, dirs);
 			for (auto& fileName : dirs) {
-				g_logger.putTrace("Test file: "s + newPath + '/' + fileName);
 				if (criteria == fileName) {
 					result = newPath;
 					return true;
@@ -578,7 +575,10 @@ namespace dal {
 	}
 
 	size_t AssetFileStream::read(uint8_t * const buf, const size_t bufSize) {
-		auto sizeToRead = bufSize < m_fileContentsSize ? bufSize : m_fileContentsSize;
+		// Android asset manager implicitly read beyond file range WTF!!!
+		const auto remaining = m_fileContentsSize - this->tell();
+		auto sizeToRead = bufSize < remaining ? bufSize : remaining;
+		if (sizeToRead <= 0) return 0;
 
 #if defined(_WIN32)
 		this->pimpl->mIFile.read(reinterpret_cast<char*>(buf), sizeToRead);
