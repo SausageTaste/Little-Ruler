@@ -4,6 +4,8 @@
 #include <vector>
 #include <memory>
 
+#include <fmt/format.h>
+
 #include "p_dalopengl.h"
 #include "s_logger_god.h"
 #include "u_fileclass.h"
@@ -89,7 +91,8 @@ namespace dal {
 
 		// Test
 		{
-
+			const auto formetted = fmt::format("Hello {}!, {}\n", "fmt", 123);
+			LoggerGod::getinst().putInfo(formetted);
 		}
 
 		const auto elapsed = m_initTimer.check_getElapsed_capFPS();
