@@ -22,6 +22,13 @@ using namespace std::string_literals;
 
 namespace {
 
+	auto& g_logger = dal::LoggerGod::getinst();
+
+}
+
+
+namespace {
+
 	class AssIOStreamAsset : public Assimp::IOStream {
 
 	private:
@@ -43,7 +50,7 @@ namespace {
 		}
 
 		virtual size_t Read(void* pvBuffer, size_t pSize, size_t pCount) override {
-			return m_handle.read(static_cast<uint8_t*>(pvBuffer), pSize* pCount);
+			return m_handle.read(static_cast<uint8_t*>(pvBuffer), pSize * pCount);
 		}
 
 		virtual aiReturn Seek(size_t pOffset, aiOrigin pOrigin) override {
@@ -233,6 +240,7 @@ namespace dal {
 		Assimp::Importer importer;
 		importer.SetIOHandler(new AssIOSystem_Asset);
 		const aiScene* const scene = importer.ReadFile(assetPath.makeFilePath().c_str(), aiProcess_Triangulate);
+
 		//const aiScene* const scene = importer.ReadFileFromMemory(buf, bufSize, aiProcess_Triangulate | aiProcess_FlipUVs);
 		if ((nullptr == scene) || (scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE) || (nullptr == scene->mRootNode)) {
 			LoggerGod::getinst().putError("Assimp read fail: "s + importer.GetErrorString());
