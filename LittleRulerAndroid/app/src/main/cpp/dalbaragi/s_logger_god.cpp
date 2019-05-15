@@ -4,10 +4,22 @@
 
 #if defined(_WIN32)
 	#include <stdio.h>
-	#define printFunc(...) printf(__VA_ARGS__)
+
+	#define printVerbose(...) printf(__VA_ARGS__)
+	#define printDebug(...)   printf(__VA_ARGS__)
+	#define printInfo(...)    printf(__VA_ARGS__)
+	#define printWarn(...)    printf(__VA_ARGS__)
+	#define printError(...)   printf(__VA_ARGS__)
+	#define printAssert(...)  printf(__VA_ARGS__)
 #elif defined(__ANDROID__)
 	#include <android/log.h>
-	#define printFunc(...) __android_log_print(ANDROID_LOG_VERBOSE, "DALBARAGI", __VA_ARGS__)
+
+	#define printVerbose(...) __android_log_print(ANDROID_LOG_VERBOSE, "DALBARAGI", __VA_ARGS__)
+	#define printDebug(...)   __android_log_print(ANDROID_LOG_DEBUG, "DALBARAGI", __VA_ARGS__)
+	#define printInfo(...)    __android_log_print(ANDROID_LOG_INFO, "DALBARAGI", __VA_ARGS__)
+	#define printWarn(...)    __android_log_print(ANDROID_LOG_WARN, "DALBARAGI", __VA_ARGS__)
+	#define printError(...)   __android_log_print(ANDROID_LOG_ERROR, "DALBARAGI", __VA_ARGS__)
+	#define printAssert(...)  __android_log_print(ANDROID_LOG_ASSERT, "DALBARAGI", __VA_ARGS__)
 #else
 	#error "Unkown platform"
 #endif
@@ -20,31 +32,31 @@ namespace dal {
 	}
 
 	void LoggerGod::putFatal(const std::string& text) {
-		printFunc("[FATAL] %s\n", text.c_str());
+		printError("[FATAL] %s\n", text.c_str());
 	}
 
 	void LoggerGod::putError(const std::string& text) {
-		printFunc("[ERROR] %s\n", text.c_str());
+		printError("[ERROR] %s\n", text.c_str());
 	}
 
 	void LoggerGod::putWarn(const std::string& text) {
-		printFunc("[WARN ] %s\n", text.c_str());
+		printWarn("[WARN ] %s\n", text.c_str());
 	}
 
 	void LoggerGod::putInfo(const std::string& text) {
-		printFunc("[INFO ] %s\n", text.c_str());
+		printInfo("[INFO ] %s\n", text.c_str());
 	}
 
 	void LoggerGod::putDebug(const std::string& text) {
-		printFunc("[DEBUG] %s\n", text.c_str());
+		printDebug("[DEBUG] %s\n", text.c_str());
 	}
 
 	void LoggerGod::putTrace(const std::string& text) {
-		printFunc("[TRACE] %s\n", text.c_str());
+		printVerbose("[TRACE] %s\n", text.c_str());
 	}
 
 	void LoggerGod::abort(const std::string& text) {
-		printFunc("[ABORT] %s\n", text.c_str());
+		printError("[ABORT] %s\n", text.c_str());
 		throw -1;
 	}
 
