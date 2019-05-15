@@ -6,7 +6,7 @@ import demo_mapcreate as mcr
 
 
 OUTPUT_FOLDER: str = "./outputs/"
-ASSET_FOLDER: str = "./../Resource/asset/maps/"
+ASSET_FOLDER: str = "./../Resource/asset/map/"
 
 
 def copyOutputf() -> None:

@@ -140,7 +140,7 @@ namespace {  // Make attribs
 				header += 4;
 			}
 
-			printf("Offset %d\n", header - begin);
+			printf("Offset %d\n", static_cast<int>(header - begin));
 
 			info.pos = { numBuf[0], numBuf[1], numBuf[2] };
 			info.myQuat.x = numBuf[3];

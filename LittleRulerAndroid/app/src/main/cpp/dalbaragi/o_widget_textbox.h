@@ -20,7 +20,6 @@ namespace dal {
 		QuadPrimitive mCharDrawer;
 
 		std::string mText;
-		float mScale;
 
 	public:
 		LineEdit(void);

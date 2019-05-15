@@ -43,7 +43,7 @@ namespace dal {
 
 		Actor* addActorForModel(const ResourceID& resID, const std::string& actorName);
 
-		void loadMap(const const ResourceID& mapID);
+		void loadMap(const ResourceID& mapID);
 
 	private:
 		void addMap(const LoadedMap& map);

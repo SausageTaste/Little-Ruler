@@ -89,10 +89,6 @@ namespace {
 
 	class AssIOSystem_Asset : public Assimp::IOSystem {
 
-	private:
-		std::vector<std::string> m_stackDir;
-		static const std::string m_emptyStr;
-
 	public:
 		virtual void Close(Assimp::IOStream* pFile) override {
 			delete pFile;
@@ -107,7 +103,7 @@ namespace {
 			return '/';
 		}
 
-		virtual Assimp::IOStream* Open(const char* pFile, const char* pMode = "rb") {
+		virtual Assimp::IOStream* Open(const char* pFile, const char* pMode = "rb") override {
 			if (pMode[0] == 'w') {
 				dal::LoggerGod::getinst().putError("Writing is not supported for assets.");
 				return nullptr;

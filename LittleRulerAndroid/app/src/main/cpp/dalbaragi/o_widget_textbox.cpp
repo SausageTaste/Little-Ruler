@@ -13,9 +13,7 @@ using namespace std::string_literals;
 
 namespace dal {
 
-	LineEdit::LineEdit(void)
-	:	mScale(1.0f)
-	{
+	LineEdit::LineEdit(void) {
 		mCharDrawer.setColor(1.0, 1.0, 1.0);
 		mMainBox.setColor(0.0, 0.0, 0.0);
 	}

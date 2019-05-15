@@ -115,7 +115,8 @@ namespace {
 
 	public:
 		WindowSDL(const char* const title, int winWidth, int winHeight, bool fullscreen) {
-			/* Init window */ {
+			// Init window
+			{
 				if (SDL_Init(SDL_INIT_VIDEO) < 0) {
 					std::cout << "Failed to initiate SDL." << std::endl;
 					throw -1;
@@ -140,23 +141,21 @@ namespace {
 
 				}
 
-				if (mWindow == nullptr) {
+				if (nullptr == mWindow) {
 					std::cout << "Creating window failed, SDL Error: " << SDL_GetError() << '\n';
 					throw -1;
 				}
 			}
 
-			/* Create context */ {
-				mContext = SDL_GL_CreateContext(mWindow);
-				if (mContext == NULL) {
-					std::cout << "Creating OpenGL context failed, SDL Error: " << SDL_GetError() << '\n';
-					throw -1;
-				}
+			// Create context
+			mContext = SDL_GL_CreateContext(mWindow);
+			if (nullptr == mContext) {
+				std::cout << "Creating OpenGL context failed, SDL Error: " << SDL_GetError() << '\n';
+				throw -1;
+			}
 
-				if (SDL_GL_SetSwapInterval(0) < 0) {
-					std::cout << "Unable to set VSync, SDL Error: " << SDL_GetError() << std::endl;
-					throw -1;
-				}
+			if (SDL_GL_SetSwapInterval(0) < 0) {
+				std::cout << "Unable to disable VSync, SDL Error: " << SDL_GetError() << std::endl;
 			}
 
 			this->initGLew();

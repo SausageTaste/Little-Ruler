@@ -10,15 +10,21 @@ def main():
     model = bfi.BuildInfo_ModelImported()
 
     actor = aco.ActorInfo()
-    actor.setName("Yuri")
+    actor.setName("Yuri1")
     actor.getQuatHandle().rotate(180, (0, 1, 0))
     actor.getPosHandle().setZ(-5)
     model.addActor(actor)
 
     actor = aco.ActorInfo()
     actor.setName("Yuri2")
-    actor.getQuatHandle().rotate(90, (0, 1, 0))
+    actor.getQuatHandle().rotate(-90, (0, 1, 0))
     actor.getPosHandle().setX(5)
+    model.addActor(actor)
+
+    actor = aco.ActorInfo()
+    actor.setName("Yuri2")
+    actor.getQuatHandle().rotate(90, (0, 1, 0))
+    actor.getPosHandle().setX(-5)
     model.addActor(actor)
 
     model.setModelID("yuri.obj")
@@ -29,17 +35,6 @@ def main():
     model = bfi.BuildInfo_ModelImported()
     model.addActor(aco.ActorInfo())
     model.setModelID("palanquin.obj")
-    level.add(model)
-
-    ########
-
-    model = bfi.BuildInfo_ModelImported()
-
-    actor = aco.ActorInfo()
-    actor.getPosHandle().setX(-4)
-    model.addActor(actor)
-
-    model.setModelID("honoka.obj")
     level.add(model)
 
     ########

@@ -8,9 +8,6 @@ import level.datastruct.attrib_leaf as pri
 import level.datastruct.error_reporter as ere
 
 
-
-
-
 class LevelBuilder(ein.ILevelElement):
     __mapItems = {
         bif.BuildInfo_ModelDefined.getFieldTypeOfSelf(): bif.BuildInfo_ModelDefined,
