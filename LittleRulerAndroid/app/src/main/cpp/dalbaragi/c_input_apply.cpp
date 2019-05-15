@@ -616,7 +616,7 @@ namespace dal {
 #if defined(_WIN32)
 			apply_flyPlane(deltaTime, targetPos, targetViewDir, this->m_overlayMas);
 #else defined(__ANDROID__)
-			apply_flyDirectional(deltaTime, targetPos, targetViewDir);
+			apply_flyDirectional(deltaTime, targetPos, targetViewDir, this->m_overlayMas);
 #endif
 			break;
 		case GlobalFSM::menu:

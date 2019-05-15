@@ -46,8 +46,15 @@ target_include_directories(interface4jni PRIVATE ${library_dir}/freetype-2.10.0/
 # Assimp
 add_library(lib_assimp SHARED IMPORTED)
 set_target_properties(lib_assimp PROPERTIES IMPORTED_LOCATION
-        ${library_dir}/assimp-3.3.1/so/${ANDROID_ABI}/libassimpd.so)
-target_include_directories(interface4jni PRIVATE ${library_dir}/assimp-3.3.1/include)
+        ${library_dir}/assimp-4.1.0/so/${ANDROID_ABI}/libassimp.so)
+target_include_directories(interface4jni PRIVATE ${library_dir}/assimp-4.1.0/include)
+
+
+# fmt
+add_library(lib_fmt SHARED IMPORTED)
+set_target_properties(lib_fmt PROPERTIES IMPORTED_LOCATION
+        ${library_dir}/fmt-5.3.0/so/${ANDROID_ABI}/libfmt.so)
+target_include_directories(interface4jni PRIVATE ${library_dir}/fmt-5.3.0/include)
 
 
 # GLM
@@ -72,4 +79,5 @@ target_link_libraries(
         lib_lua
         lib_freetype
         lib_assimp
+        lib_fmt
 )

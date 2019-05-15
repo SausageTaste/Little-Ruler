@@ -557,13 +557,13 @@ namespace dal {
 		std::string result;
 
 		result.append("Package : "s + m_packageName + '\n');
-		result.append("\tModels" + '\n');
+		result.append("\tModels"s + '\n');
 
 		for (auto& x : m_models) {
 			result.append("\t\t"s + x.first + " (" + std::to_string(x.second) + ")" + '\n');
 		}
 
-		result.append("\tTextures" + '\n');
+		result.append("\tTextures"s + '\n');
 
 		for (auto& x : m_textures) {
 			result.append("\t\t"s + x.first + " (" + std::to_string(x.second) + ")" + '\n');
