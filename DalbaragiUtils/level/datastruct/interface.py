@@ -23,6 +23,9 @@ class ILevelElement(abc.ABC):
     @abc.abstractmethod
     def getIntegrityReport(self, usageName: str = "") -> ere.IntegrityReport: pass
 
+    @abc.abstractmethod
+    def getDataReport(self, usageName: str = "") -> ere.DataReport: pass
+
 
 class ILevelAttribLeaf(ILevelElement):
     @abc.abstractmethod
@@ -39,6 +42,9 @@ class ILevelAttribLeaf(ILevelElement):
 
     @abc.abstractmethod
     def getIntegrityReport(self, usageName: str = "") -> ere.IntegrityReport: pass
+
+    @abc.abstractmethod
+    def getDataReport(self, usageName: str = "") -> ere.DataReport: pass
 
 
 class ILevelAttrib(ILevelElement):
@@ -89,6 +95,15 @@ class ILevelAttrib(ILevelElement):
 
         return report
 
+    def getDataReport(self, usageName: str = "") -> ere.DataReport:
+        report = ere.DataReport("ILevelItem", usageName)
+
+        for field, elem in self.__attribs.items():
+            childReport = elem.getDataReport(field)
+            report.addChild(childReport)
+
+        return report
+
 
 class ILevelItem(ILevelAttrib):
     @staticmethod
@@ -108,7 +123,3 @@ class ILevelItem(ILevelAttrib):
 
     @abc.abstractmethod
     def getBinary(self) -> bytearray: pass
-
-    @staticmethod
-    @abc.abstractmethod
-    def getFieldTypeOfSelf() -> str: pass

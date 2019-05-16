@@ -97,7 +97,7 @@ class BuildInfo_ModelImported(ILevelItemModel):
         return bytearray(but.get2BytesInt(2))
 
     def getIntegrityReport(self, usageName: str = "") -> ere.IntegrityReport:
-        report = ILevelItemModel.getIntegrityReport(self)
+        report = ILevelItemModel.getIntegrityReport(self, usageName)
 
         if "" == self.getModelID():
             report.emplaceBack("model_name", "Model name to import must be defined.")
@@ -107,3 +107,49 @@ class BuildInfo_ModelImported(ILevelItemModel):
     @staticmethod
     def getFieldTypeOfSelf() -> str:
         return "model_imported"
+
+
+class BuildInfo_LightSpot(eim.ILevelItem):
+    __s_field_name = "light_name"
+    __s_field_pos = "pos"
+    __s_field_color = "color"
+
+    def __init__(self):
+        self.__name = pri.IdentifierStr()
+        self.__pos = pri.Vec3(0, 0, 0)
+        self.__color = pri.Vec3(1, 1, 1)
+
+        super().__init__({
+            self.__s_field_name  : self.__name,
+            self.__s_field_pos   : self.__pos,
+            self.__s_field_color : self.__color,
+        })
+
+    def getBinary(self) -> bytearray:
+        data = self.getTypeCode()
+        data += self.__name.getBinary()
+        data += self.__pos.getBinary()
+        data += self.__color.getBinary()
+        return data
+
+    @classmethod
+    def getTypeCode(cls) -> bytearray:
+        ere.TypeCodeInspector.reportUsage(4, cls)
+        return bytearray(but.get2BytesInt(4))
+
+    def getIntegrityReport(self, usageName: str = "") -> ere.IntegrityReport:
+        report = ILevelItemModel.getIntegrityReport(self, usageName)
+        return report
+
+    @staticmethod
+    def getFieldTypeOfSelf() -> str:
+        return "light_point"
+
+    def getPosHandle(self) -> pri.Vec3:
+        return self.__pos
+
+    def getColorHandle(self) -> pri.Vec3:
+        return self.__color
+
+    def setName(self, s: str) -> None:
+        self.__name.setStr(s)

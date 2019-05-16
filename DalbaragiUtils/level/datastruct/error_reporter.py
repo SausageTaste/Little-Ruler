@@ -91,6 +91,35 @@ class IntegrityReport:
         self.__children.append(report)
 
 
+class DataReport:
+    def __init__(self, typeStr: str, name: str):
+        self.__typeStr = str(typeStr)
+        self.__name = str(name)
+        self.__children: List[DataReport] = []
+        self.__data: Dict[str, str] = {}
+
+    def addData(self, key: str, value: str) -> None:
+        self.__data[key] = value
+
+    def addChild(self, child: "DataReport") -> None:
+        self.__children.append(child)
+
+    def getFormattedStr(self, indent: int = 0) -> str:
+        data = (indent * "\t") + "Item : {} -> {}\n".format(self.__typeStr, self.__name)
+
+        for k, v in self.__data.items():
+            data += (indent + 1) * "\t"
+            data += "{} : {}\n".format(k ,v)
+
+        data += (indent + 1) * "\t"
+        data += "has {} children\n".format(len(self.__children))
+
+        for x in self.__children:
+            data += x.getFormattedStr(indent + 1)
+
+        return data
+
+
 class TypeCodeInspector:
     __data: Dict[int, type] = {}
 

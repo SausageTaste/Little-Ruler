@@ -49,6 +49,13 @@ class Vec3(ein.ILevelAttribLeaf):
     def getIntegrityReport(self, usageName: str = "") -> ere.IntegrityReport:
         return ere.IntegrityReport(type(self).__name__, usageName)
 
+    def getDataReport(self, usageName: str = "") -> ere.DataReport:
+        report = ere.DataReport(type(self).__name__, usageName)
+
+        report.addData("value", str(self.getJson()))
+
+        return report
+
     # Vector of 3 float4 : Vec4 values
     def getBinary(self) -> bytearray:
         data = bytearray()
@@ -111,6 +118,13 @@ class Vec4(ein.ILevelAttribLeaf):
     def getIntegrityReport(self, usageName: str = "") -> ere.IntegrityReport:
         return ere.IntegrityReport(type(self).__name__, usageName)
 
+    def getDataReport(self, usageName: str = "") -> ere.DataReport:
+        report = ere.DataReport(type(self).__name__, usageName)
+
+        report.addData("value", str(self.getJson()))
+
+        return report
+
     def getLength(self) -> float:
         return math.sqrt(self.getLengthSquare())
 
@@ -157,6 +171,13 @@ class Quat(ein.ILevelAttribLeaf):
     def getIntegrityReport(self, usageName: str = "") -> ere.IntegrityReport:
         return ere.IntegrityReport(type(self).__name__, usageName)
 
+    def getDataReport(self, usageName: str = "") -> ere.DataReport:
+        report = ere.DataReport(type(self).__name__, usageName)
+
+        report.addData("value", str(self.getJson()))
+
+        return report
+
     def rotate(self, degree: float, selector: Tuple[float, float, float]):
         selcet = glm.vec3(*selector)
         what = glm.angleAxis(glm.radians(degree), selcet) * self.__quat
@@ -202,6 +223,13 @@ class IdentifierStr(ein.ILevelAttribLeaf):
 
         if not self.__text:
             report.emplaceBack("str", "Name is not defined.", ere.ErrorJournal.ERROR_LEVEL_WARN)
+
+        return report
+
+    def getDataReport(self, usageName: str = "") -> ere.DataReport:
+        report = ere.DataReport(type(self).__name__, usageName)
+
+        report.addData("value", str(self.getJson()))
 
         return report
 
@@ -256,6 +284,13 @@ class FloatData(ein.ILevelAttribLeaf):
     def getIntegrityReport(self, usageName: str = "") -> ere.IntegrityReport:
         return ere.IntegrityReport(type(self).__name__, usageName)
 
+    def getDataReport(self, usageName: str = "") -> ere.DataReport:
+        report = ere.DataReport(type(self).__name__, usageName)
+
+        report.addData("value", str(self.getJson()))
+
+        return report
+
 
 class FloatArray(ein.ILevelAttribLeaf):
     def __init__(self):
@@ -297,6 +332,14 @@ class FloatArray(ein.ILevelAttribLeaf):
 
         if self.__arr.size == 0:
             report.emplaceBack("array", "Array in empty.", ere.ErrorJournal.ERROR_LEVEL_WARN)
+
+        return report
+
+    def getDataReport(self, usageName: str = "") -> ere.DataReport:
+        report = ere.DataReport(type(self).__name__, usageName)
+
+        report.addData("size", str(len(self.__arr)))
+        report.addData("value", str(self.__arr))
 
         return report
 
@@ -357,6 +400,14 @@ class UniformList(ein.ILevelAttribLeaf):
 
         if len(self.__list) == 0:
             report.emplaceBack("size", "List is empty.")
+
+        return report
+
+    def getDataReport(self, usageName: str = "") -> ere.DataReport:
+        report = ere.DataReport(type(self).__name__, usageName)
+
+        report.addData("type", self.__type.__name__)
+        report.addData("value", str(self.getJson()))
 
         return report
 

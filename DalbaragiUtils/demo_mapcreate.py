@@ -32,6 +32,13 @@ def main():
 
     ########
 
+    light = bfi.BuildInfo_LightSpot()
+    light.setName("center_light")
+    light.getPosHandle().setY(3)
+    level.add(light)
+
+    ########
+
     model = bfi.BuildInfo_ModelImported()
     model.addActor(aco.ActorInfo())
     model.setModelID("palanquin.obj")
@@ -48,6 +55,7 @@ def main():
 
     lvb.saveLevelJson(level)
     print("Saved: " + level.getLevelName() + ".json")
+    print(level.getDataReport().getFormattedStr())
 
 
 if __name__ == '__main__':

@@ -12,6 +12,7 @@ class LevelBuilder(ein.ILevelElement):
     __mapItems = {
         bif.BuildInfo_ModelDefined.getFieldTypeOfSelf(): bif.BuildInfo_ModelDefined,
         bif.BuildInfo_ModelImported.getFieldTypeOfSelf(): bif.BuildInfo_ModelImported,
+        bif.BuildInfo_LightSpot.getFieldTypeOfSelf(): bif.BuildInfo_LightSpot,
     }
 
     def __init__(self, name:str):
@@ -49,6 +50,15 @@ class LevelBuilder(ein.ILevelElement):
         for obj in self.__infoDatas:
             reportChild = obj.getIntegrityReport(obj.getFieldTypeOfSelf())
             if reportChild.hasWarningOrWorse(): report.addChild(reportChild)
+
+        return report
+
+    def getDataReport(self, usageName: str = "") -> ere.DataReport:
+        report = ere.DataReport("Level", self.__levelName.getStr())
+
+        for obj in self.__infoDatas:
+            reportChild = obj.getDataReport(obj.getFieldTypeOfSelf())
+            report.addChild(reportChild)
 
         return report
 
