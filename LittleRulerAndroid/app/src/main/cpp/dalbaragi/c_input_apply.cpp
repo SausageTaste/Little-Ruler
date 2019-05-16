@@ -563,7 +563,7 @@ namespace {
 
 	}
 
-	void applyMenuControl(dal::OverlayMaster& overlay) {
+	void apply_menuControl(dal::OverlayMaster& overlay) {
 		gTouchMaster.fetch_menuControl(overlay);
 
 		std::string str;
@@ -620,7 +620,7 @@ namespace dal {
 #endif
 			break;
 		case GlobalFSM::menu:
-			applyMenuControl(this->m_overlayMas);
+			apply_menuControl(this->m_overlayMas);
 			break;
 		
 		}
