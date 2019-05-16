@@ -91,6 +91,10 @@ namespace dal {
 		mText = t;
 	}
 
+	void LineEdit2::setBoxColor(const float r, const float g, const float b, const float a) {
+		this->m_quadRender.setColor(r, g, b, a);
+	}
+
 }
 
 

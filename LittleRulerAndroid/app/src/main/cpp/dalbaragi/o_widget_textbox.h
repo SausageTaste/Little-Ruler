@@ -26,6 +26,8 @@ namespace dal {
 		void onKeyInput(const char c) override;
 		virtual void renderOverlay(const UnilocOverlay& uniloc) override;
 		void setText(const std::string& t);
+		void setBoxColor(const float r, const float g, const float b, const float a);
+
 	};
 
 

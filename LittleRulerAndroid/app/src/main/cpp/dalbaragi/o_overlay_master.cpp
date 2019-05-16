@@ -37,6 +37,8 @@ namespace dal {
 				fpsDisplayer->setPosY(10.0f);
 				fpsDisplayer->setWidth(100.0f);
 				fpsDisplayer->setHeight(20.0f);
+				fpsDisplayer->setPauseOnly(false);
+				fpsDisplayer->setBoxColor(0.0f, 0.0f, 0.0f, 0.0f);
 
 				this->mDisplayFPS = fpsDisplayer;
 				this->m_widgets.push_back(fpsDisplayer);
@@ -92,6 +94,13 @@ namespace dal {
 	OverlayMaster::~OverlayMaster(void) {
 		EventGod::getinst().deregisterHandler(this, EventType::window_resize);
 		EventGod::getinst().deregisterHandler(this, EventType::global_fsm_change);
+
+		this->mDisplayFPS = nullptr;
+
+		for (auto win : this->m_widgets) {
+			delete win;
+		}
+		this->m_widgets.clear();
 	}
 
 	void OverlayMaster::onEvent(const EventStatic& e) {
