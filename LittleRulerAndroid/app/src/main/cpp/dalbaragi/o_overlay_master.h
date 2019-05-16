@@ -27,7 +27,7 @@ namespace dal {
 
 		GlobalFSM mGlobalFSM;
 
-		LineEdit2* mDisplayFPS;
+		LineEdit* mDisplayFPS;
 		TextStream m_strBuffer;
 
 		std::list<Widget*> m_widgets;

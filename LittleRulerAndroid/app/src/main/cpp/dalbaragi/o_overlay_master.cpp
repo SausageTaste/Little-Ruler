@@ -31,7 +31,7 @@ namespace dal {
 			script::set_outputStream(&this->m_strBuffer);
 
 			{
-				auto fpsDisplayer = new LineEdit2(this->m_asciiCache);
+				auto fpsDisplayer = new LineEdit(this->m_asciiCache);
 				
 				fpsDisplayer->setPosX(10.0f);
 				fpsDisplayer->setPosY(10.0f);
@@ -45,7 +45,7 @@ namespace dal {
 			}
 
 			{
-				auto wid = new LineEdit2(this->m_asciiCache);
+				auto wid = new LineEdit(this->m_asciiCache);
 
 				wid->setPosX(10.0f);
 				wid->setPosY(10.0f);

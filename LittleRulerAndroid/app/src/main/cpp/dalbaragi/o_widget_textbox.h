@@ -13,7 +13,7 @@
 
 namespace dal {
 
-	class LineEdit2 : public Widget {
+	class LineEdit : public Widget {
 
 	private:
 		QuadRenderer m_quadRender;
@@ -21,7 +21,7 @@ namespace dal {
 		const CharMaskMapCache& m_asciiCache;
 
 	public:
-		LineEdit2(const CharMaskMapCache& asciiCache);
+		LineEdit(const CharMaskMapCache& asciiCache);
 		void onReturn(void);
 		void onKeyInput(const char c) override;
 		virtual void renderOverlay(const UnilocOverlay& uniloc) override;

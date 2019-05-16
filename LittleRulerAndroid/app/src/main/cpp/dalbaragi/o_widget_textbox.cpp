@@ -22,7 +22,7 @@ namespace {
 
 namespace dal {
 
-	LineEdit2::LineEdit2(const CharMaskMapCache& asciiCache)
+	LineEdit::LineEdit(const CharMaskMapCache& asciiCache)
 		: m_asciiCache(asciiCache)
 	{
 		this->setPosX(10.0f);
@@ -33,7 +33,7 @@ namespace dal {
 		this->m_quadRender.setColor(g_darkTheme, g_darkTheme, g_darkTheme, 1.0f);
 	}
 
-	void LineEdit2::onKeyInput(const char c) {
+	void LineEdit::onKeyInput(const char c) {
 		switch (c) {
 
 		case '\n':
@@ -55,12 +55,12 @@ namespace dal {
 		}
 	}
 
-	void LineEdit2::onReturn(void) {
+	void LineEdit::onReturn(void) {
 		Lua::getinst().doString(mText.c_str());
 		mText.clear();
 	}
 
-	void LineEdit2::renderOverlay(const UnilocOverlay& uniloc) {
+	void LineEdit::renderOverlay(const UnilocOverlay& uniloc) {
 		this->m_quadRender.renderQuad(uniloc, this->getDeviceSpace());
 
 		const auto screenInfo = this->makeScreenSpace();
@@ -87,11 +87,11 @@ namespace dal {
 		}
 	}
 
-	void LineEdit2::setText(const std::string& t) {
+	void LineEdit::setText(const std::string& t) {
 		mText = t;
 	}
 
-	void LineEdit2::setBoxColor(const float r, const float g, const float b, const float a) {
+	void LineEdit::setBoxColor(const float r, const float g, const float b, const float a) {
 		this->m_quadRender.setColor(r, g, b, a);
 	}
 
