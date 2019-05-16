@@ -15,154 +15,22 @@ namespace {
 
 	dal::QuadRenderer g_charDrawer;
 
-}
-
-
-namespace dal {
-
-	LineEdit::LineEdit(void) {
-		mCharDrawer.setColor(1.0, 1.0, 1.0);
-		mMainBox.setColor(0.0, 0.0, 0.0);
-	}
-
-	void LineEdit::onKeyInput(const char c) {
-		switch (c) {
-
-		case '\n':
-			this->onReturn();
-			break;
-		case '\b':
-			if (mText.empty()) break;
-			mText.pop_back();
-			break;
-		case '\t':
-			mText += "    ";  // 4 whitespaces. 
-			break;
-		case '\0':
-			return;
-		default:
-			mText += c;
-			break;
-
-		}
-	}
-
-	void LineEdit::onReturn(void) {
-		Lua::getinst().doString(mText.c_str());
-		mText.clear();
-	}
-
-	void LineEdit::renderOverlay(const CharMaskMapCache& asciiCache, const UnilocOverlay& uniloc) {
-		mMainBox.renderOverlay(uniloc);
-
-		auto& p1 = mMainBox.getPointScr1();
-		auto& p2 = mMainBox.getPointScr2();
-
-		float xAdvance = p1.x;
-		const float boxHeight = p2.y - p1.y;
-		const float yHeight = p2.y - boxHeight / 4.0f;
-
-		for (auto c : mText) {
-			auto& charac = asciiCache.at((unsigned int)c);
-
-			const float xPos = xAdvance + charac.bearing.x;
-			const float yPos = yHeight - charac.bearing.y;
-
-			const float xPos2 = xPos + charac.size.x;
-			const float yPos2 = yPos + charac.size.y;
-
-			mCharDrawer.setMaskMap(charac.tex);
-			mCharDrawer.setPointScrs(xPos, yPos, xPos2, yPos2);
-			mCharDrawer.renderOverlay(uniloc);
-
-			xAdvance += (charac.advance >> 6);
-		}
-
-		/*
-		mMainBox.renderOverlay(uniloc);
-		const float textPortion = 0.8f;
-		
-		float x, y;
-		mMainBox.getPointScr1(&x, &y);
-
-		float largestHeight = 0.0f;
-		for (auto c : mText) {
-			const auto height = float(asciiCache.at((unsigned int)c).size.y);
-			if (height > largestHeight) {
-				largestHeight = float(height);
-			}
-		}
-
-		//mScale = textPortion * mMainBox.getHeight() / largestHeight;
-		mScale = 1.0f;
-
-		for (auto c : mText) {
-			auto& charac = asciiCache.at((unsigned int)c);
-
-			const float xPos = x + charac.bearing.x * mScale;
-			const float verticalReplaceAsScale = ((1.0f - textPortion) / 2.0f * mMainBox.getHeight());
-			const float yPos = y - (2.0f * charac.size.y - charac.bearing.y - largestHeight) * mScale + verticalReplaceAsScale;
-
-			const float xPos2 = xPos + charac.size.x * mScale;
-			const float yPos2 = yPos + charac.size.y * mScale;
-			
-			const float xAxisOverflow = xPos2 - mMainBox.getPointScr2X();
-			if (xAxisOverflow > 0.0f) {
-				//xPos2 -= xAxisOverflow;
-				continue;
-			}
-			//if (xPos > xPos2) continue;
-			
-			mCharDrawer.setMaskMap(charac.tex);
-			mCharDrawer.setPointScrs(xPos, yPos, xPos2, yPos2);
-			mCharDrawer.renderOverlay(uniloc);
-
-			x += (charac.advance >> 6) * mScale;
-		}
-		*/
-	}
-
-	void LineEdit::onResize(void) {
-		mMainBox.convertScrIntoDev();
-	}
-
-	void LineEdit::setPos(float x, float y) {
-		this->mMainBox.moveCornerTo_screenCoord(x, y);
-	}
-
-	void LineEdit::setSize(float w, float h) {
-		this->mMainBox.setWidth(w);
-		this->mMainBox.setHeight(h);
-	}
-
-	void LineEdit::setText(const char* const t) {
-		mText = t;
-	}
-
-	void LineEdit::setTextColor(const float r, const float g, const float b) {
-		this->mCharDrawer.setColor(r, g, b);
-	}
-
-	bool LineEdit::isInside(const glm::vec2& p) const {
-		const auto p1 = mMainBox.getPointScr1();
-		const auto& p2 = mMainBox.getPointScr2();
-
-		AABB_2D box;
-		box.setPoints(p1, p2);
-		return box.isInside(p);
-	}
+	constexpr float g_darkTheme = 30.0f / 255.0f;
 
 }
 
 
 namespace dal {
 
-	LineEdit2::LineEdit2(void) {
-		mLineEdit.setPos(10.0f, 40.0f);
-		mLineEdit.setSize(400.0f, 20.0f);
+	LineEdit2::LineEdit2(const CharMaskMapCache& asciiCache)
+		: m_asciiCache(asciiCache)
+	{
+		this->setPosX(10.0f);
+		this->setPosY(40.0f);
+		this->setWidth(400.0f);
+		this->setHeight(20.0f);
 
-		this->setPos(10.0, 40.0);
-		this->setSize()
+		this->m_quadRender.setColor(g_darkTheme, g_darkTheme, g_darkTheme, 1.0f);
 	}
 
 	void LineEdit2::onKeyInput(const char c) {
@@ -192,61 +60,35 @@ namespace dal {
 		mText.clear();
 	}
 
-	void LineEdit2::renderOverlay(const CharMaskMapCache& asciiCache, const UnilocOverlay& uniloc) {
-		mMainBox.renderOverlay(uniloc);
+	void LineEdit2::renderOverlay(const UnilocOverlay& uniloc) {
+		this->m_quadRender.renderQuad(uniloc, this->getDeviceSpace());
 
-		auto& p1 = mMainBox.getPointScr1();
-		auto& p2 = mMainBox.getPointScr2();
+		const auto screenInfo = this->makeScreenSpace();
 
-		float xAdvance = p1.x;
-		const float boxHeight = p2.y - p1.y;
-		const float yHeight = p2.y - boxHeight / 4.0f;
+		float xAdvance = screenInfo.p1.x;
+		const float boxHeight = screenInfo.p2.y - screenInfo.p1.y;
+		const float yHeight = screenInfo.p2.y - boxHeight / 4.0f;
 
 		for (auto c : mText) {
-			auto& charac = asciiCache.at((unsigned int)c);
+			auto& charac = this->m_asciiCache.at((unsigned int)c);
 
-			const float xPos = xAdvance + charac.bearing.x;
-			const float yPos = yHeight - charac.bearing.y;
+			QuadInfo charQuad;
 
-			const float xPos2 = xPos + charac.size.x;
-			const float yPos2 = yPos + charac.size.y;
+			charQuad.p1.x = xAdvance + charac.bearing.x;
+			charQuad.p1.y = yHeight - charac.bearing.y;
 
-			mCharDrawer.setMaskMap(charac.tex);
-			mCharDrawer.setPointScrs(xPos, yPos, xPos2, yPos2);
-			mCharDrawer.renderOverlay(uniloc);
+			charQuad.p2.x = charQuad.p1.x + charac.size.x;
+			charQuad.p2.y = charQuad.p1.y + charac.size.y;
+
+			g_charDrawer.setMaskMap(charac.tex);
+			g_charDrawer.renderQuad(uniloc, charQuad.screen2device());
 
 			xAdvance += (charac.advance >> 6);
 		}
 	}
 
-	void LineEdit2::onResize(void) {
-		mMainBox.convertScrIntoDev();
-	}
-
-	void LineEdit2::setPos(float x, float y) {
-		this->mMainBox.moveCornerTo_screenCoord(x, y);
-	}
-
-	void LineEdit2::setSize(float w, float h) {
-		this->mMainBox.setWidth(w);
-		this->mMainBox.setHeight(h);
-	}
-
-	void LineEdit2::setText(const char* const t) {
+	void LineEdit2::setText(const std::string& t) {
 		mText = t;
-	}
-
-	void LineEdit2::setTextColor(const float r, const float g, const float b) {
-		this->mCharDrawer.setColor(r, g, b);
-	}
-
-	bool LineEdit2::isInside(const glm::vec2 & p) const {
-		const auto p1 = mMainBox.getPointScr1();
-		const auto& p2 = mMainBox.getPointScr2();
-
-		AABB_2D box;
-		box.setPoints(p1, p2);
-		return box.isInside(p);
 	}
 
 }

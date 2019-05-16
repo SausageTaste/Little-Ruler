@@ -25,26 +25,47 @@ namespace dal {
 		: m_resMas(resMas),
 		m_shaderMas(shaderMas),
 		m_asciiCache(resMas),
-		mGlobalFSM(GlobalFSM::game),
-		m_texBox(m_asciiCache),
-		m_keyTaker(nullptr)
+		mGlobalFSM(GlobalFSM::game)
 	{
 		/* Characters */ {
 			script::set_outputStream(&this->m_strBuffer);
 
-			mDisplayFPS.setPos(10.0f, 10.0f);
-			mDisplayFPS.setSize(100.0f, 20.0f);
+			{
+				auto fpsDisplayer = new LineEdit2(this->m_asciiCache);
+				
+				fpsDisplayer->setPosX(10.0f);
+				fpsDisplayer->setPosY(10.0f);
+				fpsDisplayer->setWidth(100.0f);
+				fpsDisplayer->setHeight(20.0f);
 
-			mLineEdit.setPos(10.0f, 40.0f);
-			mLineEdit.setSize(400.0f, 20.0f);
-			mLineEdit.setText("print(\"Hello world!\")");
+				this->mDisplayFPS = fpsDisplayer;
+				this->m_widgets.push_back(fpsDisplayer);
+			}
 
-			this->m_texBox.setStrBuf(&this->m_strBuffer);
-			this->m_texBox.setPosX(10.0f);
-			this->m_texBox.setPosY(70.0f);
-			this->m_texBox.setWidth(400.0f);
-			this->m_texBox.setHeight(300.0f);
-			this->m_texBox.setAlignMode(ScreenQuad::AlignMode::upper_right);
+			{
+				auto wid = new LineEdit2(this->m_asciiCache);
+
+				wid->setPosX(10.0f);
+				wid->setPosY(10.0f);
+				wid->setWidth(400.0f);
+				wid->setHeight(20.0f);
+				wid->setAlignMode(ScreenQuad::AlignMode::upper_right);
+
+				this->m_widgets.push_back(wid);
+			}
+
+			{
+				auto wid = new TextBox(this->m_asciiCache);
+
+				wid->setStrBuf(&this->m_strBuffer);
+				wid->setPosX(10.0f);
+				wid->setPosY(40.0f);
+				wid->setWidth(400.0f);
+				wid->setHeight(300.0f);
+				wid->setAlignMode(ScreenQuad::AlignMode::upper_right);
+
+				this->m_widgets.push_back(wid);
+			}
 		}
 
 		/* Event Master */ {
@@ -78,13 +99,12 @@ namespace dal {
 			const auto width = ConfigsGod::getinst().getWinWidth();
 			const auto height = ConfigsGod::getinst().getWinHeight();
 
-			mDisplayFPS.onResize();
-			mLineEdit.onResize();
-			this->m_texBox.onResize(width, height);
+			for (auto wid : this->m_widgets) {
+				wid->onResize(width, height);
+			}
 		}
 		else if (EventType::global_fsm_change == e.type) {
 			mGlobalFSM = GlobalFSM(e.intArg1);
-			mLineEdit.setTextColor(0.4f, 0.4f, 0.4f);
 		}
 		else {
 			LoggerGod::getinst().putWarn("Unhanlded event in OverlayMaster.");
@@ -96,17 +116,21 @@ namespace dal {
 
 		if (GlobalFSM::menu != this->mGlobalFSM) return;
 
-		if (mLineEdit.isInside({ x, y })) {
-			this->m_keyTaker = &this->mLineEdit;
-			mLineEdit.setTextColor(1.0f, 1.0f, 1.0f);
-		}
-		else {
-			this->m_keyTaker = nullptr;
-			mLineEdit.setTextColor(0.4f, 0.4f, 0.4f);
+		for (auto wid : this->m_widgets) {
+			if (wid->isInside(x, y)) {
+				this->m_widgets.remove(wid);
+				this->m_widgets.push_front(wid);
+				
+				wid->onClick(x, y);
+				wid->onFocusChange(true);
+				break;
+			}
 		}
 
-		if (this->m_texBox.isInside(x, y)) {
-			this->m_texBox.onClick(x, y);
+		bool skippedOnce = false;
+		for (auto wid : this->m_widgets) {
+			if (!skippedOnce) continue;
+			wid->onFocusChange(false);
 		}
 	}
 
@@ -117,14 +141,14 @@ namespace dal {
 	}
 
 	void OverlayMaster::onKeyInput(const std::string& str) {
-		if (nullptr == this->m_keyTaker) return;
+		if (this->m_widgets.empty()) return;
 
 		for (const auto c : str) {
-			this->m_keyTaker->onKeyInput(c);
+			this->m_widgets.front()->onKeyInput(c);
 		}
 	}
 
-	void OverlayMaster::render(void) {
+	void OverlayMaster::render(void) const {
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 		GLSwitch::setFor_overlay();
@@ -133,19 +157,23 @@ namespace dal {
 		auto& uniloc = this->m_shaderMas.getOverlay();
 
 		for (unsigned int i = 0; i < 11; i++) {
-			mBoxesForTouchPoint.at(i).renderOverlay(uniloc);
+			this->mBoxesForTouchPoint.at(i).renderOverlay(uniloc);
 		}
 
-		mDisplayFPS.renderOverlay(m_asciiCache, uniloc);
-
-		if (mGlobalFSM == GlobalFSM::menu) {
-			mLineEdit.renderOverlay(m_asciiCache, uniloc);
-			this->m_texBox.renderOverlay(uniloc);
+		for (auto wid : this->m_widgets) {
+			if (wid->getPauseOnly()) {
+				if (GlobalFSM::menu == mGlobalFSM) {
+					wid->renderOverlay(uniloc);
+				}
+			}
+			else {
+				wid->renderOverlay(uniloc);
+			}
 		}
 	}
 
-	void OverlayMaster::setDisplayedFPS(unsigned int fps) {
-		mDisplayFPS.setText(std::to_string(fps).c_str());
+	void OverlayMaster::setDisplayedFPS(const unsigned int fps) {
+		this->mDisplayFPS->setText(std::to_string(fps));
 	}
 
 }

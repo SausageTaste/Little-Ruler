@@ -13,51 +13,19 @@
 
 namespace dal {
 
-	class LineEdit : public IKeyInputTaker {
-
-	private:
-		QuadPrimitive mMainBox;
-		QuadPrimitive mCharDrawer;
-
-		std::string mText;
-
-	public:
-		LineEdit(void);
-		void onReturn(void);
-		void onKeyInput(const char c) override;
-		void renderOverlay(const CharMaskMapCache& asciiCache, const UnilocOverlay& uniloc);
-		void onResize(void);
-
-		void setPos(float x, float y);
-		void setSize(float w, float h);
-		void setText(const char* const t);
-		void setTextColor(const float r, const float g, const float b);
-
-		bool isInside(const glm::vec2& p) const;
-
-	};
-
-
 	class LineEdit2 : public Widget {
 
 	private:
+		QuadRenderer m_quadRender;
 		std::string mText;
+		const CharMaskMapCache& m_asciiCache;
 
 	public:
-		LineEdit2(void);
+		LineEdit2(const CharMaskMapCache& asciiCache);
 		void onReturn(void);
 		void onKeyInput(const char c) override;
-		void renderOverlay(const CharMaskMapCache& asciiCache, const UnilocOverlay& uniloc);
-		void onResize(void);
-
-		void setPos(float x, float y);
-		void setSize(float w, float h);
-		void setText(const char* const t);
-		void setTextColor(const float r, const float g, const float b);
-
-		bool isInside(const glm::vec2& p) const;
-
-
+		virtual void renderOverlay(const UnilocOverlay& uniloc) override;
+		void setText(const std::string& t);
 	};
 
 

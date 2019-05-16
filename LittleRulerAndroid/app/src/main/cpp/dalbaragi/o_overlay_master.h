@@ -1,6 +1,7 @@
 #pragma once
 
 #include <array>
+#include <list>
 
 #include "s_event.h"
 #include "p_resource.h"
@@ -26,13 +27,10 @@ namespace dal {
 
 		GlobalFSM mGlobalFSM;
 
-		LineEdit mDisplayFPS;
-		LineEdit mLineEdit;
-
+		LineEdit2* mDisplayFPS;
 		TextStream m_strBuffer;
-		TextBox m_texBox;
 
-		IKeyInputTaker* m_keyTaker;
+		std::list<Widget*> m_widgets;
 
 	public:
 		std::array<QuadPrimitive, 11> mBoxesForTouchPoint;
@@ -47,9 +45,9 @@ namespace dal {
 		void onDrag(const glm::vec2& start, const glm::vec2& end);
 		void onKeyInput(const std::string& c);
 		
-		void render(void);
+		void render(void) const;
 
-		void setDisplayedFPS(unsigned int fps);
+		void setDisplayedFPS(const unsigned int fps);
 
 	};
 

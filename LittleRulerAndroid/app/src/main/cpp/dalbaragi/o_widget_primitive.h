@@ -30,7 +30,7 @@ namespace dal {
 
 	public:
 		QuadPrimitive(void);
-		void renderOverlay(const UnilocOverlay& uniloc);
+		void renderOverlay(const UnilocOverlay& uniloc) const;
 
 		void moveCenterTo_screenCoord(float x, float y);
 		void moveCornerTo_screenCoord(float x, float y);

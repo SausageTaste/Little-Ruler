@@ -95,12 +95,17 @@ namespace dal {
 
 	private:
 		Widget* m_parent;
+		bool m_isPauseOnly = true;
 
 	public:
 		explicit Widget(Widget* parent = nullptr);
 		virtual ~Widget(void) = default;
 		virtual void renderOverlay(const UnilocOverlay& uniloc) = 0;
 		virtual void onKeyInput(const char c) {}
+		virtual void onFocusChange(bool isFocus) {}
+
+		void setPauseOnly(bool v) { this->m_isPauseOnly = v; }
+		bool getPauseOnly(void) const { return this->m_isPauseOnly; }
 
 	};
 

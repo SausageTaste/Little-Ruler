@@ -162,7 +162,7 @@ namespace dal {
 		this->convertScrIntoDev();
 	}
 
-	void QuadPrimitive::renderOverlay(const UnilocOverlay& uniloc) {
+	void QuadPrimitive::renderOverlay(const UnilocOverlay& uniloc) const {
 		glUniform2f(uniloc.uPoint1, mPointDev1.x, mPointDev1.y);
 		glUniform2f(uniloc.uPoint2, mPointDev2.x, mPointDev2.y);
 
