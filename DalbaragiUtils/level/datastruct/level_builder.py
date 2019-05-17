@@ -91,10 +91,12 @@ def saveLevelBinary(level: LevelBuilder, outputFolder: str = "outputs/"):
         os.mkdir(outputFolder)
 
     binData = level.getBinary()
+    zipData = zlib.compress(binData, zlib.Z_BEST_COMPRESSION)
+    print("Compressed {} -> {} ({:%})".format(len(binData), len(zipData), len(zipData)/len(binData)))
 
     filePath: str = "{}/{}.dlb".format(outputFolder, level.getLevelName())
     with open(filePath, "wb") as file:
-        file.write(zlib.compress(binData, zlib.Z_BEST_COMPRESSION))
+        file.write(zipData)
 
 
 def saveLevelJson(level: LevelBuilder, outputFolder: str = "intermediates/"):

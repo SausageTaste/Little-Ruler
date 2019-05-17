@@ -4,10 +4,6 @@
 #include <vector>
 #include <memory>
 
-#include <fmt/format.h>
-#define ZLIB_WINAPI
-#include <zlib.h>
-
 #include "p_dalopengl.h"
 #include "s_logger_god.h"
 #include "u_fileclass.h"
@@ -93,16 +89,7 @@ namespace dal {
 
 		// Test
 		{
-			std::vector<uint8_t> buffer;
-			const auto res = filec::getResource_buffer("asset::test.tst", buffer);
-			assert(res);
-			uLongf bufSize = 1024;
-			uint8_t buf[1024];
-
-			const auto zipres = uncompress(buf, &bufSize, buffer.data(), buffer.size());
-			buf[bufSize] = 0;
-			const auto str = reinterpret_cast<char*>(buf);
-			LoggerGod::getinst().putInfo("good: "s + str);
+			
 		}
 
 		const auto elapsed = m_initTimer.check_getElapsed_capFPS();
