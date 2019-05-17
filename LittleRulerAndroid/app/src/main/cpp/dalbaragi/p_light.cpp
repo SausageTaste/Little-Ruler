@@ -15,7 +15,8 @@ namespace {
 namespace dal {
 
 	DepthmapForLights::DepthmapForLights(void)
-		: width(DEPTHMAP_RES), height(DEPTHMAP_RES)
+	:	width(DEPTHMAP_RES),
+		height(DEPTHMAP_RES)
 	{
 		this->mDepthmap = ResourceMaster::getDepthMap(width, height);
 
@@ -62,7 +63,7 @@ namespace dal {
 namespace dal {
 
 	DirectionalLight::DirectionalLight(void)
-		: mDirection(-0.3, -1, -1),
+	:	mDirection(-0.3, -1, -1),
 		mColor(1, 1, 1),
 		mHalfShadowEdgeSize(15.0f)
 	{
@@ -113,7 +114,7 @@ namespace dal {
 namespace dal {
 
 	PointLight::PointLight(void)
-		: mPos(0, 0, 0),
+	:	mPos(0, 0, 0),
 		mColor(1, 1, 1),
 		mMaxDistance(5.0f)
 	{

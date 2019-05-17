@@ -12,9 +12,7 @@ namespace dal {
 
 	private:
 		GLuint mFBO;
-
 		unsigned int width, height;
-
 		TextureHandle2 mDepthmap;
 
 	public:
@@ -24,7 +22,6 @@ namespace dal {
 		TextureHandle2 getDepthMap(void);
 
 		void startRender(void);
-
 		void finishRender(void);
 
 	};
@@ -43,18 +40,15 @@ namespace dal {
 		DirectionalLight(void);
 
 		void sendUniform(const UnilocGeneral& uniloc, int index);
-
 		void startRenderShadowmap(const UnilocDepthmp& uniloc);
-
 		void finishRenderShadowmap(void);
 
 		glm::mat4 makeProjViewMap(void);
-
 		GLuint getShadowMapTexture(void);
-
 		TextureHandle2 getShadowMap(void);
 
 	};
+
 
 	class PointLight {
 
@@ -65,7 +59,6 @@ namespace dal {
 
 	public:
 		PointLight(void);
-
 		void sendUniform(const UnilocGeneral& uniloc, int index);
 
 	};

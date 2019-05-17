@@ -21,7 +21,6 @@ namespace dal {
 
 
 	struct RenderUnitInfo {
-
 		struct MeshInfo {
 			std::vector<float> m_vertices, m_texcoords, m_normals;
 			std::string m_name;
@@ -36,12 +35,12 @@ namespace dal {
 		std::string m_name;
 		MeshInfo m_mesh;
 		MaterialInfo m_material;
-
 	};
 
 
 	namespace loadedinfo {
 
+		// Please do not instanciate this.
 		struct MapItemModel {
 			std::string m_modelID;
 			std::vector<Actor> m_actors;
@@ -64,11 +63,9 @@ namespace dal {
 
 
 	struct LoadedMap {
-
 		std::string m_mapName, m_packageName;
 		std::list<loadedinfo::ModelDefined> m_definedModels;
 		std::list<loadedinfo::ModelImported> m_importedModels;
-
 	};
 
 	using ModelInfo = std::list<RenderUnitInfo>;
