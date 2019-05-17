@@ -41,17 +41,31 @@ namespace dal {
 	namespace loadedinfo {
 
 		// Please do not instanciate this.
-		struct MapItemModel {
+		struct IMapItemModel {
 			std::string m_modelID;
 			std::vector<Actor> m_actors;
 		};
 
-		struct ModelDefined : public MapItemModel {
+		struct ModelDefined : public IMapItemModel {
 			RenderUnitInfo m_renderUnit;
 		};
 
-		struct ModelImported : public MapItemModel {
+		struct ModelImported : public IMapItemModel {
 
+		};
+
+		struct ILightItem {
+			std::string m_name;
+			glm::vec3 m_color;
+		};
+
+		struct LightDirectional : public ILightItem {
+			glm::vec3 m_direction;
+		};
+
+		struct LightPoint : public ILightItem {
+			glm::vec3 m_pos;
+			float m_maxDist = 0.0f;
 		};
 
 		struct ImageFileData {
@@ -64,8 +78,12 @@ namespace dal {
 
 	struct LoadedMap {
 		std::string m_mapName, m_packageName;
+
 		std::list<loadedinfo::ModelDefined> m_definedModels;
 		std::list<loadedinfo::ModelImported> m_importedModels;
+
+		std::list<loadedinfo::LightDirectional> m_direcLights;
+		std::list<loadedinfo::LightPoint> m_pointLights;
 	};
 
 	using ModelInfo = std::list<RenderUnitInfo>;

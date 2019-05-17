@@ -6,6 +6,7 @@
 #include "p_uniloc.h"
 #include "u_loadinfo.h"
 #include "p_resource.h"
+#include "p_light.h"
 
 
 namespace dal {
@@ -23,6 +24,8 @@ namespace dal {
 		struct MapChunk {
 			std::string m_name;
 			std::vector<ModelNActor> m_modelActors;
+			std::vector<DirectionalLight> m_dlights;
+			std::vector<PointLight> m_plights;
 		};
 
 		//////// Attribs ////////

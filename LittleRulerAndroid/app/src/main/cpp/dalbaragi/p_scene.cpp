@@ -96,6 +96,10 @@ namespace dal {
 			model.m_model = this->m_resMas.orderModel((map.m_packageName + "::" + importedModel.m_modelID).c_str());
 			model.m_inst.assign(importedModel.m_actors.begin(), importedModel.m_actors.end());
 		}
+
+		for (auto& direcLight : map.m_direcLights) {
+
+		}
 	}
 
 }

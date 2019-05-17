@@ -17,6 +17,13 @@ namespace dal {
 
 	public:
 		DepthmapForLights(void);
+		~DepthmapForLights(void);
+
+		DepthmapForLights(const DepthmapForLights&) = delete;
+		DepthmapForLights& operator=(const DepthmapForLights&) = delete;
+
+		DepthmapForLights(DepthmapForLights&& other);
+		DepthmapForLights& operator=(DepthmapForLights&&);
 
 		GLuint getTextureID(void);
 		TextureHandle2 getDepthMap(void);
@@ -30,11 +37,11 @@ namespace dal {
 	class DirectionalLight {
 
 	public:
-		glm::vec3 mDirection;  // This must be always normalized.
-		glm::vec3 mColor;
+		glm::vec3 mDirection{ -0.3f, -1.0f, -1.0f };  // This must be always normalized.
+		glm::vec3 mColor{ 1.0f, 1.0f, 1.0f };
+		float mHalfShadowEdgeSize = 15.0f;
 
 		DepthmapForLights mShadowMap;
-		float mHalfShadowEdgeSize;
 
 	public:
 		DirectionalLight(void);
@@ -54,11 +61,10 @@ namespace dal {
 
 	public:
 		glm::vec3 mPos;
-		glm::vec3 mColor;
-		float mMaxDistance;
+		glm::vec3 mColor{ 1.0f, 1.0f, 1.0f };
+		float mMaxDistance = 5.0f;
 
 	public:
-		PointLight(void);
 		void sendUniform(const UnilocGeneral& uniloc, int index);
 
 	};

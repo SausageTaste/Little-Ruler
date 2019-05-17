@@ -35,6 +35,33 @@ namespace dal {
 		} glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	}
 
+	DepthmapForLights::~DepthmapForLights(void) {
+		this->mDepthmap.destroyTexture();
+		glDeleteFramebuffers(1, &this->mFBO);
+	}
+
+	DepthmapForLights::DepthmapForLights(DepthmapForLights&& other) {
+		this->mFBO = other.mFBO;
+		other.mFBO = 0;
+
+		this->width = other.width;
+		this->height = other.height;
+
+		this->mDepthmap = std::move(other.mDepthmap);
+	}
+
+	DepthmapForLights& DepthmapForLights::operator=(DepthmapForLights&& other) {
+		this->mFBO = other.mFBO;
+		other.mFBO = 0;
+
+		this->width = other.width;
+		this->height = other.height;
+
+		this->mDepthmap = std::move(other.mDepthmap);
+
+		return *this;
+	}
+
 	GLuint DepthmapForLights::getTextureID(void) {
 		return mDepthmap.getTex();
 	}
@@ -62,11 +89,7 @@ namespace dal {
 
 namespace dal {
 
-	DirectionalLight::DirectionalLight(void)
-	:	mDirection(-0.3, -1, -1),
-		mColor(1, 1, 1),
-		mHalfShadowEdgeSize(15.0f)
-	{
+	DirectionalLight::DirectionalLight(void) {
 		this->mDirection = glm::normalize(this->mDirection);
 	}
 
@@ -112,14 +135,6 @@ namespace dal {
 
 
 namespace dal {
-
-	PointLight::PointLight(void)
-	:	mPos(0, 0, 0),
-		mColor(1, 1, 1),
-		mMaxDistance(5.0f)
-	{
-
-	}
 
 	void PointLight::sendUniform(const UnilocGeneral& uniloc, int index) {
 		glUniform3f(uniloc.uPlightColors[index], mColor.r, mColor.g, mColor.b);
