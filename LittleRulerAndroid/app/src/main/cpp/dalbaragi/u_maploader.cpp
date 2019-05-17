@@ -3,6 +3,9 @@
 #include <cstring>
 #include <string>
 
+#define ZLIB_WINAPI
+#include <zlib.h>
+
 #include "s_logger_god.h"
 
 
@@ -321,9 +324,21 @@ namespace {  // Make items
 
 namespace dal {
 
-	bool parseMap_dlb(LoadedMap& info, const uint8_t* const buf, size_t bufSize) {
-		const auto end = buf + bufSize;
-		const uint8_t* header = buf;
+	bool parseMap_dlb(LoadedMap& info, const uint8_t* const buf, const size_t bufSize) {
+		constexpr size_t k_chunkSize = 2048;
+		uint8_t decomBuf[k_chunkSize];
+		uLongf decomBufSize = k_chunkSize;
+
+		{
+			const auto zipReult = uncompress(decomBuf, &decomBufSize, buf, bufSize);
+			if (Z_OK != zipReult) {
+				g_logger.putError("Failed to uncompress map file.");
+				return false;
+			}
+		}
+
+		const auto end = decomBuf + decomBufSize;
+		const uint8_t* header = decomBuf;
 
 		while (true) {
 			const auto typeCode = makeInt2(header);

@@ -1,5 +1,6 @@
 from typing import List
 import os, json
+import zlib
 
 import level.datastruct.item_builder as bif
 import level.datastruct.interface as ein
@@ -89,9 +90,11 @@ def saveLevelBinary(level: LevelBuilder, outputFolder: str = "outputs/"):
     if not os.path.isdir(outputFolder):
         os.mkdir(outputFolder)
 
+    binData = level.getBinary()
+
     filePath: str = "{}/{}.dlb".format(outputFolder, level.getLevelName())
     with open(filePath, "wb") as file:
-        file.write(level.getBinary())
+        file.write(zlib.compress(binData, zlib.Z_BEST_COMPRESSION))
 
 
 def saveLevelJson(level: LevelBuilder, outputFolder: str = "intermediates/"):
