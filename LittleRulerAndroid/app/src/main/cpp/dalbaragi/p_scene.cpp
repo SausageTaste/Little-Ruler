@@ -28,6 +28,11 @@ namespace dal {
 
 	void SceneMaster::renderGeneral(const UnilocGeneral& uniloc) const {
 		for (auto& map : m_mapChunks) {
+			for (unsigned int i = 0; i < map.m_plights.size(); i++) {
+				if (i >= 3) break;
+				map.m_plights.at(i).sendUniform(uniloc, i);
+			}
+
 			for (auto& modelActor : map.m_modelActors) {
 				modelActor.m_model.renderGeneral(uniloc, modelActor.m_inst);
 			}
@@ -52,8 +57,12 @@ namespace dal {
 		info.m_packageName = mapID.getPackage();
 
 		res = parseMap_dlb(info, buffer.data(), buffer.size());
-		if (!res) LoggerGod::getinst().putError("Failed to parse level: "s + mapID.makeIDStr());
-		this->addMap(info);
+		if (!res) {
+			LoggerGod::getinst().putError("Failed to parse level: "s + mapID.makeIDStr());
+		}
+		else {
+			this->addMap(info);
+		}
 	}
 
 	Actor* SceneMaster::addActorForModel(const ResourceID& resID, const std::string& actorName) {

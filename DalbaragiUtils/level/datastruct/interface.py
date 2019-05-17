@@ -96,7 +96,7 @@ class ILevelAttrib(ILevelElement):
         return report
 
     def getDataReport(self, usageName: str = "") -> ere.DataReport:
-        report = ere.DataReport("ILevelItem", usageName)
+        report = ere.DataReport("ILevelItem", usageName, self.getBinary())
 
         for field, elem in self.__attribs.items():
             childReport = elem.getDataReport(field)

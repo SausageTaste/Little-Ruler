@@ -32,7 +32,7 @@ def main():
 
     ########
 
-    light = bfi.BuildInfo_LightSpot()
+    light = bfi.BuildInfo_LightPoint()
     light.setName("center_light")
     light.getPosHandle().setY(3)
     level.add(light)

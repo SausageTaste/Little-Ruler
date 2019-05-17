@@ -136,7 +136,7 @@ namespace dal {
 
 namespace dal {
 
-	void PointLight::sendUniform(const UnilocGeneral& uniloc, int index) {
+	void PointLight::sendUniform(const UnilocGeneral& uniloc, int index) const {
 		glUniform3f(uniloc.uPlightColors[index], this->m_color.r, this->m_color.g, this->m_color.b);
 		glUniform3f(uniloc.uPlightPoses[index], mPos.x, mPos.y, mPos.z);
 		glUniform1f(uniloc.uPlightMaxDists[index], mMaxDistance);

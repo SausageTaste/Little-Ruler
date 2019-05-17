@@ -20,8 +20,11 @@ namespace {
 	namespace typeCodes {
 
 		constexpr int attrib_actor = 3;
+
 		constexpr int item_modelImported = 2;
 		constexpr int item_modelDefined = 1;
+
+		constexpr int item_lightPoint = 4;
 
 	}
 }
@@ -190,13 +193,15 @@ namespace {  // Make items
 		info.m_definedModels.emplace_back();
 		auto& definedModel = info.m_definedModels.back();
 
-		{ // Get model id
+		// Get model id
+		{
 			const auto charPtr = reinterpret_cast<const char*>(header);
 			definedModel.m_modelID = charPtr;
 			header += std::strlen(charPtr) + 1;
 		}
 
-		{ // Get actors
+		// Get actors
+		{
 			const auto listElementTypeCode = makeInt2(header); header += 2;
 			assert(typeCodes::attrib_actor == listElementTypeCode);
 			
@@ -210,7 +215,8 @@ namespace {  // Make items
 			}
 		}
 
-		{ // Get vertex arrays
+		// Get vertex arrays
+		{
 			std::vector<float>* arrays[3] = {
 				&definedModel.m_renderUnit.m_mesh.m_vertices,
 				&definedModel.m_renderUnit.m_mesh.m_texcoords,
@@ -232,7 +238,8 @@ namespace {  // Make items
 
 		auto& material = definedModel.m_renderUnit.m_material;
 
-		{ // Get diffuse color(3), shininess(1), specular strength(1)
+		// Get diffuse color(3), shininess(1), specular strength(1)
+		{
 			float floatBuf[5];
 			for (int i = 0; i < 5; i++) {
 				floatBuf[i] = makeFloat4(header); header += 4;
@@ -243,20 +250,51 @@ namespace {  // Make items
 			material.m_specStrength = floatBuf[4];
 		}
 
-		{ // Get diffuse map name
+		// Get diffuse map name
+		{
 			const auto charPtr = reinterpret_cast<const char*>(header);
 			material.m_diffuseMap = charPtr;
 			header += std::strlen(charPtr) + 1;
 		}
 
-		{ // Get specular map name
+		// Get specular map name
+		{
 			const auto charPtr = reinterpret_cast<const char*>(header);
 			material.m_specularMap = charPtr;
 			header += std::strlen(charPtr) + 1;
 		}
 
-		return end;
+		return header;
 	}
+
+
+	const uint8_t* make_lightPoint(dal::LoadedMap& info, const uint8_t* const begin, const uint8_t* const end) {
+		const uint8_t* header = begin;
+		info.m_pointLights.emplace_back();
+		auto& plight = info.m_pointLights.back();
+
+		// str light_name
+		{
+			const auto charPtr = reinterpret_cast<const char*>(header);
+			plight.m_name = charPtr;
+			header += std::strlen(charPtr) + 1;
+		}
+
+		// vec3 pos, color; float max_dist
+		{
+			float floatBuf[7];
+			for (int i = 0; i < 7; i++) {
+				floatBuf[i] = makeFloat4(header); header += 4;
+			}
+
+			plight.m_pos = { floatBuf[0], floatBuf[1], floatBuf[2] };
+			plight.m_color = { floatBuf[3], floatBuf[4], floatBuf[5] };
+			plight.m_maxDist = floatBuf[6];
+		}
+
+		return header;
+	}
+
 
 	decltype(make_modelImported)* selectMakerFunc(const int typeCode) {
 
@@ -266,6 +304,10 @@ namespace {  // Make items
 			return make_modelDefined;
 		case typeCodes::item_modelImported:
 			return make_modelImported;
+
+		case typeCodes::item_lightPoint:
+			return make_lightPoint;
+
 		default:
 			g_logger.putError("Unknown map item typeCode: "s + std::to_string(typeCode));
 			return nullptr;
@@ -286,7 +328,9 @@ namespace dal {
 		while (true) {
 			const auto typeCode = makeInt2(header);
 			auto makerFunc = selectMakerFunc(typeCode);
-			if (nullptr == makerFunc) return false;
+			if (nullptr == makerFunc)
+				return false;
+				
 			header += 2;
 
 			header = makerFunc(info, header, end);

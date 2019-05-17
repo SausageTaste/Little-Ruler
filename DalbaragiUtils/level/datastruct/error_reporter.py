@@ -92,11 +92,12 @@ class IntegrityReport:
 
 
 class DataReport:
-    def __init__(self, typeStr: str, name: str):
+    def __init__(self, typeStr: str, name: str, binary: bytearray = b""):
         self.__typeStr = str(typeStr)
         self.__name = str(name)
         self.__children: List[DataReport] = []
         self.__data: Dict[str, str] = {}
+        self.__binary = bytearray(binary)
 
     def addData(self, key: str, value: str) -> None:
         self.__data[key] = value
@@ -105,17 +106,22 @@ class DataReport:
         self.__children.append(child)
 
     def getFormattedStr(self, indent: int = 0) -> str:
-        data = (indent * "\t") + "Item : {} -> {}\n".format(self.__typeStr, self.__name)
+        data = (indent * "\t") + "● Item : {} ({})".format(self.__typeStr, self.__name)
+        if len(self.__binary) > 0:
+            data += " -> {}\n".format(bytes(self.__binary))
+        else:
+            data += "\n"
 
         for k, v in self.__data.items():
             data += (indent + 1) * "\t"
-            data += "{} : {}\n".format(k ,v)
+            data += "○ {} : {}\n".format(k ,v)
 
         data += (indent + 1) * "\t"
         data += "has {} children\n".format(len(self.__children))
 
         for x in self.__children:
             data += x.getFormattedStr(indent + 1)
+            data += "\n"
 
         return data
 

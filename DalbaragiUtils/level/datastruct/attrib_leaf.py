@@ -50,7 +50,7 @@ class Vec3(ein.ILevelAttribLeaf):
         return ere.IntegrityReport(type(self).__name__, usageName)
 
     def getDataReport(self, usageName: str = "") -> ere.DataReport:
-        report = ere.DataReport(type(self).__name__, usageName)
+        report = ere.DataReport(type(self).__name__, usageName, self.getBinary())
 
         report.addData("value", str(self.getJson()))
 
@@ -119,7 +119,7 @@ class Vec4(ein.ILevelAttribLeaf):
         return ere.IntegrityReport(type(self).__name__, usageName)
 
     def getDataReport(self, usageName: str = "") -> ere.DataReport:
-        report = ere.DataReport(type(self).__name__, usageName)
+        report = ere.DataReport(type(self).__name__, usageName, self.getBinary())
 
         report.addData("value", str(self.getJson()))
 
@@ -172,7 +172,7 @@ class Quat(ein.ILevelAttribLeaf):
         return ere.IntegrityReport(type(self).__name__, usageName)
 
     def getDataReport(self, usageName: str = "") -> ere.DataReport:
-        report = ere.DataReport(type(self).__name__, usageName)
+        report = ere.DataReport(type(self).__name__, usageName, self.getBinary())
 
         report.addData("value", str(self.getJson()))
 
@@ -227,7 +227,7 @@ class IdentifierStr(ein.ILevelAttribLeaf):
         return report
 
     def getDataReport(self, usageName: str = "") -> ere.DataReport:
-        report = ere.DataReport(type(self).__name__, usageName)
+        report = ere.DataReport(type(self).__name__, usageName, self.getBinary())
 
         report.addData("value", str(self.getJson()))
 
@@ -285,11 +285,14 @@ class FloatData(ein.ILevelAttribLeaf):
         return ere.IntegrityReport(type(self).__name__, usageName)
 
     def getDataReport(self, usageName: str = "") -> ere.DataReport:
-        report = ere.DataReport(type(self).__name__, usageName)
+        report = ere.DataReport(type(self).__name__, usageName, self.getBinary())
 
         report.addData("value", str(self.getJson()))
 
         return report
+
+    def set(self, v: float):
+        self.__value = float(v)
 
 
 class FloatArray(ein.ILevelAttribLeaf):
@@ -336,10 +339,10 @@ class FloatArray(ein.ILevelAttribLeaf):
         return report
 
     def getDataReport(self, usageName: str = "") -> ere.DataReport:
-        report = ere.DataReport(type(self).__name__, usageName)
+        report = ere.DataReport(type(self).__name__, usageName, self.getBinary())
 
         report.addData("size", str(len(self.__arr)))
-        report.addData("value", str(self.__arr))
+        report.addData("value", str(self))
 
         return report
 
@@ -404,9 +407,10 @@ class UniformList(ein.ILevelAttribLeaf):
         return report
 
     def getDataReport(self, usageName: str = "") -> ere.DataReport:
-        report = ere.DataReport(type(self).__name__, usageName)
+        report = ere.DataReport(type(self).__name__, usageName, self.getBinary())
 
         report.addData("type", self.__type.__name__)
+        report.addData("size", str(len(self.__list)))
         report.addData("value", str(self.getJson()))
 
         return report

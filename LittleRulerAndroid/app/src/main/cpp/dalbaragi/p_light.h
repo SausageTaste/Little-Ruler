@@ -74,7 +74,7 @@ namespace dal {
 		float mMaxDistance = 5.0f;
 
 	public:
-		void sendUniform(const UnilocGeneral& uniloc, int index);
+		void sendUniform(const UnilocGeneral& uniloc, int index) const;
 
 	};
 

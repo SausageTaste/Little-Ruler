@@ -109,20 +109,23 @@ class BuildInfo_ModelImported(ILevelItemModel):
         return "model_imported"
 
 
-class BuildInfo_LightSpot(eim.ILevelItem):
+class BuildInfo_LightPoint(eim.ILevelItem):
     __s_field_name = "light_name"
     __s_field_pos = "pos"
     __s_field_color = "color"
+    __s_field_maxDist = "max_dist"
 
     def __init__(self):
         self.__name = pri.IdentifierStr()
         self.__pos = pri.Vec3(0, 0, 0)
         self.__color = pri.Vec3(1, 1, 1)
+        self.__maxDist = pri.FloatData(5)
 
         super().__init__({
-            self.__s_field_name  : self.__name,
-            self.__s_field_pos   : self.__pos,
-            self.__s_field_color : self.__color,
+            self.__s_field_name    : self.__name,
+            self.__s_field_pos     : self.__pos,
+            self.__s_field_color   : self.__color,
+            self.__s_field_maxDist : self.__maxDist,
         })
 
     def getBinary(self) -> bytearray:
@@ -130,6 +133,7 @@ class BuildInfo_LightSpot(eim.ILevelItem):
         data += self.__name.getBinary()
         data += self.__pos.getBinary()
         data += self.__color.getBinary()
+        data += self.__maxDist.getBinary()
         return data
 
     @classmethod
@@ -138,7 +142,7 @@ class BuildInfo_LightSpot(eim.ILevelItem):
         return bytearray(but.get2BytesInt(4))
 
     def getIntegrityReport(self, usageName: str = "") -> ere.IntegrityReport:
-        report = ILevelItemModel.getIntegrityReport(self, usageName)
+        report = super().getIntegrityReport(usageName)
         return report
 
     @staticmethod
@@ -153,3 +157,6 @@ class BuildInfo_LightSpot(eim.ILevelItem):
 
     def setName(self, s: str) -> None:
         self.__name.setStr(s)
+
+    def setMaxDistance(self, v: float):
+        self.__maxDist.set(v)
