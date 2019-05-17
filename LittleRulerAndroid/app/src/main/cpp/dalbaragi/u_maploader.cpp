@@ -157,7 +157,7 @@ namespace {  // Make attribs
 
 namespace {  // Make items
 
-	const uint8_t* makeModelImported(dal::LoadedMap& info, const uint8_t* const begin, const uint8_t* const end) {
+	const uint8_t* make_modelImported(dal::LoadedMap &info, const uint8_t *const begin, const uint8_t *const end) {
 		const uint8_t* header = begin;
 		info.m_importedModels.emplace_back();
 		auto& importedModel = info.m_importedModels.back();
@@ -185,7 +185,7 @@ namespace {  // Make items
 		return header;
 	}
 
-	const uint8_t* makeModelDefined(dal::LoadedMap& info, const uint8_t* const begin, const uint8_t* const end) {
+	const uint8_t* make_modelDefined(dal::LoadedMap& info, const uint8_t* const begin, const uint8_t* const end) {
 		const uint8_t* header = begin;
 		info.m_definedModels.emplace_back();
 		auto& definedModel = info.m_definedModels.back();
@@ -258,14 +258,14 @@ namespace {  // Make items
 		return end;
 	}
 
-	decltype(makeModelImported)* selectMakerFunc(const int typeCode) {
+	decltype(make_modelImported)* selectMakerFunc(const int typeCode) {
 
 		switch (typeCode) {
 
 		case typeCodes::item_modelDefined:
-			return makeModelDefined;
+			return make_modelDefined;
 		case typeCodes::item_modelImported:
-			return makeModelImported;
+			return make_modelImported;
 		default:
 			g_logger.putError("Unknown map item typeCode: "s + std::to_string(typeCode));
 			return nullptr;
@@ -293,8 +293,6 @@ namespace dal {
 			if (header == end)
 				return true;
 		}
-
-		return false;
 	}
 
 }
