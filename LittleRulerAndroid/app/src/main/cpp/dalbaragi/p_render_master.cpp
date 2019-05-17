@@ -178,9 +178,9 @@ namespace dal {
 		{
 			m_plight1.mPos = { 0, 2, 3 };
 			m_plight1.mMaxDistance = 20.0f;
-			m_plight1.mColor = { 0.0, 0.0, 0.0 };
+			m_plight1.m_color = { 0.0, 0.0, 0.0 };
 
-			m_dlight1.mColor = { 0.7, 0.7, 0.7 };
+			m_dlight1.m_color = { 0.7, 0.7, 0.7 };
 			m_dlight1.mDirection = { 0.3, -1.0, -2.0 };
 		}
 

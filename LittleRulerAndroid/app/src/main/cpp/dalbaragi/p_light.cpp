@@ -94,7 +94,7 @@ namespace dal {
 	}
 
 	void DirectionalLight::sendUniform(const UnilocGeneral& uniloc, int index) {
-		glUniform3f(uniloc.uDlightColors[index], mColor.r, mColor.g, mColor.b);
+		glUniform3f(uniloc.uDlightColors[index], this->m_color.r, this->m_color.g, this->m_color.b);
 		glUniform3f(uniloc.uDlightDirecs[index], mDirection.x, mDirection.y, mDirection.z);
 
 		auto projViewMat = this->makeProjViewMap();
@@ -137,7 +137,7 @@ namespace dal {
 namespace dal {
 
 	void PointLight::sendUniform(const UnilocGeneral& uniloc, int index) {
-		glUniform3f(uniloc.uPlightColors[index], mColor.r, mColor.g, mColor.b);
+		glUniform3f(uniloc.uPlightColors[index], this->m_color.r, this->m_color.g, this->m_color.b);
 		glUniform3f(uniloc.uPlightPoses[index], mPos.x, mPos.y, mPos.z);
 		glUniform1f(uniloc.uPlightMaxDists[index], mMaxDistance);
 	}

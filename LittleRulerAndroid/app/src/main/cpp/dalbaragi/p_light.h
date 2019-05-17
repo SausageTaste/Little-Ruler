@@ -1,5 +1,7 @@
 #pragma once
 
+#include <string>
+
 #include <glm/glm.hpp>
 
 #include "p_uniloc.h"
@@ -34,11 +36,19 @@ namespace dal {
 	};
 
 
-	class DirectionalLight {
+	class ILight {
+
+	public:
+	    std::string m_name;
+        glm::vec3 m_color{ 1.0f, 1.0f, 1.0f };
+
+	};
+
+
+	class DirectionalLight : public ILight {
 
 	public:
 		glm::vec3 mDirection{ -0.3f, -1.0f, -1.0f };  // This must be always normalized.
-		glm::vec3 mColor{ 1.0f, 1.0f, 1.0f };
 		float mHalfShadowEdgeSize = 15.0f;
 
 		DepthmapForLights mShadowMap;
@@ -57,11 +67,10 @@ namespace dal {
 	};
 
 
-	class PointLight {
+	class PointLight : public ILight {
 
 	public:
 		glm::vec3 mPos;
-		glm::vec3 mColor{ 1.0f, 1.0f, 1.0f };
 		float mMaxDistance = 5.0f;
 
 	public:

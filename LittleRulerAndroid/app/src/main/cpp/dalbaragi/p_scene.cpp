@@ -98,7 +98,23 @@ namespace dal {
 		}
 
 		for (auto& direcLight : map.m_direcLights) {
+            newMap.m_dlights.emplace_back();
+            auto& dlight = newMap.m_dlights.back();
 
+            dlight.m_name = direcLight.m_name;
+            dlight.m_color = direcLight.m_color;
+            dlight.mDirection = direcLight.m_direction;
+            dlight.mHalfShadowEdgeSize = direcLight.m_halfShadowEdgeSize;
+		}
+
+		for (auto& pointLight : map.m_pointLights) {
+            newMap.m_plights.emplace_back();
+            auto& plight = newMap.m_plights.back();
+
+            plight.m_name = pointLight.m_name;
+            plight.m_color = pointLight.m_color;
+            plight.mPos = pointLight.m_pos;
+            plight.mMaxDistance = pointLight.m_maxDist;
 		}
 	}
 

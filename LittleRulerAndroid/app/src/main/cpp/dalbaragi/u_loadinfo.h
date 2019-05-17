@@ -61,6 +61,7 @@ namespace dal {
 
 		struct LightDirectional : public ILightItem {
 			glm::vec3 m_direction;
+			float m_halfShadowEdgeSize = 15.0f;
 		};
 
 		struct LightPoint : public ILightItem {
