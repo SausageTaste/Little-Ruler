@@ -2,8 +2,6 @@
 
 #include <glm/gtc/matrix_transform.hpp>
 
-#include "p_glglobal.h"
-
 
 namespace {
 
@@ -75,8 +73,6 @@ namespace dal {
 
 		glViewport(0, 0, width, height);
 		glClear(GL_DEPTH_BUFFER_BIT);
-
-		GLSwitch::setFor_shadowmap();
 	}
 
 	void DepthmapForLights::finishRender(void) {

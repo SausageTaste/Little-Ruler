@@ -8,7 +8,6 @@
 
 #include "u_fileclass.h"
 #include "s_logger_god.h"
-#include "p_glglobal.h"
 #include "s_scripting.h"
 
 
@@ -184,6 +183,11 @@ namespace dal {
 			m_dlight1.mDirection = { 0.3, -1.0, -2.0 };
 		}
 
+		// OpenGL global switch
+		{
+			glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+		}
+
 		// Misc
 		{
 			mHandlerName = "RenderMaster"s;
@@ -193,8 +197,6 @@ namespace dal {
 			this->m_projectMat = glm::perspective(glm::radians(90.0f), radio, 0.01f, 100.0f);
 
 			script::init_renderMas(this);
-
-			GLSwitch::setOnlyOnce();
 		}
 	}
 
@@ -222,7 +224,6 @@ namespace dal {
 		{
 			this->m_fbuffer.startRenderOn();
 			glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
-			GLSwitch::setFor_generalRender();
 
 			this->m_shader.useGeneral();
 			auto& unilocGeneral = this->m_shader.getGeneral();
@@ -256,7 +257,6 @@ namespace dal {
 		{
 			glBindFramebuffer(GL_FRAMEBUFFER, 0);
 			glViewport(0, 0, m_winWidth, m_winHeight);
-			GLSwitch::setFor_fillingScreen();
 
 			this->m_shader.useFScreen();
 			this->m_fbuffer.renderOnScreen();

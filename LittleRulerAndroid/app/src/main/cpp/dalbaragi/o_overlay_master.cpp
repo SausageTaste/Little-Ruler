@@ -4,7 +4,6 @@
 
 #include "u_fileclass.h"
 #include "s_logger_god.h"
-#include "p_glglobal.h"
 #include "s_freetype_master.h"
 #include "s_configs.h"
 
@@ -231,8 +230,6 @@ namespace dal {
 
 	void OverlayMaster::render(void) const {
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-		GLSwitch::setFor_overlay();
 
 		this->m_shaderMas.useOverlay();
 		auto& uniloc = this->m_shaderMas.getOverlay();
