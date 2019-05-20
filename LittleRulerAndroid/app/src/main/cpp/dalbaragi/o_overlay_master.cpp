@@ -59,7 +59,7 @@ namespace dal {
 			{
 				auto wid = new TextBox(this->m_unicodes);
 
-				this->m_strBuffer.append(u8"우성민\nwoos8899@gmail.com\n\n");
+				this->m_strBuffer.append("Sungmin Woo\nwoos8899@gmail.com\n\n");
 
 				wid->setStrBuf(&this->m_strBuffer);
 				wid->setPosX(10.0f);
