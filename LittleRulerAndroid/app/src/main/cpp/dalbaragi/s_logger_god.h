@@ -2,16 +2,22 @@
 
 #include <string>
 #include <vector>
+#include <memory>
 
 
 namespace dal {
 
-	class ILoggerChannel {
+	class ILoggingChannel {
 
 	public:
-		virtual ~ILoggerChannel(void) = default;
-		virtual void plane(const char* const) = 0;
+		virtual ~ILoggingChannel(void) = default;
+
+		virtual void verbose(const char* const) = 0;
+		virtual void debug(const char* const) = 0;
+		virtual void info(const char* const) = 0;
+		virtual void warn(const char* const) = 0;
 		virtual void error(const char* const) = 0;
+		virtual void fatal(const char* const) = 0;
 
 	};
 
@@ -19,12 +25,17 @@ namespace dal {
 	class LoggerGod {
 
 	private:
-		std::vector<ILoggerChannel*> m_channels;
+		std::vector<ILoggingChannel*> m_channels;
+		std::vector<ILoggingChannel*> m_privateChannels;
 
 	public:
+		LoggerGod(void);
+		~LoggerGod(void);
+
 		static LoggerGod& getinst(void);
 
-		void addChannel(ILoggerChannel* ch);
+		void addChannel(ILoggingChannel* const ch);
+		void giveChannel(ILoggingChannel* const ch);
 
 		void putTrace(const std::string& text);
 		void putDebug(const std::string& text);

@@ -1,30 +1,110 @@
 #include "s_logger_god.h"
 
-#include <stdarg.h>
-
 #if defined(_WIN32)
-	#include <stdio.h>
-
-	#define printVerbose(...) printf(__VA_ARGS__)
-	#define printDebug(...)   printf(__VA_ARGS__)
-	#define printInfo(...)    printf(__VA_ARGS__)
-	#define printWarn(...)    printf(__VA_ARGS__)
-	#define printError(...)   printf(__VA_ARGS__)
-	#define printAssert(...)  printf(__VA_ARGS__)
+	#include <iostream>
 #elif defined(__ANDROID__)
 	#include <android/log.h>
-
-	#define printVerbose(...) __android_log_print(ANDROID_LOG_VERBOSE, "DALBARAGI", __VA_ARGS__)
-	#define printDebug(...)   __android_log_print(ANDROID_LOG_DEBUG,   "DALBARAGI", __VA_ARGS__)
-	#define printInfo(...)    __android_log_print(ANDROID_LOG_INFO,    "DALBARAGI", __VA_ARGS__)
-	#define printWarn(...)    __android_log_print(ANDROID_LOG_WARN,    "DALBARAGI", __VA_ARGS__)
-	#define printError(...)   __android_log_print(ANDROID_LOG_ERROR,   "DALBARAGI", __VA_ARGS__)
-	#define printAssert(...)  __android_log_print(ANDROID_LOG_ASSERT,  "DALBARAGI", __VA_ARGS__)
 #else
 	#error "Unkown platform"
 #endif
 
 
+using namespace std::string_literals;
+
+
+namespace {
+
+	const char* const k_packageName = "DALBARAGI";
+
+}
+
+
+// LogcatChannel
+namespace {
+
+	class LogcatChannel : public dal::ILoggingChannel {
+
+	public:
+		virtual void verbose(const char* const) override;
+		virtual void debug(const char* const) override;
+		virtual void info(const char* const) override;
+		virtual void warn(const char* const) override;
+		virtual void error(const char* const) override;
+		virtual void fatal(const char* const) override;
+
+	};
+
+
+	void LogcatChannel::verbose(const char* const str) {
+		const auto text = "[VERBO]"s + str;
+
+#if defined(_WIN32)
+		std::cout << text << '\n';
+#elif defined(__ANDROID__)
+		__android_log_print(ANDROID_LOG_VERBOSE, k_packageName, "%s\n", text.c_str());
+#endif
+
+	}
+
+	void LogcatChannel::debug(const char* const str) {
+		const auto text = "[DEBUG]"s + str;
+
+#if defined(_WIN32)
+		std::cout << text << '\n';
+#elif defined(__ANDROID__)
+		__android_log_print(ANDROID_LOG_DEBUG, k_packageName, "%s\n", text.c_str());
+#endif
+
+	}
+
+	void LogcatChannel::info(const char* const str) {
+		const auto text = "[INFO ]"s + str;
+
+#if defined(_WIN32)
+		std::cout << text << '\n';
+#elif defined(__ANDROID__)
+		__android_log_print(ANDROID_LOG_INFO, k_packageName, "%s\n", text.c_str());
+#endif
+
+	}
+
+	void LogcatChannel::warn(const char* const str) {
+		const auto text = "[WARN ]"s + str;
+
+#if defined(_WIN32)
+		std::cout << text << '\n';
+#elif defined(__ANDROID__)
+		__android_log_print(ANDROID_LOG_WARN, k_packageName, "%s\n", text.c_str());
+#endif
+
+	}
+
+	void LogcatChannel::error(const char* const str) {
+		const auto text = "[ERROR]"s + str;
+
+#if defined(_WIN32)
+		std::cout << text << '\n';
+#elif defined(__ANDROID__)
+		__android_log_print(ANDROID_LOG_ERROR, k_packageName, "%s\n", text.c_str());
+#endif
+
+	}
+
+	void LogcatChannel::fatal(const char* const str) {
+		const auto text = "[FATAL]"s + str;
+
+#if defined(_WIN32)
+		std::cout << text << '\n';
+#elif defined(__ANDROID__)
+		__android_log_print(ANDROID_LOG_FATAL, k_packageName, "%s\n", text.c_str());
+#endif
+
+	}
+
+}
+
+
+// LoggerGod
 namespace dal {
 
 	LoggerGod& LoggerGod::getinst(void) {
@@ -32,56 +112,82 @@ namespace dal {
 		return inst;
 	}
 
-	void LoggerGod::addChannel(ILoggerChannel* ch) {
+	LoggerGod::LoggerGod(void) {
+		this->giveChannel(new LogcatChannel);
+	}
+
+	LoggerGod::~LoggerGod(void) {
+		for (auto ch : this->m_privateChannels) {
+			delete ch;
+		}
+	}
+
+	void LoggerGod::addChannel(ILoggingChannel* const ch) {
 		this->m_channels.push_back(ch);
+	}
+
+	void LoggerGod::giveChannel(ILoggingChannel* const ch) {
+		this->m_privateChannels.emplace_back(ch);
 	}
 
 
 	void LoggerGod::putFatal(const std::string& text) {
-		printError("[FATAL] %s\n", text.c_str());
-
 		for (auto ch : m_channels) {
-			ch->error(text.c_str());
+			ch->fatal(text.c_str());
+		}
+
+		for (auto ch : this->m_privateChannels) {
+			ch->fatal(text.c_str());
 		}
 	}
 
 	void LoggerGod::putError(const std::string& text) {
-		printError("[ERROR] %s\n", text.c_str());
-
 		for (auto ch : m_channels) {
+			ch->error(text.c_str());
+		}
+
+		for (auto ch : this->m_privateChannels) {
 			ch->error(text.c_str());
 		}
 	}
 
 	void LoggerGod::putWarn(const std::string& text) {
-		printWarn("[WARN ] %s\n", text.c_str());
-
 		for (auto ch : m_channels) {
-			ch->error(text.c_str());
+			ch->warn(text.c_str());
+		}
+
+		for (auto ch : this->m_privateChannels) {
+			ch->warn(text.c_str());
 		}
 	}
 
 	void LoggerGod::putInfo(const std::string& text) {
-		printInfo("[INFO ] %s\n", text.c_str());
-
 		for (auto ch : m_channels) {
-			ch->plane(text.c_str());
+			ch->info(text.c_str());
+		}
+
+		for (auto ch : this->m_privateChannels) {
+			ch->info(text.c_str());
 		}
 	}
 
 	void LoggerGod::putDebug(const std::string& text) {
-		printDebug("[DEBUG] %s\n", text.c_str());
-
 		for (auto ch : m_channels) {
-			ch->plane(text.c_str());
+			ch->debug(text.c_str());
+		}
+
+		for (auto ch : this->m_privateChannels) {
+			ch->debug(text.c_str());
 		}
 	}
 
 	void LoggerGod::putTrace(const std::string& text) {
-		printVerbose("[TRACE] %s\n", text.c_str());
-
 		for (auto ch : m_channels) {
-			ch->plane(text.c_str());
+			ch->verbose(text.c_str());
+		}
+
+		for (auto ch : this->m_privateChannels) {
+			ch->verbose(text.c_str());
 		}
 	}
 

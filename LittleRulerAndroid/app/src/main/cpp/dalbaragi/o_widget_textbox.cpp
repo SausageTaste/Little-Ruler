@@ -300,7 +300,6 @@ namespace dal {
 		const auto remaining = this->getReserved() - this->getSize();
 
 		if (size > remaining) {
-			LoggerGod::getinst().putError("TextStream is full.");
 			return false;
 		}
 

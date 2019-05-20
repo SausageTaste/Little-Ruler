@@ -19,6 +19,55 @@ namespace {
 }
 
 
+namespace {
+
+	class TextStreamChannel : public dal::ILoggingChannel {
+
+	private:
+		dal::TextStream& m_texStream;
+
+	public:
+		TextStreamChannel(dal::TextStream& texStream)
+			: m_texStream(texStream)
+		{
+
+		}
+
+		virtual void verbose(const char* const str) override {
+			const auto text = "[VERBO]"s + str + '\n';
+			this->m_texStream.append(text);
+		}
+
+		virtual void debug(const char* const str) override {
+			const auto text = "[DEBUG]"s + str + '\n';
+			this->m_texStream.append(text);
+		}
+
+		virtual void info(const char* const str) override {
+			const auto text = "[INFO]"s + str + '\n';
+			this->m_texStream.append(text);
+		}
+
+		virtual void warn(const char* const str) override {
+			const auto text = "[WARN]"s + str + '\n';
+			this->m_texStream.append(text);
+		}
+
+		virtual void error(const char* const str) override {
+			const auto text = "[ERROR]"s + str + '\n';
+			this->m_texStream.append(text);
+		}
+
+		virtual void fatal(const char* const str) override {
+			const auto text = "[FATAL]"s + str + '\n';
+			this->m_texStream.append(text);
+		}
+
+	};
+
+}
+
+
 namespace dal {
 
 	OverlayMaster::OverlayMaster(ResourceMaster& resMas, const ShaderMaster& shaderMas)
@@ -112,6 +161,8 @@ namespace dal {
 			mBoxesForTouchPoint[2].setColor(0.0f, 0.0f, 1.0f);
 			mBoxesForTouchPoint[10].setColor(1.0f, 1.0f, 0.0f);
 			mBoxesForTouchPoint[10].setTransparency(0.5f);
+
+			g_logger.giveChannel(new TextStreamChannel(this->m_strBuffer));
 		}
 	}
 
@@ -172,9 +223,9 @@ namespace dal {
 	}
 
 	void OverlayMaster::onDrag(const glm::vec2& start, const glm::vec2& end) {
-		g_logger.putTrace(
-			"Drag: "s + std::to_string(start.x) + ", " + std::to_string(start.y) + " -> " + std::to_string(end.x) + ", " + std::to_string(end.y)
-		);
+		//g_logger.putTrace(
+		//	"Drag: "s + std::to_string(start.x) + ", " + std::to_string(start.y) + " -> " + std::to_string(end.x) + ", " + std::to_string(end.y)
+		//);
 	}
 
 	void OverlayMaster::onKeyInput(const std::string& str) {
