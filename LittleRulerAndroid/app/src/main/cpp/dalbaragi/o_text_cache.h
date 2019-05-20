@@ -17,18 +17,6 @@ namespace dal {
 	};
 
 
-	class AsciiCache {
-
-	private:
-		CharacterUnit mAsciiChars[128];
-
-	public:
-		AsciiCache(ResourceMaster& resMas);
-		const CharacterUnit& at(unsigned int index) const;
-
-	};
-
-
 	class UnicodeCache {
 
 	private:

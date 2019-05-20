@@ -23,7 +23,6 @@ namespace dal {
 		ResourceMaster& m_resMas;
 		const ShaderMaster& m_shaderMas;
 
-		AsciiCache m_asciiCache;
 		UnicodeCache m_unicodes;
 
 		GlobalFSM mGlobalFSM;

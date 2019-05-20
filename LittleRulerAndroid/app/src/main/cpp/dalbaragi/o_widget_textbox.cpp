@@ -102,7 +102,7 @@ namespace {
 
 namespace dal {
 
-	LineEdit::LineEdit(const AsciiCache& asciiCache)
+	LineEdit::LineEdit(UnicodeCache& asciiCache)
 		: m_asciiCache(asciiCache)
 	{
 		this->setPosX(10.0f);
@@ -149,8 +149,29 @@ namespace dal {
 		const float boxHeight = screenInfo.p2.y - screenInfo.p1.y;
 		const float yHeight = screenInfo.p2.y - boxHeight / 4.0f;
 
-		for (auto c : mText) {
-			auto& charac = this->m_asciiCache.at((unsigned int)c);
+
+		auto header = this->mText.begin();
+		const auto end = this->mText.end();
+
+		while (end != header) {
+			uint32_t c = 0;
+			{
+				const auto ch = *header;
+				const auto codeSize = utf8_codepoint_size(*header);
+				if (codeSize > 1) {
+					uint8_t buf[4];
+					for (size_t i = 0; i < codeSize; i++) {
+						buf[i] = *header++;
+					}
+
+					c = convert_utf8_to_utf32(buf, buf + codeSize);
+				}
+				else {
+					c = static_cast<uint32_t>(*header++);
+				}
+			}
+
+			auto& charac = this->m_asciiCache.at(c);
 
 			QuadInfo charQuad;
 
@@ -164,6 +185,11 @@ namespace dal {
 			g_charDrawer.renderQuad(uniloc, charQuad.screen2device());
 
 			xAdvance += (charac.advance >> 6);
+		}
+
+
+		for (auto c : mText) {
+			
 		}
 	}
 
@@ -260,7 +286,7 @@ namespace dal {
 					const auto codeSize = utf8_codepoint_size(*header);
 					if (codeSize > 1) {
 						std::vector<uint8_t> buffer;
-						for (int i = 0; i < codeSize; i++) {
+						for (size_t i = 0; i < codeSize; i++) {
 							buffer.push_back(*header++);
 						}
 

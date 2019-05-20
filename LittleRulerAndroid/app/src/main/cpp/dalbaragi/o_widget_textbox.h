@@ -18,10 +18,10 @@ namespace dal {
 	private:
 		QuadRenderer m_quadRender;
 		std::string mText;
-		const AsciiCache& m_asciiCache;
+		UnicodeCache& m_asciiCache;
 
 	public:
-		LineEdit(const AsciiCache& asciiCache);
+		LineEdit(UnicodeCache& asciiCache);
 		void onReturn(void);
 		void onKeyInput(const char c) override;
 		virtual void renderOverlay(const UnilocOverlay& uniloc) override;
@@ -34,7 +34,7 @@ namespace dal {
 	class TextStream : public LuaStdOutput {
 
 	private:
-		std::array<char, 1024> m_buffer;
+		std::array<char, 1024> m_buffer{};
 		unsigned int m_topIndex = 0;
 
 	public:

@@ -18,44 +18,6 @@ namespace {
 
 namespace dal {
 
-	AsciiCache::AsciiCache(ResourceMaster& resMas) {
-		auto& face = dal::FreetypeGod::getinst().getFace();
-
-		for (unsigned int i = 0; i < 128; i++) {
-			const auto glyphIndex = FT_Get_Char_Index(face, i);
-			if (FT_Load_Glyph(face, glyphIndex, FT_LOAD_RENDER)) {
-				g_logger.putError("Failed to load Glyph: "s + std::to_string(static_cast<char>(i)));
-				continue;
-			}
-
-			auto& charac = mAsciiChars[i];
-
-			glPixelStorei(GL_UNPACK_ALIGNMENT, 1);  // Text looks broken without this.
-			charac.tex = ResourceMaster::getMaskMap(
-				face->glyph->bitmap.buffer, face->glyph->bitmap.width, face->glyph->bitmap.rows
-			);
-			glPixelStorei(GL_UNPACK_ALIGNMENT, 0);
-
-			charac.size = { face->glyph->bitmap.width, face->glyph->bitmap.rows };
-			charac.bearing = { face->glyph->bitmap_left, face->glyph->bitmap_top };
-			charac.advance = static_cast<int32_t>(face->glyph->advance.x);
-		}
-	}
-
-	const CharacterUnit& AsciiCache::at(unsigned int index) const {
-		if (index < 128) {
-			return mAsciiChars[index];
-		}
-		else {
-			return mAsciiChars[(int)'?'];
-		}
-	}
-
-}
-
-
-namespace dal {
-
 	UnicodeCache::UnicodeCache(ResourceMaster& resMas)
 	:	m_resMas(resMas)
 	{
