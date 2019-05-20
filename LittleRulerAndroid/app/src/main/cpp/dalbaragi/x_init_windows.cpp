@@ -17,6 +17,8 @@ using namespace std::string_literals;
 
 namespace {
 
+	auto& g_logger = dal::LoggerGod::getinst();
+
 	dal::KeySpec mapKeySpec(uint32_t sdlKey) {
 		if (SDLK_a <= sdlKey && sdlKey <= SDLK_z) {
 			auto index = sdlKey - SDLK_a + int(dal::KeySpec::a);
@@ -189,7 +191,7 @@ namespace {
 
 namespace dal {
 
-	int main_windows(void) {
+	int main_windows(void) try {
 		WindowSDL window{ "Little Ruler", 800, 450, false };
 
 		Mainloop::giveScreenResFirst(800, 450);
@@ -210,6 +212,22 @@ namespace dal {
 			engine->update();
 			window.swap();
 		}
+	}
+	catch (const std::exception& e) {
+		g_logger.putFatal("An exception thrown: "s + e.what());
+		throw;
+	}
+	catch (const std::string & e) {
+		g_logger.putFatal("A string thrown: "s + e);
+		throw;
+	}
+	catch (const int e) {
+		g_logger.putFatal("An int thrown: "s + std::to_string(e));
+		throw;
+	}
+	catch (...) {
+		g_logger.putFatal("Something unkown thrown");
+		throw;
 	}
 
 }

@@ -3,7 +3,6 @@
 #include <memory>
 #include <string>
 #include <vector>
-#include <assert.h>
 #include <byteswap.h>
 
 #include <jni.h>
@@ -20,42 +19,51 @@
 #include "TouchInputArray.h"
 
 
-using namespace std;
+using namespace std::string_literals;
 
 
-dal::Mainloop* gMainloop = nullptr;
-dal::PersistState* gSavedState = nullptr;
+namespace {
 
-AAssetManager* gAssMan = nullptr;
-dal::LoggerGod& gLogger = dal::LoggerGod::getinst();
+	dal::Mainloop *gMainloop = nullptr;
+	dal::PersistState *gSavedState = nullptr;
 
-ContextJNI gCnxtJNI;
-TouchInputArray gTouchInputArray;
+	AAssetManager *gAssMan = nullptr;
+	dal::LoggerGod &gLogger = dal::LoggerGod::getinst();
 
+	ContextJNI gCnxtJNI;
+	TouchInputArray gTouchInputArray;
 
-uint32_t swap_uint32( uint32_t val ) {
-	val = ((val << 8) & 0xFF00FF00 ) | ((val >> 8) & 0xFF00FF );
-	return (val << 16) | (val >> 16);
 }
 
-bool isSystemBigEndian(void) {
-	union {
-		uint32_t i;
-		char c[4];
-	} bint = {0x01020304};
 
-	return bint.c[0] == 1;
-}
+namespace {
 
-void swapBit32(void* val) {
-	uint32_t* temp = (uint32_t*)val;
-	*temp = swap_uint32(*temp);
+	uint32_t swap_uint32(uint32_t val) {
+		val = ((val << 8) & 0xFF00FF00) | ((val >> 8) & 0xFF00FF);
+		return (val << 16) | (val >> 16);
+	}
+
+	bool isSystemBigEndian(void) {
+		union {
+			uint32_t i;
+			char c[4];
+		} bint = { 0x01020304 };
+
+		return bint.c[0] == 1;
+	}
+
+	void swapBit32(void *val) {
+		uint32_t *temp = (uint32_t *) val;
+		*temp = swap_uint32( *temp );
+	}
+
 }
 
 
 extern "C" {
 
-JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void* reserved) {
+
+JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void* reserved) try {
 	gLogger.putTrace("JNI_OnLoad");
 	gCnxtJNI.init(vm);
 
@@ -68,8 +76,25 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void* reserved) {
 
 	return JNI_VERSION_1_6;
 }
+catch (const std::exception& e) {
+	gLogger.putFatal("An exception thrown: "s + e.what());
+	throw;
+}
+catch (const std::string& e) {
+	gLogger.putFatal("A string thrown: "s + e);
+	throw;
+}
+catch (const int e) {
+	gLogger.putFatal("An int thrown: "s + std::to_string(e));
+	throw;
+}
+catch (...) {
+	gLogger.putFatal("Something unkown thrown");
+	throw;
+}
 
-JNIEXPORT void JNICALL Java_com_sausagetaste_littleruler_LibJNI_init(JNIEnv *env, jclass obj) {
+
+JNIEXPORT void JNICALL Java_com_sausagetaste_littleruler_LibJNI_init(JNIEnv *env, jclass obj) try {
 	gLogger.putTrace("JNI::init");
 	if (gMainloop != nullptr) {
 		gSavedState = gMainloop->getSavedState();
@@ -78,13 +103,40 @@ JNIEXPORT void JNICALL Java_com_sausagetaste_littleruler_LibJNI_init(JNIEnv *env
 		gLogger.putTrace("delete gMainloop");
 	}
 }
+catch (const std::exception& e) {
+	gLogger.putFatal("An exception thrown: "s + e.what()); throw;
+}
+catch (const std::string& e) {
+	gLogger.putFatal("A string thrown: "s + e); throw;
+}
+catch (const int e) {
+	gLogger.putFatal("An int thrown: "s + std::to_string(e)); throw;
+}
+catch (...) {
+	gLogger.putFatal("Something unkown thrown"); throw;
+}
 
-JNIEXPORT void JNICALL Java_com_sausagetaste_littleruler_LibJNI_resize(JNIEnv *env, jclass type, jint width, jint height) {
+
+JNIEXPORT void JNICALL Java_com_sausagetaste_littleruler_LibJNI_resize(JNIEnv *env, jclass type, jint width, jint height) try {
 	gLogger.putTrace("JNI::resize");
 	dal::Mainloop::giveScreenResFirst((unsigned int)width, (unsigned int)height);
 }
+catch (const std::exception& e) {
+	gLogger.putFatal("An exception thrown: "s + e.what()); throw;
+}
+catch (const std::string& e) {
+	gLogger.putFatal("A string thrown: "s + e); throw;
+}
+catch (const int e) {
+	gLogger.putFatal("An int thrown: "s + std::to_string(e)); throw;
+}
+catch (...) {
+	gLogger.putFatal("Something unkown thrown"); throw;
+}
 
-JNIEXPORT void JNICALL Java_com_sausagetaste_littleruler_LibJNI_step(JNIEnv *env, jclass type) {
+
+JNIEXPORT void JNICALL Java_com_sausagetaste_littleruler_LibJNI_step(JNIEnv *env, jclass type) try {
+
 	if (gMainloop == nullptr) {
 		if (!dal::Mainloop::isScreenResGiven()) return;
 		if (!dal::Mainloop::isWhatFilesystemWantsGiven()) return;
@@ -127,31 +179,42 @@ JNIEXPORT void JNICALL Java_com_sausagetaste_littleruler_LibJNI_step(JNIEnv *env
 				default:
 					break;
 			}
-
 		}
 	}
 
-	try {
-		gMainloop->update();
-	}
-	catch (const std::exception& e) {
-		gLogger.putFatal("An exception thrown: "s + e.what());
-	}
-	catch (const std::string& e) {
-		gLogger.putFatal("A string thrown: "s + e);
-	}
-	catch (const int e) {
-		gLogger.putFatal("An int thrown: "s + std::to_string(e));
-	}
-	catch (...) {
-		gLogger.putFatal("Something unkown thrown");
-	}
+	gMainloop->update();
+}
+catch (const std::exception& e) {
+	gLogger.putFatal("An exception thrown: "s + e.what()); throw;
+}
+catch (const std::string& e) {
+	gLogger.putFatal("A string thrown: "s + e); throw;
+}
+catch (const int e) {
+	gLogger.putFatal("An int thrown: "s + std::to_string(e)); throw;
+}
+catch (...) {
+	gLogger.putFatal("Something unkown thrown"); throw;
 }
 
-JNIEXPORT void JNICALL Java_com_sausagetaste_littleruler_LibJNI_giveRequirements(JNIEnv *env, jclass type, jobject assetManager) {
+
+JNIEXPORT void JNICALL Java_com_sausagetaste_littleruler_LibJNI_giveRequirements(JNIEnv *env, jclass type, jobject assetManager) try {
 	gLogger.putTrace("JNI::giveRequirements");
 	gAssMan = AAssetManager_fromJava(env, assetManager);
 	dal::Mainloop::giveWhatFilesystemWants(gAssMan);
 }
+catch (const std::exception& e) {
+	gLogger.putFatal("An exception thrown: "s + e.what()); throw;
+}
+catch (const std::string& e) {
+	gLogger.putFatal("A string thrown: "s + e); throw;
+}
+catch (const int e) {
+	gLogger.putFatal("An int thrown: "s + std::to_string(e)); throw;
+}
+catch (...) {
+	gLogger.putFatal("Something unkown thrown"); throw;
+}
+
 
 }
