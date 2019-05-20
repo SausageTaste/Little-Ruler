@@ -31,6 +31,7 @@ namespace {
 	dal::PersistState *gSavedState = nullptr;
 
 	AAssetManager *gAssMan = nullptr;
+	std::string g_storagePath;
 	dal::LoggerGod &gLogger = dal::LoggerGod::getinst();
 
 	ContextJNI gCnxtJNI;
@@ -205,23 +206,15 @@ catch (...) {
 
 JNIEXPORT void JNICALL Java_com_sausagetaste_littleruler_LibJNI_giveRequirements(JNIEnv *env, jclass type, jobject assetManager, jstring sdcardPath) try {
 	gLogger.putTrace("JNI::giveRequirements");
+
+	// Asset manager
 	gAssMan = AAssetManager_fromJava(env, assetManager);
-	auto sdcardPathStr = env->GetStringUTFChars(sdcardPath, NULL);
-	dal::Mainloop::giveWhatFilesystemWants(gAssMan, sdcardPathStr);
 
-	auto filePath = ""s + sdcardPathStr + "/good.txt";
-	//auto filePath = "/sdcard/"s + "good.txt";
+	// Storage path
+	g_storagePath = env->GetStringUTFChars(sdcardPath, NULL);
+	g_storagePath += '/';
 
-	std::ofstream file;
-	file.open(filePath);
-	if (!file) {
-		gLogger.putError("Failed to open file: "s + filePath);
-	}
-	else {
-		file << "Hello world!";
-		file.close();
-		gLogger.putError("File task success: "s + filePath);
-	}
+	dal::Mainloop::giveWhatFilesystemWants(gAssMan, g_storagePath.c_str());
 }
 catch (const std::exception& e) {
 	gLogger.putFatal("An exception thrown: "s + e.what()); throw;

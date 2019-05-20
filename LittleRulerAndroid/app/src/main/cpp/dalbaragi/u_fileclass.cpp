@@ -146,7 +146,7 @@ namespace {
 
 	AAssetManager* gAssetMgr = nullptr;
 
-	std::string g_sdcardPath;
+	std::string g_storagePath;
 
 	size_t getFileList_android(std::string path, std::vector<std::string>& dirs) {
 		dirs.clear();
@@ -413,7 +413,8 @@ namespace dal {
 			gAssetMgr = reinterpret_cast<AAssetManager*>(mgr);
 
 			if (nullptr == sdcardPath) return false;
-			g_sdcardPath = sdcardPath;
+			g_storagePath = sdcardPath;
+			g_logger.putInfo("Storage path set: "s + g_storagePath);
 #endif
 
 			return true;
@@ -422,7 +423,7 @@ namespace dal {
 		bool isFilesystemReady(void) {
 #ifdef __ANDROID__
 			if (gAssetMgr == nullptr) return false;
-			if (g_sdcardPath.empty()) return false;
+			if (g_storagePath.empty()) return false;
 #endif
 			return true;
 		}
@@ -475,14 +476,16 @@ namespace dal {
 				resolveRes(path);
 			}
 
-			const auto filePath = path.makeFilePath();
+			{
+				const auto filePath = path.makeFilePath();
 
-			AssetFileStream file;
-			if (!file.open(filePath.c_str())) { return false; }
+				AssetFileStream file;
+				if (!file.open(filePath.c_str())) return false;
 
-			buffer.resize(file.getFileSize());
-			const auto reeadRes = file.read(buffer.data(), buffer.size());
-			if (!reeadRes) { return false; }
+				buffer.resize(file.getFileSize());
+				const auto reeadRes = file.read(buffer.data(), buffer.size());
+				if (!reeadRes) return false;
+			}
 
 			return true;
 		}
