@@ -37,7 +37,7 @@ namespace dal {
 
 		bool resolveRes(dal::ResourceID& result);
 
-		bool initFilesystem(void* mgr);
+		bool initFilesystem(void* mgr, const char* const sdcardPath);
 		bool isFilesystemReady(void);
 
 		bool getAsset_text(const char* const path, std::string* buf);

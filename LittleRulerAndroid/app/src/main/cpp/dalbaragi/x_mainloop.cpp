@@ -40,8 +40,8 @@ namespace dal {
 		return true;
 	}
 
-	void Mainloop::giveWhatFilesystemWants(void* androidAssetManager) {
-		filec::initFilesystem(androidAssetManager);
+	void Mainloop::giveWhatFilesystemWants(void* androidAssetManager, const char* const sdcardPath) {
+		filec::initFilesystem(androidAssetManager, sdcardPath);
 	}
 
 	bool Mainloop::isWhatFilesystemWantsGiven(void) {

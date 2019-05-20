@@ -146,6 +146,8 @@ namespace {
 
 	AAssetManager* gAssetMgr = nullptr;
 
+	std::string g_sdcardPath;
+
 	size_t getFileList_android(std::string path, std::vector<std::string>& dirs) {
 		dirs.clear();
 		if (!path.empty() && path.back() == '/') path.pop_back();
@@ -404,28 +406,25 @@ namespace dal {
 
 		}
 
-		bool initFilesystem(void* mgr) {
+		bool initFilesystem(void* mgr, const char* const sdcardPath) {
 
-#if defined(_WIN32)
-			return true;
-#elif defined(__ANDROID__)
-			if (mgr == nullptr) {
-				return false;
-			}
-			else {
-				gAssetMgr = reinterpret_cast<AAssetManager*>(mgr);
-				return true;
-			}
+#ifdef __ANDROID__
+			if (mgr == nullptr)  return false;
+			gAssetMgr = reinterpret_cast<AAssetManager*>(mgr);
+
+			if (nullptr == sdcardPath) return false;
+			g_sdcardPath = sdcardPath;
 #endif
 
+			return true;
 		}
 
 		bool isFilesystemReady(void) {
-#if defined(_WIN32)
-			return true;
-#elif defined(__ANDROID__)
-			return gAssetMgr != nullptr;
+#ifdef __ANDROID__
+			if (gAssetMgr == nullptr) return false;
+			if (g_sdcardPath.empty()) return false;
 #endif
+			return true;
 		}
 
 		bool getAsset_text(const char* const path, std::string* bufStr) {

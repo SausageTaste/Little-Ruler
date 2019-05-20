@@ -33,7 +33,7 @@ namespace dal {
 		static void giveScreenResFirst(unsigned int w, unsigned int h);
 		static bool isScreenResGiven(void);
 		// Windows doesn't need this but Android sure does. Please give it AAssetManager.
-		static void giveWhatFilesystemWants(void* androidAssetManager);
+		static void giveWhatFilesystemWants(void* androidAssetManager, const char* const sdcardPath);
 		static bool isWhatFilesystemWantsGiven(void);
 
 		Mainloop(PersistState* savedState);

@@ -5,6 +5,8 @@ import android.app.Activity;
 import android.content.res.AssetManager;
 import android.os.Bundle;
 
+import android.os.Environment;
+
 
 public class ActivityJNI extends Activity {
 
@@ -19,7 +21,7 @@ public class ActivityJNI extends Activity {
 
         this.mAssMan = getResources().getAssets();
         //mView.giveRequirements(mgr, CallableJNI.sTouchEvents);
-        LibJNI.giveRequirements(this.mAssMan);
+        LibJNI.giveRequirements(this.mAssMan, this.getExternalFilesDir(null).getPath());
 
         mView.setOnTouchListener(new CallableJNI.MyListener(mView));
     }

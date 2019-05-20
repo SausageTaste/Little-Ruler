@@ -12,6 +12,6 @@ public class LibJNI {
     public static native void init();
     public static native void resize(int width, int height);
     public static native void step();
-    public static native void giveRequirements(AssetManager mgr);
+    public static native void giveRequirements(AssetManager mgr, String sdcardPath);
 
 }

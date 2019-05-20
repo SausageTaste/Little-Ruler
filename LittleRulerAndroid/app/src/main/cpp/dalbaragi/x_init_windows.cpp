@@ -214,20 +214,16 @@ namespace dal {
 		}
 	}
 	catch (const std::exception& e) {
-		g_logger.putFatal("An exception thrown: "s + e.what());
-		throw;
+		g_logger.putFatal("An exception thrown: "s + e.what()); throw;
 	}
 	catch (const std::string & e) {
-		g_logger.putFatal("A string thrown: "s + e);
-		throw;
+		g_logger.putFatal("A string thrown: "s + e); throw;
 	}
 	catch (const int e) {
-		g_logger.putFatal("An int thrown: "s + std::to_string(e));
-		throw;
+		g_logger.putFatal("An int thrown: "s + std::to_string(e)); throw;
 	}
 	catch (...) {
-		g_logger.putFatal("Something unkown thrown");
-		throw;
+		g_logger.putFatal("Something unkown thrown"); throw;
 	}
 
 }

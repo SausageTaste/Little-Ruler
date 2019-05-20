@@ -3,7 +3,10 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <fstream>
 #include <byteswap.h>
+#include <cstdio>
+#include <sys/stat.h>  // mkdir
 
 #include <jni.h>
 #include <inttypes.h>
@@ -136,7 +139,6 @@ catch (...) {
 
 
 JNIEXPORT void JNICALL Java_com_sausagetaste_littleruler_LibJNI_step(JNIEnv *env, jclass type) try {
-
 	if (gMainloop == nullptr) {
 		if (!dal::Mainloop::isScreenResGiven()) return;
 		if (!dal::Mainloop::isWhatFilesystemWantsGiven()) return;
@@ -145,10 +147,11 @@ JNIEXPORT void JNICALL Java_com_sausagetaste_littleruler_LibJNI_step(JNIEnv *env
 		gSavedState = nullptr;
 	}
 
-	/* Touch event handle */ {
-		auto curIndex = gTouchInputArray.getCurrentIndexAndReset();
+	// Touch event handle
+	{
+		const auto curIndex = gTouchInputArray.getCurrentIndexAndReset();
 
-		auto &touchQ = dal::TouchEvtQueueGod::getinst();
+		auto& touchQ = dal::TouchEvtQueueGod::getinst();
 
 		jbyte* floatArr = new jbyte[curIndex];
 		gTouchInputArray.copyArray(floatArr, curIndex);
@@ -167,6 +170,7 @@ JNIEXPORT void JNICALL Java_com_sausagetaste_littleruler_LibJNI_step(JNIEnv *env
 			}
 
 			switch (*etype) {
+
 				case 1:  // ACTION_DOWN
 					touchQ.emplaceBack(*xPos, *yPos, dal::TouchType::down, *id);
 					break;
@@ -178,6 +182,7 @@ JNIEXPORT void JNICALL Java_com_sausagetaste_littleruler_LibJNI_step(JNIEnv *env
 					break;
 				default:
 					break;
+
 			}
 		}
 	}
@@ -198,10 +203,38 @@ catch (...) {
 }
 
 
-JNIEXPORT void JNICALL Java_com_sausagetaste_littleruler_LibJNI_giveRequirements(JNIEnv *env, jclass type, jobject assetManager) try {
+JNIEXPORT void JNICALL Java_com_sausagetaste_littleruler_LibJNI_giveRequirements(JNIEnv *env, jclass type, jobject assetManager, jstring sdcardPath) try {
 	gLogger.putTrace("JNI::giveRequirements");
 	gAssMan = AAssetManager_fromJava(env, assetManager);
-	dal::Mainloop::giveWhatFilesystemWants(gAssMan);
+	auto sdcardPathStr = env->GetStringUTFChars(sdcardPath, NULL);
+	dal::Mainloop::giveWhatFilesystemWants(gAssMan, sdcardPathStr);
+
+	auto filePath = ""s + sdcardPathStr + "/good.txt";
+	//auto filePath = "/sdcard/"s + "good.txt";
+
+	FILE* file = std::fopen(filePath.c_str(), "w");
+	if (file != nullptr) {
+		std::fputs("HELLO WORLD!\n", file);
+		std::fflush(file);
+		std::fclose(file);
+		gLogger.putError("File task success: "s + filePath);
+	}
+	else {
+		gLogger.putError("Failed to open file: "s + filePath + " with errno " + std::to_string(errno));
+	}
+
+	file = std::fopen(filePath.c_str(), "r");
+	if (nullptr == file) {
+		gLogger.putError("Failed to read file: "s + filePath + " with errno " + std::to_string(errno));
+	}
+	else {
+		uint8_t buf[1024];
+		const auto readSize = std::fread(buf, sizeof(uint8_t), 1023, file);
+		std::fclose(file);
+		buf[readSize] = '\0';
+		gLogger.putError("Read from file: "s + reinterpret_cast<char*>(buf));
+	}
+
 }
 catch (const std::exception& e) {
 	gLogger.putFatal("An exception thrown: "s + e.what()); throw;
