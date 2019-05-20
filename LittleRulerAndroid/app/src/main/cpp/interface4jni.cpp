@@ -212,29 +212,16 @@ JNIEXPORT void JNICALL Java_com_sausagetaste_littleruler_LibJNI_giveRequirements
 	auto filePath = ""s + sdcardPathStr + "/good.txt";
 	//auto filePath = "/sdcard/"s + "good.txt";
 
-	FILE* file = std::fopen(filePath.c_str(), "w");
-	if (file != nullptr) {
-		std::fputs("HELLO WORLD!\n", file);
-		std::fflush(file);
-		std::fclose(file);
+	std::ofstream file;
+	file.open(filePath);
+	if (!file) {
+		gLogger.putError("Failed to open file: "s + filePath);
+	}
+	else {
+		file << "Hello world!";
+		file.close();
 		gLogger.putError("File task success: "s + filePath);
 	}
-	else {
-		gLogger.putError("Failed to open file: "s + filePath + " with errno " + std::to_string(errno));
-	}
-
-	file = std::fopen(filePath.c_str(), "r");
-	if (nullptr == file) {
-		gLogger.putError("Failed to read file: "s + filePath + " with errno " + std::to_string(errno));
-	}
-	else {
-		uint8_t buf[1024];
-		const auto readSize = std::fread(buf, sizeof(uint8_t), 1023, file);
-		std::fclose(file);
-		buf[readSize] = '\0';
-		gLogger.putError("Read from file: "s + reinterpret_cast<char*>(buf));
-	}
-
 }
 catch (const std::exception& e) {
 	gLogger.putFatal("An exception thrown: "s + e.what()); throw;

@@ -7,6 +7,8 @@ import android.os.Bundle;
 
 import android.os.Environment;
 
+import java.util.Objects;
+
 
 public class ActivityJNI extends Activity {
 
@@ -20,8 +22,10 @@ public class ActivityJNI extends Activity {
         setContentView(mView);
 
         this.mAssMan = getResources().getAssets();
-        //mView.giveRequirements(mgr, CallableJNI.sTouchEvents);
-        LibJNI.giveRequirements(this.mAssMan, this.getExternalFilesDir(null).getPath());
+
+        // What is this, mr. JetBrain?? requireNonNull??
+        String filePath = Objects.requireNonNull(this.getExternalFilesDir(null)).getPath();
+        LibJNI.giveRequirements(this.mAssMan, filePath);
 
         mView.setOnTouchListener(new CallableJNI.MyListener(mView));
     }
