@@ -13,11 +13,11 @@ namespace dal {
 		mCurIndex = 0;
 	}
 
-	unsigned int ISingleUsageQueue::getSize(void) const {
+	size_t ISingleUsageQueue::getSize(void) const {
 		return mCurIndex;
 	}
 
-	unsigned int ISingleUsageQueue::getCapacity(void) const {
+	size_t ISingleUsageQueue::getCapacity(void) const {
 		return kCapacity;
 	}
 

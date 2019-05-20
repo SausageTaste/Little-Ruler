@@ -31,21 +31,21 @@ namespace dal {
 			script::set_outputStream(&this->m_strBuffer);
 
 			{
-				auto fpsDisplayer = new LineEdit(this->m_unicodes);
+				auto fpsDisplayer = new Label(nullptr, this->m_unicodes);
 				
 				fpsDisplayer->setPosX(10.0f);
 				fpsDisplayer->setPosY(10.0f);
 				fpsDisplayer->setWidth(100.0f);
 				fpsDisplayer->setHeight(20.0f);
 				fpsDisplayer->setPauseOnly(false);
-				fpsDisplayer->setBoxColor(0.0f, 0.0f, 0.0f, 0.0f);
+				fpsDisplayer->setBackgroundColor(0.0f, 0.0f, 0.0f, 0.0f);
 
 				this->mDisplayFPS = fpsDisplayer;
 				this->m_widgets.push_back(fpsDisplayer);
 			}
 
 			{
-				auto wid = new LineEdit(this->m_unicodes);
+				auto wid = new LineEdit(nullptr, this->m_unicodes);
 
 				wid->setPosX(10.0f);
 				wid->setPosY(10.0f);
@@ -57,7 +57,7 @@ namespace dal {
 			}
 
 			{
-				auto wid = new TextBox(this->m_unicodes);
+				auto wid = new TextBox(nullptr, this->m_unicodes);
 
 				this->m_strBuffer.append("Sungmin Woo\nwoos8899@gmail.com\n\n");
 
@@ -123,22 +123,29 @@ namespace dal {
 	}
 
 	void OverlayMaster::onClick(const float x, const float y) {
-		if (GlobalGameState::menu != this->mGlobalFSM) return;
-
-		for (auto wid : this->m_widgets) {
-			if (wid->isInside(x, y)) {
-				this->m_widgets.remove(wid);
-				this->m_widgets.push_front(wid);
-				
+		if (GlobalGameState::game == this->mGlobalFSM) {
+			for (auto wid : this->m_widgets) {
+				if (wid->getPauseOnly() && !wid->isInside(x, y)) continue;
 				wid->onClick(x, y);
-				wid->onFocusChange(true);
 				break;
 			}
 		}
+		else {
+			for (auto wid : this->m_widgets) {
+				if (wid->isInside(x, y)) {
+					this->m_widgets.remove(wid);
+					this->m_widgets.push_front(wid);
 
-		auto iter = this->m_widgets.begin();
-		while (++iter != this->m_widgets.end()) {
-			(*iter)->onFocusChange(false);
+					wid->onClick(x, y);
+					wid->onFocusChange(true);
+					break;
+				}
+			}
+
+			auto iter = this->m_widgets.begin();
+			while (++iter != this->m_widgets.end()) {
+				(*iter)->onFocusChange(false);
+			}
 		}
 	}
 
@@ -151,9 +158,7 @@ namespace dal {
 	void OverlayMaster::onKeyInput(const std::string& str) {
 		if (this->m_widgets.empty()) return;
 
-		for (const auto c : str) {
-			this->m_widgets.front()->onKeyInput(c);
-		}
+		this->m_widgets.front()->onKeyInput(str.c_str());
 	}
 
 	void OverlayMaster::render(void) const {

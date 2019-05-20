@@ -8,6 +8,8 @@
 #include "s_logger_god.h"
 #include "m_collision2d.h"
 #include "s_scripting.h"
+#include "p_globalfsm.h"
+#include "s_configs.h"
 
 
 using namespace std::string_literals;
@@ -20,6 +22,23 @@ namespace {
 	dal::QuadRenderer g_charDrawer;
 
 	constexpr float g_darkTheme = 30.0f / 255.0f;
+
+
+	void toggleGameState(void) {
+		dal::EventStatic e;
+		e.type = dal::EventType::global_fsm_change;
+
+		const auto curState = dal::ConfigsGod::getinst().getGlobalGameState();
+
+		switch (curState) {
+		case dal::GlobalGameState::game:
+			e.intArg1 = static_cast<int>(dal::GlobalGameState::menu); break;
+		case dal::GlobalGameState::menu:
+			e.intArg1 = static_cast<int>(dal::GlobalGameState::game); break;
+		}
+
+		dal::EventGod::getinst().notifyAll(e);
+	}
 
 }
 
@@ -100,49 +119,28 @@ namespace {
 }
 
 
+// Label
 namespace dal {
 
-	LineEdit::LineEdit(UnicodeCache& asciiCache)
-		: m_textColor(1.0, 1.0, 1.0, 1.0),
-		m_asciiCache(asciiCache)
+	Label::Label(Widget* parent, UnicodeCache& asciiCache)
+	:	Widget(parent),
+		m_textColor(1.0, 1.0, 1.0, 1.0),
+		m_unicodeCache(asciiCache)
 	{
 		this->setPosX(10.0f);
 		this->setPosY(40.0f);
 		this->setWidth(400.0f);
 		this->setHeight(20.0f);
 
-		this->m_quadRender.setColor(g_darkTheme, g_darkTheme, g_darkTheme, 1.0f);
+		this->m_background.setColor(g_darkTheme, g_darkTheme, g_darkTheme, 1.0f);
 	}
 
-	void LineEdit::onKeyInput(const char c) {
-		switch (c) {
-
-		case '\n':
-			this->onReturn();
-			break;
-		case '\b':
-			if (mText.empty()) break;
-			mText.pop_back();
-			break;
-		case '\t':
-			mText += "    ";  // 4 whitespaces. 
-			break;
-		case '\0':
-			return;
-		default:
-			mText += c;
-			break;
-
-		}
+	void Label::onClick(const float x, const float y) {
+		toggleGameState();
 	}
 
-	void LineEdit::onReturn(void) {
-		Lua::getinst().doString(mText.c_str());
-		mText.clear();
-	}
-
-	void LineEdit::renderOverlay(const UnilocOverlay& uniloc) {
-		this->m_quadRender.renderQuad(uniloc, this->getDeviceSpace());
+	void Label::renderOverlay(const UnilocOverlay& uniloc) {
+		this->m_background.renderQuad(uniloc, this->getDeviceSpace());
 
 		const auto screenInfo = this->makeScreenSpace();
 
@@ -151,8 +149,8 @@ namespace dal {
 		const float yHeight = screenInfo.p2.y - boxHeight / 4.0f;
 
 
-		auto header = this->mText.begin();
-		const auto end = this->mText.end();
+		auto header = this->m_text.begin();
+		const auto end = this->m_text.end();
 
 		while (end != header) {
 			uint32_t c = 0;
@@ -172,7 +170,7 @@ namespace dal {
 				}
 			}
 
-			auto& charac = this->m_asciiCache.at(c);
+			auto& charac = this->m_unicodeCache.at(c);
 
 			QuadInfo charQuad;
 
@@ -186,28 +184,82 @@ namespace dal {
 
 			xAdvance += (charac.advance >> 6);
 		}
+	}
+
+	void Label::setText(const std::string& t) {
+		this->m_text = t;
+	}
+
+	const std::string& Label::getText(void) const {
+		return this->m_text;
+	}
+
+	void Label::setTextColor(const float r, const float g, const float b, const float a) {
+		this->m_textColor = { r, g, b, a };
+	}
+
+	void Label::setBackgroundColor(const float r, const float g, const float b, const float a) {
+		this->m_background.setColor(r, g, b, a);
+	}
+
+}
 
 
-		for (auto c : mText) {
-			
+namespace dal {
+
+	LineEdit::LineEdit(Widget* parent, UnicodeCache& asciiCache)
+	:	Label(parent, asciiCache)
+	{
+
+	}
+
+	void LineEdit::onClick(const float x, const float y) {
+
+	}
+
+	void LineEdit::onKeyInput(const char* const str) {
+		auto text = this->getText();
+		const auto len = std::strlen(str);
+
+		for (size_t i = 0; i < len; i++) {
+			const auto c = str[i];
+
+			switch (c) {
+
+			case '\n':
+				this->onReturn();
+				break;
+			case '\b':
+				if (text.empty()) break;
+				text.pop_back();
+				break;
+			case '\t':
+				text.append("    ");  // 4 whitespaces. 
+				break;
+			case '\0':
+				return;
+			default:
+				text += c;
+				break;
+
+			}
 		}
+
+		this->setText(text);
+	}
+
+	void LineEdit::onReturn(void) {
+		Lua::getinst().doString(this->getText().c_str());
+		this->setText("");
 	}
 
 	void LineEdit::onFocusChange(bool isFocus) {
 		if (isFocus) {
-			this->m_textColor = { 1.0f, 1.0f, 1.0f, 1.0f };
+			this->setTextColor(1.0f, 1.0f, 1.0f, 1.0f);
 		}
 		else {
-			this->m_textColor = { 0.6f, 0.6f, 0.6f, 1.0f };
+			this->setTextColor(0.6f, 0.6f, 0.6f, 1.0f);
 		}
-	}
-
-	void LineEdit::setText(const std::string& t) {
-		mText = t;
-	}
-
-	void LineEdit::setBoxColor(const float r, const float g, const float b, const float a) {
-		this->m_quadRender.setColor(r, g, b, a);
 	}
 
 }
@@ -262,8 +314,9 @@ namespace dal {
 
 namespace dal {
 
-	TextBox::TextBox(UnicodeCache& unicodes)
-	:	m_unicodes(unicodes)
+	TextBox::TextBox(Widget* parent, UnicodeCache& unicodes)
+	:	Widget(parent),
+		m_unicodes(unicodes)
 	{
 		this->m_quadRender.setColor(g_darkTheme, g_darkTheme, g_darkTheme, 1.0f);
 	}

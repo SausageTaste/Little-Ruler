@@ -258,6 +258,7 @@ namespace dal {
 }
 
 
+// Widget
 namespace dal {
 
 	Widget::Widget(Widget* parent)

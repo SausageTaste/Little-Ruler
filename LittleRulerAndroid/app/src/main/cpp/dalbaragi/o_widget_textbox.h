@@ -13,24 +13,37 @@
 
 namespace dal {
 
-	class LineEdit : public Widget {
+	class Label : public Widget {
 
 	private:
-		QuadRenderer m_quadRender;
-		std::string mText;
+		QuadRenderer m_background;
+		std::string m_text;
 		glm::vec4 m_textColor;
-		UnicodeCache& m_asciiCache;
+		UnicodeCache& m_unicodeCache;
 
 	public:
-		LineEdit(UnicodeCache& asciiCache);
-		void onReturn(void);
+		Label(Widget* parent, UnicodeCache& asciiCache);
 
-		virtual void onKeyInput(const char c) override;
+		virtual void onClick(const float x, const float y) override;
 		virtual void renderOverlay(const UnilocOverlay& uniloc) override;
-		virtual void onFocusChange(bool isFocus) override;
 
 		void setText(const std::string& t);
-		void setBoxColor(const float r, const float g, const float b, const float a);
+		const std::string& getText(void) const;
+		void setTextColor(const float r, const float g, const float b, const float a);
+		void setBackgroundColor(const float r, const float g, const float b, const float a);
+
+	};
+
+
+	class LineEdit : public Label {
+
+	public:
+		LineEdit(Widget* parent, UnicodeCache& asciiCache);
+		void onReturn(void);
+
+		virtual void onClick(const float x, const float y) override;
+		virtual void onKeyInput(const char* const c) override;
+		virtual void onFocusChange(bool isFocus) override;
 
 	};
 
@@ -68,7 +81,7 @@ namespace dal {
 		int m_scroll = 0;
 
 	public:
-		explicit TextBox(UnicodeCache& unicodes);
+		explicit TextBox(Widget* parent, UnicodeCache& unicodes);
 		TextStream* setStrBuf(TextStream* const strBuf);
 
 		virtual void onClick(const float x, const float y) override;

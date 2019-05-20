@@ -28,7 +28,7 @@ namespace dal {
 
 	public:
 		virtual ~IKeyInputTaker(void) = default;
-		virtual void onKeyInput(const char c) = 0;
+		virtual void onKeyInput(const char* const c) = 0;
 
 	};
 
@@ -100,10 +100,10 @@ namespace dal {
 		bool m_isPauseOnly = true;
 
 	public:
-		explicit Widget(Widget* parent = nullptr);
+		explicit Widget(Widget* parent);
 		virtual ~Widget(void) = default;
 		virtual void renderOverlay(const UnilocOverlay& uniloc) = 0;
-		virtual void onKeyInput(const char c) {}
+		virtual void onKeyInput(const char* const c) override {}
 		virtual void onFocusChange(bool isFocus) {}
 
 		void setPauseOnly(bool v) { this->m_isPauseOnly = v; }

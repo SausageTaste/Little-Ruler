@@ -27,7 +27,7 @@ namespace dal {
 
 		GlobalGameState mGlobalFSM;
 
-		LineEdit* mDisplayFPS;
+		Label* mDisplayFPS;
 		TextStream m_strBuffer;
 
 		std::list<Widget*> m_widgets;
