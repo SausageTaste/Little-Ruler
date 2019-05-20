@@ -3,6 +3,8 @@
 #include <cstring>
 #include <string>
 
+#include <fmt/format.h>
+
 #include "s_logger_god.h"
 #include "m_collision2d.h"
 #include "s_scripting.h"
@@ -13,6 +15,8 @@ using namespace std::string_literals;
 
 namespace {
 
+	auto g_logger = dal::LoggerGod::getinst();
+
 	dal::QuadRenderer g_charDrawer;
 
 	constexpr float g_darkTheme = 30.0f / 255.0f;
@@ -20,9 +24,85 @@ namespace {
 }
 
 
+namespace {
+
+	// from https://github.com/s22h/cutils/blob/master/include/s22h/unicode.h
+
+	constexpr uint32_t UTF8_ONE_BYTE_MASK = 0x80;
+	constexpr uint32_t UTF8_ONE_BYTE_BITS = 0;
+	constexpr uint32_t UTF8_TWO_BYTES_MASK = 0xE0;
+	constexpr uint32_t UTF8_TWO_BYTES_BITS = 0xC0;
+	constexpr uint32_t UTF8_THREE_BYTES_MASK = 0xF0;
+	constexpr uint32_t UTF8_THREE_BYTES_BITS = 0xE0;
+	constexpr uint32_t UTF8_FOUR_BYTES_MASK = 0xF8;
+	constexpr uint32_t UTF8_FOUR_BYTES_BITS = 0xF0;
+	constexpr uint32_t UTF8_CONTINUATION_MASK = 0xC0;
+	constexpr uint32_t UTF8_CONTINUATION_BITS = 0x80;
+
+	size_t utf8_codepoint_size(const uint8_t byte) {
+		if ((byte & UTF8_ONE_BYTE_MASK) == UTF8_ONE_BYTE_BITS) {
+			return 1;
+		}
+
+		if ((byte & UTF8_TWO_BYTES_MASK) == UTF8_TWO_BYTES_BITS) {
+			return 2;
+		}
+
+		if ((byte & UTF8_THREE_BYTES_MASK) == UTF8_THREE_BYTES_BITS) {
+			return 3;
+		}
+
+		if ((byte & UTF8_FOUR_BYTES_MASK) == UTF8_FOUR_BYTES_BITS) {
+			return 4;
+		}
+
+		return 0;
+	}
+
+	uint32_t convert_utf8_to_utf32(const uint8_t* begin, const uint8_t* end) {
+		const auto cp_size = end - begin;
+		assert((utf8_codepoint_size(*begin)) == cp_size);
+		assert(1 <= cp_size && cp_size <= 4);
+
+		uint32_t buffer = 0;
+
+		switch (cp_size) {
+
+		case 1:
+			buffer = ((uint32_t)begin[0] & ~UTF8_ONE_BYTE_MASK);
+			return buffer;
+		case 2:
+			buffer =
+				((uint32_t)begin[0] & ~UTF8_TWO_BYTES_MASK) << 6 |
+				((uint32_t)begin[1] & ~UTF8_CONTINUATION_MASK);
+			return buffer;
+		case 3:
+			buffer =
+				((uint32_t)begin[0] & ~UTF8_THREE_BYTES_MASK) << 12 |
+				((uint32_t)begin[1] & ~UTF8_CONTINUATION_MASK) << 6 |
+				((uint32_t)begin[2] & ~UTF8_CONTINUATION_MASK);
+			return buffer;
+		case 4:
+			buffer =
+				((uint32_t)begin[0] & ~UTF8_FOUR_BYTES_MASK) << 18 |
+				((uint32_t)begin[1] & ~UTF8_CONTINUATION_MASK) << 12 |
+				((uint32_t)begin[2] & ~UTF8_CONTINUATION_MASK) << 6 |
+				((uint32_t)begin[3] & ~UTF8_CONTINUATION_MASK);
+			return buffer;
+		default:
+			// this should never happen, since we check validity of the string
+			fprintf(stderr, "utf8_to_utf32: invalid byte in UTF8 string.\n");
+			return 0;
+
+		}
+	}
+
+}
+
+
 namespace dal {
 
-	LineEdit::LineEdit(const CharMaskMapCache& asciiCache)
+	LineEdit::LineEdit(const AsciiCache& asciiCache)
 		: m_asciiCache(asciiCache)
 	{
 		this->setPosX(10.0f);
@@ -147,13 +227,12 @@ namespace dal {
 
 namespace dal {
 
-	TextBox::TextBox(const CharMaskMapCache& asciiCache)
-	:	m_asciiCache(asciiCache)
+	TextBox::TextBox(UnicodeCache& unicodes)
+	:	m_unicodes(unicodes)
 	{
-		constexpr float c = 30.0f / 255.0f;
-		this->m_quadRender.setColor(c, c, c, 1.0f);
+		this->m_quadRender.setColor(g_darkTheme, g_darkTheme, g_darkTheme, 1.0f);
 
-		this->m_text.append("Sungmin Woo\nwoos8899@gmail.com\n\n");
+		this->m_text.append(u8"¿ì¼º¹Î\nwoos8899@gmail.com\n\n");
 	}
 
 	TextStream* TextBox::setStrBuf(TextStream* const strBuf) {
@@ -173,7 +252,27 @@ namespace dal {
 			float xAdvance = xInit;
 			float yHeight = info.p1.y + 20.0f - this->m_scroll;
 
-			for (auto c : this->m_text) {
+			auto header = this->m_text.begin();
+			const auto end = this->m_text.end();
+
+			while (end != header) {
+				uint32_t c = 0;
+				{
+					const auto ch = *header;
+					const auto codeSize = utf8_codepoint_size(*header);
+					if (codeSize > 1) {
+						std::vector<uint8_t> buffer;
+						for (int i = 0; i < codeSize; i++) {
+							buffer.push_back(*header++);
+						}
+
+						c = convert_utf8_to_utf32(&buffer[0], &buffer[0] + buffer.size());
+					}
+					else {
+						c = static_cast<uint32_t>(*header++);
+					}
+				}
+				
 				if ('\n' == c) {
 					yHeight += 20.0f;
 					xAdvance = xInit;
@@ -184,7 +283,7 @@ namespace dal {
 					continue;
 				}
 
-				auto& charac = this->m_asciiCache.at((unsigned int)c);
+				auto& charac = this->m_unicodes.at(c);
 
 				// Returns if line is full.
 				if (xAdvance + charac.size.x >= info.p2.x) {
@@ -193,7 +292,7 @@ namespace dal {
 				}
 
 				QuadInfo charQuad;
-				
+
 				charQuad.p1.x = xAdvance + charac.bearing.x;
 				charQuad.p1.y = yHeight - charac.bearing.y;
 				if (charQuad.p1.y < info.p1.y) continue;

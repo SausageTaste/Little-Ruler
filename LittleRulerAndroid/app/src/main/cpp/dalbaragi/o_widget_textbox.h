@@ -18,10 +18,10 @@ namespace dal {
 	private:
 		QuadRenderer m_quadRender;
 		std::string mText;
-		const CharMaskMapCache& m_asciiCache;
+		const AsciiCache& m_asciiCache;
 
 	public:
-		LineEdit(const CharMaskMapCache& asciiCache);
+		LineEdit(const AsciiCache& asciiCache);
 		void onReturn(void);
 		void onKeyInput(const char c) override;
 		virtual void renderOverlay(const UnilocOverlay& uniloc) override;
@@ -57,16 +57,17 @@ namespace dal {
 	private:
 		TextStream* m_strBuffer = nullptr;
 		std::string m_text;
+		std::vector<char32_t> m_utf32Str;
 		QuadRenderer m_quadRender;
-		const CharMaskMapCache& m_asciiCache;
+		UnicodeCache& m_unicodes;
 
 		int m_scroll = 0;
 
 	public:
-		virtual void onClick(const float x, const float y) override;
-
-		explicit TextBox(const CharMaskMapCache& asciiCache);
+		explicit TextBox(UnicodeCache& unicodes);
 		TextStream* setStrBuf(TextStream* const strBuf);
+
+		virtual void onClick(const float x, const float y) override;
 		virtual void renderOverlay(const UnilocOverlay& uniloc) override;
 
 		void setColor(float r, float g, float b, float a) {

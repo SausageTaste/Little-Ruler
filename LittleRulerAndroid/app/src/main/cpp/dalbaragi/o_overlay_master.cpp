@@ -25,6 +25,7 @@ namespace dal {
 		: m_resMas(resMas),
 		m_shaderMas(shaderMas),
 		m_asciiCache(resMas),
+		m_unicodes(resMas),
 		mGlobalFSM(GlobalFSM::game)
 	{
 		/* Characters */ {
@@ -57,7 +58,7 @@ namespace dal {
 			}
 
 			{
-				auto wid = new TextBox(this->m_asciiCache);
+				auto wid = new TextBox(this->m_unicodes);
 
 				wid->setStrBuf(&this->m_strBuffer);
 				wid->setPosX(10.0f);
