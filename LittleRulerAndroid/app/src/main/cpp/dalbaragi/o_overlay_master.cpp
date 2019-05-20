@@ -19,51 +19,43 @@ namespace {
 }
 
 
-namespace {
+namespace dal {
 
-	class TextStreamChannel : public dal::ILoggingChannel {
+	OverlayMaster::TextStreamChannel::TextStreamChannel(dal::TextStream& texStream)
+		: m_texStream(texStream)
+	{
 
-	private:
-		dal::TextStream& m_texStream;
+	}
 
-	public:
-		TextStreamChannel(dal::TextStream& texStream)
-			: m_texStream(texStream)
-		{
+	void OverlayMaster::TextStreamChannel::verbose(const char* const str) {
+		const auto text = "[VERBO]"s + str + '\n';
+		this->m_texStream.append(text);
+	}
 
-		}
+	void OverlayMaster::TextStreamChannel::debug(const char* const str) {
+		const auto text = "[DEBUG]"s + str + '\n';
+		this->m_texStream.append(text);
+	}
 
-		virtual void verbose(const char* const str) override {
-			const auto text = "[VERBO]"s + str + '\n';
-			this->m_texStream.append(text);
-		}
+	void OverlayMaster::TextStreamChannel::info(const char* const str) {
+		const auto text = "[INFO]"s + str + '\n';
+		this->m_texStream.append(text);
+	}
 
-		virtual void debug(const char* const str) override {
-			const auto text = "[DEBUG]"s + str + '\n';
-			this->m_texStream.append(text);
-		}
+	void OverlayMaster::TextStreamChannel::warn(const char* const str) {
+		const auto text = "[WARN]"s + str + '\n';
+		this->m_texStream.append(text);
+	}
 
-		virtual void info(const char* const str) override {
-			const auto text = "[INFO]"s + str + '\n';
-			this->m_texStream.append(text);
-		}
+	void OverlayMaster::TextStreamChannel::error(const char* const str) {
+		const auto text = "[ERROR]"s + str + '\n';
+		this->m_texStream.append(text);
+	}
 
-		virtual void warn(const char* const str) override {
-			const auto text = "[WARN]"s + str + '\n';
-			this->m_texStream.append(text);
-		}
-
-		virtual void error(const char* const str) override {
-			const auto text = "[ERROR]"s + str + '\n';
-			this->m_texStream.append(text);
-		}
-
-		virtual void fatal(const char* const str) override {
-			const auto text = "[FATAL]"s + str + '\n';
-			this->m_texStream.append(text);
-		}
-
-	};
+	void OverlayMaster::TextStreamChannel::fatal(const char* const str) {
+		const auto text = "[FATAL]"s + str + '\n';
+		this->m_texStream.append(text);
+	}
 
 }
 
@@ -74,7 +66,8 @@ namespace dal {
 	:	m_resMas(resMas),
 		m_shaderMas(shaderMas),
 		m_unicodes(resMas),
-		mGlobalFSM(GlobalGameState::game)
+		mGlobalFSM(GlobalGameState::game),
+		m_texStreamCh(m_strBuffer)
 	{
 		/* Characters */ {
 			script::set_outputStream(&this->m_strBuffer);
@@ -162,11 +155,13 @@ namespace dal {
 			mBoxesForTouchPoint[10].setColor(1.0f, 1.0f, 0.0f);
 			mBoxesForTouchPoint[10].setTransparency(0.5f);
 
-			g_logger.giveChannel(new TextStreamChannel(this->m_strBuffer));
+			g_logger.addChannel(&m_texStreamCh);
 		}
 	}
 
 	OverlayMaster::~OverlayMaster(void) {
+		g_logger.deleteChannel(&m_texStreamCh);
+
 		EventGod::getinst().deregisterHandler(this, EventType::window_resize);
 		EventGod::getinst().deregisterHandler(this, EventType::global_fsm_change);
 

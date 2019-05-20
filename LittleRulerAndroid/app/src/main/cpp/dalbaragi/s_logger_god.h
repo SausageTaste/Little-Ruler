@@ -26,16 +26,13 @@ namespace dal {
 
 	private:
 		std::vector<ILoggingChannel*> m_channels;
-		std::vector<ILoggingChannel*> m_privateChannels;
 
 	public:
 		LoggerGod(void);
-		~LoggerGod(void);
-
 		static LoggerGod& getinst(void);
 
 		void addChannel(ILoggingChannel* const ch);
-		void giveChannel(ILoggingChannel* const ch);
+		void deleteChannel(ILoggingChannel* const ch);
 
 		void putTrace(const std::string& text);
 		void putDebug(const std::string& text);

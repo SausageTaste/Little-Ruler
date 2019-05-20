@@ -17,6 +17,24 @@ namespace dal {
 
 	class OverlayMaster : public iEventHandler {
 
+	private:
+		class TextStreamChannel : public dal::ILoggingChannel {
+
+		private:
+			dal::TextStream& m_texStream;
+
+		public:
+			TextStreamChannel(dal::TextStream& texStream);
+
+			virtual void verbose(const char* const str) override;
+			virtual void debug(const char* const str) override;
+			virtual void info(const char* const str) override;
+			virtual void warn(const char* const str) override;
+			virtual void error(const char* const str) override;
+			virtual void fatal(const char* const str) override;
+
+		};
+
 		//////// Vars ////////
 
 	private:
@@ -29,6 +47,7 @@ namespace dal {
 
 		Label* mDisplayFPS;
 		TextStream m_strBuffer;
+		TextStreamChannel m_texStreamCh;
 
 		std::list<Widget*> m_widgets;
 

@@ -1,5 +1,7 @@
 #include "s_logger_god.h"
 
+#include <algorithm>
+
 #if defined(_WIN32)
 	#include <iostream>
 #elif defined(__ANDROID__)
@@ -101,6 +103,8 @@ namespace {
 
 	}
 
+	LogcatChannel g_logcatCh;
+
 }
 
 
@@ -113,30 +117,21 @@ namespace dal {
 	}
 
 	LoggerGod::LoggerGod(void) {
-		this->giveChannel(new LogcatChannel);
-	}
-
-	LoggerGod::~LoggerGod(void) {
-		for (auto ch : this->m_privateChannels) {
-			delete ch;
-		}
+		this->addChannel(&g_logcatCh);
 	}
 
 	void LoggerGod::addChannel(ILoggingChannel* const ch) {
 		this->m_channels.push_back(ch);
 	}
 
-	void LoggerGod::giveChannel(ILoggingChannel* const ch) {
-		this->m_privateChannels.emplace_back(ch);
+	void LoggerGod::deleteChannel(ILoggingChannel* const ch) {
+		const auto found = std::find(this->m_channels.begin(), this->m_channels.end(), ch);
+		if (this->m_channels.end() != found) this->m_channels.erase(found);
 	}
 
 
 	void LoggerGod::putFatal(const std::string& text) {
 		for (auto ch : m_channels) {
-			ch->fatal(text.c_str());
-		}
-
-		for (auto ch : this->m_privateChannels) {
 			ch->fatal(text.c_str());
 		}
 	}
@@ -145,18 +140,10 @@ namespace dal {
 		for (auto ch : m_channels) {
 			ch->error(text.c_str());
 		}
-
-		for (auto ch : this->m_privateChannels) {
-			ch->error(text.c_str());
-		}
 	}
 
 	void LoggerGod::putWarn(const std::string& text) {
 		for (auto ch : m_channels) {
-			ch->warn(text.c_str());
-		}
-
-		for (auto ch : this->m_privateChannels) {
 			ch->warn(text.c_str());
 		}
 	}
@@ -165,28 +152,16 @@ namespace dal {
 		for (auto ch : m_channels) {
 			ch->info(text.c_str());
 		}
-
-		for (auto ch : this->m_privateChannels) {
-			ch->info(text.c_str());
-		}
 	}
 
 	void LoggerGod::putDebug(const std::string& text) {
 		for (auto ch : m_channels) {
 			ch->debug(text.c_str());
 		}
-
-		for (auto ch : this->m_privateChannels) {
-			ch->debug(text.c_str());
-		}
 	}
 
 	void LoggerGod::putTrace(const std::string& text) {
 		for (auto ch : m_channels) {
-			ch->verbose(text.c_str());
-		}
-
-		for (auto ch : this->m_privateChannels) {
 			ch->verbose(text.c_str());
 		}
 	}
