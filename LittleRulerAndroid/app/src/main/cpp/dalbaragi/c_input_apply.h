@@ -15,7 +15,7 @@ namespace dal {
 	class InputApplier : public iEventHandler {
 
 	private:
-		GlobalFSM mFSM;
+		GlobalGameState mFSM;
 		OverlayMaster& m_overlayMas;
 
 	public:

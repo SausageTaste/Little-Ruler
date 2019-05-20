@@ -25,7 +25,7 @@ namespace dal {
 	:	m_resMas(resMas),
 		m_shaderMas(shaderMas),
 		m_unicodes(resMas),
-		mGlobalFSM(GlobalFSM::game)
+		mGlobalFSM(GlobalGameState::game)
 	{
 		/* Characters */ {
 			script::set_outputStream(&this->m_strBuffer);
@@ -115,7 +115,7 @@ namespace dal {
 			}
 		}
 		else if (EventType::global_fsm_change == e.type) {
-			mGlobalFSM = GlobalFSM(e.intArg1);
+			mGlobalFSM = GlobalGameState(e.intArg1);
 		}
 		else {
 			LoggerGod::getinst().putWarn("Unhanlded event in OverlayMaster.");
@@ -125,7 +125,7 @@ namespace dal {
 	void OverlayMaster::onClick(const float x, const float y) {
 		g_logger.putTrace("Click: "s + std::to_string(x) + ", " + std::to_string(y));
 
-		if (GlobalFSM::menu != this->mGlobalFSM) return;
+		if (GlobalGameState::menu != this->mGlobalFSM) return;
 
 		for (auto wid : this->m_widgets) {
 			if (wid->isInside(x, y)) {
@@ -173,7 +173,7 @@ namespace dal {
 
 		for (auto wid : this->m_widgets) {
 			if (wid->getPauseOnly()) {
-				if (GlobalFSM::menu == mGlobalFSM) {
+				if (GlobalGameState::menu == mGlobalFSM) {
 					wid->renderOverlay(uniloc);
 				}
 			}

@@ -25,7 +25,7 @@ namespace dal {
 
 		UnicodeCache m_unicodes;
 
-		GlobalFSM mGlobalFSM;
+		GlobalGameState mGlobalFSM;
 
 		LineEdit* mDisplayFPS;
 		TextStream m_strBuffer;

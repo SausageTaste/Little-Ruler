@@ -302,7 +302,7 @@ namespace {
 					if (keyEvent.key == dal::KeySpec::escape && keyEvent.type == dal::KeyboardType::down) {
 						dal::EventStatic e;
 						e.type = dal::EventType::global_fsm_change;
-						e.intArg1 = int(dal::GlobalFSM::menu);
+						e.intArg1 = int(dal::GlobalGameState::menu);
 						dal::EventGod::getinst().notifyAll(e);
 						break;
 					}
@@ -386,7 +386,7 @@ namespace {
 				else if (keyEvent.key == dal::KeySpec::escape && keyEvent.type == dal::KeyboardType::down) {
 					dal::EventStatic e;
 					e.type = dal::EventType::global_fsm_change;
-					e.intArg1 = int(dal::GlobalFSM::game);
+					e.intArg1 = int(dal::GlobalGameState::game);
 					dal::EventGod::getinst().notifyAll(e);
 					break;
 				}
@@ -580,7 +580,7 @@ namespace {
 namespace dal {
 
 	InputApplier::InputApplier(OverlayMaster& overlayMas)
-	:	mFSM(GlobalFSM::game),
+	:	mFSM(GlobalGameState::game),
 		m_overlayMas(overlayMas)
 	{
 		gTouchMaster.giveTouchPointDrawer(&overlayMas.mBoxesForTouchPoint);
@@ -599,7 +599,7 @@ namespace dal {
 			gTouchMaster.reset();
 
 		case EventType::global_fsm_change:
-			mFSM = GlobalFSM(e.intArg1);
+			mFSM = GlobalGameState(e.intArg1);
 			break;
 		default:
 			LoggerGod::getinst().putWarn("InputApplier can't handle this event: "s + getEventTypeStr(e.type));
@@ -612,14 +612,14 @@ namespace dal {
 
 		switch (mFSM) {
 
-		case GlobalFSM::game:
+		case GlobalGameState::game:
 #if defined(_WIN32)
 			apply_flyPlane(deltaTime, targetPos, targetViewDir, this->m_overlayMas);
 #else defined(__ANDROID__)
 			apply_flyDirectional(deltaTime, targetPos, targetViewDir, this->m_overlayMas);
 #endif
 			break;
-		case GlobalFSM::menu:
+		case GlobalGameState::menu:
 			apply_menuControl(this->m_overlayMas);
 			break;
 		

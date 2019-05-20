@@ -8,10 +8,12 @@ namespace dal {
 	ConfigsGod::ConfigsGod(void) {
 		mHandlerName = "dal::ConfigsGod";
 		EventGod::getinst().registerHandler(this, EventType::window_resize);
+		EventGod::getinst().registerHandler(this, EventType::global_fsm_change);
 	}
 
 	ConfigsGod::~ConfigsGod(void) {
 		EventGod::getinst().deregisterHandler(this, EventType::window_resize);
+		EventGod::getinst().deregisterHandler(this, EventType::global_fsm_change);
 	}
 
 	ConfigsGod& ConfigsGod::getinst(void) {
@@ -26,6 +28,8 @@ namespace dal {
 			mWinWidth = (unsigned int)e.intArg1;
 			mWinHeight = (unsigned int)e.intArg2;
 			break;
+		case EventType::global_fsm_change:
+			this->m_gameState = static_cast<GlobalGameState>(e.intArg1);
 		default:
 			LoggerGod::getinst().putWarn("dal::ConfigsGod can't handle this event:");
 
@@ -38,6 +42,10 @@ namespace dal {
 
 	unsigned int ConfigsGod::getWinHeight(void) const {
 		return mWinHeight;
+	}
+
+	GlobalGameState ConfigsGod::getGlobalGameState(void) const {
+		return this->m_gameState;
 	}
 
 }
