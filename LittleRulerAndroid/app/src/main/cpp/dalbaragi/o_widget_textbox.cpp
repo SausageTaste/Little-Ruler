@@ -231,8 +231,6 @@ namespace dal {
 	:	m_unicodes(unicodes)
 	{
 		this->m_quadRender.setColor(g_darkTheme, g_darkTheme, g_darkTheme, 1.0f);
-
-		this->m_text.append(u8"¿ì¼º¹Î\nwoos8899@gmail.com\n\n");
 	}
 
 	TextStream* TextBox::setStrBuf(TextStream* const strBuf) {
