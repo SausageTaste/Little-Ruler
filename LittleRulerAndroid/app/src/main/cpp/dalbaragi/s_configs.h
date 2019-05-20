@@ -9,8 +9,8 @@ namespace dal {
 	class ConfigsGod : public iEventHandler {
 
 	private:
-		unsigned int mWinWidth = 0, mWinHeight = 0;
-		GlobalGameState m_gameState = GlobalGameState::game;
+		unsigned int mWinWidth, mWinHeight;
+		GlobalGameState m_gameState;
 
 		ConfigsGod(void);
 		~ConfigsGod(void);

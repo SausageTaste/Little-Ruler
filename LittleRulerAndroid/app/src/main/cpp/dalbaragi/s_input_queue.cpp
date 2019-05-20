@@ -3,21 +3,21 @@
 #include "u_timer.h"
 
 
-namespace dal_private {
+namespace dal {
 
-	bool iSingleUsageQueue::isFull(void) const {
+	bool ISingleUsageQueue::isFull(void) const {
 		return mCurIndex >= kCapacity;
 	}
 	
-	void iSingleUsageQueue::clear(void) {
+	void ISingleUsageQueue::clear(void) {
 		mCurIndex = 0;
 	}
 
-	unsigned int iSingleUsageQueue::getSize(void) const {
+	unsigned int ISingleUsageQueue::getSize(void) const {
 		return mCurIndex;
 	}
 
-	unsigned int iSingleUsageQueue::getCapacity(void) const {
+	unsigned int ISingleUsageQueue::getCapacity(void) const {
 		return kCapacity;
 	}
 

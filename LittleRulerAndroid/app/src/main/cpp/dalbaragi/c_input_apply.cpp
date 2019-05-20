@@ -17,6 +17,26 @@ using namespace std::string_literals;
 
 namespace {
 
+	void toggleGameState(void) {
+		dal::EventStatic e;
+		e.type = dal::EventType::global_fsm_change;
+
+		const auto curState = dal::ConfigsGod::getinst().getGlobalGameState();
+		switch (curState) {
+		case dal::GlobalGameState::game:
+			e.intArg1 = static_cast<int>(dal::GlobalGameState::menu); break;
+		case dal::GlobalGameState::menu:
+			e.intArg1 = static_cast<int>(dal::GlobalGameState::game); break;
+		}
+
+		dal::EventGod::getinst().notifyAll(e);
+	}
+
+}
+
+
+namespace {
+
 	struct NoclipMoveInfo {
 		float xView, yView;
 		float xMovePlane, zMovePlane;
@@ -300,10 +320,7 @@ namespace {
 					correspondingKeyState.lastUpdated = keyEvent.timeSec;
 
 					if (keyEvent.key == dal::KeySpec::escape && keyEvent.type == dal::KeyboardType::down) {
-						dal::EventStatic e;
-						e.type = dal::EventType::global_fsm_change;
-						e.intArg1 = int(dal::GlobalGameState::menu);
-						dal::EventGod::getinst().notifyAll(e);
+						toggleGameState();
 						break;
 					}
 					else {
@@ -384,10 +401,7 @@ namespace {
 					shiftPressed = keyEvent.type == dal::KeyboardType::down;
 				}
 				else if (keyEvent.key == dal::KeySpec::escape && keyEvent.type == dal::KeyboardType::down) {
-					dal::EventStatic e;
-					e.type = dal::EventType::global_fsm_change;
-					e.intArg1 = int(dal::GlobalGameState::game);
-					dal::EventGod::getinst().notifyAll(e);
+					toggleGameState();
 					break;
 				}
 				else {

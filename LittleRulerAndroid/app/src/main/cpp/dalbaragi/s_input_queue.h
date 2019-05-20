@@ -7,29 +7,31 @@
 #include "s_configs.h"
 
 
-namespace dal_private {
+namespace dal {
 
-	class iSingleUsageQueue {
+	class ISingleUsageQueue {
 
 		//////// vars ////////
 
 	protected:
-		static constexpr unsigned int kCapacity = 100;
-		unsigned int mCurIndex = 0;
+		static constexpr size_t kCapacity = 100;
+		size_t mCurIndex = 0;
 
 		//////// funcs ////////
 
-		iSingleUsageQueue(void) = default;
-		~iSingleUsageQueue(void) = default;
+	protected:
+		ISingleUsageQueue(void) = default;
+	public:
+		virtual ~ISingleUsageQueue(void) = default;
 	private:
-		iSingleUsageQueue(iSingleUsageQueue&) = delete;
-		iSingleUsageQueue& operator=(iSingleUsageQueue&) = delete;
+		ISingleUsageQueue(ISingleUsageQueue&) = delete;
+		ISingleUsageQueue& operator=(ISingleUsageQueue&) = delete;
 
 	public:
 		void clear(void);
 		bool isFull(void) const;
-		unsigned int getSize(void) const;
-		unsigned int getCapacity(void) const;
+		size_t getSize(void) const;
+		size_t getCapacity(void) const;
 
 	};
 
@@ -40,6 +42,7 @@ namespace dal {
 
 	enum class TouchType { down=1, move=2, up=3 };
 
+
 	struct TouchEvent {
 		float x, y;
 		TouchType type;
@@ -47,7 +50,8 @@ namespace dal {
 		float timeSec;
 	};
 
-	class TouchEvtQueueGod : public dal_private::iSingleUsageQueue {
+
+	class TouchEvtQueueGod : public dal::ISingleUsageQueue {
 
 	//////// vars ////////
 
@@ -90,7 +94,9 @@ namespace dal {
 	};
 	constexpr unsigned int KEY_SPEC_SIZE = int(KeySpec::eof) - int(KeySpec::unknown);
 
+
 	enum class KeyboardType { down, up };
+
 
 	struct KeyboardEvent {
 		KeySpec key;
@@ -98,14 +104,15 @@ namespace dal {
 		float timeSec;
 	};
 
-	class KeyboardEvtQueueGod : public dal_private::iSingleUsageQueue {
+
+	class KeyboardEvtQueueGod : public dal::ISingleUsageQueue {
 
 	//////// vars ////////
 
 	private:
 		std::array<KeyboardEvent, kCapacity> mArray;
 
-//////// funcs ////////
+	//////// funcs ////////
 
 	public:
 		static KeyboardEvtQueueGod& getinst(void);

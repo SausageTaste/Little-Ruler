@@ -3,9 +3,15 @@
 #include "s_logger_god.h"
 
 
+using namespace std::string_literals;
+
+
 namespace dal {
 
-	ConfigsGod::ConfigsGod(void) {
+	ConfigsGod::ConfigsGod(void)
+	:	mWinWidth(0), mWinHeight(0),
+		m_gameState(GlobalGameState::game)
+	{
 		mHandlerName = "dal::ConfigsGod";
 		EventGod::getinst().registerHandler(this, EventType::window_resize);
 		EventGod::getinst().registerHandler(this, EventType::global_fsm_change);
@@ -30,8 +36,11 @@ namespace dal {
 			break;
 		case EventType::global_fsm_change:
 			this->m_gameState = static_cast<GlobalGameState>(e.intArg1);
+			break;
 		default:
-			LoggerGod::getinst().putWarn("dal::ConfigsGod can't handle this event:");
+			const auto eventTypeIndex = static_cast<int>(e.type);
+			LoggerGod::getinst().putWarn("dal::ConfigsGod can't handle this event:"s + std::to_string(eventTypeIndex));
+			break;
 
 		}
 	}
