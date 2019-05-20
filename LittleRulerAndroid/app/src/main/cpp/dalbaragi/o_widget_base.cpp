@@ -77,7 +77,7 @@ namespace {
 
 }
 
-
+// QuadInfo
 namespace dal {
 
 	QuadInfo QuadInfo::screen2device(void) const {
@@ -232,6 +232,25 @@ namespace dal {
 
 		this->m_maskMap.sendUniform(uniloc.mMaskMap, uniloc.mHasMaskMap, 1);
 		glUniform1i(uniloc.mUpsideDown_maskMap, 1);
+
+		RealQuadRenderer::getinst().renderOverlay();
+	}
+
+	void QuadRenderer::statelessRender(const UnilocOverlay& uniloc, const QuadInfo& devSpc, const glm::vec4& color, const TextureHandle2* const maskMap) {
+		glUniform2f(uniloc.uPoint1, devSpc.p1.x, devSpc.p1.y);
+		glUniform2f(uniloc.uPoint2, devSpc.p2.x, devSpc.p2.y);
+
+		glUniform4f(uniloc.uColor, color.r, color.g, color.b, color.a);
+
+		TextureHandle2::sendUniformNull(uniloc.mHasDiffuseMap, 0);
+
+		if (nullptr == maskMap) {
+			TextureHandle2::sendUniformNull(uniloc.mHasMaskMap, 1);
+		}
+		else {
+			maskMap->sendUniform(uniloc.mMaskMap, uniloc.mHasMaskMap, 1);
+			glUniform1i(uniloc.mUpsideDown_maskMap, 1);
+		}
 
 		RealQuadRenderer::getinst().renderOverlay();
 	}

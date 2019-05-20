@@ -103,7 +103,8 @@ namespace {
 namespace dal {
 
 	LineEdit::LineEdit(UnicodeCache& asciiCache)
-		: m_asciiCache(asciiCache)
+		: m_textColor(1.0, 1.0, 1.0, 1.0),
+		m_asciiCache(asciiCache)
 	{
 		this->setPosX(10.0f);
 		this->setPosY(40.0f);
@@ -181,8 +182,7 @@ namespace dal {
 			charQuad.p2.x = charQuad.p1.x + charac.size.x;
 			charQuad.p2.y = charQuad.p1.y + charac.size.y;
 
-			g_charDrawer.setMaskMap(charac.tex);
-			g_charDrawer.renderQuad(uniloc, charQuad.screen2device());
+			QuadRenderer::statelessRender(uniloc, charQuad.screen2device(), this->m_textColor, &charac.tex);
 
 			xAdvance += (charac.advance >> 6);
 		}
@@ -190,6 +190,15 @@ namespace dal {
 
 		for (auto c : mText) {
 			
+		}
+	}
+
+	void LineEdit::onFocusChange(bool isFocus) {
+		if (isFocus) {
+			this->m_textColor = { 1.0f, 1.0f, 1.0f, 1.0f };
+		}
+		else {
+			this->m_textColor = { 0.6f, 0.6f, 0.6f, 1.0f };
 		}
 	}
 

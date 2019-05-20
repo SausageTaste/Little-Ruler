@@ -40,6 +40,7 @@ namespace dal {
 		unsigned int getRefCount(void) const;
 
 		void sendUniform(const GLint uniloc_sampler, const GLint uniloc_hasTex, const unsigned int index) const;
+		static void sendUniformNull(const GLint uniloc_hasTex, const unsigned int index);
 		GLuint getTex(void);
 		Texture* replace(Texture* const tex);
 		void destroyTexture(void);

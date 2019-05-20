@@ -18,8 +18,8 @@ namespace dal {
 
 	public:
 		virtual ~IClickable(void) = default;
-		virtual void onClick(const float x, const float y) = 0;
 		virtual bool isInside(const float x, const float y) = 0;
+		virtual void onClick(const float x, const float y) = 0;
 
 	};
 
@@ -49,8 +49,8 @@ namespace dal {
 		AlignMode m_alignMode = AlignMode::upper_left;
 
 	public:
-		virtual void onClick(const float x, const float y) override {}
 		virtual bool isInside(const float x, const float y) override;
+		virtual void onClick(const float x, const float y) override {}
 
 		void setParent(ScreenQuad* parent) { this->m_parent = parent; }
 
@@ -87,6 +87,8 @@ namespace dal {
 		void setMaskMap(const TextureHandle2& tex) { m_maskMap = tex; }
 
 		void renderQuad(const UnilocOverlay& uniloc, const QuadInfo& devSpc);
+
+		static void statelessRender(const UnilocOverlay& uniloc, const QuadInfo& devSpc, const glm::vec4& color, const TextureHandle2* const maskMap);
 
 	};
 

@@ -338,6 +338,10 @@ namespace dal {
 		}
 	}
 
+	void TextureHandle2::sendUniformNull(const GLint uniloc_hasTex, const unsigned int index) {
+		glUniform1i(uniloc_hasTex, 0);
+	}
+
 	GLuint TextureHandle2::getTex(void) {
 		if (!this->isReady()) return 0;
 		else return this->pimpl->m_tex->getTexID();

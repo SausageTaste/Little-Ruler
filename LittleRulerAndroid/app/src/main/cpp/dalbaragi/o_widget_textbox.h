@@ -18,13 +18,17 @@ namespace dal {
 	private:
 		QuadRenderer m_quadRender;
 		std::string mText;
+		glm::vec4 m_textColor;
 		UnicodeCache& m_asciiCache;
 
 	public:
 		LineEdit(UnicodeCache& asciiCache);
 		void onReturn(void);
-		void onKeyInput(const char c) override;
+
+		virtual void onKeyInput(const char c) override;
 		virtual void renderOverlay(const UnilocOverlay& uniloc) override;
+		virtual void onFocusChange(bool isFocus) override;
+
 		void setText(const std::string& t);
 		void setBoxColor(const float r, const float g, const float b, const float a);
 
