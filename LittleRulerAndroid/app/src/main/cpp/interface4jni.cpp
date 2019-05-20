@@ -8,7 +8,6 @@
 
 #include <jni.h>
 #include <inttypes.h>
-#include <android/log.h>
 #include <android/asset_manager.h>
 #include <android/asset_manager_jni.h>
 
@@ -132,7 +131,21 @@ JNIEXPORT void JNICALL Java_com_sausagetaste_littleruler_LibJNI_step(JNIEnv *env
 		}
 	}
 
-	gMainloop->update();
+	try {
+		gMainloop->update();
+	}
+	catch (const std::exception& e) {
+		gLogger.putFatal("An exception thrown: "s + e.what());
+	}
+	catch (const std::string& e) {
+		gLogger.putFatal("A string thrown: "s + e);
+	}
+	catch (const int e) {
+		gLogger.putFatal("An int thrown: "s + std::to_string(e));
+	}
+	catch (...) {
+		gLogger.putFatal("Something unkown thrown");
+	}
 }
 
 JNIEXPORT void JNICALL Java_com_sausagetaste_littleruler_LibJNI_giveRequirements(JNIEnv *env, jclass type, jobject assetManager) {
