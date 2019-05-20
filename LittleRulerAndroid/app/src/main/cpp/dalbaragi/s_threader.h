@@ -24,7 +24,7 @@ namespace dal {
 		
 	public:
 		virtual ~ITaskDoneListener(void) = default;
-		virtual void notifyTask(ITask* const task) = 0;
+		virtual void notifyTask(std::unique_ptr<ITask> task) = 0;
 
 	};
 
@@ -35,7 +35,6 @@ namespace dal {
 
 	private:
 		std::unordered_map<ITask*, ITaskDoneListener*> m_notificationRecievers;
-		uint64_t m_workCount;
 
 		//////// Methods ////////
 

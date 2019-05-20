@@ -1,13 +1,14 @@
 #include "s_threader.h"
 
 #include <thread>
-#include <atomic>
 #include <mutex>
+#include <atomic>
 #include <vector>
 #include <queue>
 #include <array>
 
 #include "s_logger_god.h"
+#include "u_timer.h"
 
 #define DAL_THREAD_COUNT 1
 
@@ -45,44 +46,33 @@ namespace {
 				return v;
 			}
 		}
-
 	};
+
+	ThreadQueue<dal::ITask> g_inQ, g_outQ;
 
 
 	class WorkerClass {
 
 	private:
-		ThreadQueue<dal::ITask> m_inQ, m_outQ;
-
 		std::atomic_bool m_flagExit;
 
 	public:
 		void operator()(void) {
 			while (true) {
-				if (m_flagExit) return;
-				this->update();
+				if (this->m_flagExit) return;
+				
+				auto task = g_inQ.pop();
+				if (task == nullptr) return;
+
+				task->start();
+				g_outQ.push(task);
+
+				dal::sleepFor(0.1f);
 			}
-		}
-		
-		void update(void) {
-			auto task = m_inQ.pop();
-			if (task == nullptr) return;
-
-			task->start();
-
-			m_outQ.push(task);
-		}
-
-		void allocateTask(dal::ITask* const task) {
-			m_inQ.push(task);
-		}
-
-		dal::ITask* get(void) {
-			return m_outQ.pop();
 		}
 
 		void askGetTerminated(void) {
-			m_flagExit = true;
+			this->m_flagExit = true;
 		}
 
 	};
@@ -99,7 +89,7 @@ namespace {
 
 namespace dal {
 
-	TaskGod::TaskGod(void) : m_workCount(0) {
+	TaskGod::TaskGod(void) {
 
 #if DAL_THREAD_COUNT > 0
 		for (auto& worker : g_workers) {
@@ -131,18 +121,13 @@ namespace dal {
 	void TaskGod::update(void) {
 
 #if DAL_THREAD_COUNT > 0
-		for (auto& worker : g_workers) {
-			auto task = worker.get();
-			if (task == nullptr) continue;
+		std::unique_ptr<ITask> task{ g_outQ.pop() };
+		if (nullptr == task) return;
 
-			auto listener = this->findNotifiReciever(task);
-			if (listener != nullptr) {
-				listener->notifyTask(task);
-				return;
-			}
-			else {
-				delete task;
-			}
+		auto listener = this->findNotifiReciever(task.get());
+		if (nullptr != listener) {
+			listener->notifyTask(std::move(task));
+			return;
 		}
 #endif
 
@@ -152,8 +137,7 @@ namespace dal {
 		if (task == nullptr) return;
 
 #if DAL_THREAD_COUNT > 0
-		const auto selectedWorkerIndex = m_workCount % NUM_WORKERS;
-		g_workers.at(selectedWorkerIndex).allocateTask(task);
+		g_inQ.push(task);
 
 		if (client != nullptr) {
 			m_notificationRecievers.emplace(task, client);

@@ -146,7 +146,7 @@ namespace dal {
 	public:
 		virtual ~ResourceMaster(void) override;
 
-		virtual void notifyTask(ITask* const task) override;
+		virtual void notifyTask(std::unique_ptr<ITask> task) override;
 
 		ModelHandle orderModel(const ResourceID& resID);
 

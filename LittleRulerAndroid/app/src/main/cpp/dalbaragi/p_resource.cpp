@@ -714,18 +714,16 @@ namespace dal {
 		this->m_packages.clear();
 	}
 
-	void ResourceMaster::notifyTask(ITask* const task) {
+	void ResourceMaster::notifyTask(std::unique_ptr<ITask> task) {
 		if (nullptr == task) {
 			g_logger.putFatal("ResourceMaster::notifyTask has got a nullptr. Why??");
 			throw - 1;
 		}
 
-		std::unique_ptr<ITask> safeHoho{ task };
+		if (g_sentTasks_model.find(task.get()) != g_sentTasks_model.end()) {
+			g_sentTasks_model.erase(task.get());
 
-		if (g_sentTasks_model.find(task) != g_sentTasks_model.end()) {
-			g_sentTasks_model.erase(task);
-
-			auto loaded = reinterpret_cast<LoadTask_Model*>(task);
+			auto loaded = reinterpret_cast<LoadTask_Model*>(task.get());
 			if (!loaded->out_success) {
 				LoggerGod::getinst().putFatal("Failed to load model: "s + loaded->in_modelID.makeIDStr());
 				throw - 1;
@@ -756,10 +754,10 @@ namespace dal {
 				}
 			}
 		}
-		else if (g_sentTasks_texture.find(task) != g_sentTasks_texture.end()) {
-			g_sentTasks_texture.erase(task);
+		else if (g_sentTasks_texture.find(task.get()) != g_sentTasks_texture.end()) {
+			g_sentTasks_texture.erase(task.get());
 
-			auto loaded = reinterpret_cast<LoadTask_Texture*>(task);
+			auto loaded = reinterpret_cast<LoadTask_Texture*>(task.get());
 			if (!loaded->out_success) {
 				LoggerGod::getinst().putError("Failed to load texture: "s + loaded->in_texID.makeIDStr());
 				throw - 1;
