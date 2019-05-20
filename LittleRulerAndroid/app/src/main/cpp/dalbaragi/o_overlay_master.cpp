@@ -123,8 +123,6 @@ namespace dal {
 	}
 
 	void OverlayMaster::onClick(const float x, const float y) {
-		g_logger.putTrace("Click: "s + std::to_string(x) + ", " + std::to_string(y));
-
 		if (GlobalGameState::menu != this->mGlobalFSM) return;
 
 		for (auto wid : this->m_widgets) {
@@ -138,10 +136,9 @@ namespace dal {
 			}
 		}
 
-		bool skippedOnce = false;
-		for (auto wid : this->m_widgets) {
-			if (!skippedOnce) continue;
-			wid->onFocusChange(false);
+		auto iter = this->m_widgets.begin();
+		while (++iter != this->m_widgets.end()) {
+			(*iter)->onFocusChange(false);
 		}
 	}
 
