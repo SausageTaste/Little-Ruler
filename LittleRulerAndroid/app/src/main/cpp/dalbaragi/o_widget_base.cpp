@@ -1,11 +1,17 @@
 #include "o_widget_base.h"
 
+#include <utility>  // for std::swap
+
 #include "p_dalopengl.h"
 #include "m_collision2d.h"
 #include "s_configs.h"
+#include "s_logger_god.h"
 
 
 namespace {
+
+	auto& g_logger = dal::LoggerGod::getinst();
+
 
 	class RealQuadRenderer {
 
@@ -152,6 +158,7 @@ namespace dal {
 
 		switch (this->m_alignMode)
 		{
+
 		case AlignMode::upper_left:
 			info.p1 = {
 				parInfo.p1.x + this->m_xPos,
@@ -172,16 +179,17 @@ namespace dal {
 				parInfo.p1.y + this->m_yPos + this->m_height
 			};
 			break;
-		default:
-			throw - 1;
+
 		}
 
 		{
 			if (info.p1.x > info.p2.x) {
-				throw - 1;
+				g_logger.putWarn("Swap in ScreenQuad::makeScreenSpace");
+				std::swap(info.p1.x, info.p2.x);
 			}
 			if (info.p1.y > info.p2.y) {
-				throw - 1;
+				g_logger.putWarn("Swap in ScreenQuad::makeScreenSpace");
+				std::swap(info.p1.y, info.p2.y);
 			}
 		}
 
