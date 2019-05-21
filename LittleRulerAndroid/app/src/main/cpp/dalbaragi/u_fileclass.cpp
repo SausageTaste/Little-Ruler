@@ -31,6 +31,7 @@ using namespace std::string_literals;
 using namespace fmt::literals;
 
 
+// Translation unit level globals
 namespace {
 
 	auto& g_logger = dal::LoggerGod::getinst();
@@ -56,7 +57,13 @@ namespace {
 		}
 	};
 
-#if defined(_WIN32)
+}
+
+
+// Windows
+namespace {
+
+#ifdef _WIN32
 
 	size_t getListFolFile_win(std::string pattern, std::vector<std::string>& con) {
 		con.clear();
@@ -144,7 +151,15 @@ namespace {
 		return false;
 	};
 
-#elif defined(__ANDROID__)
+#endif
+
+}
+
+
+// Android
+namespace {
+
+#ifdef __ANDROID__
 
 	AAssetManager* gAssetMgr = nullptr;
 
@@ -598,10 +613,6 @@ namespace dal {
 		}
 
 	}
-}
-
-
-namespace dal {
 
 	std::unique_ptr<IResourceStream> resopen(ResourceID resID, const FileMode mode) {
 		if (FileMode::read != mode && FileMode::bread != mode) goto finishResolve;
@@ -612,7 +623,7 @@ namespace dal {
 			return std::unique_ptr<IResourceStream>{ nullptr };
 		}
 
-finishResolve:
+	finishResolve:
 
 #if defined(_WIN32)
 		std::string filePath;
