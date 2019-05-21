@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <string>
+#include <memory>
 
 #include "u_loadinfo.h"
 
@@ -46,6 +47,44 @@ namespace dal {
 		bool getResource_buffer(ResourceID path, std::vector<uint8_t>& buffer);
 
 	}
+
+}
+
+
+namespace dal {
+
+	enum class FileMode { read, write, append, bread, bwrite, bappend };
+	enum class Whence { beg, cur, end };
+
+	class IResourceStream {
+
+	public:
+		IResourceStream(void) = default;
+		virtual ~IResourceStream(void) = default;
+
+	private:
+		IResourceStream(const IResourceStream&) = delete;
+		IResourceStream(IResourceStream&&) = delete;
+		IResourceStream& operator=(const IResourceStream&) = delete;
+		IResourceStream& operator=(IResourceStream&&) = delete;
+
+	public:
+		virtual bool open(const char* const path, const FileMode mode) = 0;
+		virtual void close(void) = 0;
+
+		virtual size_t read(uint8_t* const buf, const size_t bufSize) = 0;
+		virtual void write(const uint8_t* const buf, const size_t bufSize) = 0;
+		virtual void write(const char* const str) = 0;
+		virtual size_t getSize(void) = 0;
+
+		virtual bool seek(const size_t offset, const Whence whence = Whence::beg) = 0;
+		virtual size_t tell(void) = 0;
+
+	};
+
+
+	std::unique_ptr<IResourceStream> resopen(ResourceID resID, const FileMode mode);
+
 }
 
 

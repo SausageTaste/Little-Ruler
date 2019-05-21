@@ -8,11 +8,12 @@
 #include <string>
 #include <vector>
 #include <memory>
-#include <iostream>
+#include <fstream>
 #include <cassert>
 
 #include <lodepng.h>
 #include <tga.h>
+#include <fmt/format.h>
 
 #include "s_logger_god.h"
 #include "u_autofree.h"
@@ -27,6 +28,7 @@
 
 
 using namespace std::string_literals;
+using namespace fmt::literals;
 
 
 namespace {
@@ -205,6 +207,110 @@ namespace {
 }
 
 
+// InFileStream
+namespace {
+
+	class InFileStream : public dal::IResourceStream {
+
+	private:
+		std::fstream m_file;
+		size_t m_fileSize = 0;
+
+	public:
+		virtual ~InFileStream(void) override {
+			this->close();
+		}
+
+		virtual bool open(const char* const path, const dal::FileMode mode) override {
+			this->close();
+
+			switch (mode) {
+			case dal::FileMode::read:
+				this->m_file.open(path, std::ios::in); break;
+			case dal::FileMode::write:
+				this->m_file.open(path, std::ios::out); break;
+			case dal::FileMode::append:
+				this->m_file.open(path, std::ios::out | std::ios::app); break;
+			case dal::FileMode::bread:
+				this->m_file.open(path, std::ios::in | std::ios::binary); break;
+			case dal::FileMode::bwrite:
+				this->m_file.open(path, std::ios::out | std::ios::binary); break;
+			case dal::FileMode::bappend:
+				this->m_file.open(path, std::ios::out | std::ios::app | std::ios::binary); break;
+			}
+
+			if (this->m_file) {
+				this->m_file.seekg(0, std::ios::end);
+				this->m_fileSize = static_cast<size_t>(this->m_file.tellg());
+				this->m_file.seekg(0, std::ios::beg);
+				return true;
+			}
+			else {
+				this->m_fileSize = 0;
+				return false;
+			}
+		}
+
+		virtual void close(void) override {
+			if (this->m_file.is_open()) this->m_file.close();
+			this->m_fileSize = 0;
+		}
+
+		virtual size_t read(uint8_t* const buf, const size_t bufSize) override {
+			const auto remaining = this->m_fileSize - this->tell();
+			const auto sizeToRead = bufSize < remaining ? bufSize : remaining;
+			if (sizeToRead <= 0) return 0;
+
+			this->m_file.read(reinterpret_cast<char*>(buf), sizeToRead);
+
+			if (!this->m_file) {
+				g_logger.putError(fmt::format("File not read completely, only {} could be read.", this->m_file.gcount()));
+				return 0;
+			}
+			else {
+				return sizeToRead;
+			}
+		}
+
+		virtual void write(const uint8_t* const buf, const size_t bufSize) override {
+			this->m_file.write(reinterpret_cast<const char*>(buf), bufSize);
+		}
+
+		virtual void write(const char* const str) override {
+			this->m_file.write(str, std::strlen(str));
+		}
+
+		virtual size_t getSize(void) override {
+			return this->m_fileSize;
+		}
+
+		virtual bool seek(const size_t offset, const dal::Whence whence = dal::Whence::beg) override {
+			switch (whence) {
+
+			case dal::Whence::beg:
+				this->m_file.seekg(offset, std::ios_base::beg);
+				break;
+			case dal::Whence::cur:
+				this->m_file.seekg(offset, std::ios_base::cur);
+				break;
+			case dal::Whence::end:
+				this->m_file.seekg(offset, std::ios_base::end);
+				break;
+
+			}
+
+			return !this->m_file.fail();
+		}
+
+		virtual size_t tell(void) override {
+			return static_cast<size_t>(this->m_file.tellg());
+		}
+
+	};
+
+}
+
+
 // Image reader functions
 namespace {
 
@@ -362,10 +468,11 @@ namespace dal {
 }
 
 
+// filec
 namespace dal {
 	namespace filec {
 
-		bool resolveRes(dal::ResourceID& result) {
+		bool resolveRes(ResourceID& result) {
 			const auto fileName = result.makeFileName();
 
 			if (result.getPackage().empty()) {
@@ -491,6 +598,45 @@ namespace dal {
 		}
 
 	}
+}
+
+
+namespace dal {
+
+	std::unique_ptr<IResourceStream> resopen(ResourceID resID, const FileMode mode) {
+		if (FileMode::read != mode && FileMode::bread != mode) goto finishResolve;
+		if (!resID.getOptionalDir().empty())  goto finishResolve;
+
+		if (false != filec::resolveRes(resID)) {
+			g_logger.putError("Failed to resolve '{}' in fopen."_format(resID.makeIDStr()));
+			return std::unique_ptr<IResourceStream>{ nullptr };
+		}
+
+finishResolve:
+
+#if defined(_WIN32)
+		std::string filePath;
+		if (PACKAGE_NAME_ASSET == resID.getPackage()) {
+			filePath = getResourceDir_win() + "asset/" + resID.makeFilePath();
+		}
+		else {
+			filePath = getResourceDir_win() + "userdata/" + resID.getPackage() + '/' + resID.makeFilePath();
+		}
+
+		std::unique_ptr<IResourceStream> file{ new InFileStream };
+		if (false == file->open(filePath.c_str(), mode)) {
+			g_logger.putError("Failed to open file: "s + filePath);
+			return std::unique_ptr<IResourceStream>{ nullptr };
+		}
+
+		return file;
+#elif defined(__ANDROID__)
+
+#endif
+
+		return std::unique_ptr<IResourceStream>{ nullptr };
+	}
+
 }
 
 

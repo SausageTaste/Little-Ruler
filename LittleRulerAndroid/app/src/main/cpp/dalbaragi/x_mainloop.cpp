@@ -89,7 +89,8 @@ namespace dal {
 
 		// Test
 		{
-			
+			auto file = resopen("asset::ass.txt", FileMode::write);
+			file->write("fuck you.\nI'll kill you.");
 		}
 
 		const auto elapsed = m_initTimer.check_getElapsed_capFPS();
