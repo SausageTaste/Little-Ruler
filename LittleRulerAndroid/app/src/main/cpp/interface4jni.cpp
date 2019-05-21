@@ -88,6 +88,9 @@ catch (const std::string& e) {
 	gLogger.putFatal("A string thrown: "s + e);
 	throw;
 }
+catch (const char* const e) {
+	gLogger.putFatal("A char* thrown: "s + e); throw;
+}
 catch (const int e) {
 	gLogger.putFatal("An int thrown: "s + std::to_string(e));
 	throw;
@@ -113,6 +116,9 @@ catch (const std::exception& e) {
 catch (const std::string& e) {
 	gLogger.putFatal("A string thrown: "s + e); throw;
 }
+catch (const char* const e) {
+	gLogger.putFatal("A char* thrown: "s + e); throw;
+}
 catch (const int e) {
 	gLogger.putFatal("An int thrown: "s + std::to_string(e)); throw;
 }
@@ -130,6 +136,9 @@ catch (const std::exception& e) {
 }
 catch (const std::string& e) {
 	gLogger.putFatal("A string thrown: "s + e); throw;
+}
+catch (const char* const e) {
+	gLogger.putFatal("A char* thrown: "s + e); throw;
 }
 catch (const int e) {
 	gLogger.putFatal("An int thrown: "s + std::to_string(e)); throw;
@@ -196,6 +205,9 @@ catch (const std::exception& e) {
 catch (const std::string& e) {
 	gLogger.putFatal("A string thrown: "s + e); throw;
 }
+catch (const char* const e) {
+	gLogger.putFatal("A char* thrown: "s + e); throw;
+}
 catch (const int e) {
 	gLogger.putFatal("An int thrown: "s + std::to_string(e)); throw;
 }
@@ -221,6 +233,9 @@ catch (const std::exception& e) {
 }
 catch (const std::string& e) {
 	gLogger.putFatal("A string thrown: "s + e); throw;
+}
+catch (const char* const e) {
+	gLogger.putFatal("A char* thrown: "s + e); throw;
 }
 catch (const int e) {
 	gLogger.putFatal("An int thrown: "s + std::to_string(e)); throw;

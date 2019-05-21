@@ -219,6 +219,9 @@ namespace dal {
 	catch (const std::string & e) {
 		g_logger.putFatal("A string thrown: "s + e); throw;
 	}
+	catch (const char* const e) {
+		g_logger.putFatal("A char* thrown: "s + e); throw;
+	}
 	catch (const int e) {
 		g_logger.putFatal("An int thrown: "s + std::to_string(e)); throw;
 	}
