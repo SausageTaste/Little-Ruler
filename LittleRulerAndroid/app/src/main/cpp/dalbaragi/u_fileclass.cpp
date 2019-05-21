@@ -10,6 +10,7 @@
 #include <memory>
 #include <fstream>
 #include <cassert>
+#include <sys/stat.h>
 
 #include <lodepng.h>
 #include <tga.h>
@@ -485,6 +486,7 @@ namespace dal {
 
 // filec
 namespace dal {
+
 	namespace filec {
 
 		bool resolveRes(ResourceID& result) {
@@ -616,9 +618,9 @@ namespace dal {
 
 	std::unique_ptr<IResourceStream> resopen(ResourceID resID, const FileMode mode) {
 		if (FileMode::read != mode && FileMode::bread != mode) goto finishResolve;
-		if (!resID.getOptionalDir().empty())  goto finishResolve;
+		if (!resID.getOptionalDir().empty()) goto finishResolve;
 
-		if (false != filec::resolveRes(resID)) {
+		if (!filec::resolveRes(resID)) {
 			g_logger.putError("Failed to resolve '{}' in fopen."_format(resID.makeIDStr()));
 			return std::unique_ptr<IResourceStream>{ nullptr };
 		}
@@ -642,7 +644,24 @@ namespace dal {
 
 		return file;
 #elif defined(__ANDROID__)
+		std::string filePath;
+		if (PACKAGE_NAME_ASSET == resID.getPackage()) {
+			filePath = resID.makeFilePath();
+			throw "Not implemented for asset.";
+		}
+		else {
+			filePath = g_storagePath + "userdata/" + resID.getPackage() + '/' + resID.makeFilePath();
+			mkdir((g_storagePath + "userdata").c_str(), 0);
+			mkdir((g_storagePath + "userdata/" + resID.getPackage()).c_str(), 0);
 
+			std::unique_ptr<IResourceStream> file{ new InFileStream };
+			if (!file->open(filePath.c_str(), mode)) {
+				g_logger.putError("Failed to open file: "s + filePath);
+				return std::unique_ptr<IResourceStream>{ nullptr };
+			}
+
+			return file;
+		}
 #endif
 
 		return std::unique_ptr<IResourceStream>{ nullptr };
