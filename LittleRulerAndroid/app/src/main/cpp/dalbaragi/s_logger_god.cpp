@@ -116,46 +116,62 @@ namespace dal {
 	}
 
 	void LoggerGod::addChannel(ILoggingChannel* const ch) {
+		std::unique_lock<std::mutex> lck{ this->m_mut };
+
 		this->m_channels.push_back(ch);
 	}
 
 	void LoggerGod::deleteChannel(ILoggingChannel* const ch) {
+		std::unique_lock<std::mutex> lck{ this->m_mut };
+
 		const auto found = std::find(this->m_channels.begin(), this->m_channels.end(), ch);
 		if (this->m_channels.end() != found) this->m_channels.erase(found);
 	}
 
 
 	void LoggerGod::putFatal(const std::string& text, const int line, const char* const func, const char* const file) {
+		std::unique_lock<std::mutex> lck{ this->m_mut };
+
 		for (auto ch : m_channels) {
 			ch->fatal(text.c_str(), line, func, file);
 		}
 	}
 
 	void LoggerGod::putError(const std::string& text, const int line, const char* const func, const char* const file) {
+		std::unique_lock<std::mutex> lck{ this->m_mut };
+
 		for (auto ch : m_channels) {
 			ch->error(text.c_str(), line, func, file);
 		}
 	}
 
 	void LoggerGod::putWarn(const std::string& text, const int line, const char* const func, const char* const file) {
+		std::unique_lock<std::mutex> lck{ this->m_mut };
+
 		for (auto ch : m_channels) {
 			ch->warn(text.c_str(), line, func, file);
 		}
 	}
 
 	void LoggerGod::putInfo(const std::string& text, const int line, const char* const func, const char* const file) {
+		std::unique_lock<std::mutex> lck{ this->m_mut };
+
 		for (auto ch : m_channels) {
 			ch->info(text.c_str(), line, func, file);
 		}
 	}
 
 	void LoggerGod::putDebug(const std::string& text, const int line, const char* const func, const char* const file) {
+		std::unique_lock<std::mutex> lck{ this->m_mut };
+
 		for (auto ch : m_channels) {
 			ch->debug(text.c_str(), line, func, file);
 		}
 	}
 
 	void LoggerGod::putVerbose(const std::string& text, const int line, const char* const func, const char* const file) {
+		std::unique_lock<std::mutex> lck{ this->m_mut };
+
 		for (auto ch : m_channels) {
 			ch->verbose(text.c_str(), line, func, file);
 		}

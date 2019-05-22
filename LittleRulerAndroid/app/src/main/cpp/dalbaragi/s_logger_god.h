@@ -1,5 +1,6 @@
 #pragma once
 
+#include <mutex>
 #include <string>
 #include <vector>
 
@@ -25,6 +26,7 @@ namespace dal {
 
 	private:
 		std::vector<ILoggingChannel*> m_channels;
+		std::mutex m_mut;
 
 	public:
 		LoggerGod(void);
