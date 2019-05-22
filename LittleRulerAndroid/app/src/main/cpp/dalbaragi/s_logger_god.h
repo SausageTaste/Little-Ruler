@@ -1,6 +1,7 @@
 #pragma once
 
 #include <mutex>
+#include <atomic>
 #include <string>
 #include <vector>
 
@@ -21,12 +22,32 @@ namespace dal {
 
 	};
 
+	/*
+	class SharedBool {
+
+	private:
+		struct Impl;
+		Impl* pimpl;
+
+	public:
+		SharedBool(std::atomic_bool& flag);
+
+		SharedBool(const SharedBool& other);
+		SharedBool& operator=(const SharedBool& other);
+		SharedBool(SharedBool&& other);
+		SharedBool& operator=(SharedBool&& other);
+
+		~SharedBool(void);
+
+	};
+	*/
 
 	class LoggerGod {
 
 	private:
 		std::vector<ILoggingChannel*> m_channels;
 		std::mutex m_mut;
+		std::atomic_bool m_enabled;
 
 	public:
 		LoggerGod(void);
@@ -34,6 +55,8 @@ namespace dal {
 
 		void addChannel(ILoggingChannel* const ch);
 		void deleteChannel(ILoggingChannel* const ch);
+		void disable(void);
+		void enable(void);
 
 		void putVerbose(const std::string& text, const int line, const char* const func, const char* const file);
 		void putDebug  (const std::string& text, const int line, const char* const func, const char* const file);

@@ -41,7 +41,9 @@ namespace {
 
 	const std::string PACKAGE_NAME_ASSET{ "asset" };
 	const std::string RESOURCE_FOLDER_NAME{ "Resource" };
+
 	const std::string USERDATA_FOLDER_NAME{ "userdata" };
+	const std::string LOG_FOLDER_NAME{ "log" };
 
 	struct DirNode {
 		std::string m_name;
@@ -271,6 +273,17 @@ namespace {
 #endif
 		assertDir(path.c_str());
 		
+	}
+
+	void assertDir_log(void) {
+
+#if defined(_WIN32)
+		const auto path = getResourceDir_win() + LOG_FOLDER_NAME;
+#elif defined(__ANDROID__)
+		const auto path = g_storagePath + LOG_FOLDER_NAME;
+#endif
+		assertDir(path.c_str());
+
 	}
 
 }
@@ -827,6 +840,10 @@ namespace dal {
 		if (PACKAGE_NAME_ASSET == resID.getPackage()) {
 			filePath = getResourceDir_win() + PACKAGE_NAME_ASSET + '/' + resID.makeFilePath();
 		}
+		else if (LOG_FOLDER_NAME == resID.getPackage()) {
+			filePath = getResourceDir_win() + LOG_FOLDER_NAME + '/' + resID.makeFilePath();
+			assertDir_log();
+		}
 		else {
 			filePath = getResourceDir_win() + USERDATA_FOLDER_NAME + '/' + resID.getPackage() + '/' + resID.makeFilePath();
 			assertDir_userdata();
@@ -847,6 +864,11 @@ namespace dal {
 		if (PACKAGE_NAME_ASSET == resID.getPackage()) {
 			filePath = resID.makeFilePath();
 			file.reset(new AssetSteam);
+		}
+		else if (LOG_FOLDER_NAME == resID.getPackage()) {
+			filePath = g_storagePath + LOG_FOLDER_NAME + '/' + resID.makeFilePath();
+			assertDir_log();
+			file.reset(new STDFileStream);
 		}
 		else {
 			filePath = g_storagePath + USERDATA_FOLDER_NAME + '/' + resID.getPackage() + '/' + resID.makeFilePath();

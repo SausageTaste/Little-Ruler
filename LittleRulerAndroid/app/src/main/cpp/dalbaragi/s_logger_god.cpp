@@ -111,26 +111,37 @@ namespace dal {
 		return inst;
 	}
 
-	LoggerGod::LoggerGod(void) {
+	LoggerGod::LoggerGod(void)
+		: m_enabled(true)
+	{
 		this->addChannel(&g_logcatCh);
 	}
 
 	void LoggerGod::addChannel(ILoggingChannel* const ch) {
-		std::unique_lock<std::mutex> lck{ this->m_mut };
+		std::unique_lock<std::mutex> lck{ this->m_mut, std::defer_lock };
 
 		this->m_channels.push_back(ch);
 	}
 
 	void LoggerGod::deleteChannel(ILoggingChannel* const ch) {
-		std::unique_lock<std::mutex> lck{ this->m_mut };
+		std::unique_lock<std::mutex> lck{ this->m_mut, std::defer_lock };
 
 		const auto found = std::find(this->m_channels.begin(), this->m_channels.end(), ch);
 		if (this->m_channels.end() != found) this->m_channels.erase(found);
 	}
 
+	void LoggerGod::disable(void) {
+		this->m_enabled = false;
+	}
+
+	void LoggerGod::enable(void) {
+		this->m_enabled = true;
+	}
+
 
 	void LoggerGod::putFatal(const std::string& text, const int line, const char* const func, const char* const file) {
-		std::unique_lock<std::mutex> lck{ this->m_mut };
+		if (!this->m_enabled) return;
+		std::unique_lock<std::mutex> lck{ this->m_mut, std::defer_lock };
 
 		for (auto ch : m_channels) {
 			ch->fatal(text.c_str(), line, func, file);
@@ -138,7 +149,8 @@ namespace dal {
 	}
 
 	void LoggerGod::putError(const std::string& text, const int line, const char* const func, const char* const file) {
-		std::unique_lock<std::mutex> lck{ this->m_mut };
+		if (!this->m_enabled) return;
+		std::unique_lock<std::mutex> lck{ this->m_mut, std::defer_lock };
 
 		for (auto ch : m_channels) {
 			ch->error(text.c_str(), line, func, file);
@@ -146,7 +158,8 @@ namespace dal {
 	}
 
 	void LoggerGod::putWarn(const std::string& text, const int line, const char* const func, const char* const file) {
-		std::unique_lock<std::mutex> lck{ this->m_mut };
+		if (!this->m_enabled) return;
+		std::unique_lock<std::mutex> lck{ this->m_mut, std::defer_lock };
 
 		for (auto ch : m_channels) {
 			ch->warn(text.c_str(), line, func, file);
@@ -154,7 +167,8 @@ namespace dal {
 	}
 
 	void LoggerGod::putInfo(const std::string& text, const int line, const char* const func, const char* const file) {
-		std::unique_lock<std::mutex> lck{ this->m_mut };
+		if (!this->m_enabled) return;
+		std::unique_lock<std::mutex> lck{ this->m_mut, std::defer_lock };
 
 		for (auto ch : m_channels) {
 			ch->info(text.c_str(), line, func, file);
@@ -162,7 +176,8 @@ namespace dal {
 	}
 
 	void LoggerGod::putDebug(const std::string& text, const int line, const char* const func, const char* const file) {
-		std::unique_lock<std::mutex> lck{ this->m_mut };
+		if (!this->m_enabled) return;
+		std::unique_lock<std::mutex> lck{ this->m_mut, std::defer_lock };
 
 		for (auto ch : m_channels) {
 			ch->debug(text.c_str(), line, func, file);
@@ -170,7 +185,8 @@ namespace dal {
 	}
 
 	void LoggerGod::putVerbose(const std::string& text, const int line, const char* const func, const char* const file) {
-		std::unique_lock<std::mutex> lck{ this->m_mut };
+		if (!this->m_enabled) return;
+		std::unique_lock<std::mutex> lck{ this->m_mut, std::defer_lock };
 
 		for (auto ch : m_channels) {
 			ch->verbose(text.c_str(), line, func, file);

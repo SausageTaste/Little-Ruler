@@ -1,8 +1,11 @@
-#include "x_mainloop.h"
+﻿#include "x_mainloop.h"
 
 #include <string>
 #include <vector>
 #include <memory>
+#include <time.h>
+
+#include <fmt/format.h>
 
 #include "p_dalopengl.h"
 #include "s_logger_god.h"
@@ -12,6 +15,89 @@
 
 
 using namespace std::string_literals;
+
+
+namespace {
+
+	class FileLoggingChannel : public dal::ILoggingChannel {
+
+	public:
+		virtual void verbose(const char* const str, const int line, const char* const func, const char* const file) override {
+			
+		}
+
+		virtual void debug(const char* const str, const int line, const char* const func, const char* const file) override {
+
+		}
+
+		virtual void info(const char* const str, const int line, const char* const func, const char* const file) override {
+
+		}
+
+		virtual void warn(const char* const str, const int line, const char* const func, const char* const file) override {
+			this->saveToFile("warning", str, line, func, file);
+		}
+
+		virtual void error(const char* const str, const int line, const char* const func, const char* const file) override {
+			this->saveToFile("error", str, line, func, file);
+		}
+
+		virtual void fatal(const char* const str, const int line, const char* const func, const char* const file) override {
+			this->saveToFile("fatal", str, line, func, file);
+		}
+
+	private:
+		static void saveToFile(const char* const logLevel, const char* const str, const int line, const char* const func, const char* const file) {
+			dal::LoggerGod::getinst().disable();
+
+			const auto theTime = time(nullptr);
+			struct std::tm timeInfo;
+
+#if defined(_WIN32)
+			const auto err = localtime_s(&timeInfo, &theTime);
+#elif defined(__ANDROID__)
+			const auto err = localtime_r(&theTime, &timeInfo);
+#endif
+
+			const auto day = timeInfo.tm_mday;
+			const auto month = timeInfo.tm_mon + 1; // Month is 0 – 11, add 1 to get a jan-dec 1-12 concept
+			const auto year = timeInfo.tm_year + 1900; // Year is # years since 1900
+			const auto hour = timeInfo.tm_hour;
+			const auto min = timeInfo.tm_min;
+			const auto sec = timeInfo.tm_sec;
+			
+			std::string buffer{ "Dalbaragi Log\n" };
+			buffer += fmt::format("{}-{}-{} {}:{}:{}\n\n", year, month, year, hour, min, sec);
+
+			buffer += fmt::format("File : {}\nLine : {}\nFunction : {}\n", file, line, func);
+			buffer += "Log level : ";
+			buffer += logLevel;
+			buffer += "\n\n";
+
+			buffer += str;
+
+			const auto fileID = fmt::format("log::log_{}-{}-{}_{}-{}-{}_{}.txt", year, month, day, hour, min, sec, logLevel);
+
+			auto logFile = dal::resopen(fileID, dal::FileMode::write);
+			if (nullptr == logFile) {
+				fmt::print("Failed to create log file: {}\n", fileID);
+				dal::LoggerGod::getinst().enable();
+				return;
+			}
+
+			const auto res = logFile->write(buffer.c_str());
+			if (!res) {
+				fmt::print("Failed to write to log file: {}\n", fileID);
+				dal::LoggerGod::getinst().enable();
+				return;
+			}
+
+			dal::LoggerGod::getinst().enable();
+		}
+
+	} g_fileLogger;
+
+}
 
 
 namespace dal {
@@ -70,6 +156,11 @@ namespace dal {
 			}
 		}
 
+		// Log to file
+		{
+			dal::LoggerGod::getinst().addChannel(&g_fileLogger);
+		}
+
 		/* Misc */ {
 			mHandlerName = "dal::Mainloop";
 			EventGod::getinst().registerHandler(this, EventType::quit_game);
@@ -87,7 +178,7 @@ namespace dal {
 
 		// Test
 		{
-
+			dalError("Test log");
 		}
 
 		const auto elapsed = m_initTimer.check_getElapsed_capFPS();
@@ -95,6 +186,8 @@ namespace dal {
 	}
 
 	Mainloop::~Mainloop(void) {
+		dal::LoggerGod::getinst().deleteChannel(&g_fileLogger);
+
 		EventGod::getinst().deregisterHandler(this, EventType::quit_game);
 	}
 
