@@ -247,18 +247,18 @@ namespace {
 		if (0 != res) {
 			switch (errno) {
 				case EEXIST:
-					g_logger.putWarn("Checked isdir but dir already exists upon _mkdir for userdata.", __LINE__, __func__, __FILE__);
+					dalWarn("Checked isdir but dir already exists upon _mkdir for userdata.");
 					break;
 				case ENOENT:
-					throw "Invalid path name in assertDir_userdata: "s + path;
+					dalAbort("Invalid path name in assertDir_userdata: "s + path);
 				case EROFS:
-					throw "Parent folder is read only: "s + path;
+					dalAbort("Parent folder is read only: "s + path);
 				default:
-					throw "Unknown errno for _mkdir in assertDir_userdata: "s + std::to_string(errno);
+					dalAbort("Unknown errno for _mkdir in assertDir_userdata: "s + std::to_string(errno));
 			}
 		}
 		else {
-			g_logger.putInfo("Folder created: userdata", __LINE__, __func__, __FILE__);
+			dalInfo("Folder created: userdata");
 		}
 	}
 
@@ -453,11 +453,11 @@ namespace {
 		}
 
 		virtual bool write(const uint8_t* const buf, const size_t bufSize) override {
-			throw "Writing is illegal on assets.";
+			dalAbort("Writing is illegal on assets.");
 		}
 
 		virtual bool write(const char* const str) override {
-			throw "Writing is illegal on assets.";
+			dalAbort("Writing is illegal on assets.");
 		}
 
 		virtual size_t getSize(void) override {
@@ -739,7 +739,7 @@ namespace dal {
 		}
 
 		bool getResource_image(ResourceID path, loadedinfo::ImageFileData& data) {
-			if (PACKAGE_NAME_ASSET != path.getPackage()) throw - 1;
+			if (PACKAGE_NAME_ASSET != path.getPackage()) dalAbort("Non asset is not supported.");
 
 			if (path.getOptionalDir().empty()) {
 				resolveRes(path);
@@ -765,7 +765,7 @@ namespace dal {
 		}
 
 		bool getResource_buffer(ResourceID path, std::vector<uint8_t>& buffer) {
-			if (PACKAGE_NAME_ASSET != path.getPackage()) throw - 1;
+			if (PACKAGE_NAME_ASSET != path.getPackage()) dalAbort("Non asset is not supported.");
 
 			if (path.getOptionalDir().empty()) {
 				resolveRes(path);
@@ -807,7 +807,7 @@ namespace dal {
 			return iter->second;
 		}
 		else {
-			throw "Unkown file mode str: "s + str;
+			dalAbort("Unkown file mode str: "s + str);
 		}
 	}
 
@@ -892,7 +892,7 @@ namespace dal {
 		: AssetFileStream()
 	{
 		const auto res = this->open(path);
-		if (!res)  throw - 1;
+		if (!res)  dalAbort("Failed to open: "s + path);
 	}
 
 	AssetFileStream::~AssetFileStream(void) {
@@ -1027,8 +1027,7 @@ namespace dal {
 	}
 
 	size_t AssetFileStream::write(const uint8_t * const buf, const size_t bufSize) {
-		LoggerGod::getinst().putFatal("Not implemented: AssetFileStream::write", __LINE__, __func__, __FILE__);
-		throw - 1;
+		dalAbort("Not implemented: AssetFileStream::write");
 	}
 
 }

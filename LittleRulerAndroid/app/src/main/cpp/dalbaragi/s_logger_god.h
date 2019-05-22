@@ -46,8 +46,9 @@ namespace dal {
 
 
 #define dalVerbose(str) dal::LoggerGod::getinst().putVerbose((str), __LINE__, __func__, __FILE__);
-#define dalDebug(str)   dal::LoggerGod::getinst().putDebug((str), __LINE__, __func__, __FILE__);
-#define dalInfo(str)    dal::LoggerGod::getinst().putInfo((str), __LINE__, __func__, __FILE__);
-#define dalWarn(str)    dal::LoggerGod::getinst().putWarn((str), __LINE__, __func__, __FILE__);
-#define dalError(str)   dal::LoggerGod::getinst().putError((str), __LINE__, __func__, __FILE__);
-#define dalFatal(str)   dal::LoggerGod::getinst().putFatal((str), __LINE__, __func__, __FILE__);
+#define dalDebug(str)   dal::LoggerGod::getinst().putDebug((str),   __LINE__, __func__, __FILE__);
+#define dalInfo(str)    dal::LoggerGod::getinst().putInfo((str),    __LINE__, __func__, __FILE__);
+#define dalWarn(str)    dal::LoggerGod::getinst().putWarn((str),    __LINE__, __func__, __FILE__);
+#define dalError(str)   dal::LoggerGod::getinst().putError((str),   __LINE__, __func__, __FILE__);
+#define dalFatal(str)   dal::LoggerGod::getinst().putFatal((str),   __LINE__, __func__, __FILE__);
+#define dalAbort(str) { dal::LoggerGod::getinst().putFatal((str),   __LINE__, __func__, __FILE__); throw -1; }

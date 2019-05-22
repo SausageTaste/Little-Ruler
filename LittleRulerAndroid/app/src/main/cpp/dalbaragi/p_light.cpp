@@ -1,5 +1,7 @@
 #include "p_light.h"
 
+#include "s_logger_god.h"
+
 #include <glm/gtc/matrix_transform.hpp>
 
 
@@ -26,7 +28,7 @@ namespace dal {
 			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, mDepthmap.getTex(), 0);
 			glActiveTexture(GL_TEXTURE0);
 			glBindTexture(GL_TEXTURE_2D, mDepthmap.getTex()); {
-				if (GL_FRAMEBUFFER_COMPLETE != glCheckFramebufferStatus(GL_FRAMEBUFFER)) throw -1;
+				if (GL_FRAMEBUFFER_COMPLETE != glCheckFramebufferStatus(GL_FRAMEBUFFER)) dalAbort("Framebuffer is not complete.");
 			} glBindTexture(GL_TEXTURE_2D, 0);
 
 			glClear(GL_DEPTH_BUFFER_BIT);

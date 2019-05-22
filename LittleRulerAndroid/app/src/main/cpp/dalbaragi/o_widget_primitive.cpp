@@ -19,9 +19,9 @@ namespace {
 
 		QuadRenderer(void) {
 			glGenVertexArrays(1, &mVao);
-			if (mVao <= 0) throw -1;
+			if (mVao <= 0) dalAbort("Failed to generate vertex array.");
 			glGenBuffers(1, &mBufferObj);
-			if (mBufferObj <= 0) throw -1;
+			if (mBufferObj <= 0) dalAbort("Failed to generate gl buffers.");
 
 			glBindVertexArray(mVao);
 

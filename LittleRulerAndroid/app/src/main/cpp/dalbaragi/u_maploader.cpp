@@ -125,7 +125,7 @@ namespace {  // Make attribs
 		{
 			const auto charPtr = reinterpret_cast<const char*>(begin);
 			const auto len = std::strlen(charPtr);
-			if (len > 512) throw - 1;
+			if (len > 512) dalAbort("Length of string is bigger than 512.");
 
 			info.m_actorID = charPtr;
 			header += len + 1;
@@ -134,7 +134,7 @@ namespace {  // Make attribs
 		{
 			const size_t assumedRestBytes = 4 * (4 + 3);  // (float is 4 bytes) * ( (vec4) + (vec3) )
 			if (assumedRestBytes > (end - header)) {
-				throw - 1;
+				dalAbort("Umm.. what was this??");
 			}
 		}
 		
@@ -145,8 +145,6 @@ namespace {  // Make attribs
 				numBuf[i] = makeFloat4(header);
 				header += 4;
 			}
-
-			printf("Offset %d\n", static_cast<int>(header - begin));
 
 			info.pos = { numBuf[0], numBuf[1], numBuf[2] };
 			info.myQuat.x = numBuf[3];

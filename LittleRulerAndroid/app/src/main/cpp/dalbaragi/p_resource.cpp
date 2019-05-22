@@ -152,8 +152,7 @@ namespace dal {
 		void genTexture(const char* const str4Log) {
 			glGenTextures(1, &m_texID);
 			if (m_texID == 0) {
-				dal::LoggerGod::getinst().putFatal("Failed to init dal::Texture::init_depthMap::"s + str4Log, __LINE__, __func__, __FILE__);
-				throw - 1;
+				dalAbort("Failed to init dal::Texture::init_depthMap::"s + str4Log);
 			}
 		}
 
@@ -716,8 +715,7 @@ namespace dal {
 
 	void ResourceMaster::notifyTask(std::unique_ptr<ITask> task) {
 		if (nullptr == task) {
-			g_logger.putFatal("ResourceMaster::notifyTask has got a nullptr. Why??", __LINE__, __func__, __FILE__);
-			throw - 1;
+			dalAbort("ResourceMaster::notifyTask has got a nullptr. Why??");
 		}
 
 		if (g_sentTasks_model.find(task.get()) != g_sentTasks_model.end()) {
@@ -725,7 +723,7 @@ namespace dal {
 
 			auto loaded = reinterpret_cast<LoadTask_Model*>(task.get());
 			if (!loaded->out_success) {
-				throw "Failed to load model: "s + loaded->in_modelID.makeIDStr();
+				dalAbort("Failed to load model: "s + loaded->in_modelID.makeIDStr());
 			}
 
 			auto model = g_modelPool.alloc();
@@ -758,8 +756,7 @@ namespace dal {
 
 			auto loaded = reinterpret_cast<LoadTask_Texture*>(task.get());
 			if (!loaded->out_success) {
-				LoggerGod::getinst().putError("Failed to load texture: "s + loaded->in_texID.makeIDStr(), __LINE__, __func__, __FILE__);
-				throw - 1;
+				dalAbort("Failed to load texture: "s + loaded->in_texID.makeIDStr());
 			}
 
 			auto tex = g_texturePool.alloc();
@@ -770,7 +767,7 @@ namespace dal {
 				tex->init_diffueMap(loaded->out_img.m_buf.data(), loaded->out_img.m_width, loaded->out_img.m_height);
 			}
 			else {
-				throw "Unknown pix size: "s + std::to_string(loaded->out_img.m_pixSize);
+				dalAbort("Unknown pix size: "s + std::to_string(loaded->out_img.m_pixSize));
 			}
 
 			auto shouldBeNull = loaded->data_handle.replace(tex);

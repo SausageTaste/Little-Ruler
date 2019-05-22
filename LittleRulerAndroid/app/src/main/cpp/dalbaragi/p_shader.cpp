@@ -2,10 +2,13 @@
 
 #include <string>
 
+#include <fmt/format.h>
+
 #include "s_logger_god.h"
 
 
 using namespace std::string_literals;
+using namespace fmt::literals;
 
 
 namespace dal {
@@ -25,8 +28,7 @@ namespace dal {
 		}
 
 		if (shaderID == 0) {
-			LoggerGod::getinst().putError("Failed to create shader object.", __LINE__, __func__, __FILE__);
-			throw -1;
+			dalAbort("Failed to create shader object.");
 		}
 
 #if defined(_WIN32)
@@ -46,11 +48,7 @@ namespace dal {
 			GLsizei length = 0;
 			char log[1024];
 			glGetShaderInfoLog(shaderID, 1024, &length, log);
-			LoggerGod::getinst().putFatal(
-				"ShaderPrimitive compile error. Error message from OpenGL will follow.\n"s + log
-				, __LINE__, __func__, __FILE__);
-			LoggerGod::getinst().putFatal("And shader source code is following.\n"s + srcStr, __LINE__, __func__, __FILE__);
-			throw -1;
+			dalAbort("Shader primitive compile error. Error message from OpenGL is\n"s + log + "\nshader source code is\n" + srcStr + '\n');
 		}
 
 		return shaderID;
@@ -81,9 +79,7 @@ namespace dal {
 			GLsizei length = 0;
 			char log[100];
 			glGetProgramInfoLog(this->mProgramID, 100, &length, log);
-			auto errMsg = "ShaderProgram linking error: "s + log;
-			LoggerGod::getinst().putFatal(errMsg, __LINE__, __func__, __FILE__);
-			throw -1;
+			dalAbort("ShaderProgram linking error: "s + log);
 		}
 	}
 

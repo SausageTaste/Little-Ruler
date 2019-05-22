@@ -32,7 +32,7 @@ namespace {
 	dal::ResourceID toAssResID(const std::string& path) {
 		const auto packageSlashPos = path.find("/");
 		if (std::string::npos == packageSlashPos) {
-			throw "Invalid assimp res id: "s + path;
+			dalAbort("Invalid assimp res id: "s + path);
 		}
 		const auto package = path.substr(0, packageSlashPos);
 		const auto rest = path.substr(packageSlashPos + 1, path.size() - packageSlashPos - 1);

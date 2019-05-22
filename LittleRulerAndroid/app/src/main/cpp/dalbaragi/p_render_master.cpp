@@ -55,8 +55,7 @@ namespace dal {
 			glBindRenderbuffer(GL_RENDERBUFFER, 0);
 
 			if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-				LoggerGod::getinst().putFatal("Failed to create framebuffer.", __LINE__, __func__, __FILE__);
-				throw - 1;
+				dalAbort("Failed to create framebuffer.");
 			}
 
 			glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -65,11 +64,11 @@ namespace dal {
 		// Establish vbo for fbuffer
 		{
 			glGenVertexArrays(1, &m_vbo);
-			if (m_vbo <= 0) throw - 1;
+			if (m_vbo <= 0) dalAbort("Failed gen vertex array.");
 			glGenBuffers(1, &m_vertexArr);
-			if (m_vertexArr <= 0) throw - 1;
+			if (m_vertexArr <= 0) dalAbort("Failed to gen a vertex buffer.");
 			glGenBuffers(1, &m_texcoordArr);
-			if (m_texcoordArr <= 0) throw - 1;
+			if (m_texcoordArr <= 0) dalAbort("Failed to gen a texture coordinate buffer.");
 
 			glBindVertexArray(m_vbo);
 

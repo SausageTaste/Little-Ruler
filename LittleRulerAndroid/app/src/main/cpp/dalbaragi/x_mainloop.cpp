@@ -59,16 +59,14 @@ namespace dal {
 			auto width = query.getWinWidth();
 			auto height = query.getWinHeight();
 			if (width == 0 || height == 0) {
-				LoggerGod::getinst().putFatal("Please call Mainloop::giveScreenResFirst before constructor!", __LINE__, __func__, __FILE__);
-				throw -1;
+				dalAbort("Please call Mainloop::giveScreenResFirst before constructor!");
 			}
 			this->onResize(width, height);
 		}
 
 		/* Check filesystem init */ {
 			if (!isWhatFilesystemWantsGiven()) {
-				LoggerGod::getinst().putFatal("Please call Mainloop::giveWhatFilesystemWants before constructor!", __LINE__, __func__, __FILE__);
-				throw -1;
+				dalAbort("Please call Mainloop::giveWhatFilesystemWants before constructor!");
 			}
 		}
 
@@ -89,11 +87,11 @@ namespace dal {
 
 		// Test
 		{
-			dalInfo("test");
+
 		}
 
 		const auto elapsed = m_initTimer.check_getElapsed_capFPS();
-		LoggerGod::getinst().putInfo("Init time: "s + std::to_string(elapsed), __LINE__, __func__, __FILE__);
+		dalInfo("Init time: "s + std::to_string(elapsed));
 	}
 
 	Mainloop::~Mainloop(void) {
@@ -141,7 +139,7 @@ namespace dal {
 			this->m_flagQuit = true;
 			break;
 		default:
-			LoggerGod::getinst().putWarn("dal::Mainloop can't handle this event:", __LINE__, __func__, __FILE__);
+			dalWarn("dal::Mainloop can't handle this event:");
 
 		}
 	}

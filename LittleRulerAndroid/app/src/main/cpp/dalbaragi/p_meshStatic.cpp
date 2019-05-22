@@ -126,8 +126,7 @@ namespace dal {
 	void MeshStatic::createBuffers(void) {
 		glGenVertexArrays(1, &this->mVao);
 		if (this->mVao <= 0) {
-			LoggerGod::getinst().putFatal("Failed to generate vertex array.", __LINE__, __func__, __FILE__);
-			throw -1;
+			dalAbort("Failed to generate vertex array.")
 		}
 
 		GLuint bufferIds[3];
@@ -135,8 +134,7 @@ namespace dal {
 
 		for (int i = 0; i < 3; i++) {
 			if (bufferIds[i] == 0) {
-				LoggerGod::getinst().putFatal("Failed to generate beffer.", __LINE__, __func__, __FILE__);
-				throw -1;
+				dalAbort("Failed to generate beffer.");
 			}
 		}
 

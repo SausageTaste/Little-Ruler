@@ -4,6 +4,7 @@
 #include <gl\glew.h>
 #include <SDL_opengl.h>
 
+#include <string>
 #include <memory>
 #include <iostream>
 #include <unordered_map>
@@ -120,8 +121,7 @@ namespace {
 			// Init window
 			{
 				if (SDL_Init(SDL_INIT_VIDEO) < 0) {
-					std::cout << "Failed to initiate SDL." << std::endl;
-					throw -1;
+					dalAbort("Failed to initiate SDL.");
 				}
 
 				SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
@@ -144,20 +144,18 @@ namespace {
 				}
 
 				if (nullptr == mWindow) {
-					std::cout << "Creating window failed, SDL Error: " << SDL_GetError() << '\n';
-					throw -1;
+					dalAbort("Creating window failed, SDL Error: "s + SDL_GetError());
 				}
 			}
 
 			// Create context
 			mContext = SDL_GL_CreateContext(mWindow);
 			if (nullptr == mContext) {
-				std::cout << "Creating OpenGL context failed, SDL Error: " << SDL_GetError() << '\n';
-				throw -1;
+				dalAbort("Creating OpenGL context failed, SDL Error: "s + SDL_GetError());
 			}
 
 			if (SDL_GL_SetSwapInterval(0) < 0) {
-				std::cout << "Unable to disable VSync, SDL Error: " << SDL_GetError() << std::endl;
+				dalError("Unable to disable VSync, SDL Error: "s + SDL_GetError())
 			}
 
 			this->initGLew();
@@ -177,10 +175,9 @@ namespace {
 	private:
 		static void initGLew(void) {
 			glewExperimental = GL_TRUE;
-			GLenum glewError = glewInit();
-			if (glewError != GLEW_OK) {
-				std::cout << "Initializing GLEW failed, glew error: " << glewGetErrorString(glewError) << '\n';
-				throw -1;
+			const GLenum glewError = glewInit();
+			if (GLEW_OK != glewError) {
+				dalAbort("Initializing GLEW failed, glew error: "s + reinterpret_cast<const char*>(glewGetErrorString(glewError)));
 			}
 		}
 

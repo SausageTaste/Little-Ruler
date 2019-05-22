@@ -30,16 +30,14 @@ namespace dal {
 		if (this->m_cache.end() == found) {
 			auto added = this->m_cache.emplace(utf32Char, CharacterUnit{});
 			if (false == added.second) {
-				g_logger.putFatal("Failed to add a glyph in dal::UnicodeCache::at", __LINE__, __func__, __FILE__);
-				throw - 1;
+				dalAbort("Failed to add a glyph in dal::UnicodeCache::at");
 			}
 			auto& charUnit = added.first->second;
 
 			auto& face = dal::FreetypeGod::getinst().getFace();
 			const auto glyphIndex = FT_Get_Char_Index(face, utf32Char);
 			if (FT_Load_Glyph(face, glyphIndex, FT_LOAD_RENDER) != 0) {
-				g_logger.putFatal("Failed to load Glyph: "s + std::to_string(utf32Char), __LINE__, __func__, __FILE__);
-				throw - 1;
+				dalAbort("Failed to load Glyph: "s + std::to_string(utf32Char));
 			}
 
 			glPixelStorei(GL_UNPACK_ALIGNMENT, 1);  // Text looks broken without this.

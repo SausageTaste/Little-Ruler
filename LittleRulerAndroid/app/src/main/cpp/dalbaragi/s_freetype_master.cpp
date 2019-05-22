@@ -13,25 +13,22 @@ namespace dal {
 
 	FreetypeGod::FreetypeGod(void) {
 		if (FT_Init_FreeType(&mFLibrary) != 0) {
-			LoggerGod::getinst().putFatal("Failed to init FreeType library.", __LINE__, __func__, __FILE__);
-			throw -1;
+			dalAbort("Failed to init FreeType library.");
 		}
 
 		const char* const fontName = "asset::NanumGothic.ttf";
 		auto buffer = new std::vector<FT_Byte>;  // Freetype needs this not deleted.
-		if (!filec::getResource_buffer(fontName, *buffer)) throw - 1;
+		if (!filec::getResource_buffer(fontName, *buffer)) dalAbort("Failed to load font file: "s + fontName);
 
 		const auto error = FT_New_Memory_Face(mFLibrary, buffer->data(), static_cast<FT_Long>(buffer->size()), 0, &mFace);
 		if (error) {
-			LoggerGod::getinst().putFatal("Failed to find font: "s + fontName, __LINE__, __func__, __FILE__);
-			throw -1;
+			dalAbort("Failed to find font: "s + fontName);
 		}
 
 		FT_Set_Pixel_Sizes(mFace, 0, 17);
 
 		if (FT_Load_Char(mFace, 'X', FT_LOAD_RENDER)) {
-			LoggerGod::getinst().putFatal("Failed to load Glyph.", __LINE__, __func__, __FILE__);
-			throw -1;
+			dalAbort("Failed to load Glyph.");
 		}
 	}
 
