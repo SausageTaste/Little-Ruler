@@ -87,6 +87,7 @@ namespace {
 
 	};
 
+
 	class AssIOSystem_Asset : public Assimp::IOSystem {
 
 	public:
@@ -110,6 +111,108 @@ namespace {
 			}
 
 			auto file = new AssIOStreamAsset();
+			if (file->open(pFile)) {
+				return file;
+			}
+			else {
+				delete file;
+				return nullptr;
+			}
+
+		}
+
+	};
+
+
+	class AssResourceIOStream : public Assimp::IOStream {
+
+	private:
+		std::unique_ptr<dal::IResourceStream> m_file;
+		const dal::FileMode m_mode = dal::FileMode::bread;
+
+	public:
+		AssResourceIOStream(const dal::FileMode mode)
+		:	m_mode(mode)
+		{
+
+		}
+
+		bool open(const char* const path) {
+			this->m_file = dal::resopen(path, this->m_mode);
+			return nullptr != this->m_file;
+		}
+
+		virtual size_t FileSize(void) const override {
+			return this->m_file->getSize();
+		}
+
+		virtual void Flush(void) override {
+
+		}
+
+		virtual size_t Read(void* pvBuffer, size_t pSize, size_t pCount) override {
+			return this->m_file->read(static_cast<uint8_t*>(pvBuffer), pSize * pCount);
+		}
+
+		virtual aiReturn Seek(size_t pOffset, aiOrigin pOrigin) override {
+			dal::Whence whence;
+
+			switch (pOrigin) {
+
+			case aiOrigin_SET:
+				whence = dal::Whence::beg;
+				break;
+			case aiOrigin_CUR:
+				whence = dal::Whence::cur;
+				break;
+			case aiOrigin_END:
+				whence = dal::Whence::end;
+				break;
+			default:
+				dal::LoggerGod::getinst().putError("Invalid pOrigin value for AssIOStreamAsset::Seek: "s + std::to_string(pOrigin));
+				return aiReturn_FAILURE;
+
+			}
+
+			return this->m_file->seek(pOffset, whence) ? aiReturn_SUCCESS : aiReturn_FAILURE;
+		}
+
+		virtual size_t Tell() const override {
+			return this->m_file->tell();
+		}
+
+		virtual size_t Write(const void* pvBuffer, size_t pSize, size_t pCount) override {
+			const auto bufSize = pSize * pCount;
+			if (this->m_file->write(static_cast<const uint8_t*>(pvBuffer), bufSize)) {
+				return bufSize;
+			}
+			else {
+				return 0;
+			}
+		}
+
+	};
+
+
+	class AssResourceIOSystem : public Assimp::IOSystem {
+
+	public:
+		virtual void Close(Assimp::IOStream* pFile) override {
+			delete pFile;
+		}
+
+		virtual bool Exists(const char* pFile) const override {
+			dal::ResourceID resID{ pFile };
+			return dal::filec::resolveRes(resID);
+		}
+
+		virtual char getOsSeparator() const override {
+			return '/';
+		}
+
+		virtual Assimp::IOStream* Open(const char* pFile, const char* pMode = "rb") override {
+			const auto mode = dal::mapFileMode(pMode);
+			auto file = new AssResourceIOStream(mode);
 			if (file->open(pFile)) {
 				return file;
 			}
@@ -230,8 +333,6 @@ namespace dal {
 		if (assetPath.getOptionalDir().empty()) {
 			filec::resolveRes(assetPath);
 		}
-
-		assert("asset"s == assetPath.getPackage());
 
 		Assimp::Importer importer;
 		importer.SetIOHandler(new AssIOSystem_Asset);
