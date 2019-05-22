@@ -51,7 +51,7 @@ namespace {
 
 		static dal::RenderMaster* get_renderMas(void) {
 			if (nullptr == s_renderMas) {
-				g_logger.putFatal("RenderMaster has not passed to Lua.");
+				g_logger.putFatal("RenderMaster has not passed to Lua.", __LINE__, __func__, __FILE__);
 				throw - 1;
 			}
 

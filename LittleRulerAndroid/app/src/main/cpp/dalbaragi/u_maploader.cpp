@@ -312,7 +312,7 @@ namespace {  // Make items
 			return make_lightPoint;
 
 		default:
-			g_logger.putError("Unknown map item typeCode: "s + std::to_string(typeCode));
+			g_logger.putError("Unknown map item typeCode: "s + std::to_string(typeCode), __LINE__, __func__, __FILE__);
 			return nullptr;
 
 		}
@@ -332,7 +332,7 @@ namespace dal {
 		{
 			const auto zipReult = uncompress(decomBuf, &decomBufSize, buf, bufSize);
 			if (Z_OK != zipReult) {
-				g_logger.putError("Failed to uncompress map file.");
+				g_logger.putError("Failed to uncompress map file.", __LINE__, __func__, __FILE__);
 				return false;
 			}
 		}

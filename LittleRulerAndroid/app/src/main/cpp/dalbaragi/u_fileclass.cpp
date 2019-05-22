@@ -247,7 +247,7 @@ namespace {
 		if (0 != res) {
 			switch (errno) {
 				case EEXIST:
-					g_logger.putWarn("Checked isdir but dir already exists upon _mkdir for userdata.");
+					g_logger.putWarn("Checked isdir but dir already exists upon _mkdir for userdata.", __LINE__, __func__, __FILE__);
 					break;
 				case ENOENT:
 					throw "Invalid path name in assertDir_userdata: "s + path;
@@ -258,7 +258,7 @@ namespace {
 			}
 		}
 		else {
-			g_logger.putInfo("Folder created: userdata");
+			g_logger.putInfo("Folder created: userdata", __LINE__, __func__, __FILE__);
 		}
 	}
 
@@ -311,7 +311,7 @@ namespace {
 				return true;
 			}
 			else {
-				g_logger.putError("Failed STDFileStream::open for: "s + path);
+				g_logger.putError("Failed STDFileStream::open for: "s + path, __LINE__, __func__, __FILE__);
 				return false;
 			}
 		}
@@ -328,7 +328,7 @@ namespace {
 			this->m_file.read(reinterpret_cast<char*>(buf), sizeToRead);
 
 			if (!this->m_file) {
-				g_logger.putError(fmt::format("File not read completely, only {} could be read.", this->m_file.gcount()));
+				g_logger.putError(fmt::format("File not read completely, only {} could be read.", this->m_file.gcount()), __LINE__, __func__, __FILE__);
 				return 0;
 			}
 			else {
@@ -407,19 +407,19 @@ namespace {
 				case dal::FileMode::append:
 				case dal::FileMode::bwrite:
 				case dal::FileMode::bappend:
-					g_logger.putError("Cannot open Asset as write mode: "s + path);
+					dalError("Cannot open Asset as write mode: "s + path);
 					return false;
 			}
 
 			this->m_asset = AAssetManager_open(gAssetMgr, path, AASSET_MODE_UNKNOWN);
 			if (nullptr == this->m_asset) {
-				g_logger.putError("Failed AssetSteam::open for: "s + path);
+				dalError("Failed AssetSteam::open for: "s + path);
 				return false;
 			}
 
 			this->m_fileSize = static_cast<size_t>(AAsset_getLength64(this->m_asset));
 			if (this->m_fileSize <= 0) {
-				g_logger.putWarn("File contents' length is 0 for: "s + path);
+				dalWarn("File contents' length is 0 for: "s + path);
 			}
 
 			return true;
@@ -439,11 +439,11 @@ namespace {
 
 			const auto readBytes = AAsset_read(this->m_asset, buf, sizeToRead);
 			if (readBytes < 0) {
-				g_logger.putError("Failed to read asset.");
+				dalError("Failed to read asset.");
 				return 0;
 			}
 			else if (0 == readBytes) {
-				g_logger.putError("Tried to read after end of asset.");
+				dalError("Tried to read after end of asset.");
 				return 0;
 			}
 			else {
@@ -520,7 +520,7 @@ namespace {
 		auto error = lodepng::decode(*output, w, h, buf);
 		if (error) {
 			auto errMsg = "PNG decode error: "s + lodepng_error_text(error);
-			dal::LoggerGod::getinst().putFatal(errMsg);
+			dal::LoggerGod::getinst().putFatal(errMsg, __LINE__, __func__, __FILE__);
 			return false;
 		}
 
@@ -546,7 +546,7 @@ namespace {
 		*height = static_cast<size_t>(h);
 		*pixSize = static_cast<size_t>(p);
 		if (result.isNull()) {
-			dal::LoggerGod::getinst().putFatal("Failed to parse tga file: "s + path);
+			dal::LoggerGod::getinst().putFatal("Failed to parse tga file: "s + path, __LINE__, __func__, __FILE__);
 			return false;
 		}
 		const auto resArrSize = (*width) * (*height) * (*pixSize);
@@ -664,7 +664,7 @@ namespace dal {
 			const auto fileName = result.makeFileName();
 
 			if (result.getPackage().empty()) {
-				g_logger.putError("Cannot resolve " + fileName + " without package defined.");
+				dalError("Cannot resolve " + fileName + " without package defined.");
 				return false;
 			}
 
@@ -673,11 +673,11 @@ namespace dal {
 			std::string resultStr;
 			if (findMatching_win(resultStr, path, fileName)) {
 				result.setOptionalDir(resultStr.substr(path.size(), resultStr.find(fileName) - path.size()));
-				g_logger.putInfo("Resource resolved: " + result.makeIDStr());
+				g_logger.putInfo("Resource resolved: " + result.makeIDStr(), __LINE__, __func__, __FILE__);
 				return true;
 			}
 			else {
-				g_logger.putInfo("Resource resolve failed: " + result.makeIDStr());
+				g_logger.putInfo("Resource resolve failed: " + result.makeIDStr(), __LINE__, __func__, __FILE__);
 				return false;
 			}
 #elif defined(__ANDROID__)
@@ -685,16 +685,16 @@ namespace dal {
 				std::string foundStr;
 				if (findMatchingAsset(foundStr, g_assetFolders, "", result.makeFileName())) {
 					result.setOptionalDir(foundStr);
-					g_logger.putInfo("Resource resolved: " + result.makeIDStr());
+					dalInfo("Resource resolved: " + result.makeIDStr());
 					return true;
 				}
 				else {
-					g_logger.putInfo("Resource resolve failed: " + result.makeIDStr());
+					dalInfo("Resource resolve failed: " + result.makeIDStr());
 					return false;
 				}
 			}
 			else {
-				g_logger.putError("Cannot resolve " + result.getPackage() + "::" + fileName + ", only asset is supported yet.");
+				dalError("Cannot resolve " + result.getPackage() + "::" + fileName + ", only asset is supported yet.");
 				return false;
 			}
 #endif
@@ -709,7 +709,7 @@ namespace dal {
 
 			if (nullptr == sdcardPath) return false;
 			g_storagePath = sdcardPath;
-			g_logger.putInfo("Storage path set: "s + g_storagePath);
+			dalInfo("Storage path set: "s + g_storagePath);
 #endif
 
 			return true;
@@ -759,7 +759,7 @@ namespace dal {
 				return res;
 			}
 			else {
-				LoggerGod::getinst().putError("Not supported image file type: "s + path.makeIDStr());
+				LoggerGod::getinst().putError("Not supported image file type: "s + path.makeIDStr(), __LINE__, __func__, __FILE__);
 				return false;
 			}
 		}
@@ -816,7 +816,7 @@ namespace dal {
 		if (!resID.getOptionalDir().empty()) goto finishResolve;
 
 		if (!filec::resolveRes(resID)) {
-			g_logger.putError("Failed to resolve '{}' in fopen."_format(resID.makeIDStr()));
+			dalError("Failed to resolve '{}' in fopen."_format(resID.makeIDStr()));
 			return std::unique_ptr<IResourceStream>{ nullptr };
 		}
 
@@ -835,7 +835,7 @@ namespace dal {
 
 		std::unique_ptr<IResourceStream> file{ new STDFileStream };
 		if (false == file->open(filePath.c_str(), mode)) {
-			g_logger.putError("Failed to open file: "s + filePath);
+			g_logger.putError("Failed to open file: "s + filePath, __LINE__, __func__, __FILE__);
 			return std::unique_ptr<IResourceStream>{ nullptr };
 		}
 
@@ -856,7 +856,7 @@ namespace dal {
 		}
 
 		if (!file->open(filePath.c_str(), mode)) {
-			g_logger.putError("Failed to open file: "s + resID.makeIDStr());
+			dalError("Failed to open file: "s + resID.makeIDStr());
 			return std::unique_ptr<IResourceStream>{ nullptr };
 		}
 
@@ -910,7 +910,7 @@ namespace dal {
 
 		this->pimpl->mIFile.open(m_path.c_str(), std::ios::binary);
 		if (!this->pimpl->mIFile) {
-			LoggerGod::getinst().putError("Failed to open file: "s + m_path);
+			LoggerGod::getinst().putError("Failed to open file: "s + m_path, __LINE__, __func__, __FILE__);
 			m_opened = false;
 			return false;
 		}
@@ -923,14 +923,14 @@ namespace dal {
 
 		this->pimpl->mOpenedAsset = AAssetManager_open(gAssetMgr, path, AASSET_MODE_UNKNOWN);
 		if (this->pimpl->mOpenedAsset == nullptr) {
-			LoggerGod::getinst().putError("Failed to open file: "s + path);
+			dalError("Failed to open file: "s + path);
 			m_opened = false;
 			return false;
 		}
 
 		this->m_fileContentsSize = (unsigned int)AAsset_getLength64(this->pimpl->mOpenedAsset);
 		if (this->m_fileContentsSize <= 0) {
-			LoggerGod::getinst().putWarn("File contents' length is 0: "s + path);
+			dalWarn("File contents' length is 0: "s + path);
 		}
 #endif
 
@@ -961,13 +961,13 @@ namespace dal {
 
 		if (!this->pimpl->mIFile) {
 			LoggerGod::getinst().putError(
-				"File not read completely, only "s + std::to_string(this->pimpl->mIFile.gcount()) + " could be read:"s + m_path
+				"File not read completely, only "s + std::to_string(this->pimpl->mIFile.gcount()) + " could be read:"s + m_path, __LINE__, __func__, __FILE__
 			);
 			return 0;
 		}
 #elif defined(__ANDROID__)
 		if (AAsset_read(this->pimpl->mOpenedAsset, buf, sizeToRead) < 0) {
-			LoggerGod::getinst().putError("Failed to read file:"s + m_path);
+			dalError("Failed to read file:"s + m_path);
 			return 0;
 		}
 #endif
@@ -1027,7 +1027,7 @@ namespace dal {
 	}
 
 	size_t AssetFileStream::write(const uint8_t * const buf, const size_t bufSize) {
-		LoggerGod::getinst().putFatal("Not implemented: AssetFileStream::write");
+		LoggerGod::getinst().putFatal("Not implemented: AssetFileStream::write", __LINE__, __func__, __FILE__);
 		throw - 1;
 	}
 

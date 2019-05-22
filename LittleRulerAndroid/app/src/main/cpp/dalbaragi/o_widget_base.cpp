@@ -184,11 +184,11 @@ namespace dal {
 
 		{
 			if (info.p1.x > info.p2.x) {
-				g_logger.putWarn("Swap in ScreenQuad::makeScreenSpace");
+				g_logger.putWarn("Swap in ScreenQuad::makeScreenSpace", __LINE__, __func__, __FILE__);
 				std::swap(info.p1.x, info.p2.x);
 			}
 			if (info.p1.y > info.p2.y) {
-				g_logger.putWarn("Swap in ScreenQuad::makeScreenSpace");
+				g_logger.putWarn("Swap in ScreenQuad::makeScreenSpace", __LINE__, __func__, __FILE__);
 				std::swap(info.p1.y, info.p2.y);
 			}
 		}

@@ -616,7 +616,7 @@ namespace dal {
 			mFSM = GlobalGameState(e.intArg1);
 			break;
 		default:
-			LoggerGod::getinst().putWarn("InputApplier can't handle this event: "s + getEventTypeStr(e.type));
+			LoggerGod::getinst().putWarn("InputApplier can't handle this event: "s + getEventTypeStr(e.type), __LINE__, __func__, __FILE__);
 			break;
 
 		}

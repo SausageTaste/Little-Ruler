@@ -2,16 +2,19 @@
 
 #include <algorithm>
 
+#include <fmt/format.h>
+
 #if defined(_WIN32)
-	#include <iostream>
+#include <iostream>
 #elif defined(__ANDROID__)
-	#include <android/log.h>
+#include <android/log.h>
 #else
-	#error "Unkown platform"
+#error "Unkown platform"
 #endif
 
 
 using namespace std::string_literals;
+using namespace fmt::literals;
 
 
 namespace {
@@ -27,81 +30,73 @@ namespace {
 	class LogcatChannel : public dal::ILoggingChannel {
 
 	public:
-		virtual void verbose(const char* const) override;
-		virtual void debug(const char* const) override;
-		virtual void info(const char* const) override;
-		virtual void warn(const char* const) override;
-		virtual void error(const char* const) override;
-		virtual void fatal(const char* const) override;
+		virtual void verbose(const char* const str, const int line, const char* const func, const char* const file) override {
+			const auto text = "[VERBO]"s + str;
+
+#if defined(_WIN32)
+			std::cout << text << '\n';
+#elif defined(__ANDROID__)
+			__android_log_print(ANDROID_LOG_VERBOSE, k_packageName, "%s\n", text.c_str());
+#endif
+
+		}
+
+		virtual void debug(const char* const str, const int line, const char* const func, const char* const file) override {
+			const auto text = "[DEBUG]"s + str;
+
+#if defined(_WIN32)
+			std::cout << text << '\n';
+#elif defined(__ANDROID__)
+			__android_log_print(ANDROID_LOG_DEBUG, k_packageName, "%s\n", text.c_str());
+#endif
+
+		}
+
+		virtual void info(const char* const str, const int line, const char* const func, const char* const file) override {
+			auto newText = "[INFO] {} in {} ({}) -> {}"_format(str, file, line, func);
+
+#if defined(_WIN32)
+			std::cout << newText << '\n';
+#elif defined(__ANDROID__)
+			__android_log_print(ANDROID_LOG_INFO, k_packageName, "%s\n", newText.c_str());
+#endif
+
+		}
+
+		virtual void warn(const char* const str, const int line, const char* const func, const char* const file) override {
+			const auto text = "[WARN ]"s + str;
+
+#if defined(_WIN32)
+			std::cout << text << '\n';
+#elif defined(__ANDROID__)
+			__android_log_print(ANDROID_LOG_WARN, k_packageName, "%s\n", text.c_str());
+#endif
+
+		}
+
+		virtual void error(const char* const str, const int line, const char* const func, const char* const file) override {
+			const auto text = "[ERROR]"s + str;
+
+#if defined(_WIN32)
+			std::cout << text << '\n';
+#elif defined(__ANDROID__)
+			__android_log_print(ANDROID_LOG_ERROR, k_packageName, "%s\n", text.c_str());
+#endif
+
+		}
+
+		virtual void fatal(const char* const str, const int line, const char* const func, const char* const file) override {
+			const auto text = "[FATAL]"s + str;
+
+#if defined(_WIN32)
+			std::cout << text << '\n';
+#elif defined(__ANDROID__)
+			__android_log_print(ANDROID_LOG_FATAL, k_packageName, "%s\n", text.c_str());
+#endif
+
+		}
 
 	};
-
-
-	void LogcatChannel::verbose(const char* const str) {
-		const auto text = "[VERBO]"s + str;
-
-#if defined(_WIN32)
-		std::cout << text << '\n';
-#elif defined(__ANDROID__)
-		__android_log_print(ANDROID_LOG_VERBOSE, k_packageName, "%s\n", text.c_str());
-#endif
-
-	}
-
-	void LogcatChannel::debug(const char* const str) {
-		const auto text = "[DEBUG]"s + str;
-
-#if defined(_WIN32)
-		std::cout << text << '\n';
-#elif defined(__ANDROID__)
-		__android_log_print(ANDROID_LOG_DEBUG, k_packageName, "%s\n", text.c_str());
-#endif
-
-	}
-
-	void LogcatChannel::info(const char* const str) {
-		const auto text = "[INFO ]"s + str;
-
-#if defined(_WIN32)
-		std::cout << text << '\n';
-#elif defined(__ANDROID__)
-		__android_log_print(ANDROID_LOG_INFO, k_packageName, "%s\n", text.c_str());
-#endif
-
-	}
-
-	void LogcatChannel::warn(const char* const str) {
-		const auto text = "[WARN ]"s + str;
-
-#if defined(_WIN32)
-		std::cout << text << '\n';
-#elif defined(__ANDROID__)
-		__android_log_print(ANDROID_LOG_WARN, k_packageName, "%s\n", text.c_str());
-#endif
-
-	}
-
-	void LogcatChannel::error(const char* const str) {
-		const auto text = "[ERROR]"s + str;
-
-#if defined(_WIN32)
-		std::cout << text << '\n';
-#elif defined(__ANDROID__)
-		__android_log_print(ANDROID_LOG_ERROR, k_packageName, "%s\n", text.c_str());
-#endif
-
-	}
-
-	void LogcatChannel::fatal(const char* const str) {
-		const auto text = "[FATAL]"s + str;
-
-#if defined(_WIN32)
-		std::cout << text << '\n';
-#elif defined(__ANDROID__)
-		__android_log_print(ANDROID_LOG_FATAL, k_packageName, "%s\n", text.c_str());
-#endif
-
-	}
 
 	LogcatChannel g_logcatCh;
 
@@ -130,39 +125,39 @@ namespace dal {
 	}
 
 
-	void LoggerGod::putFatal(const std::string& text) {
+	void LoggerGod::putFatal(const std::string& text, const int line, const char* const func, const char* const file) {
 		for (auto ch : m_channels) {
-			ch->fatal(text.c_str());
+			ch->fatal(text.c_str(), line, func, file);
 		}
 	}
 
-	void LoggerGod::putError(const std::string& text) {
+	void LoggerGod::putError(const std::string& text, const int line, const char* const func, const char* const file) {
 		for (auto ch : m_channels) {
-			ch->error(text.c_str());
+			ch->error(text.c_str(), line, func, file);
 		}
 	}
 
-	void LoggerGod::putWarn(const std::string& text) {
+	void LoggerGod::putWarn(const std::string& text, const int line, const char* const func, const char* const file) {
 		for (auto ch : m_channels) {
-			ch->warn(text.c_str());
+			ch->warn(text.c_str(), line, func, file);
 		}
 	}
 
-	void LoggerGod::putInfo(const std::string& text) {
+	void LoggerGod::putInfo(const std::string& text, const int line, const char* const func, const char* const file) {
 		for (auto ch : m_channels) {
-			ch->info(text.c_str());
+			ch->info(text.c_str(), line, func, file);
 		}
 	}
 
-	void LoggerGod::putDebug(const std::string& text) {
+	void LoggerGod::putDebug(const std::string& text, const int line, const char* const func, const char* const file) {
 		for (auto ch : m_channels) {
-			ch->debug(text.c_str());
+			ch->debug(text.c_str(), line, func, file);
 		}
 	}
 
-	void LoggerGod::putTrace(const std::string& text) {
+	void LoggerGod::putVerbose(const std::string& text, const int line, const char* const func, const char* const file) {
 		for (auto ch : m_channels) {
-			ch->verbose(text.c_str());
+			ch->verbose(text.c_str(), line, func, file);
 		}
 	}
 

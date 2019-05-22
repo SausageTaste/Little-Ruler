@@ -152,7 +152,7 @@ namespace dal {
 		void genTexture(const char* const str4Log) {
 			glGenTextures(1, &m_texID);
 			if (m_texID == 0) {
-				dal::LoggerGod::getinst().putFatal("Failed to init dal::Texture::init_depthMap::"s + str4Log);
+				dal::LoggerGod::getinst().putFatal("Failed to init dal::Texture::init_depthMap::"s + str4Log, __LINE__, __func__, __FILE__);
 				throw - 1;
 			}
 		}
@@ -187,7 +187,7 @@ namespace {
 		virtual void start(void) override {
 			dal::ResourceID path;
 			if ("asset" != this->in_texID.getPackage()) {
-				g_logger.putError("Other packages than 'asset' are not supported yes.");
+				g_logger.putError("Other packages than 'asset' are not supported yes.", __LINE__, __func__, __FILE__);
 				out_success = false;
 				return;
 			}
@@ -305,7 +305,7 @@ namespace dal {
 
 		if (this->pimpl->m_refCount <= 0) {
 			if (nullptr != this->pimpl->m_tex) {
-				g_logger.putWarn("A texture handler's refference all lost without being destroyed: "s + this->pimpl->m_id);
+				g_logger.putWarn("A texture handler's refference all lost without being destroyed: "s + this->pimpl->m_id, __LINE__, __func__, __FILE__);
 				this->destroyTexture();
 			}
 			
@@ -357,7 +357,7 @@ namespace dal {
 		if (nullptr == this->pimpl->m_tex) return;
 
 		if (this->pimpl->m_refCount > 1) {
-			g_logger.putWarn("Destroying texture handle with ref count: " + std::to_string(this->pimpl->m_refCount));
+			g_logger.putWarn("Destroying texture handle with ref count: " + std::to_string(this->pimpl->m_refCount), __LINE__, __func__, __FILE__);
 		}
 
 		this->pimpl->m_tex->deleteTex();
@@ -440,7 +440,7 @@ namespace dal {
 
 		if (this->pimpl->m_refCount <= 0) {
 			if (nullptr != this->pimpl->m_model) {
-				g_logger.putWarn("A model handler's refference all lost without being destroyed: "s + this->pimpl->m_id);
+				g_logger.putWarn("A model handler's refference all lost without being destroyed: "s + this->pimpl->m_id, __LINE__, __func__, __FILE__);
 				this->destroyModel();
 			}
 			
@@ -499,7 +499,7 @@ namespace dal {
 		if (nullptr == this->pimpl->m_model) return;
 
 		if (this->pimpl->m_refCount > 1) {
-			g_logger.putWarn("Destroying model handle with ref count: " + std::to_string(this->pimpl->m_refCount));
+			g_logger.putWarn("Destroying model handle with ref count: " + std::to_string(this->pimpl->m_refCount), __LINE__, __func__, __FILE__);
 		}
 
 		for (auto& unit : this->pimpl->m_model->m_renderUnits) {
@@ -543,17 +543,17 @@ namespace dal {
 namespace dal {
 
 	void Package::ResourceReport::print(void) const {
-		g_logger.putInfo("Package : "s + m_packageName);
-		g_logger.putInfo("\tModels");
+		g_logger.putInfo("Package : "s + m_packageName, __LINE__, __func__, __FILE__);
+		g_logger.putInfo("\tModels", __LINE__, __func__, __FILE__);
 
 		for (auto& x : m_models) {
-			g_logger.putInfo("\t\t"s + x.first + " (" + std::to_string(x.second) + ")");
+			g_logger.putInfo("\t\t"s + x.first + " (" + std::to_string(x.second) + ")", __LINE__, __func__, __FILE__);
 		}
 
-		g_logger.putInfo("\tTextures");
+		g_logger.putInfo("\tTextures", __LINE__, __func__, __FILE__);
 
 		for (auto& x : m_textures) {
-			g_logger.putInfo("\t\t"s + x.first + " (" + std::to_string(x.second) + ")");
+			g_logger.putInfo("\t\t"s + x.first + " (" + std::to_string(x.second) + ")", __LINE__, __func__, __FILE__);
 		}
 	}
 
@@ -665,7 +665,7 @@ namespace dal {
 			tex->init_diffueMap(info.m_buf.data(), info.m_width, info.m_height);
 		}
 		else {
-			g_logger.putError("Not supported pixel size: "s + texID.makeIDStr() + ", " + std::to_string(info.m_pixSize));
+			g_logger.putError("Not supported pixel size: "s + texID.makeIDStr() + ", " + std::to_string(info.m_pixSize), __LINE__, __func__, __FILE__);
 		}
 		
 		TextureHandle2 handle{ texID.makeFileName(), tex };
@@ -716,7 +716,7 @@ namespace dal {
 
 	void ResourceMaster::notifyTask(std::unique_ptr<ITask> task) {
 		if (nullptr == task) {
-			g_logger.putFatal("ResourceMaster::notifyTask has got a nullptr. Why??");
+			g_logger.putFatal("ResourceMaster::notifyTask has got a nullptr. Why??", __LINE__, __func__, __FILE__);
 			throw - 1;
 		}
 
@@ -758,7 +758,7 @@ namespace dal {
 
 			auto loaded = reinterpret_cast<LoadTask_Texture*>(task.get());
 			if (!loaded->out_success) {
-				LoggerGod::getinst().putError("Failed to load texture: "s + loaded->in_texID.makeIDStr());
+				LoggerGod::getinst().putError("Failed to load texture: "s + loaded->in_texID.makeIDStr(), __LINE__, __func__, __FILE__);
 				throw - 1;
 			}
 
@@ -777,7 +777,7 @@ namespace dal {
 			assert(nullptr == shouldBeNull);
 		}
 		else {
-			g_logger.putWarn("ResourceMaster got a task that it doesn't know.");
+			g_logger.putWarn("ResourceMaster got a task that it doesn't know.", __LINE__, __func__, __FILE__);
 		}
 	}
 

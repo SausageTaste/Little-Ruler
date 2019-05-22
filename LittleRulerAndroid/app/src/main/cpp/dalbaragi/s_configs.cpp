@@ -39,7 +39,7 @@ namespace dal {
 			break;
 		default:
 			const auto eventTypeIndex = static_cast<int>(e.type);
-			LoggerGod::getinst().putWarn("dal::ConfigsGod can't handle this event:"s + std::to_string(eventTypeIndex));
+			LoggerGod::getinst().putWarn("dal::ConfigsGod can't handle this event:"s + std::to_string(eventTypeIndex), __LINE__, __func__, __FILE__);
 			break;
 
 		}

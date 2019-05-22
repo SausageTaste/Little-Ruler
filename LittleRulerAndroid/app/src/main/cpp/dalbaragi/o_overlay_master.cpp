@@ -26,32 +26,32 @@ namespace dal {
 
 	}
 
-	void OverlayMaster::TextStreamChannel::verbose(const char* const str) {
+	void OverlayMaster::TextStreamChannel::verbose(const char* const str, const int line, const char* const func, const char* const file) {
 		const auto text = "[VERBO]"s + str + '\n';
 		this->m_texStream.append(text);
 	}
 
-	void OverlayMaster::TextStreamChannel::debug(const char* const str) {
+	void OverlayMaster::TextStreamChannel::debug(const char* const str, const int line, const char* const func, const char* const file) {
 		const auto text = "[DEBUG]"s + str + '\n';
 		this->m_texStream.append(text);
 	}
 
-	void OverlayMaster::TextStreamChannel::info(const char* const str) {
+	void OverlayMaster::TextStreamChannel::info(const char* const str, const int line, const char* const func, const char* const file) {
 		const auto text = "[INFO]"s + str + '\n';
 		this->m_texStream.append(text);
 	}
 
-	void OverlayMaster::TextStreamChannel::warn(const char* const str) {
+	void OverlayMaster::TextStreamChannel::warn(const char* const str, const int line, const char* const func, const char* const file) {
 		const auto text = "[WARN]"s + str + '\n';
 		this->m_texStream.append(text);
 	}
 
-	void OverlayMaster::TextStreamChannel::error(const char* const str) {
+	void OverlayMaster::TextStreamChannel::error(const char* const str, const int line, const char* const func, const char* const file) {
 		const auto text = "[ERROR]"s + str + '\n';
 		this->m_texStream.append(text);
 	}
 
-	void OverlayMaster::TextStreamChannel::fatal(const char* const str) {
+	void OverlayMaster::TextStreamChannel::fatal(const char* const str, const int line, const char* const func, const char* const file) {
 		const auto text = "[FATAL]"s + str + '\n';
 		this->m_texStream.append(text);
 	}
@@ -185,7 +185,7 @@ namespace dal {
 			mGlobalFSM = GlobalGameState(e.intArg1);
 		}
 		else {
-			LoggerGod::getinst().putWarn("Unhanlded event in OverlayMaster.");
+			LoggerGod::getinst().putWarn("Unhanlded event in OverlayMaster.", __LINE__, __func__, __FILE__);
 		}
 	}
 

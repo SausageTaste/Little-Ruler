@@ -13,7 +13,7 @@ namespace dal {
 
 	FreetypeGod::FreetypeGod(void) {
 		if (FT_Init_FreeType(&mFLibrary) != 0) {
-			LoggerGod::getinst().putFatal("Failed to init FreeType library.");
+			LoggerGod::getinst().putFatal("Failed to init FreeType library.", __LINE__, __func__, __FILE__);
 			throw -1;
 		}
 
@@ -23,14 +23,14 @@ namespace dal {
 
 		const auto error = FT_New_Memory_Face(mFLibrary, buffer->data(), static_cast<FT_Long>(buffer->size()), 0, &mFace);
 		if (error) {
-			LoggerGod::getinst().putFatal("Failed to find font: "s + fontName);
+			LoggerGod::getinst().putFatal("Failed to find font: "s + fontName, __LINE__, __func__, __FILE__);
 			throw -1;
 		}
 
 		FT_Set_Pixel_Sizes(mFace, 0, 17);
 
 		if (FT_Load_Char(mFace, 'X', FT_LOAD_RENDER)) {
-			LoggerGod::getinst().putFatal("Failed to load Glyph.");
+			LoggerGod::getinst().putFatal("Failed to load Glyph.", __LINE__, __func__, __FILE__);
 			throw -1;
 		}
 	}

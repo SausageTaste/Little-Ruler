@@ -68,11 +68,11 @@ extern "C" {
 
 
 JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void* reserved) try {
-	gLogger.putTrace("JNI_OnLoad");
+	dalVerbose("JNI_OnLoad");
 	gCnxtJNI.init(vm);
 
 	if (gCnxtJNI.getJNIEnv() == nullptr) {
-		dal::LoggerGod::getinst().putFatal("Failed JNI_OnLoad()");
+		dalFatal("Failed JNI_OnLoad()");
 		return JNI_ERR;
 	}
 
@@ -81,70 +81,70 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void* reserved) try {
 	return JNI_VERSION_1_6;
 }
 catch (const std::exception& e) {
-	gLogger.putFatal("An exception thrown: "s + e.what());
+	dalFatal("An exception thrown: "s + e.what());
 	throw;
 }
 catch (const std::string& e) {
-	gLogger.putFatal("A string thrown: "s + e);
+	dalFatal("A string thrown: "s + e);
 	throw;
 }
 catch (const char* const e) {
-	gLogger.putFatal("A char* thrown: "s + e); throw;
+	dalFatal("A char* thrown: "s + e); throw;
 }
 catch (const int e) {
-	gLogger.putFatal("An int thrown: "s + std::to_string(e));
+	dalFatal("An int thrown: "s + std::to_string(e));
 	throw;
 }
 catch (...) {
-	gLogger.putFatal("Something unkown thrown");
+	dalFatal("Something unkown thrown");
 	throw;
 }
 
 
 JNIEXPORT void JNICALL Java_com_sausagetaste_littleruler_LibJNI_init(JNIEnv *env, jclass obj) try {
-	gLogger.putTrace("JNI::init");
+	dalVerbose("JNI::init");
 	if (gMainloop != nullptr) {
 		gSavedState = gMainloop->getSavedState();
 		delete gMainloop;
 		gMainloop = nullptr;
-		gLogger.putTrace("delete gMainloop");
+		dalVerbose("delete gMainloop");
 	}
 }
 catch (const std::exception& e) {
-	gLogger.putFatal("An exception thrown: "s + e.what()); throw;
+	dalFatal("An exception thrown: "s + e.what()); throw;
 }
 catch (const std::string& e) {
-	gLogger.putFatal("A string thrown: "s + e); throw;
+	dalFatal("A string thrown: "s + e); throw;
 }
 catch (const char* const e) {
-	gLogger.putFatal("A char* thrown: "s + e); throw;
+	dalFatal("A char* thrown: "s + e); throw;
 }
 catch (const int e) {
-	gLogger.putFatal("An int thrown: "s + std::to_string(e)); throw;
+	dalFatal("An int thrown: "s + std::to_string(e)); throw;
 }
 catch (...) {
-	gLogger.putFatal("Something unkown thrown"); throw;
+	dalFatal("Something unkown thrown"); throw;
 }
 
 
 JNIEXPORT void JNICALL Java_com_sausagetaste_littleruler_LibJNI_resize(JNIEnv *env, jclass type, jint width, jint height) try {
-	gLogger.putTrace("JNI::resize");
+	dalVerbose("JNI::resize");
 	dal::Mainloop::giveScreenResFirst((unsigned int)width, (unsigned int)height);
 }
 catch (const std::exception& e) {
-	gLogger.putFatal("An exception thrown: "s + e.what()); throw;
+	dalFatal("An exception thrown: "s + e.what()); throw;
 }
 catch (const std::string& e) {
-	gLogger.putFatal("A string thrown: "s + e); throw;
+	dalFatal("A string thrown: "s + e); throw;
 }
 catch (const char* const e) {
-	gLogger.putFatal("A char* thrown: "s + e); throw;
+	dalFatal("A char* thrown: "s + e); throw;
 }
 catch (const int e) {
-	gLogger.putFatal("An int thrown: "s + std::to_string(e)); throw;
+	dalFatal("An int thrown: "s + std::to_string(e)); throw;
 }
 catch (...) {
-	gLogger.putFatal("Something unkown thrown"); throw;
+	dalFatal("Something unkown thrown"); throw;
 }
 
 
@@ -200,24 +200,24 @@ JNIEXPORT void JNICALL Java_com_sausagetaste_littleruler_LibJNI_step(JNIEnv *env
 	gMainloop->update();
 }
 catch (const std::exception& e) {
-	gLogger.putFatal("An exception thrown: "s + e.what()); throw;
+	dalFatal("An exception thrown: "s + e.what()); throw;
 }
 catch (const std::string& e) {
-	gLogger.putFatal("A string thrown: "s + e); throw;
+	dalFatal("A string thrown: "s + e); throw;
 }
 catch (const char* const e) {
-	gLogger.putFatal("A char* thrown: "s + e); throw;
+	dalFatal("A char* thrown: "s + e); throw;
 }
 catch (const int e) {
-	gLogger.putFatal("An int thrown: "s + std::to_string(e)); throw;
+	dalFatal("An int thrown: "s + std::to_string(e)); throw;
 }
 catch (...) {
-	gLogger.putFatal("Something unkown thrown"); throw;
+	dalFatal("Something unkown thrown"); throw;
 }
 
 
 JNIEXPORT void JNICALL Java_com_sausagetaste_littleruler_LibJNI_giveRequirements(JNIEnv *env, jclass type, jobject assetManager, jstring sdcardPath) try {
-	gLogger.putTrace("JNI::giveRequirements");
+	dalVerbose("JNI::giveRequirements");
 
 	// Asset manager
 	gAssMan = AAssetManager_fromJava(env, assetManager);
@@ -229,19 +229,19 @@ JNIEXPORT void JNICALL Java_com_sausagetaste_littleruler_LibJNI_giveRequirements
 	dal::Mainloop::giveWhatFilesystemWants(gAssMan, g_storagePath.c_str());
 }
 catch (const std::exception& e) {
-	gLogger.putFatal("An exception thrown: "s + e.what()); throw;
+	dalFatal("An exception thrown: "s + e.what()); throw;
 }
 catch (const std::string& e) {
-	gLogger.putFatal("A string thrown: "s + e); throw;
+	dalFatal("A string thrown: "s + e); throw;
 }
 catch (const char* const e) {
-	gLogger.putFatal("A char* thrown: "s + e); throw;
+	dalFatal("A char* thrown: "s + e); throw;
 }
 catch (const int e) {
-	gLogger.putFatal("An int thrown: "s + std::to_string(e)); throw;
+	dalFatal("An int thrown: "s + std::to_string(e)); throw;
 }
 catch (...) {
-	gLogger.putFatal("Something unkown thrown"); throw;
+	dalFatal("Something unkown thrown"); throw;
 }
 
 

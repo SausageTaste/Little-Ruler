@@ -58,7 +58,7 @@ namespace dal {
 
 		res = parseMap_dlb(info, buffer.data(), buffer.size());
 		if (!res) {
-			LoggerGod::getinst().putError("Failed to parse level: "s + mapID.makeIDStr());
+			LoggerGod::getinst().putError("Failed to parse level: "s + mapID.makeIDStr(), __LINE__, __func__, __FILE__);
 		}
 		else {
 			this->addMap(info);

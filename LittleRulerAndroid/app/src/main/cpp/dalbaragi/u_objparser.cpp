@@ -90,7 +90,7 @@ namespace {
 				whence = dal::Whence::end;
 				break;
 			default:
-				dal::LoggerGod::getinst().putError("Invalid pOrigin value for AssIOStreamAsset::Seek: "s + std::to_string(pOrigin));
+				dal::LoggerGod::getinst().putError("Invalid pOrigin value for AssIOStreamAsset::Seek: "s + std::to_string(pOrigin), __LINE__, __func__, __FILE__);
 				return aiReturn_FAILURE;
 
 			}
@@ -258,7 +258,7 @@ namespace dal {
 
 		//const aiScene* const scene = importer.ReadFileFromMemory(buf, bufSize, aiProcess_Triangulate | aiProcess_FlipUVs);
 		if ((nullptr == scene) || (scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE) || (nullptr == scene->mRootNode)) {
-			LoggerGod::getinst().putError("Assimp read fail: "s + importer.GetErrorString());
+			LoggerGod::getinst().putError("Assimp read fail: "s + importer.GetErrorString(), __LINE__, __func__, __FILE__);
 			return false;
 		}
 

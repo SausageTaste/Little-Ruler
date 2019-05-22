@@ -25,7 +25,7 @@ namespace dal {
 		}
 
 		if (shaderID == 0) {
-			LoggerGod::getinst().putError("Failed to create shader object.");
+			LoggerGod::getinst().putError("Failed to create shader object.", __LINE__, __func__, __FILE__);
 			throw -1;
 		}
 
@@ -48,8 +48,8 @@ namespace dal {
 			glGetShaderInfoLog(shaderID, 1024, &length, log);
 			LoggerGod::getinst().putFatal(
 				"ShaderPrimitive compile error. Error message from OpenGL will follow.\n"s + log
-			);
-			LoggerGod::getinst().putFatal("And shader source code is following.\n"s + srcStr);
+				, __LINE__, __func__, __FILE__);
+			LoggerGod::getinst().putFatal("And shader source code is following.\n"s + srcStr, __LINE__, __func__, __FILE__);
 			throw -1;
 		}
 
@@ -82,7 +82,7 @@ namespace dal {
 			char log[100];
 			glGetProgramInfoLog(this->mProgramID, 100, &length, log);
 			auto errMsg = "ShaderProgram linking error: "s + log;
-			LoggerGod::getinst().putFatal(errMsg);
+			LoggerGod::getinst().putFatal(errMsg, __LINE__, __func__, __FILE__);
 			throw -1;
 		}
 	}
@@ -98,7 +98,7 @@ namespace dal {
 	GLint ShaderProgram::getUniformLocation(const char* const identifier) const {
 		auto id = glGetUniformLocation(this->mProgramID, identifier);
 		if (id < 0) {
-			LoggerGod::getinst().putWarn("Uniform "s + identifier + " not found in shader "s + mName);
+			LoggerGod::getinst().putWarn("Uniform "s + identifier + " not found in shader "s + mName, __LINE__, __func__, __FILE__);
 		}
 		return id;
 	}
@@ -106,7 +106,7 @@ namespace dal {
 	GLint ShaderProgram::getAttribLocation(const char* const identifier) const {
 		auto id = glGetAttribLocation(this->mProgramID, identifier);
 		if (id < 0) {
-			LoggerGod::getinst().putWarn("Attrib "s + identifier + " not found in shader "s + mName);
+			LoggerGod::getinst().putWarn("Attrib "s + identifier + " not found in shader "s + mName, __LINE__, __func__, __FILE__);
 		}
 		return id;
 	}

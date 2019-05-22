@@ -26,12 +26,12 @@ namespace dal {
 		public:
 			TextStreamChannel(dal::TextStream& texStream);
 
-			virtual void verbose(const char* const str) override;
-			virtual void debug(const char* const str) override;
-			virtual void info(const char* const str) override;
-			virtual void warn(const char* const str) override;
-			virtual void error(const char* const str) override;
-			virtual void fatal(const char* const str) override;
+			virtual void verbose(const char* const str, const int line, const char* const func, const char* const file) override;
+			virtual void debug(const char* const str, const int line, const char* const func, const char* const file) override;
+			virtual void info(const char* const str, const int line, const char* const func, const char* const file) override;
+			virtual void warn(const char* const str, const int line, const char* const func, const char* const file) override;
+			virtual void error(const char* const str, const int line, const char* const func, const char* const file) override;
+			virtual void fatal(const char* const str, const int line, const char* const func, const char* const file) override;
 
 		};
 

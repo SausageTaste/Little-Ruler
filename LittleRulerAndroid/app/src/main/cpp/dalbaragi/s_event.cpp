@@ -44,8 +44,8 @@ namespace dal {
 		auto& handlerContainer = mHandlers[int(type)];
 
 		handlerContainer.push_back(handler);
-		LoggerGod::getinst().putTrace(
-			"Registered for EventType::"s + getEventTypeStr(type) + ": "s + handler->getHandlerName()
+		LoggerGod::getinst().putVerbose(
+			"Registered for EventType::"s + getEventTypeStr(type) + ": "s + handler->getHandlerName(), __LINE__, __func__, __FILE__
 		);
 	}
 
@@ -56,8 +56,8 @@ namespace dal {
 			auto ihandler = *it;
 			if (ihandler == handler) {
 				it = handlerContainer.erase(it);
-				LoggerGod::getinst().putTrace(
-					"Deregistered for EventType::"s + getEventTypeStr(type) + ": "s + handler->getHandlerName()
+				LoggerGod::getinst().putVerbose(
+					"Deregistered for EventType::"s + getEventTypeStr(type) + ": "s + handler->getHandlerName(), __LINE__, __func__, __FILE__
 				);
 				return;
 			}
@@ -65,7 +65,7 @@ namespace dal {
 
 		// If given handler was not found.
 		LoggerGod::getinst().putWarn(
-			"Failed to deregister from EventType::"s + getEventTypeStr(type) + " for "s + handler->getHandlerName()
+			"Failed to deregister from EventType::"s + getEventTypeStr(type) + " for "s + handler->getHandlerName(), __LINE__, __func__, __FILE__
 		);
 	}
 

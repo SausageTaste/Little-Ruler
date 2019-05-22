@@ -30,7 +30,7 @@ namespace dal {
 		if (this->m_cache.end() == found) {
 			auto added = this->m_cache.emplace(utf32Char, CharacterUnit{});
 			if (false == added.second) {
-				g_logger.putFatal("Failed to add a glyph in dal::UnicodeCache::at");
+				g_logger.putFatal("Failed to add a glyph in dal::UnicodeCache::at", __LINE__, __func__, __FILE__);
 				throw - 1;
 			}
 			auto& charUnit = added.first->second;
@@ -38,7 +38,7 @@ namespace dal {
 			auto& face = dal::FreetypeGod::getinst().getFace();
 			const auto glyphIndex = FT_Get_Char_Index(face, utf32Char);
 			if (FT_Load_Glyph(face, glyphIndex, FT_LOAD_RENDER) != 0) {
-				g_logger.putFatal("Failed to load Glyph: "s + std::to_string(utf32Char));
+				g_logger.putFatal("Failed to load Glyph: "s + std::to_string(utf32Char), __LINE__, __func__, __FILE__);
 				throw - 1;
 			}
 
@@ -50,7 +50,7 @@ namespace dal {
 			charUnit.bearing = glm::vec2{ face->glyph->bitmap_left, face->glyph->bitmap_top };
 			charUnit.advance = static_cast<int32_t>(face->glyph->advance.x);
 
-			g_logger.putInfo("Unicode glyph created: "s + std::to_string(utf32Char));
+			g_logger.putInfo("Unicode glyph created: "s + std::to_string(utf32Char), __LINE__, __func__, __FILE__);
 
 			return charUnit;
 		}

@@ -56,7 +56,7 @@ private:
 
 		auto fieldID = env->GetStaticFieldID(findClass_CallableJNI(), "sTouchEvents", "[B");
 		if (fieldID == nullptr) {
-			logger.putFatal("Failed to find static field CallableJNI::sTouchEvents");
+			logger.putFatal("Failed to find static field CallableJNI::sTouchEvents", __LINE__, __func__, __FILE__);
 			abort();
 		}
 
@@ -69,7 +69,7 @@ private:
 
 		auto fieldID = env->GetStaticFieldID(findClass_CallableJNI(), "sCurrentIndex", "I");
 		if (fieldID == nullptr) {
-			logger.putFatal("Failed to find static field CallableJNI::sCurrentIndex");
+			logger.putFatal("Failed to find static field CallableJNI::sCurrentIndex", __LINE__, __func__, __FILE__);
 			abort();
 		}
 		else {
@@ -83,7 +83,7 @@ private:
 
 		auto fieldID = env->GetStaticFieldID(findClass_CallableJNI(), "sArraySize", "I");
 		if (fieldID == nullptr) {
-			logger.putFatal("Failed to find static field CallableJNI::sArraySize");
+			logger.putFatal("Failed to find static field CallableJNI::sArraySize", __LINE__, __func__, __FILE__);
 			abort();
 		}
 		else {
@@ -97,7 +97,7 @@ private:
 
 		auto clazzCallableJNI = env->FindClass("com/sausagetaste/littleruler/CallableJNI");
 		if (clazzCallableJNI == nullptr) {
-			logger.putError("Failed to find class: CallableJNI");
+			logger.putError("Failed to find class: CallableJNI", __LINE__, __func__, __FILE__);
 			abort();
 		}
 		else {

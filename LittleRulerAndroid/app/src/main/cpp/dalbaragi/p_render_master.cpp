@@ -55,7 +55,7 @@ namespace dal {
 			glBindRenderbuffer(GL_RENDERBUFFER, 0);
 
 			if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-				LoggerGod::getinst().putFatal("Failed to create framebuffer.");
+				LoggerGod::getinst().putFatal("Failed to create framebuffer.", __LINE__, __func__, __FILE__);
 				throw - 1;
 			}
 

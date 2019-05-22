@@ -13,7 +13,7 @@ namespace dal {
 	void MeshStatic::draw(void) const {
 #ifdef _DEBUG
 		if (!this->isReady())
-			LoggerGod::getinst().putError("MeshStatic::renderDepthmap called without being built.");
+			LoggerGod::getinst().putError("MeshStatic::renderDepthmap called without being built.", __LINE__, __func__, __FILE__);
 #endif
 
 		this->bindVAO();
@@ -28,19 +28,19 @@ namespace dal {
 	) {
 		/* Check if data is wrong. */ {
 			if (this->isReady()) {
-				LoggerGod::getinst().putError("MeshStatic's data already built.");
+				LoggerGod::getinst().putError("MeshStatic's data already built.", __LINE__, __func__, __FILE__);
 				return -1;
 			}
 
 			const auto numOfVertex = vertSize / 3;
 
 			if (numOfVertex != (texcorSize / 2)) {
-				LoggerGod::getinst().putError(std::string("\'texCoords\' have different number of vertices: " + std::to_string(vertSize) + ", " + std::to_string(texcorSize)));
+				LoggerGod::getinst().putError(std::string("\'texCoords\' have different number of vertices: " + std::to_string(vertSize) + ", " + std::to_string(texcorSize)), __LINE__, __func__, __FILE__);
 				return -1;
 			}
 
 			if (numOfVertex != (norSize / 3)) {
-				LoggerGod::getinst().putError("\'normals\' have different number of vertices: "s + std::to_string(vertSize) + ", "s + std::to_string(norSize));
+				LoggerGod::getinst().putError("\'normals\' have different number of vertices: "s + std::to_string(vertSize) + ", "s + std::to_string(norSize), __LINE__, __func__, __FILE__);
 				return -1;
 			}
 		}
@@ -110,7 +110,7 @@ namespace dal {
 
 		this->mVertexSize = 0;
 
-		LoggerGod::getinst().putInfo("destroyed MeshStatic with "s + std::to_string(this->mVertexSize) + " vertices."s);
+		LoggerGod::getinst().putInfo("destroyed MeshStatic with "s + std::to_string(this->mVertexSize) + " vertices."s, __LINE__, __func__, __FILE__);
 	}
 
 	bool MeshStatic::isReady(void) const {
@@ -126,7 +126,7 @@ namespace dal {
 	void MeshStatic::createBuffers(void) {
 		glGenVertexArrays(1, &this->mVao);
 		if (this->mVao <= 0) {
-			LoggerGod::getinst().putFatal("Failed to generate vertex array.");
+			LoggerGod::getinst().putFatal("Failed to generate vertex array.", __LINE__, __func__, __FILE__);
 			throw -1;
 		}
 
@@ -135,7 +135,7 @@ namespace dal {
 
 		for (int i = 0; i < 3; i++) {
 			if (bufferIds[i] == 0) {
-				LoggerGod::getinst().putFatal("Failed to generate beffer.");
+				LoggerGod::getinst().putFatal("Failed to generate beffer.", __LINE__, __func__, __FILE__);
 				throw -1;
 			}
 		}

@@ -58,7 +58,7 @@ namespace dal {
 			auto errCode = glGetError();
 			if (errCode == GL_NO_ERROR) return;
 			auto errstr = gl_error_string(errCode);
-			LoggerGod::getinst().putError("GL error: "s + errstr);
+			LoggerGod::getinst().putError("GL error: "s + errstr, __LINE__, __func__, __FILE__);
 		}
 
 	}
