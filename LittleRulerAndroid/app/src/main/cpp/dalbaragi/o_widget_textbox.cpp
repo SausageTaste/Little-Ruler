@@ -17,7 +17,7 @@ using namespace std::string_literals;
 
 namespace {
 
-	auto g_logger = dal::LoggerGod::getinst();
+	auto& g_logger = dal::LoggerGod::getinst();
 
 	dal::QuadRenderer g_charDrawer;
 

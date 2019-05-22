@@ -52,7 +52,7 @@ public:
 private:
 	jbyteArray getArrayObject_sTouchEvents(void) {
 		auto env = mCnxtJNI->getJNIEnv();
-		auto logger = dal::LoggerGod::getinst();
+		auto& logger = dal::LoggerGod::getinst();
 
 		auto fieldID = env->GetStaticFieldID(findClass_CallableJNI(), "sTouchEvents", "[B");
 		if (fieldID == nullptr) {
@@ -65,7 +65,7 @@ private:
 
 	jfieldID getFieldID_sCurrentIndex(void) {
 		auto env = mCnxtJNI->getJNIEnv();
-		auto logger = dal::LoggerGod::getinst();
+		auto& logger = dal::LoggerGod::getinst();
 
 		auto fieldID = env->GetStaticFieldID(findClass_CallableJNI(), "sCurrentIndex", "I");
 		if (fieldID == nullptr) {
@@ -79,7 +79,7 @@ private:
 
 	jfieldID getFieldID_sArraySize(void) {
 		auto env = mCnxtJNI->getJNIEnv();
-		auto logger = dal::LoggerGod::getinst();
+		auto& logger = dal::LoggerGod::getinst();
 
 		auto fieldID = env->GetStaticFieldID(findClass_CallableJNI(), "sArraySize", "I");
 		if (fieldID == nullptr) {
@@ -93,7 +93,7 @@ private:
 
 	jclass findClass_CallableJNI(void) {
 		auto env = mCnxtJNI->getJNIEnv();
-		auto logger = dal::LoggerGod::getinst();
+		auto& logger = dal::LoggerGod::getinst();
 
 		auto clazzCallableJNI = env->FindClass("com/sausagetaste/littleruler/CallableJNI");
 		if (clazzCallableJNI == nullptr) {
