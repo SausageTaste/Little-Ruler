@@ -11,6 +11,7 @@
 #include <fstream>
 #include <cassert>
 #include <sys/stat.h>
+#include <unordered_map>
 
 #include <tga.h>
 #include <lodepng.h>
@@ -789,12 +790,25 @@ namespace dal {
 	FileMode mapFileMode(const char* const str) {
 		// "wb", "w", "wt", "rb", "r", "rt".
 
-		if (std::strcmp(str, "wb")) return dal::FileMode::bwrite;
-		if (std::strcmp(str, "w" )) return dal::FileMode::write;
-		if (std::strcmp(str, "wt")) return dal::FileMode::write;
-		if (std::strcmp(str, "rb")) return dal::FileMode::bread;
-		if (std::strcmp(str, "r" )) return dal::FileMode::read;
-		if (std::strcmp(str, "rt")) return dal::FileMode::read;
+		std::unordered_map<std::string, dal::FileMode> map{
+			{ "wb", dal::FileMode::bwrite },
+			{ "w", dal::FileMode::write },
+			{ "wt", dal::FileMode::write },
+			{ "rb", dal::FileMode::bread },
+			{ "r", dal::FileMode::read },
+			{ "rt", dal::FileMode::read },
+			{ "ab", dal::FileMode::bappend },
+			{ "a", dal::FileMode::append },
+			{ "at", dal::FileMode::append },
+		};
+
+		const auto iter = map.find(str);
+		if (map.end() != iter) {
+			return iter->second;
+		}
+		else {
+			throw "Unkown file mode str: "s + str;
+		}
 	}
 
 	std::unique_ptr<IResourceStream> resopen(ResourceID resID, const FileMode mode) {

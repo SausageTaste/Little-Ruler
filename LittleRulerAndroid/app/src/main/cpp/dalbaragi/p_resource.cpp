@@ -725,8 +725,7 @@ namespace dal {
 
 			auto loaded = reinterpret_cast<LoadTask_Model*>(task.get());
 			if (!loaded->out_success) {
-				LoggerGod::getinst().putFatal("Failed to load model: "s + loaded->in_modelID.makeIDStr());
-				throw - 1;
+				throw "Failed to load model: "s + loaded->in_modelID.makeIDStr();
 			}
 
 			auto model = g_modelPool.alloc();
@@ -771,7 +770,7 @@ namespace dal {
 				tex->init_diffueMap(loaded->out_img.m_buf.data(), loaded->out_img.m_width, loaded->out_img.m_height);
 			}
 			else {
-				throw - 1;
+				throw "Unknown pix size: "s + std::to_string(loaded->out_img.m_pixSize);
 			}
 
 			auto shouldBeNull = loaded->data_handle.replace(tex);

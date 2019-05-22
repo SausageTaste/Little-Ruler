@@ -29,6 +29,23 @@ namespace {
 
 namespace {
 
+	dal::ResourceID toAssResID(const std::string& path) {
+		const auto packageSlashPos = path.find("/");
+		if (std::string::npos == packageSlashPos) {
+			throw "Invalid assimp res id: "s + path;
+		}
+		const auto package = path.substr(0, packageSlashPos);
+		const auto rest = path.substr(packageSlashPos + 1, path.size() - packageSlashPos - 1);
+
+		return dal::ResourceID{ package + "::" + rest };
+	}
+
+}
+
+
+namespace {
+
+	/*
 	class AssIOStreamAsset : public Assimp::IOStream {
 
 	private:
@@ -122,7 +139,7 @@ namespace {
 		}
 
 	};
-
+	*/
 
 	class AssResourceIOStream : public Assimp::IOStream {
 
@@ -137,8 +154,8 @@ namespace {
 
 		}
 
-		bool open(const char* const path) {
-			this->m_file = dal::resopen(path, this->m_mode);
+		bool open(const char* const assimpResID) {
+			this->m_file = dal::resopen(toAssResID(assimpResID), this->m_mode);
 			return nullptr != this->m_file;
 		}
 
@@ -202,7 +219,7 @@ namespace {
 		}
 
 		virtual bool Exists(const char* pFile) const override {
-			dal::ResourceID resID{ pFile };
+			auto resID = toAssResID(pFile);
 			return dal::filec::resolveRes(resID);
 		}
 
@@ -330,13 +347,10 @@ namespace dal {
 	bool parseOBJ_assimp(ModelInfo& info, ResourceID assetPath) {
 		info.clear();
 
-		if (assetPath.getOptionalDir().empty()) {
-			filec::resolveRes(assetPath);
-		}
-
 		Assimp::Importer importer;
-		importer.SetIOHandler(new AssIOSystem_Asset);
-		const aiScene* const scene = importer.ReadFile(assetPath.makeFilePath().c_str(), aiProcess_Triangulate);
+		importer.SetIOHandler(new AssResourceIOSystem);
+		const auto assimpResID = assetPath.getPackage() + '/' + assetPath.makeFilePath();
+		const aiScene* const scene = importer.ReadFile(assimpResID.c_str(), aiProcess_Triangulate);
 
 		//const aiScene* const scene = importer.ReadFileFromMemory(buf, bufSize, aiProcess_Triangulate | aiProcess_FlipUVs);
 		if ((nullptr == scene) || (scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE) || (nullptr == scene->mRootNode)) {
