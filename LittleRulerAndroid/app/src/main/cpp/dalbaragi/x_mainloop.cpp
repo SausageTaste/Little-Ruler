@@ -89,27 +89,7 @@ namespace dal {
 
 		// Test
 		{
-			{
-				auto file = resopen("shit::ass.txt", FileMode::write);
-				if (nullptr == file) {
-					LoggerGod::getinst().putError("Shit write fail.");
-				}
-				else {
-					file->write("fuck you.\nI'll kill you.");
-					LoggerGod::getinst().putError("Shit write ok.");
-				}
-			}
-			/*
-			{
-				auto file = resopen("asset::fillscreen_f.glsl", FileMode::read);
-				if (nullptr == file) {
-					LoggerGod::getinst().putError("Shit read fail.");
-				}
-				else {
-					LoggerGod::getinst().putError("Shit read ok.");
-				}
-			}
-			*/
+
 		}
 
 		const auto elapsed = m_initTimer.check_getElapsed_capFPS();

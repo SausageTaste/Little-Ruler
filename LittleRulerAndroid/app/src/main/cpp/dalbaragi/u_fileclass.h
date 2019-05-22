@@ -56,6 +56,8 @@ namespace dal {
 	enum class FileMode { read, write, append, bread, bwrite, bappend };
 	enum class Whence { beg, cur, end };
 
+	FileMode mapFileMode(const char* const str);
+
 	class IResourceStream {
 
 	public:
@@ -73,10 +75,11 @@ namespace dal {
 		virtual void close(void) = 0;
 
 		virtual size_t read(uint8_t* const buf, const size_t bufSize) = 0;
-		virtual void write(const uint8_t* const buf, const size_t bufSize) = 0;
-		virtual void write(const char* const str) = 0;
+		virtual bool write(const uint8_t* const buf, const size_t bufSize) = 0;
+		virtual bool write(const char* const str) = 0;
 		virtual size_t getSize(void) = 0;
 
+		virtual bool isOpen(void) = 0;
 		virtual bool seek(const size_t offset, const Whence whence = Whence::beg) = 0;
 		virtual size_t tell(void) = 0;
 

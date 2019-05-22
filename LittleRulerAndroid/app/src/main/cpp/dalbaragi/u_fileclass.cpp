@@ -12,8 +12,8 @@
 #include <cassert>
 #include <sys/stat.h>
 
-#include <lodepng.h>
 #include <tga.h>
+#include <lodepng.h>
 #include <fmt/format.h>
 
 #include "s_logger_god.h"
@@ -22,6 +22,7 @@
 #if defined(_WIN32)
 #include <fstream>
 #include <windows.h>
+#include <direct.h>  // mkdir
 #elif defined(__ANDROID__)
 #include <android/asset_manager.h>
 #include <zconf.h> // Just for SEEK_SET
@@ -39,6 +40,7 @@ namespace {
 
 	const std::string PACKAGE_NAME_ASSET{ "asset" };
 	const std::string RESOURCE_FOLDER_NAME{ "Resource" };
+	const std::string USERDATA_FOLDER_NAME{ "userdata" };
 
 	struct DirNode {
 		std::string m_name;
@@ -46,7 +48,7 @@ namespace {
 	};
 
 	DirNode g_assetFolders = {
-		"asset", {
+		PACKAGE_NAME_ASSET, {
 			{ "font", {}},
 			{ "glsl", {}},
 			{ "map", {}},
@@ -54,7 +56,8 @@ namespace {
 			{ "texture", {
 					{"dva", {}},
 					{"mess", {}}
-			}}
+				}
+			}
 		}
 	};
 
@@ -223,17 +226,65 @@ namespace {
 }
 
 
-// InFileStream
+// Common
 namespace {
 
-	class InFileStream : public dal::IResourceStream {
+	bool isdir(const char* const path) {
+		struct stat st;
+		stat(path, &st);
+		return static_cast<bool>(st.st_mode & S_IFDIR);
+	}
+
+	void assertDir(const char* const path) {
+		if (isdir(path)) return;
+
+#if defined(_WIN32)
+		const auto res = _mkdir(path);
+#elif defined(__ANDROID__)
+		const auto res = mkdir(path, 0);
+#endif
+		if (0 != res) {
+			switch (errno) {
+				case EEXIST:
+					g_logger.putWarn("Checked isdir but dir already exists upon _mkdir for userdata.");
+					break;
+				case ENOENT:
+					throw "Invalid path name in assertDir_userdata: "s + path;
+				case EROFS:
+					throw "Parent folder is read only: "s + path;
+				default:
+					throw "Unknown errno for _mkdir in assertDir_userdata: "s + std::to_string(errno);
+			}
+		}
+		else {
+			g_logger.putInfo("Folder created: userdata");
+		}
+	}
+
+	void assertDir_userdata(void) {
+
+#if defined(_WIN32)
+		const auto path = getResourceDir_win() + USERDATA_FOLDER_NAME;
+#elif defined(__ANDROID__)
+		const auto path = g_storagePath + USERDATA_FOLDER_NAME;
+#endif
+		assertDir(path.c_str());
+		
+	}
+
+}
+
+
+// FileStream
+namespace {
+
+	class STDFileStream : public dal::IResourceStream {
 
 	private:
 		std::fstream m_file;
-		size_t m_fileSize = 0;
 
 	public:
-		virtual ~InFileStream(void) override {
+		virtual ~STDFileStream(void) override {
 			this->close();
 		}
 
@@ -255,25 +306,21 @@ namespace {
 				this->m_file.open(path, std::ios::out | std::ios::app | std::ios::binary); break;
 			}
 
-			if (this->m_file) {
-				this->m_file.seekg(0, std::ios::end);
-				this->m_fileSize = static_cast<size_t>(this->m_file.tellg());
-				this->m_file.seekg(0, std::ios::beg);
+			if (this->isOpen()) {
 				return true;
 			}
 			else {
-				this->m_fileSize = 0;
+				g_logger.putError("Failed STDFileStream::open for: "s + path);
 				return false;
 			}
 		}
 
 		virtual void close(void) override {
-			if (this->m_file.is_open()) this->m_file.close();
-			this->m_fileSize = 0;
+			if (this->isOpen()) this->m_file.close();
 		}
 
 		virtual size_t read(uint8_t* const buf, const size_t bufSize) override {
-			const auto remaining = this->m_fileSize - this->tell();
+			const auto remaining = this->getSize() - this->tell();
 			const auto sizeToRead = bufSize < remaining ? bufSize : remaining;
 			if (sizeToRead <= 0) return 0;
 
@@ -288,16 +335,26 @@ namespace {
 			}
 		}
 
-		virtual void write(const uint8_t* const buf, const size_t bufSize) override {
+		virtual bool write(const uint8_t* const buf, const size_t bufSize) override {
 			this->m_file.write(reinterpret_cast<const char*>(buf), bufSize);
+			return true;
 		}
 
-		virtual void write(const char* const str) override {
+		virtual bool write(const char* const str) override {
 			this->m_file.write(str, std::strlen(str));
+			return true;
 		}
 
 		virtual size_t getSize(void) override {
-			return this->m_fileSize;
+			const auto lastPos = this->m_file.tellg();
+			this->m_file.seekg(0, std::ios::end);
+			const auto fileSize = static_cast<size_t>(this->m_file.tellg());
+			this->m_file.seekg(lastPos, std::ios::beg);
+			return fileSize;
+		}
+
+		virtual bool isOpen(void) override {
+			return this->m_file.is_open();
 		}
 
 		virtual bool seek(const size_t offset, const dal::Whence whence = dal::Whence::beg) override {
@@ -323,6 +380,119 @@ namespace {
 		}
 
 	};
+
+
+#ifdef __ANDROID__
+
+	class AssetSteam : public dal::IResourceStream {
+
+	private:
+		AAsset* m_asset = nullptr;
+		size_t m_fileSize = 0;
+
+	public:
+		virtual ~AssetSteam(void) override {
+			this->close();
+		}
+
+		virtual bool open(const char* const path, const dal::FileMode mode) override {
+			this->close();
+
+			switch (mode) {
+				case dal::FileMode::read:
+				case dal::FileMode::bread:
+					break;
+				case dal::FileMode::write:
+				case dal::FileMode::append:
+				case dal::FileMode::bwrite:
+				case dal::FileMode::bappend:
+					g_logger.putError("Cannot open Asset as write mode: "s + path);
+					return false;
+			}
+
+			this->m_asset = AAssetManager_open(gAssetMgr, path, AASSET_MODE_UNKNOWN);
+			if (nullptr == this->m_asset) {
+				g_logger.putError("Failed AssetSteam::open for: "s + path);
+				return false;
+			}
+
+			this->m_fileSize = static_cast<size_t>(AAsset_getLength64(this->m_asset));
+			if (this->m_fileSize <= 0) {
+				g_logger.putWarn("File contents' length is 0 for: "s + path);
+			}
+
+			return true;
+		}
+
+		virtual void close(void) override {
+			if (this->isOpen()) AAsset_close(this->m_asset);
+			this->m_asset = nullptr;
+			this->m_fileSize = 0;
+		}
+
+		virtual size_t read(uint8_t* const buf, const size_t bufSize) override {
+			// Android asset manager implicitly read beyond file range WTF!!!
+			const auto remaining = this->m_fileSize - this->tell();
+			auto sizeToRead = bufSize < remaining ? bufSize : remaining;
+			if (sizeToRead <= 0) return 0;
+
+			const auto readBytes = AAsset_read(this->m_asset, buf, sizeToRead);
+			if (readBytes < 0) {
+				g_logger.putError("Failed to read asset.");
+				return 0;
+			}
+			else if (0 == readBytes) {
+				g_logger.putError("Tried to read after end of asset.");
+				return 0;
+			}
+			else {
+				assert(readBytes == sizeToRead);
+				return static_cast<size_t>(readBytes);
+			}
+		}
+
+		virtual bool write(const uint8_t* const buf, const size_t bufSize) override {
+			throw "Writing is illegal on assets.";
+		}
+
+		virtual bool write(const char* const str) override {
+			throw "Writing is illegal on assets.";
+		}
+
+		virtual size_t getSize(void) override {
+			return this->m_fileSize;
+		}
+
+		virtual bool isOpen(void) override {
+			return nullptr != this->m_asset;
+		}
+
+		virtual bool seek(const size_t offset, const dal::Whence whence = dal::Whence::beg) override {
+			decltype(SEEK_SET) cwhence;
+
+			switch (whence) {
+				case dal::Whence::beg:
+					cwhence = SEEK_SET;
+					break;
+				case dal::Whence::cur:
+					cwhence = SEEK_CUR;
+					break;
+				case dal::Whence::end:
+					cwhence = SEEK_END;
+					break;
+			}
+
+			return AAsset_seek(this->m_asset, static_cast<off_t>(offset), cwhence) != -1;
+		}
+
+		virtual size_t tell(void) override {
+			const auto curPos = AAsset_getRemainingLength(this->m_asset);
+			return this->m_fileSize - static_cast<size_t>(curPos);
+		}
+
+	};
+
+#endif
 
 }
 
@@ -616,6 +786,17 @@ namespace dal {
 
 	}
 
+	FileMode mapFileMode(const char* const str) {
+		// "wb", "w", "wt", "rb", "r", "rt".
+
+		if (std::strcmp(str, "wb")) return dal::FileMode::bwrite;
+		if (std::strcmp(str, "w" )) return dal::FileMode::write;
+		if (std::strcmp(str, "wt")) return dal::FileMode::write;
+		if (std::strcmp(str, "rb")) return dal::FileMode::bread;
+		if (std::strcmp(str, "r" )) return dal::FileMode::read;
+		if (std::strcmp(str, "rt")) return dal::FileMode::read;
+	}
+
 	std::unique_ptr<IResourceStream> resopen(ResourceID resID, const FileMode mode) {
 		if (FileMode::read != mode && FileMode::bread != mode) goto finishResolve;
 		if (!resID.getOptionalDir().empty()) goto finishResolve;
@@ -630,13 +811,15 @@ namespace dal {
 #if defined(_WIN32)
 		std::string filePath;
 		if (PACKAGE_NAME_ASSET == resID.getPackage()) {
-			filePath = getResourceDir_win() + "asset/" + resID.makeFilePath();
+			filePath = getResourceDir_win() + PACKAGE_NAME_ASSET + '/' + resID.makeFilePath();
 		}
 		else {
-			filePath = getResourceDir_win() + "userdata/" + resID.getPackage() + '/' + resID.makeFilePath();
+			filePath = getResourceDir_win() + USERDATA_FOLDER_NAME + '/' + resID.getPackage() + '/' + resID.makeFilePath();
+			assertDir_userdata();
+			assertDir((getResourceDir_win() + USERDATA_FOLDER_NAME + '/' + resID.getPackage()).c_str());
 		}
 
-		std::unique_ptr<IResourceStream> file{ new InFileStream };
+		std::unique_ptr<IResourceStream> file{ new STDFileStream };
 		if (false == file->open(filePath.c_str(), mode)) {
 			g_logger.putError("Failed to open file: "s + filePath);
 			return std::unique_ptr<IResourceStream>{ nullptr };
@@ -645,26 +828,27 @@ namespace dal {
 		return file;
 #elif defined(__ANDROID__)
 		std::string filePath;
+		std::unique_ptr<IResourceStream> file;
+
 		if (PACKAGE_NAME_ASSET == resID.getPackage()) {
 			filePath = resID.makeFilePath();
-			throw "Not implemented for asset.";
+			file.reset(new AssetSteam);
 		}
 		else {
-			filePath = g_storagePath + "userdata/" + resID.getPackage() + '/' + resID.makeFilePath();
-			mkdir((g_storagePath + "userdata").c_str(), 0);
-			mkdir((g_storagePath + "userdata/" + resID.getPackage()).c_str(), 0);
-
-			std::unique_ptr<IResourceStream> file{ new InFileStream };
-			if (!file->open(filePath.c_str(), mode)) {
-				g_logger.putError("Failed to open file: "s + filePath);
-				return std::unique_ptr<IResourceStream>{ nullptr };
-			}
-
-			return file;
+			filePath = g_storagePath + USERDATA_FOLDER_NAME + '/' + resID.getPackage() + '/' + resID.makeFilePath();
+			assertDir_userdata();
+			assertDir((g_storagePath + USERDATA_FOLDER_NAME + '/' + resID.getPackage()).c_str());
+			file.reset(new STDFileStream);
 		}
-#endif
 
-		return std::unique_ptr<IResourceStream>{ nullptr };
+		if (!file->open(filePath.c_str(), mode)) {
+			g_logger.putError("Failed to open file: "s + resID.makeIDStr());
+			return std::unique_ptr<IResourceStream>{ nullptr };
+		}
+
+		return file;
+#endif
+		
 	}
 
 }
@@ -708,7 +892,7 @@ namespace dal {
 #if defined(_WIN32)
 		m_path = path;
 		if (m_path.find(getResourceDir_win()))
-		m_path = getResourceDir_win() + "asset/" + path;
+		m_path = getResourceDir_win() + PACKAGE_NAME_ASSET + '/' + path;
 
 		this->pimpl->mIFile.open(m_path.c_str(), std::ios::binary);
 		if (!this->pimpl->mIFile) {
