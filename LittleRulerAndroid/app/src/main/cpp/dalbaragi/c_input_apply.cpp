@@ -65,7 +65,7 @@ namespace {
 
 	private:
 		static constexpr unsigned int kMaxMultiTouchNum = 10;
-		TouchState touchStates[kMaxMultiTouchNum];
+		std::array<TouchState, kMaxMultiTouchNum> touchStates;
 		std::array<dal::QuadPrimitive, 11>* mBoxesForTouchPoint = nullptr;
 
 		//////// Methods ////////
@@ -95,13 +95,18 @@ namespace {
 			/* Update touchStates[i] */ {
 				for (unsigned int i = 0; i < dal::TouchEvtQueueGod::getinst().getSize(); i++) {
 					const auto& touch = dal::TouchEvtQueueGod::getinst().at(i);
+
+					if (0 > touch.id || touch.id >9) {
+						dalWarn("Touch id is out of boundary: "s + std::to_string(touch.id));
+						continue;
+					}
 					auto& state = touchStates[touch.id];
 
 					switch (touch.type) {
 
 					case dal::TouchType::down:
 						if (touch.x < aThridWidth) {
-							if (isMovementOccupied(touchStates, kMaxMultiTouchNum) && state.currentDuty != TouchDuty::movement) {
+							if (this->isMovementOccupied(touchStates.data(), kMaxMultiTouchNum) && state.currentDuty != TouchDuty::movement) {
 								state.currentDuty = TouchDuty::view;
 								state.lastDownPos = { touch.x, touch.y };
 								state.lastDownSec = touch.timeSec;
@@ -199,7 +204,7 @@ namespace {
 
 						}
 
-						if (!this->isMovementOccupied(touchStates, kMaxMultiTouchNum)) {
+						if (!this->isMovementOccupied(touchStates.data(), kMaxMultiTouchNum)) {
 							mBoxesForTouchPoint->at(10).moveCenterTo_screenCoord(-100.0f, -100.0f);
 						}
 					}
