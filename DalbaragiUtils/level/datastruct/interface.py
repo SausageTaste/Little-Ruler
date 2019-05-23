@@ -4,7 +4,7 @@ from typing import Union, Dict
 import level.datastruct.error_reporter as ere
 
 
-json_t = Union[list, dict, str, int, float]
+json_t = Union[list, dict, str, int, float, bool]
 
 
 class ILevelElement(abc.ABC):
@@ -107,6 +107,7 @@ class ILevelAttrib(ILevelElement):
 
 class ILevelItem(ILevelAttrib):
     @staticmethod
+    @abc.abstractmethod
     def getFieldTypeOfSelf() -> str: pass
 
     def getJson(self) -> json_t:

@@ -8,16 +8,19 @@ import level.datastruct.bytesutils as but
 
 class ActorInfo(ein.ILevelAttrib):
     __s_field_actor_name = "actor_name"
+    __s_field_static = "static"
     __s_field_pos = "pos"
     __s_field_quat = "quat"
 
     def __init__(self):
         self.__actor_name = pri.IdentifierStr()
+        self.__static = pri.BoolValue(False)
         self.__pos = pri.Vec3()
         self.__quat = pri.Quat()
 
         super().__init__({
             self.__s_field_actor_name: self.__actor_name,
+            self.__s_field_static: self.__static,
             self.__s_field_pos: self.__pos,
             self.__s_field_quat: self.__quat,
         })
@@ -26,6 +29,7 @@ class ActorInfo(ein.ILevelAttrib):
     def getBinary(self) -> bytearray:
         data = bytearray()
         data += self.__actor_name.getBinary()
+        data += self.__static.getBinary()
         data += self.__pos.getBinary()
         data += self.__quat.getBinary()
         return data
@@ -43,6 +47,9 @@ class ActorInfo(ein.ILevelAttrib):
 
     def setName(self, v: str):
         self.__actor_name.setStr(v)
+
+    def setStatic(self, v: bool):
+        self.__static.set(v)
 
 
 class Material(ein.ILevelAttrib):

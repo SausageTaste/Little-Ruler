@@ -131,6 +131,13 @@ namespace {  // Make attribs
 			header += len + 1;
 		}
 
+		// Static flag
+		{
+			const auto flag = *header++;
+			if ( 0 == flag ) info.m_static = false;
+			else info.m_static = true;
+		}
+
 		{
 			const size_t assumedRestBytes = 4 * (4 + 3);  // (float is 4 bytes) * ( (vec4) + (vec3) )
 			if (assumedRestBytes > (end - header)) {
@@ -281,6 +288,14 @@ namespace {  // Make items
 			header += std::strlen(charPtr) + 1;
 		}
 
+		// Static
+		{
+			const auto flag = *header;
+			if ( 0 == flag ) plight.m_static = false;
+			else plight.m_static = true;
+			header++;
+		}
+
 		// vec3 pos, color; float max_dist
 		{
 			float floatBuf[7];
@@ -288,8 +303,8 @@ namespace {  // Make items
 				floatBuf[i] = makeFloat4(header); header += 4;
 			}
 
-			plight.m_pos = { floatBuf[0], floatBuf[1], floatBuf[2] };
-			plight.m_color = { floatBuf[3], floatBuf[4], floatBuf[5] };
+			plight.m_color = { floatBuf[0], floatBuf[1], floatBuf[2] };
+			plight.m_pos = { floatBuf[3], floatBuf[4], floatBuf[5] };
 			plight.m_maxDist = floatBuf[6];
 		}
 

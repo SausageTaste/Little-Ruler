@@ -423,3 +423,40 @@ class UniformList(ein.ILevelAttribLeaf):
             raise ValueError(errMsg)
 
         self.__list.append(item)
+
+
+class BoolValue(ein.ILevelAttribLeaf):
+    def __init__(self, v: bool = False):
+        self.__v = bool(v)
+
+    def __str__(self):
+        return "< BoolValue {{ {} }} >".format(self.__v)
+
+    def setDefault(self) -> None:
+        self.__v = False
+
+    def getJson(self) -> json_t:
+        return self.__v
+
+    def setJson(self, data: json_t) -> None:
+        self.__v = bool(data)
+
+    # 1 byte : value
+    def getBinary(self) -> bytearray:
+        if self.__v:
+            return bytearray(b"\x01")
+        else:
+            return bytearray(b"\x00")
+
+    def getIntegrityReport(self, usageName: str = "") -> ere.IntegrityReport:
+        return ere.IntegrityReport(type(self).__name__, usageName)
+
+    def getDataReport(self, usageName: str = "") -> ere.DataReport:
+        report = ere.DataReport(type(self).__name__, usageName, self.getBinary())
+
+        report.addData("value", str(self.getJson()))
+
+        return report
+
+    def set(self, v: bool):
+        self.__v = bool(v)

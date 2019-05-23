@@ -14,6 +14,7 @@ namespace dal {
 		std::string m_actorID;
 		glm::vec3 pos;
 		glm::quat myQuat;
+		bool m_static = true;
 
 		glm::mat4 getViewMat(void) const;
 		void rotate(const float v, const glm::vec3& selector);
@@ -57,6 +58,7 @@ namespace dal {
 		struct ILightItem {
 			std::string m_name;
 			glm::vec3 m_color;
+			bool m_static = true;
 		};
 
 		struct LightDirectional : public ILightItem {

@@ -109,30 +109,60 @@ class BuildInfo_ModelImported(ILevelItemModel):
         return "model_imported"
 
 
-class BuildInfo_LightPoint(eim.ILevelItem):
+class ILevelItem_Light(eim.ILevelItem):
     __s_field_name = "light_name"
-    __s_field_pos = "pos"
+    __s_field_static = "static"
     __s_field_color = "color"
+
+    def __init__(self, attribDict: Dict[str, eim.ILevelElement]):
+        self.__name = pri.IdentifierStr()
+        self.__static = pri.BoolValue(False)
+        self.__color = pri.Vec3(1, 1, 1)
+
+        attribDict[self.__s_field_name] = self.__name
+        attribDict[self.__s_field_static] = self.__static
+        attribDict[self.__s_field_color] = self.__color
+
+        super().__init__(attribDict)
+
+    # As listed
+    def getBinary(self) -> bytearray:
+        data = self.__name.getBinary()
+        data += self.__static.getBinary()
+        data += self.__color.getBinary()
+        return data
+
+    @classmethod
+    @abc.abstractmethod
+    def getTypeCode(cls) -> bytearray: pass
+
+    def getColorHandle(self) -> pri.Vec3:
+        return self.__color
+
+    def setName(self, s: str) -> None:
+        self.__name.setStr(s)
+
+    def setStatic(self, v: bool):
+        self.__static.set(v)
+
+
+class BuildInfo_LightPoint(ILevelItem_Light):
+    __s_field_pos = "pos"
     __s_field_maxDist = "max_dist"
 
     def __init__(self):
-        self.__name = pri.IdentifierStr()
         self.__pos = pri.Vec3(0, 0, 0)
-        self.__color = pri.Vec3(1, 1, 1)
         self.__maxDist = pri.FloatData(5)
 
         super().__init__({
-            self.__s_field_name    : self.__name,
             self.__s_field_pos     : self.__pos,
-            self.__s_field_color   : self.__color,
             self.__s_field_maxDist : self.__maxDist,
         })
 
     def getBinary(self) -> bytearray:
         data = self.getTypeCode()
-        data += self.__name.getBinary()
+        data += ILevelItem_Light.getBinary(self)
         data += self.__pos.getBinary()
-        data += self.__color.getBinary()
         data += self.__maxDist.getBinary()
         return data
 
@@ -151,12 +181,6 @@ class BuildInfo_LightPoint(eim.ILevelItem):
 
     def getPosHandle(self) -> pri.Vec3:
         return self.__pos
-
-    def getColorHandle(self) -> pri.Vec3:
-        return self.__color
-
-    def setName(self, s: str) -> None:
-        self.__name.setStr(s)
 
     def setMaxDistance(self, v: float):
         self.__maxDist.set(v)
