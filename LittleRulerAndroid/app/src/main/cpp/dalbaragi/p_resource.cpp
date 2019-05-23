@@ -191,7 +191,7 @@ namespace {
 				return;
 			}
 
-			out_success = dal::filec::getResource_image(in_texID, out_img);
+			out_success = dal::futil::getRes_image(in_texID, out_img);
 			return;
 		}
 

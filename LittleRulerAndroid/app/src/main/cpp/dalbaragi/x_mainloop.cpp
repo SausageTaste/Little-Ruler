@@ -140,7 +140,8 @@ namespace dal {
 	:	m_flagQuit(false),
 		m_inputApply(m_renderMan.m_overlayMas)
 	{
-		/* Check window res */ {
+		// Check window res
+		{
 			auto& query = ConfigsGod::getinst();
 			auto width = query.getWinWidth();
 			auto height = query.getWinHeight();
@@ -150,7 +151,8 @@ namespace dal {
 			this->onResize(width, height);
 		}
 
-		/* Check filesystem init */ {
+		// Check filesystem init
+		{
 			if (!isWhatFilesystemWantsGiven()) {
 				dalAbort("Please call Mainloop::giveWhatFilesystemWants before constructor!");
 			}
@@ -161,14 +163,16 @@ namespace dal {
 			dal::LoggerGod::getinst().addChannel(&g_fileLogger);
 		}
 
-		/* Misc */ {
+		// Misc
+		{
 			mHandlerName = "dal::Mainloop";
 			EventGod::getinst().registerHandler(this, EventType::quit_game);
 			
 			this->m_timer.setCapFPS(300);
 		}
 
-		/* Restore from saved state */ {
+		// Restore from saved state
+		{
 			if (savedState != nullptr) {
 				m_renderMan.mCameraPos = savedState->cameraPos;
 				m_renderMan.mCameraViewDir = savedState->cameraViewDir;

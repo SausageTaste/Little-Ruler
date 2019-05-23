@@ -33,18 +33,27 @@ namespace dal {
 
 	};
 
+	namespace futil {
+
+		bool getRes_text( const ResourceID& resID, std::string& buffer );
+		bool getRes_image( const ResourceID& resID, loadedinfo::ImageFileData& data );
+		bool getRes_buffer( const ResourceID& resID, std::vector<uint8_t>& buffer );
+
+	}
 
 	namespace filec {
 
-		bool resolveRes(dal::ResourceID& result);
+		bool resolveRes( dal::ResourceID& result );
 
-		bool initFilesystem(void* mgr, const char* const sdcardPath);
-		bool isFilesystemReady(void);
+		bool initFilesystem( void* mgr, const char* const sdcardPath );
+		bool isFilesystemReady( void );
 
+		/*
 		bool getAsset_text(const char* const path, std::string* buf);
 
 		bool getResource_image(ResourceID path, loadedinfo::ImageFileData& data);
 		bool getResource_buffer(ResourceID path, std::vector<uint8_t>& buffer);
+		*/
 
 	}
 
@@ -90,10 +99,10 @@ namespace dal {
 
 }
 
-
+/*
 namespace dal {
 
-	class AssetFileStream {
+	class AssetFileStream_remove {
 
 	public:
 		enum class Whence { beg, cur, end };
@@ -124,3 +133,4 @@ namespace dal {
 	};
 
 }
+*/

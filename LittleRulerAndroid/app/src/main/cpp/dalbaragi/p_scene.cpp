@@ -49,7 +49,7 @@ namespace dal {
 
 	void SceneMaster::loadMap(const ResourceID& mapID) {
 		std::vector<uint8_t> buffer;
-		auto res = filec::getResource_buffer(mapID, buffer);
+		auto res = futil::getRes_buffer(mapID, buffer);
 		if (!res) dalAbort("Failed to load map file: "s + mapID.makeIDStr());
 
 		LoadedMap info;

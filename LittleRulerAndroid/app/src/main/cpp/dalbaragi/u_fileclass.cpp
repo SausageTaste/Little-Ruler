@@ -12,13 +12,13 @@
 #include <cassert>
 #include <sys/stat.h>
 #include <unordered_map>
+#include <unordered_set>
 
 #include <tga.h>
 #include <lodepng.h>
 #include <fmt/format.h>
 
 #include "s_logger_god.h"
-#include "u_autofree.h"
 
 #if defined(_WIN32)
 #include <fstream>
@@ -514,62 +514,43 @@ namespace {
 // Image reader functions
 namespace {
 
-	bool readFileAsPNG(const char* const path, std::vector<uint8_t>* output, size_t* const width, size_t* const height) {
-		std::vector<uint8_t> buf;
-		
-		/* Fill buffer */ {
-			dal::AssetFileStream file;
-			file.open(path);
-			auto bufSize = file.getFileSize();
-
-			buf.reserve(bufSize);
-			buf.resize(bufSize);
-			file.read(buf.data(), buf.capacity());
-		}
-
+	bool parseImagePNG(dal::loadedinfo::ImageFileData& data, const std::vector<uint8_t>& dataBuffer) {
 		unsigned int w, h;
-		output->clear();
-
-		auto error = lodepng::decode(*output, w, h, buf);
+		auto error = lodepng::decode(data.m_buf, w, h, dataBuffer);
 		if (error) {
-			auto errMsg = "PNG decode error: "s + lodepng_error_text(error);
-			dal::LoggerGod::getinst().putFatal(errMsg, __LINE__, __func__, __FILE__);
+			dalError("PNG decode error: "s + lodepng_error_text(error));
 			return false;
 		}
 
-		*width = w;
-		*height = h;
+		data.m_width = static_cast<size_t>(w);
+		data.m_height = static_cast<size_t>(h);
+		data.m_pixSize = 4;
+
+		// Assert that pixel size is 4.
+		assert(data.m_width * data.m_height * data.m_pixSize == data.m_buf.size());
 
 		return true;
 	}
 
-	bool readFileAsTGA(const char* const path, std::vector<uint8_t>* output, size_t* const width, size_t* const height, size_t* const pixSize) {
-		dal::AssetFileStream file;
-		file.open(path);
-		const auto bufSize = file.getFileSize();
-		auto buf = std::unique_ptr<uint8_t>{ new uint8_t[bufSize] };
-		const auto res = file.read(buf.get(), bufSize);
-		if (res == 0) {
-			return false;
-		}
-
+	bool parseImageTGA(dal::loadedinfo::ImageFileData& data, uint8_t* const buf, const size_t bufSize) {
 		int w, h, p;
-		dal::AutoFree<uint8_t> result{ tga_load_memory(buf.get(), static_cast<int>(bufSize), &w, &h, &p) };
-		*width = static_cast<size_t>(w);
-		*height = static_cast<size_t>(h);
-		*pixSize = static_cast<size_t>(p);
-		if (result.isNull()) {
-			dal::LoggerGod::getinst().putFatal("Failed to parse tga file: "s + path, __LINE__, __func__, __FILE__);
+		std::unique_ptr<uint8_t, decltype(free)*> result{ tga_load_memory(buf, static_cast<int>(bufSize), &w, &h, &p), free };
+		if (nullptr == result) {
+			dalError("Failed to parse tga file.");
 			return false;
 		}
-		const auto resArrSize = (*width) * (*height) * (*pixSize);
 
-		output->clear();
-		output->insert(output->begin(), *result, *result + resArrSize);
-		
+		data.m_width = static_cast<size_t>(w);
+		data.m_height = static_cast<size_t>(h);
+		data.m_pixSize = static_cast<size_t>(p);
+
+		const auto resArrSize = data.m_width * data.m_height * data.m_pixSize;
+		data.m_buf.clear();
+		data.m_buf.insert(data.m_buf.begin(), *result, *result + resArrSize);
+
 		return true;
 	}
-	
+
 }
 
 
@@ -671,6 +652,63 @@ namespace dal {
 // filec
 namespace dal {
 
+	namespace futil {
+
+		bool getRes_text(const ResourceID& resID, std::string& buffer) {
+			auto file = resopen(resID, FileMode::read);
+			if (nullptr == file) return false;
+
+			const auto bufSize = file->getSize();
+			auto buf = std::unique_ptr<uint8_t[]>{ new uint8_t[bufSize + 1] };
+			if (!file->read(buf.get(), bufSize)) return false;
+			buf[bufSize] = '\0';
+
+			buffer.clear();
+			buffer = reinterpret_cast<char*>(buf.get());
+			return true;
+		}
+
+		bool getRes_image(const ResourceID& resID, loadedinfo::ImageFileData& data) {
+			const std::unordered_set<std::string> supportedFormats{ ".tga", ".png" };
+			if ( supportedFormats.find( resID.getExt() ) == supportedFormats.end() ) {
+				dalError( "Not supported image file format: "s + resID.makeIDStr() );
+				return false;
+			}
+
+			std::vector<uint8_t> fileBuffer;
+			auto file = resopen( resID, FileMode::bread );
+			if ( nullptr == file ) return false;
+
+			const auto fileSize = file->getSize();
+			fileBuffer.resize( fileSize );
+			if ( !file->read( fileBuffer.data(), fileBuffer.size() ) ) return false;
+
+			if (".tga"s == resID.getExt()) {
+				const auto res = parseImageTGA( data, fileBuffer.data(), fileBuffer.size() );
+				if ( !res ) dalError( "Error while parsing tga image: "s + resID.makeIDStr() );
+				return res;
+			}
+			else if (".png"s == resID.getExt()) {
+				const auto res = parseImagePNG( data, fileBuffer );
+				if ( !res ) dalError( "Error while parsing png image: "s + resID.makeIDStr() );
+				return res;
+			}
+			else {
+				dalError( "Early support test for image has failed: "s + resID.makeIDStr() );
+				return false;
+			}
+		}
+
+		bool getRes_buffer(const ResourceID& resID, std::vector<uint8_t>& buffer) {
+			auto file = resopen( resID, FileMode::bread );
+			if ( nullptr == file ) return false;
+
+			buffer.resize( file->getSize() );
+			return file->read( buffer.data(), buffer.size() );
+		}
+
+	}
+
 	namespace filec {
 
 		bool resolveRes(ResourceID& result) {
@@ -736,6 +774,8 @@ namespace dal {
 			return true;
 		}
 
+		/*
+
 		bool getAsset_text(const char* const path, std::string* bufStr) {
 			AssetFileStream file;
 			if (!file.open( path)) return false;
@@ -797,6 +837,8 @@ namespace dal {
 
 			return true;
 		}
+
+		*/
 
 	}
 
@@ -889,6 +931,7 @@ namespace dal {
 
 }
 
+/*
 
 // Asset File Stream
 namespace dal {
@@ -1053,3 +1096,5 @@ namespace dal {
 	}
 
 }
+
+*/

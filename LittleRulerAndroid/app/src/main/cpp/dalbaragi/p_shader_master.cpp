@@ -54,8 +54,8 @@ namespace dal {
 		// Compile shaders general
 		{
 			std::string vertSrc, fragSrc;
-			filec::getAsset_text("glsl/general_v.glsl", &vertSrc);
-			filec::getAsset_text("glsl/general_f.glsl", &fragSrc);
+			futil::getRes_text("glsl/general_v.glsl", vertSrc);
+			futil::getRes_text("glsl/general_f.glsl", fragSrc);
 
 			auto verShader = compileShader(ShaderType::VERTEX, vertSrc.c_str());
 			auto fragShader = compileShader(ShaderType::FRAGMENT, fragSrc.c_str());
@@ -72,8 +72,8 @@ namespace dal {
 		// Compile shaders fill screen
 		{
 			std::string vertSrc, fragSrc;
-			filec::getAsset_text("glsl/fillscreen_v.glsl", &vertSrc);
-			filec::getAsset_text("glsl/fillscreen_f.glsl", &fragSrc);
+			futil::getRes_text("glsl/fillscreen_v.glsl", vertSrc);
+			futil::getRes_text("glsl/fillscreen_f.glsl", fragSrc);
 
 			auto verShader = compileShader(ShaderType::VERTEX, vertSrc.c_str());
 			auto fragShader = compileShader(ShaderType::FRAGMENT, fragSrc.c_str());
@@ -90,8 +90,8 @@ namespace dal {
 		// Compile shaders depth map
 		{
 			std::string vertSrc, fragSrc;
-			filec::getAsset_text("glsl/depth_v.glsl", &vertSrc);
-			filec::getAsset_text("glsl/depth_f.glsl", &fragSrc);
+			futil::getRes_text("glsl/depth_v.glsl", vertSrc);
+			futil::getRes_text("glsl/depth_f.glsl", fragSrc);
 
 			auto verShader = compileShader(ShaderType::VERTEX, vertSrc.c_str());
 			auto fragShader = compileShader(ShaderType::FRAGMENT, fragSrc.c_str());
@@ -107,8 +107,8 @@ namespace dal {
 
 		/* Compile shaders overlay */ {
 			std::string vertSrc, fragSrc;
-			filec::getAsset_text("glsl/overlay_v.glsl", &vertSrc);
-			filec::getAsset_text("glsl/overlay_f.glsl", &fragSrc);
+			futil::getRes_text("glsl/overlay_v.glsl", vertSrc);
+			futil::getRes_text("glsl/overlay_f.glsl", fragSrc);
 
 			auto verShader = compileShader(ShaderType::VERTEX, vertSrc.c_str());
 			auto fragShader = compileShader(ShaderType::FRAGMENT, fragSrc.c_str());

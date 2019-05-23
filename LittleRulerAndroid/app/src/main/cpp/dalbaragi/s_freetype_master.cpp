@@ -18,12 +18,12 @@ namespace dal {
 
 		const char* const fontName = "asset::NanumGothic.ttf";
 		auto buffer = new std::vector<FT_Byte>;  // Freetype needs this not deleted.
-		if (!filec::getResource_buffer(fontName, *buffer)) dalAbort("Failed to load font file: "s + fontName);
+		if ( !futil::getRes_buffer(fontName, *buffer) )
+			dalAbort("Failed to load font file: "s + fontName);
 
 		const auto error = FT_New_Memory_Face(mFLibrary, buffer->data(), static_cast<FT_Long>(buffer->size()), 0, &mFace);
-		if (error) {
+		if ( error )
 			dalAbort("Failed to find font: "s + fontName);
-		}
 
 		FT_Set_Pixel_Sizes(mFace, 0, 17);
 
