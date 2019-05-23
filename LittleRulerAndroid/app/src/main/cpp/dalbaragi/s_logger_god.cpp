@@ -31,36 +31,33 @@ namespace {
 
 	public:
 		virtual void verbose(const char* const str, const int line, const char* const func, const char* const file) override {
-			const auto text = "[VERBO]"s + str;
+			const auto text = "[VERBO] "s + str;
 
 #if defined(_WIN32)
 			std::cout << text << '\n';
 #elif defined(__ANDROID__)
 			__android_log_print(ANDROID_LOG_VERBOSE, k_packageName, "%s\n", text.c_str());
 #endif
-
 		}
 
 		virtual void debug(const char* const str, const int line, const char* const func, const char* const file) override {
-			const auto text = "[DEBUG]"s + str;
+			const auto text = "[DEBUG] "s + str;
 
 #if defined(_WIN32)
 			std::cout << text << '\n';
 #elif defined(__ANDROID__)
 			__android_log_print(ANDROID_LOG_DEBUG, k_packageName, "%s\n", text.c_str());
 #endif
-
 		}
 
 		virtual void info(const char* const str, const int line, const char* const func, const char* const file) override {
-			auto newText = "[INFO] {} in {} ({}) -> {}"_format(str, file, line, func);
+			auto newText = "[INFO ] "s + str;
 
 #if defined(_WIN32)
 			std::cout << newText << '\n';
 #elif defined(__ANDROID__)
 			__android_log_print(ANDROID_LOG_INFO, k_packageName, "%s\n", newText.c_str());
 #endif
-
 		}
 
 		virtual void warn(const char* const str, const int line, const char* const func, const char* const file) override {
@@ -71,7 +68,6 @@ namespace {
 #elif defined(__ANDROID__)
 			__android_log_print(ANDROID_LOG_WARN, k_packageName, "%s\n", text.c_str());
 #endif
-
 		}
 
 		virtual void error(const char* const str, const int line, const char* const func, const char* const file) override {
@@ -82,7 +78,6 @@ namespace {
 #elif defined(__ANDROID__)
 			__android_log_print(ANDROID_LOG_ERROR, k_packageName, "%s\n", text.c_str());
 #endif
-
 		}
 
 		virtual void fatal(const char* const str, const int line, const char* const func, const char* const file) override {
@@ -93,7 +88,6 @@ namespace {
 #elif defined(__ANDROID__)
 			__android_log_print(ANDROID_LOG_FATAL, k_packageName, "%s\n", text.c_str());
 #endif
-
 		}
 
 	};
