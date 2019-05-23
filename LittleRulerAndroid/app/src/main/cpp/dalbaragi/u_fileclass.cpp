@@ -187,6 +187,7 @@ namespace {
 		return dirs.size();
 	}
 
+	/* unused function
 	bool isAssetFile(const char* const path) {
 		auto opend = AAssetManager_open(gAssetMgr, path, AASSET_MODE_UNKNOWN);
 		if (nullptr == opend) {
@@ -197,6 +198,7 @@ namespace {
 			return true;
 		}
 	}
+	 */
 
 	// Returns only optional directory.
 	bool findMatchingAsset(std::string& result, const DirNode& node, const std::string&  accumPath, const std::string & criteria) {
@@ -358,7 +360,7 @@ namespace {
 				dalError("File not read completely, here are errors: " + errMsg);
 			}
 
-			return readSize;
+			return static_cast<size_t>(readSize);
 		}
 
 		virtual bool readText(std::string& buffer) override {
@@ -728,8 +730,9 @@ namespace dal {
 			auto file = resopen( resID, FileMode::bread );
 			if ( nullptr == file ) return false;
 
-			buffer.resize( file->getSize() );
-			return file->read( buffer.data(), buffer.size() );
+			const auto fileSize = file->getSize();
+			buffer.resize(fileSize);
+			return file->read( buffer.data(), buffer.size() ) == fileSize;
 		}
 
 	}
