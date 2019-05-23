@@ -1,6 +1,7 @@
 #include "p_shader_master.h"
 
 #include "u_fileclass.h"
+#include "s_logger_god.h"
 
 
 namespace {
@@ -54,8 +55,8 @@ namespace dal {
 		// Compile shaders general
 		{
 			std::string vertSrc, fragSrc;
-			futil::getRes_text("glsl/general_v.glsl", vertSrc);
-			futil::getRes_text("glsl/general_f.glsl", fragSrc);
+			if ( !futil::getRes_text("asset::glsl/general_v.glsl", vertSrc) ) dalAbort("Failed to open shader source file: glsl/general_v.glsl");
+			if ( !futil::getRes_text("asset::glsl/general_f.glsl", fragSrc) ) dalAbort("Failed to open shader source file: glsl/general_f.glsl");
 
 			auto verShader = compileShader(ShaderType::VERTEX, vertSrc.c_str());
 			auto fragShader = compileShader(ShaderType::FRAGMENT, fragSrc.c_str());
@@ -72,8 +73,8 @@ namespace dal {
 		// Compile shaders fill screen
 		{
 			std::string vertSrc, fragSrc;
-			futil::getRes_text("glsl/fillscreen_v.glsl", vertSrc);
-			futil::getRes_text("glsl/fillscreen_f.glsl", fragSrc);
+			if ( !futil::getRes_text("asset::glsl/fillscreen_v.glsl", vertSrc) ) dalAbort("Failed to open shader source file: 'glsl/fillscreen_v.glsl'");
+			if ( !futil::getRes_text("asset::glsl/fillscreen_f.glsl", fragSrc) ) dalAbort("Failed to open shader source file: 'glsl/fillscreen_f.glsl'");
 
 			auto verShader = compileShader(ShaderType::VERTEX, vertSrc.c_str());
 			auto fragShader = compileShader(ShaderType::FRAGMENT, fragSrc.c_str());
@@ -90,8 +91,8 @@ namespace dal {
 		// Compile shaders depth map
 		{
 			std::string vertSrc, fragSrc;
-			futil::getRes_text("glsl/depth_v.glsl", vertSrc);
-			futil::getRes_text("glsl/depth_f.glsl", fragSrc);
+			if ( !futil::getRes_text("asset::glsl/depth_v.glsl", vertSrc) ) dalAbort("Failed to open shader source file: 'glsl/depth_v.glsl'");
+			if ( !futil::getRes_text("asset::glsl/depth_f.glsl", fragSrc) ) dalAbort("Failed to open shader source file: 'glsl/depth_f.glsl'");
 
 			auto verShader = compileShader(ShaderType::VERTEX, vertSrc.c_str());
 			auto fragShader = compileShader(ShaderType::FRAGMENT, fragSrc.c_str());
@@ -107,8 +108,8 @@ namespace dal {
 
 		/* Compile shaders overlay */ {
 			std::string vertSrc, fragSrc;
-			futil::getRes_text("glsl/overlay_v.glsl", vertSrc);
-			futil::getRes_text("glsl/overlay_f.glsl", fragSrc);
+			if ( !futil::getRes_text("asset::glsl/overlay_v.glsl", vertSrc) ) dalAbort("Failed to open shader source file: 'glsl/overlay_v.glsl'");
+			if ( !futil::getRes_text("asset::glsl/overlay_f.glsl", fragSrc) ) dalAbort("Failed to open shader source file: 'glsl/overlay_f.glsl'");
 
 			auto verShader = compileShader(ShaderType::VERTEX, vertSrc.c_str());
 			auto fragShader = compileShader(ShaderType::FRAGMENT, fragSrc.c_str());

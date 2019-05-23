@@ -124,7 +124,7 @@ namespace {
 
 		virtual bool Exists(const char* pFile) const override {
 			auto resID = toAssResID(pFile);
-			return dal::filec::resolveRes(resID);
+			return dal::resolveRes(resID);
 		}
 
 		virtual char getOsSeparator() const override {

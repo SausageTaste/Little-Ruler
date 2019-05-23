@@ -41,14 +41,10 @@ namespace dal {
 
 	}
 
-	namespace filec {
+	bool resolveRes( dal::ResourceID& result );
 
-		bool resolveRes( dal::ResourceID& result );
-
-		bool initFilesystem( void* mgr, const char* const sdcardPath );
-		bool isFilesystemReady( void );
-
-	}
+	bool initFilesystem( void* mgr, const char* const sdcardPath );
+	bool isFilesystemReady( void );
 
 }
 
@@ -78,6 +74,7 @@ namespace dal {
 		virtual void close(void) = 0;
 
 		virtual size_t read(uint8_t* const buf, const size_t bufSize) = 0;
+		virtual bool readText(std::string& buffer) = 0;
 		virtual bool write(const uint8_t* const buf, const size_t bufSize) = 0;
 		virtual bool write(const char* const str) = 0;
 		virtual size_t getSize(void) = 0;

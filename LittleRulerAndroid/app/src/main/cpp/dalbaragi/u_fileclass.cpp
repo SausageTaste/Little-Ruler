@@ -339,14 +339,36 @@ namespace {
 			if (sizeToRead <= 0) return 0;
 
 			this->m_file.read(reinterpret_cast<char*>(buf), sizeToRead);
+			const auto readSize = this->m_file.gcount();
 
 			if (!this->m_file) {
-				g_logger.putError(fmt::format("File not read completely, only {} could be read.", this->m_file.gcount()), __LINE__, __func__, __FILE__);
-				return 0;
+				std::string errMsg;
+				const auto errFlags = this->m_file.rdstate();
+
+				if ( (errFlags & std::fstream::eofbit) != 0 )
+					errMsg += "eof, ";
+				if ( (errFlags & std::fstream::failbit) != 0 )
+					errMsg += "fail, ";
+				if ( (errFlags & std::fstream::badbit) != 0 )
+					errMsg += "bad, ";
+
+				if ( readSize < sizeToRead )
+					errMsg += "{} out of {} has been read"_format(readSize, sizeToRead);
+
+				dalError("File not read completely, here are errors: " + errMsg);
 			}
-			else {
-				return sizeToRead;
-			}
+
+			return readSize;
+		}
+
+		virtual bool readText(std::string& buffer) override {
+			const auto fileSize = this->getSize();
+			buffer.reserve(fileSize);
+			this->m_file.seekg(0, std::ios_base::beg);
+
+			buffer.assign((std::istreambuf_iterator<char>(this->m_file)), (std::istreambuf_iterator<char>()));
+
+			return true;
 		}
 
 		virtual bool write(const uint8_t* const buf, const size_t bufSize) override {
@@ -658,14 +680,7 @@ namespace dal {
 			auto file = resopen(resID, FileMode::read);
 			if (nullptr == file) return false;
 
-			const auto bufSize = file->getSize();
-			auto buf = std::unique_ptr<uint8_t[]>{ new uint8_t[bufSize + 1] };
-			if (!file->read(buf.get(), bufSize)) return false;
-			buf[bufSize] = '\0';
-
-			buffer.clear();
-			buffer = reinterpret_cast<char*>(buf.get());
-			return true;
+			return file->readText(buffer);
 		}
 
 		bool getRes_image(const ResourceID& resID, loadedinfo::ImageFileData& data) {
@@ -709,73 +724,71 @@ namespace dal {
 
 	}
 
-	namespace filec {
 
-		bool resolveRes(ResourceID& result) {
-			const auto fileName = result.makeFileName();
+	bool resolveRes(ResourceID& result) {
+		const auto fileName = result.makeFileName();
 
-			if (result.getPackage().empty()) {
-				dalError("Cannot resolve " + fileName + " without package defined.");
-				return false;
-			}
+		if (result.getPackage().empty()) {
+			dalError("Cannot resolve " + fileName + " without package defined.");
+			return false;
+		}
 
 #if defined(_WIN32)
-			const auto& path = getResourceDir_win() + result.getPackage() + '/';
-			std::string resultStr;
-			if (findMatching_win(resultStr, path, fileName)) {
-				result.setOptionalDir(resultStr.substr(path.size(), resultStr.find(fileName) - path.size()));
-				g_logger.putInfo("Resource resolved: " + result.makeIDStr(), __LINE__, __func__, __FILE__);
+		const auto& path = getResourceDir_win() + result.getPackage() + '/';
+		std::string resultStr;
+		if (findMatching_win(resultStr, path, fileName)) {
+			result.setOptionalDir(resultStr.substr(path.size(), resultStr.find(fileName) - path.size()));
+			g_logger.putInfo("Resource resolved: " + result.makeIDStr(), __LINE__, __func__, __FILE__);
+			return true;
+		}
+		else {
+			g_logger.putInfo("Resource resolve failed: " + result.makeIDStr(), __LINE__, __func__, __FILE__);
+			return false;
+		}
+#elif defined(__ANDROID__)
+		if (PACKAGE_NAME_ASSET == result.getPackage()) {
+			std::string foundStr;
+			if (findMatchingAsset(foundStr, g_assetFolders, "", result.makeFileName())) {
+				result.setOptionalDir(foundStr);
+				dalInfo("Resource resolved: " + result.makeIDStr());
 				return true;
 			}
 			else {
-				g_logger.putInfo("Resource resolve failed: " + result.makeIDStr(), __LINE__, __func__, __FILE__);
+				dalInfo("Resource resolve failed: " + result.makeIDStr());
 				return false;
 			}
-#elif defined(__ANDROID__)
-			if (PACKAGE_NAME_ASSET == result.getPackage()) {
-				std::string foundStr;
-				if (findMatchingAsset(foundStr, g_assetFolders, "", result.makeFileName())) {
-					result.setOptionalDir(foundStr);
-					dalInfo("Resource resolved: " + result.makeIDStr());
-					return true;
-				}
-				else {
-					dalInfo("Resource resolve failed: " + result.makeIDStr());
-					return false;
-				}
-			}
-			else {
-				dalError("Cannot resolve " + result.getPackage() + "::" + fileName + ", only asset is supported yet.");
-				return false;
-			}
-#endif
-
 		}
-
-		bool initFilesystem(void* mgr, const char* const sdcardPath) {
-
-#ifdef __ANDROID__
-			if (mgr == nullptr)  return false;
-			gAssetMgr = reinterpret_cast<AAssetManager*>(mgr);
-
-			if (nullptr == sdcardPath) return false;
-			g_storagePath = sdcardPath;
-			dalInfo("Storage path set: "s + g_storagePath);
-#endif
-
-			return true;
+		else {
+			dalError("Cannot resolve " + result.getPackage() + "::" + fileName + ", only asset is supported yet.");
+			return false;
 		}
-
-		bool isFilesystemReady(void) {
-#ifdef __ANDROID__
-			if (gAssetMgr == nullptr) return false;
-			if (g_storagePath.empty()) return false;
 #endif
-			return true;
-		}
 
 	}
 
+	bool initFilesystem(void* mgr, const char* const sdcardPath) {
+
+#ifdef __ANDROID__
+		if (mgr == nullptr)  return false;
+		gAssetMgr = reinterpret_cast<AAssetManager*>(mgr);
+
+		if (nullptr == sdcardPath) return false;
+		g_storagePath = sdcardPath;
+		dalInfo("Storage path set: "s + g_storagePath);
+#endif
+
+		return true;
+	}
+
+	bool isFilesystemReady(void) {
+#ifdef __ANDROID__
+		if (gAssetMgr == nullptr) return false;
+		if (g_storagePath.empty()) return false;
+#endif
+		return true;
+	}
+
+		
 	FileMode mapFileMode(const char* const str) {
 		// "wb", "w", "wt", "rb", "r", "rt".
 
@@ -801,10 +814,15 @@ namespace dal {
 	}
 
 	std::unique_ptr<IResourceStream> resopen(ResourceID resID, const FileMode mode) {
+		if ( resID.getPackage().empty() ) {
+			dalError("Caanot open resource without package specified: "s + resID.makeIDStr());
+			return std::unique_ptr<IResourceStream>{ nullptr };
+		}
+
 		if (FileMode::read != mode && FileMode::bread != mode) goto finishResolve;
 		if (!resID.getOptionalDir().empty()) goto finishResolve;
 
-		if (!filec::resolveRes(resID)) {
+		if (!resolveRes(resID)) {
 			dalError("Failed to resolve '{}' in fopen."_format(resID.makeIDStr()));
 			return std::unique_ptr<IResourceStream>{ nullptr };
 		}
@@ -828,7 +846,7 @@ namespace dal {
 
 		std::unique_ptr<IResourceStream> file{ new STDFileStream };
 		if (false == file->open(filePath.c_str(), mode)) {
-			g_logger.putError("Failed to open file: "s + filePath, __LINE__, __func__, __FILE__);
+			dalError("Failed to open file: "s + filePath);
 			return std::unique_ptr<IResourceStream>{ nullptr };
 		}
 

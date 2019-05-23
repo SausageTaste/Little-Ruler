@@ -22,6 +22,14 @@ namespace {
 	class FileLoggingChannel : public dal::ILoggingChannel {
 
 	public:
+		FileLoggingChannel(void) {
+			dal::LoggerGod::getinst().addChannel(this);
+		}
+
+		~FileLoggingChannel(void) {
+			dal::LoggerGod::getinst().deleteChannel(this);
+		}
+
 		virtual void verbose(const char* const str, const int line, const char* const func, const char* const file) override {
 			
 		}
@@ -67,18 +75,21 @@ namespace {
 			const auto sec = timeInfo.tm_sec;
 			
 			std::string buffer{ "Dalbaragi Log\n" };
-			buffer += fmt::format("{}-{}-{} {}:{}:{}\n\n", year, month, year, hour, min, sec);
+			buffer += fmt::format("{}-{}-{} {}:{}:{}\n\n", year, month, day, hour, min, sec);
 
 			buffer += fmt::format("File : {}\nLine : {}\nFunction : {}\n", file, line, func);
 			buffer += "Log level : ";
 			buffer += logLevel;
 			buffer += "\n\n";
 
+			buffer += "\"\"\"\n";
 			buffer += str;
+			buffer += "\n\"\"\"";
+			buffer += "\n\n##############\n\n";
 
-			const auto fileID = fmt::format("log::log_{}-{}-{}_{}-{}-{}_{}.txt", year, month, day, hour, min, sec, logLevel);
+			const auto fileID = fmt::format("log::log_{}-{}-{}_{}-{}.txt", year, month, day, hour, min);
 
-			auto logFile = dal::resopen(fileID, dal::FileMode::write);
+			auto logFile = dal::resopen(fileID, dal::FileMode::append);
 			if (nullptr == logFile) {
 				fmt::print("Failed to create log file: {}\n", fileID);
 				dal::LoggerGod::getinst().enable();
@@ -127,11 +138,11 @@ namespace dal {
 	}
 
 	void Mainloop::giveWhatFilesystemWants(void* androidAssetManager, const char* const sdcardPath) {
-		filec::initFilesystem(androidAssetManager, sdcardPath);
+		initFilesystem(androidAssetManager, sdcardPath);
 	}
 
 	bool Mainloop::isWhatFilesystemWantsGiven(void) {
-		return filec::isFilesystemReady();
+		return isFilesystemReady();
 	}
 
 	// Public
@@ -158,11 +169,6 @@ namespace dal {
 			}
 		}
 
-		// Log to file
-		{
-			dal::LoggerGod::getinst().addChannel(&g_fileLogger);
-		}
-
 		// Misc
 		{
 			mHandlerName = "dal::Mainloop";
@@ -182,7 +188,7 @@ namespace dal {
 
 		// Test
 		{
-			dalError("Test log");
+
 		}
 
 		const auto elapsed = m_initTimer.check_getElapsed_capFPS();
@@ -190,8 +196,6 @@ namespace dal {
 	}
 
 	Mainloop::~Mainloop(void) {
-		dal::LoggerGod::getinst().deleteChannel(&g_fileLogger);
-
 		EventGod::getinst().deregisterHandler(this, EventType::quit_game);
 	}
 
