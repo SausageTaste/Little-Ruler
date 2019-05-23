@@ -92,7 +92,6 @@ public class CallableJNI {
 
     }
 
-
     static private int sCurrentIndex = 0;
     static private int sSizeOfOneDataBlock = 4*4;
     static private int sArraySize = sSizeOfOneDataBlock * 100;

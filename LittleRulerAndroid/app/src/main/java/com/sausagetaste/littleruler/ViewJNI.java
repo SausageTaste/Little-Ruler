@@ -34,6 +34,7 @@ public class ViewJNI extends GLSurfaceView {
         public void onSurfaceCreated(GL10 gl, EGLConfig config) {
             LibJNI.init();
         }
+
     }
 
 }

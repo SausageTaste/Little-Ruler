@@ -2,10 +2,16 @@ package com.sausagetaste.littleruler;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.content.Context;
 import android.content.res.AssetManager;
 import android.os.Bundle;
-
-import android.os.Environment;
+import android.view.Gravity;
+import android.view.KeyEvent;
+import android.view.ViewGroup;
+import android.view.WindowManager;
+import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.EditText;
 
 import java.util.Objects;
 
@@ -14,6 +20,8 @@ public class ActivityJNI extends Activity {
 
     private ViewJNI mView;
     AssetManager mAssMan;
+
+    TextInputBox m_textInputBox = null;
 
     @SuppressLint("ClickableViewAccessibility")
     @Override protected void onCreate(Bundle icicle) {
@@ -28,6 +36,11 @@ public class ActivityJNI extends Activity {
         LibJNI.giveRequirements(this.mAssMan, filePath);
 
         mView.setOnTouchListener(new CallableJNI.MyListener(mView));
+
+        //getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
+        //getWindow().takeKeyEvents(true);
+
+        this.openTextInput();
     }
 
     @Override protected void onPause() {
@@ -38,6 +51,20 @@ public class ActivityJNI extends Activity {
     @Override protected void onResume() {
         super.onResume();
         mView.onResume();
+    }
+
+    private void openTextInput() {
+        this.m_textInputBox = new TextInputBox(this);
+        this.addContentView(this.m_textInputBox, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+
+        this.m_textInputBox.requestFocus();
+        InputMethodManager imm = (InputMethodManager) this.getSystemService(Activity.INPUT_METHOD_SERVICE);
+        imm.toggleSoftInput(InputMethodManager.HIDE_IMPLICIT_ONLY, 0);
+    }
+
+    private void closeTextInput() {
+        if (null == this.m_textInputBox) return;
+        ((ViewGroup) this.m_textInputBox.getParent()).removeView(this.m_textInputBox);
     }
 
 }
