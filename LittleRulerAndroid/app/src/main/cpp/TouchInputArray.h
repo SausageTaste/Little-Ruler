@@ -10,13 +10,9 @@
 class TouchInputArray {
 
 private:
-	ContextJNI* mCnxtJNI;
+	ContextJNI* mCnxtJNI = nullptr;
 
 public:
-	TouchInputArray(void) {
-
-	}
-
 	void init(ContextJNI* cnxtJNI) {
 		this->mCnxtJNI = cnxtJNI;
 	}
@@ -56,8 +52,7 @@ private:
 
 		auto fieldID = env->GetStaticFieldID(findClass_CallableJNI(), "sTouchEvents", "[B");
 		if (fieldID == nullptr) {
-			logger.putFatal("Failed to find static field CallableJNI::sTouchEvents", __LINE__, __func__, __FILE__);
-			abort();
+			dalAbort("Failed to find static field CallableJNI::sTouchEvents");
 		}
 
 		return static_cast<jbyteArray>(env->GetStaticObjectField(findClass_CallableJNI(), fieldID));
@@ -69,8 +64,7 @@ private:
 
 		auto fieldID = env->GetStaticFieldID(findClass_CallableJNI(), "sCurrentIndex", "I");
 		if (fieldID == nullptr) {
-			logger.putFatal("Failed to find static field CallableJNI::sCurrentIndex", __LINE__, __func__, __FILE__);
-			abort();
+			dalAbort("Failed to find static field CallableJNI::sCurrentIndex");
 		}
 		else {
 			return fieldID;
@@ -83,8 +77,7 @@ private:
 
 		auto fieldID = env->GetStaticFieldID(findClass_CallableJNI(), "sArraySize", "I");
 		if (fieldID == nullptr) {
-			logger.putFatal("Failed to find static field CallableJNI::sArraySize", __LINE__, __func__, __FILE__);
-			abort();
+			dalAbort("Failed to find static field CallableJNI::sArraySize");
 		}
 		else {
 			return fieldID;
@@ -97,8 +90,7 @@ private:
 
 		auto clazzCallableJNI = env->FindClass("com/sausagetaste/littleruler/CallableJNI");
 		if (clazzCallableJNI == nullptr) {
-			logger.putError("Failed to find class: CallableJNI", __LINE__, __func__, __FILE__);
-			abort();
+			dalAbort("Failed to find class: CallableJNI");
 		}
 		else {
 			return clazzCallableJNI;
