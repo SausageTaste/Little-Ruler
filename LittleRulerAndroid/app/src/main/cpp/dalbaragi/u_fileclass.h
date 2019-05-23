@@ -48,13 +48,6 @@ namespace dal {
 		bool initFilesystem( void* mgr, const char* const sdcardPath );
 		bool isFilesystemReady( void );
 
-		/*
-		bool getAsset_text(const char* const path, std::string* buf);
-
-		bool getResource_image(ResourceID path, loadedinfo::ImageFileData& data);
-		bool getResource_buffer(ResourceID path, std::vector<uint8_t>& buffer);
-		*/
-
 	}
 
 }
@@ -66,6 +59,7 @@ namespace dal {
 	enum class Whence { beg, cur, end };
 
 	FileMode mapFileMode(const char* const str);
+
 
 	class IResourceStream {
 
@@ -98,39 +92,3 @@ namespace dal {
 	std::unique_ptr<IResourceStream> resopen(ResourceID resID, const FileMode mode);
 
 }
-
-/*
-namespace dal {
-
-	class AssetFileStream_remove {
-
-	public:
-		enum class Whence { beg, cur, end };
-
-	private:
-		struct InFileclassPimpl;
-		InFileclassPimpl* pimpl;
-
-		size_t m_fileContentsSize;
-		bool m_opened;
-		std::string m_path;
-
-	public:
-		AssetFileStream(void);
-		AssetFileStream(const char* const path);
-		~AssetFileStream(void);
-
-		bool open(const char* const path);
-		void close(void);
-		size_t read(uint8_t* const buf, const size_t bufSize);
-
-		size_t getFileSize(void) const;
-
-		bool seek(const size_t offset, const Whence whence = Whence::beg);
-		size_t tell(void) const;
-		size_t write(const uint8_t* const buf, const size_t bufSize);
-
-	};
-
-}
-*/
