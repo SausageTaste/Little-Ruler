@@ -1,5 +1,3 @@
-#include "interface4jni.h"
-
 #include <memory>
 #include <string>
 #include <vector>
@@ -18,8 +16,7 @@
 #include <s_input_queue.h>
 #include <x_persist.h>
 
-#include "ContextJNI.h"
-#include "TouchInputArray.h"
+#include "javautil.h"
 
 
 using namespace std::string_literals;
@@ -32,10 +29,6 @@ namespace {
 
 	AAssetManager *gAssMan = nullptr;
 	std::string g_storagePath;
-	dal::LoggerGod &gLogger = dal::LoggerGod::getinst();
-
-	ContextJNI gCnxtJNI;
-	TouchInputArray gTouchInputArray;
 
 }
 
@@ -69,14 +62,12 @@ extern "C" {
 
 JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void* reserved) try {
 	dalVerbose("JNI_OnLoad");
-	gCnxtJNI.init(vm);
+	dal::initJavautil(vm);
 
-	if (gCnxtJNI.getJNIEnv() == nullptr) {
+	if (nullptr == dal::getJNIEnv()) {
 		dalFatal("Failed JNI_OnLoad()");
 		return JNI_ERR;
 	}
-
-	gTouchInputArray.init(&gCnxtJNI);
 
 	return JNI_VERSION_1_6;
 }
@@ -159,12 +150,12 @@ JNIEXPORT void JNICALL Java_com_sausagetaste_littleruler_LibJNI_step(JNIEnv *env
 
 	// Touch event handle
 	{
-		const auto curIndex = gTouchInputArray.getCurrentIndexAndReset();
+		const auto curIndex = dal::touchinput::getCurrentIndexAndReset();
 
 		auto& touchQ = dal::TouchEvtQueueGod::getinst();
 
 		jbyte* floatArr = new jbyte[curIndex];
-		gTouchInputArray.copyArray(floatArr, curIndex);
+		dal::touchinput::copyArray(floatArr, curIndex);
 		for (int i = 0; i < curIndex; i += 16) {
 
 			auto xPos  = (jfloat*) &floatArr[i     ];

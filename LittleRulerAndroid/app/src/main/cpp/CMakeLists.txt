@@ -15,7 +15,7 @@ set(library_dir ${CMAKE_CURRENT_SOURCE_DIR}/../../../../../Library)
 
 # Make main JNI library
 file(GLOB dalbaragiSrcFiles ./dalbaragi/*.cpp)
-add_library( interface4jni SHARED interface4jni.cpp ${dalbaragiSrcFiles})
+add_library( interface4jni SHARED interface4jni.cpp javautil.cpp ${dalbaragiSrcFiles})
 target_include_directories(interface4jni PRIVATE ./dalbaragi)
 
 

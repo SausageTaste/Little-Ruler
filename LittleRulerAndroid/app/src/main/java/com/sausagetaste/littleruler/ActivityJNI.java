@@ -23,8 +23,8 @@ public class ActivityJNI extends Activity {
 
     TextInputBox m_textInputBox = null;
 
-    @SuppressLint("ClickableViewAccessibility")
-    @Override protected void onCreate(Bundle icicle) {
+    @SuppressLint("ClickableViewAccessibility") @Override
+    protected void onCreate(Bundle icicle) {
         super.onCreate(icicle);
         mView = new ViewJNI(getApplication());
         setContentView(mView);
@@ -39,16 +39,16 @@ public class ActivityJNI extends Activity {
 
         //getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
         //getWindow().takeKeyEvents(true);
-
-        this.openTextInput();
     }
 
-    @Override protected void onPause() {
+    @Override
+    protected void onPause() {
         super.onPause();
         mView.onPause();
     }
 
-    @Override protected void onResume() {
+    @Override
+    protected void onResume() {
         super.onResume();
         mView.onResume();
     }
