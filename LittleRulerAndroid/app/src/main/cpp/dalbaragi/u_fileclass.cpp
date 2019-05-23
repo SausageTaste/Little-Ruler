@@ -487,6 +487,16 @@ namespace {
 			}
 		}
 
+		virtual bool readText(std::string& buffer) override {
+			const auto fileSize = this->getSize();
+			auto buf = std::unique_ptr<uint8_t[]>{ new uint8_t[fileSize + 1] };
+			const auto readSize = this->read(buf.get(), fileSize);
+			buf[readSize] = '\0';
+			buffer = reinterpret_cast<const char*>(buf.get());
+
+			return true;
+		}
+
 		virtual bool write(const uint8_t* const buf, const size_t bufSize) override {
 			dalAbort("Writing is illegal on assets.");
 		}
@@ -568,7 +578,7 @@ namespace {
 
 		const auto resArrSize = data.m_width * data.m_height * data.m_pixSize;
 		data.m_buf.clear();
-		data.m_buf.insert(data.m_buf.begin(), *result, *result + resArrSize);
+		data.m_buf.insert(data.m_buf.begin(), result.get(), result.get() + resArrSize);
 
 		return true;
 	}
