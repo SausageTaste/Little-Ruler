@@ -465,7 +465,7 @@ namespace dal {
 		return this->pimpl->m_refCount;
 	}
 
-	void ModelHandle::renderGeneral(const UnilocGeneral& uniloc, const std::list<Actor>& actors) const {
+	void ModelHandle::renderGeneral(const UnilocGeneral& uniloc, const std::list<ActorInfo>& actors) const {
 		if (!this->isReady()) return;
 
 		for (auto& unit : this->pimpl->m_model->m_renderUnits) {
@@ -480,7 +480,7 @@ namespace dal {
 		}
 	}
 
-	void ModelHandle::renderDepthMap(const UnilocDepthmp& uniloc, const std::list<Actor>& actors) const {
+	void ModelHandle::renderDepthMap(const UnilocDepthmp& uniloc, const std::list<ActorInfo>& actors) const {
 		if (!this->isReady()) return;
 
 		for (auto& unit : this->pimpl->m_model->m_renderUnits) {

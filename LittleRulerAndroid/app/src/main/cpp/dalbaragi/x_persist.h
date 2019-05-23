@@ -2,13 +2,14 @@
 
 #include <glm/glm.hpp>
 
+#include "g_actor.h"
+
 
 namespace dal {
 
 	struct PersistState {
 
-		glm::vec3 cameraPos;
-		glm::vec2 cameraViewDir;
+		Camera m_camera;
 
 	};
 

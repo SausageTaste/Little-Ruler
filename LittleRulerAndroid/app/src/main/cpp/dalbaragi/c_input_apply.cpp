@@ -478,9 +478,7 @@ namespace {
 
 namespace {
 
-	void apply_flyDirectional(const float deltaTime, glm::vec3* targetPos, glm::vec2* targetViewDir, dal::OverlayMaster& overlay) {
-		//auto logger = LoggerGod::getinst();
-
+	void apply_flyDirectional(const float deltaTime, dal::Camera& camera, dal::OverlayMaster& overlay) {
 		glm::vec2 totalMovePlane{ 0.0 };  // This means it must represent move direction when targetViewDir == { 0, 0 }.
 		float moveUpOrDown = 0.0f;
 
@@ -489,48 +487,39 @@ namespace {
 			NoclipMoveInfo keyboardInfo;
 			if (gKeyboardMaster.fetch_noclipMove(&keyboardInfo, deltaTime)) {
 				totalMovePlane += glm::vec2{ keyboardInfo.xMovePlane, keyboardInfo.zMovePlane };
-				*targetViewDir += glm::vec2{ keyboardInfo.xView, keyboardInfo.yView };
+				camera.addViewPlane(keyboardInfo.xView, keyboardInfo.yView);
 				moveUpOrDown += keyboardInfo.vertical;
 			}
 
 			NoclipMoveInfo touchInfo;
 			if (gTouchMaster.fetch_noclipMove(&touchInfo, overlay)) {
 				totalMovePlane += glm::vec2{ touchInfo.xMovePlane, touchInfo.zMovePlane };
-				*targetViewDir += glm::vec2{ touchInfo.xView, touchInfo.yView };
+				camera.addViewPlane(touchInfo.xView, touchInfo.yView);
 				moveUpOrDown += touchInfo.vertical;
-			}
-		}
-
-		/* Clamp view height */ {
-			constexpr auto plus90Degree = glm::radians(90.0f);
-			constexpr auto minus90Degree = glm::radians(-90.0f);
-			if (targetViewDir->y > plus90Degree) {
-				targetViewDir->y = plus90Degree;
-			}
-			else if (targetViewDir->y < minus90Degree) {
-				targetViewDir->y = minus90Degree;
 			}
 		}
 
 		// Return if target doesn't need to move.
 		if (totalMovePlane.x == 0.0f && totalMovePlane.y == 0.0f && moveUpOrDown == 0.0f) return;
 
-		/* Apply move direction */ {
+		// Apply move direction
+		{
 			glm::mat4 viewMat{ 1.0 };
-			viewMat = glm::rotate(viewMat, -targetViewDir->x, glm::vec3(0.0f, 1.0f, 0.0f));
-			viewMat = glm::rotate(viewMat, targetViewDir->y, glm::vec3(1.0f, 0.0f, 0.0f));
+			const auto viewVec = camera.getViewPlaneVec();
+			viewMat = glm::rotate(viewMat, -viewVec.x, glm::vec3(0.0f, 1.0f, 0.0f));
+			viewMat = glm::rotate(viewMat, viewVec.y, glm::vec3(1.0f, 0.0f, 0.0f));
 
 			glm::vec3 moveDirection{ viewMat * glm::vec4{totalMovePlane.x, 0.0, totalMovePlane.y, 1.0} };
 			if (moveUpOrDown) moveDirection.y = moveUpOrDown;
 
 			//moveDirection = glm::normalize(moveDirection);  // Maybe this is redundant.
 			const float moveMultiplier = 5.0f * deltaTime;
-			*targetPos += moveDirection * moveMultiplier;
+			camera.addPos(moveDirection * moveMultiplier);
 		}
 
 	}
 
-	void apply_flyPlane(const float deltaTime, glm::vec3* targetPos, glm::vec2* targetViewDir, dal::OverlayMaster& overlay) {
+	void apply_flyPlane(const float deltaTime, dal::Camera& camera, dal::OverlayMaster& overlay) {
 		//auto logger = LoggerGod::getinst();
 
 		glm::vec2 totalMovePlane{ 0.0 };  // This means it must represent move direction when targetViewDir == { 0, 0 }.
@@ -541,26 +530,15 @@ namespace {
 			NoclipMoveInfo keyboardInfo;
 			if (gKeyboardMaster.fetch_noclipMove(&keyboardInfo, deltaTime)) {
 				totalMovePlane += glm::vec2{ keyboardInfo.xMovePlane, keyboardInfo.zMovePlane };
-				*targetViewDir += glm::vec2{ keyboardInfo.xView, keyboardInfo.yView };
+				camera.addViewPlane(keyboardInfo.xView, keyboardInfo.yView);
 				moveUpOrDown += keyboardInfo.vertical;
 			}
 
 			NoclipMoveInfo touchInfo;
 			if (gTouchMaster.fetch_noclipMove(&touchInfo, overlay)) {
 				totalMovePlane += glm::vec2{ touchInfo.xMovePlane, touchInfo.zMovePlane };
-				*targetViewDir += glm::vec2{ touchInfo.xView, touchInfo.yView };
+				camera.addViewPlane(touchInfo.xView, touchInfo.yView);
 				moveUpOrDown += touchInfo.vertical;
-			}
-		}
-
-		/* Clamp view height */ {
-			constexpr auto plus90Degree = glm::radians(90.0f);
-			constexpr auto minus90Degree = glm::radians(-90.0f);
-			if (targetViewDir->y > plus90Degree) {
-				targetViewDir->y = plus90Degree;
-			}
-			else if (targetViewDir->y < minus90Degree) {
-				targetViewDir->y = minus90Degree;
 			}
 		}
 
@@ -569,7 +547,8 @@ namespace {
 
 		/* Apply move direction */ {
 			glm::mat4 viewMat{ 1.0 };
-			viewMat = glm::rotate(viewMat, -targetViewDir->x, glm::vec3(0.0f, 1.0f, 0.0f));
+			const auto viewVec = camera.getViewPlaneVec();
+			viewMat = glm::rotate(viewMat, -viewVec.x, glm::vec3(0.0f, 1.0f, 0.0f));
 			//viewMat = glm::rotate(viewMat, targetViewDir->y, glm::vec3(1.0f, 0.0f, 0.0f));
 
 			glm::vec3 moveDirection{ viewMat * glm::vec4{totalMovePlane.x, 0.0, totalMovePlane.y, 1.0} };
@@ -577,7 +556,7 @@ namespace {
 
 			//moveDirection = glm::normalize(moveDirection);  // Maybe this is redundant.
 			const float moveMultiplier = 5.0f * deltaTime;
-			*targetPos += moveDirection * moveMultiplier;
+			camera.addPos(moveDirection * moveMultiplier);
 		}
 
 	}
@@ -627,15 +606,15 @@ namespace dal {
 		}
 	}
 
-	void InputApplier::apply(const float deltaTime, glm::vec3* targetPos, glm::vec2* targetViewDir) {
+	void InputApplier::apply(const float deltaTime, Camera& camera) {
 
 		switch (mFSM) {
 
 		case GlobalGameState::game:
 #if defined(_WIN32)
-			apply_flyPlane(deltaTime, targetPos, targetViewDir, this->m_overlayMas);
+			apply_flyPlane(deltaTime, camera, this->m_overlayMas);
 #else defined(__ANDROID__)
-			apply_flyDirectional(deltaTime, targetPos, targetViewDir, this->m_overlayMas);
+			apply_flyDirectional(deltaTime, camera, this->m_overlayMas);
 #endif
 			break;
 		case GlobalGameState::menu:

@@ -8,6 +8,7 @@
 #include "s_event.h"
 #include "p_globalfsm.h"
 #include "o_overlay_master.h"
+#include "g_actor.h"
 
 
 namespace dal {
@@ -24,7 +25,7 @@ namespace dal {
 
 		virtual void onEvent(const EventStatic& e) override;
 
-		void apply(const float deltaTime, glm::vec3* targetPos, glm::vec2* targetViewDir);
+		void apply(const float deltaTime, Camera& camera);
 
 	};
 

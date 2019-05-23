@@ -180,8 +180,7 @@ namespace dal {
 		// Restore from saved state
 		{
 			if (savedState != nullptr) {
-				m_renderMan.mCameraPos = savedState->cameraPos;
-				m_renderMan.mCameraViewDir = savedState->cameraViewDir;
+				m_renderMan.m_camera = savedState->m_camera;
 				delete savedState;
 			}
 		}
@@ -208,7 +207,7 @@ namespace dal {
 			m_timerForFPSReport.check();
 		}
 
-		m_inputApply.apply(deltaTime, &m_renderMan.mCameraPos, &m_renderMan.mCameraViewDir);
+		m_inputApply.apply(deltaTime, this->m_renderMan.m_camera);
 
 		TaskGod::getinst().update();
 
@@ -228,8 +227,7 @@ namespace dal {
 
 	PersistState* Mainloop::getSavedState(void) {
 		auto s = new PersistState();
-		s->cameraPos = m_renderMan.mCameraPos;
-		s->cameraViewDir = m_renderMan.mCameraViewDir;
+		s->m_camera = m_renderMan.m_camera;
 		return s;
 	}
 

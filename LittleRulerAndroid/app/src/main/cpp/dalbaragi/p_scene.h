@@ -17,7 +17,7 @@ namespace dal {
 
 	private:
 		struct ModelNActor {
-			std::list<Actor> m_inst;
+			std::list<ActorInfo> m_inst;
 			ModelHandle m_model;
 		};
 
@@ -44,7 +44,7 @@ namespace dal {
 		void renderGeneral(const UnilocGeneral& uniloc) const;
 		void renderDepthMp(const UnilocDepthmp& uniloc) const;
 
-		Actor* addActorForModel(const ResourceID& resID, const std::string& actorName);
+		ActorInfo* addActorForModel(const ResourceID& resID, const std::string& actorName);
 
 		void loadMap(const ResourceID& mapID);
 

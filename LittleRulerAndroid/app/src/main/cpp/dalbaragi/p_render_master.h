@@ -14,6 +14,7 @@
 #include "o_overlay_master.h"
 #include "p_dalopengl.h"
 #include "p_scene.h"
+#include "g_actor.h"
 
 
 namespace dal {
@@ -44,28 +45,20 @@ namespace dal {
 
 		};
 
-	public:
-		glm::vec3 mCameraPos;
-		glm::vec2 mCameraViewDir;
-
-	public:
-		ResourceMaster m_resMas;
-		SceneMaster m_scene;
-
 	private:
 		ShaderMaster m_shader;
 		MainFramebuffer m_fbuffer;
 
 	public:
+		Camera m_camera;
+		ResourceMaster m_resMas;
+		SceneMaster m_scene;
 		OverlayMaster m_overlayMas;
 
 	private:
 		unsigned int m_winWidth, m_winHeight;
-
 		glm::mat4 m_projectMat;
-
 		DirectionalLight m_dlight1;
-		PointLight m_plight1;
 
 	public:
 		RenderMaster(void);

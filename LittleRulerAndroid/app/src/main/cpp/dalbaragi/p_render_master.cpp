@@ -14,21 +14,6 @@
 using namespace std::string_literals;
 
 
-namespace {
-
-	glm::mat4 makeCameraViewMat(const glm::vec3& pos, const glm::vec2& euler) {
-		auto viewMat = glm::mat4(1.0f);
-
-		viewMat = glm::rotate(viewMat, euler.y, glm::vec3(-1.0f, 0.0f, 0.0f));
-		viewMat = glm::rotate(viewMat, euler.x, glm::vec3(0.0f, 1.0f, 0.0f));
-		viewMat = glm::translate(viewMat, glm::vec3(-pos.x, -pos.y, -pos.z));
-
-		return viewMat;
-	}
-
-}
-
-
 // Main Framebuffer
 namespace dal {
 
@@ -165,19 +150,13 @@ namespace dal {
 namespace dal {
 
 	RenderMaster::RenderMaster(void)
-	:	mCameraPos(0.0, 0.0, 5.0),
-		mCameraViewDir(0.0, 0.0),
-		m_scene(m_resMas),
+	:	m_scene(m_resMas),
 		m_overlayMas(m_resMas, m_shader),
 		m_winWidth(512), m_winHeight(512),
 		m_projectMat(1.0)
 	{
 		// Lights
 		{
-			m_plight1.mPos = { 0, 2, 3 };
-			m_plight1.mMaxDistance = 20.0f;
-			m_plight1.m_color = { 0.0, 0.0, 0.0 };
-
 			m_dlight1.m_color = { 0.7, 0.7, 0.7 };
 			m_dlight1.mDirection = { 0.3, -1.0, -2.0 };
 		}
@@ -231,21 +210,19 @@ namespace dal {
 
 			glUniformMatrix4fv(unilocGeneral.uProjectMat, 1, GL_FALSE, &m_projectMat[0][0]);
 			
-			auto viewMat = makeCameraViewMat(mCameraPos, mCameraViewDir);
+			const auto viewMat = this->m_camera.makeViewMat();
+			const auto viewPos = this->m_camera.getPos();
 			glUniformMatrix4fv(unilocGeneral.uViewMat, 1, GL_FALSE, &viewMat[0][0]);
 
 			glUniformMatrix4fv(unilocGeneral.uModelMat, 1, GL_FALSE, &identityMat[0][0]);
 
-			glUniform3f(unilocGeneral.uViewPos, mCameraPos.x, mCameraPos.y, mCameraPos.z);
+			glUniform3f(unilocGeneral.uViewPos, viewPos.x, viewPos.y, viewPos.z);
 			glUniform3f(unilocGeneral.uBaseAmbient, 0.3f, 0.3f, 0.3f);
 
 			// Lights
 
 			m_dlight1.sendUniform(unilocGeneral, 0);
 			glUniform1i(unilocGeneral.uDlightCount, 1);
-
-			m_plight1.sendUniform(unilocGeneral, 0);
-			glUniform1i(unilocGeneral.uPlightCount, 1);
 
 			// Render meshes
 

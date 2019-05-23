@@ -119,7 +119,7 @@ namespace {
 
 namespace {  // Make attribs
 
-	const uint8_t* makeAttrib_actor(dal::Actor& info, const uint8_t* const begin, const uint8_t* const end) {
+	const uint8_t* makeAttrib_actor(dal::ActorInfo& info, const uint8_t* const begin, const uint8_t* const end) {
 		const uint8_t* header = begin;
 
 		{

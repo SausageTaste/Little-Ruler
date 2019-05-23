@@ -7,19 +7,10 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
 
+#include "g_actor.h"
+
 
 namespace dal {
-
-	struct Actor {
-		std::string m_actorID;
-		glm::vec3 pos;
-		glm::quat myQuat;
-		bool m_static = true;
-
-		glm::mat4 getViewMat(void) const;
-		void rotate(const float v, const glm::vec3& selector);
-	};
-
 
 	struct RenderUnitInfo {
 		struct MeshInfo {
@@ -44,7 +35,7 @@ namespace dal {
 		// Please do not instanciate this.
 		struct IMapItemModel {
 			std::string m_modelID;
-			std::vector<Actor> m_actors;
+			std::vector<ActorInfo> m_actors;
 		};
 
 		struct ModelDefined : public IMapItemModel {

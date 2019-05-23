@@ -65,7 +65,7 @@ namespace dal {
 		}
 	}
 
-	Actor* SceneMaster::addActorForModel(const ResourceID& resID, const std::string& actorName) {
+	ActorInfo* SceneMaster::addActorForModel(const ResourceID& resID, const std::string& actorName) {
 		auto modelHandle = m_resMas.orderModel(resID);
 
 		for (auto& i : m_persistantMap->m_modelActors) {

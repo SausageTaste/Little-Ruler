@@ -89,8 +89,8 @@ namespace dal {
 		bool isReady(void) const;
 		unsigned int getRefCount(void) const;
 
-		void renderGeneral(const UnilocGeneral& uniloc, const std::list<Actor>& actors) const;
-		void renderDepthMap(const UnilocDepthmp& uniloc, const std::list<Actor>& actors) const;
+		void renderGeneral(const UnilocGeneral& uniloc, const std::list<ActorInfo>& actors) const;
+		void renderDepthMap(const UnilocDepthmp& uniloc, const std::list<ActorInfo>& actors) const;
 
 		void destroyModel(void);
 		Model* replace(Model* model);
