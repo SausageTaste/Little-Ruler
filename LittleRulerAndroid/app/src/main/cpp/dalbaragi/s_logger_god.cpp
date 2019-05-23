@@ -90,9 +90,7 @@ namespace {
 #endif
 		}
 
-	};
-
-	LogcatChannel g_logcatCh;
+	} g_logcatCh;
 
 }
 
