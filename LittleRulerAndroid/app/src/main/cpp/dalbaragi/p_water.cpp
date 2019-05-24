@@ -3,9 +3,35 @@
 #include <array>
 
 #include "s_logger_god.h"
+#include "u_fileclass.h"
 
 
 namespace {
+
+	dal::Texture* getDUDVMap(void) {
+		static dal::Texture* tex = nullptr;
+
+		if ( nullptr == tex ) {
+			dal::loadedinfo::ImageFileData image;
+			if ( !dal::futil::getRes_image("asset::waterDUDV.png", image) ) {
+				dalAbort("Failed to load dudv map.");
+			}
+			assert(4 == image.m_pixSize);
+
+			tex = new dal::Texture();
+			if ( 4 == image.m_pixSize ) {
+				tex->init_diffueMap(image.m_buf.data(), image.m_width, image.m_height);
+			}
+			else if ( 3 == image.m_pixSize ) {
+				tex->init_diffueMap(image.m_buf.data(), image.m_width, image.m_height);
+			}
+			else {
+				dalAbort("Wrong pixel size for dudv map");
+			}
+		}
+
+		return tex;
+	}
 
 }
 
@@ -250,7 +276,15 @@ namespace dal {
 	}
 
 	void WaterRenderer::renderWaterry(const UnilocWaterry& uniloc) {
+		const auto deltaTime = this->m_localTimer.check_getElapsed_capFPS();
+		this->m_moveFactor += this->m_moveSpeed * deltaTime;
+		this->m_moveFactor = fmod(this->m_moveFactor, 1.0f);
+		glUniform1f(uniloc.u_dudvMoveFactor, this->m_moveFactor);
+
 		this->m_material.sendUniform(uniloc);
+
+		getDUDVMap()->sendUniform(uniloc.u_dudvMap, 0, 6);
+
 		const glm::mat4 mat{ 1.0f };
 		glUniformMatrix4fv(uniloc.uModelMat, 1, GL_FALSE, &mat[0][0]);
 		this->m_mesh.draw();

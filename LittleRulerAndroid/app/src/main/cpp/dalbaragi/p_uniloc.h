@@ -148,6 +148,7 @@ namespace dal {
 		GLint u_bansaTex;
 		GLint u_gooljulTex;
 		GLint u_dudvMap;
+		GLint u_dudvMoveFactor;
 
 		GLint uShininess;
 		GLint uSpecularStrength;

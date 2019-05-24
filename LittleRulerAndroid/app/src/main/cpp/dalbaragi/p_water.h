@@ -6,6 +6,7 @@
 #include "p_meshStatic.h"
 #include "p_uniloc.h"
 #include "p_resource.h"
+#include "u_timer.h"
 
 
 namespace dal {
@@ -46,6 +47,9 @@ namespace dal {
 		MeshStatic m_mesh;
 		Material m_material;
 		float m_height = 0.0f;
+		float m_moveFactor = 0.0f;
+		float m_moveSpeed = 0.03;
+		Timer m_localTimer;
 
 	public:
 		WaterFramebuffer m_fbuffer;

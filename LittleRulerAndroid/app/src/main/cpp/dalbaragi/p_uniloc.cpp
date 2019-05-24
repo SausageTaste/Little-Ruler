@@ -131,8 +131,8 @@ namespace dal {
 
 	void UnilocWaterry::init(const GLuint shader) {
 		this->iPosition = glGetAttribLocation(shader, "iPosition"); assert(this->iPosition == 0);
-		this->iTexCoord = glGetAttribLocation(shader, "iTexCoord"); //assert(this->iTexCoord == 1);
-		this->iNormal = glGetAttribLocation(shader, "iNormal"); assert(this->iNormal == 2);
+		this->iTexCoord = glGetAttribLocation(shader, "iTexCoord");
+		this->iNormal = glGetAttribLocation(shader, "iNormal");
 
 		this->uProjectMat = glGetUniformLocation(shader, "uProjectMat");
 		this->uViewMat = glGetUniformLocation(shader, "uViewMat");
@@ -155,6 +155,7 @@ namespace dal {
 		this->u_bansaTex = glGetUniformLocation(shader, "u_bansaTex");
 		this->u_gooljulTex = glGetUniformLocation(shader, "u_gooljulTex");
 		this->u_dudvMap = glGetUniformLocation(shader, "u_dudvMap");
+		this->u_dudvMoveFactor = glGetUniformLocation(shader, "u_dudvMoveFactor");
 
 		this->uShininess = glGetUniformLocation(shader, "uShininess");
 		this->uSpecularStrength = glGetUniformLocation(shader, "uSpecularStrength");
