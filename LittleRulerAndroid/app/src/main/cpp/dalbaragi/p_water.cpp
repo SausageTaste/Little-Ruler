@@ -144,11 +144,18 @@ namespace dal {
 	}
 
 	void WaterFramebuffer::bindReflectionFrameBuffer(void) {  //call before rendering to this FBO
-		bindFrameBuffer(this->m_reflectionFrameBuffer, this->m_winWidth  * this->m_reflecScale, this->m_winHeight  * this->m_reflecScale);
+		bindFrameBuffer(
+			this->m_reflectionFrameBuffer,
+			static_cast<int>(this->m_winWidth  * this->m_reflecScale),
+			static_cast<int>(this->m_winHeight  * this->m_reflecScale)
+		);
 	}
 
 	void WaterFramebuffer::bindRefractionFrameBuffer(void) {  //call before rendering to this FBO
-		bindFrameBuffer(this->m_refractionFrameBuffer, this->m_winWidth * this->m_refracScale, this->m_winHeight * this->m_refracScale);
+		bindFrameBuffer(this->m_refractionFrameBuffer,
+			static_cast<int>(this->m_winWidth * this->m_refracScale),
+			static_cast<int>(this->m_winHeight * this->m_refracScale)
+		);
 	}
 
 	GLuint WaterFramebuffer::getReflectionTexture(void) {  //get the resulting texture
@@ -167,10 +174,10 @@ namespace dal {
 		this->m_winWidth = static_cast<float>(winWidth);
 		this->m_winHeight = static_cast<float>(winHeight);
 
-		const GLsizei bansa_width = this->m_winWidth  * this->m_reflecScale;
-		const GLsizei bansa_height = this->m_winHeight * this->m_reflecScale;
-		const GLsizei gooljul_width = this->m_winWidth  * this->m_refracScale;
-		const GLsizei gooljul_height = this->m_winHeight * this->m_refracScale;
+		const GLsizei bansa_width = static_cast<GLsizei>(this->m_winWidth  * this->m_reflecScale);
+		const GLsizei bansa_height = static_cast<GLsizei>(this->m_winHeight * this->m_reflecScale);
+		const GLsizei gooljul_width = static_cast<GLsizei>(this->m_winWidth  * this->m_refracScale);
+		const GLsizei gooljul_height = static_cast<GLsizei>(this->m_winHeight * this->m_refracScale);
 
 		{
 			glBindTexture(GL_TEXTURE_2D, this->m_reflectionTexture);
