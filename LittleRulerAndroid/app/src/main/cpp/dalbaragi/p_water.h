@@ -40,10 +40,10 @@ namespace dal {
 	private:
 		MeshStatic m_mesh;
 		Material m_material;
-		Texture m_tex;
 
 	public:
 		WaterFramebuffer m_fbuffer;
+		Texture m_tex;
 
 	public:
 		WaterRenderer(const glm::vec3& pos, const glm::vec2& size);

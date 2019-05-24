@@ -26,19 +26,21 @@ namespace dal {
 
 	private:
 		GLuint m_texID = 0;
-		unsigned int mWidth = 0, mHeight = 0;
 
 		//////// Methods ////////
 
 	private:
 		Texture(const Texture&) = delete;
-		Texture(Texture&&) = default;
 		Texture& operator=(const Texture&) = delete;
-		Texture& operator=(Texture&&) = default;
 
 	public:
 		Texture(void) = default;
-		Texture(GLuint id, const unsigned int width, const unsigned int height);
+		Texture(const GLuint id);
+
+		Texture(Texture&& other) noexcept;
+		Texture& operator=(Texture&& other) noexcept;
+
+		~Texture(void);
 
 		void init_diffueMap(const uint8_t* const image, const unsigned int width, const unsigned int height);
 		void init_diffueMap3(const uint8_t* const image, const unsigned int width, const unsigned int height);
@@ -52,9 +54,7 @@ namespace dal {
 
 		// Getters
 
-		GLuint getTexID(void);
-		unsigned int getWidth(void) const;
-		unsigned int getHeight(void) const;
+		GLuint get(void);
 
 	private:
 		void genTexture(const char* const str4Log);

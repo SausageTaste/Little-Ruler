@@ -131,7 +131,7 @@ namespace dal {
 namespace dal {
 
 	WaterRenderer::WaterRenderer(const glm::vec3& pos, const glm::vec2& size)
-		: m_tex(m_fbuffer.getReflectionTexture(), REFLECTION_WIDTH, REFLECTION_HEIGHT)
+		: m_tex(m_fbuffer.getReflectionTexture())
 	{
 		std::array<float, 18> vertices{
 			pos.x,          pos.y, pos.z,

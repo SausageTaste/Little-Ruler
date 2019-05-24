@@ -26,9 +26,9 @@ namespace dal {
 			const GLenum none = GL_NONE;
 			glDrawBuffers(1, &none);
 
-			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, this->mDepthmap->getTexID(), 0);
+			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, this->mDepthmap->get(), 0);
 			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, this->mDepthmap->getTexID()); {
+			glBindTexture(GL_TEXTURE_2D, this->mDepthmap->get()); {
 				if (GL_FRAMEBUFFER_COMPLETE != glCheckFramebufferStatus(GL_FRAMEBUFFER)) dalAbort("Framebuffer is not complete.");
 			} glBindTexture(GL_TEXTURE_2D, 0);
 
@@ -64,7 +64,7 @@ namespace dal {
 	}
 
 	GLuint DepthmapForLights::getTextureID(void) {
-		return mDepthmap->getTexID();
+		return mDepthmap->get();
 	}
 
 	Texture* DepthmapForLights::getDepthMap(void) {

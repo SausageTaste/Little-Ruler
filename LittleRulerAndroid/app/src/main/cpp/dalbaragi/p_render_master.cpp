@@ -9,6 +9,7 @@
 #include "u_fileclass.h"
 #include "s_logger_god.h"
 #include "s_scripting.h"
+#include "o_widget_texview.h"
 
 
 using namespace std::string_literals;
@@ -21,22 +22,22 @@ namespace dal {
 		// Establish framebuffer
 		{
 			glGenFramebuffers(1, &m_mainFbuf);
-			glBindFramebuffer(GL_FRAMEBUFFER, m_mainFbuf);
+			glBindFramebuffer(GL_FRAMEBUFFER, this->m_mainFbuf);
 
 			glPixelStorei(GL_UNPACK_ALIGNMENT, 0);
 
-			glGenTextures(1, &m_colorMap);
-			glBindTexture(GL_TEXTURE_2D, m_colorMap);
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, m_bufWidth, m_bufHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
+			glGenTextures(1, &this->m_colorMap);
+			glBindTexture(GL_TEXTURE_2D, this->m_colorMap);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, this->m_bufWidth, this->m_bufHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_colorMap, 0);
+			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, this->m_colorMap, 0);
 			glBindTexture(GL_TEXTURE_2D, 0);
 
-			glGenRenderbuffers(1, &m_mainRenderbuf);
-			glBindRenderbuffer(GL_RENDERBUFFER, m_mainRenderbuf);
-			glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, m_bufWidth, m_bufHeight);
-			glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, m_mainRenderbuf);
+			glGenRenderbuffers(1, &this->m_mainRenderbuf);
+			glBindRenderbuffer(GL_RENDERBUFFER, this->m_mainRenderbuf);
+			glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, this->m_bufWidth, this->m_bufHeight);
+			glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, this->m_mainRenderbuf);
 			glBindRenderbuffer(GL_RENDERBUFFER, 0);
 
 			if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
@@ -48,14 +49,14 @@ namespace dal {
 
 		// Establish vbo for fbuffer
 		{
-			glGenVertexArrays(1, &m_vbo);
-			if (m_vbo <= 0) dalAbort("Failed gen vertex array.");
-			glGenBuffers(1, &m_vertexArr);
+			glGenVertexArrays(1, &this->m_vbo);
+			if ( this->m_vbo <= 0) dalAbort("Failed gen vertex array.");
+			glGenBuffers(1, &this->m_vertexArr);
 			if (m_vertexArr <= 0) dalAbort("Failed to gen a vertex buffer.");
-			glGenBuffers(1, &m_texcoordArr);
-			if (m_texcoordArr <= 0) dalAbort("Failed to gen a texture coordinate buffer.");
+			glGenBuffers(1, &this->m_texcoordArr);
+			if ( this->m_texcoordArr <= 0) dalAbort("Failed to gen a texture coordinate buffer.");
 
-			glBindVertexArray(m_vbo);
+			glBindVertexArray(this->m_vbo);
 
 			// Vertices
 			{
@@ -97,6 +98,8 @@ namespace dal {
 
 			glBindVertexArray(0);
 		}
+
+		this->m_tex = new Texture(this->m_colorMap);
 	}
 
 	RenderMaster::MainFramebuffer::~MainFramebuffer(void) {
@@ -139,11 +142,13 @@ namespace dal {
 	void RenderMaster::MainFramebuffer::renderOnScreen(const UnilocFScreen& uniloc) {
 		glBindVertexArray(m_vbo);
 
-		glActiveTexture(GL_TEXTURE0 + 0);
-		glBindTexture(GL_TEXTURE_2D, this->m_colorMap);
-		glUniform1i(uniloc.uTexture, 0);
+		this->m_tex->sendUniform(uniloc.uTexture, 0, 0);
 
 		glDrawArrays(GL_TRIANGLES, 0, 6);
+	}
+
+	Texture* RenderMaster::MainFramebuffer::getTex(void) {
+		return this->m_tex;
 	}
 
 }
@@ -172,7 +177,13 @@ namespace dal {
 
 		// Water
 		{
+			auto tview = new TextureView(nullptr, this->m_fbuffer.getTex());
+			tview->setPosX(10);
+			tview->setPosY(100);
+			tview->setWidth(256);
+			tview->setHeight(256);
 
+			this->m_overlayMas.addWidget(tview);
 		}
 
 		// Misc

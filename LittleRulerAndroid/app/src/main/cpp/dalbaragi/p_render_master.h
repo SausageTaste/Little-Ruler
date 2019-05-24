@@ -34,6 +34,8 @@ namespace dal {
 			GLuint m_vertexArr = 0;
 			GLuint m_texcoordArr = 0;
 
+			Texture* m_tex = nullptr;
+
 		public:
 			MainFramebuffer(void);
 			~MainFramebuffer(void);
@@ -43,6 +45,8 @@ namespace dal {
 
 			void startRenderOn(void);
 			void renderOnScreen(const UnilocFScreen& uniloc);
+
+			Texture* getTex(void);
 
 		};
 

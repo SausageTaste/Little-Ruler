@@ -35,18 +35,30 @@ namespace {
 // Texture
 namespace dal {
 
-	Texture::Texture(GLuint id, const unsigned int width, const unsigned int height)
-		: m_texID(id),
-		mWidth(width),
-		mHeight(height)
+	Texture::Texture(const GLuint id)
+		: m_texID(id)
 	{
 
 	}
 
-	void Texture::init_diffueMap(const uint8_t* const image, const unsigned int width, const unsigned int height) {
-		mWidth = width;
-		mHeight = height;
+	Texture::Texture(Texture&& other) noexcept {
+		this->m_texID = other.m_texID;
+		other.m_texID = 0;
+	}
 
+	Texture& Texture::operator=(Texture&& other) noexcept {
+		this->m_texID = other.m_texID;
+		other.m_texID = 0;
+
+		return *this;
+	}
+
+	Texture::~Texture(void) {
+		if ( this->isReady() ) this->deleteTex();
+	}
+
+
+	void Texture::init_diffueMap(const uint8_t* const image, const unsigned int width, const unsigned int height) {
 		glPixelStorei(GL_UNPACK_ALIGNMENT, 0);
 
 		this->genTexture("init_diffueMap");
@@ -63,9 +75,6 @@ namespace dal {
 	}
 
 	void Texture::init_diffueMap3(const uint8_t* const image, const unsigned int width, const unsigned int height) {
-		mWidth = width;
-		mHeight = height;
-
 		glPixelStorei(GL_UNPACK_ALIGNMENT, 0);
 
 		this->genTexture("init_diffueMap");
@@ -82,9 +91,6 @@ namespace dal {
 	}
 
 	void Texture::init_depthMap(const unsigned int width, const unsigned int height) {
-		mWidth = width;
-		mHeight = height;
-
 		glPixelStorei(GL_UNPACK_ALIGNMENT, 0);
 
 		this->genTexture("init_depthMap");
@@ -105,8 +111,6 @@ namespace dal {
 
 	void Texture::init_maskMap(const uint8_t* const image, const unsigned int width, const unsigned int height) {
 		this->genTexture("init_maskMap");
-		mWidth = width;
-		mHeight = height;
 
 		glBindTexture(GL_TEXTURE_2D, m_texID);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, width, height, 0, GL_RED, GL_UNSIGNED_BYTE, image);
@@ -122,6 +126,7 @@ namespace dal {
 		this->m_texID = 0;
 	}
 
+
 	void Texture::sendUniform(const GLint uniloc_sampler, const GLint uniloc_has, const unsigned int index) const {
 		if ( this->isReady() ) {
 			glUniform1i(uniloc_has, 1);
@@ -132,7 +137,6 @@ namespace dal {
 		else {
 			glUniform1i(uniloc_has, 0);
 		}
-		
 	}
 
 	bool Texture::isReady(void) const {
@@ -141,17 +145,11 @@ namespace dal {
 
 	// Getters
 
-	GLuint Texture::getTexID(void) {
+	GLuint Texture::get(void) {
 		return m_texID;
 	}
 
-	unsigned int Texture::getWidth(void) const {
-		return mWidth;
-	}
-
-	unsigned int Texture::getHeight(void) const {
-		return mHeight;
-	}
+	// Private
 
 	void Texture::genTexture(const char* const str4Log) {
 		glGenTextures(1, &m_texID);
