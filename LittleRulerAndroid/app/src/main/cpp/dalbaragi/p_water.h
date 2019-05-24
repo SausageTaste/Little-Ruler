@@ -22,7 +22,7 @@ namespace dal {
 		GLuint m_refractionDepthTexture;
 
 		float m_winWidth = 0, m_winHeight = 0;
-		float m_reflecScale = 1.0f, m_refracScale = 1.0f;
+		float m_reflecScale = 0.7f, m_refracScale = 0.7f;
 
 	public:
 		WaterFramebuffer(const unsigned int winWidth, const unsigned int winHeight);

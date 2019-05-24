@@ -76,6 +76,32 @@ namespace {
 		glViewport(0, 0, width, height);
 	}
 
+	bool checkFramebuffer(void) {
+		const auto status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+
+		switch ( status ) {
+
+		case GL_FRAMEBUFFER_COMPLETE:
+			return true;
+
+		case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT:
+			dalError("GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT");
+			return false;
+		case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT:
+			dalError("GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT");
+			return false;
+		case GL_FRAMEBUFFER_UNSUPPORTED:
+			dalError("GL_FRAMEBUFFER_UNSUPPORTED");
+			return false;
+
+		default:
+			dalError("Unknown gl framebuffer error");
+			return false;
+
+		}
+
+	}
+
 }
 
 
@@ -95,9 +121,7 @@ namespace dal {
 			this->m_reflectionDepthBuffer = genDepthBufferAttachment(REFLECTION_WIDTH, REFLECTION_HEIGHT);
 		}
 
-		if ( glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE ) {
-			dalError("Framebuffer for reflection is not complete.");
-		}
+		if ( !checkFramebuffer() ) dalError("Framebuffer creation failed for reflection.");
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		
 		{
@@ -106,9 +130,7 @@ namespace dal {
 			this->m_refractionDepthTexture = genDepthBufferAttachment(REFRACTION_WIDTH, REFRACTION_HEIGHT);
 		}
 
-		if ( glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE ) {
-			dalError("Framebuffer for refraction is not complete.");
-		}
+		if ( !checkFramebuffer() ) dalError("Framebuffer creation failed for reflection.");
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	}
 
