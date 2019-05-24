@@ -15,6 +15,7 @@
 #include "p_dalopengl.h"
 #include "p_scene.h"
 #include "g_actor.h"
+#include "p_water.h"
 
 
 namespace dal {
@@ -41,7 +42,7 @@ namespace dal {
 			void resizeFbuffer(unsigned int w, unsigned int h);
 
 			void startRenderOn(void);
-			void renderOnScreen(void);
+			void renderOnScreen(const UnilocFScreen& uniloc);
 
 		};
 
@@ -59,6 +60,7 @@ namespace dal {
 		unsigned int m_winWidth, m_winHeight;
 		glm::mat4 m_projectMat;
 		DirectionalLight m_dlight1;
+		WaterRenderer m_water;
 
 	public:
 		RenderMaster(void);

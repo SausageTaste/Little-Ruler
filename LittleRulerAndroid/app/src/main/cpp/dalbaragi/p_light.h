@@ -57,6 +57,7 @@ namespace dal {
 		DirectionalLight(void);
 
 		void sendUniform(const UnilocGeneral& uniloc, int index);
+		void sendUniform(const UnilocWaterry& uniloc, int index);
 		void startRenderShadowmap(const UnilocDepthmp& uniloc);
 		void finishRenderShadowmap(void);
 

@@ -390,6 +390,18 @@ namespace dal {
 		this->m_diffuseMap.sendUniform(uniloc.uDiffuseMap, uniloc.uHasDiffuseMap, 0);
 	}
 
+	void Material::sendUniform(const UnilocWaterry& uniloc) const {
+		glUniform1f(uniloc.uShininess, this->m_shininess);
+		glUniform1f(uniloc.uSpecularStrength, this->m_specularStrength);
+
+		glUniform1f(uniloc.uTexScaleX, this->m_texScale.x);
+		glUniform1f(uniloc.uTexScaleY, this->m_texScale.y);
+
+		glUniform3f(uniloc.uDiffuseColor, this->m_diffuseColor.x, this->m_diffuseColor.y, this->m_diffuseColor.z);
+
+		this->m_diffuseMap.sendUniform(uniloc.uDiffuseMap, uniloc.uHasDiffuseMap, 0);
+	}
+
 }
 
 

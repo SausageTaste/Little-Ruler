@@ -65,6 +65,7 @@ namespace dal {
 		void setDiffuseMap(TextureHandle2 tex);
 
 		void sendUniform(const UnilocGeneral& uniloc) const;
+		void sendUniform(const UnilocWaterry& uniloc) const;
 
 	};
 

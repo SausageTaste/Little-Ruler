@@ -40,6 +40,14 @@ namespace {
 		glDisable(GL_POLYGON_OFFSET_FILL);
 	}
 
+	void setFor_water(void) {
+		glEnable(GL_DEPTH_TEST);
+		glEnable(GL_CULL_FACE);
+		glEnable(GL_BLEND); glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		//glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+		glDisable(GL_POLYGON_OFFSET_FILL);
+	}
+
 }
 
 
@@ -50,7 +58,8 @@ namespace dal {
 	:	m_general("shader_general"),
 		m_depthmap("shader_fscreen"),
 		m_fscreen("shader_depthmap"),
-		m_overlay("shader_overlay")
+		m_overlay("shader_overlay"),
+		m_waterry("shader_water")
 	{
 		// Compile shaders general
 		{
@@ -122,6 +131,24 @@ namespace dal {
 			glDeleteShader(verShader);
 			glDeleteShader(fragShader);
 		}
+
+		// Compile shaders water
+		{
+			std::string vertSrc, fragSrc;
+			if ( !futil::getRes_text("asset::glsl/water_v.glsl", vertSrc) ) dalAbort("Failed to open shader source file: 'glsl/water_v.glsl'");
+			if ( !futil::getRes_text("asset::glsl/water_f.glsl", fragSrc) ) dalAbort("Failed to open shader source file: 'glsl/water_f.glsl'");
+
+			auto verShader = compileShader(ShaderType::VERTEX, vertSrc.c_str());
+			auto fragShader = compileShader(ShaderType::FRAGMENT, fragSrc.c_str());
+
+			this->m_waterry.attachShader(verShader);
+			this->m_waterry.attachShader(fragShader);
+			this->m_waterry.link();
+			this->m_waterryUniloc.init(this->m_waterry.get());
+
+			glDeleteShader(verShader);
+			glDeleteShader(fragShader);
+		}
 	}
 
 	void ShaderMaster::useGeneral(void) const {
@@ -144,6 +171,11 @@ namespace dal {
 		this->m_overlay.use();
 	}
 
+	void ShaderMaster::useWaterry(void) const {
+		setFor_water();
+		this->m_waterry.use();
+	}
+
 	const UnilocGeneral& ShaderMaster::getGeneral(void) const {
 		return this->m_generalUniloc;
 	}
@@ -158,6 +190,10 @@ namespace dal {
 
 	const UnilocOverlay& ShaderMaster::getOverlay(void) const {
 		return this->m_overlayUniloc;
+	}
+
+	const UnilocWaterry& ShaderMaster::getWaterry(void) const {
+		return this->m_waterryUniloc;
 	}
 
 }

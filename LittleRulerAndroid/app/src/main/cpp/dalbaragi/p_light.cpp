@@ -103,6 +103,18 @@ namespace dal {
 		glUniform1i(uniloc.uDlightDepthMap[index], 1 + index);
 	}
 
+	void DirectionalLight::sendUniform(const UnilocWaterry& uniloc, int index) {
+		glUniform3f(uniloc.uDlightColors[index], this->m_color.r, this->m_color.g, this->m_color.b);
+		glUniform3f(uniloc.uDlightDirecs[index], mDirection.x, mDirection.y, mDirection.z);
+
+		auto projViewMat = this->makeProjViewMap();
+		glUniformMatrix4fv(uniloc.uDlightProjViewMat[index], 1, GL_FALSE, &projViewMat[0][0]);
+
+		glActiveTexture(GL_TEXTURE1 + static_cast<GLuint>(index));
+		glBindTexture(GL_TEXTURE_2D, mShadowMap.getTextureID());
+		glUniform1i(uniloc.uDlightDepthMap[index], 1 + index);
+	}
+
 	void DirectionalLight::startRenderShadowmap(const UnilocDepthmp& uniloc) {
 		auto mat = this->makeProjViewMap();
 		glUniformMatrix4fv(uniloc.uProjViewMat, 1, GL_FALSE, &mat[0][0]);
