@@ -172,7 +172,7 @@ namespace dal {
 
 		// OpenGL global switch
 		{
-			glClearColor(0.6f, 0.6f, 0.9f, 0.0f);
+			glClearColor(0.6f, 0.6f, 0.9f, 1.0f);
 		}
 
 		// Misc
@@ -184,6 +184,26 @@ namespace dal {
 			this->m_projectMat = glm::perspective(glm::radians(90.0f), radio, 0.01f, 100.0f);
 
 			script::init_renderMas(this);
+
+			{
+				auto t = new TextureView(nullptr, &this->m_water.m_reflectionTex);
+				t->setPosX(10);
+				t->setPosY(30);
+				t->setWidth(256);
+				t->setHeight(256);
+				t->setPauseOnly(false);
+				this->m_overlayMas.addWidget(t);
+			}
+
+			{
+				auto t = new TextureView(nullptr, &this->m_water.m_refractionTex);
+				t->setPosX(10);
+				t->setPosY(290);
+				t->setWidth(256);
+				t->setHeight(256);
+				t->setPauseOnly(false);
+				this->m_overlayMas.addWidget(t);
+			}
 		}
 	}
 
@@ -333,9 +353,6 @@ namespace dal {
 			glUniform3f(unilocWaterry.uViewPos, viewPos.x, viewPos.y, viewPos.z);
 
 			glUniform3f(unilocWaterry.uBaseAmbient, 0.3f, 0.3f, 0.3f);
-
-			this->m_water.m_reflectionTex.sendUniform(unilocWaterry.u_bansaTex, 0, 4);
-			this->m_water.m_refractionTex.sendUniform(unilocWaterry.u_gooljulTex, 0, 5);
 
 			// Lights
 

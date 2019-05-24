@@ -33,6 +33,31 @@ namespace {
 		return tex;
 	}
 
+	dal::Texture* getWaterNormalMap(void) {
+		static dal::Texture* tex = nullptr;
+
+		if ( nullptr == tex ) {
+			dal::loadedinfo::ImageFileData image;
+			if ( !dal::futil::getRes_image("asset::matchingNormalMap.png", image) ) {
+				dalAbort("Failed to load water normal map.");
+			}
+			assert(4 == image.m_pixSize);
+
+			tex = new dal::Texture();
+			if ( 4 == image.m_pixSize ) {
+				tex->init_diffueMap(image.m_buf.data(), image.m_width, image.m_height);
+			}
+			else if ( 3 == image.m_pixSize ) {
+				tex->init_diffueMap(image.m_buf.data(), image.m_width, image.m_height);
+			}
+			else {
+				dalAbort("Wrong pixel size for normal normal map");
+			}
+		}
+
+		return tex;
+	}
+
 }
 
 
@@ -78,6 +103,7 @@ namespace {
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, texture, 0);
+		//glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, texture, 0);
 
 		return texture;
 	}
@@ -283,7 +309,10 @@ namespace dal {
 
 		this->m_material.sendUniform(uniloc);
 
+		this->m_reflectionTex.sendUniform(uniloc.u_bansaTex, 0, 4);
+		this->m_refractionTex.sendUniform(uniloc.u_gooljulTex, 0, 5);
 		getDUDVMap()->sendUniform(uniloc.u_dudvMap, 0, 6);
+		getWaterNormalMap()->sendUniform(uniloc.u_normalMap, 0, 7);
 
 		const glm::mat4 mat{ 1.0f };
 		glUniformMatrix4fv(uniloc.uModelMat, 1, GL_FALSE, &mat[0][0]);

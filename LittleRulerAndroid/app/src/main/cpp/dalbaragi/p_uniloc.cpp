@@ -155,6 +155,7 @@ namespace dal {
 		this->u_bansaTex = glGetUniformLocation(shader, "u_bansaTex");
 		this->u_gooljulTex = glGetUniformLocation(shader, "u_gooljulTex");
 		this->u_dudvMap = glGetUniformLocation(shader, "u_dudvMap");
+		this->u_normalMap = glGetUniformLocation(shader, "u_normalMap");
 		this->u_dudvMoveFactor = glGetUniformLocation(shader, "u_dudvMoveFactor");
 
 		this->uShininess = glGetUniformLocation(shader, "uShininess");
