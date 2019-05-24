@@ -21,8 +21,11 @@ namespace dal {
 		GLuint m_refractionTexture;
 		GLuint m_refractionDepthTexture;
 
+		float m_winWidth = 0, m_winHeight = 0;
+		float m_reflecScale = 1.0f, m_refracScale = 1.0f;
+
 	public:
-		WaterFramebuffer(void);
+		WaterFramebuffer(const unsigned int winWidth, const unsigned int winHeight);
 		~WaterFramebuffer(void);
 
 		void bindReflectionFrameBuffer(void);
@@ -31,6 +34,8 @@ namespace dal {
 		GLuint getReflectionTexture(void);
 		GLuint getRefractionTexture(void);
 		GLuint getRefractionDepthTexture(void);
+
+		void resizeFbuffer(const unsigned int winWidth, const unsigned int winHeight);
 
 	};
 

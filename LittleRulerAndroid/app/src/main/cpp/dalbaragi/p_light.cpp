@@ -7,7 +7,7 @@
 
 namespace {
 
-	constexpr unsigned int DEPTHMAP_RES = 1024 * 4;
+	constexpr unsigned int DEPTHMAP_RES = 1024 * 5;
 
 }
 

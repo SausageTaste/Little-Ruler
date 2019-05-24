@@ -12,19 +12,21 @@ def main():
     actor = aco.ActorInfo()
     actor.setName("Yuri1")
     actor.getQuatHandle().rotate(180, (0, 1, 0))
-    actor.getPosHandle().setZ(-5)
+    actor.getPosHandle().setZ(0)
     model.addActor(actor)
 
     actor = aco.ActorInfo()
     actor.setName("Yuri2")
     actor.getQuatHandle().rotate(-90, (0, 1, 0))
     actor.getPosHandle().setX(5)
+    actor.getPosHandle().setZ(0)
     model.addActor(actor)
 
     actor = aco.ActorInfo()
     actor.setName("Yuri2")
     actor.getQuatHandle().rotate(90, (0, 1, 0))
     actor.getPosHandle().setX(-5)
+    actor.getPosHandle().setZ(0)
     model.addActor(actor)
 
     model.setModelID("yuri.obj")
@@ -35,12 +37,14 @@ def main():
     light = bfi.BuildInfo_LightPoint()
     light.setName("center_light")
     light.getPosHandle().setY(3)
-    level.add(light)
+    #level.add(light)
 
     ########
 
     model = bfi.BuildInfo_ModelImported()
-    model.addActor(aco.ActorInfo())
+    actor = aco.ActorInfo()
+    actor.getPosHandle().setZ(5)
+    model.addActor(actor)
     model.setModelID("palanquin.obj")
     level.add(model)
 

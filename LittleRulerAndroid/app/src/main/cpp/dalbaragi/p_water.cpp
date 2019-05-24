@@ -7,12 +7,6 @@
 
 namespace {
 
-	constexpr int REFLECTION_WIDTH = 320;
-	constexpr int REFLECTION_HEIGHT = 180;
-
-	constexpr int REFRACTION_WIDTH = 1280;
-	constexpr int REFRACTION_HEIGHT = 720;
-
 }
 
 
@@ -23,12 +17,12 @@ namespace {
 
 		glGenFramebuffers(1, &fbuffer);
 		glBindFramebuffer(GL_FRAMEBUFFER, fbuffer);
-		glDrawBuffer(GL_COLOR_ATTACHMENT0);
+		//glDrawBuffer(GL_COLOR_ATTACHMENT0);
 
 		return fbuffer;
 	}
 
-	GLuint genTextureAttachment(const int width, const int height) {
+	GLuint genTextureAttachment(const GLsizei width, const GLsizei height) {
 		GLuint texture;
 
 		glPixelStorei(GL_UNPACK_ALIGNMENT, 0);
@@ -40,22 +34,24 @@ namespace {
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture, 0);
+		// glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, texture, 0) not supported on Android.
 
 		glBindTexture(GL_TEXTURE_2D, 0);
 
 		return texture;
 	}
 
-	GLuint genDepthTextureAttachment(const int width, const int height) {
+	GLuint genDepthTextureAttachment(const GLsizei width, const GLsizei height) {
 		GLuint texture;
 
 		glGenTextures(1, &texture);
 		glBindTexture(GL_TEXTURE_2D, texture);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32, width, height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT24, width, height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
+		// GL_DEPTH_COMPONENT32 not supported in Android so changed to 24.
 
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, texture, 0);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, texture, 0);
 
 		return texture;
 	}
@@ -85,7 +81,14 @@ namespace {
 
 namespace dal {
 
-	WaterFramebuffer::WaterFramebuffer(void) {
+	WaterFramebuffer::WaterFramebuffer(const unsigned int winWidth, const unsigned int winHeight)
+		: m_winWidth(winWidth), m_winHeight(winHeight)
+	{
+		const GLsizei REFLECTION_WIDTH  = static_cast<GLsizei>(this->m_winWidth  * this->m_reflecScale);
+		const GLsizei REFLECTION_HEIGHT = static_cast<GLsizei>(this->m_winHeight * this->m_reflecScale);
+		const GLsizei REFRACTION_WIDTH  = static_cast<GLsizei>(this->m_winWidth  * this->m_refracScale);
+		const GLsizei REFRACTION_HEIGHT = static_cast<GLsizei>(this->m_winHeight * this->m_refracScale);
+
 		{
 			this->m_reflectionFrameBuffer = genFramebuffer();
 			this->m_reflectionTexture = genTextureAttachment(REFLECTION_WIDTH, REFLECTION_HEIGHT);
@@ -93,7 +96,7 @@ namespace dal {
 		}
 
 		if ( glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE ) {
-			dalAbort("Failed to create framebuffer.");
+			dalError("Framebuffer for reflection is not complete.");
 		}
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		
@@ -104,7 +107,7 @@ namespace dal {
 		}
 
 		if ( glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE ) {
-			dalAbort("Failed to create framebuffer.");
+			dalError("Framebuffer for refraction is not complete.");
 		}
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	}
@@ -119,11 +122,11 @@ namespace dal {
 	}
 
 	void WaterFramebuffer::bindReflectionFrameBuffer(void) {  //call before rendering to this FBO
-		bindFrameBuffer(this->m_reflectionFrameBuffer, REFLECTION_WIDTH, REFLECTION_HEIGHT);
+		bindFrameBuffer(this->m_reflectionFrameBuffer, this->m_winWidth  * this->m_reflecScale, this->m_winHeight  * this->m_reflecScale);
 	}
 
 	void WaterFramebuffer::bindRefractionFrameBuffer(void) {  //call before rendering to this FBO
-		bindFrameBuffer(this->m_refractionFrameBuffer, REFRACTION_WIDTH, REFRACTION_HEIGHT);
+		bindFrameBuffer(this->m_refractionFrameBuffer, this->m_winWidth * this->m_refracScale, this->m_winHeight * this->m_refracScale);
 	}
 
 	GLuint WaterFramebuffer::getReflectionTexture(void) {  //get the resulting texture
@@ -138,15 +141,50 @@ namespace dal {
 		return this->m_refractionDepthTexture;
 	}
 
+	void WaterFramebuffer::resizeFbuffer(const unsigned int winWidth, const unsigned int winHeight) {
+		this->m_winWidth = static_cast<float>(winWidth);
+		this->m_winHeight = static_cast<float>(winHeight);
+
+		const GLsizei bansa_width = this->m_winWidth  * this->m_reflecScale;
+		const GLsizei bansa_height = this->m_winHeight * this->m_reflecScale;
+		const GLsizei gooljul_width = this->m_winWidth  * this->m_refracScale;
+		const GLsizei gooljul_height = this->m_winHeight * this->m_refracScale;
+
+		{
+			glBindTexture(GL_TEXTURE_2D, this->m_reflectionTexture);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, bansa_width, bansa_height, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
+			glBindTexture(GL_TEXTURE_2D, 0);
+		}
+
+		{
+			glBindTexture(GL_TEXTURE_2D, this->m_refractionTexture);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, gooljul_width, gooljul_height, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
+			glBindTexture(GL_TEXTURE_2D, 0);
+		}
+
+		{
+			glBindRenderbuffer(GL_RENDERBUFFER, this->m_reflectionDepthBuffer);
+			glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, bansa_width, bansa_height);
+			glBindRenderbuffer(GL_RENDERBUFFER, 0);
+		}
+		
+		{
+			glBindRenderbuffer(GL_RENDERBUFFER, this->m_refractionDepthTexture);
+			glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, gooljul_width, gooljul_height);
+			glBindRenderbuffer(GL_RENDERBUFFER, 0);
+		}
+	}
+
 }
 
 
 namespace dal {
 
 	WaterRenderer::WaterRenderer(const glm::vec3& pos, const glm::vec2& size)
-		: m_reflectionTex(m_fbuffer.getReflectionTexture()),
-		m_refractionTex(m_fbuffer.getRefractionTexture()),
-		m_height(pos.y)
+		: m_height(pos.y),
+		m_fbuffer(12, 12),
+		m_reflectionTex(m_fbuffer.getReflectionTexture()),
+		m_refractionTex(m_fbuffer.getRefractionTexture())
 	{
 		std::array<float, 18> vertices{
 			pos.x,          pos.y, pos.z,

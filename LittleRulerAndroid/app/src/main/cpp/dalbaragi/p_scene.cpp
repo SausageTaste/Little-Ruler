@@ -28,6 +28,7 @@ namespace dal {
 
 	void SceneMaster::renderGeneral(const UnilocGeneral& uniloc) const {
 		for (auto& map : m_mapChunks) {
+			glUniform1i(uniloc.uPlightCount, map.m_plights.size());
 			for (unsigned int i = 0; i < map.m_plights.size(); i++) {
 				if (i >= 3) break;
 				map.m_plights.at(i).sendUniform(uniloc, i);

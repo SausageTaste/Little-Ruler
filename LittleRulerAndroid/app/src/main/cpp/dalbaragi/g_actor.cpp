@@ -15,12 +15,19 @@ namespace dal {
 		return viewMat;
 	}
 
+
 	glm::vec3 Camera::getPos(void) const {
 		return this->m_pos;
 	}
 
-	glm::vec2 Camera::getViewPlaneVec(void) const {
-		return this->m_viewDirec;
+	void Camera::setPos(const float x, const float y, const float z) {
+		this->m_pos.x = x;
+		this->m_pos.y = y;
+		this->m_pos.z = z;
+	}
+
+	void Camera::setPos(const glm::vec3& pos) {
+		this->m_pos = pos;
 	}
 
 	void Camera::addPos(const float x, const float y, const float z) {
@@ -32,6 +39,17 @@ namespace dal {
 	void Camera::addPos(const glm::vec3& pos) {
 		this->m_pos += pos;
 	}
+
+
+	glm::vec2 Camera::getViewPlane(void) const {
+		return this->m_viewDirec;
+	}
+
+	void Camera::setViewPlane(const float x, const float y) {
+		this->m_viewDirec.x = x;
+		this->m_viewDirec.y = y;
+	}
+
 
 	void Camera::addViewPlane(const float x, const float y) {
 		this->m_viewDirec.x += x;

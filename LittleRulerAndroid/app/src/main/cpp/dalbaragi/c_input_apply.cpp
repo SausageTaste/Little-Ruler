@@ -505,7 +505,7 @@ namespace {
 		// Apply move direction
 		{
 			glm::mat4 viewMat{ 1.0 };
-			const auto viewVec = camera.getViewPlaneVec();
+			const auto viewVec = camera.getViewPlane();
 			viewMat = glm::rotate(viewMat, -viewVec.x, glm::vec3(0.0f, 1.0f, 0.0f));
 			viewMat = glm::rotate(viewMat, viewVec.y, glm::vec3(1.0f, 0.0f, 0.0f));
 
@@ -547,7 +547,7 @@ namespace {
 
 		/* Apply move direction */ {
 			glm::mat4 viewMat{ 1.0 };
-			const auto viewVec = camera.getViewPlaneVec();
+			const auto viewVec = camera.getViewPlane();
 			viewMat = glm::rotate(viewMat, -viewVec.x, glm::vec3(0.0f, 1.0f, 0.0f));
 			//viewMat = glm::rotate(viewMat, targetViewDir->y, glm::vec3(1.0f, 0.0f, 0.0f));
 

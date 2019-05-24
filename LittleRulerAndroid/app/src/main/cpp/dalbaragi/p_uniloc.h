@@ -145,6 +145,10 @@ namespace dal {
 		GLint uDlightCount;
 		GLint uPlightCount;
 
+		GLint u_bansaTex;
+		GLint u_gooljulTex;
+		GLint u_dudvMap;
+
 		GLint uShininess;
 		GLint uSpecularStrength;
 
