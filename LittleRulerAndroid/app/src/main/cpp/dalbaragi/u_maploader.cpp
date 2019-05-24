@@ -3,6 +3,7 @@
 #include <cstring>
 #include <string>
 
+#include <fmt/format.h>
 #define ZLIB_WINAPI
 #include <zlib.h>
 
@@ -10,6 +11,7 @@
 
 
 using namespace std::string_literals;
+using namespace fmt::literals;
 
 
 namespace {
@@ -338,15 +340,29 @@ namespace {  // Make items
 namespace dal {
 
 	bool parseMap_dlb(LoadedMap& info, const uint8_t* const buf, const size_t bufSize) {
-		constexpr size_t k_chunkSize = 2048;
+		constexpr size_t k_chunkSize = 2048 * 2;
 		uint8_t decomBuf[k_chunkSize];
 		uLongf decomBufSize = k_chunkSize;
 
 		{
-			const auto zipReult = uncompress(decomBuf, &decomBufSize, buf, bufSize);
-			if (Z_OK != zipReult) {
-				g_logger.putError("Failed to uncompress map file.", __LINE__, __func__, __FILE__);
+			const auto res = uncompress(decomBuf, &decomBufSize, buf, bufSize);
+			switch ( res ) {
+
+			case Z_OK:
+				break;
+			case Z_BUF_ERROR:
+				dalError("Failed to uncompress map file: buffer is not large enough");
 				return false;
+			case Z_MEM_ERROR:
+				dalError("Failed to uncompress map file: Insufficient memory");
+				return false;
+			case Z_DATA_ERROR:
+				dalError("Failed to uncompress map file: Corrupted data");
+				return false;
+			default:
+				dalError("Failed to uncompress map file: Unknown reason ({})"_format(res));
+				return false;
+
 			}
 		}
 

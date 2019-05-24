@@ -186,7 +186,7 @@ namespace dal {
 			script::init_renderMas(this);
 
 			{
-				auto t = new TextureView(nullptr, &this->m_water.m_reflectionTex);
+				auto t = new TextureView(nullptr, &this->m_water.m_refractionTex);
 				t->setPosX(10);
 				t->setPosY(30);
 				t->setWidth(256);
@@ -196,7 +196,7 @@ namespace dal {
 			}
 
 			{
-				auto t = new TextureView(nullptr, &this->m_water.m_refractionTex);
+				auto t = new TextureView(nullptr, &this->m_water.m_refractionDepth);
 				t->setPosX(10);
 				t->setPosY(290);
 				t->setWidth(256);
@@ -231,11 +231,9 @@ namespace dal {
 		{
 			this->m_water.m_fbuffer.bindReflectionFrameBuffer();
 			glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
-
 #ifdef _WIN32
 			glEnable(GL_CLIP_DISTANCE0);
 #endif
-
 			this->m_shader.useGeneral();
 			auto& unilocGeneral = this->m_shader.getGeneral();
 

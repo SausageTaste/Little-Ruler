@@ -250,8 +250,6 @@ class IdentifierStr(ein.ILevelAttribLeaf):
             return False
         elif 0 != text.count("\t"):
             return False
-        elif text[0].isnumeric():
-            return False
 
         return True
 

@@ -55,6 +55,7 @@ namespace dal {
 		WaterFramebuffer m_fbuffer;
 		Texture m_reflectionTex;
 		Texture m_refractionTex;
+		Texture m_refractionDepth;
 
 	public:
 		WaterRenderer(const glm::vec3& pos, const glm::vec2& size);
