@@ -62,7 +62,7 @@ namespace {
 		glGenRenderbuffers(1, &depthBuffer);
 		glBindRenderbuffer(GL_RENDERBUFFER, depthBuffer);
 		{
-			glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, width, height);
+			glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, width, height);
 			glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthBuffer);
 		}
 		glBindRenderbuffer(GL_RENDERBUFFER, 0);
