@@ -202,6 +202,33 @@ namespace dal {
 			m_dlight1.finishRenderShadowmap();
 		}
 
+		// Render to water framebuffer
+		{
+			this->m_water.m_fbuffer.bindReflectionFrameBuffer();
+
+			this->m_shader.useGeneral();
+			auto& unilocGeneral = this->m_shader.getGeneral();
+
+			glUniformMatrix4fv(unilocGeneral.uProjectMat, 1, GL_FALSE, &m_projectMat[0][0]);
+
+			const auto viewMat = this->m_camera.makeViewMat();
+			glUniformMatrix4fv(unilocGeneral.uViewMat, 1, GL_FALSE, &viewMat[0][0]);
+
+			const auto viewPos = this->m_camera.getPos();
+			glUniform3f(unilocGeneral.uViewPos, viewPos.x, viewPos.y, viewPos.z);
+
+			glUniform3f(unilocGeneral.uBaseAmbient, 0.3f, 0.3f, 0.3f);
+
+			// Lights
+
+			m_dlight1.sendUniform(unilocGeneral, 0);
+			glUniform1i(unilocGeneral.uDlightCount, 1);
+
+			// Render meshes
+
+			m_scene.renderGeneral(unilocGeneral);
+		}
+
 		this->m_fbuffer.startRenderOn();
 		glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
@@ -230,7 +257,6 @@ namespace dal {
 			m_scene.renderGeneral(unilocGeneral);
 		}
 
-		
 		// Render water to framebuffer
 		{
 			this->m_shader.useWaterry();
@@ -256,7 +282,6 @@ namespace dal {
 			this->m_water.renderWaterry(unilocWaterry);
 		}
 		
-
 		// Render framebuffer to quad 
 		{
 			glBindFramebuffer(GL_FRAMEBUFFER, 0);
