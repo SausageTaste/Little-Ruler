@@ -162,7 +162,7 @@ namespace dal {
 		m_overlayMas(m_resMas, m_shader),
 		m_winWidth(512), m_winHeight(512),
 		m_projectMat(1.0),
-		m_water({ -10, 0.1, -1 }, { 10, 10 })
+		m_water({ -10, 0.5, -1 }, { 10, 10 })
 	{
 		// Lights
 		{
@@ -177,13 +177,23 @@ namespace dal {
 
 		// Water
 		{
-			auto tview = new TextureView(nullptr, this->m_fbuffer.getTex());
+			auto tview = new TextureView(nullptr, &this->m_water.m_reflectionTex);
 			tview->setPosX(10);
 			tview->setPosY(100);
 			tview->setWidth(256);
 			tview->setHeight(256);
+			tview->setPauseOnly(false);
 
 			this->m_overlayMas.addWidget(tview);
+
+			auto tview2 = new TextureView(nullptr, &this->m_water.m_refractionTex);
+			tview2->setPosX(10);
+			tview2->setPosY(200);
+			tview2->setWidth(256);
+			tview2->setHeight(256);
+			tview2->setPauseOnly(false);
+
+			this->m_overlayMas.addWidget(tview2);
 		}
 
 		// Misc
@@ -221,9 +231,45 @@ namespace dal {
 		// Render to water framebuffer
 		{
 			this->m_water.m_fbuffer.bindReflectionFrameBuffer();
+			glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+			glEnable(GL_CLIP_DISTANCE0);
 
 			this->m_shader.useGeneral();
 			auto& unilocGeneral = this->m_shader.getGeneral();
+
+			glUniform4f(unilocGeneral.u_clipPlane, 0, 1, 0, this->m_water.getHeight());
+			glUniform1i(unilocGeneral.u_doClip, 1);
+
+			glUniformMatrix4fv(unilocGeneral.uProjectMat, 1, GL_FALSE, &m_projectMat[0][0]);
+
+			const auto viewMat = this->m_camera.makeViewMat();
+			glUniformMatrix4fv(unilocGeneral.uViewMat, 1, GL_FALSE, &viewMat[0][0]);
+
+			const auto viewPos = this->m_camera.getPos();
+			glUniform3f(unilocGeneral.uViewPos, viewPos.x, viewPos.y, viewPos.z);
+
+			glUniform3f(unilocGeneral.uBaseAmbient, 0.3f, 0.3f, 0.3f);
+
+			// Lights
+
+			m_dlight1.sendUniform(unilocGeneral, 0);
+			glUniform1i(unilocGeneral.uDlightCount, 1);
+
+			// Render meshes
+
+			m_scene.renderGeneral(unilocGeneral);
+		}
+
+		{
+			this->m_water.m_fbuffer.bindRefractionFrameBuffer();
+			glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+			glEnable(GL_CLIP_DISTANCE0);
+
+			this->m_shader.useGeneral();
+			auto& unilocGeneral = this->m_shader.getGeneral();
+
+			glUniform4f(unilocGeneral.u_clipPlane, 0, 1, 0, this->m_water.getHeight());
+			glUniform1i(unilocGeneral.u_doClip, 1);
 
 			glUniformMatrix4fv(unilocGeneral.uProjectMat, 1, GL_FALSE, &m_projectMat[0][0]);
 
@@ -247,6 +293,7 @@ namespace dal {
 
 		this->m_fbuffer.startRenderOn();
 		glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+		glDisable(GL_CLIP_DISTANCE0);
 
 		// Render to framebuffer 
 		{
@@ -255,6 +302,8 @@ namespace dal {
 
 			glUniformMatrix4fv(unilocGeneral.uProjectMat, 1, GL_FALSE, &m_projectMat[0][0]);
 			
+			glUniform1i(unilocGeneral.u_doClip, 0);
+
 			const auto viewMat = this->m_camera.makeViewMat();
 			glUniformMatrix4fv(unilocGeneral.uViewMat, 1, GL_FALSE, &viewMat[0][0]);
 

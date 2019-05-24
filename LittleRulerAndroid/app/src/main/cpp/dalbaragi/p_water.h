@@ -40,14 +40,17 @@ namespace dal {
 	private:
 		MeshStatic m_mesh;
 		Material m_material;
+		float m_height = 0.0f;
 
 	public:
 		WaterFramebuffer m_fbuffer;
-		Texture m_tex;
+		Texture m_reflectionTex;
+		Texture m_refractionTex;
 
 	public:
 		WaterRenderer(const glm::vec3& pos, const glm::vec2& size);
 		void renderWaterry(const UnilocWaterry& uniloc);
+		float getHeight(void) const;
 	
 	};
 

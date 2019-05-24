@@ -18,6 +18,9 @@ namespace dal {
 		GLint uViewMat;
 		GLint uModelMat;
 
+		GLint u_doClip;
+		GLint u_clipPlane;
+
 		GLint uDlightProjViewMat[3];
 
 		GLint uTexScaleX;

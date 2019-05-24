@@ -31,13 +31,17 @@ namespace {
 	GLuint genTextureAttachment(const int width, const int height) {
 		GLuint texture;
 
+		glPixelStorei(GL_UNPACK_ALIGNMENT, 0);
+
 		glGenTextures(1, &texture);
 		glBindTexture(GL_TEXTURE_2D, texture);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 512, 512, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
 
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, texture, 0);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture, 0);
+
+		glBindTexture(GL_TEXTURE_2D, 0);
 
 		return texture;
 	}
@@ -61,8 +65,11 @@ namespace {
 
 		glGenRenderbuffers(1, &depthBuffer);
 		glBindRenderbuffer(GL_RENDERBUFFER, depthBuffer);
-		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, width, height);
-		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthBuffer);
+		{
+			glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, width, height);
+			glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthBuffer);
+		}
+		glBindRenderbuffer(GL_RENDERBUFFER, 0);
 
 		return depthBuffer;
 	}
@@ -85,6 +92,9 @@ namespace dal {
 			this->m_reflectionDepthBuffer = genDepthBufferAttachment(REFLECTION_WIDTH, REFLECTION_HEIGHT);
 		}
 
+		if ( glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE ) {
+			dalAbort("Failed to create framebuffer.");
+		}
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		
 		{
@@ -93,6 +103,9 @@ namespace dal {
 			this->m_refractionDepthTexture = genDepthBufferAttachment(REFRACTION_WIDTH, REFRACTION_HEIGHT);
 		}
 
+		if ( glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE ) {
+			dalAbort("Failed to create framebuffer.");
+		}
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	}
 
@@ -131,7 +144,9 @@ namespace dal {
 namespace dal {
 
 	WaterRenderer::WaterRenderer(const glm::vec3& pos, const glm::vec2& size)
-		: m_tex(m_fbuffer.getReflectionTexture())
+		: m_reflectionTex(m_fbuffer.getReflectionTexture()),
+		m_refractionTex(m_fbuffer.getRefractionTexture()),
+		m_height(pos.y)
 	{
 		std::array<float, 18> vertices{
 			pos.x,          pos.y, pos.z,
@@ -172,6 +187,10 @@ namespace dal {
 		const glm::mat4 mat{ 1.0f };
 		glUniformMatrix4fv(uniloc.uModelMat, 1, GL_FALSE, &mat[0][0]);
 		this->m_mesh.draw();
+	}
+
+	float WaterRenderer::getHeight(void) const {
+		return this->m_height;
 	}
 
 }

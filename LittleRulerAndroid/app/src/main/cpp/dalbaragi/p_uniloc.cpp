@@ -21,6 +21,9 @@ namespace dal {
 		this->uViewMat = glGetUniformLocation(shader, "uViewMat");
 		this->uModelMat = glGetUniformLocation(shader, "uModelMat");
 
+		this->u_doClip = glGetUniformLocation(shader, "u_doClip");
+		this->u_clipPlane = glGetUniformLocation(shader, "u_clipPlane");
+
 		this->uDlightProjViewMat[0] = glGetUniformLocation(shader, "uDlightProjViewMat[0]");
 		this->uDlightProjViewMat[1] = glGetUniformLocation(shader, "uDlightProjViewMat[1]");
 		this->uDlightProjViewMat[2] = glGetUniformLocation(shader, "uDlightProjViewMat[2]");
