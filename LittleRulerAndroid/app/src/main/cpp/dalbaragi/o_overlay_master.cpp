@@ -238,14 +238,14 @@ namespace dal {
 			this->mBoxesForTouchPoint.at(i).renderOverlay(uniloc);
 		}
 
-		for (auto wid : this->m_widgets) {
-			if (wid->getPauseOnly()) {
-				if (GlobalGameState::menu == mGlobalFSM) {
-					wid->renderOverlay(uniloc);
+		for ( auto iter = this->m_widgets.rbegin(); iter != this->m_widgets.rend(); ++iter ) {
+			if ( (*iter)->getPauseOnly() ) {
+				if ( GlobalGameState::menu == mGlobalFSM ) {
+					(*iter)->renderOverlay(uniloc);
 				}
 			}
 			else {
-				wid->renderOverlay(uniloc);
+				(*iter)->renderOverlay(uniloc);
 			}
 		}
 	}
