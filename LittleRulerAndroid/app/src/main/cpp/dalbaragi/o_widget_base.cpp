@@ -223,33 +223,27 @@ namespace dal {
 	}
 
 	void QuadRenderer::renderQuad(const UnilocOverlay& uniloc, const QuadInfo& devSpc) {
-		glUniform2f(uniloc.uPoint1, devSpc.p1.x, devSpc.p1.y);
-		glUniform2f(uniloc.uPoint2, devSpc.p2.x, devSpc.p2.y);
-
-		glUniform4f(uniloc.uColor, this->m_color.r, this->m_color.g, this->m_color.b, this->m_color.a);
-
-		this->m_diffuseMap.sendUniform(uniloc.mDiffuseMap, uniloc.mHasDiffuseMap, 0);
-
-		this->m_maskMap.sendUniform(uniloc.mMaskMap, uniloc.mHasMaskMap, 1);
-		glUniform1i(uniloc.mUpsideDown_maskMap, 1);
-
-		RealQuadRenderer::getinst().renderOverlay();
+		this->statelessRender(uniloc, devSpc, this->m_color, this->m_diffuseMap, this->m_maskMap);
 	}
 
-	void QuadRenderer::statelessRender(const UnilocOverlay& uniloc, const QuadInfo& devSpc, const glm::vec4& color, const TextureHandle2* const maskMap) {
+	void QuadRenderer::statelessRender(const UnilocOverlay& uniloc, const QuadInfo& devSpc, const glm::vec4& color, const Texture* const diffuseMap, const Texture* const maskMap) {
 		glUniform2f(uniloc.uPoint1, devSpc.p1.x, devSpc.p1.y);
 		glUniform2f(uniloc.uPoint2, devSpc.p2.x, devSpc.p2.y);
 
 		glUniform4f(uniloc.uColor, color.r, color.g, color.b, color.a);
 
-		TextureHandle2::sendUniformNull(uniloc.mHasDiffuseMap, 0);
+		if ( nullptr != diffuseMap ) {
+			diffuseMap->sendUniform(uniloc.mDiffuseMap, uniloc.mHasDiffuseMap, 0);
+		}
+		else {
+			glUniform1i(uniloc.mHasDiffuseMap, 0);
+		}
 
 		if (nullptr == maskMap) {
-			TextureHandle2::sendUniformNull(uniloc.mHasMaskMap, 1);
+			glUniform1i(uniloc.mHasMaskMap, 0);
 		}
 		else {
 			maskMap->sendUniform(uniloc.mMaskMap, uniloc.mHasMaskMap, 1);
-			glUniform1i(uniloc.mUpsideDown_maskMap, 1);
 		}
 
 		RealQuadRenderer::getinst().renderOverlay();

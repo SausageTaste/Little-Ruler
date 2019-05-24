@@ -65,6 +65,7 @@ namespace dal {
 		void onKeyInput(const std::string& c);
 		
 		void render(void) const;
+		void addWidget(Widget* const w);
 
 		void setDisplayedFPS(const unsigned int fps);
 

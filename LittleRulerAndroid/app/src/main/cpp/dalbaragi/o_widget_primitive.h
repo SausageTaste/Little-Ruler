@@ -23,8 +23,8 @@ namespace dal {
 		glm::vec2 mPointDev1;  
 		glm::vec2 mPointDev2;
 
-		TextureHandle2 mDiffuseMap;
-		TextureHandle2 mMaskMap;
+		Texture* mDiffuseMap = nullptr;
+		Texture* mMaskMap = nullptr;
 
 	//////// funcs ////////
 
@@ -43,8 +43,8 @@ namespace dal {
 		void setColor(glm::vec3 v);
 		void setTransparency(const float a);
 
-		void setDiffuseMap(const TextureHandle2& tex);
-		void setMaskMap(const TextureHandle2& tex);
+		void setDiffuseMap(Texture* const tex);
+		void setMaskMap(Texture* const tex);
 
 		const glm::vec2& getPointScr1(void) const;
 		const glm::vec2& getPointScr2(void) const;

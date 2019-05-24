@@ -40,6 +40,7 @@ namespace dal {
 	private:
 		MeshStatic m_mesh;
 		Material m_material;
+		Texture m_tex;
 
 	public:
 		WaterFramebuffer m_fbuffer;

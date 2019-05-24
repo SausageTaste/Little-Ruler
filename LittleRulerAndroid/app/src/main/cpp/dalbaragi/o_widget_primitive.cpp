@@ -128,11 +128,11 @@ namespace dal {
 		mColor.z = v.z;
 	}
 
-	void QuadPrimitive::setDiffuseMap(const TextureHandle2& tex) {
+	void QuadPrimitive::setDiffuseMap(Texture* const tex) {
 		mDiffuseMap = tex;
 	}
 
-	void QuadPrimitive::setMaskMap(const TextureHandle2& tex) {
+	void QuadPrimitive::setMaskMap(Texture* const tex) {
 		this->mMaskMap = tex;
 	}
 
@@ -168,10 +168,19 @@ namespace dal {
 
 		glUniform4f(uniloc.uColor, mColor.r, mColor.g, mColor.b, mColor.a);
 
-		mDiffuseMap.sendUniform(uniloc.mDiffuseMap, uniloc.mHasDiffuseMap, 0);
+		if ( nullptr != this->mDiffuseMap ) {
+			this->mDiffuseMap->sendUniform(uniloc.mDiffuseMap, uniloc.mHasDiffuseMap, 0);
+		}
+		else {
+			glUniform1i(uniloc.mHasDiffuseMap, 0);
+		}
 		
-		mMaskMap.sendUniform(uniloc.mMaskMap, uniloc.mHasMaskMap, 1);
-		glUniform1i(uniloc.mUpsideDown_maskMap, 1);
+		if ( nullptr != this->mMaskMap ) {
+			this->mMaskMap->sendUniform(uniloc.mMaskMap, uniloc.mHasMaskMap, 1);
+		}
+		else {
+			glUniform1i(uniloc.mHasMaskMap, 0);
+		}
 	
 		QuadRenderer::getinst().renderOverlay();
 	}

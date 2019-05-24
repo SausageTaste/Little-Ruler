@@ -17,33 +17,47 @@ namespace dal {
 
 	struct Model;
 	class Package;
-	class Texture;
 	class ResourceMaster;
 
+	
+	class Texture {
 
-	class TextureHandle2 {
+		//////// Attribs ////////
 
 	private:
-		struct Pimpl;
-		Pimpl* pimpl = nullptr;
+		GLuint m_texID = 0;
+		unsigned int mWidth = 0, mHeight = 0;
+
+		//////// Methods ////////
+
+	private:
+		Texture(const Texture&) = delete;
+		Texture(Texture&&) = default;
+		Texture& operator=(const Texture&) = delete;
+		Texture& operator=(Texture&&) = default;
 
 	public:
-		TextureHandle2(void);
-		TextureHandle2(const std::string& texID, Texture* const texture);
-		TextureHandle2(const TextureHandle2& other);
-		TextureHandle2(TextureHandle2&& other) noexcept;
-		TextureHandle2& operator=(const TextureHandle2& other);
-		TextureHandle2& operator=(TextureHandle2&& other) noexcept;
-		~TextureHandle2(void);
+		Texture(void) = default;
+		Texture(GLuint id, const unsigned int width, const unsigned int height);
+
+		void init_diffueMap(const uint8_t* const image, const unsigned int width, const unsigned int height);
+		void init_diffueMap3(const uint8_t* const image, const unsigned int width, const unsigned int height);
+		void init_depthMap(const unsigned int width, const unsigned int height);
+		void init_maskMap(const uint8_t* const image, const unsigned int width, const unsigned int height);
+
+		void deleteTex(void);
+		void sendUniform(const GLint uniloc_sampler, const GLint uniloc_has, const unsigned int index) const;
 
 		bool isReady(void) const;
-		unsigned int getRefCount(void) const;
 
-		void sendUniform(const GLint uniloc_sampler, const GLint uniloc_hasTex, const unsigned int index) const;
-		static void sendUniformNull(const GLint uniloc_hasTex, const unsigned int index);
-		GLuint getTex(void);
-		Texture* replace(Texture* const tex);
-		void destroyTexture(void);
+		// Getters
+
+		GLuint getTexID(void);
+		unsigned int getWidth(void) const;
+		unsigned int getHeight(void) const;
+
+	private:
+		void genTexture(const char* const str4Log);
 
 	};
 
@@ -57,12 +71,12 @@ namespace dal {
 
 	private:
 		glm::vec2 m_texScale{ 1.0f, 1.0f };
-		TextureHandle2 m_diffuseMap;
+		Texture* m_diffuseMap = nullptr;
 
 	public:
 		// If paremeter value is 0, old value remains.
 		void setTexScale(float x, float y);
-		void setDiffuseMap(TextureHandle2 tex);
+		void setDiffuseMap(Texture* const tex);
 
 		void sendUniform(const UnilocGeneral& uniloc) const;
 		void sendUniform(const UnilocWaterry& uniloc) const;
@@ -113,9 +127,15 @@ namespace dal {
 		};
 
 	private:
+		struct TextureManageInfo {
+			Texture* m_tex = nullptr;
+			int64_t m_refCount = 0;
+		};
+
+	private:
 		std::string m_name;
 		std::unordered_map<std::string, ModelHandle> m_models;
-		std::unordered_map<std::string, TextureHandle2> m_textures;
+		std::unordered_map<std::string, TextureManageInfo> m_textures;
 
 	public:
 		void setName(const char* const packageName);
@@ -123,14 +143,14 @@ namespace dal {
 
 		ModelHandle orderModel(const ResourceID& resPath, ResourceMaster* const resMas);
 		ModelHandle buildModel(const loadedinfo::ModelDefined& info, ResourceMaster* const resMas);
-		TextureHandle2 orderDiffuseMap(const ResourceID& texID, ResourceMaster* const resMas);
+		Texture* orderDiffuseMap(const ResourceID& texID, ResourceMaster* const resMas);
 
 		void getResReport(ResourceReport& report) const;
 
 		void clear(void);
 
 	private:
-		TextureHandle2 buildDiffuseMap(const ResourceID& texID, const loadedinfo::ImageFileData& info);
+		Texture* buildDiffuseMap(const ResourceID& texID, const loadedinfo::ImageFileData& info);
 
 	};
 
@@ -153,8 +173,8 @@ namespace dal {
 
 		ModelHandle buildModel(const loadedinfo::ModelDefined& info, const char* const packageName);
 
-		static TextureHandle2 getDepthMap(const unsigned int width, const unsigned int height);
-		static TextureHandle2 getMaskMap(const uint8_t* const buf, const unsigned int width, const unsigned int height);
+		static Texture* getUniqueTexture(void);
+		static void dumpUniqueTexture(Texture* const tex);
 
 		size_t getResReports(std::vector<Package::ResourceReport>& reports) const;
 

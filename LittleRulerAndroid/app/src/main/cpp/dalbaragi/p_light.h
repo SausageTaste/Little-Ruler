@@ -13,9 +13,9 @@ namespace dal {
 	class DepthmapForLights {
 
 	private:
-		GLuint mFBO;
-		unsigned int width, height;
-		TextureHandle2 mDepthmap;
+		GLuint mFBO = 0;
+		unsigned int width = 0, height = 0;
+		Texture* mDepthmap = nullptr;
 
 	public:
 		DepthmapForLights(void);
@@ -24,11 +24,11 @@ namespace dal {
 		DepthmapForLights(const DepthmapForLights&) = delete;
 		DepthmapForLights& operator=(const DepthmapForLights&) = delete;
 
-		DepthmapForLights(DepthmapForLights&& other);
-		DepthmapForLights& operator=(DepthmapForLights&&);
+		DepthmapForLights(DepthmapForLights&& other) noexcept;
+		DepthmapForLights& operator=(DepthmapForLights&&) noexcept;
 
 		GLuint getTextureID(void);
-		TextureHandle2 getDepthMap(void);
+		Texture* getDepthMap(void);
 
 		void startRender(void);
 		void finishRender(void);
@@ -63,7 +63,7 @@ namespace dal {
 
 		glm::mat4 makeProjViewMap(void);
 		GLuint getShadowMapTexture(void);
-		TextureHandle2 getShadowMap(void);
+		Texture* getShadowMap(void);
 
 	};
 

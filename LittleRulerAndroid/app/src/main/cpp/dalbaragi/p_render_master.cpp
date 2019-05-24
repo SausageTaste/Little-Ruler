@@ -170,6 +170,11 @@ namespace dal {
 			glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 		}
 
+		// Water
+		{
+
+		}
+
 		// Misc
 		{
 			mHandlerName = "RenderMaster"s;

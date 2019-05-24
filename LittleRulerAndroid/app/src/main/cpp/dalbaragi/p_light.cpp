@@ -18,16 +18,17 @@ namespace dal {
 	:	width(DEPTHMAP_RES),
 		height(DEPTHMAP_RES)
 	{
-		this->mDepthmap = ResourceMaster::getDepthMap(width, height);
+		this->mDepthmap = ResourceMaster::getUniqueTexture();
+		this->mDepthmap->init_depthMap(this->width, this->height);
 
 		glGenFramebuffers(1, &mFBO);
 		glBindFramebuffer(GL_FRAMEBUFFER, mFBO); {
 			const GLenum none = GL_NONE;
 			glDrawBuffers(1, &none);
 
-			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, mDepthmap.getTex(), 0);
+			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, this->mDepthmap->getTexID(), 0);
 			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, mDepthmap.getTex()); {
+			glBindTexture(GL_TEXTURE_2D, this->mDepthmap->getTexID()); {
 				if (GL_FRAMEBUFFER_COMPLETE != glCheckFramebufferStatus(GL_FRAMEBUFFER)) dalAbort("Framebuffer is not complete.");
 			} glBindTexture(GL_TEXTURE_2D, 0);
 
@@ -36,37 +37,37 @@ namespace dal {
 	}
 
 	DepthmapForLights::~DepthmapForLights(void) {
-		this->mDepthmap.destroyTexture();
+		ResourceMaster::dumpUniqueTexture(this->mDepthmap);
 		glDeleteFramebuffers(1, &this->mFBO);
 	}
 
-	DepthmapForLights::DepthmapForLights(DepthmapForLights&& other) {
+	DepthmapForLights::DepthmapForLights(DepthmapForLights&& other) noexcept {
 		this->mFBO = other.mFBO;
 		other.mFBO = 0;
 
 		this->width = other.width;
 		this->height = other.height;
 
-		this->mDepthmap = std::move(other.mDepthmap);
+		this->mDepthmap = other.mDepthmap;
 	}
 
-	DepthmapForLights& DepthmapForLights::operator=(DepthmapForLights&& other) {
+	DepthmapForLights& DepthmapForLights::operator=(DepthmapForLights&& other) noexcept {
 		this->mFBO = other.mFBO;
 		other.mFBO = 0;
 
 		this->width = other.width;
 		this->height = other.height;
 
-		this->mDepthmap = std::move(other.mDepthmap);
+		this->mDepthmap = other.mDepthmap;
 
 		return *this;
 	}
 
 	GLuint DepthmapForLights::getTextureID(void) {
-		return mDepthmap.getTex();
+		return mDepthmap->getTexID();
 	}
 
-	TextureHandle2 DepthmapForLights::getDepthMap(void) {
+	Texture* DepthmapForLights::getDepthMap(void) {
 		return mDepthmap;
 	}
 
@@ -137,7 +138,7 @@ namespace dal {
 		return mShadowMap.getTextureID();
 	}
 
-	TextureHandle2 DirectionalLight::getShadowMap(void) {
+	Texture* DirectionalLight::getShadowMap(void) {
 		return mShadowMap.getDepthMap();
 	}
 

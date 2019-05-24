@@ -180,7 +180,7 @@ namespace dal {
 			charQuad.p2.x = charQuad.p1.x + charac.size.x;
 			charQuad.p2.y = charQuad.p1.y + charac.size.y;
 
-			QuadRenderer::statelessRender(uniloc, charQuad.screen2device(), this->m_textColor, &charac.tex);
+			QuadRenderer::statelessRender(uniloc, charQuad.screen2device(), this->m_textColor, nullptr, charac.tex);
 
 			xAdvance += (charac.advance >> 6);
 		}

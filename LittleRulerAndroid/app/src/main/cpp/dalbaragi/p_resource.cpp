@@ -35,128 +35,130 @@ namespace {
 // Texture
 namespace dal {
 
-	class Texture {
+	Texture::Texture(GLuint id, const unsigned int width, const unsigned int height)
+		: m_texID(id),
+		mWidth(width),
+		mHeight(height)
+	{
 
-		//////// Attribs ////////
+	}
 
-	private:
-		GLuint m_texID = 0;
-		unsigned int mWidth = 0, mHeight = 0;
+	void Texture::init_diffueMap(const uint8_t* const image, const unsigned int width, const unsigned int height) {
+		mWidth = width;
+		mHeight = height;
 
-		//////// Methods ////////
+		glPixelStorei(GL_UNPACK_ALIGNMENT, 0);
 
-	public:
-		void init_diffueMap(const uint8_t* const image, const unsigned int width, const unsigned int height) {
-			mWidth = width;
-			mHeight = height;
+		this->genTexture("init_diffueMap");
 
-			glPixelStorei(GL_UNPACK_ALIGNMENT, 0);
+		glBindTexture(GL_TEXTURE_2D, m_texID);
 
-			this->genTexture("init_diffueMap");
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+		//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image);
+		glGenerateMipmap(GL_TEXTURE_2D);
 
-			glBindTexture(GL_TEXTURE_2D, m_texID);
+		glBindTexture(GL_TEXTURE_2D, 0);
+	}
 
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-			//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image);
-			glGenerateMipmap(GL_TEXTURE_2D);
+	void Texture::init_diffueMap3(const uint8_t* const image, const unsigned int width, const unsigned int height) {
+		mWidth = width;
+		mHeight = height;
 
-			glBindTexture(GL_TEXTURE_2D, 0);
-		}
+		glPixelStorei(GL_UNPACK_ALIGNMENT, 0);
 
-		void init_diffueMap3(const uint8_t* const image, const unsigned int width, const unsigned int height) {
-			mWidth = width;
-			mHeight = height;
+		this->genTexture("init_diffueMap");
 
-			glPixelStorei(GL_UNPACK_ALIGNMENT, 0);
+		glBindTexture(GL_TEXTURE_2D, m_texID);
 
-			this->genTexture("init_diffueMap");
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+		//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
+		glGenerateMipmap(GL_TEXTURE_2D);
 
-			glBindTexture(GL_TEXTURE_2D, m_texID);
+		glBindTexture(GL_TEXTURE_2D, 0);
+	}
 
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-			//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
-			glGenerateMipmap(GL_TEXTURE_2D);
+	void Texture::init_depthMap(const unsigned int width, const unsigned int height) {
+		mWidth = width;
+		mHeight = height;
 
-			glBindTexture(GL_TEXTURE_2D, 0);
-		}
+		glPixelStorei(GL_UNPACK_ALIGNMENT, 0);
 
-		void init_depthMap(const unsigned int width, const unsigned int height) {
-			mWidth = width;
-			mHeight = height;
+		this->genTexture("init_depthMap");
 
-			glPixelStorei(GL_UNPACK_ALIGNMENT, 0);
-
-			this->genTexture("init_depthMap");
-
-			glBindTexture(GL_TEXTURE_2D, m_texID); {
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
-
-				glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT16, width, height, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_SHORT, nullptr);
-			} glBindTexture(GL_TEXTURE_2D, 0);
-		}
-
-		void init_maskMap(const uint8_t* const image, const unsigned int width, const unsigned int height) {
-			this->genTexture("init_maskMap");
-			mWidth = width;
-			mHeight = height;
-
-			glBindTexture(GL_TEXTURE_2D, m_texID);
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, width, height, 0, GL_RED, GL_UNSIGNED_BYTE, image);
-
+		glBindTexture(GL_TEXTURE_2D, m_texID);
+		{
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		}
 
-		void deleteTex(void) {
-			glDeleteTextures(1, &this->m_texID);
-			this->m_texID = 0;
-		}
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
 
-		void sendUniform(const GLint uniloc_sampler, const unsigned int index) const {
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT16, width, height, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_SHORT, nullptr);
+		} glBindTexture(GL_TEXTURE_2D, 0);
+	}
+
+	void Texture::init_maskMap(const uint8_t* const image, const unsigned int width, const unsigned int height) {
+		this->genTexture("init_maskMap");
+		mWidth = width;
+		mHeight = height;
+
+		glBindTexture(GL_TEXTURE_2D, m_texID);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, width, height, 0, GL_RED, GL_UNSIGNED_BYTE, image);
+
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	}
+
+	void Texture::deleteTex(void) {
+		glDeleteTextures(1, &this->m_texID);
+		this->m_texID = 0;
+	}
+
+	void Texture::sendUniform(const GLint uniloc_sampler, const GLint uniloc_has, const unsigned int index) const {
+		if ( this->isReady() ) {
+			glUniform1i(uniloc_has, 1);
 			glActiveTexture(GL_TEXTURE0 + index);
 			glBindTexture(GL_TEXTURE_2D, this->m_texID);
 			glUniform1i(uniloc_sampler, index);
 		}
-
-		bool isInitiated(void) const {
-			return this->m_texID != 0;
+		else {
+			glUniform1i(uniloc_has, 0);
 		}
+		
+	}
 
-		// Getters
+	bool Texture::isReady(void) const {
+		return this->m_texID != 0;
+	}
 
-		GLuint getTexID(void) {
-			return m_texID;
+	// Getters
+
+	GLuint Texture::getTexID(void) {
+		return m_texID;
+	}
+
+	unsigned int Texture::getWidth(void) const {
+		return mWidth;
+	}
+
+	unsigned int Texture::getHeight(void) const {
+		return mHeight;
+	}
+
+	void Texture::genTexture(const char* const str4Log) {
+		glGenTextures(1, &m_texID);
+		if ( m_texID == 0 ) {
+			dalAbort("Failed to init dal::Texture::init_depthMap::"s + str4Log);
 		}
-
-		unsigned int getWidth(void) const {
-			return mWidth;
-		}
-
-		unsigned int getHeight(void) const {
-			return mHeight;
-		}
-
-	private:
-		void genTexture(const char* const str4Log) {
-			glGenTextures(1, &m_texID);
-			if (m_texID == 0) {
-				dalAbort("Failed to init dal::Texture::init_depthMap::"s + str4Log);
-			}
-		}
-
-	};
+	}
 
 }
 
@@ -173,10 +175,10 @@ namespace {
 
 		bool out_success = false;
 
-		dal::TextureHandle2 data_handle;
+		dal::Texture* data_handle;
 
 	public:
-		LoadTask_Texture(const dal::ResourceID& texID, const dal::TextureHandle2& handle)
+		LoadTask_Texture(const dal::ResourceID& texID, dal::Texture* const handle)
 		:	in_texID(texID),
 			data_handle(handle)
 		{
@@ -257,116 +259,6 @@ namespace {
 }
 
 
-// Texture Handle
-namespace dal {
-
-	struct TextureHandle2::Pimpl {
-		std::string m_id;
-		Texture* m_tex = nullptr;
-		unsigned int m_refCount = 1;
-	};
-
-
-	TextureHandle2::TextureHandle2(void) {
-
-	}
-	TextureHandle2::TextureHandle2(const std::string& texID, Texture* const texture)
-	:	pimpl(new Pimpl) 
-	{
-		this->pimpl->m_tex = texture;
-		this->pimpl->m_id = texID;
-	}
-	TextureHandle2::TextureHandle2(const TextureHandle2& other) : pimpl(other.pimpl) {
-		this->pimpl->m_refCount++;
-	}
-	TextureHandle2::TextureHandle2(TextureHandle2&& other) noexcept {
-		auto temp = this->pimpl;
-		this->pimpl = other.pimpl;
-		other.pimpl = temp;
-	}
-	TextureHandle2& TextureHandle2::operator=(const TextureHandle2& other) {
-		this->pimpl = other.pimpl;
-		this->pimpl->m_refCount++;
-
-		return *this;
-	}
-	TextureHandle2& TextureHandle2::operator=(TextureHandle2&& other) noexcept {
-		auto temp = this->pimpl;
-		this->pimpl = other.pimpl;
-		other.pimpl = temp;
-
-		return *this;
-	}
-	TextureHandle2::~TextureHandle2(void) {
-		if (nullptr == this->pimpl) return;
-
-		this->pimpl->m_refCount--;
-
-		if (this->pimpl->m_refCount <= 0) {
-			if (nullptr != this->pimpl->m_tex) {
-				g_logger.putWarn("A texture handler's refference all lost without being destroyed: "s + this->pimpl->m_id, __LINE__, __func__, __FILE__);
-				this->destroyTexture();
-			}
-			
-			delete this->pimpl;
-			this->pimpl = nullptr;
-		}
-	}
-
-	bool TextureHandle2::isReady(void) const {
-		if (nullptr == this->pimpl) return false;
-		if (nullptr == this->pimpl->m_tex) return false;
-		if (!this->pimpl->m_tex->isInitiated()) return false;
-
-		return true;
-	}
-
-	unsigned int TextureHandle2::getRefCount(void) const {
-		if (nullptr == this->pimpl) return 0;
-
-		return this->pimpl->m_refCount;
-	}
-
-	void TextureHandle2::sendUniform(const GLint uniloc_sampler, const GLint uniloc_hasTex, const unsigned int index) const {
-		if (this->isReady()) {
-			glUniform1i(uniloc_hasTex, 1);
-			this->pimpl->m_tex->sendUniform(uniloc_sampler, index);
-		}
-		else {
-			glUniform1i(uniloc_hasTex, 0);
-		}
-	}
-
-	void TextureHandle2::sendUniformNull(const GLint uniloc_hasTex, const unsigned int index) {
-		glUniform1i(uniloc_hasTex, 0);
-	}
-
-	GLuint TextureHandle2::getTex(void) {
-		if (!this->isReady()) return 0;
-		else return this->pimpl->m_tex->getTexID();
-	}
-
-	Texture* TextureHandle2::replace(Texture* const tex) {
-		auto tmp = this->pimpl->m_tex;
-		this->pimpl->m_tex = tex;
-		return tmp;
-	}
-
-	void TextureHandle2::destroyTexture(void) {
-		if (nullptr == this->pimpl->m_tex) return;
-
-		if (this->pimpl->m_refCount > 1) {
-			g_logger.putWarn("Destroying texture handle with ref count: " + std::to_string(this->pimpl->m_refCount), __LINE__, __func__, __FILE__);
-		}
-
-		this->pimpl->m_tex->deleteTex();
-		g_texturePool.free(this->pimpl->m_tex);
-		this->pimpl->m_tex = nullptr;
-	}
-
-}
-
-
 // Material
 namespace dal {
 
@@ -374,7 +266,7 @@ namespace dal {
 		this->m_texScale = { x, y };
 	}
 
-	void Material::setDiffuseMap(TextureHandle2 tex) {
+	void Material::setDiffuseMap(Texture* const tex) {
 		this->m_diffuseMap = tex;
 	}
 
@@ -387,7 +279,12 @@ namespace dal {
 
 		glUniform3f(uniloc.uDiffuseColor, this->m_diffuseColor.x, this->m_diffuseColor.y, this->m_diffuseColor.z);
 
-		this->m_diffuseMap.sendUniform(uniloc.uDiffuseMap, uniloc.uHasDiffuseMap, 0);
+		if ( nullptr == this->m_diffuseMap ) {
+			glUniform1i(uniloc.uHasDiffuseMap, 0);
+		}
+		else {
+			this->m_diffuseMap->sendUniform(uniloc.uDiffuseMap, uniloc.uHasDiffuseMap, 0);
+		}
 	}
 
 	void Material::sendUniform(const UnilocWaterry& uniloc) const {
@@ -399,7 +296,12 @@ namespace dal {
 
 		glUniform3f(uniloc.uDiffuseColor, this->m_diffuseColor.x, this->m_diffuseColor.y, this->m_diffuseColor.z);
 
-		this->m_diffuseMap.sendUniform(uniloc.uDiffuseMap, uniloc.uHasDiffuseMap, 0);
+		if ( nullptr == this->m_diffuseMap ) {
+			glUniform1i(uniloc.uHasDiffuseMap, 0);
+		}
+		else {
+			this->m_diffuseMap->sendUniform(uniloc.uDiffuseMap, uniloc.uHasDiffuseMap, 0);
+		}
 	}
 
 }
@@ -648,25 +550,26 @@ namespace dal {
 		return handle;
 	}
 
-	TextureHandle2 Package::orderDiffuseMap(const ResourceID& texID, ResourceMaster* const resMas) {
+	Texture* Package::orderDiffuseMap(const ResourceID& texID, ResourceMaster* const resMas) {
 		auto iter = this->m_textures.find(texID.makeFileName());
-		if (this->m_textures.end() == iter) {
-			TextureHandle2 handle{ texID.makeFileName().c_str(), nullptr };
+		if ( this->m_textures.end() == iter ) {
+			auto texture = g_texturePool.alloc();
+			this->m_textures.emplace(texID.makeFileName(), TextureManageInfo{ texture, 2 });  // ref count is 2 because of return and task.
 
 			ResourceID idWithPackage{ this->m_name, texID.getOptionalDir(), texID.getBareName(), texID.getExt() };
-			auto task = new LoadTask_Texture(idWithPackage, handle);
+			auto task = new LoadTask_Texture(idWithPackage, texture);
 			g_sentTasks_texture.insert(task);
 			TaskGod::getinst().orderTask(task, resMas);
 
-			this->m_textures.emplace(texID.makeFileName(), handle);
-			return handle;
+			return texture;
 		}
 		else {
-			return iter->second;
+			iter->second.m_refCount++;
+			return iter->second.m_tex;
 		}
 	}
 
-	TextureHandle2 Package::buildDiffuseMap(const ResourceID& texID, const loadedinfo::ImageFileData& info) {
+	Texture* Package::buildDiffuseMap(const ResourceID& texID, const loadedinfo::ImageFileData& info) {
 		auto tex = g_texturePool.alloc();
 
 		if (3 == info.m_pixSize) {
@@ -679,9 +582,8 @@ namespace dal {
 			g_logger.putError("Not supported pixel size: "s + texID.makeIDStr() + ", " + std::to_string(info.m_pixSize), __LINE__, __func__, __FILE__);
 		}
 		
-		TextureHandle2 handle{ texID.makeFileName(), tex };
-		this->m_textures.emplace(texID.makeFileName(), handle);
-		return handle;
+		this->m_textures.emplace(texID.makeFileName(), TextureManageInfo{ tex, 1 });
+		return tex;
 	}
 
 	void Package::getResReport(ResourceReport& report) const {
@@ -696,7 +598,7 @@ namespace dal {
 		report.m_textures.clear();
 		report.m_textures.reserve(this->m_textures.size());
 		for (auto& x : this->m_textures) {
-			report.m_textures.emplace_back(x.first, x.second.getRefCount());
+			report.m_textures.emplace_back(x.first, x.second.m_refCount);
 		}
 	}
 
@@ -707,7 +609,8 @@ namespace dal {
 		this->m_models.clear();
 
 		for (auto& tex : this->m_textures) {
-			tex.second.destroyTexture();
+			tex.second.m_tex->deleteTex();
+			g_texturePool.free(tex.second.m_tex);
 		}
 		this->m_textures.clear();
 	}
@@ -771,19 +674,15 @@ namespace dal {
 				dalAbort("Failed to load texture: "s + loaded->in_texID.makeIDStr());
 			}
 
-			auto tex = g_texturePool.alloc();
 			if (loaded->out_img.m_pixSize == 3) {
-				tex->init_diffueMap3(loaded->out_img.m_buf.data(), loaded->out_img.m_width, loaded->out_img.m_height);
+				loaded->data_handle->init_diffueMap3(loaded->out_img.m_buf.data(), loaded->out_img.m_width, loaded->out_img.m_height);
 			}
 			else if (loaded->out_img.m_pixSize == 4) {
-				tex->init_diffueMap(loaded->out_img.m_buf.data(), loaded->out_img.m_width, loaded->out_img.m_height);
+				loaded->data_handle->init_diffueMap(loaded->out_img.m_buf.data(), loaded->out_img.m_width, loaded->out_img.m_height);
 			}
 			else {
 				dalAbort("Unknown pix size: "s + std::to_string(loaded->out_img.m_pixSize));
 			}
-
-			auto shouldBeNull = loaded->data_handle.replace(tex);
-			assert(nullptr == shouldBeNull);
 		}
 		else {
 			g_logger.putWarn("ResourceMaster got a task that it doesn't know.", __LINE__, __func__, __FILE__);
@@ -816,18 +715,12 @@ namespace dal {
 
 	// Static
 
-	TextureHandle2 ResourceMaster::getDepthMap(const unsigned int width, const unsigned int height) {
-		auto tex = g_texturePool.alloc();
-		tex->init_depthMap(width, height);
-		TextureHandle2 handle{ "", tex };
-		return handle;
+	Texture* ResourceMaster::getUniqueTexture(void) {
+		return g_texturePool.alloc();
 	}
 
-	TextureHandle2 ResourceMaster::getMaskMap(const uint8_t* const buf, const unsigned int width, const unsigned int height) {
-		auto tex = g_texturePool.alloc();
-		assert(nullptr != tex);
-		tex->init_maskMap(buf, width, height);
-		return TextureHandle2{ "", tex };
+	void ResourceMaster::dumpUniqueTexture(Texture* const tex) {
+		g_texturePool.free(tex);
 	}
 
 	// Private

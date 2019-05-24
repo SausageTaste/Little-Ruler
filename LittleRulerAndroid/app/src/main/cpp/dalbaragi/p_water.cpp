@@ -84,6 +84,8 @@ namespace dal {
 			this->m_reflectionTexture = genTextureAttachment(REFLECTION_WIDTH, REFLECTION_HEIGHT);
 			this->m_reflectionDepthBuffer = genDepthBufferAttachment(REFLECTION_WIDTH, REFLECTION_HEIGHT);
 		}
+
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		
 		{
 			this->m_refractionFrameBuffer = genFramebuffer();
@@ -128,7 +130,9 @@ namespace dal {
 
 namespace dal {
 
-	WaterRenderer::WaterRenderer(const glm::vec3& pos, const glm::vec2& size) {
+	WaterRenderer::WaterRenderer(const glm::vec3& pos, const glm::vec2& size)
+		: m_tex(m_fbuffer.getReflectionTexture(), REFLECTION_WIDTH, REFLECTION_HEIGHT)
+	{
 		std::array<float, 18> vertices{
 			pos.x,          pos.y, pos.z,
 			pos.x,          pos.y, pos.z + size.y,
@@ -159,6 +163,8 @@ namespace dal {
 			texcoords.data(), texcoords.size(),
 			normals.data(), normals.size()
 		);
+
+		this->m_material.m_diffuseColor = { 0, 0, 1 };
 	}
 
 	void WaterRenderer::renderWaterry(const UnilocWaterry& uniloc) {

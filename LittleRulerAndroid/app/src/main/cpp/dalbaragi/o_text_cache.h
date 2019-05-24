@@ -10,10 +10,10 @@
 namespace dal {
 
 	struct CharacterUnit {
-		TextureHandle2 tex;
-		glm::ivec2     size;
-		glm::ivec2     bearing;
-		int32_t        advance = 0;
+		Texture*   tex = nullptr;
+		glm::ivec2 size;
+		glm::ivec2 bearing;
+		int32_t    advance = 0;
 	};
 
 

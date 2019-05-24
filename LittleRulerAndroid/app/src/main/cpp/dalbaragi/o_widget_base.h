@@ -79,16 +79,16 @@ namespace dal {
 
 	private:
 		glm::vec4 m_color{ 1.0f, 1.0f, 1.0f, 1.0f };
-		TextureHandle2 m_diffuseMap, m_maskMap;
+		Texture *m_diffuseMap = nullptr, *m_maskMap = nullptr;
 
 	public:
 		void setColor(const float r, const float g, const float b, const float a);
-		void setDiffuseMap(const TextureHandle2& tex) { m_diffuseMap = tex; }
-		void setMaskMap(const TextureHandle2& tex) { m_maskMap = tex; }
+		void setDiffuseMap(Texture* const tex) { m_diffuseMap = tex; }
+		void setMaskMap(Texture* const tex) { m_maskMap = tex; }
 
 		void renderQuad(const UnilocOverlay& uniloc, const QuadInfo& devSpc);
 
-		static void statelessRender(const UnilocOverlay& uniloc, const QuadInfo& devSpc, const glm::vec4& color, const TextureHandle2* const maskMap);
+		static void statelessRender(const UnilocOverlay& uniloc, const QuadInfo& devSpc, const glm::vec4& color, const Texture* const diffuseMap, const Texture* const maskMap);
 
 	};
 

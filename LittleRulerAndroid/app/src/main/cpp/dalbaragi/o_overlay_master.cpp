@@ -250,6 +250,10 @@ namespace dal {
 		}
 	}
 
+	void OverlayMaster::addWidget(Widget* const w) {
+		this->m_widgets.emplace_front(w);
+	}
+
 	void OverlayMaster::setDisplayedFPS(const unsigned int fps) {
 		this->mDisplayFPS->setText(std::to_string(fps));
 	}
