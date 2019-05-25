@@ -112,6 +112,7 @@ namespace {
 		return texture;
 	}
 
+	// This doesn't work for me. Now I use genDepthTextureAttachment instead.
 	GLuint genDepthBufferAttachment(const int width, const int height) {
 		GLuint depthBuffer;
 

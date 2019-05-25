@@ -5,6 +5,7 @@
 #include <memory>
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
 
 #include "s_event.h"
 
@@ -35,6 +36,7 @@ namespace dal {
 
 	private:
 		std::unordered_map<ITask*, ITaskDoneListener*> m_notificationRecievers;
+		std::unordered_set<ITask*> m_firedTasks;
 
 		//////// Methods ////////
 
@@ -50,7 +52,7 @@ namespace dal {
 		void orderTask(ITask* const task, ITaskDoneListener* const client);
 
 	private:
-		ITaskDoneListener* findNotifiReciever(ITask* task);
+		ITaskDoneListener* findNotifiReciever(ITask* const task);
 
 	};
 

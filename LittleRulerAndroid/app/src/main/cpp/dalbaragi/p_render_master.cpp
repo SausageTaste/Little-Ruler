@@ -162,7 +162,7 @@ namespace dal {
 		m_overlayMas(m_resMas, m_shader),
 		m_winWidth(512), m_winHeight(512),
 		m_projectMat(1.0),
-		m_water({ -10, 0.5, -10 }, { 20, 20 })
+		m_water({ -10, 1, -10 }, { 20, 20 })
 	{
 		// Lights
 		{

@@ -7,6 +7,8 @@
 #include <queue>
 #include <array>
 
+#include <fmt/format.h>
+
 #include "s_logger_god.h"
 #include "u_timer.h"
 
@@ -14,6 +16,7 @@
 
 
 using namespace std::string_literals;
+using namespace fmt::literals;
 
 
 namespace {
@@ -46,6 +49,12 @@ namespace {
 				return v;
 			}
 		}
+
+		size_t getSize(void) {
+			std::unique_lock<std::mutex> lck{ this->m_mut, std::defer_lock };
+
+			return m_q.size();
+		}
 	};
 
 	ThreadQueue<dal::ITask> g_inQ, g_outQ;
@@ -62,7 +71,9 @@ namespace {
 				if (this->m_flagExit) return;
 				
 				auto task = g_inQ.pop();
-				if (task == nullptr) return;
+				if (task == nullptr) {
+					continue;
+				}
 
 				task->start();
 				g_outQ.push(task);
@@ -121,12 +132,12 @@ namespace dal {
 	void TaskGod::update(void) {
 
 #if DAL_THREAD_COUNT > 0
-		std::unique_ptr<ITask> task{ g_outQ.pop() };
+		auto task = g_outQ.pop();
 		if (nullptr == task) return;
 
-		auto listener = this->findNotifiReciever(task.get());
+		auto listener = this->findNotifiReciever(task);
 		if (nullptr != listener) {
-			listener->notifyTask(std::move(task));
+			listener->notifyTask(std::unique_ptr<ITask>{ task });
 			return;
 		}
 #endif
@@ -142,11 +153,14 @@ namespace dal {
 		if (client != nullptr) {
 			m_notificationRecievers.emplace(task, client);
 		}
+		else {
+			this->m_firedTasks.emplace(task);
+		}
 #else
 		task->start();
 
 		if (client != nullptr) {
-			client->notifyTask(task);
+			client->notifyTask(std::unique_ptr<ITask>{ task });
 		}
 		else {
 			delete task;
@@ -155,12 +169,25 @@ namespace dal {
 
 	}
 
-	ITaskDoneListener* TaskGod::findNotifiReciever(ITask* task) {
-		auto result = this->m_notificationRecievers.find(task);
-		if (result == this->m_notificationRecievers.end())
-			return nullptr;
-		else
-			return result->second;
+	ITaskDoneListener* TaskGod::findNotifiReciever(ITask* const task) {
+		{
+			auto iter = this->m_notificationRecievers.find(task);
+			if (iter != this->m_notificationRecievers.end()) {
+				const auto listener = iter->second;
+				this->m_notificationRecievers.erase(iter);
+				return listener;
+			}
+		}
+
+		{
+			auto iter = this->m_firedTasks.find(task);
+			if (this->m_firedTasks.end() != iter){
+				this->m_firedTasks.erase(iter);
+				return nullptr;
+			}
+		}
+
+		dalAbort("A task returned to TaskGod but it doesn't recognize it.");
 	}
 
 }

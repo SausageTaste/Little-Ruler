@@ -751,11 +751,11 @@ namespace dal {
 		std::string resultStr;
 		if (findMatching_win(resultStr, path, fileName)) {
 			result.setOptionalDir(resultStr.substr(path.size(), resultStr.find(fileName) - path.size()));
-			g_logger.putInfo("Resource resolved: " + result.makeIDStr(), __LINE__, __func__, __FILE__);
+			dalInfo("Resource resolved: " + result.makeIDStr(), __LINE__, __func__, __FILE__);
 			return true;
 		}
 		else {
-			g_logger.putInfo("Resource resolve failed: " + result.makeIDStr(), __LINE__, __func__, __FILE__);
+			dalError("Resource resolve failed: " + result.makeIDStr(), __LINE__, __func__, __FILE__);
 			return false;
 		}
 #elif defined(__ANDROID__)
@@ -767,7 +767,7 @@ namespace dal {
 				return true;
 			}
 			else {
-				dalInfo("Resource resolve failed: " + result.makeIDStr());
+				dalError("Resource resolve failed: " + result.makeIDStr());
 				return false;
 			}
 		}
