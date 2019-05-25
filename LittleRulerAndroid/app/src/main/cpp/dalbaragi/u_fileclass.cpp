@@ -262,7 +262,7 @@ namespace {
 			}
 		}
 		else {
-			dalInfo("Folder created: userdata");
+			dalInfo("Folder created: "s + path);
 		}
 	}
 
