@@ -31,6 +31,8 @@ namespace {
 
 		constexpr int item_lightPoint = 4;
 
+		constexpr int item_waterPlane = 5;
+
 	}
 }
 
@@ -316,8 +318,24 @@ namespace {  // Make items
 	}
 
 
-	const uint8_t make_waterPlane(dal::LoadedMap& info, const uint8_t* const begin, const uint8_t* const end) {
+	const uint8_t* make_waterPlane(dal::LoadedMap& info, const uint8_t* const begin, const uint8_t* const end) {
+		auto header = begin;
+		info.m_waterPlanes.emplace_back();
+		auto& water = info.m_waterPlanes.back();
 
+		// Get diffuse pos(3), width(1), height(1)
+		{
+			float floatBuf[5];
+			for ( int i = 0; i < 5; i++ ) {
+				floatBuf[i] = makeFloat4(header); header += 4;
+			}
+
+			water.m_pos = { floatBuf[0], floatBuf[1], floatBuf[2] };
+			water.width = floatBuf[3];
+			water.height = floatBuf[4];
+		}
+
+		return header;
 	}
 
 
@@ -332,6 +350,9 @@ namespace {  // Make items
 
 		case typeCodes::item_lightPoint:
 			return make_lightPoint;
+
+		case typeCodes::item_waterPlane:
+			return make_waterPlane;
 
 		default:
 			g_logger.putError("Unknown map item typeCode: "s + std::to_string(typeCode), __LINE__, __func__, __FILE__);

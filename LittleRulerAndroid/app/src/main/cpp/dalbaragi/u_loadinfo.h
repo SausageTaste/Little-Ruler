@@ -47,6 +47,7 @@ namespace dal {
 
 		};
 
+
 		struct ILightItem {
 			std::string m_name;
 			glm::vec3 m_color;
@@ -62,6 +63,13 @@ namespace dal {
 			glm::vec3 m_pos;
 			float m_maxDist = 0.0f;
 		};
+
+
+		struct WaterPlane {
+			glm::vec3 m_pos;
+			float width = 0.0f, height = 0.0f;
+		};
+
 
 		struct ImageFileData {
 			std::vector<uint8_t> m_buf;
@@ -79,6 +87,8 @@ namespace dal {
 
 		std::list<loadedinfo::LightDirectional> m_direcLights;
 		std::list<loadedinfo::LightPoint> m_pointLights;
+
+		std::list<loadedinfo::WaterPlane> m_waterPlanes;
 	};
 
 	using ModelInfo = std::list<RenderUnitInfo>;
