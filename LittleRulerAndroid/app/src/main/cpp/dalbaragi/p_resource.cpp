@@ -646,7 +646,8 @@ namespace dal {
 
 			auto loaded = reinterpret_cast<LoadTask_Model*>(task.get());
 			if (!loaded->out_success) {
-				dalAbort("Failed to load model: "s + loaded->in_modelID.makeIDStr());
+				dalError("Failed to load model: "s + loaded->in_modelID.makeIDStr());
+				return;
 			}
 
 			auto model = g_modelPool.alloc();
