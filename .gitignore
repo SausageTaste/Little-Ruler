@@ -1,3 +1,6 @@
 /Library
-/Resource
+
+/Resource/log
+/Resource/userdata
+
 /*.bck
