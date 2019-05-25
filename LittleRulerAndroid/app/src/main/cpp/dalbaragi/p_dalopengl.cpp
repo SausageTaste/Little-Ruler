@@ -2,10 +2,13 @@
 
 #include <string>
 
+#include <fmt/format.h>
+
 #include "s_logger_god.h"
 
 
 using namespace std::string_literals;
+using namespace fmt::literals;
 
 
 namespace {
@@ -53,14 +56,27 @@ namespace {
 
 namespace dal {
 
-	void printAllErrorsGL(void) {
-		while (true) {
-			auto errCode = glGetError();
-			if (errCode == GL_NO_ERROR) return;
-			auto errstr = gl_error_string(errCode);
-			LoggerGod::getinst().putError("GL error: "s + errstr, __LINE__, __func__, __FILE__);
+	void clearGLError(void) {
+		for ( int i = 0; i < 1000; i++ ) {
+			const auto err = glGetError();
+			if ( GL_NO_ERROR == err ) {
+				if ( i > 0 ) {
+					dalWarn("{} glError cleared."_format(i));
+				}
+				return;
+			}
+		}
+	}
+
+	void _logGLError(const int line, const char* const func, const char* const file) {
+		for ( int i = 1; i <= 100; i++ ) {
+			const auto err = glGetError();
+			if ( GL_NO_ERROR == err ) return;
+
+			LoggerGod::getinst().putWarn(gl_error_string(err), line, func, file);
 		}
 
+		clearGLError();
 	}
 
 }
