@@ -196,7 +196,7 @@ void main(void) {
 	}
 
 	vec3 viewVec = normalize(v_toCamera);
-	float refractiveFactor = pow(dot(viewVec, vec3(0.0, 1.0, 0.0)), 0.3);
+	float refractiveFactor = pow(dot(viewVec, vec3(0.0, 1.0, 0.0)), 0.8);
 
 	vec4 waterImage = mix(bansaColor, gooljulColor, refractiveFactor);
 
