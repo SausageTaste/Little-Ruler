@@ -222,15 +222,26 @@ namespace dal {
 		this->m_color.a = a;
 	}
 
-	void QuadRenderer::renderQuad(const UnilocOverlay& uniloc, const QuadInfo& devSpc) {
-		this->statelessRender(uniloc, devSpc, this->m_color, this->m_diffuseMap, this->m_maskMap);
+	void QuadRenderer::setUpsideDown_diffuseMap(const bool v) {
+		this->m_upsideDown_diffuseMap = v;
 	}
 
-	void QuadRenderer::statelessRender(const UnilocOverlay& uniloc, const QuadInfo& devSpc, const glm::vec4& color, const Texture* const diffuseMap, const Texture* const maskMap) {
+	void QuadRenderer::renderQuad(const UnilocOverlay& uniloc, const QuadInfo& devSpc) {
+		this->statelessRender(uniloc, devSpc, this->m_color, this->m_diffuseMap, this->m_maskMap, this->m_upsideDown_diffuseMap, false);
+	}
+
+	void QuadRenderer::statelessRender(
+		const UnilocOverlay& uniloc, const QuadInfo& devSpc, const glm::vec4& color,
+		const Texture* const diffuseMap, const Texture* const maskMap,
+		const bool upsideDown_diffuseMap, const bool upsideDown_maskMap
+	) {
 		glUniform2f(uniloc.uPoint1, devSpc.p1.x, devSpc.p1.y);
 		glUniform2f(uniloc.uPoint2, devSpc.p2.x, devSpc.p2.y);
 
 		glUniform4f(uniloc.uColor, color.r, color.g, color.b, color.a);
+
+		glUniform1i(uniloc.m_upsideDown_diffuseMap, upsideDown_diffuseMap ? 1 : 0);
+		glUniform1i(uniloc.mUpsideDown_maskMap, upsideDown_maskMap ? 1 : 0);
 
 		if ( nullptr != diffuseMap ) {
 			diffuseMap->sendUniform(uniloc.mDiffuseMap, uniloc.mHasDiffuseMap, 0);

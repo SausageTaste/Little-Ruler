@@ -1,16 +1,17 @@
-#ifdef GL_ES
-precision mediump float;
-#endif
+#include <inter_general.frag>
 
 
 // From Master
-uniform vec3 uViewPos;
+uniform highp vec3 uViewPos;
 uniform vec3 uBaseAmbient;
 uniform highp int uDlightCount;
 uniform int uPlightCount;
 
-uniform bool u_doClip;
-uniform vec4 u_clipPlane;
+uniform sampler2D u_bansaTex;  // TEX 4
+uniform sampler2D u_gooljulTex;  // TEX 5
+uniform sampler2D u_dudvMap;  // TEX 6
+uniform float u_dudvMoveFactor;
+uniform sampler2D u_normalMap;  // TEX 7
 
 // From Material
 uniform vec3 uDiffuseColor;
@@ -36,16 +37,20 @@ in vec3 vFragPos;
 in vec2 vTexCoord;
 in vec3 vNormalVec;
 in vec4 vFragPosInDlight[3];
-in vec4 v_worldPos;
+in vec4 v_clipSpace;
+in vec3 v_toCamera;
 
 out vec4 fColor;
 
 
-vec3 procDlight(int index, vec3 viewDir) {
+const float waveStren = 0.01;
+
+
+vec3 procDlight(int index, vec3 viewDir, vec3 fragNormal) {
 	vec3 lightLocDir = normalize(-uDlightDirecs[index]);
 	vec3 lightColor = uDlightColors[index];
 
-	float diff = max(dot(vNormalVec, lightLocDir), 0.0);
+	float diff = max(dot(fragNormal, lightLocDir), 0.0);
 	vec3 diffuse = max(diff * lightColor, vec3(0.0));
 
 	// Calculate specular lighting.
@@ -55,7 +60,7 @@ vec3 procDlight(int index, vec3 viewDir) {
 	}
 	else
 	{
-		vec3 reflectDir = reflect(-lightLocDir, vNormalVec);
+		vec3 reflectDir = reflect(-lightLocDir, fragNormal);
 		float spec = pow(max(dot(viewDir, reflectDir), 0.0), uShininess);
 		vec3 specular = max(uSpecularStrength * spec * lightColor, vec3(0.0));
 
@@ -150,30 +155,49 @@ vec3 procPlight(int index, vec3 viewDir, vec3 fragNormal) {
 
 
 void main(void) {
-#ifdef GL_ES
-	if (u_doClip) {
-		if ( dot(v_worldPos, u_clipPlane) < 0.0 ) discard;
-	}
-#endif
-
 	vec3 viewDir = normalize(uViewPos - vFragPos);
+
+	vec2 normalizedDeviceCoord = (v_clipSpace.xy / v_clipSpace.w) / 2.0 + 0.5;
+	vec2 bansaCoord = vec2(normalizedDeviceCoord.x, -normalizedDeviceCoord.y);
+	vec2 gooljulCoord = vec2(normalizedDeviceCoord.x, normalizedDeviceCoord.y);
+
+	vec2 distoredTexCoords = texture(u_dudvMap, vec2(vTexCoord.x + u_dudvMoveFactor, vTexCoord.y)).rg * 0.1;
+	distoredTexCoords = vTexCoord + vec2(distoredTexCoords.x, distoredTexCoords.y + u_dudvMoveFactor);
+	vec2 totalDistortion = (texture(u_dudvMap, distoredTexCoords).rg * 2.0 - 1.0) * waveStren;
+
+	bansaCoord += totalDistortion;
+	gooljulCoord += totalDistortion;
+	
+	gooljulCoord = clamp(gooljulCoord, 0.001, 0.999);
+	bansaCoord.x = clamp(bansaCoord.x, 0.001, 0.999);
+	bansaCoord.y = clamp(bansaCoord.y, -0.999, -0.001);
+
+	vec4 bansaColor = texture(u_bansaTex, bansaCoord);
+	vec4 gooljulColor = texture(u_gooljulTex, gooljulCoord);
+
+	vec4 normalColor = texture(u_normalMap, distoredTexCoords);
+	vec3 texNormal = normalize(vec3(
+		normalColor.r * 2.0 - 1.0,
+		normalColor.b * 6.0,
+		normalColor.g * 2.0 - 1.0
+	));
+
 	vec3 lightedColor = uBaseAmbient;
-	vec3 fragNormal = vNormalVec;
+	vec3 fragNormal = texNormal;
 
 	int i;
 	for (i = 0; i < uDlightCount; i++) {
-		lightedColor += max(procDlight(i, viewDir) * calcShadowDlight(i), vec3(0.0));
+		lightedColor += max(procDlight(i, viewDir, fragNormal) * calcShadowDlight(i), vec3(0.0));
 	}
 	for (i = 0; i < uPlightCount; i++) {
 		lightedColor += max(procPlight(i, viewDir, fragNormal), vec3(0.0));
 	}
 
-	if (uHasDiffuseMap != 0) {
-		vec4 texColor = texture(uDiffuseMap, vTexCoord);
-		if (texColor.a == 0.0) discard;
-		fColor = texColor * vec4(lightedColor, 1.0);
-	}
-	else {
-		fColor = vec4(uDiffuseColor, 1.0) * vec4(lightedColor, 1.0);
-	}
+	vec3 viewVec = normalize(v_toCamera);
+	float refractiveFactor = pow(dot(viewVec, vec3(0.0, 1.0, 0.0)), 0.8);
+
+	vec4 waterImage = mix(bansaColor, gooljulColor, refractiveFactor);
+	
+	fColor = getHalf() * waterImage * (vec4(lightedColor, 1.0) + 1.0);
+	fColor += vec4(0.05, 0.05, 0.1, 0.0);
 }

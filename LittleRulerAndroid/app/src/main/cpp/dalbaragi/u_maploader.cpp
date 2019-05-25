@@ -248,16 +248,18 @@ namespace {  // Make items
 
 		auto& material = definedModel.m_renderUnit.m_material;
 
-		// Get diffuse color(3), shininess(1), specular strength(1)
+		// Get diffuse color(3), shininess(1), specular strength(1), texSize(1, 1)
 		{
-			float floatBuf[5];
-			for (int i = 0; i < 5; i++) {
+			float floatBuf[7];
+			for (int i = 0; i < 7; i++) {
 				floatBuf[i] = makeFloat4(header); header += 4;
 			}
 
 			material.m_diffuseColor = { floatBuf[0], floatBuf[1], floatBuf[2] };
 			material.m_shininess = floatBuf[3];
 			material.m_specStrength = floatBuf[4];
+			material.m_texSize.x = floatBuf[5];
+			material.m_texSize.y = floatBuf[6];
 		}
 
 		// Get diffuse map name
@@ -311,6 +313,11 @@ namespace {  // Make items
 		}
 
 		return header;
+	}
+
+
+	const uint8_t make_waterPlane(dal::LoadedMap& info, const uint8_t* const begin, const uint8_t* const end) {
+
 	}
 
 

@@ -58,11 +58,15 @@ class Material(ein.ILevelAttrib):
     __s_field_specularStrngth = "specular"
     __s_field_diffuseMap = "diffuse_map"
     __s_field_specularMap = "specular_map"
+    __s_field_texSizeX = "tex_size_x"
+    __s_field_texSizeY = "tex_size_y"
 
     def __init__(self):
         self.__diffuseColor = pri.Vec3(1, 1, 1)
         self.__shininess = pri.FloatData(32)
         self.__specularStrength = pri.FloatData(1)
+        self.__texSizeX = pri.FloatData(1)
+        self.__texSizeY = pri.FloatData(1)
         self.__diffuseMap = pri.IdentifierStr()
         self.__specularMap = pri.IdentifierStr()
 
@@ -70,6 +74,8 @@ class Material(ein.ILevelAttrib):
             self.__s_field_diffuseColor : self.__diffuseColor,
             self.__s_field_shininess : self.__shininess,
             self.__s_field_specularStrngth : self.__specularStrength,
+            self.__s_field_texSizeX : self.__texSizeX,
+            self.__s_field_texSizeY : self.__texSizeY,
             self.__s_field_diffuseMap : self.__diffuseMap,
             self.__s_field_specularMap : self.__specularMap,
         })
@@ -80,6 +86,8 @@ class Material(ein.ILevelAttrib):
         data += self.__diffuseColor.getBinary()
         data += self.__shininess.getBinary()
         data += self.__specularStrength.getBinary()
+        data += self.__texSizeX.getBinary()
+        data += self.__texSizeY.getBinary()
         data += self.__diffuseMap.getBinary()
         data += self.__specularMap.getBinary()
         return data
@@ -94,6 +102,10 @@ class Material(ein.ILevelAttrib):
 
     def setSpecularMap(self, v: str):
         self.__specularMap.setStr(v)
+
+    def setTexScale(self, x: float, y: float):
+        self.__texSizeX.set(x)
+        self.__texSizeY.set(y)
 
 
 class VertexArray(ein.ILevelAttrib):

@@ -194,15 +194,7 @@ namespace {
 		}
 
 		virtual void start(void) override {
-			dal::ResourceID path;
-			if ("asset" != this->in_texID.getPackage()) {
-				g_logger.putError("Other packages than 'asset' are not supported yes.", __LINE__, __func__, __FILE__);
-				out_success = false;
-				return;
-			}
-
 			out_success = dal::futil::getRes_image(in_texID, out_img);
-			return;
 		}
 
 	};
@@ -230,11 +222,6 @@ namespace {
 		}
 
 		virtual void start(void) override {
-			if ("asset" != in_modelID.getPackage()) {
-				out_success = false;
-				return;
-			}
-
 			out_success = dal::parseOBJ_assimp(out_info, this->in_modelID);
 		}
 
@@ -546,7 +533,7 @@ namespace dal {
 			renderUnit.m_material.m_specularStrength = info.m_renderUnit.m_material.m_specStrength;
 			renderUnit.m_material.m_shininess = info.m_renderUnit.m_material.m_shininess;
 			renderUnit.m_material.m_diffuseColor = info.m_renderUnit.m_material.m_diffuseColor;
-
+			renderUnit.m_material.setTexScale(info.m_renderUnit.m_material.m_texSize.x, info.m_renderUnit.m_material.m_texSize.y);
 			
 			if (!info.m_renderUnit.m_material.m_diffuseMap.empty()) {
 				auto texHandle = this->orderDiffuseMap(info.m_renderUnit.m_material.m_diffuseMap.c_str(), resMas);
@@ -680,7 +667,8 @@ namespace dal {
 
 			auto loaded = reinterpret_cast<LoadTask_Texture*>(task.get());
 			if (!loaded->out_success) {
-				dalAbort("Failed to load texture: "s + loaded->in_texID.makeIDStr());
+				dalError("Failed to load texture: "s + loaded->in_texID.makeIDStr());
+				return;
 			}
 
 			if (loaded->out_img.m_pixSize == 3) {

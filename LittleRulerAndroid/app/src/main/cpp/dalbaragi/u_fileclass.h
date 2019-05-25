@@ -29,7 +29,8 @@ namespace dal {
 		std::string makeFileName(void) const;
 		std::string makeFilePath(void) const;
 
-		void setOptionalDir(const std::string t);
+		void setPackage(const std::string& t);
+		void setOptionalDir(const std::string& t);
 
 	};
 

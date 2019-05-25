@@ -162,12 +162,12 @@ namespace dal {
 		m_overlayMas(m_resMas, m_shader),
 		m_winWidth(512), m_winHeight(512),
 		m_projectMat(1.0),
-		m_water({ -10, 1, -10 }, { 20, 20 })
+		m_water({ -10, 0.5, -20 }, { 50, 50 })
 	{
 		// Lights
 		{
 			m_dlight1.m_color = { 0.7, 0.7, 0.7 };
-			m_dlight1.mDirection = { 0.3, -1.0, -2.0 };
+			m_dlight1.mDirection = { -1.8, -1.0, 2.0 };
 		}
 
 		// OpenGL global switch
@@ -175,17 +175,15 @@ namespace dal {
 			glClearColor(0.6f, 0.6f, 0.9f, 1.0f);
 		}
 
-		// Misc
+		// Camera
 		{
-			mHandlerName = "RenderMaster"s;
-			EventGod::getinst().registerHandler(this, EventType::window_resize);
+			this->m_camera.setPos(-1.25170159, 1.17569, 5.520179);
+			this->m_camera.setViewPlane(0.9736287, -0.307451);
+		}
 
-			float radio = static_cast<float>(m_winWidth) / static_cast<float>(m_winHeight);
-			this->m_projectMat = glm::perspective(glm::radians(90.0f), radio, 0.01f, 100.0f);
-
-			script::init_renderMas(this);
-
-			{
+		// Overlay
+		/*
+		{
 				auto t = new TextureView(nullptr, &this->m_water.m_refractionTex);
 				t->setPosX(10);
 				t->setPosY(30);
@@ -202,8 +200,20 @@ namespace dal {
 				t->setWidth(256);
 				t->setHeight(256);
 				t->setPauseOnly(false);
+				t->setUpsideDown(true);
 				this->m_overlayMas.addWidget(t);
 			}
+		*/
+
+		// Misc
+		{
+			mHandlerName = "RenderMaster"s;
+			EventGod::getinst().registerHandler(this, EventType::window_resize);
+
+			float radio = static_cast<float>(m_winWidth) / static_cast<float>(m_winHeight);
+			this->m_projectMat = glm::perspective(glm::radians(90.0f), radio, 0.01f, 100.0f);
+
+			script::init_renderMas(this);
 		}
 	}
 
@@ -237,7 +247,7 @@ namespace dal {
 			this->m_shader.useGeneral();
 			auto& unilocGeneral = this->m_shader.getGeneral();
 
-			glUniform4f(unilocGeneral.u_clipPlane, 0, 1, 0, -this->m_water.getHeight());
+			glUniform4f(unilocGeneral.u_clipPlane, 0, 1, 0, -this->m_water.getHeight() + 0.01f);
 			glUniform1i(unilocGeneral.u_doClip, 1);
 
 			glUniformMatrix4fv(unilocGeneral.uProjectMat, 1, GL_FALSE, &m_projectMat[0][0]);

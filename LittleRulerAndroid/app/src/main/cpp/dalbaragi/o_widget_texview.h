@@ -17,6 +17,8 @@ namespace dal {
 		virtual void renderOverlay(const UnilocOverlay& uniloc) override;
 		void setTexture(Texture* const tex);
 
+		void setUpsideDown(const bool v);
+
 	};
 
 }

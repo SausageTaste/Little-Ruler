@@ -672,8 +672,11 @@ namespace dal {
 		return this->m_dir + this->m_bareName + this->m_ext;
 	}
 
+	void ResourceID::setPackage(const std::string& t) {
+		this->m_package = t;
+	}
 
-	void ResourceID::setOptionalDir(const std::string t) {
+	void ResourceID::setOptionalDir(const std::string& t) {
 		this->m_dir = t;
 		if (!this->m_dir.empty() && '/' != this->m_dir.back()) {
 			this->m_dir.push_back('/');
@@ -747,7 +750,14 @@ namespace dal {
 		}
 
 #if defined(_WIN32)
-		const auto& path = getResourceDir_win() + result.getPackage() + '/';
+		std::string path;
+		if ( PACKAGE_NAME_ASSET == result.getPackage() ) {
+			path = getResourceDir_win() + result.getPackage() + '/';
+		}
+		else {
+			path = getResourceDir_win() + USERDATA_FOLDER_NAME + '/' + result.getPackage() + '/';
+		}
+
 		std::string resultStr;
 		if (findMatching_win(resultStr, path, fileName)) {
 			result.setOptionalDir(resultStr.substr(path.size(), resultStr.find(fileName) - path.size()));

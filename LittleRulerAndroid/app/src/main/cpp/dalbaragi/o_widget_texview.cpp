@@ -18,4 +18,8 @@ namespace dal {
 		this->m_quadRender.setDiffuseMap(tex);
 	}
 
+	void TextureView::setUpsideDown(const bool v) {
+		this->m_quadRender.setUpsideDown_diffuseMap(v);
+	}
+
 }

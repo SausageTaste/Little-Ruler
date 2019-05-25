@@ -22,6 +22,7 @@ namespace dal {
 			glm::vec3 m_diffuseColor;
 			std::string m_diffuseMap, m_specularMap;
 			float m_shininess = 32.0f, m_specStrength = 1.0f;
+			glm::vec2 m_texSize;
 		};
 
 		std::string m_name;

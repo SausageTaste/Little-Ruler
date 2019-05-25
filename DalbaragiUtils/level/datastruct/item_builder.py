@@ -184,3 +184,45 @@ class BuildInfo_LightPoint(ILevelItem_Light):
 
     def setMaxDistance(self, v: float):
         self.__maxDist.set(v)
+
+
+class BuildInfo_WaterPlane(eim.ILevelItem):
+    __s_field_pos = "pos"
+    __s_field_width = "width"
+    __s_field_height = "height"
+
+    def __init__(self):
+        self.__pos = pri.Vec3()
+        self.__width = pri.FloatData()
+        self.__height = pri.FloatData()
+
+        super().__init__({
+            self.__s_field_pos : self.__pos,
+            self.__s_field_width : self.__width,
+            self.__s_field_height : self.__height,
+        })
+
+    def getBinary(self) -> bytearray:
+        data = self.getTypeCode()
+        data += self.__pos.getBinary()
+        data += self.__width.getBinary()
+        data += self.__height.getBinary()
+        return data
+
+    @classmethod
+    def getTypeCode(cls) -> bytearray:
+        ere.TypeCodeInspector.reportUsage(5, cls)
+        return bytearray(but.get2BytesInt(5))
+
+    @staticmethod
+    def getFieldTypeOfSelf() -> str:
+        return "water_plane"
+
+    def getPosHandle(self) -> pri.Vec3:
+        return self.__pos
+
+    def setWidth(self, v: float) -> None:
+        self.__width.set(v)
+
+    def setHeight(self, v: float) -> None:
+        self.__height.set(v)

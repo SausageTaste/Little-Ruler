@@ -12,24 +12,11 @@ def main():
     actor = aco.ActorInfo()
     actor.setName("Yuri1")
     actor.getQuatHandle().rotate(180, (0, 1, 0))
-    actor.getPosHandle().setZ(0)
+    actor.getPosHandle().setX(2)
+    actor.getPosHandle().setZ(4)
     model.addActor(actor)
 
-    actor = aco.ActorInfo()
-    actor.setName("Yuri2")
-    actor.getQuatHandle().rotate(-90, (0, 1, 0))
-    actor.getPosHandle().setX(5)
-    actor.getPosHandle().setZ(0)
-    model.addActor(actor)
-
-    actor = aco.ActorInfo()
-    actor.setName("Yuri2")
-    actor.getQuatHandle().rotate(90, (0, 1, 0))
-    actor.getPosHandle().setX(-5)
-    actor.getPosHandle().setZ(0)
-    model.addActor(actor)
-
-    model.setModelID("yuri.obj")
+    model.setModelID("asset::yuri.obj")
     level.add(model)
 
     ########
@@ -37,24 +24,31 @@ def main():
     light = bfi.BuildInfo_LightPoint()
     light.setName("center_light")
     light.getPosHandle().setY(3)
-    #level.add(light)
+    level.add(light)
 
     ########
 
     model = bfi.BuildInfo_ModelImported()
     actor = aco.ActorInfo()
     actor.getPosHandle().setZ(5)
+    #actor.getQuatHandle().rotate(-90, (0, 1, 0))
     model.addActor(actor)
-    model.setModelID("palanquin.obj")
+    model.setModelID("test::academy.obj")
     level.add(model)
 
     ########
 
     model = bfi.BuildInfo_ModelDefined()
     model.setModelID("floor")
-    model.getMeshHandle().setAABB(atl.Vec3(-50, -1, -50), atl.Vec3(50, -0, 50))
-    model.getMaterialHandle().setDiffuseMap("0021di.png")
-    model.addActor(aco.ActorInfo())
+    model.getMeshHandle().setAABB(atl.Vec3(-25, -1, -25), atl.Vec3(25, -0, 25))
+    model.getMaterialHandle().setDiffuseMap("asset::0021di.png")
+    model.getMaterialHandle().setTexScale(20, 20)
+
+    actor = aco.ActorInfo()
+    actor.getPosHandle().setX(10)
+    actor.getPosHandle().setZ(-20)
+
+    model.addActor(actor)
     level.add(model)
 
     ########
@@ -62,20 +56,27 @@ def main():
     model = bfi.BuildInfo_ModelDefined()
     model.setModelID("wall")
     model.getMeshHandle().setAABB(atl.Vec3(-4, 0, -10), atl.Vec3(4, 10, -1))
-    model.getMaterialHandle().setDiffuseMap("grass1.png")
+    model.getMaterialHandle().setDiffuseMap("asset::grass1.png")
     model.addActor(aco.ActorInfo())
     level.add(model)
 
-    lvb.saveLevelJson(level)
-    print("Saved: " + level.getLevelName() + ".json")
-    print(level.getDataReport().getFormattedStr())
+    ########
+
+    water = bfi.BuildInfo_WaterPlane()
+    water.getPosHandle().setX(-10)
+    water.getPosHandle().setY(0.5)
+    water.getPosHandle().setZ(-20)
+    water.setWidth(50)
+    water.setHeight(50)
+    level.add(water)
 
     ########
 
     model = bfi.BuildInfo_ModelDefined()
     model.setModelID("box")
     model.getMeshHandle().setAABB(atl.Vec3(0, 0, 0), atl.Vec3(2, 2, 2))
-    model.getMaterialHandle().setDiffuseMap("grass1.png")
+    model.getMaterialHandle().setTexScale(2, 2)
+    model.getMaterialHandle().setDiffuseMap("asset::grass1.png")
 
     actor = aco.ActorInfo()
     actor.getPosHandle().setX(5)

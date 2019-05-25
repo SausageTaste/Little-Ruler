@@ -14,6 +14,7 @@ class LevelBuilder(ein.ILevelElement):
         bif.BuildInfo_ModelDefined.getFieldTypeOfSelf(): bif.BuildInfo_ModelDefined,
         bif.BuildInfo_ModelImported.getFieldTypeOfSelf(): bif.BuildInfo_ModelImported,
         bif.BuildInfo_LightPoint.getFieldTypeOfSelf(): bif.BuildInfo_LightPoint,
+        bif.BuildInfo_WaterPlane.getFieldTypeOfSelf(): bif.BuildInfo_WaterPlane,
     }
 
     def __init__(self, name:str):

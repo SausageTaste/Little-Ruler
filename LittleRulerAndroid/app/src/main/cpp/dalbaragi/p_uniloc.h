@@ -64,6 +64,7 @@ namespace dal {
 		GLint uPoint2;
 
 		GLint mUpsideDown_maskMap;
+		GLint m_upsideDown_diffuseMap;
 
 		// Fragment shader
 

@@ -84,6 +84,7 @@ namespace dal {
 		uPoint2 = glGetUniformLocation(shader, "uPoint2");
 
 		mUpsideDown_maskMap = glGetUniformLocation(shader, "mUpsideDown_maskMap");
+		m_upsideDown_diffuseMap = glGetUniformLocation(shader, "m_upsideDown_diffuseMap");
 
 		// Fragment shader
 

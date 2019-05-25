@@ -10,7 +10,7 @@ uniform mat4 uModelMat;
 
 // From Master
 uniform highp int uDlightCount;
-uniform mediump vec3 uViewPos;
+uniform highp vec3 uViewPos;
 
 // From Light
 uniform mat4 uDlightProjViewMat[3];
