@@ -61,7 +61,7 @@ namespace {
 		}
 
 		virtual void warn(const char* const str, const int line, const char* const func, const char* const file) override {
-			const auto text = "[WARN ]"s + str;
+			const auto text = "[WARN ] "s + str;
 
 #if defined(_WIN32)
 			std::cout << text << '\n';
@@ -71,7 +71,7 @@ namespace {
 		}
 
 		virtual void error(const char* const str, const int line, const char* const func, const char* const file) override {
-			const auto text = "[ERROR]"s + str;
+			const auto text = "[ERROR] "s + str;
 
 #if defined(_WIN32)
 			std::cout << text << '\n';
@@ -81,7 +81,7 @@ namespace {
 		}
 
 		virtual void fatal(const char* const str, const int line, const char* const func, const char* const file) override {
-			const auto text = "[FATAL]"s + str;
+			const auto text = "[FATAL] "s + str;
 
 #if defined(_WIN32)
 			std::cout << text << '\n';
