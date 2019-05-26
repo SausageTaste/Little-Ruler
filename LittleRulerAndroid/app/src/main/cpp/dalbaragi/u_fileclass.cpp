@@ -222,6 +222,7 @@ namespace {
 		return false;
 	}
 
+	// Rrturns full path of a folder that contains the file.
 	bool findMatchingFileName_recursive_internalStorage(std::string& result, const std::string& criteria, const std::string& rootDir) {
 		const auto dir = opendir(rootDir.c_str());
 		if (nullptr == dir) {
@@ -233,13 +234,20 @@ namespace {
 			const auto drnt = readdir(dir);
 			if ( nullptr == drnt ) break;
 
+			if ("."s == drnt->d_name) continue;
+			if (".."s == drnt->d_name) continue;
+
 			unsigned char dirType = drnt->d_type;
-			std::string newPath = rootDir + drnt->d_name + "/";
 			if (dirType == DT_DIR) {
-				dalVerbose("Folder: "s + newPath);
+				std::string newFolPath = rootDir + drnt->d_name + "/";
+				if ( findMatchingFileName_recursive_internalStorage(result, criteria, newFolPath) )
+					return true;
 			}
 			else{
-				dalVerbose("File: "s + newPath);
+				if (criteria == drnt->d_name) {
+					result = rootDir;
+					return true;
+				}
 			}
 		}
 
@@ -762,6 +770,9 @@ namespace dal {
 
 
 	bool resolveRes(ResourceID& result) {
+		const std::string resolveSucMsg{ "Resource resolved: " };
+		const std::string resolveFailMsg{ "Failed to resolve a resouce: " };
+
 		const auto fileName = result.makeFileName();
 
 		if (result.getPackage().empty()) {
@@ -781,11 +792,11 @@ namespace dal {
 		std::string resultStr;
 		if (findRecur_win(resultStr, path, fileName)) {
 			result.setOptionalDir(resultStr.substr(path.size(), resultStr.find(fileName) - path.size()));
-			dalInfo("Resource resolved: " + result.makeIDStr(), __LINE__, __func__, __FILE__);
+			dalInfo(resolveSucMsg + result.makeIDStr(), __LINE__, __func__, __FILE__);
 			return true;
 		}
 		else {
-			dalError("Resource resolve failed: " + result.makeIDStr(), __LINE__, __func__, __FILE__);
+			dalError(resolveFailMsg + result.makeIDStr(), __LINE__, __func__, __FILE__);
 			return false;
 		}
 #elif defined(__ANDROID__)
@@ -793,18 +804,26 @@ namespace dal {
 			std::string foundStr;
 			if (findMatchingAsset(foundStr, g_assetFolders, "", fileName)) {
 				result.setOptionalDir(foundStr);
-				dalInfo("Resource resolved: " + result.makeIDStr());
+				dalInfo(resolveSucMsg + result.makeIDStr());
 				return true;
 			}
 			else {
-				dalError("Resource resolve failed: " + result.makeIDStr());
+				dalError(resolveFailMsg + result.makeIDStr());
 				return false;
 			}
 		}
 		else {
-			const auto filePath = g_storagePath + LOG_FOLDER_NAME + '/' + fileName;
+			const auto filePath = g_storagePath + USERDATA_FOLDER_NAME + '/' + result.getPackage() + '/';
 			std::string bufferResult;
-			return findMatchingFileName_recursive_internalStorage(bufferResult, fileName, filePath);
+			if ( findMatchingFileName_recursive_internalStorage(bufferResult, fileName, filePath) ) {
+				result.setOptionalDir( bufferResult.substr(filePath.size(), bufferResult.size() - filePath.size()) );
+				dalInfo(resolveSucMsg + result.makeIDStr());
+				return true;
+			}
+			else {
+				dalError(resolveFailMsg + result.makeIDStr());
+				return false;
+			}
 		}
 #endif
 
