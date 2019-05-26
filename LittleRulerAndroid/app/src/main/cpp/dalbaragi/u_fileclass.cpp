@@ -229,16 +229,16 @@ namespace {
 			return false;
 		}
 
-		while ( (const auto drnt = readdir(dir)) != nullptr ) {
-			std::string name{ drnt->d_name };
-			unsigned char dirType = drnt->d_type;
+		while ( true ) {
+			const auto drnt = readdir(dir);
+			if ( nullptr == drnt ) break;
 
+			unsigned char dirType = drnt->d_type;
+			std::string newPath = rootDir + drnt->d_name + "/";
 			if (dirType == DT_DIR) {
-				std::string newPath = rootDir + name + "/";
 				dalVerbose("Folder: "s + newPath);
 			}
 			else{
-				std::string newPath = rootDir + name + "/";
 				dalVerbose("File: "s + newPath);
 			}
 		}
@@ -282,7 +282,7 @@ namespace {
 			}
 		}
 		else {
-			dalInfo("Folder created: userdata");
+			dalInfo("Folder created: "s + path);
 		}
 	}
 
