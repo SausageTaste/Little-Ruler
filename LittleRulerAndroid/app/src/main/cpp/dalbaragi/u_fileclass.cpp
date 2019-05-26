@@ -126,16 +126,11 @@ namespace {
 }
 
 	bool isFile_win(const std::string path) {
-		if (FILE* file = fopen(path.c_str(), "r")) {
-			fclose(file);
-			return true;
-		}
-		else {
-			return false;
-		}
+		std::unique_ptr<FILE, decltype(fclose)*> file{ fopen(path.c_str(), "r"), fclose };
+		return nullptr != file;
 	}
 
-	bool findMatching_win(std::string & result, std::string path, const std::string & criteria) {
+	bool findRecur_win(std::string & result, std::string path, const std::string & criteria) {
 		if (!path.empty() && path.back() != '/') path.push_back('/');
 
 		std::vector<std::string> dirs;
@@ -149,7 +144,7 @@ namespace {
 				}
 			}
 			else {
-				if (findMatching_win(result, newPath, criteria)) {
+				if (findRecur_win(result, newPath, criteria)) {
 					return true;
 				}
 			}
@@ -759,7 +754,7 @@ namespace dal {
 		}
 
 		std::string resultStr;
-		if (findMatching_win(resultStr, path, fileName)) {
+		if (findRecur_win(resultStr, path, fileName)) {
 			result.setOptionalDir(resultStr.substr(path.size(), resultStr.find(fileName) - path.size()));
 			dalInfo("Resource resolved: " + result.makeIDStr(), __LINE__, __func__, __FILE__);
 			return true;
