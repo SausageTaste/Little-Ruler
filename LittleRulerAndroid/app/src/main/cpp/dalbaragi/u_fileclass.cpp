@@ -27,6 +27,7 @@
 #elif defined(__ANDROID__)
 #include <android/asset_manager.h>
 #include <zconf.h> // Just for SEEK_SET
+#include <dirent.h>
 #endif
 
 
@@ -167,7 +168,7 @@ namespace {
 
 	std::string g_storagePath;
 
-	size_t getFileList_android(std::string path, std::vector<std::string>& dirs) {
+	size_t getFileList_asset(std::string path, std::vector<std::string> &dirs) {
 		dirs.clear();
 		if (!path.empty() && path.back() == '/') path.pop_back();
 
@@ -207,7 +208,7 @@ namespace {
 			}
 
 			std::vector<std::string> dirs;
-			getFileList_android(newPath, dirs);
+			getFileList_asset( newPath, dirs );
 			for (auto& fileName : dirs) {
 				if (criteria == fileName) {
 					result = newPath;
@@ -216,6 +217,30 @@ namespace {
 			}
 
 			if (findMatchingAsset(result, folNode, newPath, criteria)) return true;
+		}
+
+		return false;
+	}
+
+	bool findMatchingFileName_recursive_internalStorage(std::string& result, const std::string& criteria, const std::string& rootDir) {
+		const auto dir = opendir(rootDir.c_str());
+		if (nullptr == dir) {
+			dalWarn("Failed to open directory: "s + rootDir);
+			return false;
+		}
+
+		while ( (const auto drnt = readdir(dir)) != nullptr ) {
+			std::string name{ drnt->d_name };
+			unsigned char dirType = drnt->d_type;
+
+			if (dirType == DT_DIR) {
+				std::string newPath = rootDir + name + "/";
+				dalVerbose("Folder: "s + newPath);
+			}
+			else{
+				std::string newPath = rootDir + name + "/";
+				dalVerbose("File: "s + newPath);
+			}
 		}
 
 		return false;
@@ -766,7 +791,7 @@ namespace dal {
 #elif defined(__ANDROID__)
 		if (PACKAGE_NAME_ASSET == result.getPackage()) {
 			std::string foundStr;
-			if (findMatchingAsset(foundStr, g_assetFolders, "", result.makeFileName())) {
+			if (findMatchingAsset(foundStr, g_assetFolders, "", fileName)) {
 				result.setOptionalDir(foundStr);
 				dalInfo("Resource resolved: " + result.makeIDStr());
 				return true;
@@ -777,8 +802,9 @@ namespace dal {
 			}
 		}
 		else {
-			dalError("Cannot resolve " + result.getPackage() + "::" + fileName + ", only asset is supported yet.");
-			return false;
+			const auto filePath = g_storagePath + LOG_FOLDER_NAME + '/' + fileName;
+			std::string bufferResult;
+			return findMatchingFileName_recursive_internalStorage(bufferResult, fileName, filePath);
 		}
 #endif
 
