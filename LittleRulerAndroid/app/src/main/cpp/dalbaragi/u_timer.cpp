@@ -57,10 +57,6 @@ namespace dal {
 
 	}
 
-	Timer::~Timer(void) {
-
-	}
-
 	void Timer::check(void) {
 		this->mLastChecked = std::chrono::steady_clock::now();
 	}

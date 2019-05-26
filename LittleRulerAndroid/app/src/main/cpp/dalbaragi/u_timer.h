@@ -16,7 +16,6 @@ namespace dal {
 
 	public:
 		Timer(void);
-		~Timer(void);
 
 		void check(void);
 		float check_getElapsed_capFPS(void);
