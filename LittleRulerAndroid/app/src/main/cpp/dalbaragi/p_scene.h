@@ -7,6 +7,7 @@
 #include "u_loadinfo.h"
 #include "p_resource.h"
 #include "p_light.h"
+#include "p_water.h"
 
 
 namespace dal {
@@ -24,8 +25,11 @@ namespace dal {
 		struct MapChunk {
 			std::string m_name;
 			std::vector<ModelNActor> m_modelActors;
+
 			std::vector<DirectionalLight> m_dlights;
 			std::vector<PointLight> m_plights;
+
+			std::vector<WaterRenderer> m_waters;
 		};
 
 		//////// Attribs ////////
@@ -43,10 +47,14 @@ namespace dal {
 
 		void renderGeneral(const UnilocGeneral& uniloc) const;
 		void renderDepthMp(const UnilocDepthmp& uniloc) const;
+		void renderWaterry(const UnilocWaterry& uniloc);
+		void renderOnWater(const UnilocGeneral& uniloc, const Camera& cam);
 
 		ActorInfo* addActorForModel(const ResourceID& resID, const std::string& actorName);
 
 		void loadMap(const ResourceID& mapID);
+
+		void onResize(const unsigned int width, const unsigned int height);
 
 	private:
 		void addMap(const LoadedMap& map);

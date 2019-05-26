@@ -161,8 +161,7 @@ namespace dal {
 		: m_scene(m_resMas),
 		m_overlayMas(m_resMas, m_shader),
 		m_winWidth(512), m_winHeight(512),
-		m_projectMat(1.0),
-		m_water({ -10, 0.5, -20 }, { 50, 50 })
+		m_projectMat(1.0)
 	{
 		// Lights
 		{
@@ -239,35 +238,15 @@ namespace dal {
 
 		// Render to water framebuffer
 		{
-			this->m_water.m_fbuffer.bindReflectionFrameBuffer();
-			glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 #ifdef _WIN32
 			glEnable(GL_CLIP_DISTANCE0);
 #endif
 			this->m_shader.useGeneral();
 			auto& unilocGeneral = this->m_shader.getGeneral();
 
-			glUniform4f(unilocGeneral.u_clipPlane, 0, 1, 0, -this->m_water.getHeight() + 0.01f);
 			glUniform1i(unilocGeneral.u_doClip, 1);
 
 			glUniformMatrix4fv(unilocGeneral.uProjectMat, 1, GL_FALSE, &m_projectMat[0][0]);
-
-			auto bansaCam = this->m_camera;
-			{
-				auto camPos = bansaCam.getPos();
-				const auto waterHeight = this->m_water.getHeight();
-				camPos.y = 2 * waterHeight - camPos.y;
-				bansaCam.setPos(camPos);
-
-				auto camViewPlane = bansaCam.getViewPlane();
-				bansaCam.setViewPlane(camViewPlane.x, -camViewPlane.y);
-			}
-
-			const auto viewMat = bansaCam.makeViewMat();
-			glUniformMatrix4fv(unilocGeneral.uViewMat, 1, GL_FALSE, &viewMat[0][0]);
-
-			const auto viewPos = this->m_camera.getPos();
-			glUniform3f(unilocGeneral.uViewPos, viewPos.x, viewPos.y, viewPos.z);
 
 			glUniform3f(unilocGeneral.uBaseAmbient, 0.3f, 0.3f, 0.3f);
 
@@ -278,40 +257,7 @@ namespace dal {
 
 			// Render meshes
 
-			m_scene.renderGeneral(unilocGeneral);
-		}
-
-		{
-			this->m_water.m_fbuffer.bindRefractionFrameBuffer();
-			glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
-#ifdef _WIN32
-			glEnable(GL_CLIP_DISTANCE0);
-#endif
-
-			this->m_shader.useGeneral();
-			auto& unilocGeneral = this->m_shader.getGeneral();
-
-			glUniform4f(unilocGeneral.u_clipPlane, 0, -1, 0, this->m_water.getHeight());
-			glUniform1i(unilocGeneral.u_doClip, 1);
-
-			glUniformMatrix4fv(unilocGeneral.uProjectMat, 1, GL_FALSE, &m_projectMat[0][0]);
-
-			const auto viewMat = this->m_camera.makeViewMat();
-			glUniformMatrix4fv(unilocGeneral.uViewMat, 1, GL_FALSE, &viewMat[0][0]);
-
-			const auto viewPos = this->m_camera.getPos();
-			glUniform3f(unilocGeneral.uViewPos, viewPos.x, viewPos.y, viewPos.z);
-
-			glUniform3f(unilocGeneral.uBaseAmbient, 0.3f, 0.3f, 0.3f);
-
-			// Lights
-
-			m_dlight1.sendUniform(unilocGeneral, 0);
-			glUniform1i(unilocGeneral.uDlightCount, 1);
-
-			// Render meshes
-
-			m_scene.renderGeneral(unilocGeneral);
+			this->m_scene.renderOnWater(unilocGeneral, this->m_camera);
 		}
 
 		this->m_fbuffer.startRenderOn();
@@ -369,7 +315,7 @@ namespace dal {
 
 			// Render meshes
 
-			this->m_water.renderWaterry(unilocWaterry);
+			this->m_scene.renderWaterry(unilocWaterry);
 		}
 		
 		// Render framebuffer to quad 
@@ -394,7 +340,7 @@ namespace dal {
 			m_winHeight = static_cast<unsigned int>(e.intArg2);
 
 			this->resizeFbuffer(m_winWidth, m_winHeight);
-			this->m_water.m_fbuffer.resizeFbuffer(m_winWidth, m_winHeight);
+			this->m_scene.onResize(m_winWidth, m_winHeight);
 		}
 	}
 

@@ -78,6 +78,11 @@ class Vec3(ein.ILevelAttribLeaf):
     def setZ(self, v: float):
         self.__z = float(v)
 
+    def setXYZ(self, x: float, y: float, z: float) -> None:
+        self.setX(x)
+        self.setY(y)
+        self.setZ(z)
+
 
 class Vec4(ein.ILevelAttribLeaf):
     def __init__(self, x:float=0.0, y:float=0.0, z:float=0.0, w:float=0.0):

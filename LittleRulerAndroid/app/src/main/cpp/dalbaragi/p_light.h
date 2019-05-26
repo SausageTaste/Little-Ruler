@@ -76,6 +76,7 @@ namespace dal {
 
 	public:
 		void sendUniform(const UnilocGeneral& uniloc, int index) const;
+		void sendUniform(const UnilocWaterry& uniloc, int index) const;
 
 	};
 

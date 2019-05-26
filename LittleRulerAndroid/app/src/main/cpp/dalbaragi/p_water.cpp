@@ -307,8 +307,8 @@ namespace dal {
 		);
 
 		this->m_material.m_diffuseColor = { 0, 0, 1 };
-		this->m_material.m_specularStrength = 2.0f;
-		this->m_material.m_shininess = 16.0;
+		this->m_material.m_specularStrength = 5.0f;
+		this->m_material.m_shininess = 100.0f;
 	}
 
 	void WaterRenderer::renderWaterry(const UnilocWaterry& uniloc) {

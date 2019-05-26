@@ -153,4 +153,10 @@ namespace dal {
 		glUniform1f(uniloc.uPlightMaxDists[index], mMaxDistance);
 	}
 
+	void PointLight::sendUniform(const UnilocWaterry& uniloc, int index) const {
+		glUniform3f(uniloc.uPlightColors[index], this->m_color.r, this->m_color.g, this->m_color.b);
+		glUniform3f(uniloc.uPlightPoses[index], mPos.x, mPos.y, mPos.z);
+		glUniform1f(uniloc.uPlightMaxDists[index], mMaxDistance);
+	}
+
 }

@@ -24,6 +24,8 @@ def main():
     light = bfi.BuildInfo_LightPoint()
     light.setName("center_light")
     light.getPosHandle().setY(3)
+    light.getPosHandle().setZ(1)
+    light.getColorHandle().setXYZ(0.5, 0.5, 0.5)
     level.add(light)
 
     ########

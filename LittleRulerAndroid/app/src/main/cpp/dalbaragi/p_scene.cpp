@@ -26,16 +26,16 @@ namespace dal {
 
 	}
 
-	void SceneMaster::renderGeneral(const UnilocGeneral& uniloc) const {
+	void SceneMaster::renderGeneral(const UnilocGeneral& uniloc_general) const {
 		for (auto& map : m_mapChunks) {
-			glUniform1i(uniloc.uPlightCount, map.m_plights.size());
+			glUniform1i(uniloc_general.uPlightCount, map.m_plights.size());
 			for (unsigned int i = 0; i < map.m_plights.size(); i++) {
 				if (i >= 3) break;
-				map.m_plights.at(i).sendUniform(uniloc, i);
+				map.m_plights.at(i).sendUniform(uniloc_general, i);
 			}
 
 			for (auto& modelActor : map.m_modelActors) {
-				modelActor.m_model.renderGeneral(uniloc, modelActor.m_inst);
+				modelActor.m_model.renderGeneral(uniloc_general, modelActor.m_inst);
 			}
 		}
 	}
@@ -44,6 +44,93 @@ namespace dal {
 		for (auto& map : m_mapChunks) {
 			for (auto& modelActor : map.m_modelActors) {
 				modelActor.m_model.renderDepthMap(uniloc, modelActor.m_inst);
+			}
+		}
+	}
+
+	void SceneMaster::renderWaterry(const UnilocWaterry& uniloc) {
+		for ( auto& map : m_mapChunks ) {
+			glUniform1i(uniloc.uPlightCount, map.m_plights.size());
+			for ( unsigned int i = 0; i < map.m_plights.size(); i++ ) {
+				if ( i >= 3 ) break;
+				map.m_plights.at(i).sendUniform(uniloc, i);
+			}
+
+			for ( auto& water : map.m_waters ) {
+				water.renderWaterry(uniloc);
+			}
+		}
+	}
+
+	void SceneMaster::renderOnWater(const UnilocGeneral& uniloc, const Camera& cam) {
+		for ( auto& map : m_mapChunks ) {
+			for ( auto& water : map.m_waters ) {
+				{
+					glUniform4f(uniloc.u_clipPlane, 0, 1, 0, -water.getHeight() + 0.01f);
+					glUniform1i(uniloc.u_doClip, 1);
+
+					auto bansaCam = cam;
+					{
+						auto camPos = bansaCam.getPos();
+						const auto waterHeight = water.getHeight();
+						camPos.y = 2 * waterHeight - camPos.y;
+						bansaCam.setPos(camPos);
+
+						auto camViewPlane = bansaCam.getViewPlane();
+						bansaCam.setViewPlane(camViewPlane.x, -camViewPlane.y);
+					}
+
+					const auto viewMat = bansaCam.makeViewMat();
+					glUniformMatrix4fv(uniloc.uViewMat, 1, GL_FALSE, &viewMat[0][0]);
+
+					const auto viewPos = bansaCam.getPos();
+					glUniform3f(uniloc.uViewPos, viewPos.x, viewPos.y, viewPos.z);
+
+					glUniform3f(uniloc.uBaseAmbient, 0.3f, 0.3f, 0.3f);
+
+					water.m_fbuffer.bindReflectionFrameBuffer();
+					glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+
+					// Render map general
+					{
+						glUniform1i(uniloc.uPlightCount, map.m_plights.size());
+						for ( unsigned int i = 0; i < map.m_plights.size(); i++ ) {
+							if ( i >= 3 ) break;
+							map.m_plights.at(i).sendUniform(uniloc, i);
+						}
+
+						for ( auto& modelActor : map.m_modelActors ) {
+							modelActor.m_model.renderGeneral(uniloc, modelActor.m_inst);
+						}
+					}
+				}
+
+				{
+					glUniform4f(uniloc.u_clipPlane, 0, -1, 0, water.getHeight());
+					glUniform1i(uniloc.u_doClip, 1);
+
+					const auto viewMat = cam.makeViewMat();
+					glUniformMatrix4fv(uniloc.uViewMat, 1, GL_FALSE, &viewMat[0][0]);
+
+					const auto viewPos = cam.getPos();
+					glUniform3f(uniloc.uViewPos, viewPos.x, viewPos.y, viewPos.z);
+
+					water.m_fbuffer.bindRefractionFrameBuffer();
+					glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+
+					// Render map general
+					{
+						glUniform1i(uniloc.uPlightCount, map.m_plights.size());
+						for ( unsigned int i = 0; i < map.m_plights.size(); i++ ) {
+							if ( i >= 3 ) break;
+							map.m_plights.at(i).sendUniform(uniloc, i);
+						}
+
+						for ( auto& modelActor : map.m_modelActors ) {
+							modelActor.m_model.renderGeneral(uniloc, modelActor.m_inst);
+						}
+					}
+				}
 			}
 		}
 	}
@@ -63,6 +150,14 @@ namespace dal {
 		}
 		else {
 			this->addMap(info);
+		}
+	}
+
+	void SceneMaster::onResize(const unsigned int width, const unsigned int height) {
+		for ( auto& map : this->m_mapChunks ) {
+			for ( auto& water : map.m_waters ) {
+				water.m_fbuffer.resizeFbuffer(width, height);
+			}
 		}
 	}
 
@@ -110,16 +205,6 @@ namespace dal {
 			model.m_inst.assign(importedModel.m_actors.begin(), importedModel.m_actors.end());
 		}
 
-		for (auto& direcLight : map.m_direcLights) {
-            newMap.m_dlights.emplace_back();
-            auto& dlight = newMap.m_dlights.back();
-
-            dlight.m_name = direcLight.m_name;
-            dlight.m_color = direcLight.m_color;
-            dlight.mDirection = direcLight.m_direction;
-            dlight.mHalfShadowEdgeSize = direcLight.m_halfShadowEdgeSize;
-		}
-
 		for (auto& pointLight : map.m_pointLights) {
             newMap.m_plights.emplace_back();
             auto& plight = newMap.m_plights.back();
@@ -128,6 +213,11 @@ namespace dal {
             plight.m_color = pointLight.m_color;
             plight.mPos = pointLight.m_pos;
             plight.mMaxDistance = pointLight.m_maxDist;
+		}
+
+		for ( auto& waterInfo : map.m_waterPlanes ) {
+			glm::vec2 size{ waterInfo.width, waterInfo.height };
+			newMap.m_waters.emplace_back(waterInfo.m_pos, size);
 		}
 	}
 

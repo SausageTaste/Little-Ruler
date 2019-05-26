@@ -64,7 +64,6 @@ namespace dal {
 		unsigned int m_winWidth, m_winHeight;
 		glm::mat4 m_projectMat;
 		DirectionalLight m_dlight1;
-		WaterRenderer m_water;
 
 	public:
 		RenderMaster(void);
