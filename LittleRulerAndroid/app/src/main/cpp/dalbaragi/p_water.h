@@ -11,29 +11,87 @@
 
 namespace dal {
 
+	void deleteFramebuffer(const GLuint fbo);
+	void deleteRenderbuffer(const GLuint rbo);
+
+
+	template <void (*DEL_FUNC)(GLuint)>
+	class GLObject {
+
+	private:
+		static constexpr GLuint s_nullValue = 0;
+		GLuint m_fbo;
+
+	private:
+		GLObject(const GLObject&) = delete;
+		GLObject& operator=(const GLObject&) = delete;
+
+	public:
+		GLObject(void) : m_fbo(s_nullValue) {
+
+		}
+
+		GLObject(GLObject&& other) noexcept {
+			this->m_fbo = other.m_fbo;
+			other.m_fbo = s_nullValue;
+		}
+
+		GLObject& operator=(GLObject&& other) noexcept {
+			this->m_fbo = other.m_fbo;
+			other.m_fbo = s_nullValue;
+			return *this;
+		}
+
+		~GLObject(void) {
+			this->del();
+		}
+
+		void reset(const GLuint fbo) {
+			this->del();
+			this->m_fbo = fbo;
+		}
+
+		GLuint get(void) {
+			assert(this->isReady());
+			return this->m_fbo;
+		}
+
+		bool isReady(void) const {
+			return this->m_fbo != s_nullValue;
+		}
+
+		void del(void) {
+			if ( this->isReady() ) {
+				DEL_FUNC(this->m_fbo);
+				this->m_fbo = 0;
+			}
+		}
+
+	};
+
+
 	class WaterFramebuffer {
 
 	private:
-		GLuint m_reflectionFrameBuffer;
-		GLuint m_reflectionTexture;
-		GLuint m_reflectionDepthBuffer;
+		GLObject<deleteFramebuffer> m_reflectionFrameBuffer;
+		Texture m_reflectionTexture;
+		GLObject<deleteRenderbuffer> m_reflectionDepthBuffer;
 
-		GLuint m_refractionFrameBuffer;
-		GLuint m_refractionTexture;
-		GLuint m_refractionDepthTexture;
+		GLObject<deleteFramebuffer> m_refractionFrameBuffer;
+		Texture m_refractionTexture;
+		GLObject<deleteRenderbuffer> m_refractionDepthTexture;
 
-		float m_winWidth = 0, m_winHeight = 0;
+		float m_winWidth, m_winHeight;
 		float m_reflecScale, m_refracScale;
 
 	public:
 		WaterFramebuffer(const unsigned int winWidth, const unsigned int winHeight);
-		~WaterFramebuffer(void);
 
 		void bindReflectionFrameBuffer(void);
 		void bindRefractionFrameBuffer(void);
 
-		GLuint getReflectionTexture(void);
-		GLuint getRefractionTexture(void);
+		Texture* getReflectionTexture(void);
+		Texture* getRefractionTexture(void);
 		GLuint getRefractionDepthTexture(void);
 
 		void resizeFbuffer(const unsigned int winWidth, const unsigned int winHeight);
@@ -53,9 +111,6 @@ namespace dal {
 
 	public:
 		WaterFramebuffer m_fbuffer;
-		Texture m_reflectionTex;
-		Texture m_refractionTex;
-		Texture m_refractionDepth;
 
 	public:
 		WaterRenderer(const glm::vec3& pos, const glm::vec2& size);

@@ -46,6 +46,7 @@ namespace dal {
 		void init_diffueMap3(const uint8_t* const image, const unsigned int width, const unsigned int height);
 		void init_depthMap(const unsigned int width, const unsigned int height);
 		void init_maskMap(const uint8_t* const image, const unsigned int width, const unsigned int height);
+		void initAttach_colorMap(const unsigned int width, const unsigned int height);
 
 		void deleteTex(void);
 		void sendUniform(const GLint uniloc_sampler, const GLint uniloc_has, const unsigned int index) const;

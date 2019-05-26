@@ -164,6 +164,19 @@ namespace {
 
 namespace dal {
 
+	void deleteFramebuffer(const GLuint fbo) {
+		glDeleteFramebuffers(1, &fbo);
+	}
+
+	void deleteRenderbuffer(const GLuint rbo) {
+		glDeleteRenderbuffers(1, &rbo);
+	}
+
+}
+
+
+namespace dal {
+
 	WaterFramebuffer::WaterFramebuffer(const unsigned int winWidth, const unsigned int winHeight)
 		: m_winWidth(winWidth), m_winHeight(winHeight),
 		m_reflecScale(0.5f), m_refracScale(0.5f)
@@ -174,58 +187,49 @@ namespace dal {
 		const GLsizei REFRACTION_HEIGHT = static_cast<GLsizei>(this->m_winHeight * this->m_refracScale);
 
 		{
-			this->m_reflectionFrameBuffer = genFramebuffer();
-			this->m_reflectionTexture = genTextureAttachment(REFLECTION_WIDTH, REFLECTION_HEIGHT);
-			this->m_reflectionDepthBuffer = genDepthBufferAttachment(REFLECTION_WIDTH, REFLECTION_HEIGHT);
+			this->m_reflectionFrameBuffer.reset(genFramebuffer());
+			this->m_reflectionTexture.initAttach_colorMap(REFLECTION_WIDTH, REFLECTION_HEIGHT);
+			this->m_reflectionDepthBuffer.reset(genDepthBufferAttachment(REFLECTION_WIDTH, REFLECTION_HEIGHT));
 		}
 
 		if ( !checkFramebuffer() ) dalError("Framebuffer creation failed for reflection.");
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		
 		{
-			this->m_refractionFrameBuffer = genFramebuffer();
-			this->m_refractionTexture = genTextureAttachment(REFRACTION_WIDTH, REFRACTION_HEIGHT);
-			this->m_refractionDepthTexture = genDepthBufferAttachment(REFRACTION_WIDTH, REFRACTION_HEIGHT);
+			this->m_refractionFrameBuffer.reset(genFramebuffer());
+			this->m_refractionTexture.initAttach_colorMap(REFRACTION_WIDTH, REFRACTION_HEIGHT);
+			this->m_refractionDepthTexture.reset(genDepthBufferAttachment(REFRACTION_WIDTH, REFRACTION_HEIGHT));
 		}
 
 		if ( !checkFramebuffer() ) dalError("Framebuffer creation failed for reflection.");
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	}
 
-	WaterFramebuffer::~WaterFramebuffer(void) {
-		glDeleteFramebuffers(1, &this->m_reflectionFrameBuffer);
-		glDeleteTextures(1, &this->m_reflectionTexture);
-		glDeleteRenderbuffers(1, &this->m_reflectionDepthBuffer);
-		glDeleteFramebuffers(1, &this->m_refractionFrameBuffer);
-		glDeleteTextures(1, &this->m_refractionTexture);
-		glDeleteTextures(1, &this->m_refractionDepthTexture);
-	}
-
 	void WaterFramebuffer::bindReflectionFrameBuffer(void) {  //call before rendering to this FBO
 		bindFrameBuffer(
-			this->m_reflectionFrameBuffer,
+			this->m_reflectionFrameBuffer.get(),
 			static_cast<int>(this->m_winWidth  * this->m_reflecScale),
 			static_cast<int>(this->m_winHeight  * this->m_reflecScale)
 		);
 	}
 
 	void WaterFramebuffer::bindRefractionFrameBuffer(void) {  //call before rendering to this FBO
-		bindFrameBuffer(this->m_refractionFrameBuffer,
+		bindFrameBuffer(this->m_refractionFrameBuffer.get(),
 			static_cast<int>(this->m_winWidth * this->m_refracScale),
 			static_cast<int>(this->m_winHeight * this->m_refracScale)
 		);
 	}
 
-	GLuint WaterFramebuffer::getReflectionTexture(void) {  //get the resulting texture
-		return this->m_reflectionTexture;
+	Texture* WaterFramebuffer::getReflectionTexture(void) {  //get the resulting texture
+		return &this->m_reflectionTexture;
 	}
 
-	GLuint WaterFramebuffer::getRefractionTexture(void) {  //get the resulting texture
-		return this->m_refractionTexture;
+	Texture* WaterFramebuffer::getRefractionTexture(void) {  //get the resulting texture
+		return &this->m_refractionTexture;
 	}
 
 	GLuint WaterFramebuffer::getRefractionDepthTexture(void) {  //get the resulting depth texture
-		return this->m_refractionDepthTexture;
+		return this->m_refractionDepthTexture.get();
 	}
 
 	void WaterFramebuffer::resizeFbuffer(const unsigned int winWidth, const unsigned int winHeight) {
@@ -238,25 +242,25 @@ namespace dal {
 		const GLsizei gooljul_height = static_cast<GLsizei>(this->m_winHeight * this->m_refracScale);
 
 		{
-			glBindTexture(GL_TEXTURE_2D, this->m_reflectionTexture);
+			glBindTexture(GL_TEXTURE_2D, this->m_reflectionTexture.get());
 			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, bansa_width, bansa_height, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
 			glBindTexture(GL_TEXTURE_2D, 0);
 		}
 
 		{
-			glBindTexture(GL_TEXTURE_2D, this->m_refractionTexture);
+			glBindTexture(GL_TEXTURE_2D, this->m_refractionTexture.get());
 			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, gooljul_width, gooljul_height, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
 			glBindTexture(GL_TEXTURE_2D, 0);
 		}
 
 		{
-			glBindRenderbuffer(GL_RENDERBUFFER, this->m_reflectionDepthBuffer);
+			glBindRenderbuffer(GL_RENDERBUFFER, this->m_reflectionDepthBuffer.get());
 			glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, bansa_width, bansa_height);
 			glBindRenderbuffer(GL_RENDERBUFFER, 0);
 		}
 		
 		{
-			glBindRenderbuffer(GL_RENDERBUFFER, this->m_refractionDepthTexture);
+			glBindRenderbuffer(GL_RENDERBUFFER, this->m_refractionDepthTexture.get());
 			glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, gooljul_width, gooljul_height);
 			glBindRenderbuffer(GL_RENDERBUFFER, 0);
 		}
@@ -269,10 +273,7 @@ namespace dal {
 
 	WaterRenderer::WaterRenderer(const glm::vec3& pos, const glm::vec2& size)
 		: m_height(pos.y),
-		m_fbuffer(12, 12),
-		m_reflectionTex(m_fbuffer.getReflectionTexture()),
-		m_refractionTex(m_fbuffer.getRefractionTexture()),
-		m_refractionDepth(m_fbuffer.getRefractionDepthTexture())
+		m_fbuffer(12, 12)
 	{
 		std::array<float, 18> vertices{
 			pos.x,          pos.y, pos.z,
@@ -318,8 +319,8 @@ namespace dal {
 
 		this->m_material.sendUniform(uniloc);
 
-		this->m_reflectionTex.sendUniform(uniloc.u_bansaTex, 0, 4);
-		this->m_refractionTex.sendUniform(uniloc.u_gooljulTex, 0, 5);
+		this->m_fbuffer.getReflectionTexture()->sendUniform(uniloc.u_bansaTex, 0, 4);
+		this->m_fbuffer.getRefractionTexture()->sendUniform(uniloc.u_gooljulTex, 0, 5);
 		getDUDVMap()->sendUniform(uniloc.u_dudvMap, 0, 6);
 		getWaterNormalMap()->sendUniform(uniloc.u_normalMap, 0, 7);
 

@@ -131,11 +131,23 @@ namespace dal {
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	}
 
+	void Texture::initAttach_colorMap(const unsigned int width, const unsigned int height) {
+		glPixelStorei(GL_UNPACK_ALIGNMENT, 0); 
+		this->genTexture("init_texAttachment");
+
+		glBindTexture(GL_TEXTURE_2D, this->m_texID);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
+
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, this->m_texID, 0);
+		//glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, texture, 0);
+	}
+
 	void Texture::deleteTex(void) {
 		glDeleteTextures(1, &this->m_texID);
 		this->m_texID = 0;
 	}
-
 
 	void Texture::sendUniform(const GLint uniloc_sampler, const GLint uniloc_has, const unsigned int index) const {
 		if ( this->isReady() ) {
@@ -162,6 +174,10 @@ namespace dal {
 	// Private
 
 	void Texture::genTexture(const char* const str4Log) {
+		if ( this->isReady() ) {
+			this->deleteTex();
+		}
+
 		glGenTextures(1, &m_texID);
 		if ( m_texID == 0 ) {
 			dalAbort("Failed to init dal::Texture::init_depthMap::"s + str4Log);
