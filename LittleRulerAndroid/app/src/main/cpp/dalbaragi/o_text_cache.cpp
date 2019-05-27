@@ -49,8 +49,6 @@ namespace dal {
 			charUnit.bearing = glm::vec2{ face->glyph->bitmap_left, face->glyph->bitmap_top };
 			charUnit.advance = static_cast<int32_t>(face->glyph->advance.x);
 
-			g_logger.putInfo("Unicode glyph created: "s + std::to_string(utf32Char), __LINE__, __func__, __FILE__);
-
 			return charUnit;
 		}
 		else {
