@@ -205,14 +205,14 @@ namespace {  // Make items
 		info.m_definedModels.emplace_back();
 		auto& definedModel = info.m_definedModels.back();
 
-		// Get model id
+		// Parse model id
 		{
 			const auto charPtr = reinterpret_cast<const char*>(header);
 			definedModel.m_modelID = charPtr;
 			header += std::strlen(charPtr) + 1;
 		}
 
-		// Get actors
+		// Parse actors
 		{
 			const auto listElementTypeCode = makeInt2(header); header += 2;
 			assert(typeCodes::attrib_actor == listElementTypeCode);
@@ -227,7 +227,7 @@ namespace {  // Make items
 			}
 		}
 
-		// Get vertex arrays
+		// Parse vertex arrays
 		{
 			std::vector<float>* arrays[3] = {
 				&definedModel.m_renderUnit.m_mesh.m_vertices,
@@ -238,7 +238,7 @@ namespace {  // Make items
 			for (int i = 0; i < 3; i++) {
 				const auto arrSize = makeInt4(header); header += 4;
 
-				auto& arr = arrays[i];
+				auto arr = arrays[i];
 				arr->resize(arrSize);
 				
 				for (int j = 0; j < arrSize; j++) {
@@ -248,9 +248,37 @@ namespace {  // Make items
 			}
 		}
 
+		// Make bounding box
+		{
+			assert(0 == (definedModel.m_renderUnit.m_mesh.m_vertices.size() % 3));
+			auto iter = definedModel.m_renderUnit.m_mesh.m_vertices.begin();
+			auto& aabb = definedModel.m_boundingBox;
+
+			while ( definedModel.m_renderUnit.m_mesh.m_vertices.end() != iter ) {
+				const auto x = *iter++;
+				const auto y = *iter++;
+				const auto z = *iter++;
+
+				if ( aabb.m_p1.x > x )
+					aabb.m_p1.x = x;
+				else if ( aabb.m_p2.x < x )
+					aabb.m_p2.x = x;
+
+				if ( aabb.m_p1.y > y )
+					aabb.m_p1.y = y;
+				else if ( aabb.m_p2.y < y )
+					aabb.m_p2.y = y;
+
+				if ( aabb.m_p1.z > z )
+					aabb.m_p1.z = z;
+				else if ( aabb.m_p2.z < z )
+					aabb.m_p2.z = z;
+			}
+		}
+
 		auto& material = definedModel.m_renderUnit.m_material;
 
-		// Get diffuse color(3), shininess(1), specular strength(1), texSize(1, 1)
+		// Parse diffuse color(3), shininess(1), specular strength(1), texSize(1, 1)
 		{
 			float floatBuf[7];
 			for (int i = 0; i < 7; i++) {
@@ -264,14 +292,14 @@ namespace {  // Make items
 			material.m_texSize.y = floatBuf[6];
 		}
 
-		// Get diffuse map name
+		// Parse diffuse map name
 		{
 			const auto charPtr = reinterpret_cast<const char*>(header);
 			material.m_diffuseMap = charPtr;
 			header += std::strlen(charPtr) + 1;
 		}
 
-		// Get specular map name
+		// Parse specular map name
 		{
 			const auto charPtr = reinterpret_cast<const char*>(header);
 			material.m_specularMap = charPtr;
@@ -361,6 +389,11 @@ namespace {  // Make items
 		}
 
 	}
+
+}
+
+
+namespace {
 
 }
 

@@ -19,4 +19,16 @@ namespace dal {
 	
 	};
 
+
+	class AxisAlignedBoundingBox {
+
+	public:
+		glm::vec3 m_p1, m_p2;
+
+	public:
+		AxisAlignedBoundingBox(void) = default;
+		AxisAlignedBoundingBox(const glm::vec3& p1, const glm::vec3& p2);
+
+	};
+
 }

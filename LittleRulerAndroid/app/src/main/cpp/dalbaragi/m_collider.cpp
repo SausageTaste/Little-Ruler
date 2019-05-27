@@ -1,4 +1,4 @@
-#include "m_collision2d.h"
+#include "m_collider.h"
 
 
 namespace dal {
@@ -25,6 +25,17 @@ namespace dal {
 		if (p1.y > p2.y) {
 			std::swap(p1.y, p2.y);
 		}
+	}
+
+}
+
+
+namespace dal {
+
+	AxisAlignedBoundingBox::AxisAlignedBoundingBox(const glm::vec3& p1, const glm::vec3& p2)
+		: m_p1(p1), m_p2(p2)
+	{
+
 	}
 
 }

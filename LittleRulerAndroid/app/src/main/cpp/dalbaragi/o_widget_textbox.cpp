@@ -6,7 +6,7 @@
 #include <fmt/format.h>
 
 #include "s_logger_god.h"
-#include "m_collision2d.h"
+#include "m_collider.h"
 #include "s_scripting.h"
 #include "p_globalfsm.h"
 #include "s_configs.h"

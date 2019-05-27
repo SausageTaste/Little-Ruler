@@ -8,6 +8,7 @@
 #include <glm/gtc/quaternion.hpp>
 
 #include "g_actor.h"
+#include "m_collider.h"
 
 
 namespace dal {
@@ -41,6 +42,7 @@ namespace dal {
 
 		struct ModelDefined : public IMapItemModel {
 			RenderUnitInfo m_renderUnit;
+			AxisAlignedBoundingBox m_boundingBox;
 		};
 
 		struct ModelImported : public IMapItemModel {
