@@ -89,12 +89,26 @@ namespace dal {
 namespace dal {
 
 	DirectionalLight::DirectionalLight(void) {
-		this->mDirection = glm::normalize(this->mDirection);
+		this->m_direction = glm::normalize(this->m_direction);
+	}
+
+	void DirectionalLight::setDirectin(const glm::vec3& direction) {
+		this->m_direction = direction;
+	}
+
+	void DirectionalLight::setDirectin(const float x, const float y, const float z) {
+		this->m_direction.x = x;
+		this->m_direction.y = y;
+		this->m_direction.z = z;
+	}
+
+	const glm::vec3& DirectionalLight::getDirection(void) const {
+		return this->m_direction;
 	}
 
 	void DirectionalLight::sendUniform(const UnilocGeneral& uniloc, int index) const {
 		glUniform3f(uniloc.uDlightColors[index], this->m_color.r, this->m_color.g, this->m_color.b);
-		glUniform3f(uniloc.uDlightDirecs[index], mDirection.x, mDirection.y, mDirection.z);
+		glUniform3f(uniloc.uDlightDirecs[index], this->m_direction.x, this->m_direction.y, this->m_direction.z);
 
 		auto projViewMat = this->makeProjViewMap();
 		glUniformMatrix4fv(uniloc.uDlightProjViewMat[index], 1, GL_FALSE, &projViewMat[0][0]);
@@ -104,7 +118,7 @@ namespace dal {
 
 	void DirectionalLight::sendUniform(const UnilocWaterry& uniloc, int index) const {
 		glUniform3f(uniloc.uDlightColors[index], this->m_color.r, this->m_color.g, this->m_color.b);
-		glUniform3f(uniloc.uDlightDirecs[index], mDirection.x, mDirection.y, mDirection.z);
+		glUniform3f(uniloc.uDlightDirecs[index], this->m_direction.x, this->m_direction.y, this->m_direction.z);
 
 		auto projViewMat = this->makeProjViewMap();
 		glUniformMatrix4fv(uniloc.uDlightProjViewMat[index], 1, GL_FALSE, &projViewMat[0][0]);
@@ -127,7 +141,7 @@ namespace dal {
 			-mHalfShadowEdgeSize, mHalfShadowEdgeSize,
 			-mHalfShadowEdgeSize, mHalfShadowEdgeSize,
 			-mHalfShadowEdgeSize, mHalfShadowEdgeSize
-		) * glm::lookAt(-mDirection, { 0, 0, 0 }, { 0,1,0 });
+		) * glm::lookAt(-this->m_direction, { 0, 0, 0 }, { 0,1,0 });
 	}
 
 	GLuint DirectionalLight::getShadowMapTexture(void) {

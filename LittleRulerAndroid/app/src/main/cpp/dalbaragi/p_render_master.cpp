@@ -166,7 +166,7 @@ namespace dal {
 		// Lights
 		{
 			m_dlight1.m_color = { 0.7, 0.7, 0.7 };
-			m_dlight1.mDirection = { -1.8, -1.0, 2.0 };
+			m_dlight1.setDirectin(-1.8f, -1.0f, 2.0f);
 		}
 
 		// OpenGL global switch
@@ -223,7 +223,10 @@ namespace dal {
 	}
 
 	void RenderMaster::update(const float deltaTime) {
-
+		const auto mat = glm::rotate(glm::mat4{ 1.0f }, deltaTime * 0.5f, glm::vec3{ 1.0f, 0.3f, 0.0f });
+		const glm::vec4 direcBefore{ this->m_dlight1.getDirection(), 0.0f };
+		const auto newDirec = mat * direcBefore;
+		this->m_dlight1.setDirectin(newDirec.x, newDirec.y, newDirec.z);
 	}
 
 	void RenderMaster::render(void) {

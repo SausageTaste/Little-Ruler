@@ -47,14 +47,20 @@ namespace dal {
 
 	class DirectionalLight : public ILight {
 
+	private:
+		glm::vec3 m_direction{ -0.3f, -1.0f, -1.0f };  // This must be always normalized.
+
 	public:
-		glm::vec3 mDirection{ -0.3f, -1.0f, -1.0f };  // This must be always normalized.
 		float mHalfShadowEdgeSize = 25.0f;
 
 		DepthmapForLights mShadowMap;
 
 	public:
 		DirectionalLight(void);
+
+		void setDirectin(const glm::vec3& direction);
+		void setDirectin(const float x, const float y, const float z);
+		const glm::vec3& getDirection(void) const;
 
 		void sendUniform(const UnilocGeneral& uniloc, int index) const;
 		void sendUniform(const UnilocWaterry& uniloc, int index) const;
