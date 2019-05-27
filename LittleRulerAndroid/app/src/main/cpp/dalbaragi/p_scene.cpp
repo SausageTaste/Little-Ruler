@@ -122,17 +122,7 @@ namespace dal {
 				glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
 				// Render map general
-				{
-					glUniform1i(uniloc.uPlightCount, this->m_plights.size());
-					for ( unsigned int i = 0; i < this->m_plights.size(); i++ ) {
-						if ( i >= 3 ) break;
-						this->m_plights.at(i).sendUniform(uniloc, i);
-					}
-
-					for ( auto& modelActor : this->m_modelActors ) {
-						modelActor.m_model->renderGeneral(uniloc, modelActor.m_inst);
-					}
-				}
+				this->renderGeneral(uniloc);
 			}
 
 			{
@@ -149,17 +139,7 @@ namespace dal {
 				glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
 				// Render map general
-				{
-					glUniform1i(uniloc.uPlightCount, this->m_plights.size());
-					for ( unsigned int i = 0; i < this->m_plights.size(); i++ ) {
-						if ( i >= 3 ) break;
-						this->m_plights.at(i).sendUniform(uniloc, i);
-					}
-
-					for ( auto& modelActor : this->m_modelActors ) {
-						modelActor.m_model->renderGeneral(uniloc, modelActor.m_inst);
-					}
-				}
+				this->renderGeneral(uniloc);
 			}
 		}
 	}
