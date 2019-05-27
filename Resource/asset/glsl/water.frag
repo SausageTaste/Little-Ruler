@@ -25,19 +25,31 @@ in vec3 v_toCamera;
 out vec4 fColor;
 
 
-const float waveStren = 0.01;
+const float gk_waveStren = 0.01;
 
 
-void main(void) {
-	vec3 viewDir = normalize(uViewPos - vFragPos);
+vec2 getDistortedCoords() {
+	vec2 distoredTexCoords = texture(u_dudvMap, vec2(vTexCoord.x + u_dudvMoveFactor, vTexCoord.y)).rg * 0.1;
+	return vTexCoord + vec2(distoredTexCoords.x, distoredTexCoords.y + u_dudvMoveFactor);
+}
 
+
+vec3 makeFragNormal(vec2 distortedCoords) {
+	vec4 normalColor = texture(u_normalMap, distortedCoords);
+	return normalize(vec3(
+		normalColor.r * 2.0 - 1.0,
+		normalColor.b * 6.0,
+		normalColor.g * 2.0 - 1.0
+	));
+}
+
+
+vec4 calculateWater(vec3 fragNormal, vec2 distortedCoords) {
 	vec2 normalizedDeviceCoord = (v_clipSpace.xy / v_clipSpace.w) / 2.0 + 0.5;
 	vec2 bansaCoord = vec2(normalizedDeviceCoord.x, -normalizedDeviceCoord.y);
 	vec2 gooljulCoord = vec2(normalizedDeviceCoord.x, normalizedDeviceCoord.y);
 
-	vec2 distoredTexCoords = texture(u_dudvMap, vec2(vTexCoord.x + u_dudvMoveFactor, vTexCoord.y)).rg * 0.1;
-	distoredTexCoords = vTexCoord + vec2(distoredTexCoords.x, distoredTexCoords.y + u_dudvMoveFactor);
-	vec2 totalDistortion = (texture(u_dudvMap, distoredTexCoords).rg * 2.0 - 1.0) * waveStren;
+	vec2 totalDistortion = (texture(u_dudvMap, distortedCoords).rg * 2.0 - 1.0) * gk_waveStren;
 
 	bansaCoord += totalDistortion;
 	gooljulCoord += totalDistortion;
@@ -49,17 +61,22 @@ void main(void) {
 	vec4 bansaColor = texture(u_bansaTex, bansaCoord);
 	vec4 gooljulColor = texture(u_gooljulTex, gooljulCoord);
 
-	vec4 normalColor = texture(u_normalMap, distoredTexCoords);
-	vec3 texNormal = normalize(vec3(
-		normalColor.r * 2.0 - 1.0,
-		normalColor.b * 6.0,
-		normalColor.g * 2.0 - 1.0
-	));
+	vec3 viewVec = normalize(v_toCamera);
+	float refractiveFactor = pow(dot(viewVec, vec3(0.0, 1.0, 0.0)), 0.8);
 
-	vec3 lightedColor = uBaseAmbient;
-	vec3 fragNormal = texNormal;
+	return mix(bansaColor, gooljulColor, refractiveFactor);
+}
 
+
+void main(void) {
+	// Needed values
+	vec3 viewDir = normalize(uViewPos - vFragPos);
+	vec2 distoredTexCoords = getDistortedCoords();
+	vec3 fragNormal = makeFragNormal(distoredTexCoords);
+
+	// Lighting
 	int i;
+	vec3 lightedColor = uBaseAmbient;
 	for (i = 0; i < uDlightCount; i++) {
 		lightedColor += getDlightFactor(i, viewDir, fragNormal, vFragPosInDlight[i]) * uDlightColors[i];
 	}
@@ -67,12 +84,10 @@ void main(void) {
 		lightedColor += getLightFactor_point(i, viewDir, fragNormal, vFragPos) * uPlightColors[i];
 	}
 
-	vec3 viewVec = normalize(v_toCamera);
-	float refractiveFactor = pow(dot(viewVec, vec3(0.0, 1.0, 0.0)), 0.8);
+	// Water
+	vec4 waterImage = calculateWater(fragNormal, distoredTexCoords);
 
-	vec4 waterImage = mix(bansaColor, gooljulColor, refractiveFactor);
-	//waterImage = texture(u_gooljulTex, gooljulCoord);
-	
+	// Final color
 	fColor = 0.5 * waterImage * (vec4(lightedColor, 1.0) + 1.0);
-	fColor += vec4(0.05, 0.05, 0.1, 0.0);
+	//fColor += vec4(0.05, 0.05, 0.1, 0.0);
 }
