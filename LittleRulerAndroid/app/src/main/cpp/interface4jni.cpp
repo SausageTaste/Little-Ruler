@@ -158,10 +158,10 @@ JNIEXPORT void JNICALL Java_com_sausagetaste_littleruler_LibJNI_step(JNIEnv *env
 		dal::touchinput::copyArray(floatArr, curIndex);
 		for (int i = 0; i < curIndex; i += 16) {
 
-			auto xPos  = (jfloat*) &floatArr[i     ];
-			auto yPos  = (jfloat*) &floatArr[i +  4];
-			auto etype = (jint*)   &floatArr[i +  8];
-			auto id    = (jint*)   &floatArr[i + 12];
+			auto xPos  = reinterpret_cast<jfloat*>(&floatArr[i     ]);
+			auto yPos  = reinterpret_cast<jfloat*>(&floatArr[i +  4]);
+			auto etype = reinterpret_cast<jint*>  (&floatArr[i +  8]);
+			auto id    = reinterpret_cast<jint*>  (&floatArr[i + 12]);
 
 			if (!isSystemBigEndian()) {
 				swapBit32(xPos);

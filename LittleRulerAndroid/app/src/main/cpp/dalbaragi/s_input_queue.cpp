@@ -46,7 +46,7 @@ namespace dal {
 			return true;
 		}
 		else {
-			LoggerGod::getinst().putWarn("TouchEvtQueueGod is full", __LINE__, __func__, __FILE__);
+			dalWarn("TouchEvtQueueGod is full");
 			return false;
 		}
 	}
@@ -71,7 +71,7 @@ namespace dal {
 
 	bool KeyboardEvtQueueGod::emplaceBack(const KeySpec key, const KeyboardType type, const float timeSec) {
 		if (isFull()) {
-			LoggerGod::getinst().putWarn("KeyboardEvtQueueGod is full", __LINE__, __func__, __FILE__);
+			dalWarn("KeyboardEvtQueueGod is full");
 			return false;
 		}
 

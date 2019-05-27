@@ -96,7 +96,7 @@ namespace {
 				for (unsigned int i = 0; i < dal::TouchEvtQueueGod::getinst().getSize(); i++) {
 					const auto& touch = dal::TouchEvtQueueGod::getinst().at(i);
 
-					if (0 > touch.id || touch.id >9) {
+					if (0 > touch.id || touch.id > touchStates.size()) {
 						dalWarn("Touch id is out of boundary: "s + std::to_string(touch.id));
 						continue;
 					}
@@ -219,7 +219,13 @@ namespace {
 			{
 				for (unsigned int i = 0; i < dal::TouchEvtQueueGod::getinst().getSize(); i++) {
 					const auto& touch = dal::TouchEvtQueueGod::getinst().at(i);
+
+					if (0 > touch.id || touch.id > touchStates.size()) {
+						dalWarn("Touch id is out of boundary: "s + std::to_string(touch.id));
+						continue;
+					}
 					auto& state = touchStates[touch.id];
+
 					const auto startPos = state.lastPos;
 
 					switch (touch.type) {

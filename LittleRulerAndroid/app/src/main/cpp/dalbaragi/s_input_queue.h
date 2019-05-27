@@ -75,7 +75,6 @@ namespace dal {
 
 namespace dal {
 
-	// enum�� ������ ���� ������ �ڿ��� ������� �����Ǿ�� ��. ���� ��ȣ�� �������.
 	enum class KeySpec {
 		/* unknown */
 		unknown = 40,
