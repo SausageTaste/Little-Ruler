@@ -19,7 +19,7 @@ namespace dal {
 	private:
 		struct ModelNActor {
 			std::list<ActorInfo> m_inst;
-			ModelHandle m_model;
+			Model* m_model;
 		};
 
 		struct MapChunk {

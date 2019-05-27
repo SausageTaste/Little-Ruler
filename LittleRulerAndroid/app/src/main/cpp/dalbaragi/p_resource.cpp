@@ -22,18 +22,6 @@ namespace {
 }
 
 
-// Render Unit
-namespace {
-
-	struct RenderUnit {
-		std::string m_meshName;
-		dal::MeshStatic m_mesh;
-		dal::Material m_material;
-	};
-
-}
-
-
 // Texture
 namespace dal {
 
@@ -224,11 +212,11 @@ namespace {
 		bool out_success;
 		dal::ModelInfo out_info;
 
-		dal::ModelHandle data_coresponding;
-		dal::Package* const data_package;
+		dal::Model& data_coresponding;
+		dal::Package& data_package;
 
 	public:
-		LoadTask_Model(const dal::ResourceID& modelID, dal::ModelHandle const coresponding, dal::Package* const package)
+		LoadTask_Model(const dal::ResourceID& modelID, dal::Model& const coresponding, dal::Package& package)
 		:	in_modelID(modelID),
 			out_success(false),
 			data_coresponding(coresponding),
@@ -247,16 +235,6 @@ namespace {
 	std::unordered_set<void*> g_sentTasks_texture;
 
 	std::unordered_set<void*> g_sentTasks_model;
-
-}
-
-
-// Model
-namespace dal {
-
-	struct Model {
-		std::vector<RenderUnit> m_renderUnits;
-	};
 
 }
 
@@ -321,79 +299,27 @@ namespace dal {
 // Model Handle
 namespace dal {
 
-	struct ModelHandle::Pimpl {
-		std::string m_id;
-		Model* m_model = nullptr;
-		unsigned int m_refCount = 1;
-	};
-
-
-	ModelHandle::ModelHandle(void) {
-
+	void Model::setModelID(const std::string& t) {
+		this->m_modelID = t;
 	}
-	ModelHandle::ModelHandle(const std::string& modelID, Model* const model) : pimpl(new Pimpl) {
-		this->pimpl->m_id = modelID;
-		this->pimpl->m_model = model;
-	}
-	ModelHandle::ModelHandle(const ModelHandle& other) {
-		this->pimpl = other.pimpl;
-		this->pimpl->m_refCount++;
-	}
-	ModelHandle::ModelHandle(ModelHandle&& other) noexcept {
-		auto temp = this->pimpl;
-		this->pimpl = other.pimpl;
-		other.pimpl = temp;
-	}
-	ModelHandle& ModelHandle::operator=(const ModelHandle& other) {
-		this->pimpl = other.pimpl;
-		this->pimpl->m_refCount++;
 
-		return *this;
+	Model::RenderUnit* Model::addRenderUnit(void) {
+		this->m_renderUnits.emplace_back();
+		return &this->m_renderUnits.back();
 	}
-	ModelHandle& ModelHandle::operator=(ModelHandle&& other) noexcept {
-		auto temp = this->pimpl;
-		this->pimpl = other.pimpl;
-		other.pimpl = temp;
 
-		return *this;
-	}
-	ModelHandle::~ModelHandle(void) {
-		if (nullptr == this->pimpl) return;
-
-		this->pimpl->m_refCount--;
-
-		if (this->pimpl->m_refCount <= 0) {
-			if (nullptr != this->pimpl->m_model) {
-				g_logger.putWarn("A model handler's refference all lost without being destroyed: "s + this->pimpl->m_id, __LINE__, __func__, __FILE__);
-				this->destroyModel();
-			}
-			
-			delete this->pimpl;
-			this->pimpl = nullptr;
+	bool Model::isReady(void) const {
+		for ( const auto& unit : this->m_renderUnits ) {
+			if ( !unit.m_mesh.isReady() ) return false;
 		}
-	}
 
-	bool ModelHandle::operator==(const ModelHandle& other) const {
-		return this->pimpl == other.pimpl;
-	}
-
-	bool ModelHandle::isReady(void) const {
-		if (nullptr == this->pimpl) return false;
-		if (nullptr == this->pimpl->m_model) return false;
-		
 		return true;
 	}
 
-	unsigned int ModelHandle::getRefCount(void) const {
-		if (nullptr == this->pimpl) return 0;
-
-		return this->pimpl->m_refCount;
-	}
-
-	void ModelHandle::renderGeneral(const UnilocGeneral& uniloc, const std::list<ActorInfo>& actors) const {
+	void Model::renderGeneral(const UnilocGeneral& uniloc, const std::list<ActorInfo>& actors) const {
 		if (!this->isReady()) return;
 
-		for (auto& unit : this->pimpl->m_model->m_renderUnits) {
+		for (auto& unit : this->m_renderUnits) {
 			unit.m_material.sendUniform(uniloc);
 			if (!unit.m_mesh.isReady()) continue;
 
@@ -405,10 +331,10 @@ namespace dal {
 		}
 	}
 
-	void ModelHandle::renderDepthMap(const UnilocDepthmp& uniloc, const std::list<ActorInfo>& actors) const {
+	void Model::renderDepthMap(const UnilocDepthmp& uniloc, const std::list<ActorInfo>& actors) const {
 		if (!this->isReady()) return;
 
-		for (auto& unit : this->pimpl->m_model->m_renderUnits) {
+		for (auto& unit : this->m_renderUnits) {
 			if (!unit.m_mesh.isReady()) continue;
 
 			for (auto& inst : actors) {
@@ -419,44 +345,9 @@ namespace dal {
 		}
 	}
 
-	void ModelHandle::destroyModel(void) {
-		if (nullptr == this->pimpl->m_model) return;
-
-		if (this->pimpl->m_refCount > 1) {
-			g_logger.putWarn("Destroying model handle with ref count: " + std::to_string(this->pimpl->m_refCount), __LINE__, __func__, __FILE__);
-		}
-
-		for (auto& unit : this->pimpl->m_model->m_renderUnits) {
+	void Model::destroyModel(void) {
+		for (auto& unit : this->m_renderUnits) {
 			unit.m_mesh.destroyData();
-		}
-
-		g_modelPool.free(this->pimpl->m_model);
-		this->pimpl->m_model = nullptr;
-	}
-
-	Model* ModelHandle::replace(Model* model) {
-		if (nullptr == this->pimpl) {
-			this->pimpl = new Pimpl;
-			this->pimpl->m_model = model;
-			return nullptr;
-		}
-		else {
-			auto tmp = this->pimpl->m_model;
-			this->pimpl->m_model = model;
-			return tmp;
-		}
-	}
-
-	std::string ModelHandle::replace(const std::string& id) {
-		if (nullptr == this->pimpl) {
-			this->pimpl = new Pimpl;
-			this->pimpl->m_id = id;
-			return "";
-		}
-		else {
-			auto tmp = this->pimpl->m_id;
-			this->pimpl->m_id = id;
-			return tmp;
 		}
 	}
 
@@ -509,63 +400,61 @@ namespace dal {
 		this->m_name = packageName;
 	}
 
-	ModelHandle Package::orderModel(const ResourceID& resPath, ResourceMaster* const resMas) {
+	Model* Package::orderModel(const ResourceID& resPath, ResourceMaster* const resMas) {
 		std::string modelIDStr{ resPath.makeFileName() };
 
 		decltype(this->m_models.end()) iter = this->m_models.find(modelIDStr);
 		if (this->m_models.end() != iter) {
-			return iter->second;
+			return iter->second.m_data;
 		}
 		else {
-			const auto modelID{ resPath.makeIDStr() };
-			ModelHandle handle{ modelIDStr.c_str(), nullptr };
+			auto model = g_modelPool.alloc();
+			model->setModelID(modelIDStr);
+			this->m_models.emplace(modelIDStr, ManageInfo<Model>{ model, 2 });
 
 			ResourceID idWithPackage{ this->m_name, resPath.getOptionalDir(), resPath.getBareName(), resPath.getExt() };
-			auto task = new LoadTask_Model{ idWithPackage, handle, this };
+			auto task = new LoadTask_Model{ idWithPackage, *model, *this };
 			g_sentTasks_model.insert(task);
 			TaskGod::getinst().orderTask(task, resMas);
 			
-			this->m_models.emplace(modelIDStr, handle);
-			return handle;
+			return model;
 		}
 	}
 
-	ModelHandle Package::buildModel(const loadedinfo::ModelDefined& info, ResourceMaster* const resMas) {
+	Model* Package::buildModel(const loadedinfo::ModelDefined& info, ResourceMaster* const resMas) {
 		auto model = g_modelPool.alloc();
-		ModelHandle handle{ info.m_modelID.c_str(), model };
-		this->m_models.emplace(info.m_modelID, handle);
+		this->m_models.emplace(info.m_modelID, ManageInfo<Model>{ model, 1 });
 
 		{
 			// Render units
-			model->m_renderUnits.emplace_back();
-			auto& renderUnit = model->m_renderUnits.back();
-			renderUnit.m_mesh.buildData(
+			auto renderUnit = model->addRenderUnit();
+			renderUnit->m_mesh.buildData(
 				info.m_renderUnit.m_mesh.m_vertices.data(), info.m_renderUnit.m_mesh.m_vertices.size(),
 				info.m_renderUnit.m_mesh.m_texcoords.data(), info.m_renderUnit.m_mesh.m_texcoords.size(),
 				info.m_renderUnit.m_mesh.m_normals.data(), info.m_renderUnit.m_mesh.m_normals.size()
 			);
 
 			// Material
-			renderUnit.m_material.m_specularStrength = info.m_renderUnit.m_material.m_specStrength;
-			renderUnit.m_material.m_shininess = info.m_renderUnit.m_material.m_shininess;
-			renderUnit.m_material.m_diffuseColor = info.m_renderUnit.m_material.m_diffuseColor;
-			renderUnit.m_material.setTexScale(info.m_renderUnit.m_material.m_texSize.x, info.m_renderUnit.m_material.m_texSize.y);
+			renderUnit->m_material.m_specularStrength = info.m_renderUnit.m_material.m_specStrength;
+			renderUnit->m_material.m_shininess = info.m_renderUnit.m_material.m_shininess;
+			renderUnit->m_material.m_diffuseColor = info.m_renderUnit.m_material.m_diffuseColor;
+			renderUnit->m_material.setTexScale(info.m_renderUnit.m_material.m_texSize.x, info.m_renderUnit.m_material.m_texSize.y);
 			
 			if (!info.m_renderUnit.m_material.m_diffuseMap.empty()) {
 				auto texHandle = this->orderDiffuseMap(info.m_renderUnit.m_material.m_diffuseMap.c_str(), resMas);
-				renderUnit.m_material.setDiffuseMap(texHandle);
+				renderUnit->m_material.setDiffuseMap(texHandle);
 			}
 			
 		}
 
-		return handle;
+		return model;
 	}
 
 	Texture* Package::orderDiffuseMap(const ResourceID& texID, ResourceMaster* const resMas) {
 		auto iter = this->m_textures.find(texID.makeFileName());
 		if ( this->m_textures.end() == iter ) {
 			auto texture = g_texturePool.alloc();
-			this->m_textures.emplace(texID.makeFileName(), TextureManageInfo{ texture, 2 });  // ref count is 2 because of return and task.
+			this->m_textures.emplace(texID.makeFileName(), ManageInfo<Texture>{ texture, 2 });  // ref count is 2 because of return and task.
 
 			ResourceID idWithPackage{ this->m_name, texID.getOptionalDir(), texID.getBareName(), texID.getExt() };
 			auto task = new LoadTask_Texture(idWithPackage, texture);
@@ -576,7 +465,7 @@ namespace dal {
 		}
 		else {
 			iter->second.m_refCount++;
-			return iter->second.m_tex;
+			return iter->second.m_data;
 		}
 	}
 
@@ -593,7 +482,7 @@ namespace dal {
 			g_logger.putError("Not supported pixel size: "s + texID.makeIDStr() + ", " + std::to_string(info.m_pixSize), __LINE__, __func__, __FILE__);
 		}
 		
-		this->m_textures.emplace(texID.makeFileName(), TextureManageInfo{ tex, 1 });
+		this->m_textures.emplace(texID.makeFileName(), ManageInfo<Texture>{ tex, 1 });
 		return tex;
 	}
 
@@ -603,7 +492,7 @@ namespace dal {
 		report.m_models.clear();
 		report.m_models.reserve(this->m_models.size());
 		for (auto& x : this->m_models) {
-			report.m_models.emplace_back(x.first, x.second.getRefCount());
+			report.m_models.emplace_back(x.first, x.second.m_refCount);
 		}
 
 		report.m_textures.clear();
@@ -614,14 +503,15 @@ namespace dal {
 	}
 
 	void Package::clear(void) {
-		for (auto& model : this->m_models) {
-			model.second.destroyModel();
+		for (auto& modelPair : this->m_models) {
+			modelPair.second.m_data->destroyModel();
+			g_modelPool.free(modelPair.second.m_data);
 		}
 		this->m_models.clear();
 
 		for (auto& tex : this->m_textures) {
-			tex.second.m_tex->deleteTex();
-			g_texturePool.free(tex.second.m_tex);
+			tex.second.m_data->deleteTex();
+			g_texturePool.free(tex.second.m_data);
 		}
 		this->m_textures.clear();
 	}
@@ -653,28 +543,24 @@ namespace dal {
 				return;
 			}
 
-			auto model = g_modelPool.alloc();
-			auto shouldBeNULL = loaded->data_coresponding.replace(model);
-			assert(nullptr == shouldBeNULL);
-
 			for (auto& unitInfo : loaded->out_info) {
-				model->m_renderUnits.emplace_back();
-				auto& unit = model->m_renderUnits.back();
+				auto unit = loaded->data_coresponding.addRenderUnit();
+				assert(nullptr != unit);
 
-				unit.m_mesh.buildData(
+				unit->m_mesh.buildData(
 					unitInfo.m_mesh.m_vertices.data(), unitInfo.m_mesh.m_vertices.size(),
 					unitInfo.m_mesh.m_texcoords.data(), unitInfo.m_mesh.m_texcoords.size(),
 					unitInfo.m_mesh.m_normals.data(), unitInfo.m_mesh.m_normals.size()
 				);
-				unit.m_meshName = unitInfo.m_name;
+				unit->m_meshName = unitInfo.m_name;
 
-				unit.m_material.m_diffuseColor = unitInfo.m_material.m_diffuseColor;
-				unit.m_material.m_shininess = unitInfo.m_material.m_shininess;
-				unit.m_material.m_specularStrength = unitInfo.m_material.m_specStrength;
+				unit->m_material.m_diffuseColor = unitInfo.m_material.m_diffuseColor;
+				unit->m_material.m_shininess = unitInfo.m_material.m_shininess;
+				unit->m_material.m_specularStrength = unitInfo.m_material.m_specStrength;
 
 				if (!unitInfo.m_material.m_diffuseMap.empty()) {
-					auto texHandle = loaded->data_package->orderDiffuseMap(unitInfo.m_material.m_diffuseMap, this);
-					unit.m_material.setDiffuseMap(texHandle);
+					auto tex = loaded->data_package.orderDiffuseMap(unitInfo.m_material.m_diffuseMap, this);
+					unit->m_material.setDiffuseMap(tex);
 				}
 			}
 		}
@@ -702,13 +588,13 @@ namespace dal {
 		}
 	}
 
-	ModelHandle ResourceMaster::orderModel(const ResourceID& resID) {
+	Model* ResourceMaster::orderModel(const ResourceID& resID) {
 		auto& package = this->orderPackage(resID.getPackage());
 
 		return package.orderModel(resID, this);
 	}
 
-	ModelHandle ResourceMaster::buildModel(const loadedinfo::ModelDefined& info, const char* const packageName) {
+	Model* ResourceMaster::buildModel(const loadedinfo::ModelDefined& info, const char* const packageName) {
 		auto& package = this->orderPackage(packageName);
 		return package.buildModel(info, this);
 	}

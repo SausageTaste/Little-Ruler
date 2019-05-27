@@ -11,6 +11,7 @@
 #include "p_uniloc.h"
 #include "s_threader.h"
 #include "u_fileclass.h"
+#include "m_collider.h"
 
 
 namespace dal {
@@ -85,32 +86,31 @@ namespace dal {
 	};
 
 
-	class ModelHandle {
+	class Model {
 
 	private:
-		struct Pimpl;
-		Pimpl* pimpl = nullptr;
+		struct RenderUnit {
+			std::string m_meshName;
+			dal::MeshStatic m_mesh;
+			dal::Material m_material;
+		};
+
+		std::string m_modelID;
+		std::vector<RenderUnit> m_renderUnits;
+		AxisAlignedBoundingBox m_boundingBox;
+
+	private:
 
 	public:
-		ModelHandle(void);
-		ModelHandle(const std::string& modelID, Model* const model);
-		ModelHandle(const ModelHandle& other);
-		ModelHandle(ModelHandle&& other) noexcept;
-		ModelHandle& operator=(const ModelHandle& other);
-		ModelHandle& operator=(ModelHandle&& other) noexcept;
-		~ModelHandle(void);
-
-		bool operator==(const ModelHandle& other) const;
+		void setModelID(const std::string& t);
+		RenderUnit* addRenderUnit(void);
 
 		bool isReady(void) const;
-		unsigned int getRefCount(void) const;
 
 		void renderGeneral(const UnilocGeneral& uniloc, const std::list<ActorInfo>& actors) const;
 		void renderDepthMap(const UnilocDepthmp& uniloc, const std::list<ActorInfo>& actors) const;
 
 		void destroyModel(void);
-		Model* replace(Model* model);
-		std::string replace(const std::string& model);
 
 	};
 
@@ -128,22 +128,23 @@ namespace dal {
 		};
 
 	private:
-		struct TextureManageInfo {
-			Texture* m_tex = nullptr;
+		template <typename T>
+		struct ManageInfo {
+			T* m_data = nullptr;
 			int64_t m_refCount = 0;
 		};
 
 	private:
 		std::string m_name;
-		std::unordered_map<std::string, ModelHandle> m_models;
-		std::unordered_map<std::string, TextureManageInfo> m_textures;
+		std::unordered_map<std::string, ManageInfo<Model>> m_models;
+		std::unordered_map<std::string, ManageInfo<Texture>> m_textures;
 
 	public:
 		void setName(const char* const packageName);
 		void setName(const std::string& packageName);
 
-		ModelHandle orderModel(const ResourceID& resPath, ResourceMaster* const resMas);
-		ModelHandle buildModel(const loadedinfo::ModelDefined& info, ResourceMaster* const resMas);
+		Model* orderModel(const ResourceID& resPath, ResourceMaster* const resMas);
+		Model* buildModel(const loadedinfo::ModelDefined& info, ResourceMaster* const resMas);
 		Texture* orderDiffuseMap(const ResourceID& texID, ResourceMaster* const resMas);
 
 		void getResReport(ResourceReport& report) const;
@@ -170,9 +171,9 @@ namespace dal {
 
 		virtual void notifyTask(std::unique_ptr<ITask> task) override;
 
-		ModelHandle orderModel(const ResourceID& resID);
+		Model* orderModel(const ResourceID& resID);
 
-		ModelHandle buildModel(const loadedinfo::ModelDefined& info, const char* const packageName);
+		Model* buildModel(const loadedinfo::ModelDefined& info, const char* const packageName);
 
 		static Texture* getUniqueTexture(void);
 		static void dumpUniqueTexture(Texture* const tex);

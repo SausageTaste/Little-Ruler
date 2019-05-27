@@ -35,7 +35,7 @@ namespace dal {
 			}
 
 			for (auto& modelActor : map.m_modelActors) {
-				modelActor.m_model.renderGeneral(uniloc_general, modelActor.m_inst);
+				modelActor.m_model->renderGeneral(uniloc_general, modelActor.m_inst);
 			}
 		}
 	}
@@ -43,7 +43,7 @@ namespace dal {
 	void SceneMaster::renderDepthMp(const UnilocDepthmp& uniloc) const {
 		for (auto& map : m_mapChunks) {
 			for (auto& modelActor : map.m_modelActors) {
-				modelActor.m_model.renderDepthMap(uniloc, modelActor.m_inst);
+				modelActor.m_model->renderDepthMap(uniloc, modelActor.m_inst);
 			}
 		}
 	}
@@ -100,7 +100,7 @@ namespace dal {
 						}
 
 						for ( auto& modelActor : map.m_modelActors ) {
-							modelActor.m_model.renderGeneral(uniloc, modelActor.m_inst);
+							modelActor.m_model->renderGeneral(uniloc, modelActor.m_inst);
 						}
 					}
 				}
@@ -127,7 +127,7 @@ namespace dal {
 						}
 
 						for ( auto& modelActor : map.m_modelActors ) {
-							modelActor.m_model.renderGeneral(uniloc, modelActor.m_inst);
+							modelActor.m_model->renderGeneral(uniloc, modelActor.m_inst);
 						}
 					}
 				}
