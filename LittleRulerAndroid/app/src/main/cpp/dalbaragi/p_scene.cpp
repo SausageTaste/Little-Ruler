@@ -93,7 +93,7 @@ namespace dal {
 		}
 	}
 
-	void MapChunk::renderOnWater(const UnilocGeneral& uniloc, const Camera& cam) {
+	void MapChunk::renderGeneral_onWater(const UnilocGeneral& uniloc, const Camera& cam) {
 		for ( auto& water : this->m_waters ) {
 			{
 				glUniform4f(uniloc.u_clipPlane, 0, 1, 0, -water.getHeight() + 0.01f);
@@ -180,9 +180,9 @@ namespace dal {
 		}
 	}
 
-	void SceneMaster::renderOnWater(const UnilocGeneral& uniloc, const Camera& cam) {
+	void SceneMaster::renderGeneral_onWater(const UnilocGeneral& uniloc, const Camera& cam) {
 		for ( auto& map : m_mapChunks ) {
-			map.renderOnWater(uniloc, cam);
+			map.renderGeneral_onWater(uniloc, cam);
 		}
 	}
 

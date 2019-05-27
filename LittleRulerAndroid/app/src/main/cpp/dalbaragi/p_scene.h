@@ -40,7 +40,7 @@ namespace dal {
 		void renderGeneral(const UnilocGeneral& uniloc) const;
 		void renderDepthMp(const UnilocDepthmp& uniloc) const;
 		void renderWaterry(const UnilocWaterry& uniloc);
-		void renderOnWater(const UnilocGeneral& uniloc, const Camera& cam);
+		void renderGeneral_onWater(const UnilocGeneral& uniloc, const Camera& cam);
 
 	};
 
@@ -62,7 +62,7 @@ namespace dal {
 		void renderGeneral(const UnilocGeneral& uniloc) const;
 		void renderDepthMp(const UnilocDepthmp& uniloc) const;
 		void renderWaterry(const UnilocWaterry& uniloc);
-		void renderOnWater(const UnilocGeneral& uniloc, const Camera& cam);
+		void renderGeneral_onWater(const UnilocGeneral& uniloc, const Camera& cam);
 
 		void loadMap(const ResourceID& mapID);
 

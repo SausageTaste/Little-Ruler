@@ -257,7 +257,7 @@ namespace dal {
 
 			// Render meshes
 
-			this->m_scene.renderOnWater(unilocGeneral, this->m_camera);
+			this->m_scene.renderGeneral_onWater(unilocGeneral, this->m_camera);
 		}
 
 		this->m_fbuffer.startRenderOn();
