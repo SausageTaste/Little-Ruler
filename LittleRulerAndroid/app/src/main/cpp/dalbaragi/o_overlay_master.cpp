@@ -71,8 +71,6 @@ namespace dal {
 		/* Characters */ {
 			script::set_outputStream(&this->m_strBuffer);
 
-			constexpr float androidScale = 2.0f;
-
 			{
 				auto fpsDisplayer = new Label(nullptr, this->m_unicodes);
 				

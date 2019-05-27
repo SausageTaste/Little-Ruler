@@ -216,7 +216,7 @@ namespace {
 		dal::Package& data_package;
 
 	public:
-		LoadTask_Model(const dal::ResourceID& modelID, dal::Model& const coresponding, dal::Package& package)
+		LoadTask_Model(const dal::ResourceID& modelID, dal::Model& coresponding, dal::Package& package)
 		:	in_modelID(modelID),
 			out_success(false),
 			data_coresponding(coresponding),

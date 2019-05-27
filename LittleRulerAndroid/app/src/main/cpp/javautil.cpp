@@ -34,8 +34,6 @@ namespace {
 
 
 	jbyteArray getArrayObject_sTouchEvents(JNIEnv* const env) {
-		auto &logger = dal::LoggerGod::getinst();
-
 		auto fieldID = env->GetStaticFieldID( findClass_CallableJNI(env), "sTouchEvents", "[B" );
 		if (fieldID == nullptr) {
 			dalAbort( "Failed to find static field CallableJNI::sTouchEvents" );
@@ -45,8 +43,6 @@ namespace {
 	}
 
 	jfieldID getFieldID_sCurrentIndex(JNIEnv* const env) {
-		auto &logger = dal::LoggerGod::getinst();
-
 		auto fieldID = env->GetStaticFieldID( findClass_CallableJNI(env), "sCurrentIndex", "I" );
 		if (fieldID == nullptr) {
 			dalAbort( "Failed to find static field CallableJNI::sCurrentIndex" );
@@ -56,8 +52,6 @@ namespace {
 	}
 
 	jfieldID getFieldID_sArraySize(JNIEnv* const env) {
-		auto &logger = dal::LoggerGod::getinst();
-
 		auto fieldID = env->GetStaticFieldID( findClass_CallableJNI(env), "sArraySize", "I" );
 		if (fieldID == nullptr) {
 			dalAbort( "Failed to find static field CallableJNI::sArraySize" );

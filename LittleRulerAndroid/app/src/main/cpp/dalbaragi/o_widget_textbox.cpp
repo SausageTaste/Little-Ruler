@@ -146,25 +146,24 @@ namespace dal {
 		const float boxHeight = screenInfo.p2.y - screenInfo.p1.y;
 		const float yHeight = screenInfo.p2.y - boxHeight / 4.0f;
 
-
 		auto header = this->m_text.begin();
 		const auto end = this->m_text.end();
 
 		while (end != header) {
 			uint32_t c = 0;
 			{
-				const auto ch = *header;
-				const auto codeSize = utf8_codepoint_size(*header);
+				const auto ch = static_cast<uint8_t>(*header++);
+				const auto codeSize = utf8_codepoint_size(ch);
 				if (codeSize > 1) {
 					uint8_t buf[4];
 					for (size_t i = 0; i < codeSize; i++) {
-						buf[i] = *header++;
+						buf[i] = ch;
 					}
 
 					c = convert_utf8_to_utf32(buf, buf + codeSize);
 				}
 				else {
-					c = static_cast<uint32_t>(*header++);
+					c = ch;
 				}
 			}
 
@@ -341,18 +340,18 @@ namespace dal {
 			while (end != header) {
 				uint32_t c = 0;
 				{
-					const auto ch = *header;
-					const auto codeSize = utf8_codepoint_size(*header);
+					const auto ch = static_cast<uint8_t>(*header++);
+					const auto codeSize = utf8_codepoint_size(ch);
 					if (codeSize > 1) {
 						std::vector<uint8_t> buffer;
 						for (size_t i = 0; i < codeSize; i++) {
-							buffer.push_back(*header++);
+							buffer.push_back(ch);
 						}
 
 						c = convert_utf8_to_utf32(&buffer[0], &buffer[0] + buffer.size());
 					}
 					else {
-						c = static_cast<uint32_t>(*header++);
+						c = ch;
 					}
 				}
 				

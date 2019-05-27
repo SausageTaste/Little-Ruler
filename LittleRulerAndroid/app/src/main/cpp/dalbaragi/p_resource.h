@@ -16,8 +16,6 @@
 
 namespace dal {
 
-	struct Model;
-	class Package;
 	class ResourceMaster;
 
 	
