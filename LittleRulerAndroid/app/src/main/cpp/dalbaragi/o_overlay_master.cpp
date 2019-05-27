@@ -76,17 +76,10 @@ namespace dal {
 			{
 				auto fpsDisplayer = new Label(nullptr, this->m_unicodes);
 				
-#if defined(_WIN32)
 				fpsDisplayer->setPosX(10.0f);
 				fpsDisplayer->setPosY(10.0f);
 				fpsDisplayer->setWidth(50.0f);
 				fpsDisplayer->setHeight(20.0f);
-#elif defined(__ANDROID__)
-				fpsDisplayer->setPosX(10.0f * androidScale);
-				fpsDisplayer->setPosY(10.0f * androidScale);
-				fpsDisplayer->setWidth(50.0f * androidScale);
-				fpsDisplayer->setHeight(20.0f * androidScale);
-#endif
 				fpsDisplayer->setPauseOnly(false);
 				fpsDisplayer->setBackgroundColor(0.0f, 0.0f, 0.0f, 0.5f);
 
@@ -97,17 +90,10 @@ namespace dal {
 			{
 				auto wid = new LineEdit(nullptr, this->m_unicodes);
 
-#if defined(_WIN32)
 				wid->setPosX(10.0f);
 				wid->setPosY(10.0f);
-				wid->setWidth(400.0f);
+				wid->setWidth(800.0f);
 				wid->setHeight(20.0f);
-#elif defined(__ANDROID__)
-				wid->setPosX(10.0f * androidScale);
-				wid->setPosY(10.0f * androidScale);
-				wid->setWidth(400.0f * androidScale);
-				wid->setHeight(20.0f * androidScale);
-#endif
 				wid->setAlignMode(ScreenQuad::AlignMode::upper_right);
 
 				this->m_widgets.push_back(wid);
@@ -118,17 +104,10 @@ namespace dal {
 				this->m_strBuffer.append("Sungmin Woo\n우성민\nwoos8899@gmail.com\n\n");
 				wid->setStrBuf(&this->m_strBuffer);
 
-#if defined(_WIN32)
 				wid->setPosX(10.0f);
 				wid->setPosY(40.0f);
-				wid->setWidth(400.0f);
-				wid->setHeight(300.0f);
-#elif defined(__ANDROID__)
-				wid->setPosX(10.0f * androidScale);
-				wid->setPosY(40.0f * androidScale);
-				wid->setWidth(400.0f * androidScale);
-				wid->setHeight(300.0f * androidScale);
-#endif
+				wid->setWidth(800.0f);
+				wid->setHeight(600.0f);
 				wid->setAlignMode(ScreenQuad::AlignMode::upper_right);
 
 				this->m_widgets.push_back(wid);

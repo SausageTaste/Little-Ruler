@@ -18,7 +18,8 @@ using namespace std::string_literals;
 
 namespace {
 
-	auto& g_logger = dal::LoggerGod::getinst();
+	constexpr unsigned int initWidth = 1280;
+	constexpr unsigned int initHeight = 720;
 
 	dal::KeySpec mapKeySpec(uint32_t sdlKey) {
 		if (SDLK_a <= sdlKey && sdlKey <= SDLK_z) {
@@ -189,9 +190,9 @@ namespace {
 namespace dal {
 
 	int main_windows(void) try {
-		WindowSDL window{ "Little Ruler", 800, 450, false };
+		WindowSDL window{ "Little Ruler", initWidth, initHeight, false };
 
-		Mainloop::giveScreenResFirst(800, 450);
+		Mainloop::giveScreenResFirst(initWidth, initHeight);
 
 		std::unique_ptr<Mainloop> engine{ new Mainloop(nullptr) };
 
@@ -211,19 +212,19 @@ namespace dal {
 		}
 	}
 	catch (const std::exception& e) {
-		g_logger.putFatal("An exception thrown: "s + e.what(), __LINE__, __func__, __FILE__); throw;
+		dalFatal("An exception thrown: "s + e.what()); throw;
 	}
 	catch (const std::string & e) {
-		g_logger.putFatal("A string thrown: "s + e, __LINE__, __func__, __FILE__); throw;
+		dalFatal("A string thrown: "s + e); throw;
 	}
 	catch (const char* const e) {
-		g_logger.putFatal("A char* thrown: "s + e, __LINE__, __func__, __FILE__); throw;
+		dalFatal("A char* thrown: "s + e); throw;
 	}
 	catch (const int e) {
-		g_logger.putFatal("An int thrown: "s + std::to_string(e), __LINE__, __func__, __FILE__); throw;
+		dalFatal("An int thrown: "s + std::to_string(e)); throw;
 	}
 	catch (...) {
-		g_logger.putFatal("Something unkown thrown", __LINE__, __func__, __FILE__); throw;
+		dalFatal("Something unkown thrown"); throw;
 	}
 
 }
