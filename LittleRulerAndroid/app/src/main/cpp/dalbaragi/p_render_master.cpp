@@ -181,9 +181,9 @@ namespace dal {
 		}
 
 		// Overlay
-		/*
 		{
-				auto t = new TextureView(nullptr, &this->m_water.m_refractionTex);
+			{
+				auto t = new TextureView(nullptr, this->m_scene.getWater("test_level", 0)->m_fbuffer.getReflectionTexture());
 				t->setPosX(10);
 				t->setPosY(30);
 				t->setWidth(256);
@@ -193,16 +193,15 @@ namespace dal {
 			}
 
 			{
-				auto t = new TextureView(nullptr, &this->m_water.m_refractionDepth);
+				auto t = new TextureView(nullptr, this->m_scene.getWater("test_level", 0)->m_fbuffer.getRefractionTexture());
 				t->setPosX(10);
-				t->setPosY(290);
+				t->setPosY(300);
 				t->setWidth(256);
 				t->setHeight(256);
 				t->setPauseOnly(false);
-				t->setUpsideDown(true);
 				this->m_overlayMas.addWidget(t);
 			}
-		*/
+		}
 
 		// Misc
 		{

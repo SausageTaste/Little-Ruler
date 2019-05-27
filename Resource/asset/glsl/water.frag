@@ -71,7 +71,7 @@ void main(void) {
 	float refractiveFactor = pow(dot(viewVec, vec3(0.0, 1.0, 0.0)), 0.8);
 
 	vec4 waterImage = mix(bansaColor, gooljulColor, refractiveFactor);
-	//waterImage = vec4(0.0, 0.0, 0.5, 1.0);
+	//waterImage = texture(u_gooljulTex, gooljulCoord);
 	
 	fColor = 0.5 * waterImage * (vec4(lightedColor, 1.0) + 1.0);
 	fColor += vec4(0.05, 0.05, 0.1, 0.0);

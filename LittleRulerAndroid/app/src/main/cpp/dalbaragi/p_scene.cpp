@@ -72,6 +72,10 @@ namespace dal {
 		}
 	}
 
+	const std::string& MapChunk::getName(void) const {
+		return this->m_name;
+	}
+
 	void MapChunk::onScreanResize(const unsigned int width, const unsigned int height) {
 		for ( auto& water : this->m_waters ) {
 			water.m_fbuffer.resizeFbuffer(width, height);
@@ -155,6 +159,11 @@ namespace dal {
 		}
 	}
 
+
+	WaterRenderer* MapChunk::getWater(const int index) {
+		return &this->m_waters.at(index);
+	}
+
 }
 
 
@@ -172,6 +181,7 @@ namespace dal {
 	SceneMaster::~SceneMaster(void) {
 
 	}
+
 
 	void SceneMaster::renderGeneral(const UnilocGeneral& uniloc) const {
 		for (auto& map : m_mapChunks) {
@@ -196,6 +206,18 @@ namespace dal {
 			map.renderGeneral_onWater(uniloc, cam);
 		}
 	}
+
+
+	WaterRenderer* SceneMaster::getWater(const std::string& mapName, const int index) {
+		for ( auto& map : this->m_mapChunks ) {
+			if ( mapName == map.getName() ) {
+				return map.getWater(index);
+			}
+		}
+
+		return nullptr;
+	}
+
 
 	void SceneMaster::loadMap(const ResourceID& mapID) {
 		std::vector<uint8_t> buffer;
@@ -225,6 +247,7 @@ namespace dal {
 
 	void SceneMaster::addMap(const LoadedMap& map) {
 		this->m_mapChunks.emplace_back(map, this->m_resMas);
+		dalInfo("Map added: "s + this->m_mapChunks.back().getName());
 	}
 
 }

@@ -35,12 +35,16 @@ namespace dal {
 		MapChunk(const std::string& name);
 		MapChunk(const LoadedMap& info, ResourceMaster& resMan);
 
+		const std::string& getName(void) const;
+
 		void onScreanResize(const unsigned int width, const unsigned int height);
 
 		void renderGeneral(const UnilocGeneral& uniloc) const;
 		void renderDepthMp(const UnilocDepthmp& uniloc) const;
 		void renderWaterry(const UnilocWaterry& uniloc);
 		void renderGeneral_onWater(const UnilocGeneral& uniloc, const Camera& cam);
+
+		WaterRenderer* getWater(const int index);
 
 	};
 
@@ -63,6 +67,8 @@ namespace dal {
 		void renderDepthMp(const UnilocDepthmp& uniloc) const;
 		void renderWaterry(const UnilocWaterry& uniloc);
 		void renderGeneral_onWater(const UnilocGeneral& uniloc, const Camera& cam);
+
+		WaterRenderer* getWater(const std::string& mapName, const int index);
 
 		void loadMap(const ResourceID& mapID);
 

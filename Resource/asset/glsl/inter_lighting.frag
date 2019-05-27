@@ -94,6 +94,7 @@ float _getLightFactor_directional(int index, vec3 viewDir, vec3 fragNormal) {
 
 
 float getDlightFactor(int index, vec3 viewDir, vec3 fragNormal, vec4 fragPosInDlight) {
+    //return _getLightFactor_directional(index, viewDir, fragNormal) * _getShadowFactor_directional(index, fragPosInDlight);
     return _getLightFactor_directional(index, viewDir, fragNormal) * _getShadowFactor_directional(index, fragPosInDlight);
 }
 
