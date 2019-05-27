@@ -18,11 +18,13 @@ namespace dal {
 		Timer(void);
 
 		void check(void);
-		float check_getElapsed_capFPS(void);
 		float getElapsed(void) const;
-		bool hasElapsed(float sec) const;
+		bool hasElapsed(const float sec) const;
 
-		void setCapFPS(uint32_t v);
+		float check_getElapsed(void);
+		float check_getElapsed_capFPS(void);
+
+		void setCapFPS(const uint32_t v);
 
 	private:
 		void waitToCapFPS(void);

@@ -42,7 +42,7 @@ namespace dal {
 	void sleepFor(const float v) {
 		auto until = std::chrono::steady_clock::now();
 		until += std::chrono::microseconds{ uint64_t(double(v) * double(k_microsecBySec)) };
-		sleepHybridUntil(until);
+		sleepHotUntil(until);
 	}
 
 }
@@ -61,9 +61,7 @@ namespace dal {
 		this->mLastChecked = std::chrono::steady_clock::now();
 	}
 
-	float Timer::check_getElapsed_capFPS(void) {
-		this->waitToCapFPS();
-
+	float Timer::check_getElapsed(void) {
 		auto now = std::chrono::steady_clock::now();
 		auto deltaTime_microsec = (float)std::chrono::duration_cast<std::chrono::microseconds>(now - this->mLastChecked).count();
 		this->mLastChecked = now;
@@ -71,16 +69,21 @@ namespace dal {
 		return float(deltaTime_microsec / float(k_microsecBySec));
 	}
 
+	float Timer::check_getElapsed_capFPS(void) {
+		this->waitToCapFPS();
+		return this->check_getElapsed();
+	}
+
 	float Timer::getElapsed(void) const {
 		auto deltaTime_microsec = (float)std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - this->mLastChecked).count();
 		return float(deltaTime_microsec / float(k_microsecBySec));
 	}
 
-	bool Timer::hasElapsed(float sec) const {
+	bool Timer::hasElapsed(const float sec) const {
 		return this->getElapsed() >= sec;
 	}
 
-	void Timer::setCapFPS(uint32_t v) {
+	void Timer::setCapFPS(const uint32_t v) {
 		mDesiredDeltaMicrosec = k_microsecBySec / v;
 	}
 
@@ -89,7 +92,7 @@ namespace dal {
 #if PRINT_OVESRLEEP == 1
 		const auto startSleep = chrono::steady_clock::now();
 #endif
-		sleepHybridUntil(wakeTime);
+		sleepHotUntil(wakeTime);
 #if PRINT_OVESRLEEP == 1
 		const auto sleepTime = chrono::duration_cast<chrono::microseconds>(chrono::steady_clock::now() - startSleep).count();
 		const auto sleepRate = double(sleepTime) / double(mDesiredDeltaMicrosec);
