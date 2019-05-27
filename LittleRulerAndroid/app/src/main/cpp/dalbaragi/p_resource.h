@@ -105,6 +105,8 @@ namespace dal {
 		void setModelID(const std::string& t);
 		RenderUnit* addRenderUnit(void);
 
+		const AxisAlignedBoundingBox& getBoundingBox(void);
+
 		bool isReady(void) const;
 
 		void renderGeneral(const UnilocGeneral& uniloc, const std::list<ActorInfo>& actors) const;

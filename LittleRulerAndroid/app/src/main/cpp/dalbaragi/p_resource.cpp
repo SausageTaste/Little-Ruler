@@ -308,6 +308,10 @@ namespace dal {
 		return &this->m_renderUnits.back();
 	}
 
+	const AxisAlignedBoundingBox& Model::getBoundingBox(void) {
+		return this->m_boundingBox;
+	}
+
 	bool Model::isReady(void) const {
 		for ( const auto& unit : this->m_renderUnits ) {
 			if ( !unit.m_mesh.isReady() ) return false;

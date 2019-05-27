@@ -1,5 +1,6 @@
 #pragma once
 
+#include <string>
 #include <vector>
 #include <list>
 
@@ -12,25 +13,38 @@
 
 namespace dal {
 
-	class SceneMaster {
-
-		//////// Definitions ////////
+	class MapChunk {
 
 	private:
 		struct ModelNActor {
 			std::list<ActorInfo> m_inst;
-			Model* m_model;
+			Model* m_model = nullptr;
 		};
 
-		struct MapChunk {
-			std::string m_name;
-			std::vector<ModelNActor> m_modelActors;
+	private:
+		std::string m_name;
 
-			std::vector<DirectionalLight> m_dlights;
-			std::vector<PointLight> m_plights;
+		std::vector<ModelNActor> m_modelActors;
 
-			std::vector<WaterRenderer> m_waters;
-		};
+		std::vector<DirectionalLight> m_dlights;
+		std::vector<PointLight> m_plights;
+
+		std::vector<WaterRenderer> m_waters;
+
+	public:
+		MapChunk(const std::string& name);
+		MapChunk(const LoadedMap& info, ResourceMaster& resMan);
+
+		void onScreanResize(const unsigned int width, const unsigned int height);
+
+		void renderGeneral(const UnilocGeneral& uniloc) const;
+		void renderDepthMp(const UnilocDepthmp& uniloc) const;
+		void renderWaterry(const UnilocWaterry& uniloc);
+		void renderOnWater(const UnilocGeneral& uniloc, const Camera& cam);
+
+	};
+
+	class SceneMaster {
 
 		//////// Attribs ////////
 
@@ -49,8 +63,6 @@ namespace dal {
 		void renderDepthMp(const UnilocDepthmp& uniloc) const;
 		void renderWaterry(const UnilocWaterry& uniloc);
 		void renderOnWater(const UnilocGeneral& uniloc, const Camera& cam);
-
-		ActorInfo* addActorForModel(const ResourceID& resID, const std::string& actorName);
 
 		void loadMap(const ResourceID& mapID);
 
