@@ -10,6 +10,22 @@
 using namespace std::string_literals;
 
 
+namespace {
+
+	dal::Camera makeReflectionCamera(dal::Camera camera, const float waterHeight) {
+		auto camPos = camera.getPos();
+		camPos.y = 2.0f * waterHeight - camPos.y;
+		camera.setPos(camPos);
+
+		auto camViewPlane = camera.getViewPlane();
+		camera.setViewPlane(camViewPlane.x, -camViewPlane.y);
+
+		return camera;
+	}
+
+}
+
+
 namespace dal {
 
 	MapChunk::MapChunk(const std::string& name)
@@ -94,29 +110,22 @@ namespace dal {
 	}
 
 	void MapChunk::renderGeneral_onWater(const UnilocGeneral& uniloc, const Camera& cam) {
+		glUniform3f(uniloc.uBaseAmbient, 0.3f, 0.3f, 0.3f);
+
 		for ( auto& water : this->m_waters ) {
 			{
+				// Uniform values
+
 				glUniform4f(uniloc.u_clipPlane, 0, 1, 0, -water.getHeight() + 0.01f);
 				glUniform1i(uniloc.u_doClip, 1);
 
-				auto bansaCam = cam;
-				{
-					auto camPos = bansaCam.getPos();
-					const auto waterHeight = water.getHeight();
-					camPos.y = 2 * waterHeight - camPos.y;
-					bansaCam.setPos(camPos);
+				const auto reflectionCam = makeReflectionCamera(cam, water.getHeight());
 
-					auto camViewPlane = bansaCam.getViewPlane();
-					bansaCam.setViewPlane(camViewPlane.x, -camViewPlane.y);
-				}
-
-				const auto viewMat = bansaCam.makeViewMat();
+				const auto viewMat = reflectionCam.makeViewMat();
 				glUniformMatrix4fv(uniloc.uViewMat, 1, GL_FALSE, &viewMat[0][0]);
 
-				const auto viewPos = bansaCam.getPos();
+				const auto viewPos = reflectionCam.getPos();
 				glUniform3f(uniloc.uViewPos, viewPos.x, viewPos.y, viewPos.z);
-
-				glUniform3f(uniloc.uBaseAmbient, 0.3f, 0.3f, 0.3f);
 
 				water.m_fbuffer.bindReflectionFrameBuffer();
 				glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
@@ -126,6 +135,8 @@ namespace dal {
 			}
 
 			{
+				// Uniform values
+
 				glUniform4f(uniloc.u_clipPlane, 0, -1, 0, water.getHeight());
 				glUniform1i(uniloc.u_doClip, 1);
 
