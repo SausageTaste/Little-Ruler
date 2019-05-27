@@ -161,7 +161,9 @@ namespace dal {
 		: m_scene(m_resMas),
 		m_overlayMas(m_resMas, m_shader),
 		m_winWidth(512), m_winHeight(512),
-		m_projectMat(1.0)
+		m_projectMat(1.0),
+		m_flagDrawDlight1(true),
+		m_skyColor(0.6f, 0.6f, 0.9f)
 	{
 		// Lights
 		{
@@ -171,7 +173,7 @@ namespace dal {
 
 		// OpenGL global switch
 		{
-			glClearColor(0.6f, 0.6f, 0.9f, 1.0f);
+			glClearColor(m_skyColor.x, m_skyColor.y, m_skyColor.z, 1.0f);
 		}
 
 		// Camera
@@ -223,10 +225,16 @@ namespace dal {
 	}
 
 	void RenderMaster::update(const float deltaTime) {
-		const auto mat = glm::rotate(glm::mat4{ 1.0f }, deltaTime * 0.5f, glm::vec3{ 1.0f, 0.3f, 0.0f });
+		const auto mat = glm::rotate(glm::mat4{ 1.0f }, deltaTime * 0.3f, glm::vec3{ 1.0f, 0.5f, 0.0f });
 		const glm::vec4 direcBefore{ this->m_dlight1.getDirection(), 0.0f };
-		const auto newDirec = mat * direcBefore;
-		this->m_dlight1.setDirectin(newDirec.x, newDirec.y, newDirec.z);
+		const auto newDirec = glm::normalize(glm::vec3{ mat * direcBefore });
+		this->m_dlight1.setDirectin(newDirec);
+
+		const auto diff = glm::dot(newDirec, glm::vec3{ 0.0f, -1.0f, 0.0f });
+		m_skyColor = glm::vec3{ 0.5f, 0.5f, 0.8f } *glm::max(diff, 0.0f) + glm::vec3{ 0.1f, 0.1f, 0.2f };
+		glClearColor(m_skyColor.x, m_skyColor.y, m_skyColor.z, 1.0f);
+
+		this->m_flagDrawDlight1 = -0.3f < diff;
 	}
 
 	void RenderMaster::render(void) {
@@ -257,8 +265,13 @@ namespace dal {
 
 			// Lights
 
-			this->m_dlight1.sendUniform(unilocGeneral, 0);
-			glUniform1i(unilocGeneral.uDlightCount, 1);
+			if ( this->m_flagDrawDlight1 ) {
+				this->m_dlight1.sendUniform(unilocGeneral, 0);
+				glUniform1i(unilocGeneral.uDlightCount, 1);
+			}
+			else {
+				glUniform1i(unilocGeneral.uDlightCount, 0);
+			}
 
 			// Render meshes
 			
@@ -275,8 +288,6 @@ namespace dal {
 		{
 			//this->m_shader.useGeneral();
 			auto& unilocGeneral = this->m_shader.getGeneral();
-
-			
 
 			glUniformMatrix4fv(unilocGeneral.uProjectMat, 1, GL_FALSE, &m_projectMat[0][0]);
 			
@@ -311,8 +322,13 @@ namespace dal {
 
 			// Lights
 
-			m_dlight1.sendUniform(unilocWaterry, 0);
-			glUniform1i(unilocWaterry.uDlightCount, 1);
+			if ( this->m_flagDrawDlight1 ) {
+				this->m_dlight1.sendUniform(unilocWaterry, 0);
+				glUniform1i(unilocWaterry.uDlightCount, 1);
+			}
+			else {
+				glUniform1i(unilocWaterry.uDlightCount, 0);
+			}
 
 			// Render meshes
 

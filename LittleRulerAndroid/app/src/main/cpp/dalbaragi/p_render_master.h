@@ -64,6 +64,8 @@ namespace dal {
 		unsigned int m_winWidth, m_winHeight;
 		glm::mat4 m_projectMat;
 		DirectionalLight m_dlight1;
+		bool m_flagDrawDlight1;
+		glm::vec3 m_skyColor;
 
 	public:
 		RenderMaster(void);

@@ -68,7 +68,14 @@ def main():
     model.setModelID("wall")
     model.getMeshHandle().setAABB(atl.Vec3(-4, 0, -10), atl.Vec3(4, 10, -1))
     model.getMaterialHandle().setDiffuseMap("asset::grass1.png")
-    model.addActor(aco.ActorInfo())
+
+    actor = aco.ActorInfo()
+    model.addActor(actor)
+
+    actor = aco.ActorInfo()
+    actor.getPosHandle().setXYZ(30, -2, 3)
+    model.addActor(actor)
+
     level.add(model)
 
     ########
