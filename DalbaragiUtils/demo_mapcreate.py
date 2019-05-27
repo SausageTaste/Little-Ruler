@@ -23,8 +23,8 @@ def main():
 
     light = bfi.BuildInfo_LightPoint()
     light.setName("center_light")
-    light.getPosHandle().setY(3)
-    light.getPosHandle().setZ(1)
+    light.getPosHandle().setY(1.5)
+    light.getPosHandle().setZ(6)
     light.getColorHandle().setXYZ(0.5, 0.5, 0.5)
     level.add(light)
 
@@ -42,12 +42,12 @@ def main():
 
     model = bfi.BuildInfo_ModelDefined()
     model.setModelID("floor")
-    model.getMeshHandle().setAABB(atl.Vec3(-25, -1, -25), atl.Vec3(25, -0, 25))
+    model.getMeshHandle().setAABB(atl.Vec3(0, -1, 0), atl.Vec3(50, 0, 50))
     model.getMaterialHandle().setDiffuseMap("asset::0021di.png")
     model.getMaterialHandle().setTexScale(20, 20)
 
     actor = aco.ActorInfo()
-    actor.getPosHandle().setX(10)
+    actor.getPosHandle().setX(-10)
     actor.getPosHandle().setZ(-20)
 
     model.addActor(actor)
@@ -108,6 +108,8 @@ def main():
     model.addActor(actor)
 
     level.add(model)
+
+    ########
 
     lvb.saveLevelJson(level)
     print("Saved: " + level.getLevelName() + ".json")
