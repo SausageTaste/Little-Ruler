@@ -169,7 +169,9 @@ namespace dal {
 	void OverlayMaster::onClick(const float x, const float y) {
 		if (GlobalGameState::game == this->mGlobalFSM) {
 			for (auto wid : this->m_widgets) {
-				if (wid->getPauseOnly() && !wid->isInside(x, y)) continue;
+				if ( wid->getPauseOnly() ) continue;
+				if ( !wid->isInside(x, y) ) continue;
+
 				wid->onClick(x, y);
 				break;
 			}
