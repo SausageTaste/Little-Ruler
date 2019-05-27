@@ -158,8 +158,13 @@ namespace dal {
 	}
 
 
-	WaterRenderer* MapChunk::getWater(const int index) {
-		return &this->m_waters.at(index);
+	WaterRenderer* MapChunk::getWater(const size_t index) {
+		if ( index >= this->m_waters.size() ) {
+			return nullptr;
+		}
+		else {
+			return &this->m_waters.at(index);
+		}
 	}
 
 }
@@ -206,7 +211,7 @@ namespace dal {
 	}
 
 
-	WaterRenderer* SceneMaster::getWater(const std::string& mapName, const int index) {
+	WaterRenderer* SceneMaster::getWater(const std::string& mapName, const size_t index) {
 		for ( auto& map : this->m_mapChunks ) {
 			if ( mapName == map.getName() ) {
 				return map.getWater(index);

@@ -44,7 +44,7 @@ namespace dal {
 		void renderWaterry(const UnilocWaterry& uniloc);
 		void renderGeneral_onWater(const UnilocGeneral& uniloc, const Camera& cam);
 
-		WaterRenderer* getWater(const int index);
+		WaterRenderer* getWater(const size_t index);
 
 	};
 
@@ -68,7 +68,7 @@ namespace dal {
 		void renderWaterry(const UnilocWaterry& uniloc);
 		void renderGeneral_onWater(const UnilocGeneral& uniloc, const Camera& cam);
 
-		WaterRenderer* getWater(const std::string& mapName, const int index);
+		WaterRenderer* getWater(const std::string& mapName, const size_t index);
 
 		void loadMap(const ResourceID& mapID);
 
