@@ -19,8 +19,6 @@ namespace {
 
 	auto& g_logger = dal::LoggerGod::getinst();
 
-	dal::QuadRenderer g_charDrawer;
-
 	constexpr float g_darkTheme = 30.0f / 255.0f;
 
 
@@ -180,7 +178,7 @@ namespace dal {
 			charQuad.p2.x = charQuad.p1.x + charac.size.x;
 			charQuad.p2.y = charQuad.p1.y + charac.size.y;
 
-			QuadRenderer::statelessRender(uniloc, charQuad.screen2device(), this->m_textColor, nullptr, charac.tex, false, false);
+			QuadRenderer::statelessRender(uniloc, charQuad.screen2device(), this->m_textColor, nullptr, charac.tex, false, true);
 
 			xAdvance += (charac.advance >> 6);
 		}
@@ -386,8 +384,7 @@ namespace dal {
 				charQuad.p2.y = charQuad.p1.y + charac.size.y;
 				if (charQuad.p2.y > info.p2.y) return;
 
-				g_charDrawer.setMaskMap(charac.tex);
-				g_charDrawer.renderQuad(uniloc, charQuad.screen2device());
+				QuadRenderer::statelessRender(uniloc, charQuad.screen2device(), { 1.0, 1.0, 1.0, 1.0 }, nullptr, charac.tex, false, true);
 
 				xAdvance += (charac.advance >> 6);
 			}

@@ -227,8 +227,15 @@ namespace dal {
 		this->m_upsideDown_diffuseMap = v;
 	}
 
+	void QuadRenderer::setUpsideDown_maskMap(const bool v) {
+		this->m_upsideDown_maskMap = v;
+	}
+
 	void QuadRenderer::renderQuad(const UnilocOverlay& uniloc, const QuadInfo& devSpc) {
-		this->statelessRender(uniloc, devSpc, this->m_color, this->m_diffuseMap, this->m_maskMap, this->m_upsideDown_diffuseMap, false);
+		this->statelessRender(
+			uniloc, devSpc, this->m_color, this->m_diffuseMap, this->m_maskMap,
+			this->m_upsideDown_diffuseMap, this->m_upsideDown_maskMap
+		);
 	}
 
 	void QuadRenderer::statelessRender(
