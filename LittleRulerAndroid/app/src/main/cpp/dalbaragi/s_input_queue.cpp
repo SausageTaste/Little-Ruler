@@ -3,6 +3,9 @@
 #include "u_timer.h"
 
 
+using namespace std::string_literals;
+
+
 namespace dal {
 
 	bool ISingleUsageQueue::isFull(void) const {
@@ -36,6 +39,10 @@ namespace dal {
 	}
 
 	bool TouchEvtQueueGod::emplaceBack(const float x, const float y, const TouchType type, const int32_t id, const float timeSec) {
+		if (0 > id || id >= 5) {
+			dalWarn("Touch id is "s + std::to_string(id));
+		}
+
 		if (!isFull()) {
 			mArray[mCurIndex].x = x;
 			mArray[mCurIndex].y = y;
