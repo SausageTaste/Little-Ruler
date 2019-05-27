@@ -28,7 +28,7 @@ namespace dal {
 		DepthmapForLights& operator=(DepthmapForLights&&) noexcept;
 
 		GLuint getTextureID(void);
-		Texture* getDepthMap(void);
+		const Texture* getDepthMap(void) const;
 
 		void startRender(void);
 		void finishRender(void);
@@ -56,14 +56,14 @@ namespace dal {
 	public:
 		DirectionalLight(void);
 
-		void sendUniform(const UnilocGeneral& uniloc, int index);
-		void sendUniform(const UnilocWaterry& uniloc, int index);
+		void sendUniform(const UnilocGeneral& uniloc, int index) const;
+		void sendUniform(const UnilocWaterry& uniloc, int index) const;
 		void startRenderShadowmap(const UnilocDepthmp& uniloc);
 		void finishRenderShadowmap(void);
 
-		glm::mat4 makeProjViewMap(void);
+		glm::mat4 makeProjViewMap(void) const;
 		GLuint getShadowMapTexture(void);
-		Texture* getShadowMap(void);
+		const Texture* getShadowMap(void);
 
 	};
 

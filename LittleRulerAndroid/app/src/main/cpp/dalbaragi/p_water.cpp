@@ -128,7 +128,7 @@ namespace {
 	}
 
 	void bindFrameBuffer(const GLuint frameBuffer, const int width, const int height) {
-		glBindTexture(GL_TEXTURE_2D, 0);  //To make sure the texture isn't bound
+		//glBindTexture(GL_TEXTURE_2D, 0);  //To make sure the texture isn't bound
 		glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
 		glViewport(0, 0, width, height);
 	}

@@ -67,7 +67,7 @@ namespace dal {
 		return mDepthmap->get();
 	}
 
-	Texture* DepthmapForLights::getDepthMap(void) {
+	const Texture* DepthmapForLights::getDepthMap(void) const {
 		return mDepthmap;
 	}
 
@@ -92,28 +92,24 @@ namespace dal {
 		this->mDirection = glm::normalize(this->mDirection);
 	}
 
-	void DirectionalLight::sendUniform(const UnilocGeneral& uniloc, int index) {
+	void DirectionalLight::sendUniform(const UnilocGeneral& uniloc, int index) const {
 		glUniform3f(uniloc.uDlightColors[index], this->m_color.r, this->m_color.g, this->m_color.b);
 		glUniform3f(uniloc.uDlightDirecs[index], mDirection.x, mDirection.y, mDirection.z);
 
 		auto projViewMat = this->makeProjViewMap();
 		glUniformMatrix4fv(uniloc.uDlightProjViewMat[index], 1, GL_FALSE, &projViewMat[0][0]);
 
-		glActiveTexture(GL_TEXTURE1 + static_cast<GLuint>(index));
-		glBindTexture(GL_TEXTURE_2D, mShadowMap.getTextureID());
-		glUniform1i(uniloc.uDlightDepthMap[index], 1 + index);
+		this->mShadowMap.getDepthMap()->sendUniform(uniloc.uDlightDepthMap[index], 0, 1 + index);
 	}
 
-	void DirectionalLight::sendUniform(const UnilocWaterry& uniloc, int index) {
+	void DirectionalLight::sendUniform(const UnilocWaterry& uniloc, int index) const {
 		glUniform3f(uniloc.uDlightColors[index], this->m_color.r, this->m_color.g, this->m_color.b);
 		glUniform3f(uniloc.uDlightDirecs[index], mDirection.x, mDirection.y, mDirection.z);
 
 		auto projViewMat = this->makeProjViewMap();
 		glUniformMatrix4fv(uniloc.uDlightProjViewMat[index], 1, GL_FALSE, &projViewMat[0][0]);
 
-		glActiveTexture(GL_TEXTURE1 + static_cast<GLuint>(index));
-		glBindTexture(GL_TEXTURE_2D, mShadowMap.getTextureID());
-		glUniform1i(uniloc.uDlightDepthMap[index], 1 + index);
+		this->mShadowMap.getDepthMap()->sendUniform(uniloc.uDlightDepthMap[index], 0, 1 + index);
 	}
 
 	void DirectionalLight::startRenderShadowmap(const UnilocDepthmp& uniloc) {
@@ -126,7 +122,7 @@ namespace dal {
 		mShadowMap.finishRender();
 	}
 
-	glm::mat4 DirectionalLight::makeProjViewMap(void) {
+	glm::mat4 DirectionalLight::makeProjViewMap(void) const {
 		return glm::ortho(
 			-mHalfShadowEdgeSize, mHalfShadowEdgeSize,
 			-mHalfShadowEdgeSize, mHalfShadowEdgeSize,
@@ -138,7 +134,7 @@ namespace dal {
 		return mShadowMap.getTextureID();
 	}
 
-	Texture* DirectionalLight::getShadowMap(void) {
+	const Texture* DirectionalLight::getShadowMap(void) {
 		return mShadowMap.getDepthMap();
 	}
 

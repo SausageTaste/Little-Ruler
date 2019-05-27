@@ -114,8 +114,6 @@ namespace dal {
 	}
 
 	void MapChunk::renderGeneral_onWater(const UnilocGeneral& uniloc, const Camera& cam) {
-		glUniform3f(uniloc.uBaseAmbient, 0.3f, 0.3f, 0.3f);
-
 		for ( auto& water : this->m_waters ) {
 			{
 				// Uniform values
