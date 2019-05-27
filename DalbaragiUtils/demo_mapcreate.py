@@ -30,6 +30,15 @@ def main():
 
     ########
 
+    light = bfi.BuildInfo_LightPoint()
+    light.setName("center_light_2")
+    light.getPosHandle().setY(1.5)
+    light.getPosHandle().setZ(6)
+    light.getColorHandle().setXYZ(0.5, 0.5, 0.5)
+    level.add(light)
+
+    ########
+
     model = bfi.BuildInfo_ModelImported()
     actor = aco.ActorInfo()
     actor.getPosHandle().setZ(5)
