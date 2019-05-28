@@ -174,7 +174,7 @@ namespace dal {
 			mHandlerName = "dal::Mainloop";
 			EventGod::getinst().registerHandler(this, EventType::quit_game);
 			
-			this->m_timer.setCapFPS(300);
+			this->m_timer.setCapFPS(0);
 		}
 
 		// Restore from saved state

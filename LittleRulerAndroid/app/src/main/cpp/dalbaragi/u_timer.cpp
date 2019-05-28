@@ -84,7 +84,12 @@ namespace dal {
 	}
 
 	void Timer::setCapFPS(const uint32_t v) {
-		mDesiredDeltaMicrosec = k_microsecBySec / v;
+		if ( 0 == v ) {
+			this->mDesiredDeltaMicrosec = 0;
+		}
+		else {
+			mDesiredDeltaMicrosec = k_microsecBySec / v;
+		}
 	}
 
 	void Timer::waitToCapFPS(void) {

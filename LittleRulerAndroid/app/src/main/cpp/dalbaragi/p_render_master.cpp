@@ -182,32 +182,6 @@ namespace dal {
 			this->m_camera.setViewPlane(0.9736287, -0.307451);
 		}
 
-		// Overlay
-		{
-			const auto& water = this->m_scene.getWater("test_level", 0);
-			if ( nullptr != water ) {
-				{
-					auto t = new TextureView(nullptr, water->m_fbuffer.getReflectionTexture());
-					t->setPosX(10);
-					t->setPosY(30);
-					t->setWidth(256);
-					t->setHeight(256);
-					t->setPauseOnly(false);
-					this->m_overlayMas.addWidget(t);
-				}
-
-				{
-					auto t = new TextureView(nullptr, water->m_fbuffer.getRefractionTexture());
-					t->setPosX(10);
-					t->setPosY(300);
-					t->setWidth(256);
-					t->setHeight(256);
-					t->setPauseOnly(false);
-					this->m_overlayMas.addWidget(t);
-				}
-			}
-		}
-
 		// Misc
 		{
 			mHandlerName = "RenderMaster"s;
