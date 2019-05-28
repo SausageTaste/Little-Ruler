@@ -84,11 +84,7 @@ namespace dal {
 
 
 	void MapChunk::renderGeneral(const UnilocGeneral& uniloc) const {
-		glUniform1i(uniloc.uPlightCount, this->m_plights.size());
-		for ( size_t i = 0; i < this->m_plights.size(); i++ ) {
-			if ( i >= 3 ) break;
-			this->m_plights.at(i).sendUniform(uniloc, i);
-		}
+		this->sendUniforms_lights(uniloc, 0);
 
 		for ( auto& modelActor : this->m_modelActors ) {
 			modelActor.m_model->renderGeneral(uniloc, modelActor.m_inst);
@@ -102,18 +98,14 @@ namespace dal {
 	}
 
 	void MapChunk::renderWaterry(const UnilocWaterry& uniloc) {
-		glUniform1i(uniloc.uPlightCount, this->m_plights.size());
-		for ( unsigned int i = 0; i < this->m_plights.size(); i++ ) {
-			if ( i >= 3 ) break;
-			this->m_plights.at(i).sendUniform(uniloc, i);
-		}
+		this->sendUniforms_lights(uniloc, 0);
 
 		for ( auto& water : this->m_waters ) {
 			water.renderWaterry(uniloc);
 		}
 	}
 
-	void MapChunk::renderGeneral_onWater(const UnilocGeneral& uniloc, const Camera& cam) {
+	void MapChunk::renderGeneral_onWater(const UnilocGeneral& uniloc, const Camera& cam, MapChunk* const additional) {
 		for ( auto& water : this->m_waters ) {
 			{
 				// Uniform values
@@ -134,6 +126,8 @@ namespace dal {
 
 				// Render map general
 				this->renderGeneral(uniloc);
+
+				if ( nullptr != additional ) additional->renderGeneral(uniloc);
 			}
 
 			{
@@ -153,8 +147,35 @@ namespace dal {
 
 				// Render map general
 				this->renderGeneral(uniloc);
+				if ( nullptr != additional ) additional->renderGeneral(uniloc);
 			}
 		}
+	}
+
+	int MapChunk::sendUniforms_lights(const UnilocGeneral& uniloc, int startIndex) const {
+		if ( startIndex >= 3 ) dalAbort("Too many point lights.");
+		if ( startIndex + this->m_plights.size() > 3 ) dalAbort("Too many point lights.");
+
+		glUniform1i(uniloc.uPlightCount, startIndex + this->m_plights.size());
+		for ( int i = 0; i < this->m_plights.size(); i++ ) {
+			if ( i >= 3 ) break;
+			this->m_plights.at(i).sendUniform(uniloc, startIndex + i);
+		}
+
+		return startIndex + this->m_plights.size();
+	}
+
+	int MapChunk::sendUniforms_lights(const UnilocWaterry& uniloc, int startIndex) const {
+		if ( startIndex >= 3 ) dalAbort("Too many point lights.");
+		if ( startIndex + this->m_plights.size() > 3 ) dalAbort("Too many point lights.");
+
+		glUniform1i(uniloc.uPlightCount, startIndex + this->m_plights.size());
+		for ( int i = 0; i < this->m_plights.size(); i++ ) {
+			if ( i >= 3 ) break;
+			this->m_plights.at(i).sendUniform(uniloc, startIndex + i);
+		}
+
+		return startIndex + this->m_plights.size();
 	}
 
 
@@ -165,6 +186,22 @@ namespace dal {
 		else {
 			return &this->m_waters.at(index);
 		}
+	}
+
+	ActorInfo* MapChunk::addActor(Model* const model, const std::string& actorName, bool flagStatic, ResourceMaster& resMas) {
+		for ( auto& modelActor : this->m_modelActors ) {
+			if ( model == modelActor.m_model ) {
+				modelActor.m_inst.emplace_back(actorName, flagStatic);
+				return &modelActor.m_inst.back();
+			}
+		}
+
+		auto takenModel = resMas.orderModel(model->getModelResID());
+		if ( nullptr == takenModel ) dalAbort("WTF??");
+		this->m_modelActors.emplace_back(takenModel);
+		auto& modelActor = this->m_modelActors.back();
+		modelActor.m_inst.emplace_back(actorName, flagStatic);
+		return &modelActor.m_inst.back();
 	}
 
 }
@@ -205,11 +242,25 @@ namespace dal {
 	}
 
 	void SceneMaster::renderGeneral_onWater(const UnilocGeneral& uniloc, const Camera& cam) {
-		for ( auto& map : m_mapChunks ) {
-			map.renderGeneral_onWater(uniloc, cam);
+		auto iter = this->m_mapChunks.begin();
+		const auto end = this->m_mapChunks.end();
+		iter->renderGeneral_onWater(uniloc, cam, nullptr);
+		++iter;
+
+		while ( end != iter ) {
+			iter->renderGeneral_onWater(uniloc, cam, this->m_persistantMap);
+			++iter;
 		}
 	}
 
+
+	ActorInfo* SceneMaster::addActor(Model* const model, const std::string& mapName, const std::string& actorName, bool flagStatic) {
+		auto map = mapName.empty() ? this->m_persistantMap : this->findMap(mapName);
+		if ( nullptr == map ) {
+			dalError("Failed to find map: "s + mapName);
+		}
+		return map->addActor(model, actorName, flagStatic, this->m_resMas);
+	}
 
 	WaterRenderer* SceneMaster::getWater(const std::string& mapName, const size_t index) {
 		for ( auto& map : this->m_mapChunks ) {
@@ -251,6 +302,17 @@ namespace dal {
 	void SceneMaster::addMap(const LoadedMap& map) {
 		this->m_mapChunks.emplace_back(map, this->m_resMas);
 		dalInfo("Map added: "s + this->m_mapChunks.back().getName());
+	}
+
+	MapChunk* SceneMaster::findMap(const std::string& name) {
+		for ( auto& map : this->m_mapChunks ) {
+			if ( name == map.getName() ) {
+				return &map;
+			}
+		}
+
+		dalWarn("Failed to find map in SceneMaster: "s + name);
+		return nullptr;
 	}
 
 }

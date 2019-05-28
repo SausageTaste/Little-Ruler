@@ -169,6 +169,18 @@ namespace dal {
 			}
 		}
 
+		// Player
+		{
+			this->m_player.replaceCamera(&this->m_renderMan.m_camera);
+
+			auto model = this->m_renderMan.m_resMas.orderModel("test::academy.obj");
+			if ( nullptr == model ) dalAbort("Failed to give Player a model");
+			this->m_player.replaceModel(model);
+
+			auto actor = this->m_renderMan.m_scene.addActor(model, "", "player_model", false);
+			this->m_player.replaceActor(actor);
+		}
+
 		// Misc
 		{
 			mHandlerName = "dal::Mainloop";

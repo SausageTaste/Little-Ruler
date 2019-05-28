@@ -93,15 +93,17 @@ namespace dal {
 			dal::Material m_material;
 		};
 
-		std::string m_modelID;
+		ResourceID m_modelResID;
 		std::vector<RenderUnit> m_renderUnits;
 		AxisAlignedBoundingBox m_boundingBox;
 
 	private:
 
 	public:
-		void setModelID(const std::string& t);
+		void setModelResID(const ResourceID& resID);
 		RenderUnit* addRenderUnit(void);
+
+		const ResourceID& getModelResID(void) const;
 
 		const AxisAlignedBoundingBox& getBoundingBox(void);
 
@@ -172,7 +174,6 @@ namespace dal {
 		virtual void notifyTask(std::unique_ptr<ITask> task) override;
 
 		Model* orderModel(const ResourceID& resID);
-
 		Model* buildModel(const loadedinfo::ModelDefined& info, const char* const packageName);
 
 		static Texture* getUniqueTexture(void);

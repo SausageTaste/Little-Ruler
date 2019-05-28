@@ -17,8 +17,11 @@ namespace dal {
 
 	private:
 		struct ModelNActor {
-			std::list<ActorInfo> m_inst;
 			Model* m_model = nullptr;
+			std::list<ActorInfo> m_inst;
+
+			ModelNActor(void) = default;
+			ModelNActor(Model* const model) : m_model(model) {}
 		};
 
 	private:
@@ -42,9 +45,13 @@ namespace dal {
 		void renderGeneral(const UnilocGeneral& uniloc) const;
 		void renderDepthMp(const UnilocDepthmp& uniloc) const;
 		void renderWaterry(const UnilocWaterry& uniloc);
-		void renderGeneral_onWater(const UnilocGeneral& uniloc, const Camera& cam);
+		void renderGeneral_onWater(const UnilocGeneral& uniloc, const Camera& cam, MapChunk* const additional);
+
+		int sendUniforms_lights(const UnilocGeneral& uniloc, int startIndex) const;
+		int sendUniforms_lights(const UnilocWaterry& uniloc, int startIndex) const;
 
 		WaterRenderer* getWater(const size_t index);
+		ActorInfo* addActor(Model* const model, const std::string& actorName, bool flagStatic, ResourceMaster& resMas);
 
 	};
 
@@ -68,6 +75,7 @@ namespace dal {
 		void renderWaterry(const UnilocWaterry& uniloc);
 		void renderGeneral_onWater(const UnilocGeneral& uniloc, const Camera& cam);
 
+		ActorInfo* addActor(Model* const model, const std::string& mapName, const std::string& actorName, bool flagStatic);
 		WaterRenderer* getWater(const std::string& mapName, const size_t index);
 
 		void loadMap(const ResourceID& mapID);
@@ -76,6 +84,7 @@ namespace dal {
 
 	private:
 		void addMap(const LoadedMap& map);
+		MapChunk* findMap(const std::string& name);
 
 	};
 

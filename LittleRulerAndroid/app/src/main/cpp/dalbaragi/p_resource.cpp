@@ -299,9 +299,10 @@ namespace dal {
 // Model Handle
 namespace dal {
 
-	void Model::setModelID(const std::string& t) {
-		this->m_modelID = t;
+	void Model::setModelResID(const ResourceID& resID) {
+		this->m_modelResID = resID;
 	}
+
 
 	Model::RenderUnit* Model::addRenderUnit(void) {
 		this->m_renderUnits.emplace_back();
@@ -311,6 +312,11 @@ namespace dal {
 	const AxisAlignedBoundingBox& Model::getBoundingBox(void) {
 		return this->m_boundingBox;
 	}
+
+	const ResourceID& Model::getModelResID(void) const {
+		return this->m_modelResID;
+	}
+
 
 	bool Model::isReady(void) const {
 		for ( const auto& unit : this->m_renderUnits ) {
@@ -413,7 +419,7 @@ namespace dal {
 		}
 		else {
 			auto model = g_modelPool.alloc();
-			model->setModelID(modelIDStr);
+			model->setModelResID(resPath);
 			this->m_models.emplace(modelIDStr, ManageInfo<Model>{ model, 2 });
 
 			ResourceID idWithPackage{ this->m_name, resPath.getOptionalDir(), resPath.getBareName(), resPath.getExt() };

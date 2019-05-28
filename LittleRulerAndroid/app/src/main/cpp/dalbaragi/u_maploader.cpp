@@ -123,24 +123,25 @@ namespace {
 
 namespace {  // Make attribs
 
-	const uint8_t* makeAttrib_actor(dal::ActorInfo& info, const uint8_t* const begin, const uint8_t* const end) {
+	const uint8_t* makeAttrib_actor(std::vector<dal::ActorInfo>& actorVec, const uint8_t* const begin, const uint8_t* const end) {
 		const uint8_t* header = begin;
 
+		// Construct
 		{
 			const auto charPtr = reinterpret_cast<const char*>(begin);
 			const auto len = std::strlen(charPtr);
 			if (len > 512) dalAbort("Length of string is bigger than 512.");
-
-			info.m_actorID = charPtr;
 			header += len + 1;
+
+			// Static flag
+			const auto flagStatic = 0 != *header++;
+
+			//
+
+			actorVec.emplace_back(charPtr, flagStatic);
 		}
 
-		// Static flag
-		{
-			const auto flag = *header++;
-			if ( 0 == flag ) info.m_static = false;
-			else info.m_static = true;
-		}
+		auto& actor = actorVec.back();
 
 		{
 			const size_t assumedRestBytes = 4 * (4 + 3);  // (float is 4 bytes) * ( (vec4) + (vec3) )
@@ -157,11 +158,11 @@ namespace {  // Make attribs
 				header += 4;
 			}
 
-			info.pos = { numBuf[0], numBuf[1], numBuf[2] };
-			info.myQuat.x = numBuf[3];
-			info.myQuat.y = numBuf[4];
-			info.myQuat.z = numBuf[5];
-			info.myQuat.w = numBuf[6];
+			actor.m_pos = { numBuf[0], numBuf[1], numBuf[2] };
+			actor.m_quat.x = numBuf[3];
+			actor.m_quat.y = numBuf[4];
+			actor.m_quat.z = numBuf[5];
+			actor.m_quat.w = numBuf[6];
 		}
 		
 		return header;
@@ -191,9 +192,7 @@ namespace {  // Make items
 			header += 4;
 
 			for (int i = 0; i < listSize; i++) {
-				importedModel.m_actors.emplace_back();
-				auto& actor = importedModel.m_actors.back();
-				header = makeAttrib_actor(actor, header, end);
+				header = makeAttrib_actor(importedModel.m_actors, header, end);
 			}
 		}
 
@@ -221,9 +220,7 @@ namespace {  // Make items
 			
 
 			for (int i = 0; i < listSize; i++) {
-				definedModel.m_actors.emplace_back();
-				auto& actor = definedModel.m_actors.back();
-				header = makeAttrib_actor(actor, header, end);
+				header = makeAttrib_actor(definedModel.m_actors, header, end);
 			}
 		}
 

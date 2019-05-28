@@ -7,6 +7,7 @@
 #include "x_persist.h"
 #include "o_overlay_master.h"
 #include "p_resource.h"
+#include "g_actor.h"
 
 
 namespace dal {
@@ -25,6 +26,8 @@ namespace dal {
 
 		RenderMaster m_renderMan;
 		InputApplier m_inputApply;
+
+		Player m_player;
 
 		//// Funcs ////
 

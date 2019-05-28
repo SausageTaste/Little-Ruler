@@ -8,6 +8,9 @@
 
 namespace dal {
 
+	class Model;
+
+
 	class Camera {
 	
 	private:
@@ -33,14 +36,44 @@ namespace dal {
 	};
 
 	
-	struct ActorInfo {
-		std::string m_actorID;
-		glm::vec3 pos;
-		glm::quat myQuat;
+	class ActorInfo {
+
+	private:
+		std::string m_name;
 		bool m_static = true;
+
+	public:
+		glm::vec3 m_pos;
+		glm::quat m_quat;
+
+	public:
+		ActorInfo(void) = default;
+		ActorInfo(const std::string& actorName, const bool flagStatic);
+
+		ActorInfo(const ActorInfo&) = default;
+		ActorInfo& operator=(const ActorInfo&) = default;
 
 		glm::mat4 getViewMat(void) const;
 		void rotate(const float v, const glm::vec3& selector);
+
+	};
+
+
+	class Player {
+
+	private:
+		Camera* m_camera = nullptr;
+		ActorInfo* m_actor = nullptr;
+		Model* m_model = nullptr;
+
+	public:
+		Player(void) = default;
+		Player(Camera* camera, ActorInfo* actor, Model* model);
+
+		Camera* replaceCamera(Camera* const camera);
+		ActorInfo* replaceActor(ActorInfo* const actor);
+		Model* replaceModel(Model* const model);
+
 	};
 
 }
