@@ -82,8 +82,8 @@ namespace {
 namespace dal {
 
 	QuadInfo QuadInfo::screen2device(void) const {
-		const auto winWidth = ConfigsGod::getinst().getWinWidth();
-		const auto winHeight = ConfigsGod::getinst().getWinHeight();
+		const auto winWidth = static_cast<float>(ConfigsGod::getinst().getWinWidth());
+		const auto winHeight = static_cast<float>(ConfigsGod::getinst().getWinHeight());
 
 		QuadInfo newinfo;
 

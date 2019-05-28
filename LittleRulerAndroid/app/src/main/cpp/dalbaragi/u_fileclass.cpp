@@ -792,11 +792,11 @@ namespace dal {
 		std::string resultStr;
 		if (findRecur_win(resultStr, path, fileName)) {
 			result.setOptionalDir(resultStr.substr(path.size(), resultStr.find(fileName) - path.size()));
-			dalInfo(resolveSucMsg + result.makeIDStr(), __LINE__, __func__, __FILE__);
+			dalInfo(resolveSucMsg + result.makeIDStr());
 			return true;
 		}
 		else {
-			dalError(resolveFailMsg + result.makeIDStr(), __LINE__, __func__, __FILE__);
+			dalError(resolveFailMsg + result.makeIDStr());
 			return false;
 		}
 #elif defined(__ANDROID__)

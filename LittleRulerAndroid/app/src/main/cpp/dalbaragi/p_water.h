@@ -106,7 +106,7 @@ namespace dal {
 		Material m_material;
 		float m_height = 0.0f;
 		float m_moveFactor = 0.0f;
-		float m_moveSpeed = 0.03;
+		float m_moveSpeed = 0.03f;
 		Timer m_localTimer;
 
 	public:

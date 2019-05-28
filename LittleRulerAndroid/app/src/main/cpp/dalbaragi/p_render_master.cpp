@@ -178,8 +178,8 @@ namespace dal {
 
 		// Camera
 		{
-			this->m_camera.setPos(-1.25170159, 1.17569, 5.520179);
-			this->m_camera.setViewPlane(0.9736287, -0.307451);
+			this->m_camera.setPos(-1.25170159f, 1.17569f, 5.520179f);
+			this->m_camera.setViewPlane(0.9736287f, -0.307451f);
 		}
 
 		// Misc
