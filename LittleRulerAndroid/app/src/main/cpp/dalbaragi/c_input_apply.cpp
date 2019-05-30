@@ -32,7 +32,59 @@ namespace {
         dal::EventGod::getinst().notifyAll(e);
     }
 
-}
+    inline constexpr unsigned int enum2Index(const dal::KeySpec key) {
+        return static_cast<unsigned int>(key) - static_cast<unsigned int>(dal::KeySpec::unknown);
+    }
+
+    inline constexpr dal::KeySpec index2Enum(const unsigned int index) {
+        return static_cast<dal::KeySpec>(index + static_cast<unsigned int>(dal::KeySpec::unknown));
+    }
+
+    constexpr char encodeToAscii(const dal::KeySpec key, const bool shift) {
+        const auto keyInt = int(key);
+
+        if ( int(dal::KeySpec::a) <= keyInt&& keyInt <= int(dal::KeySpec::z) ) {
+            if ( shift ) {
+                return char(int('A') + keyInt - int(dal::KeySpec::a));
+            }
+            else {
+                return char(int('a') + keyInt - int(dal::KeySpec::a));
+            }
+        }
+        else if ( int(dal::KeySpec::n0) <= keyInt && keyInt <= int(dal::KeySpec::n9) ) {
+            if ( shift ) {
+                const auto index = keyInt - int(dal::KeySpec::n0);
+                constexpr char map[] = { ')','!','@','#','$','%','^','&','*','(' };
+                return map[index];
+            }
+            else {
+                return char(int('0') + keyInt - int(dal::KeySpec::n0));
+            }
+        }
+        else if ( int(dal::KeySpec::backquote) <= keyInt && keyInt <= int(dal::KeySpec::slash) ) {
+            // backquote, minus, equal, lbracket, rbracket, backslash, semicolon, quote, comma, period, slash
+            const auto index = keyInt - int(dal::KeySpec::backquote);
+            if ( shift ) {
+                constexpr char map[] = { '~', '_', '+', '{', '}', '|', ':', '"', '<', '>', '?' };
+                return map[index];
+            }
+            else {
+                constexpr char map[] = { '`', '-', '=', '[', ']', '\\', ';', '\'', ',', '.', '/' };
+                return map[index];
+            }
+        }
+        else if ( int(dal::KeySpec::space) <= keyInt && keyInt <= int(dal::KeySpec::tab) ) {
+            // space, enter, backspace, tab
+            const auto index = keyInt - int(dal::KeySpec::space);
+            constexpr char map[] = { ' ', '\n', '\b', '\t' };
+            return map[index];
+        }
+        else {
+            return '\0';
+        }
+    }
+
+}  // namespace
 
 
 namespace {
@@ -301,9 +353,9 @@ namespace {
             return true;
         }
 
-    } gTouchMaster;
+    } gTouchMaster;  // class TouchMaster
 
-
+    /*
     class KeyboardMaster {
 
         //////// Definitions ////////
@@ -325,7 +377,7 @@ namespace {
         bool fetch_noclipMove(NoclipMoveInfo* info, const float deltaTime) {
             bool toReturn = false;
 
-            /* Fetch from queue */
+            // Fetch from queue
             {
                 auto& kq = dal::KeyboardEvtQueueGod::getinst();
 
@@ -351,7 +403,7 @@ namespace {
                 kq.clear();
             }
 
-            /* Apply to NoclipMoveInfo */
+            // Apply to NoclipMoveInfo
             {
                 // Returns true if any of members of info is not 0 which means modification is required.
                 *info = { 0 };
@@ -483,9 +535,169 @@ namespace {
             return mKeyStates.at(index);
         }
 
-    } gKeyboardMaster;
+    };  // class KeyboardMaster
+    */
 
-}
+    class KeyboardStatesMaster {
+
+        //////// Definitions ////////
+
+    public:
+        class KeyboardCommand {
+
+        public:
+            enum class Type { text, toggle_game_state };
+
+        private:
+            const Type m_type;
+            const std::string m_text;
+
+        public:
+            KeyboardCommand(const Type type)
+            : m_type(type)
+            {
+
+            }
+
+            KeyboardCommand(std::string&& text)
+                : m_type(Type::text),
+                m_text(std::move(text))
+            {
+
+            }
+
+            Type getType(void) const {
+                return this->m_type;
+            }
+
+            const std::string& getData_text(void) const {
+                return this->m_text;
+            }
+
+        };
+
+    private:
+        struct KeyState {
+            bool m_pressed = false;
+            float m_lastUpdated = 0.0f;
+            bool m_withShift = false;
+        };
+
+        //////// Var ////////
+
+    private:
+        std::array<KeyState, dal::KEY_SPEC_SIZE> m_states;
+        std::vector<unsigned int> m_recentlyUpdatedIndex;
+
+        //////// Func ////////
+
+    public:
+        void fetch(void) {
+            auto& kq = dal::KeyboardEvtQueueGod::getinst();
+            this->m_recentlyUpdatedIndex.clear();
+
+            for ( size_t i = 0; i < kq.getSize(); i++ ) {
+                const auto& keyEvent = kq.at(i);
+                const auto keyIndex = enum2Index(keyEvent.key);
+                auto& theState = this->m_states.at(keyIndex);
+
+                this->m_recentlyUpdatedIndex.push_back(keyIndex);
+
+                theState.m_withShift = (this->m_states[enum2Index(dal::KeySpec::lshfit)].m_pressed ||
+                                        this->m_states[enum2Index(dal::KeySpec::rshfit)].m_pressed);
+                theState.m_lastUpdated = keyEvent.timeSec;
+                theState.m_pressed = (keyEvent.type == dal::KeyboardType::down);
+            }
+
+            kq.clear();
+        }
+
+        bool makeMoveInfo(NoclipMoveInfo& info, const float deltaTime) const {
+            // Returns true if any of members of info is not 0 which means modification is required.
+            info = { 0 };
+
+            glm::vec2 localMoveDir{ 0.0 };
+
+            if ( this->m_states[enum2Index(dal::KeySpec::w)].m_pressed ) {
+                localMoveDir.y -= 1;
+            }
+            if ( this->m_states[enum2Index(dal::KeySpec::s)].m_pressed ) {
+                localMoveDir.y += 1;
+            }
+            if ( this->m_states[enum2Index(dal::KeySpec::a)].m_pressed ) {
+                localMoveDir.x -= 1;
+            }
+            if ( this->m_states[enum2Index(dal::KeySpec::d)].m_pressed ) {
+                localMoveDir.x += 1;
+            }
+            if ( this->m_states[enum2Index(dal::KeySpec::space)].m_pressed ) {
+                info.vertical += 0.5f;
+            }
+            if ( this->m_states[enum2Index(dal::KeySpec::lshfit)].m_pressed ) {
+                info.vertical -= 0.5f;
+            }
+
+            const float viewMultiplier = 2.0f * deltaTime;
+
+            if ( this->m_states[enum2Index(dal::KeySpec::left)].m_pressed ) {
+                info.xView -= viewMultiplier;
+            }
+            if ( this->m_states[enum2Index(dal::KeySpec::right)].m_pressed ) {
+                info.xView += viewMultiplier;
+            }
+            if ( this->m_states[enum2Index(dal::KeySpec::up)].m_pressed ) {
+                info.yView += viewMultiplier;
+            }
+            if ( this->m_states[enum2Index(dal::KeySpec::down)].m_pressed ) {
+                info.yView -= viewMultiplier;
+            }
+
+            if ( localMoveDir.x != 0.0f || localMoveDir.y != 0.0f ) {
+                localMoveDir = glm::normalize(localMoveDir);
+                info.xMovePlane = localMoveDir.x;
+                info.zMovePlane = localMoveDir.y;
+                return true;
+            }
+
+            if ( info.vertical != 0.0f || info.xView != 0.0f || info.yView != 0.0f ) {
+                return true;
+            }
+
+            return false;
+        }
+
+        std::vector<KeyboardCommand> getCommands(void) const {
+            std::vector<KeyboardCommand> commands;
+            std::string textBuf;
+
+            for ( auto index : this->m_recentlyUpdatedIndex ) {
+                const auto state = this->m_states[index];
+                const auto key = index2Enum(index);
+
+                if ( key == dal::KeySpec::escape && state.m_pressed  ) {
+                    if ( !textBuf.empty() ) {
+                        commands.emplace_back(std::move(textBuf));
+                        textBuf.clear();
+                    }
+                    commands.emplace_back(KeyboardCommand::Type::toggle_game_state);
+                }
+                else {
+                    if ( state.m_pressed ) {
+                        const auto c = encodeToAscii(key, state.m_withShift);
+                        if ( c != '\0' ) {
+                            textBuf += c;
+                        }
+                    }
+                    
+                }
+            }
+
+            return commands;
+        }
+
+    } g_keyboardMas;  // class KeyboardStatesMaster
+
+}  // namespace
 
 
 namespace {
@@ -495,11 +707,12 @@ namespace {
         float moveUpOrDown = 0.0f;
         auto const camera = player.getCamera();
 
+        g_keyboardMas.fetch();
+
         /* Take inputs */
         {
-
             NoclipMoveInfo keyboardInfo;
-            if ( gKeyboardMaster.fetch_noclipMove(&keyboardInfo, deltaTime) ) {
+            if ( g_keyboardMas.makeMoveInfo(keyboardInfo, deltaTime) ) {
                 totalMovePlane += glm::vec2{ keyboardInfo.xMovePlane, keyboardInfo.zMovePlane };
                 camera->addViewPlane(keyboardInfo.xView, keyboardInfo.yView);
                 moveUpOrDown += keyboardInfo.vertical;
@@ -539,11 +752,12 @@ namespace {
         glm::vec2 totalMovePlane{ 0.0 };  // This means it must represent move direction when targetViewDir == { 0, 0 }.
         float moveUpOrDown = 0.0f;
 
+        g_keyboardMas.fetch();
+
         /* Take inputs */
         {
-
             NoclipMoveInfo keyboardInfo;
-            if ( gKeyboardMaster.fetch_noclipMove(&keyboardInfo, deltaTime) ) {
+            if ( g_keyboardMas.makeMoveInfo(keyboardInfo, deltaTime) ) {
                 totalMovePlane += glm::vec2{ keyboardInfo.xMovePlane, keyboardInfo.zMovePlane };
                 camera->addViewPlane(keyboardInfo.xView, keyboardInfo.yView);
                 moveUpOrDown += keyboardInfo.vertical;
@@ -579,16 +793,23 @@ namespace {
 
     void apply_menuControl(dal::OverlayMaster& overlay) {
         gTouchMaster.fetch_menuControl(overlay);
+        g_keyboardMas.fetch();
 
-        std::string str;
-        gKeyboardMaster.fetch_menuControl(&str);
+        for ( const auto& com : g_keyboardMas.getCommands() ) {
+            switch ( com.getType() ) {
 
-        if ( str.size() > 0 ) {
-            overlay.onKeyInput(str);
+            case KeyboardStatesMaster::KeyboardCommand::Type::text:
+                overlay.onKeyInput(com.getData_text());
+                break;
+            case KeyboardStatesMaster::KeyboardCommand::Type::toggle_game_state:
+                toggleGameState();
+                break;
+
+            }
         }
     }
 
-}
+}  // namespace
 
 
 namespace dal {
@@ -640,4 +861,4 @@ namespace dal {
         }
     }
 
-}
+}  // namespace dal
