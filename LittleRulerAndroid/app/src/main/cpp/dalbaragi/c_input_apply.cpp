@@ -490,9 +490,10 @@ namespace {
 
 namespace {
 
-    void apply_flyDirectional(const float deltaTime, dal::Camera& camera, dal::OverlayMaster& overlay) {
+    void apply_flyDirectional(const float deltaTime, dal::Player& player, dal::OverlayMaster& overlay) {
         glm::vec2 totalMovePlane{ 0.0 };  // This means it must represent move direction when targetViewDir == { 0, 0 }.
         float moveUpOrDown = 0.0f;
+        auto const camera = player.getCamera();
 
         /* Take inputs */
         {
@@ -500,14 +501,14 @@ namespace {
             NoclipMoveInfo keyboardInfo;
             if ( gKeyboardMaster.fetch_noclipMove(&keyboardInfo, deltaTime) ) {
                 totalMovePlane += glm::vec2{ keyboardInfo.xMovePlane, keyboardInfo.zMovePlane };
-                camera.addViewPlane(keyboardInfo.xView, keyboardInfo.yView);
+                camera->addViewPlane(keyboardInfo.xView, keyboardInfo.yView);
                 moveUpOrDown += keyboardInfo.vertical;
             }
 
             NoclipMoveInfo touchInfo;
             if ( gTouchMaster.fetch_noclipMove(&touchInfo, overlay) ) {
                 totalMovePlane += glm::vec2{ touchInfo.xMovePlane, touchInfo.zMovePlane };
-                camera.addViewPlane(touchInfo.xView, touchInfo.yView);
+                camera->addViewPlane(touchInfo.xView, touchInfo.yView);
                 moveUpOrDown += touchInfo.vertical;
             }
         }
@@ -518,7 +519,7 @@ namespace {
         // Apply move direction
         {
             glm::mat4 viewMat{ 1.0 };
-            const auto viewVec = camera.getViewPlane();
+            const auto viewVec = camera->getViewPlane();
             viewMat = glm::rotate(viewMat, -viewVec.x, glm::vec3(0.0f, 1.0f, 0.0f));
             viewMat = glm::rotate(viewMat, viewVec.y, glm::vec3(1.0f, 0.0f, 0.0f));
 
@@ -527,13 +528,13 @@ namespace {
 
             //moveDirection = glm::normalize(moveDirection);  // Maybe this is redundant.
             const float moveMultiplier = 5.0f * deltaTime;
-            camera.addPos(moveDirection * moveMultiplier);
+            camera->addPos(moveDirection * moveMultiplier);
         }
 
     }
 
-    void apply_flyPlane(const float deltaTime, dal::Camera& camera, dal::OverlayMaster& overlay) {
-        //auto logger = LoggerGod::getinst();
+    void apply_flyPlane(const float deltaTime, dal::Player& player, dal::OverlayMaster& overlay) {
+        auto const camera = player.getCamera();
 
         glm::vec2 totalMovePlane{ 0.0 };  // This means it must represent move direction when targetViewDir == { 0, 0 }.
         float moveUpOrDown = 0.0f;
@@ -544,14 +545,14 @@ namespace {
             NoclipMoveInfo keyboardInfo;
             if ( gKeyboardMaster.fetch_noclipMove(&keyboardInfo, deltaTime) ) {
                 totalMovePlane += glm::vec2{ keyboardInfo.xMovePlane, keyboardInfo.zMovePlane };
-                camera.addViewPlane(keyboardInfo.xView, keyboardInfo.yView);
+                camera->addViewPlane(keyboardInfo.xView, keyboardInfo.yView);
                 moveUpOrDown += keyboardInfo.vertical;
             }
 
             NoclipMoveInfo touchInfo;
             if ( gTouchMaster.fetch_noclipMove(&touchInfo, overlay) ) {
                 totalMovePlane += glm::vec2{ touchInfo.xMovePlane, touchInfo.zMovePlane };
-                camera.addViewPlane(touchInfo.xView, touchInfo.yView);
+                camera->addViewPlane(touchInfo.xView, touchInfo.yView);
                 moveUpOrDown += touchInfo.vertical;
             }
         }
@@ -562,7 +563,7 @@ namespace {
         /* Apply move direction */
         {
             glm::mat4 viewMat{ 1.0 };
-            const auto viewVec = camera.getViewPlane();
+            const auto viewVec = camera->getViewPlane();
             viewMat = glm::rotate(viewMat, -viewVec.x, glm::vec3(0.0f, 1.0f, 0.0f));
             //viewMat = glm::rotate(viewMat, targetViewDir->y, glm::vec3(1.0f, 0.0f, 0.0f));
 
@@ -571,7 +572,7 @@ namespace {
 
             //moveDirection = glm::normalize(moveDirection);  // Maybe this is redundant.
             const float moveMultiplier = 5.0f * deltaTime;
-            camera.addPos(moveDirection * moveMultiplier);
+            camera->addPos(moveDirection * moveMultiplier);
         }
 
     }
@@ -621,13 +622,13 @@ namespace dal {
         }
     }
 
-    void InputApplier::apply(const float deltaTime, Camera& camera) {
+    void InputApplier::apply(const float deltaTime, Player& player) {
 
         switch ( mFSM ) {
 
         case GlobalGameState::game:
 #if defined(_WIN32)
-            apply_flyPlane(deltaTime, camera, this->m_overlayMas);
+            apply_flyPlane(deltaTime, player, this->m_overlayMas);
 #else defined(__ANDROID__)
             apply_flyDirectional(deltaTime, camera, this->m_overlayMas);
 #endif

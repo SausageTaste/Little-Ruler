@@ -219,7 +219,7 @@ namespace dal {
             m_timerForFPSReport.check();
         }
 
-        m_inputApply.apply(deltaTime, this->m_renderMan.m_camera);
+        m_inputApply.apply(deltaTime, this->m_player);
 
         TaskGod::getinst().update();
 
