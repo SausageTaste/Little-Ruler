@@ -13,79 +13,79 @@
 
 namespace dal {
 
-	class MapChunk {
+    class MapChunk {
 
-	private:
-		struct ModelNActor {
-			Model* m_model = nullptr;
-			std::list<ActorInfo> m_inst;
+    private:
+        struct ModelNActor {
+            Model* m_model = nullptr;
+            std::list<ActorInfo> m_inst;
 
-			ModelNActor(void) = default;
-			ModelNActor(Model* const model) : m_model(model) {}
-		};
+            ModelNActor(void) = default;
+            ModelNActor(Model* const model) : m_model(model) {}
+        };
 
-	private:
-		std::string m_name;
+    private:
+        std::string m_name;
 
-		std::vector<ModelNActor> m_modelActors;
+        std::vector<ModelNActor> m_modelActors;
 
-		std::vector<DirectionalLight> m_dlights;
-		std::vector<PointLight> m_plights;
+        std::vector<DirectionalLight> m_dlights;
+        std::vector<PointLight> m_plights;
 
-		std::vector<WaterRenderer> m_waters;
+        std::vector<WaterRenderer> m_waters;
 
-	public:
-		MapChunk(const std::string& name);
-		MapChunk(const LoadedMap& info, ResourceMaster& resMan);
+    public:
+        MapChunk(const std::string& name);
+        MapChunk(const LoadedMap& info, ResourceMaster& resMan);
 
-		const std::string& getName(void) const;
+        const std::string& getName(void) const;
 
-		void onScreanResize(const unsigned int width, const unsigned int height);
+        void onScreanResize(const unsigned int width, const unsigned int height);
 
-		void renderGeneral(const UnilocGeneral& uniloc) const;
-		void renderDepthMp(const UnilocDepthmp& uniloc) const;
-		void renderWaterry(const UnilocWaterry& uniloc);
-		void renderGeneral_onWater(const UnilocGeneral& uniloc, const Camera& cam, MapChunk* const additional);
+        void renderGeneral(const UnilocGeneral& uniloc) const;
+        void renderDepthMp(const UnilocDepthmp& uniloc) const;
+        void renderWaterry(const UnilocWaterry& uniloc);
+        void renderGeneral_onWater(const UnilocGeneral& uniloc, const Camera& cam, MapChunk* const additional);
 
-		int sendUniforms_lights(const UnilocGeneral& uniloc, int startIndex) const;
-		int sendUniforms_lights(const UnilocWaterry& uniloc, int startIndex) const;
+        int sendUniforms_lights(const UnilocGeneral& uniloc, int startIndex) const;
+        int sendUniforms_lights(const UnilocWaterry& uniloc, int startIndex) const;
 
-		WaterRenderer* getWater(const size_t index);
-		ActorInfo* addActor(Model* const model, const std::string& actorName, bool flagStatic, ResourceMaster& resMas);
+        WaterRenderer* getWater(const size_t index);
+        ActorInfo* addActor(Model* const model, const std::string& actorName, bool flagStatic, ResourceMaster& resMas);
 
-	};
+    };
 
-	class SceneMaster {
+    class SceneMaster {
 
-		//////// Attribs ////////
+        //////// Attribs ////////
 
-	private:
-		ResourceMaster& m_resMas;
-		std::list<MapChunk> m_mapChunks;
-		MapChunk* m_persistantMap;
+    private:
+        ResourceMaster& m_resMas;
+        std::list<MapChunk> m_mapChunks;
+        MapChunk* m_persistantMap;
 
-		//////// Methods ////////
+        //////// Methods ////////
 
-	public:
-		SceneMaster(ResourceMaster& resMas);
-		~SceneMaster(void);
+    public:
+        SceneMaster(ResourceMaster& resMas);
+        ~SceneMaster(void);
 
-		void renderGeneral(const UnilocGeneral& uniloc) const;
-		void renderDepthMp(const UnilocDepthmp& uniloc) const;
-		void renderWaterry(const UnilocWaterry& uniloc);
-		void renderGeneral_onWater(const UnilocGeneral& uniloc, const Camera& cam);
+        void renderGeneral(const UnilocGeneral& uniloc) const;
+        void renderDepthMp(const UnilocDepthmp& uniloc) const;
+        void renderWaterry(const UnilocWaterry& uniloc);
+        void renderGeneral_onWater(const UnilocGeneral& uniloc, const Camera& cam);
 
-		ActorInfo* addActor(Model* const model, const std::string& mapName, const std::string& actorName, bool flagStatic);
-		WaterRenderer* getWater(const std::string& mapName, const size_t index);
+        ActorInfo* addActor(Model* const model, const std::string& mapName, const std::string& actorName, bool flagStatic);
+        WaterRenderer* getWater(const std::string& mapName, const size_t index);
 
-		void loadMap(const ResourceID& mapID);
+        void loadMap(const ResourceID& mapID);
 
-		void onResize(const unsigned int width, const unsigned int height);
+        void onResize(const unsigned int width, const unsigned int height);
 
-	private:
-		void addMap(const LoadedMap& map);
-		MapChunk* findMap(const std::string& name);
+    private:
+        void addMap(const LoadedMap& map);
+        MapChunk* findMap(const std::string& name);
 
-	};
+    };
 
 }

@@ -3,6 +3,6 @@
 
 namespace dal {
 
-	enum class GlobalGameState { game, menu };
+    enum class GlobalGameState { game, menu };
 
 }

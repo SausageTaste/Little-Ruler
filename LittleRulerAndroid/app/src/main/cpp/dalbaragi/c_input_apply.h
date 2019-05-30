@@ -12,21 +12,21 @@
 
 
 namespace dal {
-	
-	class InputApplier : public iEventHandler {
 
-	private:
-		GlobalGameState mFSM;
-		OverlayMaster& m_overlayMas;
+    class InputApplier : public iEventHandler {
 
-	public:
-		InputApplier(OverlayMaster& overlayMas);
-		~InputApplier(void);
+    private:
+        GlobalGameState mFSM;
+        OverlayMaster& m_overlayMas;
 
-		virtual void onEvent(const EventStatic& e) override;
+    public:
+        InputApplier(OverlayMaster& overlayMas);
+        ~InputApplier(void);
 
-		void apply(const float deltaTime, Camera& camera);
+        virtual void onEvent(const EventStatic& e) override;
 
-	};
+        void apply(const float deltaTime, Camera& camera);
+
+    };
 
 }

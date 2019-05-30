@@ -12,48 +12,48 @@
 
 namespace dal {
 
-	class ITask {
+    class ITask {
 
-	public:
-		virtual ~ITask(void) = default;
-		virtual void start(void) = 0;
+    public:
+        virtual ~ITask(void) = default;
+        virtual void start(void) = 0;
 
-	};
-
-
-	class ITaskDoneListener {
-		
-	public:
-		virtual ~ITaskDoneListener(void) = default;
-		virtual void notifyTask(std::unique_ptr<ITask> task) = 0;
-
-	};
+    };
 
 
-	class TaskGod {
+    class ITaskDoneListener {
 
-		//////// Attribs ////////
+    public:
+        virtual ~ITaskDoneListener(void) = default;
+        virtual void notifyTask(std::unique_ptr<ITask> task) = 0;
 
-	private:
-		std::unordered_map<ITask*, ITaskDoneListener*> m_notificationRecievers;
-		std::unordered_set<ITask*> m_firedTasks;
+    };
 
-		//////// Methods ////////
 
-		TaskGod(void);
-		~TaskGod(void);
+    class TaskGod {
 
-	public:
-		static TaskGod& getinst(void);
+        //////// Attribs ////////
 
-		void update(void);
+    private:
+        std::unordered_map<ITask*, ITaskDoneListener*> m_notificationRecievers;
+        std::unordered_set<ITask*> m_firedTasks;
 
-		// If client is null, there will be no notification and ITask object will be deleted.
-		void orderTask(ITask* const task, ITaskDoneListener* const client);
+        //////// Methods ////////
 
-	private:
-		ITaskDoneListener* findNotifiReciever(ITask* const task);
+        TaskGod(void);
+        ~TaskGod(void);
 
-	};
+    public:
+        static TaskGod& getinst(void);
+
+        void update(void);
+
+        // If client is null, there will be no notification and ITask object will be deleted.
+        void orderTask(ITask* const task, ITaskDoneListener* const client);
+
+    private:
+        ITaskDoneListener* findNotifiReciever(ITask* const task);
+
+    };
 
 }

@@ -16,8 +16,8 @@
 
 namespace dal {
 
-	void clearGLError(void);
+    void clearGLError(void);
 
-	void _logGLError(const int line, const char* const func, const char* const file);
+    void _logGLError(const int line, const char* const func, const char* const file);
 
 }

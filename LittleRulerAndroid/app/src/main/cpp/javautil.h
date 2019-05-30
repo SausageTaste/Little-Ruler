@@ -5,15 +5,15 @@
 
 namespace dal {
 
-	void initJavautil(JavaVM* javaVM);
-	JNIEnv* getJNIEnv(void);
+    void initJavautil(JavaVM* javaVM);
+    JNIEnv* getJNIEnv(void);
 
-	namespace touchinput {
-		int getArraySize(void);
-		int getCurrentIndexAndReset(void);
-		jbyte* startAccess(void);
-		void finishAccess(jbyte* array);
-		void copyArray(jbyte* buf, int bufSize);
-	}
+    namespace touchinput {
+        int getArraySize(void);
+        int getCurrentIndexAndReset(void);
+        jbyte* startAccess(void);
+        void finishAccess(jbyte* array);
+        void copyArray(jbyte* buf, int bufSize);
+    }
 
 }

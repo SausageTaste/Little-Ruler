@@ -19,240 +19,240 @@ using namespace std::string_literals;
 
 namespace {
 
-	class FileLoggingChannel : public dal::ILoggingChannel {
+    class FileLoggingChannel : public dal::ILoggingChannel {
 
-	public:
-		FileLoggingChannel(void) {
-			dal::LoggerGod::getinst().addChannel(this);
-		}
+    public:
+        FileLoggingChannel(void) {
+            dal::LoggerGod::getinst().addChannel(this);
+        }
 
-		~FileLoggingChannel(void) {
-			dal::LoggerGod::getinst().deleteChannel(this);
-		}
+        ~FileLoggingChannel(void) {
+            dal::LoggerGod::getinst().deleteChannel(this);
+        }
 
-		virtual void verbose(const char* const str, const int line, const char* const func, const char* const file) override {
-			
-		}
+        virtual void verbose(const char* const str, const int line, const char* const func, const char* const file) override {
 
-		virtual void debug(const char* const str, const int line, const char* const func, const char* const file) override {
+        }
 
-		}
+        virtual void debug(const char* const str, const int line, const char* const func, const char* const file) override {
 
-		virtual void info(const char* const str, const int line, const char* const func, const char* const file) override {
+        }
 
-		}
+        virtual void info(const char* const str, const int line, const char* const func, const char* const file) override {
 
-		virtual void warn(const char* const str, const int line, const char* const func, const char* const file) override {
-			this->saveToFile("warning", str, line, func, file);
-		}
+        }
 
-		virtual void error(const char* const str, const int line, const char* const func, const char* const file) override {
-			this->saveToFile("error", str, line, func, file);
-		}
+        virtual void warn(const char* const str, const int line, const char* const func, const char* const file) override {
+            this->saveToFile("warning", str, line, func, file);
+        }
 
-		virtual void fatal(const char* const str, const int line, const char* const func, const char* const file) override {
-			this->saveToFile("fatal", str, line, func, file);
-		}
+        virtual void error(const char* const str, const int line, const char* const func, const char* const file) override {
+            this->saveToFile("error", str, line, func, file);
+        }
 
-	private:
-		static void saveToFile(const char* const logLevel, const char* const str, const int line, const char* const func, const char* const file) {
-			dal::LoggerGod::getinst().disable();
+        virtual void fatal(const char* const str, const int line, const char* const func, const char* const file) override {
+            this->saveToFile("fatal", str, line, func, file);
+        }
 
-			const auto theTime = time(nullptr);
-			struct std::tm timeInfo;
+    private:
+        static void saveToFile(const char* const logLevel, const char* const str, const int line, const char* const func, const char* const file) {
+            dal::LoggerGod::getinst().disable();
+
+            const auto theTime = time(nullptr);
+            struct std::tm timeInfo;
 
 #if defined(_WIN32)
-			const auto err = localtime_s(&timeInfo, &theTime);
+            const auto err = localtime_s(&timeInfo, &theTime);
 #elif defined(__ANDROID__)
-			const auto err = localtime_r(&theTime, &timeInfo);
+            const auto err = localtime_r(&theTime, &timeInfo);
 #endif
 
-			const auto day = timeInfo.tm_mday;
-			const auto month = timeInfo.tm_mon + 1; // Month is 0 – 11, add 1 to get a jan-dec 1-12 concept
-			const auto year = timeInfo.tm_year + 1900; // Year is # years since 1900
-			const auto hour = timeInfo.tm_hour;
-			const auto min = timeInfo.tm_min;
-			const auto sec = timeInfo.tm_sec;
-			
-			std::string buffer{ "Dalbaragi Log\n" };
-			buffer += fmt::format("{}-{}-{} {}:{}:{}\n\n", year, month, day, hour, min, sec);
+            const auto day = timeInfo.tm_mday;
+            const auto month = timeInfo.tm_mon + 1; // Month is 0 – 11, add 1 to get a jan-dec 1-12 concept
+            const auto year = timeInfo.tm_year + 1900; // Year is # years since 1900
+            const auto hour = timeInfo.tm_hour;
+            const auto min = timeInfo.tm_min;
+            const auto sec = timeInfo.tm_sec;
 
-			buffer += fmt::format("File : {}\nLine : {}\nFunction : {}\n", file, line, func);
-			buffer += "Log level : ";
-			buffer += logLevel;
-			buffer += "\n\n";
+            std::string buffer{ "Dalbaragi Log\n" };
+            buffer += fmt::format("{}-{}-{} {}:{}:{}\n\n", year, month, day, hour, min, sec);
 
-			buffer += "\"\"\"\n";
-			buffer += str;
-			buffer += "\n\"\"\"";
-			buffer += "\n\n##############\n\n";
+            buffer += fmt::format("File : {}\nLine : {}\nFunction : {}\n", file, line, func);
+            buffer += "Log level : ";
+            buffer += logLevel;
+            buffer += "\n\n";
 
-			const auto fileID = fmt::format("log::log_{}-{}-{}_{}-{}.txt", year, month, day, hour, min);
+            buffer += "\"\"\"\n";
+            buffer += str;
+            buffer += "\n\"\"\"";
+            buffer += "\n\n##############\n\n";
 
-			auto logFile = dal::resopen(fileID, dal::FileMode::append);
-			if (nullptr == logFile) {
-				fmt::print("Failed to create log file: {}\n", fileID);
-				dal::LoggerGod::getinst().enable();
-				return;
-			}
+            const auto fileID = fmt::format("log::log_{}-{}-{}_{}-{}.txt", year, month, day, hour, min);
 
-			const auto res = logFile->write(buffer.c_str());
-			if (!res) {
-				fmt::print("Failed to write to log file: {}\n", fileID);
-				dal::LoggerGod::getinst().enable();
-				return;
-			}
+            auto logFile = dal::resopen(fileID, dal::FileMode::append);
+            if ( nullptr == logFile ) {
+                fmt::print("Failed to create log file: {}\n", fileID);
+                dal::LoggerGod::getinst().enable();
+                return;
+            }
 
-			dal::LoggerGod::getinst().enable();
-		}
+            const auto res = logFile->write(buffer.c_str());
+            if ( !res ) {
+                fmt::print("Failed to write to log file: {}\n", fileID);
+                dal::LoggerGod::getinst().enable();
+                return;
+            }
 
-	} g_fileLogger;
+            dal::LoggerGod::getinst().enable();
+        }
+
+    } g_fileLogger;
 
 }
 
 
 namespace dal {
 
-	// Static
+    // Static
 
-	void Mainloop::giveScreenResFirst(unsigned int w, unsigned int h) {
-		EventStatic e;
-		e.intArg1 = w;
-		e.intArg2 = h;
-		e.type = EventType::window_resize;
+    void Mainloop::giveScreenResFirst(unsigned int w, unsigned int h) {
+        EventStatic e;
+        e.intArg1 = w;
+        e.intArg2 = h;
+        e.type = EventType::window_resize;
 
-		ConfigsGod::getinst();  // Init to make sure it registered to EventGod
-		EventGod::getinst().notifyAll(e);
-	}
+        ConfigsGod::getinst();  // Init to make sure it registered to EventGod
+        EventGod::getinst().notifyAll(e);
+    }
 
-	bool Mainloop::isScreenResGiven(void) {
-		auto& query = ConfigsGod::getinst();
+    bool Mainloop::isScreenResGiven(void) {
+        auto& query = ConfigsGod::getinst();
 
-		auto width = query.getWinWidth();
-		if (width == 0) return false;
+        auto width = query.getWinWidth();
+        if ( width == 0 ) return false;
 
-		auto height = query.getWinHeight();
-		if (height == 0) return false;
+        auto height = query.getWinHeight();
+        if ( height == 0 ) return false;
 
-		return true;
-	}
+        return true;
+    }
 
-	void Mainloop::giveWhatFilesystemWants(void* androidAssetManager, const char* const sdcardPath) {
-		initFilesystem(androidAssetManager, sdcardPath);
-	}
+    void Mainloop::giveWhatFilesystemWants(void* androidAssetManager, const char* const sdcardPath) {
+        initFilesystem(androidAssetManager, sdcardPath);
+    }
 
-	bool Mainloop::isWhatFilesystemWantsGiven(void) {
-		return isFilesystemReady();
-	}
+    bool Mainloop::isWhatFilesystemWantsGiven(void) {
+        return isFilesystemReady();
+    }
 
-	// Public
+    // Public
 
-	Mainloop::Mainloop(PersistState* savedState)
-	:	m_flagQuit(false),
-		m_inputApply(m_renderMan.m_overlayMas)
-	{
-		// Check window res
-		{
-			auto& query = ConfigsGod::getinst();
-			auto width = query.getWinWidth();
-			auto height = query.getWinHeight();
-			if (width == 0 || height == 0) {
-				dalAbort("Please call Mainloop::giveScreenResFirst before constructor!");
-			}
-			this->onResize(width, height);
-		}
+    Mainloop::Mainloop(PersistState* savedState)
+        : m_flagQuit(false),
+        m_inputApply(m_renderMan.m_overlayMas)
+    {
+        // Check window res
+        {
+            auto& query = ConfigsGod::getinst();
+            auto width = query.getWinWidth();
+            auto height = query.getWinHeight();
+            if ( width == 0 || height == 0 ) {
+                dalAbort("Please call Mainloop::giveScreenResFirst before constructor!");
+            }
+            this->onResize(width, height);
+        }
 
-		// Check filesystem init
-		{
-			if (!isWhatFilesystemWantsGiven()) {
-				dalAbort("Please call Mainloop::giveWhatFilesystemWants before constructor!");
-			}
-		}
+        // Check filesystem init
+        {
+            if ( !isWhatFilesystemWantsGiven() ) {
+                dalAbort("Please call Mainloop::giveWhatFilesystemWants before constructor!");
+            }
+        }
 
-		// Player
-		{
-			this->m_player.replaceCamera(&this->m_renderMan.m_camera);
+        // Player
+        {
+            this->m_player.replaceCamera(&this->m_renderMan.m_camera);
 
-			auto model = this->m_renderMan.m_resMas.orderModel("test::academy.obj");
-			if ( nullptr == model ) dalAbort("Failed to give Player a model");
-			this->m_player.replaceModel(model);
+            auto model = this->m_renderMan.m_resMas.orderModel("test::academy.obj");
+            if ( nullptr == model ) dalAbort("Failed to give Player a model");
+            this->m_player.replaceModel(model);
 
-			auto actor = this->m_renderMan.m_scene.addActor(model, "", "player_model", false);
-			this->m_player.replaceActor(actor);
-		}
+            auto actor = this->m_renderMan.m_scene.addActor(model, "", "player_model", false);
+            this->m_player.replaceActor(actor);
+        }
 
-		// Misc
-		{
-			mHandlerName = "dal::Mainloop";
-			EventGod::getinst().registerHandler(this, EventType::quit_game);
-			
-			this->m_timer.setCapFPS(0);
-		}
+        // Misc
+        {
+            mHandlerName = "dal::Mainloop";
+            EventGod::getinst().registerHandler(this, EventType::quit_game);
 
-		// Restore from saved state
-		{
-			if (savedState != nullptr) {
-				m_renderMan.m_camera = savedState->m_camera;
-				delete savedState;
-			}
-		}
+            this->m_timer.setCapFPS(0);
+        }
 
-		// Test
-		{
+        // Restore from saved state
+        {
+            if ( savedState != nullptr ) {
+                m_renderMan.m_camera = savedState->m_camera;
+                delete savedState;
+            }
+        }
 
-		}
+        // Test
+        {
 
-		const auto elapsed = m_initTimer.check_getElapsed_capFPS();
-		dalInfo("Init time: "s + std::to_string(elapsed));
-	}
+        }
 
-	Mainloop::~Mainloop(void) {
-		EventGod::getinst().deregisterHandler(this, EventType::quit_game);
-	}
+        const auto elapsed = m_initTimer.check_getElapsed_capFPS();
+        dalInfo("Init time: "s + std::to_string(elapsed));
+    }
 
-	int Mainloop::update(void) {
-		if (m_flagQuit) return -1;
+    Mainloop::~Mainloop(void) {
+        EventGod::getinst().deregisterHandler(this, EventType::quit_game);
+    }
 
-		const auto deltaTime = m_timer.check_getElapsed_capFPS();
-		if (m_timerForFPSReport.hasElapsed(0.1f)) {
-			m_renderMan.m_overlayMas.setDisplayedFPS((unsigned int)(1.0f / deltaTime));
-			m_timerForFPSReport.check();
-		}
+    int Mainloop::update(void) {
+        if ( m_flagQuit ) return -1;
 
-		m_inputApply.apply(deltaTime, this->m_renderMan.m_camera);
+        const auto deltaTime = m_timer.check_getElapsed_capFPS();
+        if ( m_timerForFPSReport.hasElapsed(0.1f) ) {
+            m_renderMan.m_overlayMas.setDisplayedFPS((unsigned int)(1.0f / deltaTime));
+            m_timerForFPSReport.check();
+        }
 
-		TaskGod::getinst().update();
+        m_inputApply.apply(deltaTime, this->m_renderMan.m_camera);
 
-		this->m_renderMan.update(deltaTime);
-		this->m_renderMan.render();
+        TaskGod::getinst().update();
 
-		return 0;
-	}
+        this->m_renderMan.update(deltaTime);
+        this->m_renderMan.render();
 
-	void Mainloop::onResize(int width, int height) {
-		EventStatic e;
-		e.intArg1 = width;
-		e.intArg2 = height;
-		e.type = EventType::window_resize;
-		EventGod::getinst().notifyAll(e);
-	}
+        return 0;
+    }
 
-	PersistState* Mainloop::getSavedState(void) {
-		auto s = new PersistState();
-		s->m_camera = m_renderMan.m_camera;
-		return s;
-	}
+    void Mainloop::onResize(int width, int height) {
+        EventStatic e;
+        e.intArg1 = width;
+        e.intArg2 = height;
+        e.type = EventType::window_resize;
+        EventGod::getinst().notifyAll(e);
+    }
 
-	void Mainloop::onEvent(const EventStatic& e) {
-		switch (e.type) {
+    PersistState* Mainloop::getSavedState(void) {
+        auto s = new PersistState();
+        s->m_camera = m_renderMan.m_camera;
+        return s;
+    }
 
-		case EventType::quit_game:
-			this->m_flagQuit = true;
-			break;
-		default:
-			dalWarn("dal::Mainloop can't handle this event:");
+    void Mainloop::onEvent(const EventStatic& e) {
+        switch ( e.type ) {
 
-		}
-	}
+        case EventType::quit_game:
+            this->m_flagQuit = true;
+            break;
+        default:
+            dalWarn("dal::Mainloop can't handle this event:");
+
+        }
+    }
 
 }

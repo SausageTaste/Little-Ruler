@@ -8,64 +8,45 @@
 
 namespace dal {
 
-	class ILoggingChannel {
+    class ILoggingChannel {
 
-	public:
-		virtual ~ILoggingChannel(void) = default;
+    public:
+        virtual ~ILoggingChannel(void) = default;
 
-		virtual void verbose(const char* const text, const int line, const char* const func, const char* const file) = 0;
-		virtual void debug  (const char* const text, const int line, const char* const func, const char* const file) = 0;
-		virtual void info   (const char* const text, const int line, const char* const func, const char* const file) = 0;
-		virtual void warn   (const char* const text, const int line, const char* const func, const char* const file) = 0;
-		virtual void error  (const char* const text, const int line, const char* const func, const char* const file) = 0;
-		virtual void fatal  (const char* const text, const int line, const char* const func, const char* const file) = 0;
+        virtual void verbose(const char* const text, const int line, const char* const func, const char* const file) = 0;
+        virtual void debug(const char* const text, const int line, const char* const func, const char* const file) = 0;
+        virtual void info(const char* const text, const int line, const char* const func, const char* const file) = 0;
+        virtual void warn(const char* const text, const int line, const char* const func, const char* const file) = 0;
+        virtual void error(const char* const text, const int line, const char* const func, const char* const file) = 0;
+        virtual void fatal(const char* const text, const int line, const char* const func, const char* const file) = 0;
 
-	};
+    };
 
-	/*
-	class SharedBool {
 
-	private:
-		struct Impl;
-		Impl* pimpl;
+    class LoggerGod {
 
-	public:
-		SharedBool(std::atomic_bool& flag);
+    private:
+        std::vector<ILoggingChannel*> m_channels;
+        std::mutex m_mut;
+        std::atomic_bool m_enabled;
 
-		SharedBool(const SharedBool& other);
-		SharedBool& operator=(const SharedBool& other);
-		SharedBool(SharedBool&& other);
-		SharedBool& operator=(SharedBool&& other);
+    public:
+        LoggerGod(void);
+        static LoggerGod& getinst(void);
 
-		~SharedBool(void);
+        void addChannel(ILoggingChannel* const ch);
+        void deleteChannel(ILoggingChannel* const ch);
+        void disable(void);
+        void enable(void);
 
-	};
-	*/
+        void putVerbose(const std::string& text, const int line, const char* const func, const char* const file);
+        void putDebug(const std::string& text, const int line, const char* const func, const char* const file);
+        void putInfo(const std::string& text, const int line, const char* const func, const char* const file);
+        void putWarn(const std::string& text, const int line, const char* const func, const char* const file);
+        void putError(const std::string& text, const int line, const char* const func, const char* const file);
+        void putFatal(const std::string& text, const int line, const char* const func, const char* const file);
 
-	class LoggerGod {
-
-	private:
-		std::vector<ILoggingChannel*> m_channels;
-		std::mutex m_mut;
-		std::atomic_bool m_enabled;
-
-	public:
-		LoggerGod(void);
-		static LoggerGod& getinst(void);
-
-		void addChannel(ILoggingChannel* const ch);
-		void deleteChannel(ILoggingChannel* const ch);
-		void disable(void);
-		void enable(void);
-
-		void putVerbose(const std::string& text, const int line, const char* const func, const char* const file);
-		void putDebug  (const std::string& text, const int line, const char* const func, const char* const file);
-		void putInfo   (const std::string& text, const int line, const char* const func, const char* const file);
-		void putWarn   (const std::string& text, const int line, const char* const func, const char* const file);
-		void putError  (const std::string& text, const int line, const char* const func, const char* const file);
-		void putFatal  (const std::string& text, const int line, const char* const func, const char* const file);
-
-	};
+    };
 
 }
 

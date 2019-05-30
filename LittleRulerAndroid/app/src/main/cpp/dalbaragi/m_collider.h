@@ -5,30 +5,30 @@
 
 namespace dal {
 
-	class AABB_2D {
+    class AABB_2D {
 
-	private:
-		glm::vec2 p1, p2;
+    private:
+        glm::vec2 p1, p2;
 
-	public:
-		void setPoints(const glm::vec2& p1, const glm::vec2& p2);
-		bool isInside(const glm::vec2& p) const;
+    public:
+        void setPoints(const glm::vec2& p1, const glm::vec2& p2);
+        bool isInside(const glm::vec2& p) const;
 
-	private:
-		void validateOrder(void);
-	
-	};
+    private:
+        void validateOrder(void);
+
+    };
 
 
-	class AxisAlignedBoundingBox {
+    class AxisAlignedBoundingBox {
 
-	public:
-		glm::vec3 m_p1, m_p2;
+    public:
+        glm::vec3 m_p1, m_p2;
 
-	public:
-		AxisAlignedBoundingBox(void) = default;
-		AxisAlignedBoundingBox(const glm::vec3& p1, const glm::vec3& p2);
+    public:
+        AxisAlignedBoundingBox(void) = default;
+        AxisAlignedBoundingBox(const glm::vec3& p1, const glm::vec3& p2);
 
-	};
+    };
 
 }

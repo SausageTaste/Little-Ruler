@@ -12,23 +12,26 @@ extern "C" {
 
 namespace dal {
 
-	class FreetypeGod {
+    class FreetypeGod {
 
-	private:
-		FT_Library mFLibrary;
-		FT_Face mFace;
-		
-	/////////////////////////////////
+        //////// Var ////////
 
-		FreetypeGod(void);
-		~FreetypeGod(void);
-		FreetypeGod(FreetypeGod&) = delete;
-		FreetypeGod& operator=(FreetypeGod&) = delete;
+    private:
+        FT_Library mFLibrary;
+        FT_Face mFace;
 
-	public:
-		static FreetypeGod& getinst(void);
-		FT_Face& getFace(void);
-		void setFontSize(unsigned int v);
+        //////// Func ////////
 
-	};
+        FreetypeGod(void);
+        ~FreetypeGod(void);
+        FreetypeGod(FreetypeGod&) = delete;
+        FreetypeGod& operator=(FreetypeGod&) = delete;
+
+    public:
+        static FreetypeGod& getinst(void);
+        FT_Face& getFace(void);
+        void setFontSize(unsigned int v);
+
+    };
+
 }

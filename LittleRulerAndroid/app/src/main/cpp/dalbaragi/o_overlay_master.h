@@ -15,60 +15,60 @@
 
 namespace dal {
 
-	class OverlayMaster : public iEventHandler {
+    class OverlayMaster : public iEventHandler {
 
-	private:
-		class TextStreamChannel : public dal::ILoggingChannel {
+    private:
+        class TextStreamChannel : public dal::ILoggingChannel {
 
-		private:
-			dal::TextStream& m_texStream;
+        private:
+            dal::TextStream& m_texStream;
 
-		public:
-			TextStreamChannel(dal::TextStream& texStream);
+        public:
+            TextStreamChannel(dal::TextStream& texStream);
 
-			virtual void verbose(const char* const str, const int line, const char* const func, const char* const file) override;
-			virtual void debug(const char* const str, const int line, const char* const func, const char* const file) override;
-			virtual void info(const char* const str, const int line, const char* const func, const char* const file) override;
-			virtual void warn(const char* const str, const int line, const char* const func, const char* const file) override;
-			virtual void error(const char* const str, const int line, const char* const func, const char* const file) override;
-			virtual void fatal(const char* const str, const int line, const char* const func, const char* const file) override;
+            virtual void verbose(const char* const str, const int line, const char* const func, const char* const file) override;
+            virtual void debug(const char* const str, const int line, const char* const func, const char* const file) override;
+            virtual void info(const char* const str, const int line, const char* const func, const char* const file) override;
+            virtual void warn(const char* const str, const int line, const char* const func, const char* const file) override;
+            virtual void error(const char* const str, const int line, const char* const func, const char* const file) override;
+            virtual void fatal(const char* const str, const int line, const char* const func, const char* const file) override;
 
-		};
+        };
 
-		//////// Vars ////////
+        //////// Vars ////////
 
-	private:
-		ResourceMaster& m_resMas;
-		const ShaderMaster& m_shaderMas;
+    private:
+        ResourceMaster& m_resMas;
+        const ShaderMaster& m_shaderMas;
 
-		UnicodeCache m_unicodes;
+        UnicodeCache m_unicodes;
 
-		GlobalGameState mGlobalFSM;
+        GlobalGameState mGlobalFSM;
 
-		Label* mDisplayFPS;
-		TextStream m_strBuffer;
-		TextStreamChannel m_texStreamCh;
+        Label* mDisplayFPS;
+        TextStream m_strBuffer;
+        TextStreamChannel m_texStreamCh;
 
-		std::list<Widget*> m_widgets;
+        std::list<Widget*> m_widgets;
 
-	public:
-		std::array<QuadPrimitive, 11> mBoxesForTouchPoint;
-		
-		//////// Funcs ////////
+    public:
+        std::array<QuadPrimitive, 11> mBoxesForTouchPoint;
 
-		OverlayMaster(ResourceMaster& resMas, const ShaderMaster& shaderMas);
-		virtual ~OverlayMaster(void) override;
-		virtual void onEvent(const EventStatic& e) override;
+        //////// Funcs ////////
 
-		void onClick(const float x, const float y);
-		void onDrag(const glm::vec2& start, const glm::vec2& end);
-		void onKeyInput(const std::string& c);
-		
-		void render(void) const;
-		void addWidget(Widget* const w);
+        OverlayMaster(ResourceMaster& resMas, const ShaderMaster& shaderMas);
+        virtual ~OverlayMaster(void) override;
+        virtual void onEvent(const EventStatic& e) override;
 
-		void setDisplayedFPS(const unsigned int fps);
+        void onClick(const float x, const float y);
+        void onDrag(const glm::vec2& start, const glm::vec2& end);
+        void onKeyInput(const std::string& c);
 
-	};
+        void render(void) const;
+        void addWidget(Widget* const w);
+
+        void setDisplayedFPS(const unsigned int fps);
+
+    };
 
 }

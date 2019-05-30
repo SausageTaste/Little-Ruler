@@ -4,7 +4,7 @@
 
 namespace dal {
 
-	int main_windows(void);
+    int main_windows(void);
 
 }
 

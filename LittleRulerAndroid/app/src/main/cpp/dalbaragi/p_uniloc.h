@@ -5,173 +5,173 @@
 
 namespace dal {
 
-	class UnilocGeneral {
+    class UnilocGeneral {
 
-		//////// Vars ////////
+        //////// Vars ////////
 
-	public:
-		GLint iPosition;
-		GLint iTexCoord;
-		GLint iNormal;
+    public:
+        GLint iPosition;
+        GLint iTexCoord;
+        GLint iNormal;
 
-		GLint uProjectMat;
-		GLint uViewMat;
-		GLint uModelMat;
+        GLint uProjectMat;
+        GLint uViewMat;
+        GLint uModelMat;
 
-		GLint u_doClip;
-		GLint u_clipPlane;
+        GLint u_doClip;
+        GLint u_clipPlane;
 
-		GLint uDlightProjViewMat[3];
+        GLint uDlightProjViewMat[3];
 
-		GLint uTexScaleX;
-		GLint uTexScaleY;
+        GLint uTexScaleX;
+        GLint uTexScaleY;
 
-		// Fragment shader
+        // Fragment shader
 
-		GLint uViewPos;
-		GLint uBaseAmbient;
-		GLint uDlightCount;
-		GLint uPlightCount;
+        GLint uViewPos;
+        GLint uBaseAmbient;
+        GLint uDlightCount;
+        GLint uPlightCount;
 
-		GLint uShininess;
-		GLint uSpecularStrength;
+        GLint uShininess;
+        GLint uSpecularStrength;
 
-		GLint uDiffuseColor;
-		GLint uHasDiffuseMap;
-		GLint uDiffuseMap;
+        GLint uDiffuseColor;
+        GLint uHasDiffuseMap;
+        GLint uDiffuseMap;
 
-		GLint uDlightDirecs[3];
-		GLint uDlightColors[3];
-		GLint uDlightDepthMap[3];
+        GLint uDlightDirecs[3];
+        GLint uDlightColors[3];
+        GLint uDlightDepthMap[3];
 
-		GLint uPlightPoses[3];
-		GLint uPlightColors[3];
-		GLint uPlightMaxDists[3];
+        GLint uPlightPoses[3];
+        GLint uPlightColors[3];
+        GLint uPlightMaxDists[3];
 
-		//////// Funcs ////////
+        //////// Funcs ////////
 
-	public:
-		void init(const GLuint shader);
+    public:
+        void init(const GLuint shader);
 
-	};
+    };
 
-	class UnilocOverlay {
+    class UnilocOverlay {
 
-		//////// Vars ////////
+        //////// Vars ////////
 
-	public:
-		GLint uPoint1;
-		GLint uPoint2;
+    public:
+        GLint uPoint1;
+        GLint uPoint2;
 
-		GLint mUpsideDown_maskMap;
-		GLint m_upsideDown_diffuseMap;
+        GLint mUpsideDown_maskMap;
+        GLint m_upsideDown_diffuseMap;
 
-		// Fragment shader
+        // Fragment shader
 
-		GLint uColor;
+        GLint uColor;
 
-		GLint mDiffuseMap;
-		GLint mHasDiffuseMap;
+        GLint mDiffuseMap;
+        GLint mHasDiffuseMap;
 
-		GLint mMaskMap;
-		GLint mHasMaskMap;
+        GLint mMaskMap;
+        GLint mHasMaskMap;
 
-		//////// Funcs ////////
+        //////// Funcs ////////
 
-	public:
-		void init(const GLuint shader);
+    public:
+        void init(const GLuint shader);
 
-	};
+    };
 
-	class UnilocFScreen {
+    class UnilocFScreen {
 
-		//////// Vars ////////
+        //////// Vars ////////
 
-	public:
-		GLint iPosition;
-		GLint iTexCoord;
+    public:
+        GLint iPosition;
+        GLint iTexCoord;
 
-		// Fragment shader
+        // Fragment shader
 
-		GLint uTexture;
+        GLint uTexture;
 
-		//////// Funcs ////////
+        //////// Funcs ////////
 
-	public:
-		void init(const GLuint shader);
+    public:
+        void init(const GLuint shader);
 
-	};
+    };
 
-	class UnilocDepthmp {
+    class UnilocDepthmp {
 
-		//////// Vars ////////
+        //////// Vars ////////
 
-	public:
-		GLint iPosition;
+    public:
+        GLint iPosition;
 
-		// Fragment shader
+        // Fragment shader
 
-		GLint uProjViewMat;
-		GLint uModelMat;
+        GLint uProjViewMat;
+        GLint uModelMat;
 
-		//////// Funcs ////////
+        //////// Funcs ////////
 
-	public:
-		void init(const GLuint shader);
+    public:
+        void init(const GLuint shader);
 
-	};
+    };
 
-	class UnilocWaterry {
+    class UnilocWaterry {
 
-		//////// Vars ////////
+        //////// Vars ////////
 
-	public:
-		GLint iPosition;
-		GLint iTexCoord;
-		GLint iNormal;
+    public:
+        GLint iPosition;
+        GLint iTexCoord;
+        GLint iNormal;
 
-		GLint uProjectMat;
-		GLint uViewMat;
-		GLint uModelMat;
+        GLint uProjectMat;
+        GLint uViewMat;
+        GLint uModelMat;
 
-		GLint uDlightProjViewMat[3];
+        GLint uDlightProjViewMat[3];
 
-		GLint uTexScaleX;
-		GLint uTexScaleY;
+        GLint uTexScaleX;
+        GLint uTexScaleY;
 
-		// Fragment shader
+        // Fragment shader
 
-		GLint uViewPos;
-		GLint uBaseAmbient;
-		GLint uDlightCount;
-		GLint uPlightCount;
+        GLint uViewPos;
+        GLint uBaseAmbient;
+        GLint uDlightCount;
+        GLint uPlightCount;
 
-		GLint u_bansaTex;
-		GLint u_gooljulTex;
-		GLint u_dudvMap;
-		GLint u_normalMap;
-		GLint u_dudvMoveFactor;
+        GLint u_bansaTex;
+        GLint u_gooljulTex;
+        GLint u_dudvMap;
+        GLint u_normalMap;
+        GLint u_dudvMoveFactor;
 
-		GLint uShininess;
-		GLint uSpecularStrength;
+        GLint uShininess;
+        GLint uSpecularStrength;
 
-		GLint uDiffuseColor;
-		GLint uHasDiffuseMap;
-		GLint uDiffuseMap;
+        GLint uDiffuseColor;
+        GLint uHasDiffuseMap;
+        GLint uDiffuseMap;
 
-		GLint uDlightDirecs[3];
-		GLint uDlightColors[3];
-		GLint uDlightDepthMap[3];
+        GLint uDlightDirecs[3];
+        GLint uDlightColors[3];
+        GLint uDlightDepthMap[3];
 
-		GLint uPlightPoses[3];
-		GLint uPlightColors[3];
-		GLint uPlightMaxDists[3];
+        GLint uPlightPoses[3];
+        GLint uPlightColors[3];
+        GLint uPlightMaxDists[3];
 
-		//////// Funcs ////////
+        //////// Funcs ////////
 
-	public:
-		void init(const GLuint shader);
+    public:
+        void init(const GLuint shader);
 
-	};
+    };
 
 }

@@ -7,10 +7,10 @@
 
 namespace dal {
 
-	struct PersistState {
+    struct PersistState {
 
-		Camera m_camera;
+        Camera m_camera;
 
-	};
+    };
 
 }

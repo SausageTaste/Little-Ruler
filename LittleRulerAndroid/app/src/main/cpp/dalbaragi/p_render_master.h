@@ -20,66 +20,66 @@
 
 namespace dal {
 
-	class RenderMaster : iEventHandler {
+    class RenderMaster : iEventHandler {
 
-	private:
-		class MainFramebuffer {
-			unsigned int m_bufWidth = 256, m_bufHeight = 256;
-			float m_renderScale = 1.0f;
+    private:
+        class MainFramebuffer {
+            unsigned int m_bufWidth = 256, m_bufHeight = 256;
+            float m_renderScale = 1.0f;
 
-			GLuint m_mainFbuf = 0;
-			GLuint m_colorMap = 0;
-			GLuint m_mainRenderbuf = 0;
-			GLuint m_vbo = 0;
-			GLuint m_vertexArr = 0;
-			GLuint m_texcoordArr = 0;
+            GLuint m_mainFbuf = 0;
+            GLuint m_colorMap = 0;
+            GLuint m_mainRenderbuf = 0;
+            GLuint m_vbo = 0;
+            GLuint m_vertexArr = 0;
+            GLuint m_texcoordArr = 0;
 
-			Texture* m_tex = nullptr;
+            Texture* m_tex = nullptr;
 
-		public:
-			MainFramebuffer(void);
-			~MainFramebuffer(void);
+        public:
+            MainFramebuffer(void);
+            ~MainFramebuffer(void);
 
-			void setRenderScale(float v, unsigned int widWidth, unsigned int widHeight);
-			void resizeFbuffer(unsigned int w, unsigned int h);
+            void setRenderScale(float v, unsigned int widWidth, unsigned int widHeight);
+            void resizeFbuffer(unsigned int w, unsigned int h);
 
-			void startRenderOn(void);
-			void renderOnScreen(const UnilocFScreen& uniloc);
+            void startRenderOn(void);
+            void renderOnScreen(const UnilocFScreen& uniloc);
 
-			Texture* getTex(void);
+            Texture* getTex(void);
 
-		};
+        };
 
-	private:
-		ShaderMaster m_shader;
-		MainFramebuffer m_fbuffer;
+    private:
+        ShaderMaster m_shader;
+        MainFramebuffer m_fbuffer;
 
-	public:
-		Camera m_camera;
-		ResourceMaster m_resMas;
-		SceneMaster m_scene;
-		OverlayMaster m_overlayMas;
+    public:
+        Camera m_camera;
+        ResourceMaster m_resMas;
+        SceneMaster m_scene;
+        OverlayMaster m_overlayMas;
 
-	private:
-		unsigned int m_winWidth, m_winHeight;
-		glm::mat4 m_projectMat;
-		DirectionalLight m_dlight1;
-		bool m_flagDrawDlight1;
-		glm::vec3 m_skyColor;
+    private:
+        unsigned int m_winWidth, m_winHeight;
+        glm::mat4 m_projectMat;
+        DirectionalLight m_dlight1;
+        bool m_flagDrawDlight1;
+        glm::vec3 m_skyColor;
 
-	public:
-		RenderMaster(void);
-		virtual ~RenderMaster(void) override;
+    public:
+        RenderMaster(void);
+        virtual ~RenderMaster(void) override;
 
-		void update(const float deltaTime);
-		void render(void);
-		void setRenderScale(float v);
+        void update(const float deltaTime);
+        void render(void);
+        void setRenderScale(float v);
 
-		virtual void onEvent(const EventStatic& e) override;
+        virtual void onEvent(const EventStatic& e) override;
 
-	private:
-		void resizeFbuffer(unsigned int w, unsigned int h);
+    private:
+        void resizeFbuffer(unsigned int w, unsigned int h);
 
-	};
+    };
 
 }

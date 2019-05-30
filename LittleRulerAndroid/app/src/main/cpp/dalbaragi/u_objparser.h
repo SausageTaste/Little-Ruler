@@ -6,6 +6,6 @@
 
 namespace dal {
 
-	bool parseOBJ_assimp(ModelInfo& info, ResourceID assetPath);
+    bool parseOBJ_assimp(ModelInfo& info, ResourceID assetPath);
 
 }

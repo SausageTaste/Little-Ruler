@@ -11,112 +11,112 @@
 
 namespace dal {
 
-	void deleteFramebuffer(const GLuint fbo);
-	void deleteRenderbuffer(const GLuint rbo);
+    void deleteFramebuffer(const GLuint fbo);
+    void deleteRenderbuffer(const GLuint rbo);
 
 
-	template <void (*DEL_FUNC)(GLuint)>
-	class GLObject {
+    template <void (*DEL_FUNC)(GLuint)>
+    class GLObject {
 
-	private:
-		static constexpr GLuint s_nullValue = 0;
-		GLuint m_fbo;
+    private:
+        static constexpr GLuint s_nullValue = 0;
+        GLuint m_fbo;
 
-	private:
-		GLObject(const GLObject&) = delete;
-		GLObject& operator=(const GLObject&) = delete;
+    private:
+        GLObject(const GLObject&) = delete;
+        GLObject& operator=(const GLObject&) = delete;
 
-	public:
-		GLObject(void) : m_fbo(s_nullValue) {
+    public:
+        GLObject(void) : m_fbo(s_nullValue) {
 
-		}
+        }
 
-		GLObject(GLObject&& other) noexcept {
-			this->m_fbo = other.m_fbo;
-			other.m_fbo = s_nullValue;
-		}
+        GLObject(GLObject&& other) noexcept {
+            this->m_fbo = other.m_fbo;
+            other.m_fbo = s_nullValue;
+        }
 
-		GLObject& operator=(GLObject&& other) noexcept {
-			this->m_fbo = other.m_fbo;
-			other.m_fbo = s_nullValue;
-			return *this;
-		}
+        GLObject& operator=(GLObject&& other) noexcept {
+            this->m_fbo = other.m_fbo;
+            other.m_fbo = s_nullValue;
+            return *this;
+        }
 
-		~GLObject(void) {
-			this->del();
-		}
+        ~GLObject(void) {
+            this->del();
+        }
 
-		void reset(const GLuint fbo) {
-			this->del();
-			this->m_fbo = fbo;
-		}
+        void reset(const GLuint fbo) {
+            this->del();
+            this->m_fbo = fbo;
+        }
 
-		GLuint get(void) {
-			assert(this->isReady());
-			return this->m_fbo;
-		}
+        GLuint get(void) {
+            assert(this->isReady());
+            return this->m_fbo;
+        }
 
-		bool isReady(void) const {
-			return this->m_fbo != s_nullValue;
-		}
+        bool isReady(void) const {
+            return this->m_fbo != s_nullValue;
+        }
 
-		void del(void) {
-			if ( this->isReady() ) {
-				DEL_FUNC(this->m_fbo);
-				this->m_fbo = 0;
-			}
-		}
+        void del(void) {
+            if ( this->isReady() ) {
+                DEL_FUNC(this->m_fbo);
+                this->m_fbo = 0;
+            }
+        }
 
-	};
+    };
 
 
-	class WaterFramebuffer {
+    class WaterFramebuffer {
 
-	private:
-		GLObject<deleteFramebuffer> m_reflectionFrameBuffer;
-		Texture m_reflectionTexture;
-		GLObject<deleteRenderbuffer> m_reflectionDepthBuffer;
+    private:
+        GLObject<deleteFramebuffer> m_reflectionFrameBuffer;
+        Texture m_reflectionTexture;
+        GLObject<deleteRenderbuffer> m_reflectionDepthBuffer;
 
-		GLObject<deleteFramebuffer> m_refractionFrameBuffer;
-		Texture m_refractionTexture;
-		GLObject<deleteRenderbuffer> m_refractionDepthTexture;
+        GLObject<deleteFramebuffer> m_refractionFrameBuffer;
+        Texture m_refractionTexture;
+        GLObject<deleteRenderbuffer> m_refractionDepthTexture;
 
-		float m_winWidth, m_winHeight;
-		float m_reflecScale, m_refracScale;
+        float m_winWidth, m_winHeight;
+        float m_reflecScale, m_refracScale;
 
-	public:
-		WaterFramebuffer(const unsigned int winWidth, const unsigned int winHeight);
+    public:
+        WaterFramebuffer(const unsigned int winWidth, const unsigned int winHeight);
 
-		void bindReflectionFrameBuffer(void);
-		void bindRefractionFrameBuffer(void);
+        void bindReflectionFrameBuffer(void);
+        void bindRefractionFrameBuffer(void);
 
-		Texture* getReflectionTexture(void);
-		Texture* getRefractionTexture(void);
-		GLuint getRefractionDepthTexture(void);
+        Texture* getReflectionTexture(void);
+        Texture* getRefractionTexture(void);
+        GLuint getRefractionDepthTexture(void);
 
-		void resizeFbuffer(const unsigned int winWidth, const unsigned int winHeight);
+        void resizeFbuffer(const unsigned int winWidth, const unsigned int winHeight);
 
-	};
+    };
 
-	
-	class WaterRenderer {
-	
-	private:
-		MeshStatic m_mesh;
-		Material m_material;
-		float m_height = 0.0f;
-		float m_moveFactor = 0.0f;
-		float m_moveSpeed = 0.03f;
-		Timer m_localTimer;
 
-	public:
-		WaterFramebuffer m_fbuffer;
+    class WaterRenderer {
 
-	public:
-		WaterRenderer(const glm::vec3& pos, const glm::vec2& size);
-		void renderWaterry(const UnilocWaterry& uniloc);
-		float getHeight(void) const;
-	
-	};
+    private:
+        MeshStatic m_mesh;
+        Material m_material;
+        float m_height = 0.0f;
+        float m_moveFactor = 0.0f;
+        float m_moveSpeed = 0.03f;
+        Timer m_localTimer;
+
+    public:
+        WaterFramebuffer m_fbuffer;
+
+    public:
+        WaterRenderer(const glm::vec3& pos, const glm::vec2& size);
+        void renderWaterry(const UnilocWaterry& uniloc);
+        float getHeight(void) const;
+
+    };
 
 }

@@ -15,425 +15,418 @@ using namespace fmt::literals;
 
 
 namespace {
+    namespace typeCodes {
 
-	auto& g_logger = dal::LoggerGod::getinst();
+        constexpr int attrib_actor = 3;
 
-}
+        constexpr int item_modelImported = 2;
+        constexpr int item_modelDefined = 1;
 
+        constexpr int item_lightPoint = 4;
 
-namespace {
-	namespace typeCodes {
+        constexpr int item_waterPlane = 5;
 
-		constexpr int attrib_actor = 3;
-
-		constexpr int item_modelImported = 2;
-		constexpr int item_modelDefined = 1;
-
-		constexpr int item_lightPoint = 4;
-
-		constexpr int item_waterPlane = 5;
-
-	}
+    }
 }
 
 
 namespace {
 
-	bool isBigEndian() {
-		short int number = 0x1;
-		char* numPtr = (char*)& number;
-		return numPtr[0] != 1;
-	}
+    bool isBigEndian() {
+        short int number = 0x1;
+        char* numPtr = (char*)& number;
+        return numPtr[0] != 1;
+    }
 
 
-	int makeInt2(const uint8_t* begin) {
-		static_assert(1 == sizeof(uint8_t), "Size of uint8 is not 1 byte. WTF???");
-		static_assert(4 == sizeof(float), "Size of float is not 4 bytes.");
+    int makeInt2(const uint8_t* begin) {
+        static_assert(1 == sizeof(uint8_t), "Size of uint8 is not 1 byte. WTF???");
+        static_assert(4 == sizeof(float), "Size of float is not 4 bytes.");
 
-		uint8_t buf[4];
+        uint8_t buf[4];
 
-		if (isBigEndian()) {
-			buf[0] = 0;
-			buf[1] = 0;
-			buf[2] = begin[1];
-			buf[3] = begin[0];
-		}
-		else {
-			buf[0] = begin[0];
-			buf[1] = begin[1];
-			buf[2] = 0;
-			buf[3] = 0;
-		}
-		
-		int res;
-		memcpy(&res, buf, 4);
-		return res;
-	}
+        if ( isBigEndian() ) {
+            buf[0] = 0;
+            buf[1] = 0;
+            buf[2] = begin[1];
+            buf[3] = begin[0];
+        }
+        else {
+            buf[0] = begin[0];
+            buf[1] = begin[1];
+            buf[2] = 0;
+            buf[3] = 0;
+        }
 
-	int makeInt4(const uint8_t* begin) {
-		static_assert(1 == sizeof(uint8_t), "Size of uint8 is not 1 byte. WTF???");
-		static_assert(4 == sizeof(float), "Size of float is not 4 bytes.");
+        int res;
+        memcpy(&res, buf, 4);
+        return res;
+    }
 
-		uint8_t buf[4];
+    int makeInt4(const uint8_t* begin) {
+        static_assert(1 == sizeof(uint8_t), "Size of uint8 is not 1 byte. WTF???");
+        static_assert(4 == sizeof(float), "Size of float is not 4 bytes.");
 
-		if (isBigEndian()) {
-			buf[0] = begin[3];
-			buf[1] = begin[2];
-			buf[2] = begin[1];
-			buf[3] = begin[0];
-		}
-		else {
-			buf[0] = begin[0];
-			buf[1] = begin[1];
-			buf[2] = begin[2];
-			buf[3] = begin[3];
-		}
+        uint8_t buf[4];
 
-		int res;
-		memcpy(&res, buf, 4);
-		return res;
-	}
+        if ( isBigEndian() ) {
+            buf[0] = begin[3];
+            buf[1] = begin[2];
+            buf[2] = begin[1];
+            buf[3] = begin[0];
+        }
+        else {
+            buf[0] = begin[0];
+            buf[1] = begin[1];
+            buf[2] = begin[2];
+            buf[3] = begin[3];
+        }
 
-	float makeFloat4(const uint8_t* begin) {
-		static_assert(1 == sizeof(uint8_t), "Size of uint8 is not 1 byte. WTF???");
-		static_assert(4 == sizeof(float), "Size of float is not 4 bytes.");
+        int res;
+        memcpy(&res, buf, 4);
+        return res;
+    }
 
-		uint8_t buf[4];
+    float makeFloat4(const uint8_t* begin) {
+        static_assert(1 == sizeof(uint8_t), "Size of uint8 is not 1 byte. WTF???");
+        static_assert(4 == sizeof(float), "Size of float is not 4 bytes.");
 
-		if (isBigEndian()) {
-			buf[0] = begin[3];
-			buf[1] = begin[2];
-			buf[2] = begin[1];
-			buf[3] = begin[0];
-		}
-		else {
-			buf[0] = begin[0];
-			buf[1] = begin[1];
-			buf[2] = begin[2];
-			buf[3] = begin[3];
-		}
+        uint8_t buf[4];
 
-		float res;
-		memcpy(&res, buf, 4);
-		return res;
-	}
+        if ( isBigEndian() ) {
+            buf[0] = begin[3];
+            buf[1] = begin[2];
+            buf[2] = begin[1];
+            buf[3] = begin[0];
+        }
+        else {
+            buf[0] = begin[0];
+            buf[1] = begin[1];
+            buf[2] = begin[2];
+            buf[3] = begin[3];
+        }
+
+        float res;
+        memcpy(&res, buf, 4);
+        return res;
+    }
 
 }
 
 
 namespace {  // Make attribs
 
-	const uint8_t* makeAttrib_actor(std::vector<dal::ActorInfo>& actorVec, const uint8_t* const begin, const uint8_t* const end) {
-		const uint8_t* header = begin;
+    const uint8_t* makeAttrib_actor(std::vector<dal::ActorInfo>& actorVec, const uint8_t* const begin, const uint8_t* const end) {
+        const uint8_t* header = begin;
 
-		// Construct
-		{
-			const auto charPtr = reinterpret_cast<const char*>(begin);
-			const auto len = std::strlen(charPtr);
-			if (len > 512) dalAbort("Length of string is bigger than 512.");
-			header += len + 1;
+        // Construct
+        {
+            const auto charPtr = reinterpret_cast<const char*>(begin);
+            const auto len = std::strlen(charPtr);
+            if ( len > 512 ) dalAbort("Length of string is bigger than 512.");
+            header += len + 1;
 
-			// Static flag
-			const auto flagStatic = 0 != *header++;
+            // Static flag
+            const auto flagStatic = 0 != *header++;
 
-			//
+            //
 
-			actorVec.emplace_back(charPtr, flagStatic);
-		}
+            actorVec.emplace_back(charPtr, flagStatic);
+        }
 
-		auto& actor = actorVec.back();
+        auto& actor = actorVec.back();
 
-		{
-			const size_t assumedRestBytes = 4 * (4 + 3);  // (float is 4 bytes) * ( (vec4) + (vec3) )
-			if (assumedRestBytes > (end - header)) {
-				dalAbort("Umm.. what was this??");
-			}
-		}
-		
-		{
-			float numBuf[7];  // vec3 and vec4 together.
+        {
+            const size_t assumedRestBytes = 4 * (4 + 3);  // (float is 4 bytes) * ( (vec4) + (vec3) )
+            if ( assumedRestBytes > (end - header) ) {
+                dalAbort("Umm.. what was this??");
+            }
+        }
 
-			for (unsigned int i = 0; i < 7; i++) {
-				numBuf[i] = makeFloat4(header);
-				header += 4;
-			}
+        {
+            float numBuf[7];  // vec3 and vec4 together.
 
-			actor.m_pos = { numBuf[0], numBuf[1], numBuf[2] };
-			actor.m_quat.x = numBuf[3];
-			actor.m_quat.y = numBuf[4];
-			actor.m_quat.z = numBuf[5];
-			actor.m_quat.w = numBuf[6];
-		}
-		
-		return header;
-	}
+            for ( unsigned int i = 0; i < 7; i++ ) {
+                numBuf[i] = makeFloat4(header);
+                header += 4;
+            }
+
+            actor.m_pos = { numBuf[0], numBuf[1], numBuf[2] };
+            actor.m_quat.x = numBuf[3];
+            actor.m_quat.y = numBuf[4];
+            actor.m_quat.z = numBuf[5];
+            actor.m_quat.w = numBuf[6];
+        }
+
+        return header;
+    }
 
 }
 
 
 namespace {  // Make items
 
-	const uint8_t* make_modelImported(dal::LoadedMap &info, const uint8_t *const begin, const uint8_t *const end) {
-		const uint8_t* header = begin;
-		info.m_importedModels.emplace_back();
-		auto& importedModel = info.m_importedModels.back();
+    const uint8_t* make_modelImported(dal::LoadedMap& info, const uint8_t* const begin, const uint8_t* const end) {
+        const uint8_t* header = begin;
+        info.m_importedModels.emplace_back();
+        auto& importedModel = info.m_importedModels.back();
 
-		{ // Get model id
-			const auto charPtr = reinterpret_cast<const char*>(begin);
-			importedModel.m_modelID = charPtr;
-			header += std::strlen(charPtr) + 1;
-		}
+        { // Get model id
+            const auto charPtr = reinterpret_cast<const char*>(begin);
+            importedModel.m_modelID = charPtr;
+            header += std::strlen(charPtr) + 1;
+        }
 
-		{ // Get actors
-			const auto listElementTypeCode = makeInt2(header);
-			assert(typeCodes::attrib_actor == listElementTypeCode);
-			header += 2;
-			const auto listSize = makeInt4(header);
-			header += 4;
+        { // Get actors
+            const auto listElementTypeCode = makeInt2(header);
+            assert(typeCodes::attrib_actor == listElementTypeCode);
+            header += 2;
+            const auto listSize = makeInt4(header);
+            header += 4;
 
-			for (int i = 0; i < listSize; i++) {
-				header = makeAttrib_actor(importedModel.m_actors, header, end);
-			}
-		}
+            for ( int i = 0; i < listSize; i++ ) {
+                header = makeAttrib_actor(importedModel.m_actors, header, end);
+            }
+        }
 
-		return header;
-	}
+        return header;
+    }
 
-	const uint8_t* make_modelDefined(dal::LoadedMap& info, const uint8_t* const begin, const uint8_t* const end) {
-		const uint8_t* header = begin;
-		info.m_definedModels.emplace_back();
-		auto& definedModel = info.m_definedModels.back();
+    const uint8_t* make_modelDefined(dal::LoadedMap& info, const uint8_t* const begin, const uint8_t* const end) {
+        const uint8_t* header = begin;
+        info.m_definedModels.emplace_back();
+        auto& definedModel = info.m_definedModels.back();
 
-		// Parse model id
-		{
-			const auto charPtr = reinterpret_cast<const char*>(header);
-			definedModel.m_modelID = charPtr;
-			header += std::strlen(charPtr) + 1;
-		}
+        // Parse model id
+        {
+            const auto charPtr = reinterpret_cast<const char*>(header);
+            definedModel.m_modelID = charPtr;
+            header += std::strlen(charPtr) + 1;
+        }
 
-		// Parse actors
-		{
-			const auto listElementTypeCode = makeInt2(header); header += 2;
-			assert(typeCodes::attrib_actor == listElementTypeCode);
-			
-			const auto listSize = makeInt4(header); header += 4;
-			
+        // Parse actors
+        {
+            const auto listElementTypeCode = makeInt2(header); header += 2;
+            assert(typeCodes::attrib_actor == listElementTypeCode);
 
-			for (int i = 0; i < listSize; i++) {
-				header = makeAttrib_actor(definedModel.m_actors, header, end);
-			}
-		}
-
-		// Parse vertex arrays
-		{
-			std::vector<float>* arrays[3] = {
-				&definedModel.m_renderUnit.m_mesh.m_vertices,
-				&definedModel.m_renderUnit.m_mesh.m_texcoords,
-				&definedModel.m_renderUnit.m_mesh.m_normals
-			};
-
-			for (int i = 0; i < 3; i++) {
-				const auto arrSize = makeInt4(header); header += 4;
-
-				auto arr = arrays[i];
-				arr->resize(arrSize);
-				
-				for (int j = 0; j < arrSize; j++) {
-					const auto value = makeFloat4(header); header += 4;
-					arr->at(j) = value;
-				}
-			}
-		}
-
-		// Make bounding box
-		{
-			assert(0 == (definedModel.m_renderUnit.m_mesh.m_vertices.size() % 3));
-			auto iter = definedModel.m_renderUnit.m_mesh.m_vertices.begin();
-			auto& aabb = definedModel.m_boundingBox;
-
-			while ( definedModel.m_renderUnit.m_mesh.m_vertices.end() != iter ) {
-				const auto x = *iter++;
-				const auto y = *iter++;
-				const auto z = *iter++;
-
-				if ( aabb.m_p1.x > x )
-					aabb.m_p1.x = x;
-				else if ( aabb.m_p2.x < x )
-					aabb.m_p2.x = x;
-
-				if ( aabb.m_p1.y > y )
-					aabb.m_p1.y = y;
-				else if ( aabb.m_p2.y < y )
-					aabb.m_p2.y = y;
-
-				if ( aabb.m_p1.z > z )
-					aabb.m_p1.z = z;
-				else if ( aabb.m_p2.z < z )
-					aabb.m_p2.z = z;
-			}
-		}
-
-		auto& material = definedModel.m_renderUnit.m_material;
-
-		// Parse diffuse color(3), shininess(1), specular strength(1), texSize(1, 1)
-		{
-			float floatBuf[7];
-			for (int i = 0; i < 7; i++) {
-				floatBuf[i] = makeFloat4(header); header += 4;
-			}
-
-			material.m_diffuseColor = { floatBuf[0], floatBuf[1], floatBuf[2] };
-			material.m_shininess = floatBuf[3];
-			material.m_specStrength = floatBuf[4];
-			material.m_texSize.x = floatBuf[5];
-			material.m_texSize.y = floatBuf[6];
-		}
-
-		// Parse diffuse map name
-		{
-			const auto charPtr = reinterpret_cast<const char*>(header);
-			material.m_diffuseMap = charPtr;
-			header += std::strlen(charPtr) + 1;
-		}
-
-		// Parse specular map name
-		{
-			const auto charPtr = reinterpret_cast<const char*>(header);
-			material.m_specularMap = charPtr;
-			header += std::strlen(charPtr) + 1;
-		}
-
-		return header;
-	}
+            const auto listSize = makeInt4(header); header += 4;
 
 
-	const uint8_t* make_lightPoint(dal::LoadedMap& info, const uint8_t* const begin, const uint8_t* const end) {
-		const uint8_t* header = begin;
-		info.m_pointLights.emplace_back();
-		auto& plight = info.m_pointLights.back();
+            for ( int i = 0; i < listSize; i++ ) {
+                header = makeAttrib_actor(definedModel.m_actors, header, end);
+            }
+        }
 
-		// str light_name
-		{
-			const auto charPtr = reinterpret_cast<const char*>(header);
-			plight.m_name = charPtr;
-			header += std::strlen(charPtr) + 1;
-		}
+        // Parse vertex arrays
+        {
+            std::vector<float>* arrays[3] = {
+                &definedModel.m_renderUnit.m_mesh.m_vertices,
+                &definedModel.m_renderUnit.m_mesh.m_texcoords,
+                &definedModel.m_renderUnit.m_mesh.m_normals
+            };
 
-		// Static
-		{
-			const auto flag = *header;
-			if ( 0 == flag ) plight.m_static = false;
-			else plight.m_static = true;
-			header++;
-		}
+            for ( int i = 0; i < 3; i++ ) {
+                const auto arrSize = makeInt4(header); header += 4;
 
-		// vec3 pos, color; float max_dist
-		{
-			float floatBuf[7];
-			for (int i = 0; i < 7; i++) {
-				floatBuf[i] = makeFloat4(header); header += 4;
-			}
+                auto arr = arrays[i];
+                arr->resize(arrSize);
 
-			plight.m_color = { floatBuf[0], floatBuf[1], floatBuf[2] };
-			plight.m_pos = { floatBuf[3], floatBuf[4], floatBuf[5] };
-			plight.m_maxDist = floatBuf[6];
-		}
+                for ( int j = 0; j < arrSize; j++ ) {
+                    const auto value = makeFloat4(header); header += 4;
+                    arr->at(j) = value;
+                }
+            }
+        }
 
-		return header;
-	}
+        // Make bounding box
+        {
+            assert(0 == (definedModel.m_renderUnit.m_mesh.m_vertices.size() % 3));
+            auto iter = definedModel.m_renderUnit.m_mesh.m_vertices.begin();
+            auto& aabb = definedModel.m_boundingBox;
+
+            while ( definedModel.m_renderUnit.m_mesh.m_vertices.end() != iter ) {
+                const auto x = *iter++;
+                const auto y = *iter++;
+                const auto z = *iter++;
+
+                if ( aabb.m_p1.x > x )
+                    aabb.m_p1.x = x;
+                else if ( aabb.m_p2.x < x )
+                    aabb.m_p2.x = x;
+
+                if ( aabb.m_p1.y > y )
+                    aabb.m_p1.y = y;
+                else if ( aabb.m_p2.y < y )
+                    aabb.m_p2.y = y;
+
+                if ( aabb.m_p1.z > z )
+                    aabb.m_p1.z = z;
+                else if ( aabb.m_p2.z < z )
+                    aabb.m_p2.z = z;
+            }
+        }
+
+        auto& material = definedModel.m_renderUnit.m_material;
+
+        // Parse diffuse color(3), shininess(1), specular strength(1), texSize(1, 1)
+        {
+            float floatBuf[7];
+            for ( int i = 0; i < 7; i++ ) {
+                floatBuf[i] = makeFloat4(header); header += 4;
+            }
+
+            material.m_diffuseColor = { floatBuf[0], floatBuf[1], floatBuf[2] };
+            material.m_shininess = floatBuf[3];
+            material.m_specStrength = floatBuf[4];
+            material.m_texSize.x = floatBuf[5];
+            material.m_texSize.y = floatBuf[6];
+        }
+
+        // Parse diffuse map name
+        {
+            const auto charPtr = reinterpret_cast<const char*>(header);
+            material.m_diffuseMap = charPtr;
+            header += std::strlen(charPtr) + 1;
+        }
+
+        // Parse specular map name
+        {
+            const auto charPtr = reinterpret_cast<const char*>(header);
+            material.m_specularMap = charPtr;
+            header += std::strlen(charPtr) + 1;
+        }
+
+        return header;
+    }
 
 
-	const uint8_t* make_waterPlane(dal::LoadedMap& info, const uint8_t* const begin, const uint8_t* const end) {
-		auto header = begin;
-		info.m_waterPlanes.emplace_back();
-		auto& water = info.m_waterPlanes.back();
+    const uint8_t* make_lightPoint(dal::LoadedMap& info, const uint8_t* const begin, const uint8_t* const end) {
+        const uint8_t* header = begin;
+        info.m_pointLights.emplace_back();
+        auto& plight = info.m_pointLights.back();
 
-		// Get diffuse pos(3), width(1), height(1)
-		{
-			float floatBuf[5];
-			for ( int i = 0; i < 5; i++ ) {
-				floatBuf[i] = makeFloat4(header); header += 4;
-			}
+        // str light_name
+        {
+            const auto charPtr = reinterpret_cast<const char*>(header);
+            plight.m_name = charPtr;
+            header += std::strlen(charPtr) + 1;
+        }
 
-			water.m_pos = { floatBuf[0], floatBuf[1], floatBuf[2] };
-			water.width = floatBuf[3];
-			water.height = floatBuf[4];
-		}
+        // Static
+        {
+            const auto flag = *header;
+            if ( 0 == flag ) plight.m_static = false;
+            else plight.m_static = true;
+            header++;
+        }
 
-		return header;
-	}
+        // vec3 pos, color; float max_dist
+        {
+            float floatBuf[7];
+            for ( int i = 0; i < 7; i++ ) {
+                floatBuf[i] = makeFloat4(header); header += 4;
+            }
+
+            plight.m_color = { floatBuf[0], floatBuf[1], floatBuf[2] };
+            plight.m_pos = { floatBuf[3], floatBuf[4], floatBuf[5] };
+            plight.m_maxDist = floatBuf[6];
+        }
+
+        return header;
+    }
 
 
-	decltype(make_modelImported)* selectMakerFunc(const int typeCode) {
+    const uint8_t* make_waterPlane(dal::LoadedMap& info, const uint8_t* const begin, const uint8_t* const end) {
+        auto header = begin;
+        info.m_waterPlanes.emplace_back();
+        auto& water = info.m_waterPlanes.back();
 
-		switch (typeCode) {
+        // Get diffuse pos(3), width(1), height(1)
+        {
+            float floatBuf[5];
+            for ( int i = 0; i < 5; i++ ) {
+                floatBuf[i] = makeFloat4(header); header += 4;
+            }
 
-		case typeCodes::item_modelDefined:
-			return make_modelDefined;
-		case typeCodes::item_modelImported:
-			return make_modelImported;
+            water.m_pos = { floatBuf[0], floatBuf[1], floatBuf[2] };
+            water.width = floatBuf[3];
+            water.height = floatBuf[4];
+        }
 
-		case typeCodes::item_lightPoint:
-			return make_lightPoint;
+        return header;
+    }
 
-		case typeCodes::item_waterPlane:
-			return make_waterPlane;
 
-		default:
-			g_logger.putError("Unknown map item typeCode: "s + std::to_string(typeCode), __LINE__, __func__, __FILE__);
-			return nullptr;
+    decltype(make_modelImported)* selectMakerFunc(const int typeCode) {
 
-		}
+        switch ( typeCode ) {
 
-	}
+        case typeCodes::item_modelDefined:
+            return make_modelDefined;
+        case typeCodes::item_modelImported:
+            return make_modelImported;
+
+        case typeCodes::item_lightPoint:
+            return make_lightPoint;
+
+        case typeCodes::item_waterPlane:
+            return make_waterPlane;
+
+        default:
+            dalError("Unknown map item typeCode: "s + std::to_string(typeCode));
+            return nullptr;
+
+        }
+
+    }
 
 }
 
 
 namespace dal {
 
-	bool parseMap_dlb(LoadedMap& info, const uint8_t* const buf, const size_t bufSize) {
-		constexpr size_t k_chunkSize = 2048 * 3;
-		uint8_t decomBuf[k_chunkSize];
-		uLongf decomBufSize = k_chunkSize;
+    bool parseMap_dlb(LoadedMap& info, const uint8_t* const buf, const size_t bufSize) {
+        constexpr size_t k_chunkSize = 2048 * 3;
+        uint8_t decomBuf[k_chunkSize];
+        uLongf decomBufSize = k_chunkSize;
 
-		{
-			const auto res = uncompress(decomBuf, &decomBufSize, buf, bufSize);
-			switch ( res ) {
+        {
+            const auto res = uncompress(decomBuf, &decomBufSize, buf, bufSize);
+            switch ( res ) {
 
-			case Z_OK:
-				break;
-			case Z_BUF_ERROR:
-				dalError("Failed to uncompress map file: buffer is not large enough");
-				return false;
-			case Z_MEM_ERROR:
-				dalError("Failed to uncompress map file: Insufficient memory");
-				return false;
-			case Z_DATA_ERROR:
-				dalError("Failed to uncompress map file: Corrupted data");
-				return false;
-			default:
-				dalError("Failed to uncompress map file: Unknown reason ({})"_format(res));
-				return false;
+            case Z_OK:
+                break;
+            case Z_BUF_ERROR:
+                dalError("Failed to uncompress map file: buffer is not large enough");
+                return false;
+            case Z_MEM_ERROR:
+                dalError("Failed to uncompress map file: Insufficient memory");
+                return false;
+            case Z_DATA_ERROR:
+                dalError("Failed to uncompress map file: Corrupted data");
+                return false;
+            default:
+                dalError("Failed to uncompress map file: Unknown reason ({})"_format(res));
+                return false;
 
-			}
-		}
+            }
+        }
 
-		const auto end = decomBuf + decomBufSize;
-		const uint8_t* header = decomBuf;
+        const auto end = decomBuf + decomBufSize;
+        const uint8_t* header = decomBuf;
 
-		while (true) {
-			const auto typeCode = makeInt2(header);
-			auto makerFunc = selectMakerFunc(typeCode);
-			if (nullptr == makerFunc)
-				return false;
-				
-			header += 2;
+        while ( true ) {
+            const auto typeCode = makeInt2(header);
+            auto makerFunc = selectMakerFunc(typeCode);
+            if ( nullptr == makerFunc )
+                return false;
 
-			header = makerFunc(info, header, end);
-			if (header == end)
-				return true;
-		}
-	}
+            header += 2;
+
+            header = makerFunc(info, header, end);
+            if ( header == end )
+                return true;
+        }
+    }
 
 }

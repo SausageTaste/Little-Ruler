@@ -7,18 +7,18 @@
 
 namespace dal {
 
-	class TextureView : public Widget {
+    class TextureView : public Widget {
 
-	private:
-		QuadRenderer m_quadRender;
+    private:
+        QuadRenderer m_quadRender;
 
-	public:
-		explicit TextureView(Widget* parent, Texture* const tex = nullptr);
-		virtual void renderOverlay(const UnilocOverlay& uniloc) override;
-		void setTexture(Texture* const tex);
+    public:
+        explicit TextureView(Widget* parent, Texture* const tex = nullptr);
+        virtual void renderOverlay(const UnilocOverlay& uniloc) override;
+        void setTexture(Texture* const tex);
 
-		void setUpsideDown(const bool v);
+        void setUpsideDown(const bool v);
 
-	};
+    };
 
 }
