@@ -355,6 +355,61 @@ namespace {
 
     } gTouchMaster;  // class TouchMaster
 
+    class TouchStatesMaster {
+
+        //////// Definitions ////////
+
+    private:
+        struct TouchState {
+            glm::vec2 m_lastDownPos, m_thisPos, m_lastPos;
+            float m_lastDownSec = 0.0f, m_lastSec = 0.0f;
+            bool m_down = false;
+        };
+
+        //////// Var ////////
+
+    private:
+        std::array<TouchState, 10> m_states;
+
+        //////// Func ////////
+
+        void fetch(void) {
+            auto& tq = dal::TouchEvtQueueGod::getinst();
+
+            for ( unsigned int i = 0; i < tq.getSize(); i++ ) {
+                const auto& touch = tq.at(i);
+                if ( 0 > touch.id || touch.id >= this->m_states.size() ) {
+                    dalWarn("Touch id is out of boundary: "s + std::to_string(touch.id));
+                    continue;
+                }
+                auto& state = this->m_states[touch.id];
+                const auto pos = glm::vec2{ touch.x, touch.y };
+
+                
+                if ( dal::TouchType::move == touch.type ) {
+                    state.m_lastPos = state.m_thisPos;
+                    state.m_thisPos = pos;
+                    state.m_lastSec = touch.timeSec;
+                }
+                else if ( dal::TouchType::down == touch.type ) {
+                    state.m_lastDownPos = pos;
+                    state.m_thisPos = pos;
+                    state.m_lastPos = pos;
+                    state.m_lastDownSec = touch.timeSec;
+                    state.m_lastSec = touch.timeSec;
+                    state.m_down = true;
+                }
+                else {
+
+                }
+            }
+
+            tq.clear();
+        }
+
+
+    } g_touchMas;  // class TouchStatesMaster
+
     /*
     class KeyboardMaster {
 
@@ -578,9 +633,9 @@ namespace {
 
     private:
         struct KeyState {
-            bool m_pressed = false;
             float m_lastUpdated = 0.0f;
             bool m_withShift = false;
+            bool m_pressed = false;
         };
 
         //////// Var ////////

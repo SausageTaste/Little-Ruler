@@ -44,10 +44,10 @@ namespace dal {
 
 
     struct TouchEvent {
-        float x, y;
         TouchType type;
         int32_t id;
         float timeSec;
+        float x, y;
     };
 
 
