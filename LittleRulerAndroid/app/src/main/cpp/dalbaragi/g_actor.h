@@ -74,6 +74,10 @@ namespace dal {
         ActorInfo* replaceActor(ActorInfo* const actor);
         Model* replaceModel(Model* const model);
 
+        Camera* getCamera(void) { assert(nullptr != this->m_camera); return this->m_camera; }
+        ActorInfo* getActor(void) { assert(nullptr != this->m_actor); return this->m_actor; }
+        Model* getModel(void) { assert(nullptr != this->m_model); return this->m_model; }
+
     };
 
 }
