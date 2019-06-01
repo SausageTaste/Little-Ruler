@@ -55,7 +55,6 @@ namespace dal {
         MainFramebuffer m_fbuffer;
 
     public:
-        Camera m_camera;
         ResourceMaster m_resMas;
         SceneMaster m_scene;
         OverlayMaster m_overlayMas;
@@ -66,9 +65,10 @@ namespace dal {
         DirectionalLight m_dlight1;
         bool m_flagDrawDlight1;
         glm::vec3 m_skyColor;
+        ICamera* m_mainCamera;
 
     public:
-        RenderMaster(void);
+        RenderMaster(ICamera* const camera);
         virtual ~RenderMaster(void) override;
 
         void update(const float deltaTime);
@@ -76,6 +76,8 @@ namespace dal {
         void setRenderScale(float v);
 
         virtual void onEvent(const EventStatic& e) override;
+
+        ICamera* replaceMainCamera(ICamera* camera);
 
     private:
         void resizeFbuffer(unsigned int w, unsigned int h);

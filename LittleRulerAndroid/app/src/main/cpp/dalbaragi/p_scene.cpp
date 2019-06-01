@@ -12,7 +12,7 @@ using namespace std::string_literals;
 
 namespace {
 
-    dal::Camera makeReflectionCamera(dal::Camera camera, const float waterHeight) {
+    dal::ICamera makeReflectionCamera(dal::ICamera& camera, const float waterHeight) {
         auto camPos = camera.getPos();
         camPos.y = 2.0f * waterHeight - camPos.y;
         camera.setPos(camPos);
@@ -105,7 +105,7 @@ namespace dal {
         }
     }
 
-    void MapChunk::renderGeneral_onWater(const UnilocGeneral& uniloc, const Camera& cam, MapChunk* const additional) {
+    void MapChunk::renderGeneral_onWater(const UnilocGeneral& uniloc, const ICamera& cam, MapChunk* const additional) {
         for ( auto& water : this->m_waters ) {
             {
                 // Uniform values
@@ -115,10 +115,10 @@ namespace dal {
 
                 const auto reflectionCam = makeReflectionCamera(cam, water.getHeight());
 
-                const auto viewMat = reflectionCam.makeViewMat();
+                const auto& viewMat = reflectionCam.getViewMat();
                 glUniformMatrix4fv(uniloc.uViewMat, 1, GL_FALSE, &viewMat[0][0]);
 
-                const auto viewPos = reflectionCam.getPos();
+                const auto& viewPos = reflectionCam.m_pos;
                 glUniform3f(uniloc.uViewPos, viewPos.x, viewPos.y, viewPos.z);
 
                 water.m_fbuffer.bindReflectionFrameBuffer();
@@ -136,10 +136,10 @@ namespace dal {
                 glUniform4f(uniloc.u_clipPlane, 0, -1, 0, water.getHeight());
                 glUniform1i(uniloc.u_doClip, 1);
 
-                const auto viewMat = cam.makeViewMat();
+                const auto& viewMat = cam.getViewMat();
                 glUniformMatrix4fv(uniloc.uViewMat, 1, GL_FALSE, &viewMat[0][0]);
 
-                const auto viewPos = cam.getPos();
+                const auto& viewPos = cam.m_pos;
                 glUniform3f(uniloc.uViewPos, viewPos.x, viewPos.y, viewPos.z);
 
                 water.m_fbuffer.bindRefractionFrameBuffer();
@@ -241,7 +241,7 @@ namespace dal {
         }
     }
 
-    void SceneMaster::renderGeneral_onWater(const UnilocGeneral& uniloc, const Camera& cam) {
+    void SceneMaster::renderGeneral_onWater(const UnilocGeneral& uniloc, const ICamera& cam) {
         auto iter = this->m_mapChunks.begin();
         const auto end = this->m_mapChunks.end();
         iter->renderGeneral_onWater(uniloc, cam, nullptr);

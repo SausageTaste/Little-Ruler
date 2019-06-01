@@ -11,20 +11,32 @@ namespace dal {
     class Model;
 
 
-    class Camera {
+    class ICamera {
+
+    public:
+        glm::vec3 m_pos;
+
+    protected:
+        glm::mat4 m_viewMat;
+
+    public:
+        virtual ~ICamera(void) = default;
+        virtual void updateViewMat(void) = 0;
+        const glm::mat4& getViewMat(void) const {
+            return this->m_viewMat;
+        }
+
+    };
+
+
+    class EulerCamera : ICamera {
 
     private:
         glm::vec2 m_viewDirec;
         glm::vec3 m_pos;
 
     public:
-        glm::mat4 makeViewMat(void) const;
-
-        glm::vec3 getPos(void) const;
-        void setPos(const float x, const float y, const float z);
-        void setPos(const glm::vec3& pos);
-        void addPos(const float x, const float y, const float z);
-        void addPos(const glm::vec3& pos);
+        virtual void updateViewMat(void) override;
 
         glm::vec2 getViewPlane(void) const;
         void setViewPlane(const float x, const float y);
@@ -62,19 +74,19 @@ namespace dal {
     class Player {
 
     private:
-        Camera* m_camera = nullptr;
+        EulerCamera* m_camera = nullptr;
         ActorInfo* m_actor = nullptr;
         Model* m_model = nullptr;
 
     public:
         Player(void) = default;
-        Player(Camera* camera, ActorInfo* actor, Model* model);
+        Player(EulerCamera* camera, ActorInfo* actor, Model* model);
 
-        Camera* replaceCamera(Camera* const camera);
+        EulerCamera* replaceCamera(EulerCamera* const camera);
         ActorInfo* replaceActor(ActorInfo* const actor);
         Model* replaceModel(Model* const model);
 
-        Camera* getCamera(void) { assert(nullptr != this->m_camera); return this->m_camera; }
+        EulerCamera* getCamera(void) { assert(nullptr != this->m_camera); return this->m_camera; }
         ActorInfo* getActor(void) { assert(nullptr != this->m_actor); return this->m_actor; }
         Model* getModel(void) { assert(nullptr != this->m_model); return this->m_model; }
 

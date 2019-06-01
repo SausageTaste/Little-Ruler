@@ -97,7 +97,7 @@ namespace {
         float vertical;
     };
 
-
+    /*
     class TouchMaster {
 
         //////// Definitions ////////
@@ -142,12 +142,12 @@ namespace {
             const float viewMultiplier = 5.0f / widthOrHeightButShorter;
             const float aThridWidth = winWidth / 3.0f;
 
-            /* Init locals */
+            // Init locals
             {
                 *info = { 0 };
             }
 
-            /* Update touchStates[i] */
+            // Update touchStates[i]
             {
                 for ( unsigned int i = 0; i < dal::TouchEvtQueueGod::getinst().getSize(); i++ ) {
                     const auto& touch = dal::TouchEvtQueueGod::getinst().at(i);
@@ -210,7 +210,7 @@ namespace {
                 dal::TouchEvtQueueGod::getinst().clear();
             }
 
-            /* Apply to NoclipMoveInfo* */
+            // Apply to NoclipMoveInfo*
             {
                 for ( unsigned int i = 0; i < kMaxMultiTouchNum; i++ ) {
                     auto& state = touchStates[i];
@@ -241,7 +241,7 @@ namespace {
                 }
             }
 
-            /* Apply to boxes */
+            // Apply to boxes
             {
                 if ( mBoxesForTouchPoint != nullptr ) {
                     for ( unsigned int i = 0; i < kMaxMultiTouchNum; i++ ) {
@@ -356,6 +356,7 @@ namespace {
         }
 
     };  // class TouchMaster
+    */
 
     class TouchStatesMaster {
 
@@ -384,8 +385,10 @@ namespace {
     public:
         ~TouchStatesMaster(void) {
             for ( size_t i = 0; i < this->m_touchDrawers.size(); i++ ) {
-                delete this->m_touchDrawers[i];
-                this->m_touchDrawers[i] = nullptr;
+                if ( nullptr != this->m_touchDrawers[i] ) {
+                    delete this->m_touchDrawers[i];
+                    this->m_touchDrawers[i] = nullptr;
+                }
             }
         }
 
@@ -980,6 +983,43 @@ namespace {
 
     }
 
+    void apply_topdown(const float deltaTime, dal::Player& player, dal::OverlayMaster& overlay) {
+        glm::vec2 totalMovePlane{ 0.0 };  // This means it must represent move direction when targetViewDir == { 0, 0 }.
+        float moveUpOrDown = 0.0f;
+
+        g_keyboardMas.fetch();
+        g_touchMas.fetch();
+
+        // Take inputs
+        {
+            NoclipMoveInfo keyboardInfo;
+            if ( g_keyboardMas.makeMoveInfo(keyboardInfo, deltaTime) ) {
+                totalMovePlane += glm::vec2{ keyboardInfo.xMovePlane, keyboardInfo.zMovePlane };
+                moveUpOrDown += keyboardInfo.vertical;
+            }
+
+            NoclipMoveInfo touchInfo;
+            if ( g_touchMas.makeMoveInfo(touchInfo, overlay) ) {
+                totalMovePlane += glm::vec2{ touchInfo.xMovePlane, touchInfo.zMovePlane };
+                moveUpOrDown += touchInfo.vertical;
+            }
+        }
+
+        // Return if target doesn't need to move.
+        if ( totalMovePlane.x == 0.0f && totalMovePlane.y == 0.0f && moveUpOrDown == 0.0f ) return;
+
+        /* Apply move direction */
+        {
+            auto actor = player.getActor();
+            actor->m_pos.x += totalMovePlane.x * 0.1f;
+            actor->m_pos.z += totalMovePlane.y * 0.1f;
+
+            auto camera = player.getCamera();
+            camera->setPos(actor->m_pos + glm::vec3{ 0.0, 3.0, 2.0 });
+            camera->setViewPlane(0.0f, glm::radians(-50.0f));
+        }
+    }
+
     void apply_menuControl(dal::OverlayMaster& overlay) {
         g_touchMas.fetch();
         g_keyboardMas.fetch();
@@ -1037,7 +1077,7 @@ namespace dal {
 
         case GlobalGameState::game:
 #if defined(_WIN32)
-            apply_flyPlane(deltaTime, player, this->m_overlayMas);
+            apply_topdown(deltaTime, player, this->m_overlayMas);
 #else defined(__ANDROID__)
             apply_flyDirectional(deltaTime, player, this->m_overlayMas);
 #endif

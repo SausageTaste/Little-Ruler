@@ -27,6 +27,7 @@ namespace dal {
         RenderMaster m_renderMan;
         InputApplier m_inputApply;
 
+        EulerCamera m_camera;
         Player m_player;
 
         //// Funcs ////

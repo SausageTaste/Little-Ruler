@@ -157,13 +157,14 @@ namespace dal {
 // Render Master
 namespace dal {
 
-    RenderMaster::RenderMaster(void)
+    RenderMaster::RenderMaster(ICamera* const camera)
         : m_scene(m_resMas),
         m_overlayMas(m_resMas, m_shader),
         m_winWidth(512), m_winHeight(512),
         m_projectMat(1.0),
         m_flagDrawDlight1(true),
-        m_skyColor(0.6f, 0.6f, 0.9f)
+        m_skyColor(0.6f, 0.6f, 0.9f),
+        m_mainCamera(camera)
     {
         // Lights
         {
@@ -174,12 +175,6 @@ namespace dal {
         // OpenGL global switch
         {
             glClearColor(m_skyColor.x, m_skyColor.y, m_skyColor.z, 1.0f);
-        }
-
-        // Camera
-        {
-            this->m_camera.setPos(-1.25170159f, 1.17569f, 5.520179f);
-            this->m_camera.setViewPlane(0.9736287f, -0.307451f);
         }
 
         // Misc
@@ -267,10 +262,10 @@ namespace dal {
 
             glUniform1i(unilocGeneral.u_doClip, 0);
 
-            const auto viewMat = this->m_camera.makeViewMat();
+            const auto& viewMat = this->m_mainCamera->getViewMat();
             glUniformMatrix4fv(unilocGeneral.uViewMat, 1, GL_FALSE, &viewMat[0][0]);
 
-            const auto viewPos = this->m_camera.getPos();
+            const auto& viewPos = this->m_mainCamera->m_pos;
             glUniform3f(unilocGeneral.uViewPos, viewPos.x, viewPos.y, viewPos.z);
 
             // Render meshes
@@ -286,10 +281,10 @@ namespace dal {
 
             glUniformMatrix4fv(unilocWaterry.uProjectMat, 1, GL_FALSE, &m_projectMat[0][0]);
 
-            const auto viewMat = this->m_camera.makeViewMat();
+            auto& viewMat = this->m_mainCamera->getViewMat();
             glUniformMatrix4fv(unilocWaterry.uViewMat, 1, GL_FALSE, &viewMat[0][0]);
 
-            const auto viewPos = this->m_camera.getPos();
+            const auto& viewPos = this->m_mainCamera->m_pos;
             glUniform3f(unilocWaterry.uViewPos, viewPos.x, viewPos.y, viewPos.z);
 
             glUniform3f(unilocWaterry.uBaseAmbient, 0.3f, 0.3f, 0.3f);
@@ -333,6 +328,10 @@ namespace dal {
             this->resizeFbuffer(m_winWidth, m_winHeight);
             this->m_scene.onResize(m_winWidth, m_winHeight);
         }
+    }
+
+    ICamera* RenderMaster::replaceMainCamera(ICamera* camera) {
+
     }
 
     void RenderMaster::resizeFbuffer(unsigned int w, unsigned int h) {

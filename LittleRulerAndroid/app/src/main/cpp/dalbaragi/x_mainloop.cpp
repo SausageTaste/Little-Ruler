@@ -171,7 +171,7 @@ namespace dal {
 
         // Player
         {
-            this->m_player.replaceCamera(&this->m_renderMan.m_camera);
+            this->m_player.replaceCamera(&this->m_camera);
 
             auto model = this->m_renderMan.m_resMas.orderModel("test::academy.obj");
             if ( nullptr == model ) dalAbort("Failed to give Player a model");
