@@ -3,6 +3,7 @@
 #include <string>
 #include <array>
 #include <vector>
+#include <unordered_set>
 
 #include <glm/gtc/matrix_transform.hpp>
 
@@ -10,6 +11,7 @@
 #include "s_configs.h"
 #include "s_event.h"
 #include "u_timer.h"
+#include "o_widget_texview.h"
 
 
 using namespace std::string_literals;
@@ -353,7 +355,7 @@ namespace {
             return true;
         }
 
-    } gTouchMaster;  // class TouchMaster
+    };  // class TouchMaster
 
     class TouchStatesMaster {
 
@@ -361,52 +363,182 @@ namespace {
 
     private:
         struct TouchState {
-            glm::vec2 m_lastDownPos, m_thisPos, m_lastPos;
-            float m_lastDownSec = 0.0f, m_lastSec = 0.0f;
+            glm::vec2 m_lastDownPos, m_pos;
+            float m_lastDownSec = 0.0f, m_sec = 0.0f;
             bool m_down = false;
         };
 
         //////// Var ////////
 
     private:
-        std::array<TouchState, 10> m_states;
+        static constexpr int k_maxTouchCount = 10;
+        std::array<TouchState, k_maxTouchCount> m_thisStates, m_lastStates;
+        std::unordered_set<int32_t> m_updated;
+        int32_t m_moveOccupier = -1;
+
+        static constexpr float k_touchDrawerThiccness = 20.0f;
+        std::array<dal::ColoredTile*, k_maxTouchCount + 1> m_touchDrawers = { nullptr };
 
         //////// Func ////////
 
+    public:
+        ~TouchStatesMaster(void) {
+            for ( size_t i = 0; i < this->m_touchDrawers.size(); i++ ) {
+                delete this->m_touchDrawers[i];
+                this->m_touchDrawers[i] = nullptr;
+            }
+        }
+
         void fetch(void) {
+            const float winWidth = (float)dal::ConfigsGod::getinst().getWinWidth();
+            const float winHeight = (float)dal::ConfigsGod::getinst().getWinHeight();
+            const float widthOrHeightButShorter = winWidth < winHeight ? winWidth : winHeight;
+            const float aThridWidth = winWidth / 3.0f;
+
+            this->m_lastStates = this->m_thisStates;
+
             auto& tq = dal::TouchEvtQueueGod::getinst();
 
             for ( unsigned int i = 0; i < tq.getSize(); i++ ) {
                 const auto& touch = tq.at(i);
-                if ( 0 > touch.id || touch.id >= this->m_states.size() ) {
+                if ( 0 > touch.id || touch.id >= this->k_maxTouchCount ) {
                     dalWarn("Touch id is out of boundary: "s + std::to_string(touch.id));
                     continue;
                 }
-                auto& state = this->m_states[touch.id];
+                auto& state = this->m_thisStates[touch.id];
                 const auto pos = glm::vec2{ touch.x, touch.y };
+                this->m_updated.emplace(touch.id);
 
-                
                 if ( dal::TouchType::move == touch.type ) {
-                    state.m_lastPos = state.m_thisPos;
-                    state.m_thisPos = pos;
-                    state.m_lastSec = touch.timeSec;
+                    state.m_pos = pos;
+                    state.m_sec = touch.timeSec;
+                    this->updateTouchDrawer(touch.id, pos.x, pos.y);
                 }
                 else if ( dal::TouchType::down == touch.type ) {
-                    state.m_lastDownPos = pos;
-                    state.m_thisPos = pos;
-                    state.m_lastPos = pos;
-                    state.m_lastDownSec = touch.timeSec;
-                    state.m_lastSec = touch.timeSec;
+                    state.m_pos = pos;
+                    state.m_sec = touch.timeSec;
                     state.m_down = true;
+
+                    state.m_lastDownPos = pos;
+                    state.m_lastDownSec = touch.timeSec;
+                    this->updateTouchDrawer(touch.id, pos.x, pos.y);
+
+                    if ( touch.x < aThridWidth && -1 == this->m_moveOccupier ) {
+                        this->m_moveOccupier = touch.id;
+                        this->updateTouchDrawer(k_maxTouchCount, state.m_lastDownPos.x, state.m_lastDownPos.y);
+                    }
+                }
+                else if ( dal::TouchType::up == touch.type ) {
+                    state.m_pos = pos;
+                    state.m_sec = touch.timeSec;
+                    state.m_down = false;
+                    this->updateTouchDrawer(touch.id, -100.0f, -100.0f);
+
+                    if ( touch.id == this->m_moveOccupier ) {
+                        this->m_moveOccupier = -1;
+                        this->updateTouchDrawer(k_maxTouchCount, -100.0f, -100.0f);
+                    }
                 }
                 else {
-
+                    dalAbort("WTF");
                 }
             }
 
             tq.clear();
         }
 
+        bool makeMoveInfo(NoclipMoveInfo& info, dal::OverlayMaster& overlay) const {
+            const float winWidth = (float)dal::ConfigsGod::getinst().getWinWidth();
+            const float winHeight = (float)dal::ConfigsGod::getinst().getWinHeight();
+            const float widthOrHeightButShorter = winWidth < winHeight ? winWidth : winHeight;
+            const float viewMultiplier = 5.0f / widthOrHeightButShorter;
+
+            bool toReturn = false;
+
+            info = { 0 };
+
+            for ( const auto index : this->m_updated ) {
+                const auto& thisStat = this->m_thisStates[index];
+                const auto& lastStat = this->m_lastStates[index];
+
+                if ( thisStat.m_down ) {  // Being touched
+                    if ( this->m_moveOccupier == index ) {
+                        auto rel = (thisStat.m_pos - thisStat.m_lastDownPos) * 10.0f / widthOrHeightButShorter;
+                        if ( rel.x != 0.0f || rel.y != 0.0f ) {
+                            //rel = glm::normalize(rel);
+                            info.xMovePlane = rel.x;
+                            info.zMovePlane = rel.y;
+                            toReturn = true;
+                        }
+                    }
+                    else {
+                        glm::vec2 rel;
+                        if ( thisStat.m_lastDownSec != lastStat.m_lastDownSec ) {  // If newly touched
+                            rel = thisStat.m_pos - thisStat.m_lastDownPos;
+                        }
+                        else {
+                            rel = thisStat.m_pos - lastStat.m_pos;
+                        }
+
+                        if ( rel.x != 0.0f || rel.y != 0.0f ) {
+                            info.xView += rel.x * viewMultiplier;
+                            info.yView -= rel.y * viewMultiplier;
+                            toReturn = true;
+                        }
+                    }
+                }
+                else {  // Assume this is always recently untouched
+                    if ( this->isTap(thisStat) ) {
+                        overlay.onClick(thisStat.m_pos.x, thisStat.m_pos.y);
+                    }
+                }
+            }
+
+            return toReturn;
+        }
+
+        void reset(void) {
+            for ( auto& stat : this->m_thisStates ) {
+                stat.m_down = false;
+            }
+            for ( auto& stat : this->m_lastStates ) {
+                stat.m_down = false;
+            }
+            this->m_updated.clear();
+            this->m_moveOccupier = -1;
+        }
+
+        void initOverlay(dal::OverlayMaster& overlay) {
+            for ( size_t i = 0; i < this->m_touchDrawers.size(); i++ ) {
+                auto wid = new dal::ColoredTile(nullptr, 1.0f, 1.0f, 1.0f, 1.0f);
+                overlay.addWidget(wid);
+                this->m_touchDrawers[i] = wid;
+
+                wid->setWidth(this->k_touchDrawerThiccness);
+                wid->setHeight(this->k_touchDrawerThiccness);
+                wid->setPosX(-100.0f);
+                wid->setPosY(-100.0f);
+                wid->setPauseOnly(false);
+            }
+        }
+
+    private:
+        static bool isTap(const TouchState& state) {
+            if ( dal::getTime_sec() - state.m_lastDownSec > 0.2f ) return false;
+
+            const auto rel = state.m_pos -state.m_lastDownPos;
+            if ( glm::length(rel) > 10.0f ) return false;
+
+            return true;
+        }
+
+        void updateTouchDrawer(const int32_t index, const float x, const float y) {
+            if ( nullptr != this->m_touchDrawers[index] ) {
+                auto const wid = this->m_touchDrawers[index];
+                wid->setPosX(x - this->k_touchDrawerThiccness * 0.5f);
+                wid->setPosY(y - this->k_touchDrawerThiccness * 0.5f);
+            }
+        }
 
     } g_touchMas;  // class TouchStatesMaster
 
@@ -763,6 +895,7 @@ namespace {
         auto const camera = player.getCamera();
 
         g_keyboardMas.fetch();
+        g_touchMas.fetch();
 
         /* Take inputs */
         {
@@ -774,7 +907,7 @@ namespace {
             }
 
             NoclipMoveInfo touchInfo;
-            if ( gTouchMaster.fetch_noclipMove(&touchInfo, overlay) ) {
+            if ( g_touchMas.makeMoveInfo(touchInfo, overlay) ) {
                 totalMovePlane += glm::vec2{ touchInfo.xMovePlane, touchInfo.zMovePlane };
                 camera->addViewPlane(touchInfo.xView, touchInfo.yView);
                 moveUpOrDown += touchInfo.vertical;
@@ -808,6 +941,7 @@ namespace {
         float moveUpOrDown = 0.0f;
 
         g_keyboardMas.fetch();
+        g_touchMas.fetch();
 
         /* Take inputs */
         {
@@ -819,7 +953,7 @@ namespace {
             }
 
             NoclipMoveInfo touchInfo;
-            if ( gTouchMaster.fetch_noclipMove(&touchInfo, overlay) ) {
+            if ( g_touchMas.makeMoveInfo(touchInfo, overlay) ) {
                 totalMovePlane += glm::vec2{ touchInfo.xMovePlane, touchInfo.zMovePlane };
                 camera->addViewPlane(touchInfo.xView, touchInfo.yView);
                 moveUpOrDown += touchInfo.vertical;
@@ -847,7 +981,7 @@ namespace {
     }
 
     void apply_menuControl(dal::OverlayMaster& overlay) {
-        gTouchMaster.fetch_menuControl(overlay);
+        g_touchMas.fetch();
         g_keyboardMas.fetch();
 
         for ( const auto& com : g_keyboardMas.getCommands() ) {
@@ -873,10 +1007,10 @@ namespace dal {
         : mFSM(GlobalGameState::game),
         m_overlayMas(overlayMas)
     {
-        gTouchMaster.giveTouchPointDrawer(&overlayMas.mBoxesForTouchPoint);
-
         mHandlerName = "InputApplier";
         EventGod::getinst().registerHandler(this, EventType::global_fsm_change);
+
+        g_touchMas.initOverlay(overlayMas);
     }
 
     InputApplier::~InputApplier(void) {
@@ -886,9 +1020,8 @@ namespace dal {
     void InputApplier::onEvent(const EventStatic& e) {
         switch ( e.type ) {
 
-            gTouchMaster.reset();
-
         case EventType::global_fsm_change:
+            g_touchMas.reset();
             mFSM = GlobalGameState(e.intArg1);
             break;
         default:

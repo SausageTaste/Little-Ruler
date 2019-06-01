@@ -52,7 +52,6 @@ namespace dal {
         std::list<Widget*> m_widgets;
 
     public:
-        std::array<QuadPrimitive, 11> mBoxesForTouchPoint;
 
         //////// Funcs ////////
 

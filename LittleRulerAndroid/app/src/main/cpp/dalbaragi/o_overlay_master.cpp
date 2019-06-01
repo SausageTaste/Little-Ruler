@@ -117,16 +117,6 @@ namespace dal {
         {
             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-            for ( unsigned int i = 0; i < 10; i++ ) {
-                mBoxesForTouchPoint.at(i).moveCenterTo_screenCoord(-100.0f, -100.0f);
-            }
-
-            mBoxesForTouchPoint[0].setColor(1.0f, 0.0f, 0.0f);
-            mBoxesForTouchPoint[1].setColor(0.0f, 1.0f, 0.0f);
-            mBoxesForTouchPoint[2].setColor(0.0f, 0.0f, 1.0f);
-            mBoxesForTouchPoint[10].setColor(1.0f, 1.0f, 0.0f);
-            mBoxesForTouchPoint[10].setTransparency(0.5f);
-
             LoggerGod::getinst().addChannel(&m_texStreamCh);
         }
     }
@@ -208,10 +198,6 @@ namespace dal {
 
         this->m_shaderMas.useOverlay();
         auto& uniloc = this->m_shaderMas.getOverlay();
-
-        for ( unsigned int i = 0; i < 11; i++ ) {
-            this->mBoxesForTouchPoint.at(i).renderOverlay(uniloc);
-        }
 
         for ( auto iter = this->m_widgets.rbegin(); iter != this->m_widgets.rend(); ++iter ) {
             if ( (*iter)->getPauseOnly() ) {

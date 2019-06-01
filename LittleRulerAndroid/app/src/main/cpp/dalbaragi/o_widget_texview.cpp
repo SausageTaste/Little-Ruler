@@ -23,3 +23,22 @@ namespace dal {
     }
 
 }
+
+
+namespace dal {
+
+    ColoredTile::ColoredTile(Widget* const parent, const float r, const float g, const float b, const float a)
+        : Widget(parent)
+    {
+        this->setColor(r, g, b, a);
+    }
+
+    void ColoredTile::renderOverlay(const UnilocOverlay& uniloc) {
+        this->m_quadRender.renderQuad(uniloc, this->getDeviceSpace());
+    }
+
+    void ColoredTile::setColor(const float r, const float g, const float b, const float a) {
+        this->m_quadRender.setColor(r, g, b, a);
+    }
+
+}

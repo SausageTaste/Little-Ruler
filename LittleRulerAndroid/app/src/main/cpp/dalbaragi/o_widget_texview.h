@@ -13,11 +13,24 @@ namespace dal {
         QuadRenderer m_quadRender;
 
     public:
-        explicit TextureView(Widget* parent, Texture* const tex = nullptr);
+        TextureView(Widget* parent, Texture* const tex = nullptr);
         virtual void renderOverlay(const UnilocOverlay& uniloc) override;
         void setTexture(Texture* const tex);
 
         void setUpsideDown(const bool v);
+
+    };
+
+
+    class ColoredTile : public Widget {
+
+    private:
+        QuadRenderer m_quadRender;
+
+    public:
+        ColoredTile(Widget* const parent, const float r, const float g, const float b, const float a);
+        virtual void renderOverlay(const UnilocOverlay& uniloc) override;
+        void setColor(const float r, const float g, const float b, const float a);
 
     };
 
