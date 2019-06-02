@@ -7,7 +7,6 @@
 
 #include "u_loadinfo.h"
 #include "p_meshStatic.h"
-#include "u_pool.h"
 #include "p_uniloc.h"
 #include "s_threader.h"
 #include "u_fileclass.h"
@@ -105,7 +104,8 @@ namespace dal {
 
         const ResourceID& getModelResID(void) const;
 
-        const AxisAlignedBoundingBox& getBoundingBox(void);
+        void setBoundingBox(const AxisAlignedBoundingBox& box);
+        const AxisAlignedBoundingBox& getBoundingBox(void) const;
 
         bool isReady(void) const;
 

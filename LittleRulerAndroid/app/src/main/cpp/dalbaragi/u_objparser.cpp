@@ -33,6 +33,11 @@ namespace {
         return dal::ResourceID{ package + "::" + rest };
     }
 
+
+    struct AABBBuildInfo {
+        glm::vec3 p1, p2;
+    };
+
 }
 
 
@@ -191,7 +196,7 @@ namespace {
         return scene->mNumMaterials;
     }
 
-    bool processMesh(dal::RenderUnitInfo& renUnit, aiMesh* const mesh) {
+    bool processMesh(dal::RenderUnitInfo& renUnit, AABBBuildInfo& aabbInfo, aiMesh* const mesh) {
         renUnit.m_name = reinterpret_cast<char*>(&mesh->mName);
 
         renUnit.m_mesh.m_vertices.reserve(mesh->mNumVertices * 3);
@@ -203,6 +208,23 @@ namespace {
             renUnit.m_mesh.m_vertices.push_back(vertex.x);
             renUnit.m_mesh.m_vertices.push_back(vertex.y);
             renUnit.m_mesh.m_vertices.push_back(vertex.z);
+
+            {
+                if ( aabbInfo.p1.x > vertex.x )
+                    aabbInfo.p1.x = vertex.x;
+                else if ( aabbInfo.p2.x < vertex.x )
+                    aabbInfo.p2.x = vertex.x;
+
+                if ( aabbInfo.p1.y > vertex.y )
+                    aabbInfo.p1.y = vertex.y;
+                else if ( aabbInfo.p2.y < vertex.y )
+                    aabbInfo.p2.y = vertex.y;
+
+                if ( aabbInfo.p1.z > vertex.z )
+                    aabbInfo.p1.z = vertex.z;
+                else if ( aabbInfo.p2.z < vertex.z )
+                    aabbInfo.p2.z = vertex.z;
+            }
 
             auto texCoord = mesh->mTextureCoords[0][i];
             renUnit.m_mesh.m_texcoords.push_back(texCoord.x);
@@ -217,12 +239,12 @@ namespace {
         return true;
     }
 
-    bool processNode(dal::ModelInfo& info, std::vector<dal::RenderUnitInfo::MaterialInfo> materials, const aiScene* const scene, aiNode* const node) {
+    bool processNode(dal::ModelInfo& info, std::vector<dal::RenderUnitInfo::MaterialInfo> materials, AABBBuildInfo& aabbInfo, const aiScene* const scene, aiNode* const node) {
         for ( unsigned int i = 0; i < node->mNumMeshes; i++ ) {
             aiMesh* ai_mesh = scene->mMeshes[node->mMeshes[i]];
-            info.emplace_front();
-            auto& renUnit = info.front();
-            if ( !processMesh(renUnit, ai_mesh) ) return false;
+            info.m_renderUnits.emplace_front();
+            auto& renUnit = info.m_renderUnits.front();
+            if ( !processMesh(renUnit, aabbInfo, ai_mesh) ) return false;
 
             if ( ai_mesh->mMaterialIndex != 0 ) {
                 renUnit.m_material = materials.at(ai_mesh->mMaterialIndex);
@@ -230,7 +252,7 @@ namespace {
         }
 
         for ( unsigned int i = 0; i < node->mNumChildren; i++ ) {
-            if ( processNode(info, materials, scene, node->mChildren[i]) == false ) return false;
+            if ( processNode(info, materials, aabbInfo, scene, node->mChildren[i]) == false ) return false;
         }
 
         return true;
@@ -242,7 +264,7 @@ namespace {
 namespace dal {
 
     bool parseOBJ_assimp(ModelInfo& info, ResourceID assetPath) {
-        info.clear();
+        info.m_renderUnits.clear();
 
         Assimp::Importer importer;
         importer.SetIOHandler(new AssResourceIOSystem);
@@ -258,7 +280,9 @@ namespace dal {
         std::vector<RenderUnitInfo::MaterialInfo> materials;
         processMaterial(scene, materials);
 
-        return processNode(info, materials, scene, scene->mRootNode);
+        AABBBuildInfo aabbInfo;
+        return processNode(info, materials, aabbInfo, scene, scene->mRootNode);
+        info.m_aabb.set(aabbInfo.p1, aabbInfo.p2);
     }
 
 }

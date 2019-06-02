@@ -7,6 +7,8 @@
 #include "u_fileclass.h"
 #include "s_threader.h"
 #include "u_objparser.h"
+#include "u_pool.h"
+
 
 #define BLOCKY_TEXTURE 1
 
@@ -288,7 +290,7 @@ namespace dal {
 }
 
 
-// Model Handle
+// Model
 namespace dal {
 
     void Model::setModelResID(const ResourceID& resID) {
@@ -301,7 +303,11 @@ namespace dal {
         return &this->m_renderUnits.back();
     }
 
-    const AxisAlignedBoundingBox& Model::getBoundingBox(void) {
+    void Model::setBoundingBox(const AxisAlignedBoundingBox& box) {
+        this->m_boundingBox = box;
+    }
+
+    const AxisAlignedBoundingBox& Model::getBoundingBox(void) const {
         return this->m_boundingBox;
     }
 
@@ -427,6 +433,9 @@ namespace dal {
         auto model = g_modelPool.alloc();
         this->m_models.emplace(info.m_modelID, ManageInfo<Model>{ model, 1 });
 
+        // Bounding box
+        model->setBoundingBox(info.m_boundingBox);
+
         {
             // Render units
             auto renderUnit = model->addRenderUnit();
@@ -545,7 +554,9 @@ namespace dal {
                 return;
             }
 
-            for ( auto& unitInfo : loaded->out_info ) {
+            loaded->data_coresponding.setBoundingBox(loaded->out_info.m_aabb);
+
+            for ( auto& unitInfo : loaded->out_info.m_renderUnits ) {
                 auto unit = loaded->data_coresponding.addRenderUnit();
                 assert(nullptr != unit);
 

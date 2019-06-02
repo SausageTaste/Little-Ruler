@@ -242,28 +242,29 @@ namespace {  // Make items
         {
             assert(0 == (definedModel.m_renderUnit.m_mesh.m_vertices.size() % 3));
             auto iter = definedModel.m_renderUnit.m_mesh.m_vertices.begin();
-            auto& aabb = definedModel.m_boundingBox;
 
+            glm::vec3 aabbP1, aabbP2;
             while ( definedModel.m_renderUnit.m_mesh.m_vertices.end() != iter ) {
                 const auto x = *iter++;
                 const auto y = *iter++;
                 const auto z = *iter++;
 
-                if ( aabb.m_p1.x > x )
-                    aabb.m_p1.x = x;
-                else if ( aabb.m_p2.x < x )
-                    aabb.m_p2.x = x;
+                if ( aabbP1.x > x )
+                    aabbP1.x = x;
+                else if ( aabbP2.x < x )
+                    aabbP2.x = x;
 
-                if ( aabb.m_p1.y > y )
-                    aabb.m_p1.y = y;
-                else if ( aabb.m_p2.y < y )
-                    aabb.m_p2.y = y;
+                if ( aabbP1.y > y )
+                    aabbP1.y = y;
+                else if ( aabbP2.y < y )
+                    aabbP2.y = y;
 
-                if ( aabb.m_p1.z > z )
-                    aabb.m_p1.z = z;
-                else if ( aabb.m_p2.z < z )
-                    aabb.m_p2.z = z;
+                if ( aabbP1.z > z )
+                    aabbP1.z = z;
+                else if ( aabbP2.z < z )
+                    aabbP2.z = z;
             }
+            definedModel.m_boundingBox.set(aabbP1, aabbP2);
         }
 
         auto& material = definedModel.m_renderUnit.m_material;

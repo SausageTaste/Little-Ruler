@@ -20,14 +20,28 @@ namespace dal {
     };
 
 
+    struct CollisionResolveInfo {
+        glm::vec3 m_this, m_other;
+    };
+
+
     class AxisAlignedBoundingBox {
 
-    public:
+    private:
         glm::vec3 m_p1, m_p2;
 
     public:
         AxisAlignedBoundingBox(void) = default;
         AxisAlignedBoundingBox(const glm::vec3& p1, const glm::vec3& p2);
+
+        void set(const glm::vec3& p1, const glm::vec3& p2);
+        void add(const glm::vec3& offset);
+
+        bool checkCollision(const AxisAlignedBoundingBox& other) const;
+        CollisionResolveInfo getResolveInfo(const AxisAlignedBoundingBox& other) const;
+
+    private:
+        void validateOrder(void);
 
     };
 

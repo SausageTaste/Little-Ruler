@@ -176,6 +176,27 @@ namespace dal {
         return startIndex + this->m_plights.size();
     }
 
+    void MapChunk::applyCollision(Model& model, ActorInfo& actor) {
+        auto actorBox = model.getBoundingBox();
+        actorBox.add(actor.m_pos);
+
+        for ( auto& modelInfo : this->m_modelActors ) {
+            for ( auto& modelActor : modelInfo.m_inst ) {
+                if ( &modelActor == &actor ) continue;
+
+                auto box = modelInfo.m_model->getBoundingBox();
+                box.add(modelActor.m_pos);
+
+                if ( actorBox.checkCollision(box) ) {
+                    const auto resolveInfo = actorBox.getResolveInfo(box);
+                    actor.m_pos += resolveInfo.m_this;
+                    actorBox.add(resolveInfo.m_this);
+                    modelActor.m_pos += resolveInfo.m_other;
+                }
+            }
+        }
+    }
+
 
     WaterRenderer* MapChunk::getWater(const size_t index) {
         if ( index >= this->m_waters.size() ) {
@@ -268,6 +289,12 @@ namespace dal {
         }
 
         return nullptr;
+    }
+
+    void SceneMaster::applyCollision(Model& model, ActorInfo& actor) {
+        for ( auto& map : this->m_mapChunks ) {
+            map.applyCollision(model, actor);
+        }
     }
 
 

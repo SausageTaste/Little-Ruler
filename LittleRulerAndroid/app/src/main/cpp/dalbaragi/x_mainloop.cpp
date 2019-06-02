@@ -219,6 +219,8 @@ namespace dal {
 
         m_inputApply.apply(deltaTime, this->m_player);
 
+        this->m_renderMan.m_scene.applyCollision(*this->m_player.getModel(), *this->m_player.getActor());
+
         TaskGod::getinst().update();
 
         this->m_renderMan.update(deltaTime);

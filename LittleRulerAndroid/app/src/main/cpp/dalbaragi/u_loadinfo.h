@@ -93,6 +93,9 @@ namespace dal {
         std::list<loadedinfo::WaterPlane> m_waterPlanes;
     };
 
-    using ModelInfo = std::list<RenderUnitInfo>;
+    struct ModelInfo {
+        std::list<RenderUnitInfo> m_renderUnits;
+        AxisAlignedBoundingBox m_aabb;
+    };
 
 }
