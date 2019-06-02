@@ -50,10 +50,13 @@ namespace dal {
         int sendUniforms_lights(const UnilocGeneral& uniloc, int startIndex) const;
         int sendUniforms_lights(const UnilocWaterry& uniloc, int startIndex) const;
 
+        void applyCollision(Model& model, ActorInfo& actor);
+
         WaterRenderer* getWater(const size_t index);
         ActorInfo* addActor(Model* const model, const std::string& actorName, bool flagStatic, ResourceMaster& resMas);
 
     };
+
 
     class SceneMaster {
 
@@ -77,6 +80,8 @@ namespace dal {
 
         ActorInfo* addActor(Model* const model, const std::string& mapName, const std::string& actorName, bool flagStatic);
         WaterRenderer* getWater(const std::string& mapName, const size_t index);
+
+        void applyCollision(Model& model, ActorInfo& actor);
 
         void loadMap(const ResourceID& mapID);
 

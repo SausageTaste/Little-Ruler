@@ -25,7 +25,6 @@ using namespace std::string_literals;
 namespace {
 
     dal::Mainloop* gMainloop = nullptr;
-    dal::PersistState* gSavedState = nullptr;
 
     AAssetManager* gAssMan = nullptr;
     std::string g_storagePath;
@@ -95,7 +94,6 @@ extern "C" {
     JNIEXPORT void JNICALL Java_com_sausagetaste_littleruler_LibJNI_init(JNIEnv* env, jclass obj) try {
         dalVerbose("JNI::init");
         if ( gMainloop != nullptr ) {
-            gSavedState = gMainloop->getSavedState();
             delete gMainloop;
             gMainloop = nullptr;
             dalVerbose("delete gMainloop");
@@ -144,8 +142,7 @@ extern "C" {
             if ( !dal::Mainloop::isScreenResGiven() ) return;
             if ( !dal::Mainloop::isWhatFilesystemWantsGiven() ) return;
 
-            gMainloop = new dal::Mainloop{ gSavedState };
-            gSavedState = nullptr;
+            gMainloop = new dal::Mainloop{};
         }
 
         // Touch event handle
