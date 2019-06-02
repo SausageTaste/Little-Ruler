@@ -12,15 +12,16 @@ using namespace std::string_literals;
 
 namespace {
 
-    dal::ICamera makeReflectionCamera(dal::ICamera& camera, const float waterHeight) {
-        auto camPos = camera.getPos();
-        camPos.y = 2.0f * waterHeight - camPos.y;
-        camera.setPos(camPos);
+    dal::StrangeEulerCamera makeReflectionCamera(const dal::ICamera& camera, const float waterHeight) {
+        dal::StrangeEulerCamera newCam = *(reinterpret_cast<const dal::StrangeEulerCamera*>(&camera));
 
-        auto camViewPlane = camera.getViewPlane();
-        camera.setViewPlane(camViewPlane.x, -camViewPlane.y);
+        newCam.m_pos.y = 2.0f * waterHeight - newCam.m_pos.y;
 
-        return camera;
+        const auto camViewPlane = newCam.getViewPlane();
+        newCam.setViewPlane(camViewPlane.x, -camViewPlane.y);
+
+        newCam.updateViewMat();
+        return newCam;
     }
 
 }
@@ -113,13 +114,12 @@ namespace dal {
                 glUniform4f(uniloc.u_clipPlane, 0, 1, 0, -water.getHeight() + 0.01f);
                 glUniform1i(uniloc.u_doClip, 1);
 
-                const auto reflectionCam = makeReflectionCamera(cam, water.getHeight());
+                glm::mat4 reflectedMat;
+                glm::vec3 reflectedPos;
+                cam.makeReflected(water.getHeight(), reflectedPos, reflectedMat);
 
-                const auto& viewMat = reflectionCam.getViewMat();
-                glUniformMatrix4fv(uniloc.uViewMat, 1, GL_FALSE, &viewMat[0][0]);
-
-                const auto& viewPos = reflectionCam.m_pos;
-                glUniform3f(uniloc.uViewPos, viewPos.x, viewPos.y, viewPos.z);
+                glUniformMatrix4fv(uniloc.uViewMat, 1, GL_FALSE, &reflectedMat[0][0]);
+                glUniform3f(uniloc.uViewPos, reflectedPos.x, reflectedPos.y, reflectedPos.z);
 
                 water.m_fbuffer.bindReflectionFrameBuffer();
                 glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
@@ -138,9 +138,7 @@ namespace dal {
 
                 const auto& viewMat = cam.getViewMat();
                 glUniformMatrix4fv(uniloc.uViewMat, 1, GL_FALSE, &viewMat[0][0]);
-
-                const auto& viewPos = cam.m_pos;
-                glUniform3f(uniloc.uViewPos, viewPos.x, viewPos.y, viewPos.z);
+                glUniform3f(uniloc.uViewPos, cam.m_pos.x, cam.m_pos.y, cam.m_pos.z);
 
                 water.m_fbuffer.bindRefractionFrameBuffer();
                 glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
@@ -157,7 +155,7 @@ namespace dal {
         if ( startIndex + this->m_plights.size() > 3 ) dalAbort("Too many point lights.");
 
         glUniform1i(uniloc.uPlightCount, startIndex + this->m_plights.size());
-        for ( int i = 0; i < this->m_plights.size(); i++ ) {
+        for ( size_t i = 0; i < this->m_plights.size(); i++ ) {
             if ( i >= 3 ) break;
             this->m_plights.at(i).sendUniform(uniloc, startIndex + i);
         }
@@ -170,7 +168,7 @@ namespace dal {
         if ( startIndex + this->m_plights.size() > 3 ) dalAbort("Too many point lights.");
 
         glUniform1i(uniloc.uPlightCount, startIndex + this->m_plights.size());
-        for ( int i = 0; i < this->m_plights.size(); i++ ) {
+        for ( size_t i = 0; i < this->m_plights.size(); i++ ) {
             if ( i >= 3 ) break;
             this->m_plights.at(i).sendUniform(uniloc, startIndex + i);
         }

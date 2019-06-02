@@ -147,8 +147,9 @@ namespace dal {
 
     // Public
 
-    Mainloop::Mainloop(PersistState* savedState)
+    Mainloop::Mainloop(void)
         : m_flagQuit(false),
+        m_renderMan(&m_camera),
         m_inputApply(m_renderMan.m_overlayMas)
     {
         // Check window res
@@ -181,20 +182,17 @@ namespace dal {
             this->m_player.replaceActor(actor);
         }
 
+        // Camera
+        {
+            this->m_camera.m_pos = { 0.0f, 3.0f, 3.0f };
+        }
+
         // Misc
         {
             mHandlerName = "dal::Mainloop";
             EventGod::getinst().registerHandler(this, EventType::quit_game);
 
             this->m_timer.setCapFPS(0);
-        }
-
-        // Restore from saved state
-        {
-            if ( savedState != nullptr ) {
-                m_renderMan.m_camera = savedState->m_camera;
-                delete savedState;
-            }
         }
 
         // Test
@@ -235,12 +233,6 @@ namespace dal {
         e.intArg2 = height;
         e.type = EventType::window_resize;
         EventGod::getinst().notifyAll(e);
-    }
-
-    PersistState* Mainloop::getSavedState(void) {
-        auto s = new PersistState();
-        s->m_camera = m_renderMan.m_camera;
-        return s;
     }
 
     void Mainloop::onEvent(const EventStatic& e) {

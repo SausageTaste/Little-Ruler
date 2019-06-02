@@ -172,6 +172,19 @@ namespace dal {
             m_dlight1.setDirectin(-1.8f, -1.0f, 2.0f);
         }
 
+        {
+            auto water = this->m_scene.getWater("test_level", 0);
+            if ( nullptr == water ) dalAbort("Fuck!!");
+
+            auto view = new TextureView(nullptr, water->m_fbuffer.getReflectionTexture());
+            view->setPosX(10.0f);
+            view->setPosY(30.0f);
+            view->setWidth(256.0f);
+            view->setHeight(256.0f);
+            view->setPauseOnly(false);
+            this->m_overlayMas.addWidget(view);
+        }
+
         // OpenGL global switch
         {
             glClearColor(m_skyColor.x, m_skyColor.y, m_skyColor.z, 1.0f);
@@ -244,7 +257,7 @@ namespace dal {
 
             // Render meshes
 
-            this->m_scene.renderGeneral_onWater(unilocGeneral, this->m_camera);
+            this->m_scene.renderGeneral_onWater(unilocGeneral, *this->m_mainCamera);
         }
 
         this->m_fbuffer.startRenderOn();
@@ -274,7 +287,6 @@ namespace dal {
         }
 
         // Render water to framebuffer
-
         {
             this->m_shader.useWaterry();
             auto& unilocWaterry = this->m_shader.getWaterry();
@@ -331,7 +343,9 @@ namespace dal {
     }
 
     ICamera* RenderMaster::replaceMainCamera(ICamera* camera) {
-
+        auto tmp = this->m_mainCamera;
+        this->m_mainCamera = camera;
+        return tmp;
     }
 
     void RenderMaster::resizeFbuffer(unsigned int w, unsigned int h) {

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <memory>
 
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
@@ -9,6 +10,9 @@
 namespace dal {
 
     class Model;
+
+    glm::vec3 strangeEuler2Vec(const float x, const float y);
+    glm::vec2 vec2StrangeEuler(glm::vec3 v);
 
 
     class ICamera {
@@ -26,24 +30,44 @@ namespace dal {
             return this->m_viewMat;
         }
 
+        virtual void makeReflected(const float planeHeight, glm::vec3& pos, glm::mat4& mat) const = 0;
+
     };
 
 
-    class EulerCamera : ICamera {
+    class StrangeEuler {
 
     private:
-        glm::vec2 m_viewDirec;
-        glm::vec3 m_pos;
+        float x, y;
+
+    public:
+        StrangeEuler(void);
+        StrangeEuler(const float x, const float y);
+
+        float getX(void) const;
+        float getY(void) const;
+        void setX(const float v);
+        void setY(const float v);
+        void addX(const float v);
+        void addY(const float v);
+
+        glm::mat4 makeRotateMat(void) const;
+
+    };
+
+
+    class StrangeEulerCamera : public ICamera {
+
+    private:
+        StrangeEuler m_stranEuler;
 
     public:
         virtual void updateViewMat(void) override;
+        void makeReflected(const float planeHeight, glm::vec3& pos, glm::mat4& mat) const override;
 
         glm::vec2 getViewPlane(void) const;
         void setViewPlane(const float x, const float y);
         void addViewPlane(const float x, const float y);
-
-    private:
-        void clampViewDir(void);
 
     };
 
@@ -74,19 +98,19 @@ namespace dal {
     class Player {
 
     private:
-        EulerCamera* m_camera = nullptr;
+        StrangeEulerCamera* m_camera = nullptr;
         ActorInfo* m_actor = nullptr;
         Model* m_model = nullptr;
 
     public:
         Player(void) = default;
-        Player(EulerCamera* camera, ActorInfo* actor, Model* model);
+        Player(StrangeEulerCamera* camera, ActorInfo* actor, Model* model);
 
-        EulerCamera* replaceCamera(EulerCamera* const camera);
+        StrangeEulerCamera* replaceCamera(StrangeEulerCamera* const camera);
         ActorInfo* replaceActor(ActorInfo* const actor);
         Model* replaceModel(Model* const model);
 
-        EulerCamera* getCamera(void) { assert(nullptr != this->m_camera); return this->m_camera; }
+        StrangeEulerCamera* getCamera(void) { assert(nullptr != this->m_camera); return this->m_camera; }
         ActorInfo* getActor(void) { assert(nullptr != this->m_actor); return this->m_actor; }
         Model* getModel(void) { assert(nullptr != this->m_model); return this->m_model; }
 

@@ -4,7 +4,6 @@
 #include "s_event.h"
 #include "c_input_apply.h"
 #include "u_timer.h"
-#include "x_persist.h"
 #include "o_overlay_master.h"
 #include "p_resource.h"
 #include "g_actor.h"
@@ -24,11 +23,11 @@ namespace dal {
         Timer m_timer;
         Timer m_timerForFPSReport;
 
+        StrangeEulerCamera m_camera;
+        Player m_player;
+
         RenderMaster m_renderMan;
         InputApplier m_inputApply;
-
-        EulerCamera m_camera;
-        Player m_player;
 
         //// Funcs ////
 
@@ -40,12 +39,10 @@ namespace dal {
         static void giveWhatFilesystemWants(void* androidAssetManager, const char* const sdcardPath);
         static bool isWhatFilesystemWantsGiven(void);
 
-        Mainloop(PersistState* savedState);
+        Mainloop(void);
         virtual ~Mainloop(void) override;
         int update(void);
         void onResize(int width, int height);
-
-        PersistState* getSavedState(void);
 
         virtual void onEvent(const EventStatic& e) override;
 

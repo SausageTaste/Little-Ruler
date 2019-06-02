@@ -466,7 +466,7 @@ namespace {
 
                 if ( thisStat.m_down ) {  // Being touched
                     if ( this->m_moveOccupier == index ) {
-                        auto rel = (thisStat.m_pos - thisStat.m_lastDownPos) * 10.0f / widthOrHeightButShorter;
+                        auto rel = (thisStat.m_pos - thisStat.m_lastDownPos) * 3.0f / widthOrHeightButShorter;
                         if ( rel.x != 0.0f || rel.y != 0.0f ) {
                             //rel = glm::normalize(rel);
                             info.xMovePlane = rel.x;
@@ -915,6 +915,8 @@ namespace {
                 camera->addViewPlane(touchInfo.xView, touchInfo.yView);
                 moveUpOrDown += touchInfo.vertical;
             }
+
+            camera->updateViewMat();
         }
 
         // Return if target doesn't need to move.
@@ -932,9 +934,10 @@ namespace {
 
             //moveDirection = glm::normalize(moveDirection);  // Maybe this is redundant.
             const float moveMultiplier = 5.0f * deltaTime;
-            camera->addPos(moveDirection * moveMultiplier);
+            camera->m_pos += moveDirection * moveMultiplier;
         }
 
+        camera->updateViewMat();
     }
 
     void apply_flyPlane(const float deltaTime, dal::Player& player, dal::OverlayMaster& overlay) {
@@ -961,6 +964,8 @@ namespace {
                 camera->addViewPlane(touchInfo.xView, touchInfo.yView);
                 moveUpOrDown += touchInfo.vertical;
             }
+
+            camera->updateViewMat();
         }
 
         // Return if target doesn't need to move.
@@ -978,14 +983,14 @@ namespace {
 
             //moveDirection = glm::normalize(moveDirection);  // Maybe this is redundant.
             const float moveMultiplier = 5.0f * deltaTime;
-            camera->addPos(moveDirection * moveMultiplier);
+            camera->m_pos += moveDirection * moveMultiplier;
         }
 
+        camera->updateViewMat();
     }
 
     void apply_topdown(const float deltaTime, dal::Player& player, dal::OverlayMaster& overlay) {
-        glm::vec2 totalMovePlane{ 0.0 };  // This means it must represent move direction when targetViewDir == { 0, 0 }.
-        float moveUpOrDown = 0.0f;
+        glm::vec2 totalMovePlane{ 0.0 };  // This means it must represent move direction when targetViewDir == { 0, 0 }
 
         g_keyboardMas.fetch();
         g_touchMas.fetch();
@@ -995,28 +1000,38 @@ namespace {
             NoclipMoveInfo keyboardInfo;
             if ( g_keyboardMas.makeMoveInfo(keyboardInfo, deltaTime) ) {
                 totalMovePlane += glm::vec2{ keyboardInfo.xMovePlane, keyboardInfo.zMovePlane };
-                moveUpOrDown += keyboardInfo.vertical;
             }
 
             NoclipMoveInfo touchInfo;
             if ( g_touchMas.makeMoveInfo(touchInfo, overlay) ) {
-                totalMovePlane += glm::vec2{ touchInfo.xMovePlane, touchInfo.zMovePlane };
-                moveUpOrDown += touchInfo.vertical;
+                auto moveVec = glm::vec2{ touchInfo.xMovePlane, touchInfo.zMovePlane };
+                auto moveVecLen = glm::length(moveVec);
+                if ( moveVecLen > 1.0f ) {
+                    moveVec /= moveVecLen;
+                }
+                totalMovePlane += moveVec;
             }
         }
 
         // Return if target doesn't need to move.
-        if ( totalMovePlane.x == 0.0f && totalMovePlane.y == 0.0f && moveUpOrDown == 0.0f ) return;
+        if ( totalMovePlane.x == 0.0f && totalMovePlane.y == 0.0f ) return;
 
-        /* Apply move direction */
+        // Apply move direction
         {
             auto actor = player.getActor();
-            actor->m_pos.x += totalMovePlane.x * 0.1f;
-            actor->m_pos.z += totalMovePlane.y * 0.1f;
+            actor->m_pos.x += totalMovePlane.x * deltaTime * 5.0f;
+            actor->m_pos.z += totalMovePlane.y * deltaTime * 5.0f;
+            
+            actor->m_quat = glm::quat{};
+            const glm::vec3 moveVec3{ totalMovePlane.x, 0.0f, -totalMovePlane.y };
+            const auto stranEuler = dal::vec2StrangeEuler(moveVec3);
+            actor->rotate(stranEuler.x, glm::vec3{ 0.0f, 1.0f, 0.0f });
 
             auto camera = player.getCamera();
-            camera->setPos(actor->m_pos + glm::vec3{ 0.0, 3.0, 2.0 });
+            camera->m_pos = actor->m_pos + glm::vec3{ 0.0, 3.0, 2.0 };
             camera->setViewPlane(0.0f, glm::radians(-50.0f));
+
+            camera->updateViewMat();
         }
     }
 
@@ -1079,7 +1094,7 @@ namespace dal {
 #if defined(_WIN32)
             apply_topdown(deltaTime, player, this->m_overlayMas);
 #else defined(__ANDROID__)
-            apply_flyDirectional(deltaTime, player, this->m_overlayMas);
+            apply_topdown(deltaTime, player, this->m_overlayMas);
 #endif
             break;
         case GlobalGameState::menu:

@@ -194,7 +194,7 @@ namespace dal {
 
         Mainloop::giveScreenResFirst(initWidth, initHeight);
 
-        std::unique_ptr<Mainloop> engine{ new Mainloop(nullptr) };
+        std::unique_ptr<Mainloop> engine{ new Mainloop() };
 
         while ( true ) {
             auto order = pullEventSDL(engine.get());
