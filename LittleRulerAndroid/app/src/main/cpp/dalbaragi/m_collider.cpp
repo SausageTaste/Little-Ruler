@@ -120,7 +120,7 @@ namespace dal {
         const auto yForOther = yDistance * otherFactor;
         const auto zForOther = zDistance * otherFactor;
 
-        float selector[3] = { abs(xForThis), abs(yForThis), abs(zForThis) };
+        const float selector[3] = { abs(xForThis), abs(yForThis), abs(zForThis) };
         const auto index = minIndex(selector, 3);
         switch ( index ) {
 
@@ -131,7 +131,7 @@ namespace dal {
         case 2:
             return CollisionResolveInfo{ {0.0f, 0.0f, zForThis}, {0.0f, 0.0f, zForOther} };
         default:
-            dalAbort("This cant happen!");
+            dalAbort("This can't happen!");
 
         }
 

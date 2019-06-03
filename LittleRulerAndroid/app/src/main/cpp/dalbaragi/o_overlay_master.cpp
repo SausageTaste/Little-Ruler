@@ -129,9 +129,6 @@ namespace dal {
 
         this->mDisplayFPS = nullptr;
 
-        for ( auto win : this->m_widgets ) {
-            delete win;
-        }
         this->m_widgets.clear();
     }
 

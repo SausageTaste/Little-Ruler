@@ -3,7 +3,7 @@
 #include <string>
 #include <array>
 #include <vector>
-#include <unordered_set>
+#include <set>
 
 #include <glm/gtc/matrix_transform.hpp>
 
@@ -362,6 +362,40 @@ namespace {
 
         //////// Definitions ////////
 
+    public:
+        class TouchCommand {
+
+        public:
+            enum class CmdType { toggle_game_state, click };
+
+        private:
+            const CmdType m_type;
+            glm::vec2 m_vec2;
+
+        public:
+            TouchCommand(const CmdType cmdType)
+                : m_type(cmdType)
+            {
+
+            }
+
+            TouchCommand(const glm::vec2& touchPos)
+                :m_type(CmdType::click),
+                m_vec2(touchPos)
+            {
+
+            }
+
+            CmdType getType(void) const {
+                return this->m_type;
+            }
+
+            const glm::vec2& getClickPos(void) const {
+                return this->m_vec2;
+            }
+
+        };
+
     private:
         struct TouchState {
             glm::vec2 m_lastDownPos, m_pos;
@@ -374,7 +408,7 @@ namespace {
     private:
         static constexpr int k_maxTouchCount = 10;
         std::array<TouchState, k_maxTouchCount> m_thisStates, m_lastStates;
-        std::unordered_set<int32_t> m_updated;
+        std::vector<int32_t> m_updated;  // I wanted to use unordered_set but VC++ has a bug.
         int32_t m_moveOccupier = -1;
 
         static constexpr float k_touchDrawerThiccness = 20.0f;
@@ -391,6 +425,7 @@ namespace {
                 }
             }
         }
+
 
         void fetch(void) {
             const float winWidth = (float)dal::ConfigsGod::getinst().getWinWidth();
@@ -410,7 +445,11 @@ namespace {
                 }
                 auto& state = this->m_thisStates[touch.id];
                 const auto pos = glm::vec2{ touch.x, touch.y };
-                this->m_updated.emplace(touch.id);
+                
+
+                if ( this->m_updated.end() == std::find(this->m_updated.begin(), this->m_updated.end(), touch.id) ) {
+                    this->m_updated.push_back(touch.id);
+                }
 
                 if ( dal::TouchType::move == touch.type ) {
                     state.m_pos = pos;
@@ -499,6 +538,24 @@ namespace {
 
             return toReturn;
         }
+
+        std::vector<TouchCommand> getCommands(void) const {
+            std::vector<TouchCommand> cmds;
+
+            for ( const auto index : this->m_updated ) {
+                const auto& thisStat = this->m_thisStates[index];
+                const auto& lastStat = this->m_lastStates[index];
+
+                if ( !thisStat.m_down ) {
+                    if ( this->isTap(thisStat) ) {
+                        cmds.emplace_back(thisStat.m_pos);
+                    }
+                }
+            }
+
+            return cmds;
+        }
+
 
         void reset(void) {
             for ( auto& stat : this->m_thisStates ) {
@@ -736,27 +793,27 @@ namespace {
         class KeyboardCommand {
 
         public:
-            enum class Type { text, toggle_game_state };
+            enum class CmdType { text, toggle_game_state };
 
         private:
-            const Type m_type;
+            const CmdType m_type;
             const std::string m_text;
 
         public:
-            KeyboardCommand(const Type type)
+            KeyboardCommand(const CmdType type)
             : m_type(type)
             {
 
             }
 
             KeyboardCommand(std::string&& text)
-                : m_type(Type::text),
+                : m_type(CmdType::text),
                 m_text(std::move(text))
             {
 
             }
 
-            Type getType(void) const {
+            CmdType getType(void) const {
                 return this->m_type;
             }
 
@@ -869,7 +926,7 @@ namespace {
                         commands.emplace_back(std::move(textBuf));
                         textBuf.clear();
                     }
-                    commands.emplace_back(KeyboardCommand::Type::toggle_game_state);
+                    commands.emplace_back(KeyboardCommand::CmdType::toggle_game_state);
                 }
                 else {
                     if ( state.m_pressed ) {
@@ -1021,15 +1078,17 @@ namespace {
             auto actor = player.getActor();
             actor->m_pos.x += totalMovePlane.x * deltaTime * 5.0f;
             actor->m_pos.z += totalMovePlane.y * deltaTime * 5.0f;
-            
+
             actor->m_quat = glm::quat{};
             const glm::vec3 moveVec3{ totalMovePlane.x, 0.0f, -totalMovePlane.y };
             const auto stranEuler = dal::vec2StrangeEuler(moveVec3);
             actor->rotate(stranEuler.x, glm::vec3{ 0.0f, 1.0f, 0.0f });
 
             auto camera = player.getCamera();
-            camera->m_pos = actor->m_pos + glm::vec3{ 0.0, 3.0, 2.0 };
-            camera->setViewPlane(0.0f, glm::radians(-50.0f));
+            constexpr float cameraAngle = 55.0f;
+            const auto camOffset = glm::vec3{ 0.0, sin(glm::radians(cameraAngle)), cos(glm::radians(cameraAngle)) } * 3.0f;
+            camera->m_pos = actor->m_pos + camOffset + glm::vec3{ 0.0, 1.0, 0.0 };
+            camera->setViewPlane(0.0f, glm::radians(-cameraAngle));
 
             camera->updateViewMat();
         }
@@ -1042,12 +1101,27 @@ namespace {
         for ( const auto& com : g_keyboardMas.getCommands() ) {
             switch ( com.getType() ) {
 
-            case KeyboardStatesMaster::KeyboardCommand::Type::text:
+            case KeyboardStatesMaster::KeyboardCommand::CmdType::text:
                 overlay.onKeyInput(com.getData_text());
                 break;
-            case KeyboardStatesMaster::KeyboardCommand::Type::toggle_game_state:
+            case KeyboardStatesMaster::KeyboardCommand::CmdType::toggle_game_state:
                 toggleGameState();
                 break;
+            default:
+                dalWarn("Unhandled keyboard command: "s + std::to_string(int(com.getType())));
+
+            }
+        }
+
+        glm::vec2 pos;
+        for ( const auto& cmd : g_touchMas.getCommands() ) {
+            switch ( cmd.getType() ) {
+
+            case TouchStatesMaster::TouchCommand::CmdType::click:
+                pos = cmd.getClickPos();
+                overlay.onClick(pos.x, pos.y);
+            default:
+                dalWarn("Unhandled touch command: "s + std::to_string(int(cmd.getType())));
 
             }
         }

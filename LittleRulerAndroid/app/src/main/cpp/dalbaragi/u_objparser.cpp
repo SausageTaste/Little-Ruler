@@ -281,8 +281,9 @@ namespace dal {
         processMaterial(scene, materials);
 
         AABBBuildInfo aabbInfo;
-        return processNode(info, materials, aabbInfo, scene, scene->mRootNode);
+        const auto res = processNode(info, materials, aabbInfo, scene, scene->mRootNode);
         info.m_aabb.set(aabbInfo.p1, aabbInfo.p2);
+        return res;
     }
 
 }

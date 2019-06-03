@@ -51,7 +51,7 @@ namespace dal {
     class TextStream : public LuaStdOutput {
 
     private:
-        std::array<char, 1024> m_buffer{};
+        std::array<char, 1024> m_buffer;
         unsigned int m_topIndex = 0;
 
     public:
