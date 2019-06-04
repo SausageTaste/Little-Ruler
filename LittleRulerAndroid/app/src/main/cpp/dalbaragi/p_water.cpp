@@ -73,7 +73,7 @@ namespace {
         return fbuffer;
     }
 
-    GLuint genTextureAttachment(const GLsizei width, const GLsizei height) {
+    GLuint genTextureAttachment(const unsigned int width, const unsigned int height) {
         GLuint texture;
 
         glPixelStorei(GL_UNPACK_ALIGNMENT, 0);
@@ -90,7 +90,7 @@ namespace {
         return texture;
     }
 
-    GLuint genDepthTextureAttachment(const GLsizei width, const GLsizei height) {
+    GLuint genDepthTextureAttachment(const unsigned int width, const unsigned int height) {
         GLuint texture;
 
         glGenTextures(1, &texture);
@@ -113,7 +113,7 @@ namespace {
     }
 
     // This doesn't work for me. Now I use genDepthTextureAttachment instead.
-    GLuint genDepthBufferAttachment(const int width, const int height) {
+    GLuint genDepthBufferAttachment(const unsigned int width, const unsigned int height) {
         GLuint depthBuffer;
 
         glGenRenderbuffers(1, &depthBuffer);
@@ -127,7 +127,7 @@ namespace {
         return depthBuffer;
     }
 
-    void bindFrameBuffer(const GLuint frameBuffer, const int width, const int height) {
+    void bindFrameBuffer(const GLuint frameBuffer, const unsigned int width, const unsigned int height) {
         //glBindTexture(GL_TEXTURE_2D, 0);  //To make sure the texture isn't bound
         glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
         glViewport(0, 0, width, height);
@@ -181,10 +181,10 @@ namespace dal {
         : m_winWidth(static_cast<float>(winWidth)), m_winHeight(static_cast<float>(winHeight)),
         m_reflecScale(0.5f), m_refracScale(0.5f)
     {
-        const GLsizei REFLECTION_WIDTH = static_cast<GLsizei>(this->m_winWidth  * this->m_reflecScale);
-        const GLsizei REFLECTION_HEIGHT = static_cast<GLsizei>(this->m_winHeight * this->m_reflecScale);
-        const GLsizei REFRACTION_WIDTH = static_cast<GLsizei>(this->m_winWidth  * this->m_refracScale);
-        const GLsizei REFRACTION_HEIGHT = static_cast<GLsizei>(this->m_winHeight * this->m_refracScale);
+        const auto REFLECTION_WIDTH = static_cast<GLsizei>(this->m_winWidth  * this->m_reflecScale);
+        const auto REFLECTION_HEIGHT = static_cast<GLsizei>(this->m_winHeight * this->m_reflecScale);
+        const auto REFRACTION_WIDTH = static_cast<GLsizei>(this->m_winWidth  * this->m_refracScale);
+        const auto REFRACTION_HEIGHT = static_cast<GLsizei>(this->m_winHeight * this->m_refracScale);
 
         {
             this->m_reflectionFrameBuffer.reset(genFramebuffer());

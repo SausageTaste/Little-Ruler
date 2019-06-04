@@ -3,7 +3,6 @@
 #include <string>
 #include <array>
 #include <vector>
-#include <set>
 
 #include <glm/gtc/matrix_transform.hpp>
 

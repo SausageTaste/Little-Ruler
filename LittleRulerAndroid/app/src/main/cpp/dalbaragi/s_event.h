@@ -13,7 +13,7 @@ namespace dal {
         eof,
     };
 
-    static constexpr unsigned int NUMOF_EVENTTYPE_NORMAL = int(EventType::eof) - int(EventType::quit_game);
+    static constexpr auto NUMOF_EVENTTYPE_NORMAL = static_cast<unsigned int>(EventType::eof) - static_cast<unsigned int>(EventType::quit_game);
 
     const char* getEventTypeStr(const EventType type);
 
