@@ -57,6 +57,17 @@ namespace dal {
             model.m_inst.assign(importedModel.m_actors.begin(), importedModel.m_actors.end());
         }
 
+        for ( auto& animatedModel : info.m_animatedModels ) {
+            this->m_animatedActors.emplace_back();
+            auto& model = this->m_animatedActors.back();
+
+            ResourceID modelResID{ animatedModel.m_modelID };
+            if ( modelResID.getPackage().empty() ) modelResID.setPackage(info.m_packageName);
+
+            model.m_model = resMas.orderModelAnimated(modelResID);
+            model.m_inst.assign(animatedModel.m_actors.begin(), animatedModel.m_actors.end());
+        }
+
         for ( auto& pointLight : info.m_pointLights ) {
             this->m_plights.emplace_back();
             auto& plight = this->m_plights.back();
@@ -88,6 +99,9 @@ namespace dal {
         this->sendUniforms_lights(uniloc, 0);
 
         for ( auto& modelActor : this->m_modelActors ) {
+            modelActor.m_model->renderGeneral(uniloc, modelActor.m_inst);
+        }
+        for ( auto& modelActor : this->m_animatedActors ) {
             modelActor.m_model->renderGeneral(uniloc, modelActor.m_inst);
         }
     }
@@ -181,6 +195,22 @@ namespace dal {
         actorBox.add(actor.m_pos);
 
         for ( auto& modelInfo : this->m_modelActors ) {
+            for ( auto& modelActor : modelInfo.m_inst ) {
+                if ( &modelActor == &actor ) continue;
+
+                auto box = modelInfo.m_model->getBoundingBox();
+                box.add(modelActor.m_pos);
+
+                if ( actorBox.checkCollision(box) ) {
+                    const auto resolveInfo = actorBox.getResolveInfo(box);
+                    actor.m_pos += resolveInfo.m_this;
+                    actorBox.add(resolveInfo.m_this);
+                    modelActor.m_pos += resolveInfo.m_other;
+                }
+            }
+        }
+
+        for ( auto& modelInfo : this->m_animatedActors ) {
             for ( auto& modelActor : modelInfo.m_inst ) {
                 if ( &modelActor == &actor ) continue;
 

@@ -16,18 +16,20 @@ namespace dal {
     class MapChunk {
 
     private:
+        template <typename T>
         struct ModelNActor {
-            Model* m_model = nullptr;
+            T* m_model = nullptr;
             std::list<ActorInfo> m_inst;
 
             ModelNActor(void) = default;
-            ModelNActor(Model* const model) : m_model(model) {}
+            ModelNActor(T* const model) : m_model(model) {}
         };
 
     private:
         std::string m_name;
 
-        std::vector<ModelNActor> m_modelActors;
+        std::vector<ModelNActor<Model>> m_modelActors;
+        std::vector<ModelNActor<ModelAnimated>> m_animatedActors;
 
         std::vector<DirectionalLight> m_dlights;
         std::vector<PointLight> m_plights;

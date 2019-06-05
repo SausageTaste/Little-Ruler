@@ -100,6 +100,10 @@ namespace {
     using anim_index_map_t = std::unordered_map<std::string, unsigned int>;
 
     anim_index_map_t makeIndexMap(const dal::loadedinfo::Animation& info) {
+        if ( 0 == info.m_keyframes.size() ) {
+            dalAbort("Looks like no animation has been found.");
+        }
+
         anim_index_map_t indexMap;
 
         for ( size_t j = 0; j < info.m_keyframes[0].m_joints.size(); j++ ) {
@@ -322,6 +326,47 @@ namespace {
 // Process mesh
 namespace {
 
+    void copy3BasicVertexInfo_swapYZ(std::vector<float>& vertices, std::vector<float>& texcoords,
+        std::vector<float>& normals, AABBBuildInfo& aabbInfo, const aiMesh* const mesh)
+    {
+        vertices.resize(mesh->mNumVertices * 3);
+        texcoords.resize(mesh->mNumVertices * 2);
+        normals.resize(mesh->mNumVertices * 3);
+
+        // For aabb
+        for ( unsigned int i = 0; i < mesh->mNumVertices; i++ ) {
+            const auto& vertex = mesh->mVertices[i];
+
+            vertices[3*i + 0] = vertex.x;
+            vertices[3*i + 1] = vertex.z;
+            vertices[3*i + 2] = vertex.y;
+
+            if ( aabbInfo.p1.x > vertex.x )
+                aabbInfo.p1.x = vertex.x;
+            else if ( aabbInfo.p2.x < vertex.x )
+                aabbInfo.p2.x = vertex.x;
+
+            if ( aabbInfo.p1.y > vertex.z )
+                aabbInfo.p1.y = vertex.z;
+            else if ( aabbInfo.p2.y < vertex.z )
+                aabbInfo.p2.y = vertex.z;
+
+            if ( aabbInfo.p1.z > vertex.y )
+                aabbInfo.p1.z = vertex.y;
+            else if ( aabbInfo.p2.z < vertex.y )
+                aabbInfo.p2.z = vertex.y;
+
+            const auto& tex = mesh->mTextureCoords[0][i];
+            texcoords[2 * i + 0] = tex.x;
+            texcoords[2 * i + 1] = tex.y;
+
+            const auto& normal = mesh->mNormals[i];
+            normals[3*i + 0] = normal.x;
+            normals[3*i + 1] = normal.z;
+            normals[3*i + 2] = normal.y;
+        }
+    }
+
     void copy3BasicVertexInfo(std::vector<float>& vertices, std::vector<float>& texcoords, std::vector<float>& normals,
         AABBBuildInfo& aabbInfo, const aiMesh* const mesh)
     {
@@ -364,16 +409,22 @@ namespace {
         }
     }
 
-    bool processMesh(dal::loadedinfo::RenderUnit& renUnit, AABBBuildInfo& aabbInfo, aiMesh* const mesh) {
+
+    bool processMesh(dal::loadedinfo::RenderUnit& renUnit, AABBBuildInfo& aabbInfo, aiMesh* const mesh, const bool swapYZ) {
         renUnit.m_name = reinterpret_cast<char*>(&mesh->mName);
 
-        copy3BasicVertexInfo(renUnit.m_mesh.m_vertices, renUnit.m_mesh.m_texcoords, renUnit.m_mesh.m_normals, aabbInfo, mesh);
+        if ( swapYZ ) {
+            copy3BasicVertexInfo_swapYZ(renUnit.m_mesh.m_vertices, renUnit.m_mesh.m_texcoords, renUnit.m_mesh.m_normals, aabbInfo, mesh);
+        }
+        else {
+            copy3BasicVertexInfo(renUnit.m_mesh.m_vertices, renUnit.m_mesh.m_texcoords, renUnit.m_mesh.m_normals, aabbInfo, mesh);
+        }
 
         return true;
     }
 
     bool processMeshAnimated(dal::loadedinfo::RenderUnitAnimated& renUnit, AABBBuildInfo& aabbInfo,
-        const anim_index_map_t& animInfo, aiMesh* const mesh)
+        const anim_index_map_t& animInfo, aiMesh* const mesh, const bool swapYZ)
     {
         renUnit.m_name = reinterpret_cast<char*>(&mesh->mName);
 
@@ -383,7 +434,12 @@ namespace {
         renUnit.m_mesh.m_boneWeights.resize(mesh->mNumVertices * 3);
         renUnit.m_mesh.m_boneIndex.resize(mesh->mNumVertices * 3);
 
-        copy3BasicVertexInfo(renUnit.m_mesh.m_vertices, renUnit.m_mesh.m_texcoords, renUnit.m_mesh.m_normals, aabbInfo, mesh);
+        if ( swapYZ ) {
+            copy3BasicVertexInfo_swapYZ(renUnit.m_mesh.m_vertices, renUnit.m_mesh.m_texcoords, renUnit.m_mesh.m_normals, aabbInfo, mesh);
+        }
+        else {
+            copy3BasicVertexInfo(renUnit.m_mesh.m_vertices, renUnit.m_mesh.m_texcoords, renUnit.m_mesh.m_normals, aabbInfo, mesh);
+        }
 
         for ( unsigned int i = 0; i < mesh->mNumBones; i++ ) {
             auto bone = mesh->mBones[i];
@@ -431,13 +487,13 @@ namespace {
 namespace {
 
     bool processNode(dal::loadedinfo::ModelStatic& info, const std::vector<dal::loadedinfo::Material>& materials,
-        AABBBuildInfo& aabbInfo, const aiScene* const scene, const aiNode* const node)
+        AABBBuildInfo& aabbInfo, const aiScene* const scene, const aiNode* const node, const bool swapYZ)
     {
         for ( unsigned int i = 0; i < node->mNumMeshes; i++ ) {
             aiMesh* ai_mesh = scene->mMeshes[node->mMeshes[i]];
             info.m_renderUnits.emplace_front();
             auto& renUnit = info.m_renderUnits.front();
-            if ( !processMesh(renUnit, aabbInfo, ai_mesh) ) return false;
+            if ( !processMesh(renUnit, aabbInfo, ai_mesh, swapYZ) ) return false;
 
             if ( ai_mesh->mMaterialIndex != 0 ) {
                 renUnit.m_material = materials.at(ai_mesh->mMaterialIndex);
@@ -445,20 +501,21 @@ namespace {
         }
 
         for ( unsigned int i = 0; i < node->mNumChildren; i++ ) {
-            if ( processNode(info, materials, aabbInfo, scene, node->mChildren[i]) == false ) return false;
+            if ( processNode(info, materials, aabbInfo, scene, node->mChildren[i], swapYZ) == false ) return false;
         }
 
         return true;
     }
 
     bool processNodeAnimated(dal::loadedinfo::ModelAnimated& info, const std::vector<dal::loadedinfo::Material>& materials,
-        AABBBuildInfo& aabbInfo, const anim_index_map_t& animInfo, const aiScene* const scene, const aiNode* const node)
+        AABBBuildInfo& aabbInfo, const anim_index_map_t& animInfo, const aiScene* const scene, const aiNode* const node,
+        const bool swapYZ)
     {
         for ( unsigned int i = 0; i < node->mNumMeshes; i++ ) {
             aiMesh* ai_mesh = scene->mMeshes[node->mMeshes[i]];
             info.m_renderUnits.emplace_front();
             auto& renUnit = info.m_renderUnits.front();
-            if ( !processMeshAnimated(renUnit, aabbInfo, animInfo, ai_mesh) ) return false;
+            if ( !processMeshAnimated(renUnit, aabbInfo, animInfo, ai_mesh, swapYZ) ) return false;
 
             if ( ai_mesh->mMaterialIndex != 0 ) {
                 renUnit.m_material = materials.at(ai_mesh->mMaterialIndex);
@@ -466,7 +523,7 @@ namespace {
         }
 
         for ( unsigned int i = 0; i < node->mNumChildren; i++ ) {
-            if ( processNodeAnimated(info, materials, aabbInfo, animInfo, scene, node->mChildren[i]) == false ) return false;
+            if ( processNodeAnimated(info, materials, aabbInfo, animInfo, scene, node->mChildren[i], swapYZ) == false ) return false;
         }
 
         return true;
@@ -491,14 +548,23 @@ namespace dal {
 
         AABBBuildInfo aabbInfo;
         info.m_renderUnits.clear();
-        const auto res = processNode(info, materials, aabbInfo, scene, scene->mRootNode);
+
+        bool res;
+        if ( ".dae"s == assetPath.getExt() ) {
+            res = processNode(info, materials, aabbInfo, scene, scene->mRootNode, true);
+        }
+        else {
+            res = processNode(info, materials, aabbInfo, scene, scene->mRootNode, false);
+        }
+
         info.m_aabb.set(aabbInfo.p1, aabbInfo.p2);
         return res;
     }
 
-    bool loadAssimp_animatedModel(loadedinfo::ModelAnimated& info, std::vector<dal::loadedinfo::Animation>& anims, const ResourceID& resID) {
+    bool loadAssimp_animatedModel(loadedinfo::ModelAnimated& info, std::vector<dal::loadedinfo::Animation>& anims,
+        const ResourceID& resID) {
         info.m_renderUnits.clear();
-       
+
         Assimp::Importer importer;
         importer.SetIOHandler(new AssResourceIOSystem);
         const auto scene = importer.ReadFile(makeAssimpResID(resID).c_str(), aiProcess_Triangulate);
@@ -514,7 +580,15 @@ namespace dal {
         const auto indexMap = makeIndexMap(anims[0]);
 
         AABBBuildInfo aabbInfo;
-        const auto res = processNodeAnimated(info, materials, aabbInfo, indexMap, scene, scene->mRootNode);
+
+        bool res;
+        if ( ".dae"s == resID.getExt() ) {
+            res = processNodeAnimated(info, materials, aabbInfo, indexMap, scene, scene->mRootNode, true);
+        }
+        else {
+            res = processNodeAnimated(info, materials, aabbInfo, indexMap, scene, scene->mRootNode, false);
+        }
+
         info.m_aabb.set(aabbInfo.p1, aabbInfo.p2);
         return res;
     }

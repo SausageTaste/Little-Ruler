@@ -10,13 +10,13 @@ def main():
     model = bfi.BuildInfo_ModelImported()
 
     actor = aco.ActorInfo()
-    actor.setName("Yuri1")
+    actor.setName("honoka")
     actor.getQuatHandle().rotate(180, (0, 1, 0))
     actor.getPosHandle().setX(2)
     actor.getPosHandle().setZ(4)
     model.addActor(actor)
 
-    model.setModelID("asset::yuri.obj")
+    model.setModelID("test::untitled.dae")
     level.add(model)
 
     ########
@@ -55,7 +55,7 @@ def main():
     actor.getPosHandle().setZ(1)
     # actor.getQuatHandle().rotate(-90, (0, 1, 0))
     model.addActor(actor)
-    model.setModelID("test::Character Running.dae")
+    model.setModelID("test::model.dae")
     level.add(model)
 
     ########

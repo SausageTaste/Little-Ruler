@@ -16,157 +16,7 @@
 using namespace std::string_literals;
 
 
-// Texture
-namespace dal {
 
-    Texture::Texture(const GLuint id)
-        : m_texID(id)
-    {
-
-    }
-
-    Texture::Texture(Texture&& other) noexcept {
-        this->m_texID = other.m_texID;
-        other.m_texID = 0;
-    }
-
-    Texture& Texture::operator=(Texture&& other) noexcept {
-        this->m_texID = other.m_texID;
-        other.m_texID = 0;
-
-        return *this;
-    }
-
-    Texture::~Texture(void) {
-        if ( this->isReady() ) this->deleteTex();
-    }
-
-
-    void Texture::init_diffueMap(const uint8_t* const image, const unsigned int width, const unsigned int height) {
-        glPixelStorei(GL_UNPACK_ALIGNMENT, 0);
-
-        this->genTexture("init_diffueMap");
-
-        glBindTexture(GL_TEXTURE_2D, m_texID);
-
-#if BLOCKY_TEXTURE == 0
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-#else
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-#endif
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image);
-        glGenerateMipmap(GL_TEXTURE_2D);
-
-        glBindTexture(GL_TEXTURE_2D, 0);
-    }
-
-    void Texture::init_diffueMap3(const uint8_t* const image, const unsigned int width, const unsigned int height) {
-        glPixelStorei(GL_UNPACK_ALIGNMENT, 0);
-
-        this->genTexture("init_diffueMap");
-
-        glBindTexture(GL_TEXTURE_2D, m_texID);
-
-#if BLOCKY_TEXTURE == 0
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-#else
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-#endif
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
-        glGenerateMipmap(GL_TEXTURE_2D);
-
-        glBindTexture(GL_TEXTURE_2D, 0);
-    }
-
-    void Texture::init_depthMap(const unsigned int width, const unsigned int height) {
-        glPixelStorei(GL_UNPACK_ALIGNMENT, 0);
-
-        this->genTexture("init_depthMap");
-
-        glBindTexture(GL_TEXTURE_2D, m_texID);
-        {
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
-
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT16, width, height, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_SHORT, nullptr);
-        } glBindTexture(GL_TEXTURE_2D, 0);
-    }
-
-    void Texture::init_maskMap(const uint8_t* const image, const unsigned int width, const unsigned int height) {
-        this->genTexture("init_maskMap");
-
-        glBindTexture(GL_TEXTURE_2D, m_texID);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, width, height, 0, GL_RED, GL_UNSIGNED_BYTE, image);
-
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    }
-
-    void Texture::initAttach_colorMap(const unsigned int width, const unsigned int height) {
-        glPixelStorei(GL_UNPACK_ALIGNMENT, 0);
-        this->genTexture("init_texAttachment");
-
-        glBindTexture(GL_TEXTURE_2D, this->m_texID);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
-
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, this->m_texID, 0);
-        //glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, texture, 0);
-    }
-
-    void Texture::deleteTex(void) {
-        glDeleteTextures(1, &this->m_texID);
-        this->m_texID = 0;
-    }
-
-    void Texture::sendUniform(const GLint uniloc_sampler, const GLint uniloc_has, const unsigned int index) const {
-        if ( this->isReady() ) {
-            glUniform1i(uniloc_has, 1);
-            glActiveTexture(GL_TEXTURE0 + index);
-            glBindTexture(GL_TEXTURE_2D, this->m_texID);
-            glUniform1i(uniloc_sampler, index);
-        }
-        else {
-            glUniform1i(uniloc_has, 0);
-        }
-    }
-
-    bool Texture::isReady(void) const {
-        return this->m_texID != 0;
-    }
-
-    // Getters
-
-    GLuint Texture::get(void) {
-        return m_texID;
-    }
-
-    // Private
-
-    void Texture::genTexture(const char* const str4Log) {
-        if ( this->isReady() ) {
-            this->deleteTex();
-        }
-
-        glGenTextures(1, &m_texID);
-        if ( m_texID == 0 ) {
-            dalAbort("Failed to init dal::Texture::init_depthMap::"s + str4Log);
-        }
-    }
-
-}
 
 
 // Tasks
@@ -256,8 +106,8 @@ namespace {
 
 
     std::unordered_set<void*> g_sentTasks_texture;
-
     std::unordered_set<void*> g_sentTasks_model;
+    std::unordered_set<void*> g_sentTasks_modelAnimated;
 
 }
 
@@ -266,129 +116,15 @@ namespace {
 namespace {
 
     dal::StaticPool<dal::Model, 20> g_modelPool;
+    dal::StaticPool<dal::ModelAnimated, 20> g_animatedModelPool;
     dal::StaticPool<dal::Texture, 200> g_texturePool;
 
 }
 
 
-// Material
-namespace dal {
-
-    void Material::setTexScale(float x, float y) {
-        this->m_texScale = { x, y };
-    }
-
-    void Material::setDiffuseMap(Texture* const tex) {
-        this->m_diffuseMap = tex;
-    }
-
-    void Material::sendUniform(const UnilocGeneral& uniloc) const {
-        glUniform1f(uniloc.uShininess, this->m_shininess);
-        glUniform1f(uniloc.uSpecularStrength, this->m_specularStrength);
-
-        glUniform1f(uniloc.uTexScaleX, this->m_texScale.x);
-        glUniform1f(uniloc.uTexScaleY, this->m_texScale.y);
-
-        glUniform3f(uniloc.uDiffuseColor, this->m_diffuseColor.x, this->m_diffuseColor.y, this->m_diffuseColor.z);
-
-        if ( nullptr == this->m_diffuseMap ) {
-            glUniform1i(uniloc.uHasDiffuseMap, 0);
-        }
-        else {
-            this->m_diffuseMap->sendUniform(uniloc.uDiffuseMap, uniloc.uHasDiffuseMap, 0);
-        }
-    }
-
-    void Material::sendUniform(const UnilocWaterry& uniloc) const {
-        glUniform1f(uniloc.uShininess, this->m_shininess);
-        glUniform1f(uniloc.uSpecularStrength, this->m_specularStrength);
-
-        glUniform1f(uniloc.uTexScaleX, this->m_texScale.x);
-        glUniform1f(uniloc.uTexScaleY, this->m_texScale.y);
-
-        glUniform3f(uniloc.uDiffuseColor, this->m_diffuseColor.x, this->m_diffuseColor.y, this->m_diffuseColor.z);
-
-        if ( nullptr == this->m_diffuseMap ) {
-            glUniform1i(uniloc.uHasDiffuseMap, 0);
-        }
-        else {
-            this->m_diffuseMap->sendUniform(uniloc.uDiffuseMap, uniloc.uHasDiffuseMap, 0);
-        }
-    }
-
-}
 
 
-// Model
-namespace dal {
 
-    void Model::setModelResID(const ResourceID& resID) {
-        this->m_modelResID = resID;
-    }
-
-
-    Model::RenderUnit* Model::addRenderUnit(void) {
-        this->m_renderUnits.emplace_back();
-        return &this->m_renderUnits.back();
-    }
-
-    void Model::setBoundingBox(const AxisAlignedBoundingBox& box) {
-        this->m_boundingBox = box;
-    }
-
-    const AxisAlignedBoundingBox& Model::getBoundingBox(void) const {
-        return this->m_boundingBox;
-    }
-
-    const ResourceID& Model::getModelResID(void) const {
-        return this->m_modelResID;
-    }
-
-
-    bool Model::isReady(void) const {
-        for ( const auto& unit : this->m_renderUnits ) {
-            if ( !unit.m_mesh.isReady() ) return false;
-        }
-
-        return true;
-    }
-
-    void Model::renderGeneral(const UnilocGeneral& uniloc, const std::list<ActorInfo>& actors) const {
-        if ( !this->isReady() ) return;
-
-        for ( auto& unit : this->m_renderUnits ) {
-            unit.m_material.sendUniform(uniloc);
-            if ( !unit.m_mesh.isReady() ) continue;
-
-            for ( auto& inst : actors ) {
-                auto mat = inst.getViewMat();
-                glUniformMatrix4fv(uniloc.uModelMat, 1, GL_FALSE, &mat[0][0]);
-                unit.m_mesh.draw();
-            }
-        }
-    }
-
-    void Model::renderDepthMap(const UnilocDepthmp& uniloc, const std::list<ActorInfo>& actors) const {
-        if ( !this->isReady() ) return;
-
-        for ( auto& unit : this->m_renderUnits ) {
-            if ( !unit.m_mesh.isReady() ) continue;
-
-            for ( auto& inst : actors ) {
-                auto mat = inst.getViewMat();
-                glUniformMatrix4fv(uniloc.uModelMat, 1, GL_FALSE, &mat[0][0]);
-                unit.m_mesh.draw();
-            }
-        }
-    }
-
-    void Model::destroyModel(void) {
-        for ( auto& unit : this->m_renderUnits ) {
-            unit.m_mesh.destroyData();
-        }
-    }
-
-}
 
 
 // Package
@@ -459,7 +195,24 @@ namespace dal {
     }
 
     ModelAnimated* Package::orderModelAnimated(const ResourceID& resPath, ResourceMaster* const resMas) {
+        std::string modelIDStr{ resPath.makeFileName() };
 
+        auto iter = this->m_animatedModels.find(modelIDStr);
+        if ( this->m_animatedModels.end() != iter ) {
+            return iter->second.m_data;
+        }
+        else {
+            auto model = g_animatedModelPool.alloc();
+            model->setModelResID(resPath);
+            this->m_animatedModels.emplace(modelIDStr, ManageInfo<ModelAnimated>{ model, 2 });
+
+            ResourceID idWithPackage{ this->m_name, resPath.getOptionalDir(), resPath.getBareName(), resPath.getExt() };
+            auto task = new LoadTask_ModelAnimated{ idWithPackage, *model, *this };
+            g_sentTasks_modelAnimated.insert(task);
+            TaskGod::getinst().orderTask(task, resMas);
+
+            return model;
+        }
     }
 
     Model* Package::buildModel(const loadedinfo::ModelDefined& info, ResourceMaster* const resMas) {
@@ -627,6 +380,41 @@ namespace dal {
             }
             else {
                 dalAbort("Unknown pix size: "s + std::to_string(loaded->out_img.m_pixSize));
+            }
+        }
+        else if ( g_sentTasks_modelAnimated.find(task.get()) != g_sentTasks_modelAnimated.end() ) {
+            g_sentTasks_modelAnimated.erase(task.get());
+
+            auto loaded = reinterpret_cast<LoadTask_ModelAnimated*>(task.get());
+            if ( !loaded->out_success ) {
+                dalError("Failed to load model: "s + loaded->in_modelID.makeIDStr());
+                return;
+            }
+
+            loaded->data_coresponding.setBoundingBox(loaded->out_info.m_aabb);
+
+            for ( auto& unitInfo : loaded->out_info.m_renderUnits ) {
+                auto unit = loaded->data_coresponding.addRenderUnit();
+                assert(nullptr != unit);
+
+                unit->m_mesh.buildData(
+                    unitInfo.m_mesh.m_vertices.data(),
+                    unitInfo.m_mesh.m_texcoords.data(),
+                    unitInfo.m_mesh.m_normals.data(),
+                    unitInfo.m_mesh.m_boneIndex.data(),
+                    unitInfo.m_mesh.m_boneWeights.data(),
+                    unitInfo.m_mesh.m_vertices.size() / 3
+                );
+                unit->m_meshName = unitInfo.m_name;
+
+                unit->m_material.m_diffuseColor = unitInfo.m_material.m_diffuseColor;
+                unit->m_material.m_shininess = unitInfo.m_material.m_shininess;
+                unit->m_material.m_specularStrength = unitInfo.m_material.m_specStrength;
+
+                if ( !unitInfo.m_material.m_diffuseMap.empty() ) {
+                    auto tex = loaded->data_package.orderDiffuseMap(unitInfo.m_material.m_diffuseMap, this);
+                    unit->m_material.setDiffuseMap(tex);
+                }
             }
         }
         else {
