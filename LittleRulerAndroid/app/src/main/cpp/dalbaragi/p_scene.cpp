@@ -190,7 +190,7 @@ namespace dal {
         return startIndex + this->m_plights.size();
     }
 
-    void MapChunk::applyCollision(Model& model, ActorInfo& actor) {
+    void MapChunk::applyCollision(ModelStatic& model, ActorInfo& actor) {
         auto actorBox = model.getBoundingBox();
         actorBox.add(actor.m_pos);
 
@@ -237,7 +237,7 @@ namespace dal {
         }
     }
 
-    ActorInfo* MapChunk::addActor(Model* const model, const std::string& actorName, bool flagStatic, ResourceMaster& resMas) {
+    ActorInfo* MapChunk::addActor(ModelStatic* const model, const std::string& actorName, bool flagStatic, ResourceMaster& resMas) {
         for ( auto& modelActor : this->m_modelActors ) {
             if ( model == modelActor.m_model ) {
                 modelActor.m_inst.emplace_back(actorName, flagStatic);
@@ -303,7 +303,7 @@ namespace dal {
     }
 
 
-    ActorInfo* SceneMaster::addActor(Model* const model, const std::string& mapName, const std::string& actorName, bool flagStatic) {
+    ActorInfo* SceneMaster::addActor(ModelStatic* const model, const std::string& mapName, const std::string& actorName, bool flagStatic) {
         auto map = mapName.empty() ? this->m_persistantMap : this->findMap(mapName);
         if ( nullptr == map ) {
             dalError("Failed to find map: "s + mapName);
@@ -321,7 +321,7 @@ namespace dal {
         return nullptr;
     }
 
-    void SceneMaster::applyCollision(Model& model, ActorInfo& actor) {
+    void SceneMaster::applyCollision(ModelStatic& model, ActorInfo& actor) {
         for ( auto& map : this->m_mapChunks ) {
             map.applyCollision(model, actor);
         }

@@ -38,7 +38,7 @@ namespace dal {
 
     private:
         std::string m_name;
-        std::unordered_map<std::string, ManageInfo<Model>> m_models;
+        std::unordered_map<std::string, ManageInfo<ModelStatic>> m_models;
         std::unordered_map<std::string, ManageInfo<ModelAnimated>> m_animatedModels;
         std::unordered_map<std::string, ManageInfo<Texture>> m_textures;
 
@@ -46,9 +46,9 @@ namespace dal {
         void setName(const char* const packageName);
         void setName(const std::string& packageName);
 
-        Model* orderModel(const ResourceID& resPath, ResourceMaster* const resMas);
+        ModelStatic* orderModel(const ResourceID& resPath, ResourceMaster* const resMas);
         ModelAnimated* orderModelAnimated(const ResourceID& resPath, ResourceMaster* const resMas);
-        Model* buildModel(const loadedinfo::ModelDefined& info, ResourceMaster* const resMas);
+        ModelStatic* buildModel(const loadedinfo::ModelDefined& info, ResourceMaster* const resMas);
         Texture* orderDiffuseMap(const ResourceID& texID, ResourceMaster* const resMas);
 
         void getResReport(ResourceReport& report) const;
@@ -75,9 +75,9 @@ namespace dal {
 
         virtual void notifyTask(std::unique_ptr<ITask> task) override;
 
-        Model* orderModel(const ResourceID& resID);
+        ModelStatic* orderModel(const ResourceID& resID);
         ModelAnimated* orderModelAnimated(const ResourceID& resID);
-        Model* buildModel(const loadedinfo::ModelDefined& info, const char* const packageName);
+        ModelStatic* buildModel(const loadedinfo::ModelDefined& info, const char* const packageName);
 
         static Texture* getUniqueTexture(void);
         static void dumpUniqueTexture(Texture* const tex);

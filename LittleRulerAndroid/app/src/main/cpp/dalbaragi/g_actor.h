@@ -11,7 +11,7 @@
 
 namespace dal {
 
-    class Model;
+    class ModelStatic;
 
     glm::vec3 strangeEuler2Vec(const float x, const float y);
     glm::vec2 vec2StrangeEuler(glm::vec3 v);
@@ -102,19 +102,19 @@ namespace dal {
     private:
         StrangeEulerCamera* m_camera = nullptr;
         ActorInfo* m_actor = nullptr;
-        Model* m_model = nullptr;
+        ModelStatic* m_model = nullptr;
 
     public:
         Player(void) = default;
-        Player(StrangeEulerCamera* camera, ActorInfo* actor, Model* model);
+        Player(StrangeEulerCamera* camera, ActorInfo* actor, ModelStatic* model);
 
         StrangeEulerCamera* replaceCamera(StrangeEulerCamera* const camera);
         ActorInfo* replaceActor(ActorInfo* const actor);
-        Model* replaceModel(Model* const model);
+        ModelStatic* replaceModel(ModelStatic* const model);
 
         StrangeEulerCamera* getCamera(void) { assert(nullptr != this->m_camera); return this->m_camera; }
         ActorInfo* getActor(void) { assert(nullptr != this->m_actor); return this->m_actor; }
-        Model* getModel(void) { assert(nullptr != this->m_model); return this->m_model; }
+        ModelStatic* getModel(void) { assert(nullptr != this->m_model); return this->m_model; }
 
     };
 

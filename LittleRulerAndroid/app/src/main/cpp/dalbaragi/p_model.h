@@ -27,7 +27,7 @@ namespace dal {
     };
 
 
-    class Model : public IModel {
+    class ModelStatic : public IModel {
 
     private:
         struct RenderUnit {

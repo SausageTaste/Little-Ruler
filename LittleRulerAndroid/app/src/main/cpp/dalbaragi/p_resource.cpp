@@ -53,11 +53,11 @@ namespace {
         bool out_success;
         dal::loadedinfo::ModelStatic out_info;
 
-        dal::Model& data_coresponding;
+        dal::ModelStatic& data_coresponding;
         dal::Package& data_package;
 
     public:
-        LoadTask_Model(const dal::ResourceID& modelID, dal::Model& coresponding, dal::Package& package)
+        LoadTask_Model(const dal::ResourceID& modelID, dal::ModelStatic& coresponding, dal::Package& package)
             : in_modelID(modelID),
             out_success(false),
             data_coresponding(coresponding),
@@ -112,7 +112,7 @@ namespace {
 // Pools
 namespace {
 
-    dal::StaticPool<dal::Model, 20> g_modelPool;
+    dal::StaticPool<dal::ModelStatic, 20> g_modelPool;
     dal::StaticPool<dal::ModelAnimated, 20> g_animatedModelPool;
     dal::StaticPool<dal::Texture, 200> g_texturePool;
 
@@ -164,7 +164,7 @@ namespace dal {
         this->m_name = packageName;
     }
 
-    Model* Package::orderModel(const ResourceID& resPath, ResourceMaster* const resMas) {
+    ModelStatic* Package::orderModel(const ResourceID& resPath, ResourceMaster* const resMas) {
         std::string modelIDStr{ resPath.makeFileName() };
 
         decltype(this->m_models.end()) iter = this->m_models.find(modelIDStr);
@@ -174,7 +174,7 @@ namespace dal {
         else {
             auto model = g_modelPool.alloc();
             model->setModelResID(resPath);
-            this->m_models.emplace(modelIDStr, ManageInfo<Model>{ model, 2 });
+            this->m_models.emplace(modelIDStr, ManageInfo<ModelStatic>{ model, 2 });
 
             ResourceID idWithPackage{ this->m_name, resPath.getOptionalDir(), resPath.getBareName(), resPath.getExt() };
             auto task = new LoadTask_Model{ idWithPackage, *model, *this };
@@ -206,9 +206,9 @@ namespace dal {
         }
     }
 
-    Model* Package::buildModel(const loadedinfo::ModelDefined& info, ResourceMaster* const resMas) {
+    ModelStatic* Package::buildModel(const loadedinfo::ModelDefined& info, ResourceMaster* const resMas) {
         auto model = g_modelPool.alloc();
-        this->m_models.emplace(info.m_modelID, ManageInfo<Model>{ model, 1 });
+        this->m_models.emplace(info.m_modelID, ManageInfo<ModelStatic>{ model, 1 });
 
         // Bounding box
         model->setBoundingBox(info.m_boundingBox);
@@ -413,7 +413,7 @@ namespace dal {
         }
     }
 
-    Model* ResourceMaster::orderModel(const ResourceID& resID) {
+    ModelStatic* ResourceMaster::orderModel(const ResourceID& resID) {
         auto& package = this->orderPackage(resID.getPackage());
 
         return package.orderModel(resID, this);
@@ -425,7 +425,7 @@ namespace dal {
         return package.orderModelAnimated(resID, this);
     }
 
-    Model* ResourceMaster::buildModel(const loadedinfo::ModelDefined& info, const char* const packageName) {
+    ModelStatic* ResourceMaster::buildModel(const loadedinfo::ModelDefined& info, const char* const packageName) {
         auto& package = this->orderPackage(packageName);
         return package.buildModel(info, this);
     }

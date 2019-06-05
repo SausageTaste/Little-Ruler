@@ -23,15 +23,15 @@ namespace dal {
 }
 
 
-// Model
+// ModelStatic
 namespace dal {
 
-    Model::RenderUnit* Model::addRenderUnit(void) {
+    ModelStatic::RenderUnit* ModelStatic::addRenderUnit(void) {
         this->m_renderUnits.emplace_back();
         return &this->m_renderUnits.back();
     }
 
-    bool Model::isReady(void) const {
+    bool ModelStatic::isReady(void) const {
         for ( const auto& unit : this->m_renderUnits ) {
             if ( !unit.m_mesh.isReady() ) return false;
         }
@@ -39,7 +39,7 @@ namespace dal {
         return true;
     }
 
-    void Model::renderGeneral(const UnilocGeneral& uniloc, const std::list<ActorInfo>& actors) const {
+    void ModelStatic::renderGeneral(const UnilocGeneral& uniloc, const std::list<ActorInfo>& actors) const {
         if ( !this->isReady() ) return;
 
         for ( auto& unit : this->m_renderUnits ) {
@@ -54,7 +54,7 @@ namespace dal {
         }
     }
 
-    void Model::renderDepthMap(const UnilocDepthmp& uniloc, const std::list<ActorInfo>& actors) const {
+    void ModelStatic::renderDepthMap(const UnilocDepthmp& uniloc, const std::list<ActorInfo>& actors) const {
         if ( !this->isReady() ) return;
 
         for ( auto& unit : this->m_renderUnits ) {
@@ -68,7 +68,7 @@ namespace dal {
         }
     }
 
-    void Model::destroyModel(void) {
+    void ModelStatic::destroyModel(void) {
         for ( auto& unit : this->m_renderUnits ) {
             unit.m_mesh.destroyData();
         }
@@ -77,7 +77,7 @@ namespace dal {
 }
 
 
-// Model
+// ModelStatic
 namespace dal {
 
     ModelAnimated::RenderUnit* ModelAnimated::addRenderUnit(void) {

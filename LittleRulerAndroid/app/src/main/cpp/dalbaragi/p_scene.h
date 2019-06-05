@@ -28,7 +28,7 @@ namespace dal {
     private:
         std::string m_name;
 
-        std::vector<ModelNActor<Model>> m_modelActors;
+        std::vector<ModelNActor<ModelStatic>> m_modelActors;
         std::vector<ModelNActor<ModelAnimated>> m_animatedActors;
 
         std::vector<DirectionalLight> m_dlights;
@@ -52,10 +52,10 @@ namespace dal {
         int sendUniforms_lights(const UnilocGeneral& uniloc, int startIndex) const;
         int sendUniforms_lights(const UnilocWaterry& uniloc, int startIndex) const;
 
-        void applyCollision(Model& model, ActorInfo& actor);
+        void applyCollision(ModelStatic& model, ActorInfo& actor);
 
         WaterRenderer* getWater(const size_t index);
-        ActorInfo* addActor(Model* const model, const std::string& actorName, bool flagStatic, ResourceMaster& resMas);
+        ActorInfo* addActor(ModelStatic* const model, const std::string& actorName, bool flagStatic, ResourceMaster& resMas);
 
     };
 
@@ -80,10 +80,10 @@ namespace dal {
         void renderWaterry(const UnilocWaterry& uniloc);
         void renderGeneral_onWater(const UnilocGeneral& uniloc, const ICamera& cam);
 
-        ActorInfo* addActor(Model* const model, const std::string& mapName, const std::string& actorName, bool flagStatic);
+        ActorInfo* addActor(ModelStatic* const model, const std::string& mapName, const std::string& actorName, bool flagStatic);
         WaterRenderer* getWater(const std::string& mapName, const size_t index);
 
-        void applyCollision(Model& model, ActorInfo& actor);
+        void applyCollision(ModelStatic& model, ActorInfo& actor);
 
         void loadMap(const ResourceID& mapID);
 

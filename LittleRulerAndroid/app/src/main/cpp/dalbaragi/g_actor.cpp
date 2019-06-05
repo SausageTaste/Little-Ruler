@@ -185,7 +185,7 @@ namespace dal {
 
 namespace dal {
 
-    Player::Player(StrangeEulerCamera* const camera, ActorInfo* actor, Model* model)
+    Player::Player(StrangeEulerCamera* const camera, ActorInfo* actor, ModelStatic* model)
         : m_camera(camera),
         m_actor(actor),
         m_model(model)
@@ -205,7 +205,7 @@ namespace dal {
         return tmp;
     }
 
-    Model* Player::replaceModel(Model* const model) {
+    ModelStatic* Player::replaceModel(ModelStatic* const model) {
         const auto tmp = this->m_model;
         this->m_model = model;
         return tmp;
