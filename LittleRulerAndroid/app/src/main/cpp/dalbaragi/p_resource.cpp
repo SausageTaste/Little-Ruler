@@ -220,7 +220,7 @@ namespace {
         }
 
         virtual void start(void) override {
-            out_success = dal::parseOBJ_assimp(out_info, this->in_modelID);
+            out_success = dal::loadModelAssimp(out_info, this->in_modelID);
         }
 
     };

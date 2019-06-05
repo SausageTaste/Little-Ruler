@@ -263,7 +263,7 @@ namespace {
 
 namespace dal {
 
-    bool parseOBJ_assimp(ModelInfo& info, ResourceID assetPath) {
+    bool loadModelAssimp(ModelInfo& info, ResourceID assetPath) {
         info.m_renderUnits.clear();
 
         Assimp::Importer importer;
