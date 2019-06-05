@@ -226,6 +226,35 @@ namespace {
     };
 
 
+    class LoadTask_ModelAnimated : public dal::ITask {
+
+    public:
+        const dal::ResourceID in_modelID;
+
+        bool out_success;
+        dal::loadedinfo::ModelAnimated out_info;
+        std::vector<dal::loadedinfo::Animation> out_anims;
+
+        dal::ModelAnimated& data_coresponding;
+        dal::Package& data_package;
+
+    public:
+        LoadTask_ModelAnimated(const dal::ResourceID& modelID, dal::ModelAnimated& coresponding, dal::Package& package)
+            : in_modelID(modelID),
+            out_success(false),
+            data_coresponding(coresponding),
+            data_package(package)
+        {
+
+        }
+
+        virtual void start(void) override {
+            out_success = dal::loadAssimp_animatedModel(out_info, out_anims, this->in_modelID);
+        }
+
+    };
+
+
     std::unordered_set<void*> g_sentTasks_texture;
 
     std::unordered_set<void*> g_sentTasks_model;
@@ -429,6 +458,10 @@ namespace dal {
         }
     }
 
+    ModelAnimated* Package::orderModelAnimated(const ResourceID& resPath, ResourceMaster* const resMas) {
+
+    }
+
     Model* Package::buildModel(const loadedinfo::ModelDefined& info, ResourceMaster* const resMas) {
         auto model = g_modelPool.alloc();
         this->m_models.emplace(info.m_modelID, ManageInfo<Model>{ model, 1 });
@@ -605,6 +638,12 @@ namespace dal {
         auto& package = this->orderPackage(resID.getPackage());
 
         return package.orderModel(resID, this);
+    }
+
+    ModelAnimated* ResourceMaster::orderModelAnimated(const ResourceID& resID) {
+        auto& package = this->orderPackage(resID.getPackage());
+
+        return package.orderModelAnimated(resID, this);
     }
 
     Model* ResourceMaster::buildModel(const loadedinfo::ModelDefined& info, const char* const packageName) {

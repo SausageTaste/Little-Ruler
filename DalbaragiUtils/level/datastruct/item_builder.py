@@ -109,6 +109,35 @@ class BuildInfo_ModelImported(ILevelItemModel):
         return "model_imported"
 
 
+class BuildInfo_ModelImportedAnimated(ILevelItemModel):
+    def __init__(self):
+        super().__init__({})
+
+    # int2 : Type code
+    # from ILevelItemModel
+    def getBinary(self) -> bytearray:
+        data = self.getTypeCode()
+        data += ILevelItemModel.getBinary(self)
+        return data
+
+    @classmethod
+    def getTypeCode(cls) -> bytearray:
+        ere.TypeCodeInspector.reportUsage(6, cls)
+        return bytearray(but.get2BytesInt(6))
+
+    def getIntegrityReport(self, usageName: str = "") -> ere.IntegrityReport:
+        report = ILevelItemModel.getIntegrityReport(self, usageName)
+
+        if "" == self.getModelID():
+            report.emplaceBack("model_name", "Model name to import must be defined.")
+
+        return report
+
+    @staticmethod
+    def getFieldTypeOfSelf() -> str:
+        return "model_imported_animated"
+
+
 class ILevelItem_Light(eim.ILevelItem):
     __s_field_name = "light_name"
     __s_field_static = "static"

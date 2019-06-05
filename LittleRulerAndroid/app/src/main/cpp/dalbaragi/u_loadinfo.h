@@ -64,6 +64,10 @@ namespace dal {
 
         };
 
+        struct ModelImportedAnimated : public IMapItemModel {
+
+        };
+
 
         // Light infos in maps
 
@@ -102,6 +106,7 @@ namespace dal {
 
             std::list<loadedinfo::ModelDefined> m_definedModels;
             std::list<loadedinfo::ModelImported> m_importedModels;
+            std::list<loadedinfo::ModelImportedAnimated> m_animatedModels;
 
             std::list<loadedinfo::LightDirectional> m_direcLights;
             std::list<loadedinfo::LightPoint> m_pointLights;
@@ -122,5 +127,21 @@ namespace dal {
             AxisAlignedBoundingBox m_aabb;
         };
 
-    }
+        struct Animation {
+            struct JointTransform {
+                std::string m_name;
+                glm::quat m_quat;
+                glm::vec3 m_pos, m_scale;
+            };
+
+            struct Keyframe {
+                float m_timeStamp = 0.0f;
+                std::vector<JointTransform> m_joints;
+            };
+
+            std::string m_name;
+            std::vector<Keyframe> m_keyframes;
+        };
+
+    }  // namespace loadedinfo
 }

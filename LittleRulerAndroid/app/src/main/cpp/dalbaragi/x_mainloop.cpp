@@ -113,9 +113,7 @@ namespace {
 
 
     void test(void) {
-        dal::loadedinfo::ModelAnimated info;
-        dal::loadAssimp_animatedModel(info, "test::Character Running.dae");
-        return;
+
     }
 
 }

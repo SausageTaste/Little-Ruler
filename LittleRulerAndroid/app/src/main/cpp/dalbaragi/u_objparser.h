@@ -6,8 +6,8 @@
 
 namespace dal {
 
-    bool loadAssimp_staticModel(loadedinfo::ModelStatic& info, ResourceID assetPath);
+    bool loadAssimp_staticModel(loadedinfo::ModelStatic& info, const ResourceID& assetPath);
 
-    bool loadAssimp_animatedModel(loadedinfo::ModelAnimated& info, ResourceID resID);
+    bool loadAssimp_animatedModel(loadedinfo::ModelAnimated& info, std::vector<dal::loadedinfo::Animation>& anims, const ResourceID& resID);
 
 }

@@ -96,34 +96,14 @@ namespace {
         glm::vec3 p1, p2;
     };
 
-    struct AninationInfo {
-        struct Channel {
-            std::string m_name;
-            glm::quat m_quat;
-            glm::vec3 m_pos, m_scale;
-        };
-
-        struct Keyframe {
-            float m_timeStamp = 0.0f;
-            std::vector<Channel> m_channels;
-        };
-
-        struct Animation {
-            std::string m_name;
-            std::vector<Keyframe> m_keyframes;
-        };
-
-        std::vector<Animation> m_animations;
-    };
-
 
     using anim_index_map_t = std::unordered_map<std::string, unsigned int>;
 
-    anim_index_map_t makeIndexMap(const AninationInfo& info) {
+    anim_index_map_t makeIndexMap(const dal::loadedinfo::Animation& info) {
         anim_index_map_t indexMap;
 
-        for ( size_t j = 0; j < info.m_animations[0].m_keyframes[0].m_channels.size(); j++ ) {
-            indexMap.emplace(info.m_animations[0].m_keyframes[0].m_channels[j].m_name, j);
+        for ( size_t j = 0; j < info.m_keyframes[0].m_joints.size(); j++ ) {
+            indexMap.emplace(info.m_keyframes[0].m_joints[j].m_name, j);
         }
 
         return indexMap;
@@ -289,19 +269,19 @@ namespace {
         return scene->mNumMaterials;
     }
 
-    void processAnimation(const aiScene* const scene, AninationInfo& info) {
+    void processAnimation(const aiScene* const scene, std::vector<dal::loadedinfo::Animation>& info) {
         assertAnimationValidity(scene->mAnimations, scene->mNumAnimations);
 
-        info.m_animations.resize(scene->mNumAnimations);
+        info.resize(scene->mNumAnimations);
         for ( unsigned int i = 0; i < scene->mNumAnimations; i++ ) {
             const auto anim = scene->mAnimations[i];
-            auto& animInfo = info.m_animations[i];
+            auto& animInfo = info[i];
 
             animInfo.m_name = anim->mName.C_Str();
 
             animInfo.m_keyframes.resize(anim->mChannels[0]->mNumPositionKeys);
             for ( auto& keyframe : animInfo.m_keyframes ) {
-                keyframe.m_channels.resize(anim->mNumChannels);
+                keyframe.m_joints.resize(anim->mNumChannels);
             }
 
             for ( unsigned int j = 0; j < anim->mNumChannels; j++ ) {
@@ -313,7 +293,7 @@ namespace {
                     const auto sca = channel->mScalingKeys[k];
 
                     animInfo.m_keyframes[k].m_timeStamp = pos.mTime;
-                    auto& chanInfo = animInfo.m_keyframes[k].m_channels[j];
+                    auto& chanInfo = animInfo.m_keyframes[k].m_joints[j];
 
                     chanInfo.m_name = channel->mNodeName.C_Str();
 
@@ -497,7 +477,7 @@ namespace {
 
 namespace dal {
 
-    bool loadAssimp_staticModel(loadedinfo::ModelStatic& info, ResourceID assetPath) {
+    bool loadAssimp_staticModel(loadedinfo::ModelStatic& info, const ResourceID& assetPath) {
         Assimp::Importer importer;
         importer.SetIOHandler(new AssResourceIOSystem);
         const auto scene = importer.ReadFile(makeAssimpResID(assetPath).c_str(), aiProcess_Triangulate);
@@ -516,7 +496,7 @@ namespace dal {
         return res;
     }
 
-    bool loadAssimp_animatedModel(loadedinfo::ModelAnimated& info, ResourceID resID) {
+    bool loadAssimp_animatedModel(loadedinfo::ModelAnimated& info, std::vector<dal::loadedinfo::Animation>& anims, const ResourceID& resID) {
         info.m_renderUnits.clear();
        
         Assimp::Importer importer;
@@ -530,9 +510,8 @@ namespace dal {
         std::vector<loadedinfo::Material> materials;
         processMaterial(scene, materials);
 
-        AninationInfo anims;
         processAnimation(scene, anims);
-        const auto indexMap = makeIndexMap(anims);
+        const auto indexMap = makeIndexMap(anims[0]);
 
         AABBBuildInfo aabbInfo;
         const auto res = processNodeAnimated(info, materials, aabbInfo, indexMap, scene, scene->mRootNode);

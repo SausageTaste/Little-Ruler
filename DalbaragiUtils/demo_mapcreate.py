@@ -49,6 +49,17 @@ def main():
 
     ########
 
+    model = bfi.BuildInfo_ModelImportedAnimated()
+    actor = aco.ActorInfo()
+    actor.getPosHandle().setX(-3)
+    actor.getPosHandle().setZ(1)
+    # actor.getQuatHandle().rotate(-90, (0, 1, 0))
+    model.addActor(actor)
+    model.setModelID("test::Character Running.dae")
+    level.add(model)
+
+    ########
+
     model = bfi.BuildInfo_ModelDefined()
     model.setModelID("floor")
     model.getMeshHandle().setAABB(atl.Vec3(0, -1, 0), atl.Vec3(50, 0, 50))

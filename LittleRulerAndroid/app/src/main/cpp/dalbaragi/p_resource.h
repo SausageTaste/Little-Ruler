@@ -96,8 +96,6 @@ namespace dal {
         std::vector<RenderUnit> m_renderUnits;
         AxisAlignedBoundingBox m_boundingBox;
 
-    private:
-
     public:
         void setModelResID(const ResourceID& resID);
         RenderUnit* addRenderUnit(void);
@@ -113,6 +111,13 @@ namespace dal {
         void renderDepthMap(const UnilocDepthmp& uniloc, const std::list<ActorInfo>& actors) const;
 
         void destroyModel(void);
+
+    };
+
+
+    class ModelAnimated : public Model {
+
+
 
     };
 
@@ -146,6 +151,7 @@ namespace dal {
         void setName(const std::string& packageName);
 
         Model* orderModel(const ResourceID& resPath, ResourceMaster* const resMas);
+        ModelAnimated* orderModelAnimated(const ResourceID& resPath, ResourceMaster* const resMas);
         Model* buildModel(const loadedinfo::ModelDefined& info, ResourceMaster* const resMas);
         Texture* orderDiffuseMap(const ResourceID& texID, ResourceMaster* const resMas);
 
@@ -174,6 +180,7 @@ namespace dal {
         virtual void notifyTask(std::unique_ptr<ITask> task) override;
 
         Model* orderModel(const ResourceID& resID);
+        ModelAnimated* orderModelAnimated(const ResourceID& resID);
         Model* buildModel(const loadedinfo::ModelDefined& info, const char* const packageName);
 
         static Texture* getUniqueTexture(void);

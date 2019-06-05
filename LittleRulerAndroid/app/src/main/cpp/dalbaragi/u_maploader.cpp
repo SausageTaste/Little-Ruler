@@ -21,6 +21,7 @@ namespace {
 
         constexpr int item_modelImported = 2;
         constexpr int item_modelDefined = 1;
+        constexpr int item_modelImportedAnimated = 6;
 
         constexpr int item_lightPoint = 4;
 
@@ -300,6 +301,32 @@ namespace {  // Make items
         return header;
     }
 
+    const uint8_t* make_modelImportedAnimated(dal::loadedinfo::LoadedMap& info, const uint8_t* const begin, const uint8_t* const end) {
+        const uint8_t* header = begin;
+        info.m_animatedModels.emplace_back();
+        auto& animatedModel = info.m_animatedModels.back();
+
+        { // Get model id
+            const auto charPtr = reinterpret_cast<const char*>(begin);
+            animatedModel.m_modelID = charPtr;
+            header += std::strlen(charPtr) + 1;
+        }
+
+        { // Get actors
+            const auto listElementTypeCode = makeInt2(header);
+            assert(typeCodes::attrib_actor == listElementTypeCode);
+            header += 2;
+            const auto listSize = makeInt4(header);
+            header += 4;
+
+            for ( int i = 0; i < listSize; i++ ) {
+                header = makeAttrib_actor(animatedModel.m_actors, header, end);
+            }
+        }
+
+        return header;
+    }
+
 
     const uint8_t* make_lightPoint(dal::loadedinfo::LoadedMap& info, const uint8_t* const begin, const uint8_t* const end) {
         const uint8_t* header = begin;
@@ -366,6 +393,8 @@ namespace {  // Make items
             return make_modelDefined;
         case typeCodes::item_modelImported:
             return make_modelImported;
+        case typeCodes::item_modelImportedAnimated:
+            return make_modelImportedAnimated;
 
         case typeCodes::item_lightPoint:
             return make_lightPoint;

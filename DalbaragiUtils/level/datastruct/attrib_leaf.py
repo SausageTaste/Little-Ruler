@@ -249,8 +249,6 @@ class IdentifierStr(ein.ILevelAttribLeaf):
     def __isValidIdentifier(text: str):
         if text == "":
             return True
-        elif 0 != text.count(" "):
-            return False
         elif 0 != text.count("\n"):
             return False
         elif 0 != text.count("\t"):

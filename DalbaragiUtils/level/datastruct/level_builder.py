@@ -13,6 +13,7 @@ class LevelBuilder(ein.ILevelElement):
     __mapItems = {
         bif.BuildInfo_ModelDefined.getFieldTypeOfSelf(): bif.BuildInfo_ModelDefined,
         bif.BuildInfo_ModelImported.getFieldTypeOfSelf(): bif.BuildInfo_ModelImported,
+        bif.BuildInfo_ModelImportedAnimated.getFieldTypeOfSelf(): bif.BuildInfo_ModelImportedAnimated,
         bif.BuildInfo_LightPoint.getFieldTypeOfSelf(): bif.BuildInfo_LightPoint,
         bif.BuildInfo_WaterPlane.getFieldTypeOfSelf(): bif.BuildInfo_WaterPlane,
     }
