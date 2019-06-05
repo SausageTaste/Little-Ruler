@@ -36,7 +36,7 @@ namespace dal {
 
     public:
         MapChunk(const std::string& name);
-        MapChunk(const LoadedMap& info, ResourceMaster& resMan);
+        MapChunk(const loadedinfo::LoadedMap& info, ResourceMaster& resMan);
 
         const std::string& getName(void) const;
 
@@ -88,7 +88,7 @@ namespace dal {
         void onResize(const unsigned int width, const unsigned int height);
 
     private:
-        void addMap(const LoadedMap& map);
+        void addMap(const loadedinfo::LoadedMap& map);
         MapChunk* findMap(const std::string& name);
 
     };

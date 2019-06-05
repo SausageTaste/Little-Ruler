@@ -204,7 +204,7 @@ namespace {
         const dal::ResourceID in_modelID;
 
         bool out_success;
-        dal::ModelInfo out_info;
+        dal::loadedinfo::ModelStatic out_info;
 
         dal::Model& data_coresponding;
         dal::Package& data_package;
@@ -220,7 +220,7 @@ namespace {
         }
 
         virtual void start(void) override {
-            out_success = dal::loadModelAssimp(out_info, this->in_modelID);
+            out_success = dal::loadAssimp_staticModel(out_info, this->in_modelID);
         }
 
     };

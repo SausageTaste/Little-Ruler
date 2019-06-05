@@ -35,7 +35,7 @@ namespace dal {
 
     }
 
-    MapChunk::MapChunk(const LoadedMap& info, ResourceMaster& resMas)
+    MapChunk::MapChunk(const loadedinfo::LoadedMap& info, ResourceMaster& resMas)
         : m_name(info.m_mapName)
     {
         for ( auto& definedModel : info.m_definedModels ) {
@@ -303,7 +303,7 @@ namespace dal {
         auto res = futil::getRes_buffer(mapID, buffer);
         if ( !res ) dalAbort("Failed to load map file: "s + mapID.makeIDStr());
 
-        LoadedMap info;
+        loadedinfo::LoadedMap info;
         info.m_mapName = mapID.getBareName();
         info.m_packageName = mapID.getPackage();
 
@@ -324,7 +324,7 @@ namespace dal {
 
     // Private
 
-    void SceneMaster::addMap(const LoadedMap& map) {
+    void SceneMaster::addMap(const loadedinfo::LoadedMap& map) {
         this->m_mapChunks.emplace_back(map, this->m_resMas);
         dalInfo("Map added: "s + this->m_mapChunks.back().getName());
     }

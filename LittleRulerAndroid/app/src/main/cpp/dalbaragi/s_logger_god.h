@@ -58,3 +58,4 @@ namespace dal {
 #define dalError(str)   dal::LoggerGod::getinst().putError((str),   __LINE__, __func__, __FILE__);
 #define dalFatal(str)   dal::LoggerGod::getinst().putFatal((str),   __LINE__, __func__, __FILE__);
 #define dalAbort(str) { dal::LoggerGod::getinst().putFatal((str),   __LINE__, __func__, __FILE__); throw -1; }
+#define dalAssert(condition) { if (!(condition)) dalAbort("Assertion failed"); }

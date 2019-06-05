@@ -6,6 +6,7 @@
 #include <vector>
 #include <iostream>
 
+#include <fmt/format.h>
 #include <glm/glm.hpp>
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
@@ -18,11 +19,13 @@
 
 
 using namespace std::string_literals;
+using namespace fmt::literals;
 
 
+// Utils
 namespace {
 
-    dal::ResourceID toAssResID(const std::string& path) {
+    dal::ResourceID makeFromAssimpResID(const std::string& path) {
         const auto packageSlashPos = path.find("/");
         if ( std::string::npos == packageSlashPos ) {
             dalAbort("Invalid assimp res id: "s + path);
@@ -33,21 +36,37 @@ namespace {
         return dal::ResourceID{ package + "::" + rest };
     }
 
+    std::string makeAssimpResID(const dal::ResourceID& resID) {
+        return resID.getPackage() + '/' + resID.makeFilePath();
+    }
+
+    bool isSceneComplete(const aiScene* const scene) {
+        if ( nullptr == scene ) return false;
+        else if ( nullptr == scene->mRootNode ) return false;
+        else if ( scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE ) return false;
+        else return true;
+    }
+
 
     struct AABBBuildInfo {
         glm::vec3 p1, p2;
     };
 
+    struct AninationInfo {
+
+    };
+
 }
 
 
+// Assimp filesystem
 namespace {
 
     class AssResourceIOStream : public Assimp::IOStream {
 
     private:
         std::unique_ptr<dal::IResourceStream> m_file;
-        const dal::FileMode m_mode = dal::FileMode::bread;
+        const dal::FileMode m_mode;
 
     public:
         AssResourceIOStream(const dal::FileMode mode)
@@ -57,7 +76,7 @@ namespace {
         }
 
         bool open(const char* const assimpResID) {
-            this->m_file = dal::resopen(toAssResID(assimpResID), this->m_mode);
+            this->m_file = dal::resopen(makeFromAssimpResID(assimpResID), this->m_mode);
             return nullptr != this->m_file;
         }
 
@@ -121,7 +140,7 @@ namespace {
         }
 
         virtual bool Exists(const char* pFile) const override {
-            auto resID = toAssResID(pFile);
+            auto resID = makeFromAssimpResID(pFile);
             return dal::resolveRes(resID);
         }
 
@@ -147,9 +166,10 @@ namespace {
 }
 
 
+// Processing functions
 namespace {
 
-    unsigned int processMaterial(const aiScene* const scene, std::vector<dal::RenderUnitInfo::MaterialInfo>& materials) {
+    unsigned int processMaterial(const aiScene* const scene, std::vector<dal::loadedinfo::Material>& materials) {
         for ( unsigned int i = 0; i < scene->mNumMaterials; i++ ) {
             const auto iMaterial = scene->mMaterials[i];
             materials.emplace_back();
@@ -196,7 +216,27 @@ namespace {
         return scene->mNumMaterials;
     }
 
-    bool processMesh(dal::RenderUnitInfo& renUnit, AABBBuildInfo& aabbInfo, aiMesh* const mesh) {
+    void processAnimation(const aiScene* const scene) {
+        for ( unsigned int i = 0; i < scene->mNumAnimations; i++ ) {
+            auto anim = scene->mAnimations[i];
+
+            for ( unsigned int j = 0; j < anim->mNumChannels; j++ ) {
+                auto channel = anim->mChannels[j];
+                dalAssert(channel->mNumPositionKeys == channel->mNumRotationKeys);
+                dalAssert(channel->mNumPositionKeys == channel->mNumScalingKeys);
+
+                for ( unsigned int k = 0; k < channel->mNumPositionKeys; k++ ) {
+                    auto pos = channel->mPositionKeys[k];
+                    auto rot = channel->mRotationKeys[k];
+                    auto sca = channel->mScalingKeys[k];
+                    dalAssert(pos.mTime == rot.mTime);
+                    dalAssert(pos.mTime == sca.mTime);
+                }
+            }
+        }
+    }
+
+    bool processMesh(dal::loadedinfo::RenderUnit& renUnit, AABBBuildInfo& aabbInfo, aiMesh* const mesh) {
         renUnit.m_name = reinterpret_cast<char*>(&mesh->mName);
 
         renUnit.m_mesh.m_vertices.reserve(mesh->mNumVertices * 3);
@@ -239,7 +279,76 @@ namespace {
         return true;
     }
 
-    bool processNode(dal::ModelInfo& info, const std::vector<dal::RenderUnitInfo::MaterialInfo>& materials, AABBBuildInfo& aabbInfo, const aiScene* const scene, const aiNode* const node) {
+    bool processMesh(dal::loadedinfo::RenderUnitAnimated& renUnit, AABBBuildInfo& aabbInfo, aiMesh* const mesh) {
+        renUnit.m_name = reinterpret_cast<char*>(&mesh->mName);
+
+        renUnit.m_mesh.m_vertices.reserve(mesh->mNumVertices * 3);
+        renUnit.m_mesh.m_texcoords.reserve(mesh->mNumVertices * 2);
+        renUnit.m_mesh.m_normals.reserve(mesh->mNumVertices * 3);
+        renUnit.m_mesh.m_boneWeights.reserve(mesh->mNumVertices * 3);
+        renUnit.m_mesh.m_boneIndex.reserve(mesh->mNumVertices * 3);
+
+        for ( unsigned int i = 0; i < mesh->mNumVertices; i++ ) {
+            auto vertex = mesh->mVertices[i];
+            renUnit.m_mesh.m_vertices.push_back(vertex.x);
+            renUnit.m_mesh.m_vertices.push_back(vertex.y);
+            renUnit.m_mesh.m_vertices.push_back(vertex.z);
+
+            {
+                if ( aabbInfo.p1.x > vertex.x )
+                    aabbInfo.p1.x = vertex.x;
+                else if ( aabbInfo.p2.x < vertex.x )
+                    aabbInfo.p2.x = vertex.x;
+
+                if ( aabbInfo.p1.y > vertex.y )
+                    aabbInfo.p1.y = vertex.y;
+                else if ( aabbInfo.p2.y < vertex.y )
+                    aabbInfo.p2.y = vertex.y;
+
+                if ( aabbInfo.p1.z > vertex.z )
+                    aabbInfo.p1.z = vertex.z;
+                else if ( aabbInfo.p2.z < vertex.z )
+                    aabbInfo.p2.z = vertex.z;
+            }
+
+            auto texCoord = mesh->mTextureCoords[0][i];
+            renUnit.m_mesh.m_texcoords.push_back(texCoord.x);
+            renUnit.m_mesh.m_texcoords.push_back(texCoord.y);
+
+            auto normal = mesh->mNormals[i];
+            renUnit.m_mesh.m_normals.push_back(normal.x);
+            renUnit.m_mesh.m_normals.push_back(normal.y);
+            renUnit.m_mesh.m_normals.push_back(normal.z);
+        }
+
+        for ( unsigned int i = 0; i < mesh->mNumBones; i++ ) {
+            auto bone = mesh->mBones[i];
+
+        }
+
+        return true;
+    }
+
+    bool processNode(dal::loadedinfo::ModelStatic& info, const std::vector<dal::loadedinfo::Material>& materials, AABBBuildInfo& aabbInfo, const aiScene* const scene, const aiNode* const node) {
+        for ( unsigned int i = 0; i < node->mNumMeshes; i++ ) {
+            aiMesh* ai_mesh = scene->mMeshes[node->mMeshes[i]];
+            info.m_renderUnits.emplace_front();
+            auto& renUnit = info.m_renderUnits.front();
+            if ( !processMesh(renUnit, aabbInfo, ai_mesh) ) return false;
+
+            if ( ai_mesh->mMaterialIndex != 0 ) {
+                renUnit.m_material = materials.at(ai_mesh->mMaterialIndex);
+            }
+        }
+
+        for ( unsigned int i = 0; i < node->mNumChildren; i++ ) {
+            if ( processNode(info, materials, aabbInfo, scene, node->mChildren[i]) == false ) return false;
+        }
+
+        return true;
+    }
+
+    bool processNode(dal::loadedinfo::ModelAnimated& info, const std::vector<dal::loadedinfo::Material>& materials, AABBBuildInfo& aabbInfo, const aiScene* const scene, const aiNode* const node) {
         for ( unsigned int i = 0; i < node->mNumMeshes; i++ ) {
             aiMesh* ai_mesh = scene->mMeshes[node->mMeshes[i]];
             info.m_renderUnits.emplace_front();
@@ -263,22 +372,41 @@ namespace {
 
 namespace dal {
 
-    bool loadModelAssimp(ModelInfo& info, ResourceID assetPath) {
+    bool loadAssimp_staticModel(loadedinfo::ModelStatic& info, ResourceID assetPath) {
         info.m_renderUnits.clear();
 
         Assimp::Importer importer;
         importer.SetIOHandler(new AssResourceIOSystem);
-        const auto assimpResID = assetPath.getPackage() + '/' + assetPath.makeFilePath();
-        const aiScene* const scene = importer.ReadFile(assimpResID.c_str(), aiProcess_Triangulate);
-
-        //const aiScene* const scene = importer.ReadFileFromMemory(buf, bufSize, aiProcess_Triangulate | aiProcess_FlipUVs);
-        if ( (nullptr == scene) || (scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE) || (nullptr == scene->mRootNode) ) {
-            LoggerGod::getinst().putError("Assimp read fail: "s + importer.GetErrorString(), __LINE__, __func__, __FILE__);
+        const auto scene = importer.ReadFile(makeAssimpResID(assetPath).c_str(), aiProcess_Triangulate);
+        if ( !isSceneComplete(scene) ) {
+            dalError("Assimp read fail: "s + importer.GetErrorString());
             return false;
         }
 
-        std::vector<RenderUnitInfo::MaterialInfo> materials;
+        std::vector<loadedinfo::Material> materials;
         processMaterial(scene, materials);
+
+        AABBBuildInfo aabbInfo;
+        const auto res = processNode(info, materials, aabbInfo, scene, scene->mRootNode);
+        info.m_aabb.set(aabbInfo.p1, aabbInfo.p2);
+        return res;
+    }
+
+    bool loadAssimp_animatedModel(loadedinfo::ModelAnimated& info, ResourceID resID) {
+        info.m_renderUnits.clear();
+       
+        Assimp::Importer importer;
+        importer.SetIOHandler(new AssResourceIOSystem);
+        const auto scene = importer.ReadFile(makeAssimpResID(resID).c_str(), aiProcess_Triangulate);
+        if ( !isSceneComplete(scene) ) {
+            dalError("Assimp read fail: "s + importer.GetErrorString());
+            return false;
+        }
+
+        std::vector<loadedinfo::Material> materials;
+        processMaterial(scene, materials);
+
+        processAnimation(scene);
 
         AABBBuildInfo aabbInfo;
         const auto res = processNode(info, materials, aabbInfo, scene, scene->mRootNode);

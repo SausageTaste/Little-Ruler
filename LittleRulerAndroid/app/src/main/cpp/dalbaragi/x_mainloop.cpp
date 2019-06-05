@@ -113,8 +113,8 @@ namespace {
 
 
     void test(void) {
-        dal::ModelInfo info;
-        dal::loadModelAssimp(info, "test::Character Running.dae");
+        dal::loadedinfo::ModelAnimated info;
+        dal::loadAssimp_animatedModel(info, "test::Character Running.dae");
         return;
     }
 

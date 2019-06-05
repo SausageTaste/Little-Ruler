@@ -166,7 +166,7 @@ namespace {  // Make attribs
 
 namespace {  // Make items
 
-    const uint8_t* make_modelImported(dal::LoadedMap& info, const uint8_t* const begin, const uint8_t* const end) {
+    const uint8_t* make_modelImported(dal::loadedinfo::LoadedMap& info, const uint8_t* const begin, const uint8_t* const end) {
         const uint8_t* header = begin;
         info.m_importedModels.emplace_back();
         auto& importedModel = info.m_importedModels.back();
@@ -192,7 +192,7 @@ namespace {  // Make items
         return header;
     }
 
-    const uint8_t* make_modelDefined(dal::LoadedMap& info, const uint8_t* const begin, const uint8_t* const end) {
+    const uint8_t* make_modelDefined(dal::loadedinfo::LoadedMap& info, const uint8_t* const begin, const uint8_t* const end) {
         const uint8_t* header = begin;
         info.m_definedModels.emplace_back();
         auto& definedModel = info.m_definedModels.back();
@@ -301,7 +301,7 @@ namespace {  // Make items
     }
 
 
-    const uint8_t* make_lightPoint(dal::LoadedMap& info, const uint8_t* const begin, const uint8_t* const end) {
+    const uint8_t* make_lightPoint(dal::loadedinfo::LoadedMap& info, const uint8_t* const begin, const uint8_t* const end) {
         const uint8_t* header = begin;
         info.m_pointLights.emplace_back();
         auto& plight = info.m_pointLights.back();
@@ -337,7 +337,7 @@ namespace {  // Make items
     }
 
 
-    const uint8_t* make_waterPlane(dal::LoadedMap& info, const uint8_t* const begin, const uint8_t* const end) {
+    const uint8_t* make_waterPlane(dal::loadedinfo::LoadedMap& info, const uint8_t* const begin, const uint8_t* const end) {
         auto header = begin;
         info.m_waterPlanes.emplace_back();
         auto& water = info.m_waterPlanes.back();
@@ -386,7 +386,7 @@ namespace {  // Make items
 
 namespace dal {
 
-    bool parseMap_dlb(LoadedMap& info, const uint8_t* const buf, const size_t bufSize) {
+    bool parseMap_dlb(loadedinfo::LoadedMap& info, const uint8_t* const buf, const size_t bufSize) {
         constexpr size_t k_chunkSize = 2048 * 3;
         uint8_t decomBuf[k_chunkSize];
         uLongf decomBufSize = k_chunkSize;
