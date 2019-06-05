@@ -239,7 +239,7 @@ namespace {
         return true;
     }
 
-    bool processNode(dal::ModelInfo& info, std::vector<dal::RenderUnitInfo::MaterialInfo> materials, AABBBuildInfo& aabbInfo, const aiScene* const scene, aiNode* const node) {
+    bool processNode(dal::ModelInfo& info, const std::vector<dal::RenderUnitInfo::MaterialInfo>& materials, AABBBuildInfo& aabbInfo, const aiScene* const scene, const aiNode* const node) {
         for ( unsigned int i = 0; i < node->mNumMeshes; i++ ) {
             aiMesh* ai_mesh = scene->mMeshes[node->mMeshes[i]];
             info.m_renderUnits.emplace_front();

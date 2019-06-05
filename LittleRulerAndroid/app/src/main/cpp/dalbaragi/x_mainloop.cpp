@@ -13,6 +13,9 @@
 #include "s_configs.h"
 #include "s_threader.h"
 
+// test
+#include "u_objparser.h"
+
 
 using namespace std::string_literals;
 
@@ -108,6 +111,13 @@ namespace {
 
     } g_fileLogger;
 
+
+    void test(void) {
+        dal::ModelInfo info;
+        dal::loadModelAssimp(info, "test::Character Running.dae");
+        return;
+    }
+
 }
 
 
@@ -197,7 +207,7 @@ namespace dal {
 
         // Test
         {
-
+            test();
         }
 
         const auto elapsed = m_initTimer.check_getElapsed_capFPS();
