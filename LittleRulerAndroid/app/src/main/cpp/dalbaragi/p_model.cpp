@@ -4,6 +4,14 @@
 // IModel
 namespace dal {
 
+    void IModel::setModelResID(const ResourceID& resID) {
+        this->m_modelResID = resID;
+    }
+
+    const ResourceID& IModel::getModelResID(void) const {
+        return this->m_modelResID;
+    }
+
     void IModel::setBoundingBox(const AxisAlignedBoundingBox& box) {
         this->m_boundingBox = box;
     }
@@ -11,23 +19,16 @@ namespace dal {
     const AxisAlignedBoundingBox& IModel::getBoundingBox(void) const {
         return this->m_boundingBox;
     }
+
 }
 
 
 // Model
 namespace dal {
 
-    void Model::setModelResID(const ResourceID& resID) {
-        this->m_modelResID = resID;
-    }
-
     Model::RenderUnit* Model::addRenderUnit(void) {
         this->m_renderUnits.emplace_back();
         return &this->m_renderUnits.back();
-    }
-
-    const ResourceID& Model::getModelResID(void) const {
-        return this->m_modelResID;
     }
 
     bool Model::isReady(void) const {
@@ -76,24 +77,13 @@ namespace dal {
 }
 
 
-
 // Model
 namespace dal {
-
-    void ModelAnimated::setModelResID(const ResourceID& resID) {
-        this->m_modelResID = resID;
-    }
-
 
     ModelAnimated::RenderUnit* ModelAnimated::addRenderUnit(void) {
         this->m_renderUnits.emplace_back();
         return &this->m_renderUnits.back();
     }
-
-    const ResourceID& ModelAnimated::getModelResID(void) const {
-        return this->m_modelResID;
-    }
-
 
     bool ModelAnimated::isReady(void) const {
         for ( const auto& unit : this->m_renderUnits ) {

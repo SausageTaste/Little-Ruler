@@ -16,9 +16,6 @@
 using namespace std::string_literals;
 
 
-
-
-
 // Tasks
 namespace {
 
@@ -122,11 +119,6 @@ namespace {
 }
 
 
-
-
-
-
-
 // Package
 namespace dal {
 
@@ -163,7 +155,6 @@ namespace dal {
 
         return result;
     }
-
 
     void Package::setName(const char* const packageName) {
         this->m_name = packageName;

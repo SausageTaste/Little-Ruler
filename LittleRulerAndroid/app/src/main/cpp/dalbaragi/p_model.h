@@ -14,9 +14,13 @@ namespace dal {
     class IModel {
 
     private:
+        ResourceID m_modelResID;
         AxisAlignedBoundingBox m_boundingBox;
 
     public:
+        void setModelResID(const ResourceID& resID);
+        const ResourceID& getModelResID(void) const;
+
         void setBoundingBox(const AxisAlignedBoundingBox& box);
         const AxisAlignedBoundingBox& getBoundingBox(void) const;
 
@@ -32,15 +36,11 @@ namespace dal {
             dal::Material m_material;
         };
 
-        ResourceID m_modelResID;
         std::vector<RenderUnit> m_renderUnits;
-        
 
     public:
-        void setModelResID(const ResourceID& resID);
-        RenderUnit* addRenderUnit(void);
 
-        const ResourceID& getModelResID(void) const;
+        RenderUnit* addRenderUnit(void);
 
         bool isReady(void) const;
 
@@ -61,14 +61,10 @@ namespace dal {
             dal::Material m_material;
         };
 
-        ResourceID m_modelResID;
         std::vector<RenderUnit> m_renderUnits;
 
     public:
-        void setModelResID(const ResourceID& resID);
         RenderUnit* addRenderUnit(void);
-
-        const ResourceID& getModelResID(void) const;
 
         bool isReady(void) const;
 
