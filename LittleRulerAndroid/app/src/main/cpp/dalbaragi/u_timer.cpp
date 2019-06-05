@@ -3,12 +3,15 @@
 #include <string>
 #include <thread>
 
+#include <fmt/format.h>
+
 #include "s_logger_god.h"
 
 #define PRINT_OVESRLEEP 0
 
 
 using namespace std::string_literals;
+using namespace fmt::literals;
 
 
 namespace {
@@ -29,6 +32,7 @@ namespace {
 
     constexpr int k_microsecBySec = 1000000;
     constexpr int k_nanosecBySec = 1000000000;
+    constexpr double k_nanosecBySec_d = 1000000000.0;
 
 }
 
@@ -43,6 +47,24 @@ namespace dal {
         auto until = std::chrono::steady_clock::now();
         until += std::chrono::microseconds{ uint64_t(double(v) * double(k_microsecBySec)) };
         sleepHotUntil(until);
+    }
+
+}
+
+
+namespace dal {
+
+    ScopedTimer::ScopedTimer(const std::string& msg)
+        : m_constructedTime(std::chrono::steady_clock::now()),
+        m_msg(msg)
+    {
+
+    }
+
+    ScopedTimer::~ScopedTimer(void) {
+        const auto uptime = std::chrono::steady_clock::now() - this->m_constructedTime;
+        const auto what = static_cast<double>(uptime.count()) / k_nanosecBySec_d;
+        dalDebug("ScopedTimer{{ {} }} ({}): "_format(this->m_msg, what));
     }
 
 }

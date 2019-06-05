@@ -1,12 +1,27 @@
 #pragma once
 
 #include <chrono>
+#include <string>
 
 
 namespace dal {
 
     float getTime_sec(void);
     void sleepFor(const float v);
+
+
+    class ScopedTimer {
+
+    private:
+        std::chrono::steady_clock::time_point m_constructedTime;
+        std::string m_msg;
+
+    public:
+        ScopedTimer(const std::string& msg);
+        ~ScopedTimer(void);
+
+    };
+
 
     class Timer {
 
