@@ -5,6 +5,8 @@
 #include <array>
 #include <vector>
 #include <iostream>
+#include <map>
+#include <unordered_map>
 
 #include <fmt/format.h>
 #include <glm/glm.hpp>
@@ -16,6 +18,7 @@
 
 #include "s_logger_god.h"
 #include "u_fileclass.h"
+#include "u_timer.h"
 
 
 using namespace std::string_literals;
@@ -47,14 +50,84 @@ namespace {
         else return true;
     }
 
+    /*
+    If this function return without throwing, that means
+        1. The number of positions, rotations, scales are same in all channels.
+        2. The time stamps on same keyframe index are same regardless of channel.
+    */
+    void assertAnimationValidity(const aiAnimation *const *const animArray, unsigned int arrSize) {
+        for ( unsigned int i = 0; i < arrSize; i++ ) {
+            const auto anim = animArray[i];
+            const auto numChannel = anim->mNumChannels;
+            const auto firstChannel = anim->mChannels[0];
+
+            const auto numKeys = firstChannel->mNumPositionKeys;
+            dalAssert(numKeys == firstChannel->mNumRotationKeys);  // 1
+            dalAssert(numKeys == firstChannel->mNumScalingKeys);  // 1
+
+            for ( unsigned int j = 1; j < numKeys; j++ ) {
+                const auto timestamp = firstChannel->mPositionKeys[j].mTime;
+                dalAssert(timestamp == firstChannel->mRotationKeys[j].mTime);  // 2
+                dalAssert(timestamp == firstChannel->mScalingKeys[j].mTime);  // 2
+            }
+
+            for ( unsigned int j = 1; j < numChannel; j++ ) {
+                const aiNodeAnim* const channel = anim->mChannels[j];
+
+                dalAssert(channel->mNumPositionKeys == channel->mNumRotationKeys);  // 1
+                dalAssert(channel->mNumPositionKeys == channel->mNumScalingKeys);  // 1
+                dalAssert(channel->mNumPositionKeys == numKeys);  // 1
+
+                dalAssert(channel->mNumPositionKeys == numKeys);
+                for ( unsigned int k = 0; k < numKeys; k++ ) {
+                    const auto timestamp = channel->mPositionKeys[k].mTime;
+                    if ( timestamp != channel->mRotationKeys[k].mTime ) {
+                        dalAbort("WTF");
+                    }// 2
+                    dalAssert(timestamp == channel->mScalingKeys[k].mTime);  // 2
+                    dalAssert(timestamp == firstChannel->mPositionKeys[k].mTime)  // 2
+                }
+            }
+        }
+    }
+
 
     struct AABBBuildInfo {
         glm::vec3 p1, p2;
     };
 
     struct AninationInfo {
+        struct Channel {
+            std::string m_name;
+            glm::quat m_quat;
+            glm::vec3 m_pos, m_scale;
+        };
 
+        struct Keyframe {
+            float m_timeStamp = 0.0f;
+            std::vector<Channel> m_channels;
+        };
+
+        struct Animation {
+            std::string m_name;
+            std::vector<Keyframe> m_keyframes;
+        };
+
+        std::vector<Animation> m_animations;
     };
+
+
+    using anim_index_map_t = std::unordered_map<std::string, unsigned int>;
+
+    anim_index_map_t makeIndexMap(const AninationInfo& info) {
+        anim_index_map_t indexMap;
+
+        for ( size_t j = 0; j < info.m_animations[0].m_keyframes[0].m_channels.size(); j++ ) {
+            indexMap.emplace(info.m_animations[0].m_keyframes[0].m_channels[j].m_name, j);
+        }
+
+        return indexMap;
+    }
 
 }
 
@@ -216,120 +289,170 @@ namespace {
         return scene->mNumMaterials;
     }
 
-    void processAnimation(const aiScene* const scene) {
+    void processAnimation(const aiScene* const scene, AninationInfo& info) {
+        assertAnimationValidity(scene->mAnimations, scene->mNumAnimations);
+
+        info.m_animations.resize(scene->mNumAnimations);
         for ( unsigned int i = 0; i < scene->mNumAnimations; i++ ) {
-            auto anim = scene->mAnimations[i];
+            const auto anim = scene->mAnimations[i];
+            auto& animInfo = info.m_animations[i];
+
+            animInfo.m_name = anim->mName.C_Str();
+
+            animInfo.m_keyframes.resize(anim->mChannels[0]->mNumPositionKeys);
+            for ( auto& keyframe : animInfo.m_keyframes ) {
+                keyframe.m_channels.resize(anim->mNumChannels);
+            }
 
             for ( unsigned int j = 0; j < anim->mNumChannels; j++ ) {
-                auto channel = anim->mChannels[j];
-                dalAssert(channel->mNumPositionKeys == channel->mNumRotationKeys);
-                dalAssert(channel->mNumPositionKeys == channel->mNumScalingKeys);
+                const auto channel = anim->mChannels[j];
 
                 for ( unsigned int k = 0; k < channel->mNumPositionKeys; k++ ) {
-                    auto pos = channel->mPositionKeys[k];
-                    auto rot = channel->mRotationKeys[k];
-                    auto sca = channel->mScalingKeys[k];
-                    dalAssert(pos.mTime == rot.mTime);
-                    dalAssert(pos.mTime == sca.mTime);
+                    const auto pos = channel->mPositionKeys[k];
+                    const auto rot = channel->mRotationKeys[k];
+                    const auto sca = channel->mScalingKeys[k];
+
+                    animInfo.m_keyframes[k].m_timeStamp = pos.mTime;
+                    auto& chanInfo = animInfo.m_keyframes[k].m_channels[j];
+
+                    chanInfo.m_name = channel->mNodeName.C_Str();
+
+                    chanInfo.m_pos.x = pos.mValue.x;
+                    chanInfo.m_pos.y = pos.mValue.y;
+                    chanInfo.m_pos.z = pos.mValue.z;
+
+                    chanInfo.m_quat.x = rot.mValue.x;
+                    chanInfo.m_quat.y = rot.mValue.y;
+                    chanInfo.m_quat.z = rot.mValue.z;
+                    chanInfo.m_quat.w = rot.mValue.w;
+
+                    chanInfo.m_scale.x = sca.mValue.x;
+                    chanInfo.m_scale.y = sca.mValue.y;
+                    chanInfo.m_scale.z = sca.mValue.z;
                 }
             }
+        }
+
+        return;
+    }
+
+}
+
+
+// Process mesh
+namespace {
+
+    void copy3BasicVertexInfo(std::vector<float>& vertices, std::vector<float>& texcoords, std::vector<float>& normals,
+        AABBBuildInfo& aabbInfo, const aiMesh* const mesh)
+    {
+        dalAssert(sizeof(aiVector3D) == sizeof(float)*3);
+
+        vertices.resize(mesh->mNumVertices * 3);
+        texcoords.resize(mesh->mNumVertices * 2);
+        normals.resize(mesh->mNumVertices * 3);
+
+        const auto sizeFor3 = mesh->mNumVertices * 3 * sizeof(float);
+        const auto sizeFor2 = mesh->mNumVertices * 2 * sizeof(float);
+
+        memcpy_s(vertices.data(), sizeFor3, mesh->mVertices, sizeFor3);
+        memcpy_s(normals.data(), sizeFor3, mesh->mNormals, sizeFor3);
+
+        for ( unsigned int i = 0; i < mesh->mNumVertices; i++ ) {
+            const auto& tex = mesh->mTextureCoords[0][i];
+            texcoords[2 * i + 0] = tex.x;
+            texcoords[2 * i + 1] = tex.y;
+        }
+
+        // For aabb
+        for ( unsigned int i = 0; i < mesh->mNumVertices; i++ ) {
+            const auto& vertex = mesh->mVertices[i];
+
+            if ( aabbInfo.p1.x > vertex.x )
+                aabbInfo.p1.x = vertex.x;
+            else if ( aabbInfo.p2.x < vertex.x )
+                aabbInfo.p2.x = vertex.x;
+
+            if ( aabbInfo.p1.y > vertex.y )
+                aabbInfo.p1.y = vertex.y;
+            else if ( aabbInfo.p2.y < vertex.y )
+                aabbInfo.p2.y = vertex.y;
+
+            if ( aabbInfo.p1.z > vertex.z )
+                aabbInfo.p1.z = vertex.z;
+            else if ( aabbInfo.p2.z < vertex.z )
+                aabbInfo.p2.z = vertex.z;
         }
     }
 
     bool processMesh(dal::loadedinfo::RenderUnit& renUnit, AABBBuildInfo& aabbInfo, aiMesh* const mesh) {
         renUnit.m_name = reinterpret_cast<char*>(&mesh->mName);
 
-        renUnit.m_mesh.m_vertices.reserve(mesh->mNumVertices * 3);
-        renUnit.m_mesh.m_texcoords.reserve(mesh->mNumVertices * 2);
-        renUnit.m_mesh.m_normals.reserve(mesh->mNumVertices * 3);
-
-        for ( unsigned int i = 0; i < mesh->mNumVertices; i++ ) {
-            auto vertex = mesh->mVertices[i];
-            renUnit.m_mesh.m_vertices.push_back(vertex.x);
-            renUnit.m_mesh.m_vertices.push_back(vertex.y);
-            renUnit.m_mesh.m_vertices.push_back(vertex.z);
-
-            {
-                if ( aabbInfo.p1.x > vertex.x )
-                    aabbInfo.p1.x = vertex.x;
-                else if ( aabbInfo.p2.x < vertex.x )
-                    aabbInfo.p2.x = vertex.x;
-
-                if ( aabbInfo.p1.y > vertex.y )
-                    aabbInfo.p1.y = vertex.y;
-                else if ( aabbInfo.p2.y < vertex.y )
-                    aabbInfo.p2.y = vertex.y;
-
-                if ( aabbInfo.p1.z > vertex.z )
-                    aabbInfo.p1.z = vertex.z;
-                else if ( aabbInfo.p2.z < vertex.z )
-                    aabbInfo.p2.z = vertex.z;
-            }
-
-            auto texCoord = mesh->mTextureCoords[0][i];
-            renUnit.m_mesh.m_texcoords.push_back(texCoord.x);
-            renUnit.m_mesh.m_texcoords.push_back(texCoord.y);
-
-            auto normal = mesh->mNormals[i];
-            renUnit.m_mesh.m_normals.push_back(normal.x);
-            renUnit.m_mesh.m_normals.push_back(normal.y);
-            renUnit.m_mesh.m_normals.push_back(normal.z);
-        }
+        copy3BasicVertexInfo(renUnit.m_mesh.m_vertices, renUnit.m_mesh.m_texcoords, renUnit.m_mesh.m_normals, aabbInfo, mesh);
 
         return true;
     }
 
-    bool processMesh(dal::loadedinfo::RenderUnitAnimated& renUnit, AABBBuildInfo& aabbInfo, aiMesh* const mesh) {
+    bool processMeshAnimated(dal::loadedinfo::RenderUnitAnimated& renUnit, AABBBuildInfo& aabbInfo,
+        const anim_index_map_t& animInfo, aiMesh* const mesh)
+    {
         renUnit.m_name = reinterpret_cast<char*>(&mesh->mName);
 
-        renUnit.m_mesh.m_vertices.reserve(mesh->mNumVertices * 3);
-        renUnit.m_mesh.m_texcoords.reserve(mesh->mNumVertices * 2);
-        renUnit.m_mesh.m_normals.reserve(mesh->mNumVertices * 3);
-        renUnit.m_mesh.m_boneWeights.reserve(mesh->mNumVertices * 3);
-        renUnit.m_mesh.m_boneIndex.reserve(mesh->mNumVertices * 3);
+        std::vector<std::multimap<float, unsigned int>> count;
+        count.resize(mesh->mNumVertices);
 
-        for ( unsigned int i = 0; i < mesh->mNumVertices; i++ ) {
-            auto vertex = mesh->mVertices[i];
-            renUnit.m_mesh.m_vertices.push_back(vertex.x);
-            renUnit.m_mesh.m_vertices.push_back(vertex.y);
-            renUnit.m_mesh.m_vertices.push_back(vertex.z);
+        renUnit.m_mesh.m_boneWeights.resize(mesh->mNumVertices * 3);
+        renUnit.m_mesh.m_boneIndex.resize(mesh->mNumVertices * 3);
 
-            {
-                if ( aabbInfo.p1.x > vertex.x )
-                    aabbInfo.p1.x = vertex.x;
-                else if ( aabbInfo.p2.x < vertex.x )
-                    aabbInfo.p2.x = vertex.x;
-
-                if ( aabbInfo.p1.y > vertex.y )
-                    aabbInfo.p1.y = vertex.y;
-                else if ( aabbInfo.p2.y < vertex.y )
-                    aabbInfo.p2.y = vertex.y;
-
-                if ( aabbInfo.p1.z > vertex.z )
-                    aabbInfo.p1.z = vertex.z;
-                else if ( aabbInfo.p2.z < vertex.z )
-                    aabbInfo.p2.z = vertex.z;
-            }
-
-            auto texCoord = mesh->mTextureCoords[0][i];
-            renUnit.m_mesh.m_texcoords.push_back(texCoord.x);
-            renUnit.m_mesh.m_texcoords.push_back(texCoord.y);
-
-            auto normal = mesh->mNormals[i];
-            renUnit.m_mesh.m_normals.push_back(normal.x);
-            renUnit.m_mesh.m_normals.push_back(normal.y);
-            renUnit.m_mesh.m_normals.push_back(normal.z);
-        }
+        copy3BasicVertexInfo(renUnit.m_mesh.m_vertices, renUnit.m_mesh.m_texcoords, renUnit.m_mesh.m_normals, aabbInfo, mesh);
 
         for ( unsigned int i = 0; i < mesh->mNumBones; i++ ) {
             auto bone = mesh->mBones[i];
 
+            auto iter = animInfo.find(bone->mName.C_Str());
+            if ( animInfo.end() == iter ) {
+                dalAbort("Failed to find bone named \"{}\" in anim_index_map_t."_format(bone->mName.C_Str()));
+            }
+            const auto boneIndex = iter->second;
+
+            for ( unsigned int j = 0; j < bone->mNumWeights; j++ ) {
+                const auto& weight = bone->mWeights[j];
+                count[weight.mVertexId].emplace(weight.mWeight, boneIndex);
+            }
+        }
+
+        for ( size_t i = 0; i < count.size(); i++ ) {
+            auto& vmap = count[i];
+
+            auto iter = vmap.rbegin();
+            glm::vec3 weightBuffer;
+            int32_t indexBuf[3] = { -1, -1, -1 };
+            for ( unsigned int j = 0; j < 3; j++ ) {
+                weightBuffer[j] = iter->first;
+                indexBuf[j] = iter->second;
+
+                ++iter;
+                if ( vmap.rend() == iter ) {
+                    break;
+                }
+            }
+
+            weightBuffer = glm::normalize(weightBuffer);
+            memcpy_s(&renUnit.m_mesh.m_boneWeights[3*i], 3*sizeof(float), &weightBuffer[0], 3*sizeof(float));
+            memcpy_s(&renUnit.m_mesh.m_boneIndex[3*i], 3*sizeof(uint32_t), &indexBuf[0], 3*sizeof(int32_t));
         }
 
         return true;
     }
 
-    bool processNode(dal::loadedinfo::ModelStatic& info, const std::vector<dal::loadedinfo::Material>& materials, AABBBuildInfo& aabbInfo, const aiScene* const scene, const aiNode* const node) {
+}
+
+
+// Process nodes
+namespace {
+
+    bool processNode(dal::loadedinfo::ModelStatic& info, const std::vector<dal::loadedinfo::Material>& materials,
+        AABBBuildInfo& aabbInfo, const aiScene* const scene, const aiNode* const node)
+    {
         for ( unsigned int i = 0; i < node->mNumMeshes; i++ ) {
             aiMesh* ai_mesh = scene->mMeshes[node->mMeshes[i]];
             info.m_renderUnits.emplace_front();
@@ -348,12 +471,14 @@ namespace {
         return true;
     }
 
-    bool processNode(dal::loadedinfo::ModelAnimated& info, const std::vector<dal::loadedinfo::Material>& materials, AABBBuildInfo& aabbInfo, const aiScene* const scene, const aiNode* const node) {
+    bool processNodeAnimated(dal::loadedinfo::ModelAnimated& info, const std::vector<dal::loadedinfo::Material>& materials,
+        AABBBuildInfo& aabbInfo, const anim_index_map_t& animInfo, const aiScene* const scene, const aiNode* const node)
+    {
         for ( unsigned int i = 0; i < node->mNumMeshes; i++ ) {
             aiMesh* ai_mesh = scene->mMeshes[node->mMeshes[i]];
             info.m_renderUnits.emplace_front();
             auto& renUnit = info.m_renderUnits.front();
-            if ( !processMesh(renUnit, aabbInfo, ai_mesh) ) return false;
+            if ( !processMeshAnimated(renUnit, aabbInfo, animInfo, ai_mesh) ) return false;
 
             if ( ai_mesh->mMaterialIndex != 0 ) {
                 renUnit.m_material = materials.at(ai_mesh->mMaterialIndex);
@@ -361,7 +486,7 @@ namespace {
         }
 
         for ( unsigned int i = 0; i < node->mNumChildren; i++ ) {
-            if ( processNode(info, materials, aabbInfo, scene, node->mChildren[i]) == false ) return false;
+            if ( processNodeAnimated(info, materials, aabbInfo, animInfo, scene, node->mChildren[i]) == false ) return false;
         }
 
         return true;
@@ -373,8 +498,6 @@ namespace {
 namespace dal {
 
     bool loadAssimp_staticModel(loadedinfo::ModelStatic& info, ResourceID assetPath) {
-        info.m_renderUnits.clear();
-
         Assimp::Importer importer;
         importer.SetIOHandler(new AssResourceIOSystem);
         const auto scene = importer.ReadFile(makeAssimpResID(assetPath).c_str(), aiProcess_Triangulate);
@@ -387,6 +510,7 @@ namespace dal {
         processMaterial(scene, materials);
 
         AABBBuildInfo aabbInfo;
+        info.m_renderUnits.clear();
         const auto res = processNode(info, materials, aabbInfo, scene, scene->mRootNode);
         info.m_aabb.set(aabbInfo.p1, aabbInfo.p2);
         return res;
@@ -406,10 +530,12 @@ namespace dal {
         std::vector<loadedinfo::Material> materials;
         processMaterial(scene, materials);
 
-        processAnimation(scene);
+        AninationInfo anims;
+        processAnimation(scene, anims);
+        const auto indexMap = makeIndexMap(anims);
 
         AABBBuildInfo aabbInfo;
-        const auto res = processNode(info, materials, aabbInfo, scene, scene->mRootNode);
+        const auto res = processNodeAnimated(info, materials, aabbInfo, indexMap, scene, scene->mRootNode);
         info.m_aabb.set(aabbInfo.p1, aabbInfo.p2);
         return res;
     }
