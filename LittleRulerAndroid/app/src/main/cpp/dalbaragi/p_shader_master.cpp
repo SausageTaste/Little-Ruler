@@ -289,7 +289,8 @@ namespace dal {
         m_depthmap("shader_fscreen"),
         m_fscreen("shader_depthmap"),
         m_overlay("shader_overlay"),
-        m_waterry("shader_water")
+        m_waterry("shader_water"),
+        m_animate("shader_animated")
     {
         ShaderLoader loader;
 
@@ -384,6 +385,11 @@ namespace dal {
         this->m_waterry.use();
     }
 
+    void ShaderMaster::useAnimate(void) const {
+        setFor_generalRender();
+        this->m_animate.use();
+    }
+
     const UnilocGeneral& ShaderMaster::getGeneral(void) const {
         return this->m_generalUniloc;
     }
@@ -402,6 +408,10 @@ namespace dal {
 
     const UnilocWaterry& ShaderMaster::getWaterry(void) const {
         return this->m_waterryUniloc;
+    }
+
+    const UnilocGeneral& ShaderMaster::getAnimate(void) const {
+        return this->m_animateUniloc;
     }
 
 }

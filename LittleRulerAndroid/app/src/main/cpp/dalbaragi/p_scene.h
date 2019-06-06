@@ -47,7 +47,9 @@ namespace dal {
         void renderGeneral(const UnilocGeneral& uniloc) const;
         void renderDepthMp(const UnilocDepthmp& uniloc) const;
         void renderWaterry(const UnilocWaterry& uniloc);
+        void renderAnimate(const UnilocGeneral& uniloc) const;
         void renderGeneral_onWater(const UnilocGeneral& uniloc, const ICamera& cam, MapChunk* const additional);
+        void renderAnimate_onWater(const UnilocGeneral& uniloc, const ICamera& cam, MapChunk* const additional);
 
         int sendUniforms_lights(const UnilocGeneral& uniloc, int startIndex) const;
         int sendUniforms_lights(const UnilocWaterry& uniloc, int startIndex) const;
@@ -78,7 +80,9 @@ namespace dal {
         void renderGeneral(const UnilocGeneral& uniloc) const;
         void renderDepthMp(const UnilocDepthmp& uniloc) const;
         void renderWaterry(const UnilocWaterry& uniloc);
+        void renderAnimate(const UnilocGeneral& uniloc) const;
         void renderGeneral_onWater(const UnilocGeneral& uniloc, const ICamera& cam);
+        void renderAnimate_onWater(const UnilocGeneral& uniloc, const ICamera& cam);
 
         ActorInfo* addActor(ModelStatic* const model, const std::string& mapName, const std::string& actorName, bool flagStatic);
         WaterRenderer* getWater(const std::string& mapName, const size_t index);

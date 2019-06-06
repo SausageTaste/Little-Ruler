@@ -101,14 +101,14 @@ namespace dal {
         for ( auto& modelActor : this->m_modelActors ) {
             modelActor.m_model->renderGeneral(uniloc, modelActor.m_inst);
         }
-        for ( auto& modelActor : this->m_animatedActors ) {
-            modelActor.m_model->renderGeneral(uniloc, modelActor.m_inst);
-        }
     }
 
     void MapChunk::renderDepthMp(const UnilocDepthmp& uniloc) const {
         for ( auto& modelActor : this->m_modelActors ) {
             modelActor.m_model->renderDepthMap(uniloc, modelActor.m_inst);
+        }
+        for ( auto& model : this->m_animatedActors ) {
+            model.m_model->renderDepthMap(uniloc, model.m_inst);
         }
     }
 
@@ -117,6 +117,14 @@ namespace dal {
 
         for ( auto& water : this->m_waters ) {
             water.renderWaterry(uniloc);
+        }
+    }
+
+    void MapChunk::renderAnimate(const UnilocGeneral& uniloc) const {
+        this->sendUniforms_lights(uniloc, 0);
+
+        for ( auto& modelActor : this->m_animatedActors ) {
+            modelActor.m_model->renderGeneral(uniloc, modelActor.m_inst);
         }
     }
 
@@ -163,6 +171,51 @@ namespace dal {
             }
         }
     }
+
+    void MapChunk::renderAnimate_onWater(const UnilocGeneral& uniloc, const ICamera& cam, MapChunk* const additional) {
+        for ( auto& water : this->m_waters ) {
+            {
+                // Uniform values
+
+                glUniform4f(uniloc.u_clipPlane, 0, 1, 0, -water.getHeight() + 0.01f);
+                glUniform1i(uniloc.u_doClip, 1);
+
+                glm::mat4 reflectedMat;
+                glm::vec3 reflectedPos;
+                cam.makeReflected(water.getHeight(), reflectedPos, reflectedMat);
+
+                glUniformMatrix4fv(uniloc.uViewMat, 1, GL_FALSE, &reflectedMat[0][0]);
+                glUniform3f(uniloc.uViewPos, reflectedPos.x, reflectedPos.y, reflectedPos.z);
+
+                water.m_fbuffer.bindReflectionFrameBuffer();
+                glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+
+                // Render map general
+                this->renderAnimate(uniloc);
+
+                if ( nullptr != additional ) additional->renderGeneral(uniloc);
+            }
+
+            {
+                // Uniform values
+
+                glUniform4f(uniloc.u_clipPlane, 0, -1, 0, water.getHeight());
+                glUniform1i(uniloc.u_doClip, 1);
+
+                const auto& viewMat = cam.getViewMat();
+                glUniformMatrix4fv(uniloc.uViewMat, 1, GL_FALSE, &viewMat[0][0]);
+                glUniform3f(uniloc.uViewPos, cam.m_pos.x, cam.m_pos.y, cam.m_pos.z);
+
+                water.m_fbuffer.bindRefractionFrameBuffer();
+                glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+
+                // Render map general
+                this->renderAnimate(uniloc);
+                if ( nullptr != additional ) additional->renderAnimate(uniloc);
+            }
+        }
+    }
+
 
     int MapChunk::sendUniforms_lights(const UnilocGeneral& uniloc, int startIndex) const {
         if ( startIndex >= 3 ) dalAbort("Too many point lights.");
@@ -290,6 +343,12 @@ namespace dal {
         }
     }
 
+    void SceneMaster::renderAnimate(const UnilocGeneral& uniloc) const {
+        for ( auto& map : m_mapChunks ) {
+            map.renderAnimate(uniloc);
+        }
+    }
+
     void SceneMaster::renderGeneral_onWater(const UnilocGeneral& uniloc, const ICamera& cam) {
         auto iter = this->m_mapChunks.begin();
         const auto end = this->m_mapChunks.end();
@@ -298,6 +357,18 @@ namespace dal {
 
         while ( end != iter ) {
             iter->renderGeneral_onWater(uniloc, cam, this->m_persistantMap);
+            ++iter;
+        }
+    }
+
+    void SceneMaster::renderAnimate_onWater(const UnilocGeneral& uniloc, const ICamera& cam) {
+        auto iter = this->m_mapChunks.begin();
+        const auto end = this->m_mapChunks.end();
+        iter->renderAnimate_onWater(uniloc, cam, nullptr);
+        ++iter;
+
+        while ( end != iter ) {
+            iter->renderAnimate_onWater(uniloc, cam, this->m_persistantMap);
             ++iter;
         }
     }

@@ -24,6 +24,9 @@ namespace dal {
         ShaderProgram m_waterry;
         UnilocWaterry m_waterryUniloc;
 
+        ShaderProgram m_animate;
+        UnilocGeneral m_animateUniloc;
+
     public:
         ShaderMaster(void);
 
@@ -32,12 +35,14 @@ namespace dal {
         void useFScreen(void) const;
         void useOverlay(void) const;
         void useWaterry(void) const;
+        void useAnimate(void) const;
 
         const UnilocGeneral& getGeneral(void) const;
         const UnilocDepthmp& getDepthMp(void) const;
         const UnilocFScreen& getFScreen(void) const;
         const UnilocOverlay& getOverlay(void) const;
         const UnilocWaterry& getWaterry(void) const;
+        const UnilocGeneral& getAnimate(void) const;
 
     };
 

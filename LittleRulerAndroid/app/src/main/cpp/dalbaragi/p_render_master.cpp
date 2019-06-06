@@ -286,6 +286,26 @@ namespace dal {
             this->m_scene.renderGeneral(unilocGeneral);
         }
 
+        // Render to framebuffer animated
+        {
+            this->m_shader.useAnimate();
+            auto& unilocGeneral = this->m_shader.getAnimate();
+
+            glUniformMatrix4fv(unilocGeneral.uProjectMat, 1, GL_FALSE, &m_projectMat[0][0]);
+
+            glUniform1i(unilocGeneral.u_doClip, 0);
+
+            const auto& viewMat = this->m_mainCamera->getViewMat();
+            glUniformMatrix4fv(unilocGeneral.uViewMat, 1, GL_FALSE, &viewMat[0][0]);
+
+            const auto& viewPos = this->m_mainCamera->m_pos;
+            glUniform3f(unilocGeneral.uViewPos, viewPos.x, viewPos.y, viewPos.z);
+
+            // Render meshes
+
+            this->m_scene.renderAnimate(unilocGeneral);
+        }
+
         // Render water to framebuffer
         {
             this->m_shader.useWaterry();

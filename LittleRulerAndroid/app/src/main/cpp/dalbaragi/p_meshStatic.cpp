@@ -227,7 +227,7 @@ namespace dal {
             glBindBuffer(GL_ARRAY_BUFFER, this->m_buffers[3]);
             glBufferData(GL_ARRAY_BUFFER, size, normals, GL_STATIC_DRAW);
 
-            glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
+            glVertexAttribIPointer(3, 3, GL_INT, 0, nullptr);
             glEnableVertexAttribArray(3);
         }
 
@@ -452,7 +452,8 @@ namespace dal {
 namespace dal {
 
     void Material::setTexScale(float x, float y) {
-        this->m_texScale = { x, y };
+        this->m_texScale.x = x;
+        this->m_texScale.y = y;
     }
 
     void Material::setDiffuseMap(Texture* const tex) {
