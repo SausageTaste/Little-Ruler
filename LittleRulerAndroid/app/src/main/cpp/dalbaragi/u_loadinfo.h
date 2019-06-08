@@ -1,14 +1,17 @@
 #pragma once
 
+#include <map>
+#include <list>
 #include <vector>
 #include <string>
-#include <list>
+#include <unordered_map>
 
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
 
 #include "g_actor.h"
 #include "m_collider.h"
+#include "p_uniloc.h"
 
 
 namespace dal {
@@ -122,12 +125,47 @@ namespace dal {
             AxisAlignedBoundingBox m_aabb;
         };
 
-        struct ModelAnimated {
-            std::list<RenderUnitAnimated> m_renderUnits;
-            AxisAlignedBoundingBox m_aabb;
+
+        class JointInfoNoParent {
+
+        private:
+            std::map<std::string, int32_t> m_map;
+            std::vector<glm::mat4> m_boneOffsets;
+            std::vector<glm::mat4> m_finalTransform;
+            int32_t m_lastMadeIndex = -1;
+
+        public:
+            int32_t getIndexOf(const std::string& jointName) const;
+            int32_t getOrMakeIndexOf(const std::string& jointName);
+
+            void setOffsetMat(const uint32_t index, const glm::mat4& mat);
+            const glm::mat4& getOffsetMat(const uint32_t index) const;
+
+            void setFinalTransform(const uint32_t index, const glm::mat4& mat);
+            const glm::mat4& getFinalTransform(const uint32_t index) const;
+
+            bool isEmpty(void) const;
+
+            void sendUniform(const UnilocAnimate& uniloc) const;
+
+        private:
+            int32_t upsizeAndGetIndex(void);
+
         };
 
-        struct Animation {
+
+        struct ModelAnimated {
+
+        public:
+            JointInfoNoParent m_joints;
+            std::list<RenderUnitAnimated> m_renderUnits;
+            AxisAlignedBoundingBox m_aabb;
+            glm::mat4 m_globalTrans;
+
+        };
+
+
+        struct Animation_old {
             struct JointTransform {
                 std::string m_name;
                 glm::quat m_quat;
@@ -143,5 +181,79 @@ namespace dal {
             std::vector<Keyframe> m_keyframes;
         };
 
+
+        struct Animation {
+            struct JointKeyframes {
+                std::map<float, glm::quat> m_rotates;
+                std::map<float, glm::vec3> m_poses;
+                std::map<float, float> m_scales;
+                std::string m_name;
+            };
+
+            std::vector<JointKeyframes> m_joints;
+            std::string m_name;
+
+            bool hasJoint(const std::string& jointName) const {
+                for ( const auto& j : this->m_joints ) {
+                    if ( j.m_name == jointName ) {
+                        return true;
+                    }
+                }
+                return false;
+            }
+
+            const JointKeyframes& getJoint(const std::string& jointName) const {
+                for ( const auto& j : this->m_joints ) {
+                    if ( j.m_name == jointName ) {
+                        return j;
+                    }
+                }
+                throw "Ssibal";
+            }
+        };
+
     }  // namespace loadedinfo
+
+
+    class JointNode {
+
+    private:
+        std::string m_name;
+        loadedinfo::Animation::JointKeyframes m_keyframe;
+
+        JointNode* m_parent;
+        std::vector<JointNode> m_children;
+        glm::mat4 m_bindMat, m_invBindMat;
+
+    public:
+        JointNode(JointNode* const parent);
+
+        JointNode& newChild(void);
+        void setName(const std::string& name);
+        void setKeyframe(const loadedinfo::Animation::JointKeyframes& keyframe);
+        void setBindMat(const glm::mat4& mat);
+
+        unsigned int getNumNodesRecur(void) const;
+
+        void sendBindPos(const UnilocAnimate& uniloc, const loadedinfo::JointInfoNoParent& jointInterface, glm::mat4 parentMat) const;
+
+    };
+
+
+    class Animation {
+
+    private:
+        std::string m_name;
+        JointNode m_rootNode;
+
+    public:
+        Animation(const std::string& name, JointNode&& rootNode);
+
+        const std::string& getName(void) const { return this->m_name; }
+        unsigned int getNumNodes(void) const;
+
+        void sendBindPos(const UnilocAnimate& uniloc, const loadedinfo::JointInfoNoParent& jointInterface) const;
+
+    };
+
 }

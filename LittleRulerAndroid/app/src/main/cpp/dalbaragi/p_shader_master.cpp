@@ -112,7 +112,7 @@ namespace {
 
     public:
         ShaderLoader(void) {
-            constexpr std::array<const char*, 10> k_fileNames = {
+            constexpr std::array<const char*, 12> k_fileNames = {
                 "depth.vert",
                 "depth.frag",
                 "fillscreen.vert",
@@ -123,6 +123,8 @@ namespace {
                 "overlay.frag",
                 "water.vert",
                 "water.frag",
+                "animated.vert",
+                "animated.frag"
             };
 
             for ( const auto fileName : k_fileNames ) {
@@ -358,6 +360,19 @@ namespace dal {
             glDeleteShader(verShader);
             glDeleteShader(fragShader);
         }
+
+        {
+            auto verShader = compileShader2(ShaderType::VERTEX, loader["animated.vert"]);
+            auto fragShader = compileShader2(ShaderType::FRAGMENT, loader["animated.frag"]);
+
+            this->m_animate.attachShader(verShader);
+            this->m_animate.attachShader(fragShader);
+            this->m_animate.link();
+            this->m_animateUniloc.init(this->m_animate.get());
+
+            glDeleteShader(verShader);
+            glDeleteShader(fragShader);
+        }
     }
 
     void ShaderMaster::useGeneral(void) const {
@@ -410,7 +425,7 @@ namespace dal {
         return this->m_waterryUniloc;
     }
 
-    const UnilocGeneral& ShaderMaster::getAnimate(void) const {
+    const UnilocAnimate& ShaderMaster::getAnimate(void) const {
         return this->m_animateUniloc;
     }
 

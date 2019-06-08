@@ -198,6 +198,8 @@ namespace dal {
             float radio = static_cast<float>(m_winWidth) / static_cast<float>(m_winHeight);
             this->m_projectMat = glm::perspective(glm::radians(90.0f), radio, 0.01f, 100.0f);
 
+            auto what = this->m_scene.getModelNActorAnimated("test::model.dae", "test_level");
+
             script::init_renderMas(this);
         }
     }
@@ -207,6 +209,10 @@ namespace dal {
     }
 
     void RenderMaster::update(const float deltaTime) {
+        this->m_scene.update(deltaTime);
+
+        return;
+
         const auto mat = glm::rotate(glm::mat4{ 1.0f }, deltaTime * 0.3f, glm::vec3{ 1.0f, 0.5f, 0.0f });
         const glm::vec4 direcBefore{ this->m_dlight1.getDirection(), 0.0f };
         const auto newDirec = glm::normalize(glm::vec3{ mat * direcBefore });
@@ -260,6 +266,35 @@ namespace dal {
             this->m_scene.renderGeneral_onWater(unilocGeneral, *this->m_mainCamera);
         }
 
+        // Render animated to water framebuffer
+        {
+#ifdef _WIN32
+            glEnable(GL_CLIP_DISTANCE0);
+#endif
+            this->m_shader.useAnimate();
+            auto& unilocGeneral = this->m_shader.getAnimate();
+
+            glUniform1i(unilocGeneral.u_doClip, 1);
+
+            glUniformMatrix4fv(unilocGeneral.uProjectMat, 1, GL_FALSE, &m_projectMat[0][0]);
+
+            glUniform3f(unilocGeneral.uBaseAmbient, 0.3f, 0.3f, 0.3f);
+
+            // Lights
+
+            if ( this->m_flagDrawDlight1 ) {
+                this->m_dlight1.sendUniform(unilocGeneral, 0);
+                glUniform1i(unilocGeneral.uDlightCount, 1);
+            }
+            else {
+                glUniform1i(unilocGeneral.uDlightCount, 0);
+            }
+
+            // Render meshes
+
+            this->m_scene.renderAnimate_onWater(unilocGeneral, *this->m_mainCamera);
+        }
+
         this->m_fbuffer.startRenderOn();
         glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 #ifdef _WIN32
@@ -268,7 +303,7 @@ namespace dal {
 
         // Render to framebuffer 
         {
-            //this->m_shader.useGeneral();
+            this->m_shader.useGeneral();
             auto& unilocGeneral = this->m_shader.getGeneral();
 
             glUniformMatrix4fv(unilocGeneral.uProjectMat, 1, GL_FALSE, &m_projectMat[0][0]);

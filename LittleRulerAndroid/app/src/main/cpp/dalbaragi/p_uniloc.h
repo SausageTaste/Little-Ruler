@@ -174,4 +174,19 @@ namespace dal {
 
     };
 
+    class UnilocAnimate : public UnilocGeneral {
+
+    public:
+        GLint i_jointIDs;
+        GLint i_weights;
+
+        GLint u_poses[30];
+
+        //////// Funcs ////////
+
+    public:
+        void init(const GLuint shader);
+
+    };
+
 }

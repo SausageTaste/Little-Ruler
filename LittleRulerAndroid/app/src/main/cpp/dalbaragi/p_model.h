@@ -3,6 +3,9 @@
 #include <string>
 #include <vector>
 
+#include <assimp/scene.h>
+#include <assimp/Importer.hpp>
+
 #include "p_meshStatic.h"
 #include "m_collider.h"
 #include "u_fileclass.h"
@@ -62,16 +65,36 @@ namespace dal {
         };
 
         std::vector<RenderUnit> m_renderUnits;
+        loadedinfo::JointInfoNoParent m_jointInterface;
+        glm::mat4 m_globalInvMat;
+
+    public:
+        Assimp::Importer m_importer;
+        const aiScene* m_scene = nullptr;
 
     public:
         RenderUnit* addRenderUnit(void);
+        void setAnimation(const loadedinfo::JointInfoNoParent& m_joints);
+        void setGlobalMat(const glm::mat4 mat);
 
         bool isReady(void) const;
 
-        void renderGeneral(const UnilocGeneral& uniloc, const std::list<ActorInfo>& actors) const;
+        void renderAnimate(const UnilocAnimate& uniloc, const std::list<ActorInfo>& actors) const;
         void renderDepthMap(const UnilocDepthmp& uniloc, const std::list<ActorInfo>& actors) const;
 
         void destroyModel(void);
+
+        void BoneTransform(float TimeInSeconds);
+        void ReadNodeHeirarchy(float AnimationTime, const aiNode* pNode, const glm::mat4& ParentTransform);
+        const aiNodeAnim* FindNodeAnim(const aiAnimation* const pAnimation, const std::string& NodeName);
+
+        void CalcInterpolatedPosition(aiVector3D& Out, float AnimationTime, const aiNodeAnim* pNodeAnim);
+        void CalcInterpolatedRotation(aiQuaternion& Out, float AnimationTime, const aiNodeAnim* pNodeAnim);
+        void CalcInterpolatedScaling(aiVector3D& Out, float AnimationTime, const aiNodeAnim* pNodeAnim);
+
+        unsigned int FindPosition(float AnimationTime, const aiNodeAnim* pNodeAnim);
+        unsigned int FindRotation(float AnimationTime, const aiNodeAnim* pNodeAnim);
+        unsigned int FindScaling(float AnimationTime, const aiNodeAnim* pNodeAnim);
 
     };
 

@@ -79,8 +79,7 @@ namespace {
         const dal::ResourceID in_modelID;
 
         bool out_success;
-        dal::loadedinfo::ModelAnimated out_info;
-        std::vector<dal::loadedinfo::Animation> out_anims;
+        dal::AssimpModelInfo out_info;
 
         dal::ModelAnimated& data_coresponding;
         dal::Package& data_package;
@@ -96,7 +95,7 @@ namespace {
         }
 
         virtual void start(void) override {
-            out_success = dal::loadAssimp_animatedModel(out_info, out_anims, this->in_modelID);
+            this->out_success = dal::loadAssimpModel(this->in_modelID, this->out_info, this->data_coresponding);
         }
 
     };
@@ -382,9 +381,10 @@ namespace dal {
                 return;
             }
 
-            loaded->data_coresponding.setBoundingBox(loaded->out_info.m_aabb);
+            loaded->data_coresponding.setBoundingBox(loaded->out_info.m_model.m_aabb);
+            loaded->data_coresponding.setAnimation(loaded->out_info.m_model.m_joints);
 
-            for ( auto& unitInfo : loaded->out_info.m_renderUnits ) {
+            for ( auto& unitInfo : loaded->out_info.m_model.m_renderUnits ) {
                 auto unit = loaded->data_coresponding.addRenderUnit();
                 assert(nullptr != unit);
 

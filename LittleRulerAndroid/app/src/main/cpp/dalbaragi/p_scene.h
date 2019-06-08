@@ -43,13 +43,14 @@ namespace dal {
         const std::string& getName(void) const;
 
         void onScreanResize(const unsigned int width, const unsigned int height);
+        void update(const float deltaTime);
 
         void renderGeneral(const UnilocGeneral& uniloc) const;
         void renderDepthMp(const UnilocDepthmp& uniloc) const;
         void renderWaterry(const UnilocWaterry& uniloc);
-        void renderAnimate(const UnilocGeneral& uniloc) const;
+        void renderAnimate(const UnilocAnimate& uniloc) const;
         void renderGeneral_onWater(const UnilocGeneral& uniloc, const ICamera& cam, MapChunk* const additional);
-        void renderAnimate_onWater(const UnilocGeneral& uniloc, const ICamera& cam, MapChunk* const additional);
+        void renderAnimate_onWater(const UnilocAnimate& uniloc, const ICamera& cam, MapChunk* const additional);
 
         int sendUniforms_lights(const UnilocGeneral& uniloc, int startIndex) const;
         int sendUniforms_lights(const UnilocWaterry& uniloc, int startIndex) const;
@@ -58,6 +59,7 @@ namespace dal {
 
         WaterRenderer* getWater(const size_t index);
         ActorInfo* addActor(ModelStatic* const model, const std::string& actorName, bool flagStatic, ResourceMaster& resMas);
+        ModelAnimated* getModelNActorAnimated(const ResourceID& resID);
 
     };
 
@@ -77,15 +79,18 @@ namespace dal {
         SceneMaster(ResourceMaster& resMas);
         ~SceneMaster(void);
 
+        void update(const float deltaTime);
+
         void renderGeneral(const UnilocGeneral& uniloc) const;
         void renderDepthMp(const UnilocDepthmp& uniloc) const;
         void renderWaterry(const UnilocWaterry& uniloc);
-        void renderAnimate(const UnilocGeneral& uniloc) const;
+        void renderAnimate(const UnilocAnimate& uniloc) const;
         void renderGeneral_onWater(const UnilocGeneral& uniloc, const ICamera& cam);
-        void renderAnimate_onWater(const UnilocGeneral& uniloc, const ICamera& cam);
+        void renderAnimate_onWater(const UnilocAnimate& uniloc, const ICamera& cam);
 
         ActorInfo* addActor(ModelStatic* const model, const std::string& mapName, const std::string& actorName, bool flagStatic);
         WaterRenderer* getWater(const std::string& mapName, const size_t index);
+        ModelAnimated* getModelNActorAnimated(const ResourceID& resID, const std::string& mapName);
 
         void applyCollision(ModelStatic& model, ActorInfo& actor);
 

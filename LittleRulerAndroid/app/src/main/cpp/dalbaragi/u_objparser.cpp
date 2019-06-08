@@ -1,20 +1,22 @@
 #include "u_objparser.h"
 
-#include <cstring>
-#include <string>
-#include <array>
-#include <vector>
-#include <iostream>
+#include <set>
 #include <map>
+#include <array>
+#include <string>
+#include <vector>
+#include <cstring>
+#include <iostream>
+
 #include <unordered_map>
 
 #include <fmt/format.h>
 #include <glm/glm.hpp>
-#include <assimp/Importer.hpp>
 #include <assimp/scene.h>
-#include <assimp/postprocess.h>
+#include <assimp/Importer.hpp>
 #include <assimp/IOStream.hpp>
 #include <assimp/IOSystem.hpp>
+#include <assimp/postprocess.h>
 
 #include "s_logger_god.h"
 #include "u_fileclass.h"
@@ -48,6 +50,18 @@ namespace {
         else if ( nullptr == scene->mRootNode ) return false;
         else if ( scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE ) return false;
         else return true;
+    }
+
+    inline glm::mat4 aiMatrix4x4ToGlm(const aiMatrix4x4* from) {
+        glm::mat4 to;
+        using GLfloat = float;
+
+        to[0][0] = (GLfloat)from->a1; to[0][1] = (GLfloat)from->b1;  to[0][2] = (GLfloat)from->c1; to[0][3] = (GLfloat)from->d1;
+        to[1][0] = (GLfloat)from->a2; to[1][1] = (GLfloat)from->b2;  to[1][2] = (GLfloat)from->c2; to[1][3] = (GLfloat)from->d2;
+        to[2][0] = (GLfloat)from->a3; to[2][1] = (GLfloat)from->b3;  to[2][2] = (GLfloat)from->c3; to[2][3] = (GLfloat)from->d3;
+        to[3][0] = (GLfloat)from->a4; to[3][1] = (GLfloat)from->b4;  to[3][2] = (GLfloat)from->c4; to[3][3] = (GLfloat)from->d4;
+
+        return to;
     }
 
     /*
@@ -96,24 +110,7 @@ namespace {
         glm::vec3 p1, p2;
     };
 
-
-    using anim_index_map_t = std::unordered_map<std::string, unsigned int>;
-
-    anim_index_map_t makeIndexMap(const dal::loadedinfo::Animation& info) {
-        if ( 0 == info.m_keyframes.size() ) {
-            dalAbort("Looks like no animation has been found.");
-        }
-
-        anim_index_map_t indexMap;
-
-        for ( size_t j = 0; j < info.m_keyframes[0].m_joints.size(); j++ ) {
-            indexMap.emplace(info.m_keyframes[0].m_joints[j].m_name, j);
-        }
-
-        return indexMap;
-    }
-
-}
+}  // namespace
 
 
 // Assimp filesystem
@@ -273,54 +270,137 @@ namespace {
         return scene->mNumMaterials;
     }
 
-    void processAnimation(const aiScene* const scene, std::vector<dal::loadedinfo::Animation>& info) {
-        assertAnimationValidity(scene->mAnimations, scene->mNumAnimations);
+    std::vector<dal::loadedinfo::Material> parseMaterials(const aiScene* const scene) {
+        std::vector<dal::loadedinfo::Material> materials;
 
-        info.resize(scene->mNumAnimations);
-        for ( unsigned int i = 0; i < scene->mNumAnimations; i++ ) {
-            const auto anim = scene->mAnimations[i];
-            auto& animInfo = info[i];
+        for ( unsigned int i = 0; i < scene->mNumMaterials; i++ ) {
+            const auto iMaterial = scene->mMaterials[i];
+            materials.emplace_back();
+            auto& iMatInfo = materials.back();
 
-            animInfo.m_name = anim->mName.C_Str();
+            {
+                float floatBuf;
 
-            animInfo.m_keyframes.resize(anim->mChannels[0]->mNumPositionKeys);
-            for ( auto& keyframe : animInfo.m_keyframes ) {
-                keyframe.m_joints.resize(anim->mNumChannels);
+                if ( aiReturn_SUCCESS == aiGetMaterialFloat(iMaterial, AI_MATKEY_SHININESS, &floatBuf) ) {
+                    iMatInfo.m_shininess = floatBuf;
+                }
+
+                if ( aiReturn_SUCCESS == aiGetMaterialFloat(iMaterial, AI_MATKEY_SHININESS_STRENGTH, &floatBuf) ) {
+                    iMatInfo.m_specStrength = floatBuf;
+                }
+
+                aiColor4D vec4Buf;
+                if ( aiReturn_SUCCESS == aiGetMaterialColor(iMaterial, AI_MATKEY_COLOR_DIFFUSE, &vec4Buf) ) {
+                    iMatInfo.m_diffuseColor.r = vec4Buf.r;
+                    iMatInfo.m_diffuseColor.g = vec4Buf.g;
+                    iMatInfo.m_diffuseColor.b = vec4Buf.b;
+                }
             }
 
-            for ( unsigned int j = 0; j < anim->mNumChannels; j++ ) {
-                const auto channel = anim->mChannels[j];
-
-                for ( unsigned int k = 0; k < channel->mNumPositionKeys; k++ ) {
-                    const auto pos = channel->mPositionKeys[k];
-                    const auto rot = channel->mRotationKeys[k];
-                    const auto sca = channel->mScalingKeys[k];
-
-                    animInfo.m_keyframes[k].m_timeStamp = pos.mTime;
-                    auto& chanInfo = animInfo.m_keyframes[k].m_joints[j];
-
-                    chanInfo.m_name = channel->mNodeName.C_Str();
-
-                    chanInfo.m_pos.x = pos.mValue.x;
-                    chanInfo.m_pos.y = pos.mValue.y;
-                    chanInfo.m_pos.z = pos.mValue.z;
-
-                    chanInfo.m_quat.x = rot.mValue.x;
-                    chanInfo.m_quat.y = rot.mValue.y;
-                    chanInfo.m_quat.z = rot.mValue.z;
-                    chanInfo.m_quat.w = rot.mValue.w;
-
-                    chanInfo.m_scale.x = sca.mValue.x;
-                    chanInfo.m_scale.y = sca.mValue.y;
-                    chanInfo.m_scale.z = sca.mValue.z;
+            aiString str;
+            for ( unsigned int j = 0; j < iMaterial->GetTextureCount(aiTextureType_DIFFUSE); j++ ) {
+                if ( iMaterial->GetTexture(aiTextureType_DIFFUSE, j, &str) == aiReturn_SUCCESS ) {
+                    iMatInfo.m_diffuseMap = str.C_Str();
                 }
+
+                break;  // Because it supports only one diffuse map atm.
+            }
+
+            for ( unsigned int j = 0; j < iMaterial->GetTextureCount(aiTextureType_SPECULAR); j++ ) {
+                if ( iMaterial->GetTexture(aiTextureType_SPECULAR, j, &str) == aiReturn_SUCCESS ) {
+                    iMatInfo.m_specularMap = str.C_Str();
+                }
+
+                break;  // Because it supports only one specular map atm.
             }
         }
 
-        return;
+        return materials;
     }
 
-}
+    void getJointHierarchy_recur(const aiNode* const node, const dal::loadedinfo::Animation& animation, dal::JointNode& jointNode) {
+        const auto nodeName = node->mName.C_Str();
+        jointNode.setName(nodeName);
+        jointNode.setKeyframe(animation.getJoint(nodeName));
+        jointNode.setBindMat(aiMatrix4x4ToGlm(&node->mTransformation));
+
+        for ( unsigned int i = 0; i < node->mNumChildren; i++ ) {
+            const auto child = node->mChildren[i];
+            if ( animation.hasJoint(child->mName.C_Str()) ) {
+                getJointHierarchy_recur(child, animation, jointNode.newChild());
+            }
+        }
+    }
+
+    const aiNode* findRoot_recur(const aiNode* const node, const dal::loadedinfo::Animation& animation) {
+        if ( animation.hasJoint(node->mName.C_Str()) ) {
+            return node;
+        }
+        else {
+            const auto numChildren = node->mNumChildren;
+            for ( unsigned i = 0; i < numChildren; i++ ) {
+                const auto res = findRoot_recur(node->mChildren[i], animation);
+                if ( nullptr != res ) {
+                    return res;
+                }
+            }
+            return nullptr;
+        }
+    }
+
+    dal::JointNode getJointHierarchy(const aiScene* const scene, const dal::loadedinfo::Animation& animation) {
+        const auto rootNode = findRoot_recur(scene->mRootNode, animation);
+        dalAssert(nullptr != rootNode);
+
+        dal::JointNode rootJoint{ nullptr };
+        getJointHierarchy_recur(rootNode, animation, rootJoint);
+        return rootJoint;
+    }
+
+    // Returns parent map std::unordered_map< joint name, parent name >.
+    void processAnimation(const aiScene* const scene, std::vector<dal::Animation>& info) {
+        info.clear();
+
+        std::vector<dal::loadedinfo::Animation> localAnimInfo;
+
+        localAnimInfo.resize(scene->mNumAnimations);
+        for ( unsigned i = 0; i < scene->mNumAnimations; i++ ) {
+            const auto anim = scene->mAnimations[i];
+            auto& animInfo = localAnimInfo[i];
+
+            animInfo.m_name = anim->mName.C_Str();
+
+            for ( unsigned j = 0; j < anim->mNumChannels; j++ ) {
+                const auto channel = anim->mChannels[j];
+                animInfo.m_joints.emplace_back();
+                auto& jointInfo = animInfo.m_joints.back();
+
+                jointInfo.m_name = channel->mNodeName.C_Str();
+
+                for ( unsigned k = 0; k < channel->mNumPositionKeys; k++ ) {
+                    const auto& pos = channel->mPositionKeys[k];
+                    jointInfo.m_poses.emplace(pos.mTime, glm::vec3{ pos.mValue.x, pos.mValue.y, pos.mValue.z });
+                }
+
+                for ( unsigned k = 0; k < channel->mNumRotationKeys; k++ ) {
+                    const auto& rot = channel->mRotationKeys[k];
+                    jointInfo.m_rotates.emplace(rot.mTime, glm::quat{ rot.mValue.w, rot.mValue.x, rot.mValue.y, rot.mValue.z });
+                }
+
+                for ( unsigned k = 0; k < channel->mNumScalingKeys; k++ ) {
+                    const auto& sca = channel->mScalingKeys[k];
+                    const auto averageScale = (sca.mValue.x + sca.mValue.y + sca.mValue.z) / 3.0f;
+                    jointInfo.m_scales.emplace(sca.mTime, averageScale);
+                }
+            }
+
+            // Fill parent info
+            
+            info.emplace_back(anim->mName.C_Str(), std::move(getJointHierarchy(scene, animInfo)));
+        }
+    }
+
+}  // namespace
 
 
 // Process mesh
@@ -423,8 +503,8 @@ namespace {
         return true;
     }
 
-    bool processMeshAnimated(dal::loadedinfo::RenderUnitAnimated& renUnit, AABBBuildInfo& aabbInfo,
-        const anim_index_map_t& animInfo, aiMesh* const mesh, const bool swapYZ)
+    bool processMeshAnimated(dal::loadedinfo::RenderUnitAnimated& renUnit, dal::loadedinfo::JointInfoNoParent& jointInfo,
+        AABBBuildInfo& aabbInfo, aiMesh* const mesh, const bool swapYZ)
     {
         renUnit.m_name = reinterpret_cast<char*>(&mesh->mName);
 
@@ -434,30 +514,22 @@ namespace {
         renUnit.m_mesh.m_boneWeights.resize(mesh->mNumVertices * 3);
         renUnit.m_mesh.m_boneIndex.resize(mesh->mNumVertices * 3);
 
-        if ( swapYZ ) {
-            copy3BasicVertexInfo_swapYZ(renUnit.m_mesh.m_vertices, renUnit.m_mesh.m_texcoords, renUnit.m_mesh.m_normals, aabbInfo, mesh);
-        }
-        else {
-            copy3BasicVertexInfo(renUnit.m_mesh.m_vertices, renUnit.m_mesh.m_texcoords, renUnit.m_mesh.m_normals, aabbInfo, mesh);
-        }
-
+        copy3BasicVertexInfo(renUnit.m_mesh.m_vertices, renUnit.m_mesh.m_texcoords, renUnit.m_mesh.m_normals, aabbInfo, mesh);
+       
         for ( unsigned int i = 0; i < mesh->mNumBones; i++ ) {
-            auto bone = mesh->mBones[i];
+            const auto bone = mesh->mBones[i];
+            const auto jointIndex = jointInfo.getOrMakeIndexOf(bone->mName.C_Str());
 
-            auto iter = animInfo.find(bone->mName.C_Str());
-            if ( animInfo.end() == iter ) {
-                dalAbort("Failed to find bone named \"{}\" in anim_index_map_t."_format(bone->mName.C_Str()));
-            }
-            const auto boneIndex = iter->second;
+            jointInfo.setOffsetMat(jointIndex, aiMatrix4x4ToGlm(&bone->mOffsetMatrix));
 
             for ( unsigned int j = 0; j < bone->mNumWeights; j++ ) {
                 const auto& weight = bone->mWeights[j];
-                count[weight.mVertexId].emplace(weight.mWeight, boneIndex);
+                count.at(weight.mVertexId).emplace(weight.mWeight, jointIndex);
             }
         }
 
         for ( size_t i = 0; i < count.size(); i++ ) {
-            auto& vmap = count[i];
+            auto& vmap = count.at(i);
 
             auto iter = vmap.rbegin();
             glm::vec3 weightBuffer;
@@ -474,13 +546,13 @@ namespace {
 
             weightBuffer = glm::normalize(weightBuffer);
             memcpy_s(&renUnit.m_mesh.m_boneWeights[3*i], 3*sizeof(float), &weightBuffer[0], 3*sizeof(float));
-            memcpy_s(&renUnit.m_mesh.m_boneIndex[3*i], 3*sizeof(uint32_t), &indexBuf[0], 3*sizeof(int32_t));
+            memcpy_s(&renUnit.m_mesh.m_boneIndex[3*i], 3*sizeof(int32_t), &indexBuf[0], 3*sizeof(int32_t));
         }
 
         return true;
     }
 
-}
+}  // namespace
 
 
 // Process nodes
@@ -508,14 +580,14 @@ namespace {
     }
 
     bool processNodeAnimated(dal::loadedinfo::ModelAnimated& info, const std::vector<dal::loadedinfo::Material>& materials,
-        AABBBuildInfo& aabbInfo, const anim_index_map_t& animInfo, const aiScene* const scene, const aiNode* const node,
-        const bool swapYZ)
+        AABBBuildInfo& aabbInfo, const aiScene* const scene, const aiNode* const node,  const bool swapYZ)
     {
         for ( unsigned int i = 0; i < node->mNumMeshes; i++ ) {
             aiMesh* ai_mesh = scene->mMeshes[node->mMeshes[i]];
+
             info.m_renderUnits.emplace_front();
             auto& renUnit = info.m_renderUnits.front();
-            if ( !processMeshAnimated(renUnit, aabbInfo, animInfo, ai_mesh, swapYZ) ) return false;
+            if ( !processMeshAnimated(renUnit, info.m_joints, aabbInfo, ai_mesh, swapYZ) ) return false;
 
             if ( ai_mesh->mMaterialIndex != 0 ) {
                 renUnit.m_material = materials.at(ai_mesh->mMaterialIndex);
@@ -523,13 +595,13 @@ namespace {
         }
 
         for ( unsigned int i = 0; i < node->mNumChildren; i++ ) {
-            if ( processNodeAnimated(info, materials, aabbInfo, animInfo, scene, node->mChildren[i], swapYZ) == false ) return false;
+            if ( processNodeAnimated(info, materials, aabbInfo, scene, node->mChildren[i], swapYZ) == false ) return false;
         }
 
         return true;
     }
 
-}
+}  // namespace
 
 
 namespace dal {
@@ -561,8 +633,7 @@ namespace dal {
         return res;
     }
 
-    bool loadAssimp_animatedModel(loadedinfo::ModelAnimated& info, std::vector<dal::loadedinfo::Animation>& anims,
-        const ResourceID& resID) {
+    bool loadAssimp_animatedModel(loadedinfo::ModelAnimated& info, std::vector<dal::loadedinfo::Animation>& anims, const ResourceID& resID) {
         info.m_renderUnits.clear();
 
         Assimp::Importer importer;
@@ -576,21 +647,40 @@ namespace dal {
         std::vector<loadedinfo::Material> materials;
         processMaterial(scene, materials);
 
-        processAnimation(scene, anims);
-        const auto indexMap = makeIndexMap(anims[0]);
-
         AABBBuildInfo aabbInfo;
+
+        dalVerbose("Start loading model: "s + resID.makeIDStr());
 
         bool res;
         if ( ".dae"s == resID.getExt() ) {
-            res = processNodeAnimated(info, materials, aabbInfo, indexMap, scene, scene->mRootNode, true);
+            res = processNodeAnimated(info, materials, aabbInfo, scene, scene->mRootNode, true);
         }
         else {
-            res = processNodeAnimated(info, materials, aabbInfo, indexMap, scene, scene->mRootNode, false);
+            res = processNodeAnimated(info, materials, aabbInfo, scene, scene->mRootNode, false);
         }
 
         info.m_aabb.set(aabbInfo.p1, aabbInfo.p2);
         return res;
     }
 
-}
+    bool loadAssimpModel(const ResourceID& resID, AssimpModelInfo& info, ModelAnimated& model) {
+        model.m_importer.SetIOHandler(new AssResourceIOSystem);
+        model.m_scene = model.m_importer.ReadFile(makeAssimpResID(resID).c_str(), aiProcess_Triangulate);
+        if ( !isSceneComplete(model.m_scene) ) {
+            dalError("Assimp read fail: "s +  model.m_importer.GetErrorString());
+            return false;
+        }
+
+        const auto materials = parseMaterials(model.m_scene);
+        processAnimation(model.m_scene, info.m_animations);
+
+        AABBBuildInfo aabbInfo;
+        info.m_model.m_globalTrans = aiMatrix4x4ToGlm(&model.m_scene->mRootNode->mTransformation);
+        model.setGlobalMat(info.m_model.m_globalTrans);
+        const auto res = processNodeAnimated(info.m_model, materials, aabbInfo, model.m_scene, model.m_scene->mRootNode, false);
+        info.m_model.m_aabb.set(aabbInfo.p1, aabbInfo.p2);
+
+        return true;
+    }
+
+}  // namespace dal

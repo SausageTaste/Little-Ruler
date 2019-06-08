@@ -18,8 +18,6 @@ in vec3 vNormalVec;
 in vec4 vFragPosInDlight[3];
 in vec4 v_worldPos;
 
-in vec4 v_color;
-
 out vec4 fColor;
 
 
@@ -50,6 +48,4 @@ void main(void) {
     else {
         fColor = vec4(uDiffuseColor, 1.0) * vec4(lightedColor, 1.0);
     }
-
-    fColor = v_color;
 }

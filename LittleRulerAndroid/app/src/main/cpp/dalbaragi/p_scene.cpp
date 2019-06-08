@@ -94,6 +94,15 @@ namespace dal {
         }
     }
 
+    void MapChunk::update(const float deltaTime) {
+        static float accumTime = 0.0f;
+        accumTime += deltaTime * 0.3f;
+
+        for ( auto& anim : this->m_animatedActors ) {
+            anim.m_model->BoneTransform(accumTime);
+        }
+    }
+
 
     void MapChunk::renderGeneral(const UnilocGeneral& uniloc) const {
         this->sendUniforms_lights(uniloc, 0);
@@ -120,11 +129,11 @@ namespace dal {
         }
     }
 
-    void MapChunk::renderAnimate(const UnilocGeneral& uniloc) const {
+    void MapChunk::renderAnimate(const UnilocAnimate& uniloc) const {
         this->sendUniforms_lights(uniloc, 0);
 
         for ( auto& modelActor : this->m_animatedActors ) {
-            modelActor.m_model->renderGeneral(uniloc, modelActor.m_inst);
+            modelActor.m_model->renderAnimate(uniloc, modelActor.m_inst);
         }
     }
 
@@ -172,7 +181,7 @@ namespace dal {
         }
     }
 
-    void MapChunk::renderAnimate_onWater(const UnilocGeneral& uniloc, const ICamera& cam, MapChunk* const additional) {
+    void MapChunk::renderAnimate_onWater(const UnilocAnimate& uniloc, const ICamera& cam, MapChunk* const additional) {
         for ( auto& water : this->m_waters ) {
             {
                 // Uniform values
@@ -188,7 +197,7 @@ namespace dal {
                 glUniform3f(uniloc.uViewPos, reflectedPos.x, reflectedPos.y, reflectedPos.z);
 
                 water.m_fbuffer.bindReflectionFrameBuffer();
-                glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+                //glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
                 // Render map general
                 this->renderAnimate(uniloc);
@@ -207,7 +216,7 @@ namespace dal {
                 glUniform3f(uniloc.uViewPos, cam.m_pos.x, cam.m_pos.y, cam.m_pos.z);
 
                 water.m_fbuffer.bindRefractionFrameBuffer();
-                glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+                //glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
                 // Render map general
                 this->renderAnimate(uniloc);
@@ -306,6 +315,16 @@ namespace dal {
         return &modelActor.m_inst.back();
     }
 
+    ModelAnimated* MapChunk::getModelNActorAnimated(const ResourceID& resID) {
+        for ( auto& x : this->m_animatedActors ) {
+            const auto name = x.m_model->getModelResID().makeFileName();
+            if ( name == resID.makeFileName() ) {
+                return x.m_model;
+            }
+        }
+        return nullptr;
+    }
+
 }
 
 
@@ -325,6 +344,12 @@ namespace dal {
     }
 
 
+    void SceneMaster::update(const float deltaTime) {
+        for ( auto& map : this->m_mapChunks ) {
+            map.update(deltaTime);
+        }
+    }
+
     void SceneMaster::renderGeneral(const UnilocGeneral& uniloc) const {
         for ( auto& map : m_mapChunks ) {
             map.renderGeneral(uniloc);
@@ -343,7 +368,7 @@ namespace dal {
         }
     }
 
-    void SceneMaster::renderAnimate(const UnilocGeneral& uniloc) const {
+    void SceneMaster::renderAnimate(const UnilocAnimate& uniloc) const {
         for ( auto& map : m_mapChunks ) {
             map.renderAnimate(uniloc);
         }
@@ -361,7 +386,7 @@ namespace dal {
         }
     }
 
-    void SceneMaster::renderAnimate_onWater(const UnilocGeneral& uniloc, const ICamera& cam) {
+    void SceneMaster::renderAnimate_onWater(const UnilocAnimate& uniloc, const ICamera& cam) {
         auto iter = this->m_mapChunks.begin();
         const auto end = this->m_mapChunks.end();
         iter->renderAnimate_onWater(uniloc, cam, nullptr);
@@ -389,6 +414,15 @@ namespace dal {
             }
         }
 
+        return nullptr;
+    }
+
+    ModelAnimated* SceneMaster::getModelNActorAnimated(const ResourceID& resID, const std::string& mapName) {
+        for ( auto& map : this->m_mapChunks ) {
+            if ( mapName == map.getName() ) {
+                return map.getModelNActorAnimated(resID);
+            }
+        }
         return nullptr;
     }
 

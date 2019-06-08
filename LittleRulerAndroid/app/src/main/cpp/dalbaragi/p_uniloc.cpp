@@ -1,13 +1,15 @@
 #include "p_uniloc.h"
 
 #include <string>
-#include <cassert>
+
+#include <fmt/format.h>
 
 #include "p_dalopengl.h"
 #include "s_logger_god.h"
 
 
 using namespace std::string_literals;
+using namespace fmt::literals;
 
 
 namespace dal {
@@ -15,7 +17,7 @@ namespace dal {
     void UnilocGeneral::init(const GLuint shader) {
         this->iPosition = glGetAttribLocation(shader, "iPosition"); assert(this->iPosition == 0);
         this->iTexCoord = glGetAttribLocation(shader, "iTexCoord"); assert(this->iTexCoord == 1);
-        this->iNormal = glGetAttribLocation(shader, "iNormal"); assert(this->iNormal == 2);
+        this->iNormal = glGetAttribLocation(shader, "iNormal"); //assert(this->iNormal == 2);
 
         this->uProjectMat = glGetUniformLocation(shader, "uProjectMat");
         this->uViewMat = glGetUniformLocation(shader, "uViewMat");
@@ -173,6 +175,18 @@ namespace dal {
         this->uPlightMaxDists[0] = glGetUniformLocation(shader, "uPlightMaxDists[0]");
         this->uPlightMaxDists[1] = glGetUniformLocation(shader, "uPlightMaxDists[1]");
         this->uPlightMaxDists[2] = glGetUniformLocation(shader, "uPlightMaxDists[2]");
+    }
+
+    void UnilocAnimate::init(const GLuint shader) {
+        UnilocGeneral::init(shader);
+
+        this->i_jointIDs = glGetAttribLocation(shader, "i_jointIDs");// assert(this->i_jointIDs == 3);
+        this->i_weights = glGetAttribLocation(shader, "i_weights");// assert(this->i_weights == 4);
+
+        for ( int i = 0; i < 30; i++ ) {
+            const auto str = "u_poses[{}]"_format(i);
+            this->u_poses[i] = glGetUniformLocation(shader, str.c_str());
+        }
     }
 
 }

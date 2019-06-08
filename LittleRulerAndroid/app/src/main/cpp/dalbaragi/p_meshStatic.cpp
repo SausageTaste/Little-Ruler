@@ -225,7 +225,7 @@ namespace dal {
             vramUsage += size;
 
             glBindBuffer(GL_ARRAY_BUFFER, this->m_buffers[3]);
-            glBufferData(GL_ARRAY_BUFFER, size, normals, GL_STATIC_DRAW);
+            glBufferData(GL_ARRAY_BUFFER, size, boneids, GL_STATIC_DRAW);
 
             glVertexAttribIPointer(3, 3, GL_INT, 0, nullptr);
             glEnableVertexAttribArray(3);
@@ -237,7 +237,7 @@ namespace dal {
             vramUsage += size;
 
             glBindBuffer(GL_ARRAY_BUFFER, this->m_buffers[4]);
-            glBufferData(GL_ARRAY_BUFFER, size, normals, GL_STATIC_DRAW);
+            glBufferData(GL_ARRAY_BUFFER, size, weights, GL_STATIC_DRAW);
 
             glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
             glEnableVertexAttribArray(4);
