@@ -459,8 +459,8 @@ namespace {
         const auto sizeFor3 = mesh->mNumVertices * 3 * sizeof(float);
         const auto sizeFor2 = mesh->mNumVertices * 2 * sizeof(float);
 
-        memcpy_s(vertices.data(), sizeFor3, mesh->mVertices, sizeFor3);
-        memcpy_s(normals.data(), sizeFor3, mesh->mNormals, sizeFor3);
+        std::memcpy(vertices.data(), mesh->mVertices, sizeFor3);
+        std::memcpy(normals.data(), mesh->mNormals, sizeFor3);
 
         for ( unsigned int i = 0; i < mesh->mNumVertices; i++ ) {
             const auto& tex = mesh->mTextureCoords[0][i];
@@ -545,8 +545,9 @@ namespace {
             }
 
             weightBuffer = glm::normalize(weightBuffer);
-            memcpy_s(&renUnit.m_mesh.m_boneWeights[3*i], 3*sizeof(float), &weightBuffer[0], 3*sizeof(float));
-            memcpy_s(&renUnit.m_mesh.m_boneIndex[3*i], 3*sizeof(int32_t), &indexBuf[0], 3*sizeof(int32_t));
+
+            std::memcpy(&renUnit.m_mesh.m_boneWeights[3*i], &weightBuffer[0], 3*sizeof(float));
+            std::memcpy(&renUnit.m_mesh.m_boneIndex[3*i], &indexBuf[0], 3*sizeof(int32_t));
         }
 
         return true;

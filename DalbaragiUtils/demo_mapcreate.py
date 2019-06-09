@@ -7,18 +7,6 @@ import level.datastruct.attrib_complex as aco
 def main():
     level = lvb.LevelBuilder("test_level")
 
-    model = bfi.BuildInfo_ModelImported()
-
-    actor = aco.ActorInfo()
-    actor.setName("honoka")
-    actor.getQuatHandle().rotate(180, (0, 1, 0))
-    actor.getPosHandle().setX(2)
-    actor.getPosHandle().setZ(4)
-    model.addActor(actor)
-
-    model.setModelID("test::untitled.dae")
-    level.add(model)
-
     ########
 
     light = bfi.BuildInfo_LightPoint()
@@ -52,8 +40,8 @@ def main():
     model = bfi.BuildInfo_ModelImportedAnimated()
 
     actor = aco.ActorInfo()
+    actor.setName("ThinMatrix")
     actor.getPosHandle().setX(-3)
-    actor.getPosHandle().setY(20)
     actor.getPosHandle().setZ(1)
     model.addActor(actor)
 

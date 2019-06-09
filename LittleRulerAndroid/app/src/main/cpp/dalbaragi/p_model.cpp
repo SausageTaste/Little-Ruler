@@ -1,6 +1,7 @@
 #include "p_model.h"
 
 #include <glm/gtc/matrix_transform.hpp>
+#include <assimp/matrix4x4.h>
 
 #include "s_logger_god.h"
 
@@ -208,8 +209,8 @@ namespace dal {
         const auto jointIndex = this->m_jointInterface.getIndexOf(NodeName);
         if ( -1 != jointIndex ) {
             const auto finalTrans = this->m_globalInvMat * GlobalTransformation * this->m_jointInterface.getOffsetMat(jointIndex);
-            //const auto finalTrans = this->m_globalInvMat * GlobalTransformation * glm::mat4{ 1.0f };
-            this->m_jointInterface.setFinalTransform(jointIndex, finalTrans);
+            const auto lol = glm::rotate(glm::mat4{ 1.0f }, glm::radians(-90.0f), glm::vec3{ 1, 0, 0 }) * glm::scale(glm::mat4{ 1.0f }, glm::vec3{ 0.3, 0.3, 0.3 });
+            this->m_jointInterface.setFinalTransform(jointIndex, lol * finalTrans);
         }
 
         for ( unsigned int i = 0; i < pNode->mNumChildren; i++ ) {

@@ -32,14 +32,6 @@ out vec4 v_worldPos;
 
 
 void main(void) {
-    v_worldPos = uModelMat * vec4(iPosition, 1.0);
-
-#ifndef GL_ES
-    if (u_doClip) {
-        gl_ClipDistance[0] = dot(v_worldPos, u_clipPlane);
-    }
-#endif
-
     mat4 boneMat = u_poses[i_jointIDs[0]] * i_weights[0];
     for (int i = 1; i < 3; i++) {
         int jid = i_jointIDs[i];
@@ -47,7 +39,15 @@ void main(void) {
         boneMat += u_poses[jid] * i_weights[i];
     }
 
-    gl_Position = uProjectMat * uViewMat * boneMat * v_worldPos;
+    v_worldPos = uModelMat * boneMat * vec4(iPosition, 1.0);
+
+#ifndef GL_ES
+    if (u_doClip) {
+        gl_ClipDistance[0] = dot(v_worldPos, u_clipPlane);
+    }
+#endif
+
+    gl_Position = uProjectMat * uViewMat * v_worldPos;
     vFragPos = vec3(uModelMat * vec4(iPosition, 1.0));
     vTexCoord = vec2(iTexCoord.x * uTexScaleX, -iTexCoord.y * uTexScaleY);
     vNormalVec = normalize(vec3(uModelMat * vec4(iNormal, 0.0)));
