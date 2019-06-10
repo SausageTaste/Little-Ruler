@@ -10,6 +10,7 @@
 #include "m_collider.h"
 #include "u_fileclass.h"
 #include "p_uniloc.h"
+#include "p_animation.h"
 
 
 namespace dal {
@@ -65,7 +66,8 @@ namespace dal {
         };
 
         std::vector<RenderUnit> m_renderUnits;
-        loadedinfo::JointInfoNoParent m_jointInterface;
+        SkeletonInterface m_jointInterface;
+        std::vector<Animation> m_animations;
         glm::mat4 m_globalInvMat;
 
     public:
@@ -74,7 +76,8 @@ namespace dal {
 
     public:
         RenderUnit* addRenderUnit(void);
-        void setAnimation(const loadedinfo::JointInfoNoParent& m_joints);
+        void setSkeletonInterface(SkeletonInterface&& joints);
+        void setAnimations(std::vector<Animation>&& animations);
         void setGlobalMat(const glm::mat4 mat);
 
         bool isReady(void) const;

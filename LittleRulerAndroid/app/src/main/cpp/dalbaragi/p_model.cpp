@@ -106,8 +106,12 @@ namespace dal {
         return &this->m_renderUnits.back();
     }
 
-    void ModelAnimated::setAnimation(const loadedinfo::JointInfoNoParent& joints) {
-        this->m_jointInterface = joints;
+    void ModelAnimated::setSkeletonInterface(SkeletonInterface&& joints) {
+        this->m_jointInterface = std::move(joints);
+    }
+
+    void ModelAnimated::setAnimations(std::vector<Animation>&& animations) {
+        this->m_animations = std::move(animations);
     }
 
     void ModelAnimated::setGlobalMat(const glm::mat4 mat) {

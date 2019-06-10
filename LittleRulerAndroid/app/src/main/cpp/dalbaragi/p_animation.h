@@ -1,0 +1,91 @@
+#pragma once
+
+#include <map>
+#include <string>
+#include <vector>
+
+#include <glm/glm.hpp>
+#include <glm/gtc/quaternion.hpp>
+
+#include "p_uniloc.h"
+
+
+namespace dal {
+
+    class SkeletonInterface {
+
+    private:
+        std::map<std::string, int32_t> m_map;
+        std::vector<glm::mat4> m_boneOffsets;
+        std::vector<glm::mat4> m_finalTransform;
+        int32_t m_lastMadeIndex = -1;
+
+    public:
+        int32_t getIndexOf(const std::string& jointName) const;
+        int32_t getOrMakeIndexOf(const std::string& jointName);
+
+        void setOffsetMat(const int32_t index, const glm::mat4& mat);
+        const glm::mat4& getOffsetMat(const int32_t index) const;
+
+        void setFinalTransform(const int32_t index, const glm::mat4& mat);
+        const glm::mat4& getFinalTransform(const int32_t index) const;
+
+        bool isEmpty(void) const;
+
+        void sendUniform(const UnilocAnimate& uniloc) const;
+
+    private:
+        int32_t upsizeAndGetIndex(void);
+        bool isIndexValid(const int32_t index) const;
+
+    };
+
+
+    struct JointKeyframeInfo {
+        std::string m_name;
+        std::map<float, glm::vec3> m_poses;
+        std::map<float, glm::quat> m_rotates;
+        std::map<float, float> m_scales;
+    };
+
+
+    class JointNode {
+
+    private:
+        std::string m_name;
+        glm::mat4 m_transform;
+        
+        std::vector<std::pair<float, glm::vec3>> m_poses;
+        std::vector<std::pair<float, glm::quat>> m_rotates;
+        std::vector<std::pair<float, float>> m_scales;
+
+        JointNode* m_parent;
+        std::vector<JointNode> m_children;
+
+    public:
+        JointNode(const JointKeyframeInfo& info, const glm::mat4& transform, JointNode* const parent);
+        JointNode(const std::string& name, const glm::mat4& transform, JointNode* const parent);
+        JointNode* emplaceChild(const JointKeyframeInfo& info, const glm::mat4& transform, JointNode* const parent);
+        JointNode* emplaceChild(const std::string& name, const glm::mat4& transform, JointNode* const parent);
+
+        void sample(const float animTick, const glm::mat4& parentTrans, std::vector<glm::mat4>& result, const SkeletonInterface& interf);
+
+    };
+
+
+    class Animation {
+
+    private:
+        std::string m_name;
+        JointNode m_rootNode;
+        float m_tickPerSec, m_durationInTick;
+
+    public:
+        Animation(const std::string& name, const float tickPerSec, const float durationTick, JointNode&& rootNode);
+
+        const std::string& getName(void) const { return this->m_name; }
+        std::vector<glm::mat4> sample(const float scale, const SkeletonInterface& interf);
+
+    };
+
+}

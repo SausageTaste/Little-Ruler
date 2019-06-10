@@ -274,85 +274,89 @@ namespace {
         return materials;
     }
 
-    void getJointHierarchy_recur(const aiNode* const node, const dal::loadedinfo::Animation& animation, dal::JointNode& jointNode) {
-        const auto nodeName = node->mName.C_Str();
-        jointNode.setName(nodeName);
-        jointNode.setKeyframe(animation.getJoint(nodeName));
-        jointNode.setBindMat(convertAssimpMat(node->mTransformation));
+}
 
-        for ( unsigned int i = 0; i < node->mNumChildren; i++ ) {
-            const auto child = node->mChildren[i];
-            if ( animation.hasJoint(child->mName.C_Str()) ) {
-                getJointHierarchy_recur(child, animation, jointNode.newChild());
-            }
-        }
-    }
 
-    const aiNode* findRoot_recur(const aiNode* const node, const dal::loadedinfo::Animation& animation) {
-        if ( animation.hasJoint(node->mName.C_Str()) ) {
-            return node;
+// Process animations
+namespace {
+
+    using JointRegistry = std::unordered_map<std::string, dal::JointKeyframeInfo>;
+
+
+    const dal::JointKeyframeInfo* findJointRegistry(const std::string& nameToFind, const JointRegistry& jointRegistry) {
+        auto iter = jointRegistry.find(nameToFind);
+        if ( jointRegistry.end() != iter ) {
+            return &(iter->second);
         }
         else {
-            const auto numChildren = node->mNumChildren;
-            for ( unsigned i = 0; i < numChildren; i++ ) {
-                const auto res = findRoot_recur(node->mChildren[i], animation);
-                if ( nullptr != res ) {
-                    return res;
-                }
-            }
             return nullptr;
         }
     }
 
-    dal::JointNode getJointHierarchy(const aiScene* const scene, const dal::loadedinfo::Animation& animation) {
-        const auto rootNode = findRoot_recur(scene->mRootNode, animation);
-        dalAssert(nullptr != rootNode);
+    void buildNodesRecur(const aiNode* const node, dal::JointNode& parentJoint, const JointRegistry& jointRegistry) {
+        const auto thisNodeName = node->mName.C_Str();
+        const auto keyframeInfo = findJointRegistry(thisNodeName, jointRegistry);
 
-        dal::JointNode rootJoint{ nullptr };
-        getJointHierarchy_recur(rootNode, animation, rootJoint);
-        return rootJoint;
+        auto rootNode = nullptr != keyframeInfo ?
+            parentJoint.emplaceChild(*keyframeInfo, convertAssimpMat(node->mTransformation), &parentJoint) :
+            parentJoint.emplaceChild(thisNodeName, convertAssimpMat(node->mTransformation), &parentJoint);
+
+        for ( unsigned int i = 0; i < node->mNumChildren; i++ ) {
+            buildNodesRecur(node->mChildren[i], *rootNode, jointRegistry);
+        }
+    }
+
+    dal::JointNode makeJointHierarchy(const aiNode* const node, const JointRegistry& jointRegistry) {
+        const auto thisNodeName = node->mName.C_Str();
+        const auto keyframeInfo = findJointRegistry(thisNodeName, jointRegistry);
+
+        auto rootNode = nullptr != keyframeInfo ?
+            dal::JointNode{ *keyframeInfo, convertAssimpMat(node->mTransformation), nullptr } :
+            dal::JointNode{ thisNodeName, convertAssimpMat(node->mTransformation), nullptr };
+
+        for ( unsigned int i = 0; i < node->mNumChildren; i++ ) {
+            buildNodesRecur(node->mChildren[i], rootNode, jointRegistry);
+        }
+
+        return rootNode;
     }
 
     // Returns parent map std::unordered_map< joint name, parent name >.
     void processAnimation(const aiScene* const scene, std::vector<dal::Animation>& info) {
         info.clear();
 
-        std::vector<dal::loadedinfo::Animation> localAnimInfo;
-
-        localAnimInfo.resize(scene->mNumAnimations);
         for ( unsigned i = 0; i < scene->mNumAnimations; i++ ) {
             const auto anim = scene->mAnimations[i];
-            auto& animInfo = localAnimInfo[i];
-
-            animInfo.m_name = anim->mName.C_Str();
+            std::unordered_map<std::string, dal::JointKeyframeInfo> jointRegistry;
+            jointRegistry.reserve(anim->mNumChannels);
 
             for ( unsigned j = 0; j < anim->mNumChannels; j++ ) {
                 const auto channel = anim->mChannels[j];
-                animInfo.m_joints.emplace_back();
-                auto& jointInfo = animInfo.m_joints.back();
+                auto iter = jointRegistry.emplace(channel->mNodeName.C_Str(), dal::JointKeyframeInfo{});
+                auto jointInfo = &(iter.first->second);
 
-                jointInfo.m_name = channel->mNodeName.C_Str();
+                jointInfo->m_name = channel->mNodeName.C_Str();
 
                 for ( unsigned k = 0; k < channel->mNumPositionKeys; k++ ) {
                     const auto& pos = channel->mPositionKeys[k];
-                    jointInfo.m_poses.emplace(pos.mTime, glm::vec3{ pos.mValue.x, pos.mValue.y, pos.mValue.z });
+                    jointInfo->m_poses.emplace(static_cast<float>(pos.mTime), glm::vec3{ pos.mValue.x, pos.mValue.y, pos.mValue.z });
                 }
 
                 for ( unsigned k = 0; k < channel->mNumRotationKeys; k++ ) {
                     const auto& rot = channel->mRotationKeys[k];
-                    jointInfo.m_rotates.emplace(rot.mTime, glm::quat{ rot.mValue.w, rot.mValue.x, rot.mValue.y, rot.mValue.z });
+                    jointInfo->m_rotates.emplace(static_cast<float>(rot.mTime), glm::quat{ rot.mValue.w, rot.mValue.x, rot.mValue.y, rot.mValue.z });
                 }
 
                 for ( unsigned k = 0; k < channel->mNumScalingKeys; k++ ) {
                     const auto& sca = channel->mScalingKeys[k];
                     const auto averageScale = (sca.mValue.x + sca.mValue.y + sca.mValue.z) / 3.0f;
-                    jointInfo.m_scales.emplace(sca.mTime, averageScale);
+                    jointInfo->m_scales.emplace(static_cast<float>(sca.mTime), averageScale);
                 }
             }
 
             // Fill parent info
             
-            info.emplace_back(anim->mName.C_Str(), std::move(getJointHierarchy(scene, animInfo)));
+            info.emplace_back(anim->mName.C_Str(), anim->mTicksPerSecond, anim->mDuration, makeJointHierarchy(scene->mRootNode, jointRegistry));
         }
     }
 
@@ -411,7 +415,7 @@ namespace {
         return true;
     }
 
-    bool processMeshAnimated(dal::loadedinfo::RenderUnitAnimated& renUnit, dal::loadedinfo::JointInfoNoParent& jointInfo,
+    bool processMeshAnimated(dal::loadedinfo::RenderUnitAnimated& renUnit, dal::SkeletonInterface& jointInfo,
         AABBBuildInfo& aabbInfo, aiMesh* const mesh)
     {
         renUnit.m_name = reinterpret_cast<char*>(&mesh->mName);

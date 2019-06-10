@@ -382,7 +382,8 @@ namespace dal {
             }
 
             loaded->data_coresponding.setBoundingBox(loaded->out_info.m_model.m_aabb);
-            loaded->data_coresponding.setAnimation(loaded->out_info.m_model.m_joints);
+            loaded->data_coresponding.setSkeletonInterface(std::move(loaded->out_info.m_model.m_joints));
+            loaded->data_coresponding.setAnimations(std::move(loaded->out_info.m_animations));
 
             for ( auto& unitInfo : loaded->out_info.m_model.m_renderUnits ) {
                 auto unit = loaded->data_coresponding.addRenderUnit();
