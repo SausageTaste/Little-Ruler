@@ -34,18 +34,19 @@ namespace dal {
 
     };
 
-    namespace futil {
-
-        bool getRes_text(const ResourceID& resID, std::string& buffer);
-        bool getRes_image(const ResourceID& resID, loadedinfo::ImageFileData& data);
-        bool getRes_buffer(const ResourceID& resID, std::vector<uint8_t>& buffer);
-
-    }
-
     bool resolveRes(dal::ResourceID& result);
 
     bool initFilesystem(void* mgr, const char* const sdcardPath);
     bool isFilesystemReady(void);
+
+}
+
+
+namespace dal::futil {
+
+    bool getRes_text(const ResourceID& resID, std::string& buffer);
+    bool getRes_image(const ResourceID& resID, loadedinfo::ImageFileData& data);
+    bool getRes_buffer(const ResourceID& resID, std::vector<uint8_t>& buffer);
 
 }
 

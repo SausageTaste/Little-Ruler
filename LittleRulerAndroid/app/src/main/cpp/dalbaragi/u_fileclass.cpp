@@ -715,59 +715,59 @@ namespace dal {
 
 
 // file utils
-namespace dal {
+namespace dal::futil {
 
-    namespace futil {
+    bool getRes_text(const ResourceID& resID, std::string& buffer) {
+        auto file = resopen(resID, FileMode::read);
+        if ( nullptr == file ) return false;
 
-        bool getRes_text(const ResourceID& resID, std::string& buffer) {
-            auto file = resopen(resID, FileMode::read);
-            if ( nullptr == file ) return false;
-
-            return file->readText(buffer);
-        }
-
-        bool getRes_image(const ResourceID& resID, loadedinfo::ImageFileData& data) {
-            const std::unordered_set<std::string> supportedFormats{ ".tga", ".png" };
-            if ( supportedFormats.find(resID.getExt()) == supportedFormats.end() ) {
-                dalError("Not supported image file format: "s + resID.makeIDStr());
-                return false;
-            }
-
-            std::vector<uint8_t> fileBuffer;
-            auto file = resopen(resID, FileMode::bread);
-            if ( nullptr == file ) return false;
-
-            const auto fileSize = file->getSize();
-            fileBuffer.resize(fileSize);
-            if ( !file->read(fileBuffer.data(), fileBuffer.size()) ) return false;
-
-            if ( ".tga"s == resID.getExt() ) {
-                const auto res = parseImageTGA(data, fileBuffer.data(), fileBuffer.size());
-                if ( !res ) dalError("Error while parsing tga image: "s + resID.makeIDStr());
-                return res;
-            }
-            else if ( ".png"s == resID.getExt() ) {
-                const auto res = parseImagePNG(data, fileBuffer);
-                if ( !res ) dalError("Error while parsing png image: "s + resID.makeIDStr());
-                return res;
-            }
-            else {
-                dalError("Early support test for image has failed: "s + resID.makeIDStr());
-                return false;
-            }
-        }
-
-        bool getRes_buffer(const ResourceID& resID, std::vector<uint8_t>& buffer) {
-            auto file = resopen(resID, FileMode::bread);
-            if ( nullptr == file ) return false;
-
-            const auto fileSize = file->getSize();
-            buffer.resize(fileSize);
-            return file->read(buffer.data(), buffer.size()) == fileSize;
-        }
-
+        return file->readText(buffer);
     }
 
+    bool getRes_image(const ResourceID& resID, loadedinfo::ImageFileData& data) {
+        const std::unordered_set<std::string> supportedFormats{ ".tga", ".png" };
+        if ( supportedFormats.find(resID.getExt()) == supportedFormats.end() ) {
+            dalError("Not supported image file format: "s + resID.makeIDStr());
+            return false;
+        }
+
+        std::vector<uint8_t> fileBuffer;
+        auto file = resopen(resID, FileMode::bread);
+        if ( nullptr == file ) return false;
+
+        const auto fileSize = file->getSize();
+        fileBuffer.resize(fileSize);
+        if ( !file->read(fileBuffer.data(), fileBuffer.size()) ) return false;
+
+        if ( ".tga"s == resID.getExt() ) {
+            const auto res = parseImageTGA(data, fileBuffer.data(), fileBuffer.size());
+            if ( !res ) dalError("Error while parsing tga image: "s + resID.makeIDStr());
+            return res;
+        }
+        else if ( ".png"s == resID.getExt() ) {
+            const auto res = parseImagePNG(data, fileBuffer);
+            if ( !res ) dalError("Error while parsing png image: "s + resID.makeIDStr());
+            return res;
+        }
+        else {
+            dalError("Early support test for image has failed: "s + resID.makeIDStr());
+            return false;
+        }
+    }
+
+    bool getRes_buffer(const ResourceID& resID, std::vector<uint8_t>& buffer) {
+        auto file = resopen(resID, FileMode::bread);
+        if ( nullptr == file ) return false;
+
+        const auto fileSize = file->getSize();
+        buffer.resize(fileSize);
+        return file->read(buffer.data(), buffer.size()) == fileSize;
+    }
+
+}
+
+
+namespace dal {
 
     bool resolveRes(ResourceID& result) {
         const std::string resolveSucMsg{ "Resource resolved: " };
