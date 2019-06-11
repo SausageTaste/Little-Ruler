@@ -77,22 +77,26 @@ namespace dal {
     class ActorInfo {
 
     private:
+        glm::mat4 m_modelMat;
         std::string m_name;
-        bool m_static = true;
-
-    public:
-        glm::vec3 m_pos;
         glm::quat m_quat;
+        glm::vec3 m_pos;
+        float m_scale = 1.0f;
+        bool m_matNeedUpdate = true;
+        bool m_static = true;
 
     public:
         ActorInfo(void) = default;
         ActorInfo(const std::string& actorName, const bool flagStatic);
 
-        ActorInfo(const ActorInfo&) = default;
-        ActorInfo& operator=(const ActorInfo&) = default;
+        const glm::mat4& getModelMat(void);
 
-        glm::mat4 getViewMat(void) const;
+        void setQuat(const glm::quat& q);
         void rotate(const float v, const glm::vec3& selector);
+
+        const glm::vec3& getPos(void) const;
+        void setPos(const glm::vec3& v);
+        void addPos(const glm::vec3& v);
 
     };
 

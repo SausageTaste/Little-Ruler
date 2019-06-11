@@ -45,10 +45,10 @@ namespace dal {
         void onScreanResize(const unsigned int width, const unsigned int height);
         void update(const float deltaTime);
 
-        void renderGeneral(const UnilocGeneral& uniloc) const;
-        void renderDepthMp(const UnilocDepthmp& uniloc) const;
+        void renderGeneral(const UnilocGeneral& uniloc);
+        void renderDepthMp(const UnilocDepthmp& uniloc);
         void renderWaterry(const UnilocWaterry& uniloc);
-        void renderAnimate(const UnilocAnimate& uniloc) const;
+        void renderAnimate(const UnilocAnimate& uniloc);
         void renderGeneral_onWater(const UnilocGeneral& uniloc, const ICamera& cam, MapChunk* const additional);
         void renderAnimate_onWater(const UnilocAnimate& uniloc, const ICamera& cam, MapChunk* const additional);
 
@@ -81,10 +81,10 @@ namespace dal {
 
         void update(const float deltaTime);
 
-        void renderGeneral(const UnilocGeneral& uniloc) const;
-        void renderDepthMp(const UnilocDepthmp& uniloc) const;
+        void renderGeneral(const UnilocGeneral& uniloc);
+        void renderDepthMp(const UnilocDepthmp& uniloc);
         void renderWaterry(const UnilocWaterry& uniloc);
-        void renderAnimate(const UnilocAnimate& uniloc) const;
+        void renderAnimate(const UnilocAnimate& uniloc);
         void renderGeneral_onWater(const UnilocGeneral& uniloc, const ICamera& cam);
         void renderAnimate_onWater(const UnilocAnimate& uniloc, const ICamera& cam);
 

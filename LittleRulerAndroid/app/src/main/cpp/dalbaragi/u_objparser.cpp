@@ -10,6 +10,7 @@
 #include <unordered_map>
 
 #include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 #include <fmt/format.h>
 #include <assimp/scene.h>
 #include <assimp/Importer.hpp>
@@ -321,9 +322,14 @@ namespace {
         return rootNode;
     }
 
-    // Returns parent map std::unordered_map< joint name, parent name >.
     void processAnimation(const aiScene* const scene, std::vector<dal::Animation>& info) {
         info.clear();
+
+        {
+            info.emplace_back( "nullpose", 0.0f, 0.0f,
+                makeJointHierarchy(scene->mRootNode, JointRegistry{})
+            );
+        }
 
         for ( unsigned i = 0; i < scene->mNumAnimations; i++ ) {
             const auto anim = scene->mAnimations[i];
@@ -356,7 +362,12 @@ namespace {
 
             // Fill parent info
             
-            info.emplace_back(anim->mName.C_Str(), anim->mTicksPerSecond, anim->mDuration, makeJointHierarchy(scene->mRootNode, jointRegistry));
+            info.emplace_back(
+                anim->mName.C_Str(),
+                static_cast<float>(anim->mTicksPerSecond),
+                static_cast<float>(anim->mDuration),
+                makeJointHierarchy(scene->mRootNode, jointRegistry)
+            );
         }
     }
 
@@ -482,9 +493,7 @@ namespace {
                 return false;
             }
 
-            if ( ai_mesh->mMaterialIndex != 0 ) {
-                renUnit.m_material = materials.at(ai_mesh->mMaterialIndex);
-            }
+            renUnit.m_material = materials.at(ai_mesh->mMaterialIndex);
         }
 
         for ( unsigned int i = 0; i < node->mNumChildren; i++ ) {
@@ -508,9 +517,7 @@ namespace {
                 return false;
             }
 
-            if ( ai_mesh->mMaterialIndex != 0 ) {
-                renUnit.m_material = materials.at(ai_mesh->mMaterialIndex);
-            }
+            renUnit.m_material = materials.at(ai_mesh->mMaterialIndex);
         }
 
         for ( unsigned int i = 0; i < node->mNumChildren; i++ ) {
@@ -547,21 +554,29 @@ namespace dal {
         return res;
     }
 
-    bool loadAssimpModel(const ResourceID& resID, AssimpModelInfo& info, ModelAnimated& model) {
-        model.m_importer.SetIOHandler(new AssResourceIOSystem);
-        model.m_scene = model.m_importer.ReadFile(makeAssimpResID(resID).c_str(), aiProcess_Triangulate);
-        if ( !isSceneComplete(model.m_scene) ) {
-            dalError("Assimp read fail: "s +  model.m_importer.GetErrorString());
+    bool loadAssimpModel(const ResourceID& resID, AssimpModelInfo& info) {
+        Assimp::Importer importer;
+        importer.SetIOHandler(new AssResourceIOSystem);
+        const auto scene = importer.ReadFile(makeAssimpResID(resID).c_str(), aiProcess_Triangulate);
+        if ( !isSceneComplete(scene) ) {
+            dalError("Assimp read fail: "s +  importer.GetErrorString());
             return false;
         }
 
-        const auto materials = parseMaterials(model.m_scene);
-        processAnimation(model.m_scene, info.m_animations);
+        const auto materials = parseMaterials(scene);
+        processAnimation(scene, info.m_animations);
+
+
+        if ( resID.getExt() == ".dae" ) {
+            const auto rotMat = glm::rotate(glm::mat4{ 1.0f }, glm::radians(90.0f), glm::vec3{ 1.0f, 0.0f, 0.0f });
+            info.m_model.m_globalTrans = rotMat * convertAssimpMat(scene->mRootNode->mTransformation);
+        }
+        else {
+            info.m_model.m_globalTrans = convertAssimpMat(scene->mRootNode->mTransformation);
+        }
 
         AABBBuildInfo aabbInfo;
-        info.m_model.m_globalTrans = convertAssimpMat(model.m_scene->mRootNode->mTransformation);
-        model.setGlobalMat(info.m_model.m_globalTrans);
-        const auto res = processNodeAnimated(info.m_model, materials, aabbInfo, model.m_scene, model.m_scene->mRootNode);
+        const auto res = processNodeAnimated(info.m_model, materials, aabbInfo, scene, scene->mRootNode);
         info.m_model.m_aabb.set(aabbInfo.p1, aabbInfo.p2);
 
         return true;

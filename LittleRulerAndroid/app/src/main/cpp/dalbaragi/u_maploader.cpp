@@ -152,11 +152,8 @@ namespace {  // Make attribs
                 header += 4;
             }
 
-            actor.m_pos = { numBuf[0], numBuf[1], numBuf[2] };
-            actor.m_quat.x = numBuf[3];
-            actor.m_quat.y = numBuf[4];
-            actor.m_quat.z = numBuf[5];
-            actor.m_quat.w = numBuf[6];
+            actor.setPos(glm::vec3{ numBuf[0], numBuf[1], numBuf[2] });
+            actor.setQuat(glm::quat{ numBuf[6], numBuf[3], numBuf[4], numBuf[5] });
         }
 
         return header;

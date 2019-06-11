@@ -170,14 +170,42 @@ namespace dal {
 
     }
 
-    glm::mat4 ActorInfo::getViewMat(void) const {
-        //auto scaleMat = glm::scale(glm::mat4{ 1.0f }, { rescale, rescale , rescale });
-        auto translateMat = glm::translate(glm::mat4{ 1.0f }, this->m_pos);
-        return translateMat * glm::mat4_cast(this->m_quat); // *scaleMat;
+    const glm::mat4& ActorInfo::getModelMat(void) {
+        if ( this->m_matNeedUpdate ) {
+            const auto identity = glm::mat4{ 1.0f };
+            const auto scaleMat = glm::scale(identity, glm::vec3{ this->m_scale, this->m_scale , this->m_scale });
+            const auto translateMat = glm::translate(identity, this->m_pos);
+            this->m_modelMat = translateMat * glm::mat4_cast(this->m_quat) * scaleMat;
+            this->m_matNeedUpdate = false;
+        }
+
+        return this->m_modelMat;
+    }
+
+
+    void ActorInfo::setQuat(const glm::quat& q) {
+        this->m_matNeedUpdate = true;
+        this->m_quat = q;
     }
 
     void ActorInfo::rotate(const float v, const glm::vec3& selector) {
+        this->m_matNeedUpdate = true;
         this->m_quat = glm::normalize(glm::angleAxis(v, selector) * this->m_quat);
+    }
+
+
+    const glm::vec3& ActorInfo::getPos(void) const {
+        return this->m_pos;
+    }
+
+    void ActorInfo::setPos(const glm::vec3& v) {
+        this->m_matNeedUpdate = true;
+        this->m_pos = v;
+    }
+
+    void ActorInfo::addPos(const glm::vec3& v) {
+        this->m_matNeedUpdate = true;
+        this->m_pos += v;
     }
 
 }

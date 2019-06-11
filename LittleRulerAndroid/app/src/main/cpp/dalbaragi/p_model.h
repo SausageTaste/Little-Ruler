@@ -11,6 +11,7 @@
 #include "u_fileclass.h"
 #include "p_uniloc.h"
 #include "p_animation.h"
+#include "u_timer.h"
 
 
 namespace dal {
@@ -48,8 +49,8 @@ namespace dal {
 
         bool isReady(void) const;
 
-        void renderGeneral(const UnilocGeneral& uniloc, const std::list<ActorInfo>& actors) const;
-        void renderDepthMap(const UnilocDepthmp& uniloc, const std::list<ActorInfo>& actors) const;
+        void renderGeneral(const UnilocGeneral& uniloc, std::list<ActorInfo>& actors) const;
+        void renderDepthMap(const UnilocDepthmp& uniloc, std::list<ActorInfo>& actors) const;
 
         void destroyModel(void);
 
@@ -69,10 +70,7 @@ namespace dal {
         SkeletonInterface m_jointInterface;
         std::vector<Animation> m_animations;
         glm::mat4 m_globalInvMat;
-
-    public:
-        Assimp::Importer m_importer;
-        const aiScene* m_scene = nullptr;
+        Timer m_animLocalTimer;
 
     public:
         RenderUnit* addRenderUnit(void);
@@ -82,11 +80,15 @@ namespace dal {
 
         bool isReady(void) const;
 
-        void renderAnimate(const UnilocAnimate& uniloc, const std::list<ActorInfo>& actors) const;
-        void renderDepthMap(const UnilocDepthmp& uniloc, const std::list<ActorInfo>& actors) const;
+        void renderAnimate(const UnilocAnimate& uniloc, std::list<ActorInfo>& actors);
+        void renderDepthMap(const UnilocDepthmp& uniloc, std::list<ActorInfo>& actors) const;
 
         void destroyModel(void);
 
+        void updateAnimation0(void);
+
+        /*
+        // Just in case
         void BoneTransform(float TimeInSeconds);
         void ReadNodeHeirarchy(float AnimationTime, const aiNode* pNode, const glm::mat4& ParentTransform);
         const aiNodeAnim* FindNodeAnim(const aiAnimation* const pAnimation, const std::string& NodeName);
@@ -98,6 +100,7 @@ namespace dal {
         unsigned int FindPosition(float AnimationTime, const aiNodeAnim* pNodeAnim);
         unsigned int FindRotation(float AnimationTime, const aiNodeAnim* pNodeAnim);
         unsigned int FindScaling(float AnimationTime, const aiNodeAnim* pNodeAnim);
+        */
 
     };
 

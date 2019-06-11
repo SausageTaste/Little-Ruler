@@ -30,6 +30,7 @@ namespace dal {
         void setFinalTransform(const int32_t index, const glm::mat4& mat);
         const glm::mat4& getFinalTransform(const int32_t index) const;
 
+        int32_t getSize(void) const;
         bool isEmpty(void) const;
 
         void sendUniform(const UnilocAnimate& uniloc) const;
@@ -68,7 +69,15 @@ namespace dal {
         JointNode* emplaceChild(const JointKeyframeInfo& info, const glm::mat4& transform, JointNode* const parent);
         JointNode* emplaceChild(const std::string& name, const glm::mat4& transform, JointNode* const parent);
 
-        void sample(const float animTick, const glm::mat4& parentTrans, std::vector<glm::mat4>& result, const SkeletonInterface& interf);
+        void sample(const float animTick, const glm::mat4& parentTrans, SkeletonInterface& interf, const glm::mat4& globalInvMat) const;
+
+    private:
+        bool hasKeyframes(void) const;
+
+        glm::vec3 makePosInterp(const float animTick) const;
+        glm::quat makeRotateInterp(const float animTick) const;
+        float makeScaleInterp(const float animTick) const;
+        glm::mat4 makeTransformInterp(const float animTick) const;
 
     };
 
@@ -84,7 +93,10 @@ namespace dal {
         Animation(const std::string& name, const float tickPerSec, const float durationTick, JointNode&& rootNode);
 
         const std::string& getName(void) const { return this->m_name; }
-        std::vector<glm::mat4> sample(const float scale, const SkeletonInterface& interf);
+        float getTickPerSec(void) const { return this->m_tickPerSec; }
+        float getDurationInTick(void) const { return this->m_durationInTick; }
+
+        void sample(const float animTick, SkeletonInterface& interf, const glm::mat4& globalInvMat) const;
 
     };
 

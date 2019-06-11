@@ -95,16 +95,13 @@ namespace dal {
     }
 
     void MapChunk::update(const float deltaTime) {
-        static float accumTime = 0.0f;
-        accumTime += deltaTime * 0.3f;
-
-        for ( auto& anim : this->m_animatedActors ) {
-            anim.m_model->BoneTransform(accumTime);
+        for ( auto& model : this->m_animatedActors ) {
+            model.m_model->updateAnimation0();
         }
     }
 
 
-    void MapChunk::renderGeneral(const UnilocGeneral& uniloc) const {
+    void MapChunk::renderGeneral(const UnilocGeneral& uniloc) {
         this->sendUniforms_lights(uniloc, 0);
 
         for ( auto& modelActor : this->m_modelActors ) {
@@ -112,7 +109,7 @@ namespace dal {
         }
     }
 
-    void MapChunk::renderDepthMp(const UnilocDepthmp& uniloc) const {
+    void MapChunk::renderDepthMp(const UnilocDepthmp& uniloc) {
         for ( auto& modelActor : this->m_modelActors ) {
             modelActor.m_model->renderDepthMap(uniloc, modelActor.m_inst);
         }
@@ -129,7 +126,7 @@ namespace dal {
         }
     }
 
-    void MapChunk::renderAnimate(const UnilocAnimate& uniloc) const {
+    void MapChunk::renderAnimate(const UnilocAnimate& uniloc) {
         this->sendUniforms_lights(uniloc, 0);
 
         for ( auto& modelActor : this->m_animatedActors ) {
@@ -254,20 +251,20 @@ namespace dal {
 
     void MapChunk::applyCollision(ModelStatic& model, ActorInfo& actor) {
         auto actorBox = model.getBoundingBox();
-        actorBox.add(actor.m_pos);
+        actorBox.add(actor.getPos());
 
         for ( auto& modelInfo : this->m_modelActors ) {
             for ( auto& modelActor : modelInfo.m_inst ) {
                 if ( &modelActor == &actor ) continue;
 
                 auto box = modelInfo.m_model->getBoundingBox();
-                box.add(modelActor.m_pos);
+                box.add(modelActor.getPos());
 
                 if ( actorBox.checkCollision(box) ) {
                     const auto resolveInfo = actorBox.getResolveInfo(box);
-                    actor.m_pos += resolveInfo.m_this;
+                    actor.addPos(resolveInfo.m_this);
                     actorBox.add(resolveInfo.m_this);
-                    modelActor.m_pos += resolveInfo.m_other;
+                    modelActor.addPos(resolveInfo.m_other);
                 }
             }
         }
@@ -277,13 +274,13 @@ namespace dal {
                 if ( &modelActor == &actor ) continue;
 
                 auto box = modelInfo.m_model->getBoundingBox();
-                box.add(modelActor.m_pos);
+                box.add(modelActor.getPos());
 
                 if ( actorBox.checkCollision(box) ) {
                     const auto resolveInfo = actorBox.getResolveInfo(box);
-                    actor.m_pos += resolveInfo.m_this;
+                    actor.addPos(resolveInfo.m_this);
                     actorBox.add(resolveInfo.m_this);
-                    modelActor.m_pos += resolveInfo.m_other;
+                    modelActor.addPos(resolveInfo.m_other);
                 }
             }
         }
@@ -350,13 +347,13 @@ namespace dal {
         }
     }
 
-    void SceneMaster::renderGeneral(const UnilocGeneral& uniloc) const {
+    void SceneMaster::renderGeneral(const UnilocGeneral& uniloc) {
         for ( auto& map : m_mapChunks ) {
             map.renderGeneral(uniloc);
         }
     }
 
-    void SceneMaster::renderDepthMp(const UnilocDepthmp& uniloc) const {
+    void SceneMaster::renderDepthMp(const UnilocDepthmp& uniloc) {
         for ( auto& map : m_mapChunks ) {
             map.renderDepthMp(uniloc);
         }
@@ -368,7 +365,7 @@ namespace dal {
         }
     }
 
-    void SceneMaster::renderAnimate(const UnilocAnimate& uniloc) const {
+    void SceneMaster::renderAnimate(const UnilocAnimate& uniloc) {
         for ( auto& map : m_mapChunks ) {
             map.renderAnimate(uniloc);
         }

@@ -1075,10 +1075,9 @@ namespace {
         // Apply move direction
         {
             auto actor = player.getActor();
-            actor->m_pos.x += totalMovePlane.x * deltaTime * 5.0f;
-            actor->m_pos.z += totalMovePlane.y * deltaTime * 5.0f;
+            actor->addPos(glm::vec3{ totalMovePlane.x * deltaTime * 5.0f, 0.0f, totalMovePlane.y * deltaTime * 5.0f });
 
-            actor->m_quat = glm::quat{};
+            actor->setQuat(glm::quat{});
             const glm::vec3 moveVec3{ totalMovePlane.x, 0.0f, -totalMovePlane.y };
             const auto stranEuler = dal::vec2StrangeEuler(moveVec3);
             actor->rotate(stranEuler.x, glm::vec3{ 0.0f, 1.0f, 0.0f });
@@ -1086,7 +1085,7 @@ namespace {
             auto camera = player.getCamera();
             constexpr float cameraAngle = 55.0f;
             const auto camOffset = glm::vec3{ 0.0, sin(glm::radians(cameraAngle)), cos(glm::radians(cameraAngle)) } * 3.0f;
-            camera->m_pos = actor->m_pos + camOffset + glm::vec3{ 0.0, 1.0, 0.0 };
+            camera->m_pos = actor->getPos() + camOffset + glm::vec3{ 0.0, 1.0, 0.0 };
             camera->setViewPlane(0.0f, glm::radians(-cameraAngle));
 
             camera->updateViewMat();

@@ -48,9 +48,9 @@ void main(void) {
 #endif
 
     gl_Position = uProjectMat * uViewMat * v_worldPos;
-    vFragPos = vec3(uModelMat * vec4(iPosition, 1.0));
+    vFragPos = vec3(v_worldPos);
     vTexCoord = vec2(iTexCoord.x * uTexScaleX, -iTexCoord.y * uTexScaleY);
-    vNormalVec = normalize(vec3(uModelMat * vec4(iNormal, 0.0)));
+    vNormalVec = normalize(vec3(uModelMat * boneMat * vec4(iNormal, 0.0)));
 
     for (int i = 0; i < uDlightCount; i++) {
         vFragPosInDlight[i] = uDlightProjViewMat[i] * vec4(vFragPos, 1.0);
