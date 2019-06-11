@@ -236,7 +236,7 @@ namespace dal {
         const glm::mat4 identity{ 1.0f };
         const auto posMat = glm::translate(identity, pos);
         const auto rotateMat = glm::mat4_cast(rotate);
-        const auto scaleMat = glm::scale(identity, glm::vec3{ scale, scale, scale });
+        const auto scaleMat = glm::scale(identity, glm::vec3{ scale });
 
         return posMat * rotateMat * scaleMat;
     }
