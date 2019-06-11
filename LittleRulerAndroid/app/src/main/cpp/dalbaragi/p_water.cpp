@@ -179,7 +179,7 @@ namespace dal {
 
     WaterFramebuffer::WaterFramebuffer(const unsigned int winWidth, const unsigned int winHeight)
         : m_winWidth(static_cast<float>(winWidth)), m_winHeight(static_cast<float>(winHeight)),
-        m_reflecScale(0.5f), m_refracScale(0.5f)
+        m_reflecScale(0.3f), m_refracScale(0.3f)
     {
         const auto REFLECTION_WIDTH = static_cast<GLsizei>(this->m_winWidth  * this->m_reflecScale);
         const auto REFLECTION_HEIGHT = static_cast<GLsizei>(this->m_winHeight * this->m_reflecScale);
@@ -271,9 +271,9 @@ namespace dal {
 
 namespace dal {
 
-    WaterRenderer::WaterRenderer(const glm::vec3& pos, const glm::vec2& size)
+    WaterRenderer::WaterRenderer(const glm::vec3& pos, const glm::vec2& size, const unsigned int winWidth, const unsigned int winHeight)
         : m_height(pos.y),
-        m_fbuffer(12, 12)
+        m_fbuffer(winWidth, winHeight)
     {
         std::array<float, 18> vertices{
             pos.x,          pos.y, pos.z,

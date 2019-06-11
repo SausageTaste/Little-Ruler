@@ -16,8 +16,6 @@ namespace dal {
         //// Vars ////
 
     private:
-        Timer m_initTimer;
-
         bool m_flagQuit;
 
         Timer m_timer;
@@ -26,20 +24,21 @@ namespace dal {
         StrangeEulerCamera m_camera;
         Player m_player;
 
+        ShaderMaster m_shader;
+        ResourceMaster m_resMas;
+        SceneMaster m_scene;
+        OverlayMaster m_overlayMas;
         RenderMaster m_renderMan;
         InputApplier m_inputApply;
 
         //// Funcs ////
 
     public:
-        // Please call this before constructor.
-        static void giveScreenResFirst(unsigned int w, unsigned int h);
-        static bool isScreenResGiven(void);
         // Windows doesn't need this but Android sure does. Please give it AAssetManager.
         static void giveWhatFilesystemWants(void* androidAssetManager, const char* const sdcardPath);
         static bool isWhatFilesystemWantsGiven(void);
 
-        Mainloop(void);
+        Mainloop(const unsigned int winWidth, const unsigned int winHeight);
         virtual ~Mainloop(void) override;
         int update(void);
         void onResize(int width, int height);

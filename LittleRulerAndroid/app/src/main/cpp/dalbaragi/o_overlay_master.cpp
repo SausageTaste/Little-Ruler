@@ -54,7 +54,7 @@ namespace dal {
 
 namespace dal {
 
-    OverlayMaster::OverlayMaster(ResourceMaster& resMas, const ShaderMaster& shaderMas)
+    OverlayMaster::OverlayMaster(ResourceMaster& resMas, const ShaderMaster& shaderMas, const unsigned int width, const unsigned int height)
         : m_resMas(resMas),
         m_shaderMas(shaderMas),
         m_unicodes(resMas),
@@ -64,6 +64,7 @@ namespace dal {
         /* Characters */
         {
             script::set_outputStream(&this->m_strBuffer);
+            ConfigsGod::getinst().setWinSize(width, height);
 
             {
                 auto fpsDisplayer = new Label(nullptr, this->m_unicodes);
@@ -124,7 +125,6 @@ namespace dal {
     OverlayMaster::~OverlayMaster(void) {
         LoggerGod::getinst().deleteChannel(&m_texStreamCh);
 
-        EventGod::getinst().deregisterHandler(this, EventType::window_resize);
         EventGod::getinst().deregisterHandler(this, EventType::global_fsm_change);
 
         this->mDisplayFPS = nullptr;
@@ -133,19 +133,17 @@ namespace dal {
     }
 
     void OverlayMaster::onEvent(const EventStatic& e) {
-        if ( EventType::window_resize == e.type ) {
-            const auto width = ConfigsGod::getinst().getWinWidth();
-            const auto height = ConfigsGod::getinst().getWinHeight();
-
-            for ( auto wid : this->m_widgets ) {
-                wid->onResize(width, height);
-            }
-        }
-        else if ( EventType::global_fsm_change == e.type ) {
+        if ( EventType::global_fsm_change == e.type ) {
             mGlobalFSM = GlobalGameState(e.intArg1);
         }
         else {
             LoggerGod::getinst().putWarn("Unhanlded event in OverlayMaster.", __LINE__, __func__, __FILE__);
+        }
+    }
+
+    void OverlayMaster::onWinResize(const unsigned int width, const unsigned int height) {
+        for ( auto wid : this->m_widgets ) {
+            wid->onResize(width, height);
         }
     }
 

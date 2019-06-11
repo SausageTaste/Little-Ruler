@@ -10,7 +10,6 @@ endif (${ANDROID_PLATFORM_LEVEL} LESS 18)
 
 
 # Set global konstants
-#set(library_dir D:/Programming/Android/DalbaragiAndroid/distribution)
 set(library_dir ${CMAKE_CURRENT_SOURCE_DIR}/../../../../../Library)
 
 # Make main JNI library

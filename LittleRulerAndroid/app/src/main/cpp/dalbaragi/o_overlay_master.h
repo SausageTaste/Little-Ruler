@@ -55,9 +55,10 @@ namespace dal {
 
         //////// Funcs ////////
 
-        OverlayMaster(ResourceMaster& resMas, const ShaderMaster& shaderMas);
+        OverlayMaster(ResourceMaster& resMas, const ShaderMaster& shaderMas, const unsigned int width, const unsigned int height);
         virtual ~OverlayMaster(void) override;
         virtual void onEvent(const EventStatic& e) override;
+        void onWinResize(const unsigned int width, const unsigned int height);
 
         void onClick(const float x, const float y);
         void onDrag(const glm::vec2& start, const glm::vec2& end);

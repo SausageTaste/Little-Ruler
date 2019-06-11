@@ -12,14 +12,6 @@
 using namespace std::string_literals;
 
 
-// Global variables
-namespace {
-
-    auto& g_logger = dal::LoggerGod::getinst();
-
-}
-
-
 namespace {
 
     class DefaultOutputStream : public dal::LuaStdOutput {
@@ -116,22 +108,6 @@ namespace {
         return 0;
     }
 
-    int moon_printResReports(lua_State* L) {
-        auto renMas = ExternalDependencies::get_renderMas();
-        auto output = ExternalDependencies::get_output();
-
-        std::vector<dal::Package::ResourceReport> reports;
-        renMas->m_resMas.getResReports(reports);
-
-        for ( auto& x : reports ) {
-            const auto str = x.getStr();
-            output->append(str.c_str());
-            output->append("\n");
-        }
-
-        return 0;
-    }
-
 }
 
 
@@ -159,7 +135,6 @@ namespace dal {
         this->addGlobalFunction("print", moon_print);
 
         this->addGlobalFunction("set_render_scale", moon_setRenderScale);
-        this->addGlobalFunction("print_res_reports", moon_printResReports);
     }
 
     Lua::~Lua(void) {

@@ -5,6 +5,7 @@
 
 #include "s_logger_god.h"
 #include "u_maploader.h"
+#include "s_configs.h"
 
 
 using namespace std::string_literals;
@@ -78,9 +79,11 @@ namespace dal {
             plight.mMaxDistance = pointLight.m_maxDist;
         }
 
+        const auto width = ConfigsGod::getinst().getWinWidth();
+        const auto height = ConfigsGod::getinst().getWinHeight();
         for ( auto& waterInfo : info.m_waterPlanes ) {
             glm::vec2 size{ waterInfo.width, waterInfo.height };
-            this->m_waters.emplace_back(waterInfo.m_pos, size);
+            this->m_waters.emplace_back(waterInfo.m_pos, size, width, height);
         }
     }
 
@@ -327,11 +330,16 @@ namespace dal {
 
 namespace dal {
 
-    SceneMaster::SceneMaster(ResourceMaster& resMas)
+    SceneMaster::SceneMaster(ResourceMaster& resMas, const unsigned int winWidth, const unsigned int winHeight)
         : m_resMas(resMas)
     {
         m_mapChunks.emplace_front("persis");
         m_persistantMap = &m_mapChunks.front();
+
+        // This is needed by Water objects
+        {
+            ConfigsGod::getinst().setWinSize(winWidth, winHeight);
+        }
 
         this->loadMap("asset::map/test_level.dlb");
     }

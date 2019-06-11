@@ -113,7 +113,7 @@ namespace dal {
         WaterFramebuffer m_fbuffer;
 
     public:
-        WaterRenderer(const glm::vec3& pos, const glm::vec2& size);
+        WaterRenderer(const glm::vec3& pos, const glm::vec2& size, const unsigned int winWidth, const unsigned int winHeight);
         void renderWaterry(const UnilocWaterry& uniloc);
         float getHeight(void) const;
 

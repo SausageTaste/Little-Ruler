@@ -123,28 +123,6 @@ namespace dal {
 
     // Static
 
-    void Mainloop::giveScreenResFirst(unsigned int w, unsigned int h) {
-        EventStatic e;
-        e.intArg1 = w;
-        e.intArg2 = h;
-        e.type = EventType::window_resize;
-
-        ConfigsGod::getinst();  // Init to make sure it registered to EventGod
-        EventGod::getinst().notifyAll(e);
-    }
-
-    bool Mainloop::isScreenResGiven(void) {
-        auto& query = ConfigsGod::getinst();
-
-        auto width = query.getWinWidth();
-        if ( width == 0 ) return false;
-
-        auto height = query.getWinHeight();
-        if ( height == 0 ) return false;
-
-        return true;
-    }
-
     void Mainloop::giveWhatFilesystemWants(void* androidAssetManager, const char* const sdcardPath) {
         initFilesystem(androidAssetManager, sdcardPath);
     }
@@ -155,20 +133,16 @@ namespace dal {
 
     // Public
 
-    Mainloop::Mainloop(void)
-        : m_flagQuit(false),
-        m_renderMan(&m_camera),
-        m_inputApply(m_renderMan.m_overlayMas)
+    Mainloop::Mainloop(const unsigned int winWidth, const unsigned int winHeight)
+        : m_flagQuit(false)
+        , m_scene(m_resMas, winWidth, winHeight)
+        , m_overlayMas(m_resMas, m_shader, winWidth, winHeight)
+        , m_renderMan(m_scene, m_shader, &m_camera, winWidth, winHeight)
+        , m_inputApply(m_overlayMas)
     {
-        // Check window res
+        // This might be done already by SceneMaster or OverlayMaster but still...
         {
-            auto& query = ConfigsGod::getinst();
-            auto width = query.getWinWidth();
-            auto height = query.getWinHeight();
-            if ( width == 0 || height == 0 ) {
-                dalAbort("Please call Mainloop::giveScreenResFirst before constructor!");
-            }
-            this->onResize(width, height);
+            ConfigsGod::getinst().setWinSize(winWidth, winHeight);
         }
 
         // Check filesystem init
@@ -182,11 +156,11 @@ namespace dal {
         {
             this->m_player.replaceCamera(&this->m_camera);
 
-            auto model = this->m_renderMan.m_resMas.orderModel("test::academy.obj");
+            auto model = this->m_resMas.orderModel("test::academy.obj");
             if ( nullptr == model ) dalAbort("Failed to give Player a model");
             this->m_player.replaceModel(model);
 
-            auto actor = this->m_renderMan.m_scene.addActor(model, "", "player_model", false);
+            auto actor = this->m_scene.addActor(model, "", "player_model", false);
             this->m_player.replaceActor(actor);
         }
 
@@ -195,11 +169,15 @@ namespace dal {
             this->m_camera.m_pos = { 0.0f, 3.0f, 3.0f };
         }
 
-        // Misc
+        // Event handler
         {
             mHandlerName = "dal::Mainloop";
             EventGod::getinst().registerHandler(this, EventType::quit_game);
+            EventGod::getinst().registerHandler(this, EventType::window_resize);
+        }
 
+        // Misc
+        {
             this->m_timer.setCapFPS(0);
         }
 
@@ -207,46 +185,47 @@ namespace dal {
         {
             test();
         }
-
-        const auto elapsed = m_initTimer.check_getElapsed_capFPS();
-        dalInfo("Init time: "s + std::to_string(elapsed));
     }
 
     Mainloop::~Mainloop(void) {
         EventGod::getinst().deregisterHandler(this, EventType::quit_game);
+        EventGod::getinst().deregisterHandler(this, EventType::window_resize);
     }
 
     int Mainloop::update(void) {
         if ( m_flagQuit ) return -1;
 
-        const auto deltaTime = m_timer.check_getElapsed_capFPS();
-        if ( m_timerForFPSReport.hasElapsed(0.1f) ) {
-            m_renderMan.m_overlayMas.setDisplayedFPS((unsigned int)(1.0f / deltaTime));
-            m_timerForFPSReport.check();
+        const auto deltaTime = m_timer.check_getElapsed();
+
+        if ( this->m_timerForFPSReport.hasElapsed(0.1f) ) {
+            this->m_overlayMas.setDisplayedFPS((unsigned int)(1.0f / deltaTime));
+            this->m_timerForFPSReport.check();
         }
 
-        m_inputApply.apply(deltaTime, this->m_player);
-        this->m_renderMan.m_scene.applyCollision(*this->m_player.getModel(), *this->m_player.getActor());
+        this->m_inputApply.apply(deltaTime, this->m_player);
+        this->m_scene.applyCollision(*this->m_player.getModel(), *this->m_player.getActor());
 
         TaskGod::getinst().update();
 
         this->m_renderMan.update(deltaTime);
         this->m_renderMan.render();
+        this->m_overlayMas.render();
 
         return 0;
     }
 
     void Mainloop::onResize(int width, int height) {
-        EventStatic e;
-        e.intArg1 = width;
-        e.intArg2 = height;
-        e.type = EventType::window_resize;
-        EventGod::getinst().notifyAll(e);
+        this->m_renderMan.onWinResize(width, height);
+        this->m_overlayMas.onWinResize(width, height);
+        this->m_scene.onResize(width, height);
     }
 
     void Mainloop::onEvent(const EventStatic& e) {
         switch ( e.type ) {
 
+        case EventType::window_resize:
+            this->onResize(e.intArg1, e.intArg2);
+            break;
         case EventType::quit_game:
             this->m_flagQuit = true;
             break;

@@ -18,7 +18,11 @@ using namespace std::string_literals;
 // Main Framebuffer
 namespace dal {
 
-    RenderMaster::MainFramebuffer::MainFramebuffer(void) {
+    RenderMaster::MainFramebuffer::MainFramebuffer(const unsigned int widWidth, const unsigned int widHeight)
+        : m_renderScale(1.0f)
+        , m_bufWidth((unsigned int)(float(widWidth)* m_renderScale))
+        , m_bufHeight((unsigned int)(float(widHeight)* m_renderScale))
+    {
         // Establish framebuffer
         {
             glGenFramebuffers(1, &m_mainFbuf);
@@ -147,20 +151,22 @@ namespace dal {
         glDrawArrays(GL_TRIANGLES, 0, 6);
     }
 
+    /*
     Texture* RenderMaster::MainFramebuffer::getTex(void) {
         return this->m_tex;
     }
-
+    */
 }
 
 
 // Render Master
 namespace dal {
 
-    RenderMaster::RenderMaster(ICamera* const camera)
-        : m_scene(m_resMas),
-        m_overlayMas(m_resMas, m_shader),
-        m_winWidth(512), m_winHeight(512),
+    RenderMaster::RenderMaster(SceneMaster& scene, ShaderMaster& shader, ICamera* const camera, const unsigned int winWidth, const unsigned int winHeight)
+        : m_scene(scene),
+        m_shader(shader),
+        m_fbuffer(winWidth, winHeight),
+        m_winWidth(winWidth), m_winHeight(winHeight),
         m_projectMat(1.0),
         m_flagDrawDlight1(true),
         m_skyColor(0.6f, 0.6f, 0.9f),
@@ -172,19 +178,6 @@ namespace dal {
             m_dlight1.setDirectin(-1.8f, -1.0f, 2.0f);
         }
 
-        {
-            auto water = this->m_scene.getWater("test_level", 0);
-            if ( nullptr == water ) dalAbort("Fuck!!");
-
-            auto view = new TextureView(nullptr, water->m_fbuffer.getReflectionTexture());
-            view->setPosX(10.0f);
-            view->setPosY(30.0f);
-            view->setWidth(256.0f);
-            view->setHeight(256.0f);
-            view->setPauseOnly(false);
-            this->m_overlayMas.addWidget(view);
-        }
-
         // OpenGL global switch
         {
             glClearColor(m_skyColor.x, m_skyColor.y, m_skyColor.z, 1.0f);
@@ -192,9 +185,6 @@ namespace dal {
 
         // Misc
         {
-            mHandlerName = "RenderMaster"s;
-            EventGod::getinst().registerHandler(this, EventType::window_resize);
-
             float radio = static_cast<float>(m_winWidth) / static_cast<float>(m_winHeight);
             this->m_projectMat = glm::perspective(glm::radians(90.0f), radio, 0.01f, 100.0f);
 
@@ -202,10 +192,6 @@ namespace dal {
 
             script::init_renderMas(this);
         }
-    }
-
-    RenderMaster::~RenderMaster(void) {
-        EventGod::getinst().deregisterHandler(this, EventType::window_resize);
     }
 
     void RenderMaster::update(const float deltaTime) {
@@ -374,27 +360,20 @@ namespace dal {
         // Render framebuffer to quad 
         {
             glBindFramebuffer(GL_FRAMEBUFFER, 0);
-            glViewport(0, 0, m_winWidth, m_winHeight);
+            glViewport(0, 0, this->m_winWidth, this->m_winHeight);
 
             this->m_shader.useFScreen();
             this->m_fbuffer.renderOnScreen(this->m_shader.getFScreen());
         }
-
-        this->m_overlayMas.render();
     }
 
     void RenderMaster::setRenderScale(float v) {
         this->m_fbuffer.setRenderScale(v, m_winWidth, m_winHeight);
     }
 
-    void RenderMaster::onEvent(const EventStatic& e) {
-        if ( e.type == EventType::window_resize ) {
-            m_winWidth = static_cast<unsigned int>(e.intArg1);
-            m_winHeight = static_cast<unsigned int>(e.intArg2);
-
-            this->resizeFbuffer(m_winWidth, m_winHeight);
-            this->m_scene.onResize(m_winWidth, m_winHeight);
-        }
+    void RenderMaster::onWinResize(const unsigned int width, const unsigned int height) {
+        this->resizeFbuffer(width, height);
+        this->m_scene.onResize(width, height);
     }
 
     ICamera* RenderMaster::replaceMainCamera(ICamera* camera) {

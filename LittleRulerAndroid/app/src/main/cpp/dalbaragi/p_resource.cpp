@@ -142,14 +142,14 @@ namespace dal {
         result.append("Package : "s + m_packageName + '\n');
         result.append("\tModels"s + '\n');
 
-        for ( auto& x : m_models ) {
-            result.append("\t\t"s + x.first + " (" + std::to_string(x.second) + ")" + '\n');
+        for ( auto& [name, refCount] : m_models ) {
+            result.append("\t\t"s + name + " (" + std::to_string(refCount) + ")" + '\n');
         }
 
         result.append("\tTextures"s + '\n');
 
-        for ( auto& x : m_textures ) {
-            result.append("\t\t"s + x.first + " (" + std::to_string(x.second) + ")" + '\n');
+        for ( auto& [name, refCount] : m_textures ) {
+            result.append("\t\t"s + name + " (" + std::to_string(refCount) + ")" + '\n');
         }
 
         return result;
@@ -166,7 +166,7 @@ namespace dal {
     ModelStatic* Package::orderModel(const ResourceID& resPath, ResourceMaster* const resMas) {
         std::string modelIDStr{ resPath.makeFileName() };
 
-        decltype(this->m_models.end()) iter = this->m_models.find(modelIDStr);
+        auto iter = this->m_models.find(modelIDStr);
         if ( this->m_models.end() != iter ) {
             return iter->second.m_data;
         }

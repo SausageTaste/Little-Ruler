@@ -192,9 +192,7 @@ namespace dal {
     int main_windows(void) try {
         WindowSDL window{ "Little Ruler", initWidth, initHeight, false };
 
-        Mainloop::giveScreenResFirst(initWidth, initHeight);
-
-        std::unique_ptr<Mainloop> engine{ new Mainloop() };
+        std::unique_ptr<Mainloop> engine{ new Mainloop(initWidth, initHeight) };
 
         while ( true ) {
             auto order = pullEventSDL(engine.get());

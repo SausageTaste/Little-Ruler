@@ -76,7 +76,7 @@ namespace dal {
         //////// Methods ////////
 
     public:
-        SceneMaster(ResourceMaster& resMas);
+        SceneMaster(ResourceMaster& resMas, const unsigned int winWidth, const unsigned int winHeight);
         ~SceneMaster(void);
 
         void update(const float deltaTime);

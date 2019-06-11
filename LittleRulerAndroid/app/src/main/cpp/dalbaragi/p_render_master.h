@@ -20,12 +20,12 @@
 
 namespace dal {
 
-    class RenderMaster : iEventHandler {
+    class RenderMaster {
 
     private:
         class MainFramebuffer {
-            unsigned int m_bufWidth = 256, m_bufHeight = 256;
-            float m_renderScale = 1.0f;
+            float m_renderScale;
+            unsigned int m_bufWidth, m_bufHeight;
 
             GLuint m_mainFbuf = 0;
             GLuint m_colorMap = 0;
@@ -37,7 +37,7 @@ namespace dal {
             Texture* m_tex = nullptr;
 
         public:
-            MainFramebuffer(void);
+            MainFramebuffer(const unsigned int widWidth, const unsigned int widHeight);
             ~MainFramebuffer(void);
 
             void setRenderScale(float v, unsigned int widWidth, unsigned int widHeight);
@@ -46,36 +46,33 @@ namespace dal {
             void startRenderOn(void);
             void renderOnScreen(const UnilocFScreen& uniloc);
 
-            Texture* getTex(void);
+            //Texture* getTex(void);
 
         };
 
     private:
-        ShaderMaster m_shader;
+        SceneMaster& m_scene;
+        ShaderMaster& m_shader;
+
         MainFramebuffer m_fbuffer;
 
-    public:
-        ResourceMaster m_resMas;
-        SceneMaster m_scene;
-        OverlayMaster m_overlayMas;
-
-    private:
         unsigned int m_winWidth, m_winHeight;
         glm::mat4 m_projectMat;
+
         DirectionalLight m_dlight1;
         bool m_flagDrawDlight1;
+
         glm::vec3 m_skyColor;
         ICamera* m_mainCamera;
 
     public:
-        RenderMaster(ICamera* const camera);
-        virtual ~RenderMaster(void) override;
+        RenderMaster(SceneMaster& scene, ShaderMaster& shader, ICamera* const camera, const unsigned int winWidth, const unsigned int winHeight);
 
         void update(const float deltaTime);
         void render(void);
         void setRenderScale(float v);
 
-        virtual void onEvent(const EventStatic& e) override;
+        void onWinResize(const unsigned int width, const unsigned int height);
 
         ICamera* replaceMainCamera(ICamera* camera);
 

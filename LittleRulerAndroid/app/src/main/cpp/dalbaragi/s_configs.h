@@ -24,6 +24,7 @@ namespace dal {
 
         unsigned int getWinWidth(void) const;
         unsigned int getWinHeight(void) const;
+        void setWinSize(const unsigned int width, const unsigned int height);
 
         GlobalGameState getGlobalGameState(void) const;
 
