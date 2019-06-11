@@ -96,6 +96,7 @@
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(SolutionDir)..\Library\fmt-5.3.0\include;$(SolutionDir)..\Library\zlib-1.2.11\include;$(SolutionDir)..\Library\tga\include;$(SolutionDir)..\Library\SDL2-2.0.9\include;$(SolutionDir)..\Library\lua-5.3.5\include;$(SolutionDir)..\Library\lodepng\include;$(SolutionDir)..\Library\glm-0.9.8.4\include;$(SolutionDir)..\Library\glew-2.1.0\include;$(SolutionDir)..\Library\freetype-2.10.0\include;$(SolutionDir)..\Library\assimp-4.1.0\include;$(SolutionDir)..\LittleRulerAndroid\app\src\main\cpp\dalbaragi;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -110,6 +111,7 @@
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(SolutionDir)..\Library\fmt-5.3.0\include;$(SolutionDir)..\Library\zlib-1.2.11\include;$(SolutionDir)..\Library\tga\include;$(SolutionDir)..\Library\SDL2-2.0.9\include;$(SolutionDir)..\Library\lua-5.3.5\include;$(SolutionDir)..\Library\lodepng\include;$(SolutionDir)..\Library\glm-0.9.8.4\include;$(SolutionDir)..\Library\glew-2.1.0\include;$(SolutionDir)..\Library\freetype-2.10.0\include;$(SolutionDir)..\Library\assimp-4.1.0\include;$(SolutionDir)..\LittleRulerAndroid\app\src\main\cpp\dalbaragi;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -126,6 +128,7 @@
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(SolutionDir)..\Library\fmt-5.3.0\include;$(SolutionDir)..\Library\zlib-1.2.11\include;$(SolutionDir)..\Library\tga\include;$(SolutionDir)..\Library\SDL2-2.0.9\include;$(SolutionDir)..\Library\lua-5.3.5\include;$(SolutionDir)..\Library\lodepng\include;$(SolutionDir)..\Library\glm-0.9.8.4\include;$(SolutionDir)..\Library\glew-2.1.0\include;$(SolutionDir)..\Library\freetype-2.10.0\include;$(SolutionDir)..\Library\assimp-4.1.0\include;$(SolutionDir)..\LittleRulerAndroid\app\src\main\cpp\dalbaragi;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -144,6 +147,7 @@
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(SolutionDir)..\Library\fmt-5.3.0\include;$(SolutionDir)..\Library\zlib-1.2.11\include;$(SolutionDir)..\Library\tga\include;$(SolutionDir)..\Library\SDL2-2.0.9\include;$(SolutionDir)..\Library\lua-5.3.5\include;$(SolutionDir)..\Library\lodepng\include;$(SolutionDir)..\Library\glm-0.9.8.4\include;$(SolutionDir)..\Library\glew-2.1.0\include;$(SolutionDir)..\Library\freetype-2.10.0\include;$(SolutionDir)..\Library\assimp-4.1.0\include;$(SolutionDir)..\LittleRulerAndroid\app\src\main\cpp\dalbaragi;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
