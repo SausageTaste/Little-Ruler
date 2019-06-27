@@ -63,6 +63,8 @@ namespace dal {
 
 #if ENABLE_ASSERT == 1
 #define dalAssert(condition) { if (!(condition)) dalAbort("Assertion failed"); }
+#define dalAssertm(condition, message) { if (!(condition)) dalAbort(message); }
 #else
 #define dalAssert(condition)
+#define dalAssertm(condition, message)
 #endif
