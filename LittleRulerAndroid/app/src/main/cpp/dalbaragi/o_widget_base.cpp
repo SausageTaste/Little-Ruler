@@ -111,6 +111,11 @@ namespace dal {
 
     ScreenQuad::ScreenQuad(void)
         : m_parent(nullptr)
+        , m_xPos(0.0f)
+        , m_yPos(0.0f)
+        , m_width(5.0f)
+        , m_height(5.0f)
+        , m_alignMode(AlignMode::upper_left)
     {
         this->updateDeviceSpace();
     }

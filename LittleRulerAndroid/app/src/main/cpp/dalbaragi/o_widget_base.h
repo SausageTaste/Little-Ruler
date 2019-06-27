@@ -43,10 +43,9 @@ namespace dal {
 
     private:
         ScreenQuad* m_parent;
-
-        float m_xPos, m_yPos, m_width, m_height;
         QuadInfo m_deviceSpace;
-        AlignMode m_alignMode = AlignMode::upper_left;
+        float m_xPos, m_yPos, m_width, m_height;
+        AlignMode m_alignMode;
 
     public:
         ScreenQuad(void);
