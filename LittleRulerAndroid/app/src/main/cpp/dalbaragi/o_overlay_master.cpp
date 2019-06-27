@@ -61,11 +61,11 @@ namespace dal {
         mGlobalFSM(GlobalGameState::game),
         m_texStreamCh(m_strBuffer)
     {
+        ConfigsGod::getinst().setWinSize(width, height);
+        script::set_outputStream(&this->m_strBuffer);
+
         /* Characters */
         {
-            script::set_outputStream(&this->m_strBuffer);
-            ConfigsGod::getinst().setWinSize(width, height);
-
             {
                 auto fpsDisplayer = new Label(nullptr, this->m_unicodes);
 
@@ -94,7 +94,7 @@ namespace dal {
 
             {
                 auto wid = new TextBox(nullptr, this->m_unicodes);
-                this->m_strBuffer.append("Sungmin Woo\n우성민\nwoos8899@gmail.com\n\n");
+                this->m_strBuffer.append("Sungmin Woo\nwoos8899@gmail.com\n\n");
                 wid->setStrBuf(&this->m_strBuffer);
 
                 wid->setPosX(10.0f);
@@ -110,7 +110,6 @@ namespace dal {
         /* Event Master */
         {
             this->mHandlerName = "OverlayMaster";
-            EventGod::getinst().registerHandler(this, EventType::window_resize);
             EventGod::getinst().registerHandler(this, EventType::global_fsm_change);
         }
 

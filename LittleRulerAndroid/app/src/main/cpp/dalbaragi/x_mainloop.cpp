@@ -215,6 +215,8 @@ namespace dal {
     }
 
     void Mainloop::onResize(int width, int height) {
+        ConfigsGod::getinst().setWinSize(width, height);
+
         this->m_renderMan.onWinResize(width, height);
         this->m_overlayMas.onWinResize(width, height);
         this->m_scene.onResize(width, height);

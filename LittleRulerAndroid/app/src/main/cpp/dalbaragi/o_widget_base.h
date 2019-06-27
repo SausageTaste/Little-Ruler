@@ -49,6 +49,8 @@ namespace dal {
         AlignMode m_alignMode = AlignMode::upper_left;
 
     public:
+        ScreenQuad(void);
+
         virtual bool isInside(const float x, const float y) override;
         virtual void onClick(const float x, const float y) override {}
 
@@ -70,7 +72,7 @@ namespace dal {
         void onResize(const unsigned int width, const unsigned int height);
 
     private:
-        void makeDeviceSpace(void);
+        void updateDeviceSpace(void);
 
     };
 

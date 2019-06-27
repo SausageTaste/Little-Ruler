@@ -109,6 +109,12 @@ namespace dal {
 
 namespace dal {
 
+    ScreenQuad::ScreenQuad(void)
+        : m_parent(nullptr)
+    {
+        this->updateDeviceSpace();
+    }
+
     bool ScreenQuad::isInside(const float x, const float y) {
         const auto quad = this->makeScreenSpace();
 
@@ -120,29 +126,31 @@ namespace dal {
     void ScreenQuad::setPosX(const float v) {
         this->m_xPos = v;
 
-        this->makeDeviceSpace();
+        this->updateDeviceSpace();
     }
 
     void ScreenQuad::setPosY(const float v) {
         this->m_yPos = v;
 
-        this->makeDeviceSpace();
+        this->updateDeviceSpace();
     }
 
     void ScreenQuad::setWidth(const float v) {
         this->m_width = v;
 
-        this->makeDeviceSpace();
+        this->updateDeviceSpace();
     }
 
     void ScreenQuad::setHeight(const float v) {
         this->m_height = v;
 
-        this->makeDeviceSpace();
+        this->updateDeviceSpace();
     }
 
     void ScreenQuad::setAlignMode(const AlignMode mode) {
         this->m_alignMode = mode;
+
+        this->updateDeviceSpace();
     }
 
     QuadInfo ScreenQuad::makeScreenSpace(void) const {
@@ -203,12 +211,12 @@ namespace dal {
     }
 
     void ScreenQuad::onResize(const unsigned int width, const unsigned int height) {
-        this->makeDeviceSpace();
+        this->updateDeviceSpace();
     }
 
     // Private
 
-    void ScreenQuad::makeDeviceSpace(void) {
+    void ScreenQuad::updateDeviceSpace(void) {
         this->m_deviceSpace = this->makeScreenSpace().screen2device();
     }
 

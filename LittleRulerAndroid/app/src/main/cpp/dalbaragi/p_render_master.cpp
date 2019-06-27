@@ -126,15 +126,15 @@ namespace dal {
     }
 
     void RenderMaster::MainFramebuffer::resizeFbuffer(unsigned int newWin_width, unsigned int newWin_height) {
-        m_bufWidth = (unsigned int)(float(newWin_width) * m_renderScale);
-        m_bufHeight = (unsigned int)(float(newWin_height) * m_renderScale);
+        this->m_bufWidth = (unsigned int)(float(newWin_width) * this->m_renderScale);
+        this->m_bufHeight = (unsigned int)(float(newWin_height) * this->m_renderScale);
 
-        glBindTexture(GL_TEXTURE_2D, m_colorMap);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, m_bufWidth, m_bufHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
+        glBindTexture(GL_TEXTURE_2D, this->m_colorMap);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, this->m_bufWidth, this->m_bufHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
         glBindTexture(GL_TEXTURE_2D, 0);
 
-        glBindRenderbuffer(GL_RENDERBUFFER, m_mainRenderbuf);
-        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, m_bufWidth, m_bufHeight);
+        glBindRenderbuffer(GL_RENDERBUFFER, this->m_mainRenderbuf);
+        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, this->m_bufWidth, this->m_bufHeight);
         glBindRenderbuffer(GL_RENDERBUFFER, 0);
     }
 
@@ -156,6 +156,7 @@ namespace dal {
         return this->m_tex;
     }
     */
+
 }
 
 
@@ -372,21 +373,19 @@ namespace dal {
     }
 
     void RenderMaster::onWinResize(const unsigned int width, const unsigned int height) {
-        this->resizeFbuffer(width, height);
-        this->m_scene.onResize(width, height);
+        this->m_winWidth = width;
+        this->m_winHeight = height;
+
+        float radio = static_cast<float>(width) / static_cast<float>(height);
+        this->m_projectMat = glm::perspective(glm::radians(90.0f), radio, 0.01f, 100.0f);
+
+        this->m_fbuffer.resizeFbuffer(width, height);
     }
 
     ICamera* RenderMaster::replaceMainCamera(ICamera* camera) {
         auto tmp = this->m_mainCamera;
         this->m_mainCamera = camera;
         return tmp;
-    }
-
-    void RenderMaster::resizeFbuffer(unsigned int w, unsigned int h) {
-        float radio = static_cast<float>(w) / static_cast<float>(h);
-        this->m_projectMat = glm::perspective(glm::radians(90.0f), radio, 0.01f, 100.0f);
-
-        this->m_fbuffer.resizeFbuffer(w, h);
     }
 
 }

@@ -76,9 +76,6 @@ namespace dal {
 
         ICamera* replaceMainCamera(ICamera* camera);
 
-    private:
-        void resizeFbuffer(unsigned int w, unsigned int h);
-
     };
 
 }
