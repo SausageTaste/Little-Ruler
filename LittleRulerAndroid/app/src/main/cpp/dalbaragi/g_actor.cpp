@@ -50,7 +50,10 @@ namespace {
 
 namespace dal {
 
-    glm::vec3 strangeEuler2Vec(const float x, const float y) {
+    glm::vec3 strangeEuler2Vec(const StrangeEuler& se) {
+        const auto x = se.getX();
+        const auto y = se.getY();
+
         return glm::vec3{
             sin(x) * cos(y),
             sin(y),
@@ -58,7 +61,7 @@ namespace dal {
         };
     }
 
-    glm::vec2 vec2StrangeEuler(glm::vec3 v) {
+    StrangeEuler vec2StrangeEuler(glm::vec3 v) {
         const glm::vec3 up{ 0.0f, 1.0f, 0.0f };
         v = glm::normalize(v);
 
@@ -67,7 +70,7 @@ namespace dal {
         float x = -atan2(-v.z, v.x) + glm::radians(450.0f);
         x = fmod(x, glm::radians(360.0f));
 
-        return glm::vec2{ x, y };
+        return StrangeEuler{ x, y };
     }
 
 }

@@ -13,9 +13,6 @@ namespace dal {
 
     class ModelStatic;
 
-    glm::vec3 strangeEuler2Vec(const float x, const float y);
-    glm::vec2 vec2StrangeEuler(glm::vec3 v);
-
 
     class ICamera {
 
@@ -56,6 +53,10 @@ namespace dal {
         glm::mat4 makeRotateMat(void) const;
 
     };
+
+
+    glm::vec3 strangeEuler2Vec(const StrangeEuler& se);
+    StrangeEuler vec2StrangeEuler(glm::vec3 v);
 
 
     class StrangeEulerCamera : public ICamera {
