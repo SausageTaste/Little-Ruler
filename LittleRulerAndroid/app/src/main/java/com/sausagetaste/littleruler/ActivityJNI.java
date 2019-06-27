@@ -3,6 +3,7 @@ package com.sausagetaste.littleruler;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
+import android.content.pm.ActivityInfo;
 import android.content.res.AssetManager;
 import android.os.Bundle;
 import android.view.Gravity;
@@ -36,6 +37,8 @@ public class ActivityJNI extends Activity {
         LibJNI.giveRequirements(this.mAssMan, filePath);
 
         mView.setOnTouchListener(new CallableJNI.MyListener(mView));
+
+        this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
 
         //getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
         //getWindow().takeKeyEvents(true);
