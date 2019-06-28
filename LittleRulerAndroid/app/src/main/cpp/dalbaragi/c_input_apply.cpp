@@ -766,7 +766,7 @@ namespace dal {
 
         case GlobalGameState::game:
 #if defined(_WIN32)
-            apply_topdown(deltaTime, player, this->m_overlayMas);
+			apply_flyPlane(deltaTime, player, this->m_overlayMas);
 #else defined(__ANDROID__)
             apply_topdown(deltaTime, player, this->m_overlayMas);
 #endif
