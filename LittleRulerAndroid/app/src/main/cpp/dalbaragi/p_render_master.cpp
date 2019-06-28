@@ -163,7 +163,7 @@ namespace dal {
 // Render Master
 namespace dal {
 
-    RenderMaster::RenderMaster(SceneMaster& scene, ShaderMaster& shader, ICamera* const camera, const unsigned int winWidth, const unsigned int winHeight)
+    RenderMaster::RenderMaster(SceneMaster& scene, ShaderMaster& shader, OverlayMaster& overlay, ICamera* const camera, const unsigned int winWidth, const unsigned int winHeight)
         : m_scene(scene),
         m_shader(shader),
         m_fbuffer(winWidth, winHeight),
@@ -182,6 +182,19 @@ namespace dal {
         // OpenGL global switch
         {
             glClearColor(m_skyColor.x, m_skyColor.y, m_skyColor.z, 1.0f);
+        }
+
+        // View
+        {
+            auto water = this->m_scene.getWater("test_level", 0);
+            dalAssert(water != nullptr);
+            auto view = new TextureView(nullptr, water->m_fbuffer.getReflectionTexture());
+            view->setPosX(10.0f);
+            view->setPosY(30.0f);
+            view->setWidth(128.0f);
+            view->setHeight(128.0f);
+            view->setPauseOnly(false);
+            overlay.addWidget(view);
         }
 
         // Misc

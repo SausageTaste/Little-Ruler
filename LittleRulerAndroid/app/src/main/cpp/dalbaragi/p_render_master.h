@@ -66,7 +66,7 @@ namespace dal {
         ICamera* m_mainCamera;
 
     public:
-        RenderMaster(SceneMaster& scene, ShaderMaster& shader, ICamera* const camera, const unsigned int winWidth, const unsigned int winHeight);
+        RenderMaster(SceneMaster& scene, ShaderMaster& shader, OverlayMaster& overlay, ICamera* const camera, const unsigned int winWidth, const unsigned int winHeight);
 
         void update(const float deltaTime);
         void render(void);
