@@ -322,8 +322,6 @@ namespace dal {
 
 
     void Texture::init_diffueMap(const uint8_t* const image, const unsigned int width, const unsigned int height) {
-        glPixelStorei(GL_UNPACK_ALIGNMENT, 0);
-
         this->genTexture("init_diffueMap");
 
         glBindTexture(GL_TEXTURE_2D, m_texID);
@@ -342,8 +340,6 @@ namespace dal {
     }
 
     void Texture::init_diffueMap3(const uint8_t* const image, const unsigned int width, const unsigned int height) {
-        glPixelStorei(GL_UNPACK_ALIGNMENT, 0);
-
         this->genTexture("init_diffueMap");
 
         glBindTexture(GL_TEXTURE_2D, m_texID);
@@ -362,8 +358,6 @@ namespace dal {
     }
 
     void Texture::init_depthMap(const unsigned int width, const unsigned int height) {
-        glPixelStorei(GL_UNPACK_ALIGNMENT, 0);
-
         this->genTexture("init_depthMap");
 
         glBindTexture(GL_TEXTURE_2D, m_texID);
@@ -393,7 +387,6 @@ namespace dal {
     }
 
     void Texture::initAttach_colorMap(const unsigned int width, const unsigned int height) {
-        glPixelStorei(GL_UNPACK_ALIGNMENT, 0);
         this->genTexture("init_texAttachment");
 
         glBindTexture(GL_TEXTURE_2D, this->m_texID);

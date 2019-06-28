@@ -37,8 +37,6 @@ namespace dal {
             glGenFramebuffers(1, &m_mainFbuf);
             glBindFramebuffer(GL_FRAMEBUFFER, this->m_mainFbuf);
 
-            glPixelStorei(GL_UNPACK_ALIGNMENT, 0);
-
             glGenTextures(1, &this->m_colorMap);
             glBindTexture(GL_TEXTURE_2D, this->m_colorMap);
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, this->m_bufWidth, this->m_bufHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);

@@ -76,8 +76,6 @@ namespace {
     GLuint genTextureAttachment(const unsigned int width, const unsigned int height) {
         GLuint texture;
 
-        glPixelStorei(GL_UNPACK_ALIGNMENT, 0);
-
         glGenTextures(1, &texture);
         glBindTexture(GL_TEXTURE_2D, texture);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
@@ -244,26 +242,26 @@ namespace dal {
         {
             glBindTexture(GL_TEXTURE_2D, this->m_reflectionTexture.get());
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, bansa_width, bansa_height, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
-            glBindTexture(GL_TEXTURE_2D, 0);
         }
 
         {
             glBindTexture(GL_TEXTURE_2D, this->m_refractionTexture.get());
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, gooljul_width, gooljul_height, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
-            glBindTexture(GL_TEXTURE_2D, 0);
         }
+
+        glBindTexture(GL_TEXTURE_2D, 0);
 
         {
             glBindRenderbuffer(GL_RENDERBUFFER, this->m_reflectionDepthBuffer.get());
             glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, bansa_width, bansa_height);
-            glBindRenderbuffer(GL_RENDERBUFFER, 0);
         }
 
         {
             glBindRenderbuffer(GL_RENDERBUFFER, this->m_refractionDepthTexture.get());
             glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, gooljul_width, gooljul_height);
-            glBindRenderbuffer(GL_RENDERBUFFER, 0);
         }
+
+        glBindRenderbuffer(GL_RENDERBUFFER, 0);
     }
 
 }

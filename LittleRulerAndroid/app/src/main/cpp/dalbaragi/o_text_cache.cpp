@@ -43,7 +43,7 @@ namespace dal {
             glPixelStorei(GL_UNPACK_ALIGNMENT, 1);  // Text looks broken without this.
             charUnit.tex = ResourceMaster::getUniqueTexture();
             charUnit.tex->init_maskMap(face->glyph->bitmap.buffer, face->glyph->bitmap.width, face->glyph->bitmap.rows);
-            glPixelStorei(GL_UNPACK_ALIGNMENT, 0);
+            glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
 
             charUnit.size = glm::vec2{ face->glyph->bitmap.width, face->glyph->bitmap.rows };
             charUnit.bearing = glm::vec2{ face->glyph->bitmap_left, face->glyph->bitmap_top };
