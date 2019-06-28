@@ -113,6 +113,8 @@ namespace dal {
         float m_moveSpeed = 0.03f;
         Timer m_localTimer;
 
+        static dal::Texture *s_dudvMap, *s_normalMap;
+
     public:
         WaterFramebuffer m_fbuffer;
 
@@ -120,6 +122,9 @@ namespace dal {
         WaterRenderer(const glm::vec3& pos, const glm::vec2& size, const unsigned int winWidth, const unsigned int winHeight);
         void renderWaterry(const UnilocWaterry& uniloc);
         float getHeight(void) const;
+
+    private:
+        static void assertStaticMaps(void);
 
     };
 

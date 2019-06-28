@@ -279,6 +279,10 @@ namespace dal {
 
 namespace dal {
 
+    dal::Texture* WaterRenderer::s_dudvMap = nullptr;
+    dal::Texture* WaterRenderer::s_normalMap = nullptr;
+
+
     WaterRenderer::WaterRenderer(const glm::vec3& pos, const glm::vec2& size, const unsigned int winWidth, const unsigned int winHeight)
         : m_height(pos.y),
         m_fbuffer(winWidth, winHeight)
@@ -317,6 +321,8 @@ namespace dal {
         this->m_material.m_diffuseColor = { 0, 0, 1 };
         this->m_material.m_specularStrength = 3.0f;
         this->m_material.m_shininess = 128.0f;
+
+        this->assertStaticMaps();
     }
 
     void WaterRenderer::renderWaterry(const UnilocWaterry& uniloc) {
@@ -329,8 +335,10 @@ namespace dal {
 
         this->m_fbuffer.getReflectionTexture()->sendUniform(uniloc.u_bansaTex, 0, 4);
         this->m_fbuffer.getRefractionTexture()->sendUniform(uniloc.u_gooljulTex, 0, 5);
-        getDUDVMap()->sendUniform(uniloc.u_dudvMap, 0, 6);
-        getWaterNormalMap()->sendUniform(uniloc.u_normalMap, 0, 7);
+        //getDUDVMap()->sendUniform(uniloc.u_dudvMap, 0, 6);
+        this->s_dudvMap->sendUniform(uniloc.u_dudvMap, 0, 6);
+        //getWaterNormalMap()->sendUniform(uniloc.u_normalMap, 0, 7);
+        this->s_normalMap->sendUniform(uniloc.u_normalMap, 0, 7);
 
         const glm::mat4 mat{ 1.0f };
         glUniformMatrix4fv(uniloc.uModelMat, 1, GL_FALSE, &mat[0][0]);
@@ -339,6 +347,21 @@ namespace dal {
 
     float WaterRenderer::getHeight(void) const {
         return this->m_height;
+    }
+
+    // Private
+
+    void  WaterRenderer::assertStaticMaps(void) {
+        // This must be test in case of multiple waters.
+        // Because idk if the statement below only runs once in whole program lifetime.
+        // dal::Texture* WaterRenderer::s_dudvMap = nullptr;
+
+        if ( nullptr == s_dudvMap ) {
+            s_dudvMap = getDUDVMap();
+        }
+        if ( nullptr == s_normalMap ) {
+            s_normalMap = getWaterNormalMap();
+        }
     }
 
 }
