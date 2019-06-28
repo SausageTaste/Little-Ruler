@@ -15,6 +15,15 @@
 using namespace std::string_literals;
 
 
+namespace {
+
+    void glDebugCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam) {
+        dalWarn(message);
+    }
+
+}
+
+
 // Main Framebuffer
 namespace dal {
 
@@ -182,6 +191,7 @@ namespace dal {
         // OpenGL global switch
         {
             glClearColor(m_skyColor.x, m_skyColor.y, m_skyColor.z, 1.0f);
+            glDebugMessageCallback(glDebugCallback, nullptr);
         }
 
         // View
