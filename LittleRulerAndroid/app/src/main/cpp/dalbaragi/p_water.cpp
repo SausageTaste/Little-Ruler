@@ -184,23 +184,7 @@ namespace dal {
         const auto REFRACTION_WIDTH = static_cast<GLsizei>(this->m_winWidth  * this->m_refracScale);
         const auto REFRACTION_HEIGHT = static_cast<GLsizei>(this->m_winHeight * this->m_refracScale);
 
-        {
-            this->m_reflectionFrameBuffer.reset(genFramebuffer());
-            this->m_reflectionTexture.initAttach_colorMap(REFLECTION_WIDTH, REFLECTION_HEIGHT);
-            this->m_reflectionDepthBuffer.reset(genDepthBufferAttachment(REFLECTION_WIDTH, REFLECTION_HEIGHT));
-        }
-
-        if ( !checkFramebuffer() ) dalError("Framebuffer creation failed for reflection.");
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-        {
-            this->m_refractionFrameBuffer.reset(genFramebuffer());
-            this->m_refractionTexture.initAttach_colorMap(REFRACTION_WIDTH, REFRACTION_HEIGHT);
-            this->m_refractionDepthTexture.reset(genDepthBufferAttachment(REFRACTION_WIDTH, REFRACTION_HEIGHT));
-        }
-
-        if ( !checkFramebuffer() ) dalError("Framebuffer creation failed for reflection.");
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        this->recreateFbuffer(REFLECTION_WIDTH, REFLECTION_HEIGHT, REFRACTION_WIDTH, REFRACTION_HEIGHT);
     }
 
     void WaterFramebuffer::bindReflectionFrameBuffer(void) {  //call before rendering to this FBO
@@ -239,6 +223,12 @@ namespace dal {
         const GLsizei gooljul_width = static_cast<GLsizei>(this->m_winWidth  * this->m_refracScale);
         const GLsizei gooljul_height = static_cast<GLsizei>(this->m_winHeight * this->m_refracScale);
 
+        this->recreateFbuffer(bansa_width, bansa_height, gooljul_width, gooljul_height);
+    }
+
+    // Private
+
+    void WaterFramebuffer::resizeOnlyTextures(const unsigned int bansa_width, const unsigned int bansa_height, const unsigned int gooljul_width, const unsigned int gooljul_height) {
         {
             glBindTexture(GL_TEXTURE_2D, this->m_reflectionTexture.get());
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, bansa_width, bansa_height, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
@@ -262,6 +252,26 @@ namespace dal {
         }
 
         glBindRenderbuffer(GL_RENDERBUFFER, 0);
+    }
+
+    void WaterFramebuffer::recreateFbuffer(const unsigned int reflecWidth, const unsigned int reflecHeight, const unsigned int refracWidth, const unsigned int refracHeight) {
+        {
+            this->m_reflectionFrameBuffer.reset(genFramebuffer());
+            this->m_reflectionTexture.initAttach_colorMap(reflecWidth, reflecHeight);
+            this->m_reflectionDepthBuffer.reset(genDepthBufferAttachment(reflecWidth, reflecHeight));
+        }
+
+        if ( !checkFramebuffer() ) dalError("Framebuffer creation failed for reflection.");
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+        {
+            this->m_refractionFrameBuffer.reset(genFramebuffer());
+            this->m_refractionTexture.initAttach_colorMap(refracWidth, refracHeight);
+            this->m_refractionDepthTexture.reset(genDepthBufferAttachment(refracWidth, refracHeight));
+        }
+
+        if ( !checkFramebuffer() ) dalError("Framebuffer creation failed for reflection.");
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }
 
 }

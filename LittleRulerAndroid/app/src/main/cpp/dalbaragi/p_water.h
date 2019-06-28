@@ -96,6 +96,10 @@ namespace dal {
 
         void resizeFbuffer(const unsigned int winWidth, const unsigned int winHeight);
 
+    private:
+        void resizeOnlyTextures(const unsigned int reflecWidth, const unsigned int reflecHeight, const unsigned int refracWidth, const unsigned int refracHeight);
+        void recreateFbuffer(const unsigned int reflecWidth, const unsigned int reflecHeight, const unsigned int refracWidth, const unsigned int refracHeight);
+
     };
 
 
