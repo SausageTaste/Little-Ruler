@@ -164,8 +164,11 @@ namespace dal {
     }
 
     void ModelAnimated::updateAnimation0(void) {
-        const auto& anim = this->m_animations.back();
+		if ( this->m_animations.empty() ) {
+			return;
+		}
 
+		const auto& anim = this->m_animations.back();
         const auto elapsed = this->m_animLocalTimer.getElapsed();
         const auto animDuration = anim.getDurationInTick();
         const auto animTickPerSec = anim.getTickPerSec();
