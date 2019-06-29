@@ -59,183 +59,96 @@ namespace {
 extern "C" {
 
     JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void* reserved) {
-        try {
-            dalVerbose("JNI_OnLoad");
-            dal::initJavautil(vm);
+        dalVerbose("JNI_OnLoad");
+        dal::initJavautil(vm);
 
-            if ( nullptr == dal::getJNIEnv() ) {
-                dalFatal("Failed JNI_OnLoad()");
-                return JNI_ERR;
-            }
+        if (nullptr == dal::getJNIEnv()) {
+            dalFatal("Failed JNI_OnLoad()");
+            return JNI_ERR;
+        }
 
-            return JNI_VERSION_1_6;
-        }
-        catch ( const std::exception& e ) {
-            dalFatal("An exception thrown: "s + e.what());
-            throw;
-        }
-        catch ( const std::string& e ) {
-            dalFatal("A string thrown: "s + e);
-            throw;
-        }
-        catch ( const char* const e ) {
-            dalFatal("A char* thrown: "s + e); throw;
-        }
-        catch ( const int e ) {
-            dalFatal("An int thrown: "s + std::to_string(e));
-            throw;
-        }
-        catch ( ... ) {
-            dalFatal("Something unkown thrown");
-            throw;
-        }
+        return JNI_VERSION_1_6;
     }
 
     JNIEXPORT void JNICALL Java_com_sausagetaste_littleruler_LibJNI_init(JNIEnv* env, jclass obj) {
-        try {
-            dalVerbose("JNI::init");
-            if ( gMainloop != nullptr ) {
-                delete gMainloop;
-                gMainloop = nullptr;
-                dalVerbose("delete gMainloop");
-            }
-        }
-        catch ( const std::exception& e ) {
-            dalFatal("An exception thrown: "s + e.what()); throw;
-        }
-        catch ( const std::string& e ) {
-            dalFatal("A string thrown: "s + e); throw;
-        }
-        catch ( const char* const e ) {
-            dalFatal("A char* thrown: "s + e); throw;
-        }
-        catch ( const int e ) {
-            dalFatal("An int thrown: "s + std::to_string(e)); throw;
-        }
-        catch ( ... ) {
-            dalFatal("Something unkown thrown"); throw;
+        dalVerbose("JNI::init");
+        if (gMainloop != nullptr) {
+            delete gMainloop;
+            gMainloop = nullptr;
+            dalVerbose("delete gMainloop");
         }
     }
 
     JNIEXPORT void JNICALL Java_com_sausagetaste_littleruler_LibJNI_resize(JNIEnv* env, jclass type, jint width, jint height) {
-        try {
-            dalVerbose("JNI::resize");
-            g_width = static_cast<unsigned int>(width);
-            g_height = static_cast<unsigned int>(height);
-        }
-        catch ( const std::exception& e ) {
-            dalFatal("An exception thrown: "s + e.what()); throw;
-        }
-        catch ( const std::string& e ) {
-            dalFatal("A string thrown: "s + e); throw;
-        }
-        catch ( const char* const e ) {
-            dalFatal("A char* thrown: "s + e); throw;
-        }
-        catch ( const int e ) {
-            dalFatal("An int thrown: "s + std::to_string(e)); throw;
-        }
-        catch ( ... ) {
-            dalFatal("Something unkown thrown"); throw;
-        }
+        dalVerbose("JNI::resize");
+        g_width = static_cast<unsigned int>(width);
+        g_height = static_cast<unsigned int>(height);
+
+        gMainloop->onResize(g_width, g_height);
     }
 
     JNIEXPORT void JNICALL Java_com_sausagetaste_littleruler_LibJNI_step(JNIEnv* env, jclass type) {
-        try {
-            if ( gMainloop == nullptr ) {
-                if ( !dal::Mainloop::isWhatFilesystemWantsGiven() ) return;
-                if (0 == g_width * g_height) return;
+        if (gMainloop == nullptr) {
+            if (!dal::Mainloop::isWhatFilesystemWantsGiven()) return;
+            if (0 == g_width * g_height) return;
 
-                gMainloop = new dal::Mainloop{ g_width, g_height };
-            }
+            gMainloop = new dal::Mainloop{g_width, g_height};
+        }
 
-            // Touch event handle
-            {
-                const auto curIndex = dal::touchinput::getCurrentIndexAndReset();
+        // Touch event handle
+        {
+            const auto curIndex = dal::touchinput::getCurrentIndexAndReset();
 
-                auto& touchQ = dal::TouchEvtQueueGod::getinst();
+            auto &touchQ = dal::TouchEvtQueueGod::getinst();
 
-                jbyte* floatArr = new jbyte[curIndex];
-                dal::touchinput::copyArray(floatArr, curIndex);
-                for ( int i = 0; i < curIndex; i += 16 ) {
+            jbyte *floatArr = new jbyte[curIndex];
+            dal::touchinput::copyArray(floatArr, curIndex);
+            for (int i = 0; i < curIndex; i += 16) {
 
-                    auto xPos = reinterpret_cast<jfloat*>(&floatArr[i]);
-                    auto yPos = reinterpret_cast<jfloat*>(&floatArr[i +  4]);
-                    auto etype = reinterpret_cast<jint*>  (&floatArr[i +  8]);
-                    auto id = reinterpret_cast<jint*>  (&floatArr[i + 12]);
+                auto xPos = reinterpret_cast<jfloat *>(&floatArr[i]);
+                auto yPos = reinterpret_cast<jfloat *>(&floatArr[i + 4]);
+                auto etype = reinterpret_cast<jint *>  (&floatArr[i + 8]);
+                auto id = reinterpret_cast<jint *>  (&floatArr[i + 12]);
 
-                    if ( !isSystemBigEndian() ) {
-                        swapBit32(xPos);
-                        swapBit32(yPos);
-                        swapBit32(etype);
-                        swapBit32(id);
-                    }
+                if (!isSystemBigEndian()) {
+                    swapBit32(xPos);
+                    swapBit32(yPos);
+                    swapBit32(etype);
+                    swapBit32(id);
+                }
 
-                    switch ( *etype ) {
+                switch (*etype) {
 
-                        case 1:  // ACTION_DOWN
-                            touchQ.emplaceBack(*xPos, *yPos, dal::TouchType::down, *id);
-                            break;
-                        case 2:  // ACTION_MOVE
-                            touchQ.emplaceBack(*xPos, *yPos, dal::TouchType::move, *id);
-                            break;
-                        case 3:  // ACTION_UP
-                            touchQ.emplaceBack(*xPos, *yPos, dal::TouchType::up, *id);
-                            break;
-                        default:
-                            break;
+                    case 1:  // ACTION_DOWN
+                        touchQ.emplaceBack(*xPos, *yPos, dal::TouchType::down, *id);
+                        break;
+                    case 2:  // ACTION_MOVE
+                        touchQ.emplaceBack(*xPos, *yPos, dal::TouchType::move, *id);
+                        break;
+                    case 3:  // ACTION_UP
+                        touchQ.emplaceBack(*xPos, *yPos, dal::TouchType::up, *id);
+                        break;
+                    default:
+                        break;
 
-                    }
                 }
             }
+        }
 
-            gMainloop->update();
-        }
-        catch ( const std::exception& e ) {
-            dalFatal("An exception thrown: "s + e.what()); throw;
-        }
-        catch ( const std::string& e ) {
-            dalFatal("A string thrown: "s + e); throw;
-        }
-        catch ( const char* const e ) {
-            dalFatal("A char* thrown: "s + e); throw;
-        }
-        catch ( const int e ) {
-            dalFatal("An int thrown: "s + std::to_string(e)); throw;
-        }
-        catch ( ... ) {
-            dalFatal("Something unkown thrown"); throw;
-        }
+        gMainloop->update();
     }
 
     JNIEXPORT void JNICALL Java_com_sausagetaste_littleruler_LibJNI_giveRequirements(JNIEnv* env, jclass type, jobject assetManager, jstring sdcardPath) {
-        try {
-            dalVerbose("JNI::giveRequirements");
+        dalVerbose("JNI::giveRequirements");
 
-            // Asset manager
-            gAssMan = AAssetManager_fromJava(env, assetManager);
+        // Asset manager
+        gAssMan = AAssetManager_fromJava(env, assetManager);
 
-            // Storage path
-            g_storagePath = env->GetStringUTFChars(sdcardPath, nullptr);
-            g_storagePath += '/';
+        // Storage path
+        g_storagePath = env->GetStringUTFChars(sdcardPath, nullptr);
+        g_storagePath += '/';
 
-            dal::Mainloop::giveWhatFilesystemWants(gAssMan, g_storagePath.c_str());
-        }
-        catch ( const std::exception& e ) {
-            dalFatal("An exception thrown: "s + e.what()); throw;
-        }
-        catch ( const std::string& e ) {
-            dalFatal("A string thrown: "s + e); throw;
-        }
-        catch ( const char* const e ) {
-            dalFatal("A char* thrown: "s + e); throw;
-        }
-        catch ( const int e ) {
-            dalFatal("An int thrown: "s + std::to_string(e)); throw;
-        }
-        catch ( ... ) {
-            dalFatal("Something unkown thrown"); throw;
-        }
+        dal::Mainloop::giveWhatFilesystemWants(gAssMan, g_storagePath.c_str());
     }
 
 }
