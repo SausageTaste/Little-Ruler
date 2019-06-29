@@ -41,7 +41,7 @@ namespace dal {
         Mainloop(const unsigned int winWidth, const unsigned int winHeight);
         virtual ~Mainloop(void) override;
         int update(void);
-        void onResize(int width, int height);
+        void onResize(unsigned int width, unsigned int height);
 
         virtual void onEvent(const EventStatic& e) override;
 

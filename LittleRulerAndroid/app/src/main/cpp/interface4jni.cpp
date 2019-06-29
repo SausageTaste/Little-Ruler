@@ -14,7 +14,6 @@
 #include <x_mainloop.h>
 #include <s_logger_god.h>
 #include <s_input_queue.h>
-#include <x_persist.h>
 
 #include "javautil.h"
 

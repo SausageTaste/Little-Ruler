@@ -17,9 +17,11 @@ using namespace std::string_literals;
 
 namespace {
 
+#ifdef _WIN32
     void glDebugCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam) {
         dalWarn(message);
     }
+#endif
 
 }
 
@@ -212,8 +214,6 @@ namespace dal {
             float radio = static_cast<float>(m_winWidth) / static_cast<float>(m_winHeight);
             this->m_projectMat = glm::perspective(glm::radians(90.0f), radio, 0.01f, 100.0f);
 
-            auto what = this->m_scene.getModelNActorAnimated("test::model.dae", "test_level");
-
             script::init_renderMas(this);
         }
     }
@@ -221,8 +221,7 @@ namespace dal {
     void RenderMaster::update(const float deltaTime) {
         this->m_scene.update(deltaTime);
 
-        return;
-
+        /*
         const auto mat = glm::rotate(glm::mat4{ 1.0f }, deltaTime * 0.3f, glm::vec3{ 1.0f, 0.5f, 0.0f });
         const glm::vec4 direcBefore{ this->m_dlight1.getDirection(), 0.0f };
         const auto newDirec = glm::normalize(glm::vec3{ mat * direcBefore });
@@ -233,6 +232,7 @@ namespace dal {
         glClearColor(m_skyColor.x, m_skyColor.y, m_skyColor.z, 1.0f);
 
         this->m_flagDrawDlight1 = -0.3f < diff;
+        */
     }
 
     void RenderMaster::render(void) {

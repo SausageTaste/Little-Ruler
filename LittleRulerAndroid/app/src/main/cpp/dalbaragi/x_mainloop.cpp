@@ -1,20 +1,11 @@
 ﻿#include "x_mainloop.h"
 
-#include <string>
-#include <vector>
-#include <memory>
 #include <time.h>
 
 #include <fmt/format.h>
 
-#include "p_dalopengl.h"
 #include "s_logger_god.h"
-#include "u_fileclass.h"
 #include "s_configs.h"
-#include "s_threader.h"
-
-// test
-#include "u_objparser.h"
 
 
 using namespace std::string_literals;
@@ -109,7 +100,7 @@ namespace {
             dal::LoggerGod::getinst().enable();
         }
 
-    } g_fileLogger;
+    };
 
 
     void test(void) {
@@ -214,7 +205,7 @@ namespace dal {
         return 0;
     }
 
-    void Mainloop::onResize(int width, int height) {
+    void Mainloop::onResize(unsigned int width, unsigned int height) {
         ConfigsGod::getinst().setWinSize(width, height);
 
         this->m_renderMan.onWinResize(width, height);
@@ -223,10 +214,15 @@ namespace dal {
     }
 
     void Mainloop::onEvent(const EventStatic& e) {
+        const auto width = static_cast<unsigned int>(e.intArg1);
+        const auto height = static_cast<unsigned int>(e.intArg2);
+
+        dalAssert(width > 7000); dalAssert(height > 7000);
+
         switch ( e.type ) {
 
         case EventType::window_resize:
-            this->onResize(e.intArg1, e.intArg2);
+            this->onResize(width, height);
             break;
         case EventType::quit_game:
             this->m_flagQuit = true;
