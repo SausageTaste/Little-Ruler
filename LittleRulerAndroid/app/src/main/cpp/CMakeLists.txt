@@ -64,6 +64,10 @@ target_include_directories(interface4jni PRIVATE ${library_dir}/glm-0.9.8.4/incl
 target_include_directories(interface4jni PRIVATE ${library_dir}/tga/include)
 
 
+# entt
+target_include_directories(interface4jni PRIVATE ${library_dir}/entt/include)
+
+
 ######## Link ########
 
 # Include libraries needed for gles3jni lib
