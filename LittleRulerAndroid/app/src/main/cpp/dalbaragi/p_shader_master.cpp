@@ -63,6 +63,8 @@ namespace {
 
 namespace {
 
+    enum class ShaderType { vertex, fragment };
+
     class ShaderRAII {
 
     private:
@@ -85,15 +87,15 @@ namespace {
 
     };
 
-    ShaderRAII compileShader2(dal::ShaderType type, const char* const src) {
+    ShaderRAII compileShader2(const ShaderType type, const char* const src) {
         // Returns 0 on error
         GLuint shaderID = 0;
 
         switch ( type ) {
-        case dal::ShaderType::VERTEX:
+        case ShaderType::vertex:
             shaderID = glCreateShader(GL_VERTEX_SHADER);
             break;
-        case dal::ShaderType::FRAGMENT:
+        case ShaderType::fragment:
             shaderID = glCreateShader(GL_FRAGMENT_SHADER);
             break;
         }
@@ -126,7 +128,6 @@ namespace dal {
     class ShaderLoader {
 
     private:
-        enum class ShaderType { vert, frag };
         enum class Precision { nodef, high, mediump };
         enum class Defined { parse_fail, ignore_this, include };
 
@@ -158,10 +159,10 @@ namespace dal {
                 const auto shaderType = determineShaderType(spair.first);
 
                 switch ( shaderType ) {
-                case ShaderType::vert:
+                case ShaderType::vertex:
                     spair.second = makeHeader(Precision::nodef) + spair.second;
                     break;
-                case ShaderType::frag:
+                case ShaderType::fragment:
 #if defined(_WIN32)
                     spair.second = makeHeader(Precision::nodef) + spair.second;
 #elif defined(__ANDROID__)
@@ -271,10 +272,10 @@ namespace dal {
 
         static ShaderType determineShaderType(const std::string& fileName) {
             if ( std::string::npos != fileName.find(".vert") ) {
-                return ShaderType::vert;
+                return ShaderType::vertex;
             }
             else if ( std::string::npos != fileName.find(".frag") ) {
-                return ShaderType::frag;
+                return ShaderType::fragment;
             }
             else {
                 dalAbort("Can't determine shader type for: "s + fileName);
@@ -313,8 +314,8 @@ namespace dal {
 
         this->m_id = glCreateProgram();
 
-        const auto verShader = compileShader2(ShaderType::VERTEX, loader[vertSrcName]);
-        const auto fragShader = compileShader2(ShaderType::FRAGMENT, loader[fragSrcName]);
+        const auto verShader = compileShader2(ShaderType::vertex, loader[vertSrcName]);
+        const auto fragShader = compileShader2(ShaderType::fragment, loader[fragSrcName]);
 
         glAttachShader(this->m_id, verShader.get());
         glAttachShader(this->m_id, fragShader.get());

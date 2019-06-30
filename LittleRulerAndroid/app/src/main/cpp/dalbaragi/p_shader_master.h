@@ -1,6 +1,5 @@
 #pragma once
 
-#include "p_shader.h"
 #include "p_uniloc.h"
 
 
