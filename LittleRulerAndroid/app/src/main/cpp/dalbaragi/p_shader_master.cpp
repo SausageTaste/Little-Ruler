@@ -122,7 +122,7 @@ namespace {
 }
 
 
-
+// ShaderLoader
 namespace dal {
 
     class ShaderLoader {
@@ -307,6 +307,7 @@ namespace dal {
 }
 
 
+// ShaderProgram2
 namespace dal {
 
     void ShaderProgram2::init(ShaderLoader& loader, const char* const vertSrcName, const char* const fragSrcName) {
