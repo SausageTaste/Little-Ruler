@@ -82,8 +82,7 @@ namespace dal {
             if ( !unit.m_mesh.isReady() ) continue;
 
             for ( auto& inst : actors ) {
-                auto mat = inst.getModelMat();
-                glUniformMatrix4fv(uniloc.uModelMat, 1, GL_FALSE, &mat[0][0]);
+                uniloc.modelMat(inst.getModelMat());
                 unit.m_mesh.draw();
             }
         }
@@ -150,8 +149,7 @@ namespace dal {
             if ( !unit.m_mesh.isReady() ) continue;
 
             for ( auto& inst : actors ) {
-                auto mat = inst.getModelMat();
-                glUniformMatrix4fv(uniloc.uModelMat, 1, GL_FALSE, &mat[0][0]);
+                uniloc.modelMat(inst.getModelMat());
                 unit.m_mesh.draw();
             }
         }

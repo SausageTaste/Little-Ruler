@@ -28,6 +28,7 @@ namespace dal {
         DepthmapForLights& operator=(DepthmapForLights&&) noexcept;
 
         GLuint getTextureID(void);
+        Texture* getDepthMap(void);
         const Texture* getDepthMap(void) const;
 
         void startRender(void);
@@ -67,9 +68,10 @@ namespace dal {
         void startRenderShadowmap(const UnilocDepthmp& uniloc);
         void finishRenderShadowmap(void);
 
-        glm::mat4 makeProjViewMap(void) const;
+        glm::mat4 makeProjMat(void) const;
+        glm::mat4 makeViewMat(void) const;
         GLuint getShadowMapTexture(void);
-        const Texture* getShadowMap(void);
+        const Texture* getShadowMap(void) const;
 
     };
 

@@ -198,15 +198,28 @@ namespace dal {
 
         // View
         {
-            auto water = this->m_scene.getWater("test_level", 0);
-            dalAssert(water != nullptr);
-            auto view = new TextureView(nullptr, water->m_fbuffer.getReflectionTexture());
-            view->setPosX(10.0f);
-            view->setPosY(30.0f);
-            view->setWidth(128.0f);
-            view->setHeight(128.0f);
-            view->setPauseOnly(false);
-            overlay.addWidget(view);
+            {
+                auto water = this->m_scene.getWater("test_level", 0);
+                dalAssert(water != nullptr);
+                auto view = new TextureView(nullptr, water->m_fbuffer.getReflectionTexture());
+                view->setPosX(10.0f);
+                view->setPosY(30.0f);
+                view->setWidth(128.0f);
+                view->setHeight(128.0f);
+                view->setPauseOnly(false);
+                overlay.addWidget(view);
+            }
+
+            {
+                auto tex = this->m_dlight1.getShadowMap();
+                auto view = new TextureView(nullptr, tex);
+                view->setPosX(10.0f);
+                view->setPosY(30.0f + 130.0f);
+                view->setWidth(128.0f);
+                view->setHeight(128.0f);
+                view->setPauseOnly(false);
+                overlay.addWidget(view);
+            }
         }
 
         // Misc
@@ -238,11 +251,11 @@ namespace dal {
     void RenderMaster::render(void) {
         // Shadow map
         {
-            this->m_shader.useDepthMp();
+            auto& uniloc = this->m_shader.useDepthMp();
 
-            m_dlight1.startRenderShadowmap(this->m_shader.getDepthMp());
+            m_dlight1.startRenderShadowmap(uniloc);
 
-            m_scene.renderDepthMp(this->m_shader.getDepthMp());
+            m_scene.renderDepthMp(uniloc);
 
             m_dlight1.finishRenderShadowmap();
         }
@@ -252,8 +265,7 @@ namespace dal {
 #ifdef _WIN32
             glEnable(GL_CLIP_DISTANCE0);
 #endif
-            this->m_shader.useGeneral();
-            auto& unilocGeneral = this->m_shader.getGeneral();
+            auto& unilocGeneral = this->m_shader.useGeneral();
 
             glUniform1i(unilocGeneral.u_doClip, 1);
 
@@ -281,8 +293,7 @@ namespace dal {
 #ifdef _WIN32
             glEnable(GL_CLIP_DISTANCE0);
 #endif
-            this->m_shader.useAnimate();
-            auto& unilocGeneral = this->m_shader.getAnimate();
+            auto& unilocGeneral = this->m_shader.useAnimate();
 
             glUniform1i(unilocGeneral.u_doClip, 1);
 
@@ -313,8 +324,7 @@ namespace dal {
 
         // Render to framebuffer 
         {
-            this->m_shader.useGeneral();
-            auto& unilocGeneral = this->m_shader.getGeneral();
+            auto& unilocGeneral = this->m_shader.useGeneral();
 
             glUniformMatrix4fv(unilocGeneral.uProjectMat, 1, GL_FALSE, &m_projectMat[0][0]);
 
@@ -333,8 +343,7 @@ namespace dal {
 
         // Render to framebuffer animated
         {
-            this->m_shader.useAnimate();
-            auto& unilocGeneral = this->m_shader.getAnimate();
+            auto& unilocGeneral = this->m_shader.useAnimate();
 
             glUniformMatrix4fv(unilocGeneral.uProjectMat, 1, GL_FALSE, &m_projectMat[0][0]);
 
@@ -353,8 +362,7 @@ namespace dal {
 
         // Render water to framebuffer
         {
-            this->m_shader.useWaterry();
-            auto& unilocWaterry = this->m_shader.getWaterry();
+            auto& unilocWaterry = this->m_shader.useWaterry();
 
             glUniformMatrix4fv(unilocWaterry.uProjectMat, 1, GL_FALSE, &m_projectMat[0][0]);
 
@@ -386,8 +394,8 @@ namespace dal {
             glBindFramebuffer(GL_FRAMEBUFFER, 0);
             glViewport(0, 0, this->m_winWidth, this->m_winHeight);
 
-            this->m_shader.useFScreen();
-            this->m_fbuffer.renderOnScreen(this->m_shader.getFScreen());
+            auto& uniloc = this->m_shader.useFScreen();
+            this->m_fbuffer.renderOnScreen(uniloc);
         }
     }
 

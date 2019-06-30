@@ -6,43 +6,51 @@
 
 namespace dal {
 
+    class ShaderLoader;
+
+    class ShaderProgram2 {
+
+    private:
+        GLuint m_id = 0;
+
+    public:
+        void init(ShaderLoader& loader, const char* const vertSrcName, const char* const fragSrcName);
+        GLuint get(void);
+        void use(void) const;
+
+    };
+
+
     class ShaderMaster {
 
     private:
-        ShaderProgram m_general;
+        ShaderProgram2 m_general;
         UnilocGeneral m_generalUniloc;
 
-        ShaderProgram m_depthmap;
+        ShaderProgram2 m_depthmap;
         UnilocDepthmp m_depthmapUniloc;
 
-        ShaderProgram m_fscreen;
+        ShaderProgram2 m_fscreen;
         UnilocFScreen m_fscreenUniloc;
 
-        ShaderProgram m_overlay;
+        ShaderProgram2 m_overlay;
         UnilocOverlay m_overlayUniloc;
 
-        ShaderProgram m_waterry;
+        ShaderProgram2 m_waterry;
         UnilocWaterry m_waterryUniloc;
 
-        ShaderProgram m_animate;
+        ShaderProgram2 m_animate;
         UnilocAnimate m_animateUniloc;
 
     public:
         ShaderMaster(void);
 
-        void useGeneral(void) const;
-        void useDepthMp(void) const;
-        void useFScreen(void) const;
-        void useOverlay(void) const;
-        void useWaterry(void) const;
-        void useAnimate(void) const;
-
-        const UnilocGeneral& getGeneral(void) const;
-        const UnilocDepthmp& getDepthMp(void) const;
-        const UnilocFScreen& getFScreen(void) const;
-        const UnilocOverlay& getOverlay(void) const;
-        const UnilocWaterry& getWaterry(void) const;
-        const UnilocAnimate& getAnimate(void) const;
+        const UnilocGeneral& useGeneral(void) const;
+        const UnilocDepthmp& useDepthMp(void) const;
+        const UnilocFScreen& useFScreen(void) const;
+        const UnilocOverlay& useOverlay(void) const;
+        const UnilocWaterry& useWaterry(void) const;
+        const UnilocAnimate& useAnimate(void) const;
 
     };
 

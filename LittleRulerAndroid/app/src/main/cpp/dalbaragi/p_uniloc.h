@@ -1,9 +1,32 @@
 #pragma once
 
+#include <glm/glm.hpp>
+
 #include "p_dalopengl.h"
 
 
 namespace dal {
+
+    class UniInterfGeometry {
+
+    private:
+        GLint u_projMat = -1;
+        GLint u_viewMat = -1;
+        GLint u_modelMat = -1;
+
+    public:
+        void init(const GLuint shader);
+
+        void projectMat(const glm::mat4& mat) const;
+        void viewMat(const glm::mat4& mat) const;
+        void modelMat(const glm::mat4& mat) const;
+
+     };
+
+    class UniInterfLight {
+
+    };
+
 
     class UnilocGeneral {
 
@@ -102,22 +125,7 @@ namespace dal {
 
     };
 
-    class UnilocDepthmp {
-
-        //////// Vars ////////
-
-    public:
-        GLint iPosition;
-
-        // Fragment shader
-
-        GLint uProjViewMat;
-        GLint uModelMat;
-
-        //////// Funcs ////////
-
-    public:
-        void init(const GLuint shader);
+    class UnilocDepthmp : public UniInterfGeometry {
 
     };
 

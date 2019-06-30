@@ -3,7 +3,7 @@
 
 namespace dal {
 
-    TextureView::TextureView(Widget* parent, Texture* const tex)
+    TextureView::TextureView(Widget* parent, const Texture* const tex)
         : Widget(parent)
     {
         this->m_quadRender.setColor(0.0, 0.0, 0.0, 1.0f);

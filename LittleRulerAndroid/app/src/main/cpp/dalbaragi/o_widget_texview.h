@@ -13,7 +13,7 @@ namespace dal {
         QuadRenderer m_quadRender;
 
     public:
-        TextureView(Widget* parent, Texture* const tex = nullptr);
+        TextureView(Widget* parent, const Texture* const tex = nullptr);
         virtual void renderOverlay(const UnilocOverlay& uniloc) override;
         void setTexture(Texture* const tex);
 

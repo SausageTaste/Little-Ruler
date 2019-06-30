@@ -84,7 +84,9 @@ extern "C" {
         g_width = static_cast<unsigned int>(width);
         g_height = static_cast<unsigned int>(height);
 
-        gMainloop->onResize(g_width, g_height);
+        if (nullptr != gMainloop){
+            gMainloop->onResize(g_width, g_height);
+        }
     }
 
     JNIEXPORT void JNICALL Java_com_sausagetaste_littleruler_LibJNI_step(JNIEnv* env, jclass type) {

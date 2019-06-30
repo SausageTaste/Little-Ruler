@@ -1,11 +1,12 @@
 
 
-layout (location = 0) in vec3 iPosition;
+layout (location = 0) in vec3 i_position;
 
-uniform mat4 uProjViewMat;
-uniform mat4 uModelMat;
+uniform mat4 u_projMat;
+uniform mat4 u_viewMat;
+uniform mat4 u_modelMat;
 
 
 void main() {
-    gl_Position = uProjViewMat * uModelMat * vec4(iPosition, 1.0);
+    gl_Position = u_projMat * u_viewMat * u_modelMat * vec4(i_position, 1.0);
 }

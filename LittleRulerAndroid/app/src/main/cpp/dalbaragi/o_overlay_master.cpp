@@ -190,8 +190,7 @@ namespace dal {
     void OverlayMaster::render(void) const {
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-        this->m_shaderMas.useOverlay();
-        auto& uniloc = this->m_shaderMas.getOverlay();
+        auto& uniloc = this->m_shaderMas.useOverlay();
 
         for ( auto iter = this->m_widgets.rbegin(); iter != this->m_widgets.rend(); ++iter ) {
             if ( (*iter)->getPauseOnly() ) {

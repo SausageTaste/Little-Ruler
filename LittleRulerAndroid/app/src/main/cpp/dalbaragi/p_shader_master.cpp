@@ -2,6 +2,7 @@
 
 #include <array>
 #include <unordered_map>
+#include <memory>
 
 #include <fmt/format.h>
 
@@ -62,7 +63,29 @@ namespace {
 
 namespace {
 
-    GLuint compileShader2(dal::ShaderType type, const char* const src) {
+    class ShaderRAII {
+
+    private:
+        const GLuint m_id;
+
+    public:
+        explicit ShaderRAII(GLuint shader)
+            : m_id(shader)
+        {
+
+        }
+
+        ~ShaderRAII(void) {
+            glDeleteShader(this->m_id);
+        }
+
+        GLuint get(void) const {
+            return this->m_id;
+        }
+
+    };
+
+    ShaderRAII compileShader2(dal::ShaderType type, const char* const src) {
         // Returns 0 on error
         GLuint shaderID = 0;
 
@@ -91,14 +114,14 @@ namespace {
             dalAbort("Shader primitive compile error. Error message from OpenGL is\n"s + log + "\nshader source code is\n" + src + '\n');
         }
 
-        return shaderID;
+        return ShaderRAII{ shaderID };
     }
 
 }
 
 
 
-namespace {
+namespace dal {
 
     class ShaderLoader {
 
@@ -283,149 +306,100 @@ namespace {
 }
 
 
+namespace dal {
+
+    void ShaderProgram2::init(ShaderLoader& loader, const char* const vertSrcName, const char* const fragSrcName) {
+        dalAssert(this->m_id == 0);
+
+        this->m_id = glCreateProgram();
+
+        const auto verShader = compileShader2(ShaderType::VERTEX, loader[vertSrcName]);
+        const auto fragShader = compileShader2(ShaderType::FRAGMENT, loader[fragSrcName]);
+
+        glAttachShader(this->m_id, verShader.get());
+        glAttachShader(this->m_id, fragShader.get());
+
+        glLinkProgram(this->m_id);
+
+        GLint programSuccess = GL_TRUE;
+        glGetProgramiv(this->m_id, GL_LINK_STATUS, &programSuccess);
+        if ( programSuccess != GL_TRUE ) {
+            GLsizei length = 0;
+            char log[100];
+            glGetProgramInfoLog(this->m_id, 100, &length, log);
+            dalAbort("ShaderProgram linking error: "s + log);
+        }
+    }
+
+    GLuint ShaderProgram2::get(void) {
+        return this->m_id;
+    }
+
+    void ShaderProgram2::use(void) const {
+        glUseProgram(this->m_id);
+    }
+
+}
+
+
 // Shader Master
 namespace dal {
 
-    ShaderMaster::ShaderMaster(void)
-        : m_general("shader_general"),
-        m_depthmap("shader_fscreen"),
-        m_fscreen("shader_depthmap"),
-        m_overlay("shader_overlay"),
-        m_waterry("shader_water"),
-        m_animate("shader_animated")
-    {
+    ShaderMaster::ShaderMaster(void) {
         ShaderLoader loader;
 
-        {
-            auto verShader = compileShader2(ShaderType::VERTEX, loader["general.vert"]);
-            auto fragShader = compileShader2(ShaderType::FRAGMENT, loader["general.frag"]);
+        this->m_general.init(loader, "general.vert", "general.frag");
+        this->m_generalUniloc.init(this->m_general.get());
 
-            this->m_general.attachShader(verShader);
-            this->m_general.attachShader(fragShader);
-            this->m_general.link();
-            this->m_generalUniloc.init(this->m_general.get());
+        this->m_fscreen.init(loader, "fillscreen.vert", "fillscreen.frag");
+        this->m_fscreenUniloc.init(this->m_fscreen.get());
 
-            glDeleteShader(verShader);
-            glDeleteShader(fragShader);
-        }
+        this->m_depthmap.init(loader, "depth.vert", "depth.frag");
+        this->m_depthmapUniloc.init(this->m_depthmap.get());
 
-        {
-            auto verShader = compileShader2(ShaderType::VERTEX, loader["fillscreen.vert"]);
-            auto fragShader = compileShader2(ShaderType::FRAGMENT, loader["fillscreen.frag"]);
+        this->m_overlay.init(loader, "overlay.vert", "overlay.frag");
+        this->m_overlayUniloc.init(this->m_overlay.get());
 
-            this->m_fscreen.attachShader(verShader);
-            this->m_fscreen.attachShader(fragShader);
-            this->m_fscreen.link();
-            this->m_fscreenUniloc.init(this->m_fscreen.get());
+        this->m_waterry.init(loader, "water.vert", "water.frag");
+        this->m_waterryUniloc.init(this->m_waterry.get());
 
-            glDeleteShader(verShader);
-            glDeleteShader(fragShader);
-        }
-
-        {
-            auto verShader = compileShader2(ShaderType::VERTEX, loader["depth.vert"]);
-            auto fragShader = compileShader2(ShaderType::FRAGMENT, loader["depth.frag"]);
-
-            this->m_depthmap.attachShader(verShader);
-            this->m_depthmap.attachShader(fragShader);
-            this->m_depthmap.link();
-            this->m_depthmapUniloc.init(this->m_depthmap.get());
-
-            glDeleteShader(verShader);
-            glDeleteShader(fragShader);
-        }
-
-        {
-            auto verShader = compileShader2(ShaderType::VERTEX, loader["overlay.vert"]);
-            auto fragShader = compileShader2(ShaderType::FRAGMENT, loader["overlay.frag"]);
-
-            this->m_overlay.attachShader(verShader);
-            this->m_overlay.attachShader(fragShader);
-            this->m_overlay.link();
-            this->m_overlayUniloc.init(this->m_overlay.get());
-
-            glDeleteShader(verShader);
-            glDeleteShader(fragShader);
-        }
-
-        {
-            auto verShader = compileShader2(ShaderType::VERTEX, loader["water.vert"]);
-            auto fragShader = compileShader2(ShaderType::FRAGMENT, loader["water.frag"]);
-
-            this->m_waterry.attachShader(verShader);
-            this->m_waterry.attachShader(fragShader);
-            this->m_waterry.link();
-            this->m_waterryUniloc.init(this->m_waterry.get());
-
-            glDeleteShader(verShader);
-            glDeleteShader(fragShader);
-        }
-
-        {
-            auto verShader = compileShader2(ShaderType::VERTEX, loader["animated.vert"]);
-            auto fragShader = compileShader2(ShaderType::FRAGMENT, loader["animated.frag"]);
-
-            this->m_animate.attachShader(verShader);
-            this->m_animate.attachShader(fragShader);
-            this->m_animate.link();
-            this->m_animateUniloc.init(this->m_animate.get());
-
-            glDeleteShader(verShader);
-            glDeleteShader(fragShader);
-        }
+        this->m_animate.init(loader, "animated.vert", "animated.frag");
+        this->m_animateUniloc.init(this->m_animate.get());
     }
 
-    void ShaderMaster::useGeneral(void) const {
+    const UnilocGeneral& ShaderMaster::useGeneral(void) const {
         setFor_generalRender();
         this->m_general.use();
-    }
-
-    void ShaderMaster::useDepthMp(void) const {
-        setFor_shadowmap();
-        this->m_depthmap.use();
-    }
-
-    void ShaderMaster::useFScreen(void) const {
-        setFor_fillingScreen();
-        this->m_fscreen.use();
-    }
-
-    void ShaderMaster::useOverlay(void) const {
-        setFor_overlay();
-        this->m_overlay.use();
-    }
-
-    void ShaderMaster::useWaterry(void) const {
-        setFor_water();
-        this->m_waterry.use();
-    }
-
-    void ShaderMaster::useAnimate(void) const {
-        setFor_generalRender();
-        this->m_animate.use();
-    }
-
-    const UnilocGeneral& ShaderMaster::getGeneral(void) const {
         return this->m_generalUniloc;
     }
 
-    const UnilocDepthmp& ShaderMaster::getDepthMp(void) const {
+    const UnilocDepthmp& ShaderMaster::useDepthMp(void) const {
+        setFor_shadowmap();
+        this->m_depthmap.use();
         return this->m_depthmapUniloc;
     }
 
-    const UnilocFScreen& ShaderMaster::getFScreen(void) const {
+    const UnilocFScreen& ShaderMaster::useFScreen(void) const {
+        setFor_fillingScreen();
+        this->m_fscreen.use();
         return this->m_fscreenUniloc;
     }
 
-    const UnilocOverlay& ShaderMaster::getOverlay(void) const {
+    const UnilocOverlay& ShaderMaster::useOverlay(void) const {
+        setFor_overlay();
+        this->m_overlay.use();
         return this->m_overlayUniloc;
     }
 
-    const UnilocWaterry& ShaderMaster::getWaterry(void) const {
+    const UnilocWaterry& ShaderMaster::useWaterry(void) const {
+        setFor_water();
+        this->m_waterry.use();
         return this->m_waterryUniloc;
     }
 
-    const UnilocAnimate& ShaderMaster::getAnimate(void) const {
+    const UnilocAnimate& ShaderMaster::useAnimate(void) const {
+        setFor_generalRender();
+        this->m_animate.use();
         return this->m_animateUniloc;
     }
 

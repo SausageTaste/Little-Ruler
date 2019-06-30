@@ -12,6 +12,49 @@ using namespace std::string_literals;
 using namespace fmt::literals;
 
 
+namespace {
+
+    GLint getUniloc(const GLuint shader, const char* const id, const bool asserting = true) {
+        const auto tmp = glGetUniformLocation(shader, id);
+        if ( asserting && -1 == tmp ) {
+            dalAbort("Failed to find uniloc \'{}\' for shader {}."_format(id, shader));
+        }
+
+        return tmp;
+    }
+
+    void sendMatrix(const GLint loc, const glm::mat4& mat) {
+        glUniformMatrix4fv(loc, 1, GL_FALSE, &mat[0][0]);
+    }
+
+}
+
+
+namespace dal {
+
+    void UniInterfGeometry::init(const GLuint shader) {
+        dalAssert(0 == glGetAttribLocation(shader, "i_position"));
+
+        this->u_projMat = getUniloc(shader, "u_projMat");
+        this->u_viewMat = getUniloc(shader, "u_viewMat");
+        this->u_modelMat = getUniloc(shader, "u_modelMat");
+    }
+
+    void UniInterfGeometry::projectMat(const glm::mat4& mat) const {
+        sendMatrix(this->u_projMat, mat);
+    }
+
+    void UniInterfGeometry::viewMat(const glm::mat4& mat) const {
+        sendMatrix(this->u_viewMat, mat);
+    }
+
+    void UniInterfGeometry::modelMat(const glm::mat4& mat) const {
+        sendMatrix(this->u_modelMat, mat);
+    }
+
+}
+
+
 namespace dal {
 
     void UnilocGeneral::init(const GLuint shader) {
@@ -101,15 +144,6 @@ namespace dal {
         // Fragment shader
 
         uTexture = glGetUniformLocation(shader, "uTexture");
-    }
-
-    void UnilocDepthmp::init(const GLuint shader) {
-        iPosition = glGetAttribLocation(shader, "iPosition"); assert(iPosition == 0);
-
-        // Fragment shader
-
-        uProjViewMat = glGetUniformLocation(shader, "uProjViewMat");
-        uModelMat = glGetUniformLocation(shader, "uModelMat");
     }
 
     void UnilocWaterry::init(const GLuint shader) {
