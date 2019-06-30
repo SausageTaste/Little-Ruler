@@ -99,14 +99,12 @@ extern "C" {
 
         // Touch event handle
         {
+			auto &touchQ = dal::TouchEvtQueueGod::getinst();
             const auto curIndex = dal::touchinput::getCurrentIndexAndReset();
+            std::unique_ptr<jbyte[]> floatArr{ new jbyte[curIndex] };
+            dal::touchinput::copyArray(floatArr.get(), curIndex);
 
-            auto &touchQ = dal::TouchEvtQueueGod::getinst();
-
-            jbyte *floatArr = new jbyte[curIndex];
-            dal::touchinput::copyArray(floatArr, curIndex);
             for (int i = 0; i < curIndex; i += 16) {
-
                 auto xPos = reinterpret_cast<jfloat *>(&floatArr[i]);
                 auto yPos = reinterpret_cast<jfloat *>(&floatArr[i + 4]);
                 auto etype = reinterpret_cast<jint *>  (&floatArr[i + 8]);
@@ -120,7 +118,6 @@ extern "C" {
                 }
 
                 switch (*etype) {
-
                     case 1:  // ACTION_DOWN
                         touchQ.emplaceBack(*xPos, *yPos, dal::TouchType::down, *id);
                         break;
@@ -132,7 +129,6 @@ extern "C" {
                         break;
                     default:
                         break;
-
                 }
             }
         }
