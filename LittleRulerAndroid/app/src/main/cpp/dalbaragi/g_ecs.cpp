@@ -1,5 +1,5 @@
 #include "g_ecs.h"
-
+/*
 #include "s_logger_god.h"
 
 
@@ -47,3 +47,4 @@ namespace dal {
     }
 
 }
+*/
