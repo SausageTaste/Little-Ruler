@@ -1,7 +1,7 @@
-
 // Interf - Geometry
 layout (location = 0) in vec3 i_position;
 
+// Interf - Geometry
 uniform mat4 u_projMat;
 uniform mat4 u_viewMat;
 uniform mat4 u_modelMat;

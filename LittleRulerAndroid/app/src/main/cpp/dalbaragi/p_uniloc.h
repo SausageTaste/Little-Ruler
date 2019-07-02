@@ -14,9 +14,10 @@ namespace dal {
         GLint u_viewMat = -1;
         GLint u_modelMat = -1;
 
-    public:
+    protected:
         void init(const GLuint shader);
 
+    public:
         void projectMat(const glm::mat4& mat) const;
         void viewMat(const glm::mat4& mat) const;
         void modelMat(const glm::mat4& mat) const;
@@ -28,18 +29,13 @@ namespace dal {
     };
 
 
-    class UnilocGeneral {
+    class UnilocGeneral : public UniInterfGeometry {
 
         //////// Vars ////////
 
     public:
-        GLint iPosition;
         GLint iTexCoord;
         GLint iNormal;
-
-        GLint uProjectMat;
-        GLint uViewMat;
-        GLint uModelMat;
 
         GLint u_doClip;
         GLint u_clipPlane;
@@ -127,20 +123,18 @@ namespace dal {
 
     class UnilocDepthmp : public UniInterfGeometry {
 
+    public:
+        void init(const GLuint shader);
+
     };
 
-    class UnilocWaterry {
+    class UnilocWaterry : public UniInterfGeometry {
 
         //////// Vars ////////
 
     public:
-        GLint iPosition;
         GLint iTexCoord;
         GLint iNormal;
-
-        GLint uProjectMat;
-        GLint uViewMat;
-        GLint uModelMat;
 
         GLint uDlightProjViewMat[3];
 

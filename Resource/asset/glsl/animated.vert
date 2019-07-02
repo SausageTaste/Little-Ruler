@@ -1,12 +1,15 @@
-layout (location = 0) in vec3 iPosition;
+// Interf - Geometry
+layout (location = 0) in vec3 i_position;
+
 layout (location = 1) in vec2 iTexCoord;
 layout (location = 2) in vec3 iNormal;
 layout (location = 3) in ivec3 i_jointIDs;
 layout (location = 4) in vec3 i_weights;
 
-uniform mat4 uProjectMat;
-uniform mat4 uViewMat;
-uniform mat4 uModelMat;
+// Interf - Geometry
+uniform mat4 u_projMat;
+uniform mat4 u_viewMat;
+uniform mat4 u_modelMat;
 
 // From Master
 uniform highp int uDlightCount;
@@ -28,7 +31,6 @@ out vec3 vFragPos;
 out vec2 vTexCoord;
 out vec3 vNormalVec;
 out vec4 vFragPosInDlight[3];
-out vec4 v_worldPos;
 
 
 void main(void) {
@@ -39,20 +41,20 @@ void main(void) {
         boneMat += u_poses[jid] * i_weights[i];
     }
 
-    v_worldPos = uModelMat * boneMat * vec4(iPosition, 1.0);
+    vec4 worldPos = u_modelMat * boneMat * vec4(i_position, 1.0);
 
 #ifndef GL_ES
     if (u_doClip) {
-        gl_ClipDistance[0] = dot(v_worldPos, u_clipPlane);
+        gl_ClipDistance[0] = dot(worldPos, u_clipPlane);
     }
 #endif
 
-    gl_Position = uProjectMat * uViewMat * v_worldPos;
-    vFragPos = vec3(v_worldPos);
+    gl_Position = u_projMat * u_viewMat * worldPos;
+    vFragPos = vec3(worldPos);
     vTexCoord = vec2(iTexCoord.x * uTexScaleX, -iTexCoord.y * uTexScaleY);
-    vNormalVec = normalize(vec3(uModelMat * boneMat * vec4(iNormal, 0.0)));
+    vNormalVec = normalize(vec3(u_modelMat * boneMat * vec4(iNormal, 0.0)));
 
     for (int i = 0; i < uDlightCount; i++) {
-        vFragPosInDlight[i] = uDlightProjViewMat[i] * vec4(vFragPos, 1.0);
+        vFragPosInDlight[i] = uDlightProjViewMat[i] * worldPos;
     }
 }

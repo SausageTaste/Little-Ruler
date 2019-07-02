@@ -33,7 +33,8 @@ namespace {
 namespace dal {
 
     void UniInterfGeometry::init(const GLuint shader) {
-        dalAssert(0 == glGetAttribLocation(shader, "i_position"));
+        const auto i_position = glGetAttribLocation(shader, "i_position");
+        dalAssertm(0 == i_position, "Uniloc i_position not found");
 
         this->u_projMat = getUniloc(shader, "u_projMat");
         this->u_viewMat = getUniloc(shader, "u_viewMat");
@@ -58,13 +59,10 @@ namespace dal {
 namespace dal {
 
     void UnilocGeneral::init(const GLuint shader) {
-        this->iPosition = glGetAttribLocation(shader, "iPosition"); assert(this->iPosition == 0);
+        this->UniInterfGeometry::init(shader);
+
         this->iTexCoord = glGetAttribLocation(shader, "iTexCoord"); assert(this->iTexCoord == 1);
         this->iNormal = glGetAttribLocation(shader, "iNormal"); //assert(this->iNormal == 2);
-
-        this->uProjectMat = glGetUniformLocation(shader, "uProjectMat");
-        this->uViewMat = glGetUniformLocation(shader, "uViewMat");
-        this->uModelMat = glGetUniformLocation(shader, "uModelMat");
 
         this->u_doClip = glGetUniformLocation(shader, "u_doClip");
         this->u_clipPlane = glGetUniformLocation(shader, "u_clipPlane");
@@ -146,14 +144,15 @@ namespace dal {
         uTexture = glGetUniformLocation(shader, "uTexture");
     }
 
+    void UnilocDepthmp::init(const GLuint shader) {
+        this->UniInterfGeometry::init(shader);
+    }
+
     void UnilocWaterry::init(const GLuint shader) {
-        this->iPosition = glGetAttribLocation(shader, "iPosition"); assert(this->iPosition == 0);
+        this->UniInterfGeometry::init(shader);
+
         this->iTexCoord = glGetAttribLocation(shader, "iTexCoord");
         this->iNormal = glGetAttribLocation(shader, "iNormal");
-
-        this->uProjectMat = glGetUniformLocation(shader, "uProjectMat");
-        this->uViewMat = glGetUniformLocation(shader, "uViewMat");
-        this->uModelMat = glGetUniformLocation(shader, "uModelMat");
 
         this->uDlightProjViewMat[0] = glGetUniformLocation(shader, "uDlightProjViewMat[0]");
         this->uDlightProjViewMat[1] = glGetUniformLocation(shader, "uDlightProjViewMat[1]");

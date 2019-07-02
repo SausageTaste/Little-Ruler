@@ -269,7 +269,7 @@ namespace dal {
 
             glUniform1i(unilocGeneral.u_doClip, 1);
 
-            glUniformMatrix4fv(unilocGeneral.uProjectMat, 1, GL_FALSE, &m_projectMat[0][0]);
+            unilocGeneral.projectMat(this->m_projectMat);
 
             glUniform3f(unilocGeneral.uBaseAmbient, 0.3f, 0.3f, 0.3f);
 
@@ -297,7 +297,7 @@ namespace dal {
 
             glUniform1i(unilocGeneral.u_doClip, 1);
 
-            glUniformMatrix4fv(unilocGeneral.uProjectMat, 1, GL_FALSE, &m_projectMat[0][0]);
+            unilocGeneral.projectMat(this->m_projectMat);
 
             glUniform3f(unilocGeneral.uBaseAmbient, 0.3f, 0.3f, 0.3f);
 
@@ -326,12 +326,9 @@ namespace dal {
         {
             auto& unilocGeneral = this->m_shader.useGeneral();
 
-            glUniformMatrix4fv(unilocGeneral.uProjectMat, 1, GL_FALSE, &m_projectMat[0][0]);
-
+            unilocGeneral.projectMat(this->m_projectMat);
             glUniform1i(unilocGeneral.u_doClip, 0);
-
-            const auto& viewMat = this->m_mainCamera->getViewMat();
-            glUniformMatrix4fv(unilocGeneral.uViewMat, 1, GL_FALSE, &viewMat[0][0]);
+            unilocGeneral.viewMat(this->m_mainCamera->getViewMat());
 
             const auto& viewPos = this->m_mainCamera->m_pos;
             glUniform3f(unilocGeneral.uViewPos, viewPos.x, viewPos.y, viewPos.z);
@@ -345,12 +342,9 @@ namespace dal {
         {
             auto& unilocGeneral = this->m_shader.useAnimate();
 
-            glUniformMatrix4fv(unilocGeneral.uProjectMat, 1, GL_FALSE, &m_projectMat[0][0]);
-
+            unilocGeneral.projectMat(this->m_projectMat);
             glUniform1i(unilocGeneral.u_doClip, 0);
-
-            const auto& viewMat = this->m_mainCamera->getViewMat();
-            glUniformMatrix4fv(unilocGeneral.uViewMat, 1, GL_FALSE, &viewMat[0][0]);
+            unilocGeneral.viewMat(this->m_mainCamera->getViewMat());
 
             const auto& viewPos = this->m_mainCamera->m_pos;
             glUniform3f(unilocGeneral.uViewPos, viewPos.x, viewPos.y, viewPos.z);
@@ -364,10 +358,8 @@ namespace dal {
         {
             auto& unilocWaterry = this->m_shader.useWaterry();
 
-            glUniformMatrix4fv(unilocWaterry.uProjectMat, 1, GL_FALSE, &m_projectMat[0][0]);
-
-            auto& viewMat = this->m_mainCamera->getViewMat();
-            glUniformMatrix4fv(unilocWaterry.uViewMat, 1, GL_FALSE, &viewMat[0][0]);
+            unilocWaterry.projectMat(this->m_projectMat);
+            unilocWaterry.viewMat(this->m_mainCamera->getViewMat());
 
             const auto& viewPos = this->m_mainCamera->m_pos;
             glUniform3f(unilocWaterry.uViewPos, viewPos.x, viewPos.y, viewPos.z);

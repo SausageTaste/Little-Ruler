@@ -149,7 +149,7 @@ namespace dal {
                 glm::vec3 reflectedPos;
                 cam.makeReflected(water.getHeight(), reflectedPos, reflectedMat);
 
-                glUniformMatrix4fv(uniloc.uViewMat, 1, GL_FALSE, &reflectedMat[0][0]);
+                uniloc.viewMat(reflectedMat);
                 glUniform3f(uniloc.uViewPos, reflectedPos.x, reflectedPos.y, reflectedPos.z);
 
                 water.m_fbuffer.bindReflectionFrameBuffer();
@@ -168,7 +168,7 @@ namespace dal {
                 glUniform1i(uniloc.u_doClip, 1);
 
                 const auto& viewMat = cam.getViewMat();
-                glUniformMatrix4fv(uniloc.uViewMat, 1, GL_FALSE, &viewMat[0][0]);
+                uniloc.viewMat(viewMat);
                 glUniform3f(uniloc.uViewPos, cam.m_pos.x, cam.m_pos.y, cam.m_pos.z);
 
                 water.m_fbuffer.bindRefractionFrameBuffer();
@@ -193,7 +193,7 @@ namespace dal {
                 glm::vec3 reflectedPos;
                 cam.makeReflected(water.getHeight(), reflectedPos, reflectedMat);
 
-                glUniformMatrix4fv(uniloc.uViewMat, 1, GL_FALSE, &reflectedMat[0][0]);
+                uniloc.viewMat(reflectedMat);
                 glUniform3f(uniloc.uViewPos, reflectedPos.x, reflectedPos.y, reflectedPos.z);
 
                 water.m_fbuffer.bindReflectionFrameBuffer();
@@ -212,7 +212,7 @@ namespace dal {
                 glUniform1i(uniloc.u_doClip, 1);
 
                 const auto& viewMat = cam.getViewMat();
-                glUniformMatrix4fv(uniloc.uViewMat, 1, GL_FALSE, &viewMat[0][0]);
+                uniloc.viewMat(viewMat);
                 glUniform3f(uniloc.uViewPos, cam.m_pos.x, cam.m_pos.y, cam.m_pos.z);
 
                 water.m_fbuffer.bindRefractionFrameBuffer();
