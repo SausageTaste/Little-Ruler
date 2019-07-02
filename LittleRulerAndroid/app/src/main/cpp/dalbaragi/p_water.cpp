@@ -340,8 +340,7 @@ namespace dal {
         //getWaterNormalMap()->sendUniform(uniloc.u_normalMap, 0, 7);
         this->s_normalMap->sendUniform(uniloc.u_normalMap, 0, 7);
 
-        const glm::mat4 mat{ 1.0f };
-        glUniformMatrix4fv(uniloc.uModelMat, 1, GL_FALSE, &mat[0][0]);
+        uniloc.modelMat(glm::mat4{ 1.0f });
         this->m_mesh.draw();
     }
 

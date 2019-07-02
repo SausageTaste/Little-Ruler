@@ -16,7 +16,6 @@ in vec3 vFragPos;
 in vec2 vTexCoord;
 in vec3 vNormalVec;
 in vec4 vFragPosInDlight[3];
-in vec4 v_worldPos;
 
 out vec4 fColor;
 
@@ -24,7 +23,7 @@ out vec4 fColor;
 void main(void) {
 #ifdef GL_ES
     if (u_doClip) {
-        if ( dot(v_worldPos, u_clipPlane) < 0.0 ) discard;
+        if ( dot(vec4(vFragPos, 1.0), u_clipPlane) < 0.0 ) discard;
     }
 #endif
 
