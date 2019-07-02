@@ -50,6 +50,20 @@ def main():
 
     ########
 
+    model = bfi.BuildInfo_ModelImportedAnimated()
+
+    actor = aco.ActorInfo()
+    actor.setName("EunChae")
+    actor.getPosHandle().setX(0)
+    actor.getPosHandle().setY(10)
+    actor.getPosHandle().setZ(0)
+    model.addActor(actor)
+
+    model.setModelID("test::fuckyou.dae")
+    level.add(model)
+
+    ########
+
     model = bfi.BuildInfo_ModelDefined()
     model.setModelID("floor")
     model.getMeshHandle().setAABB(atl.Vec3(0, -1, 0), atl.Vec3(50, 0, 50))
