@@ -1,9 +1,6 @@
 #include <inter_lighting.frag>
 
 
-// Interf - Mesh
-uniform sampler2D u_diffuseMap;  // TEX 0
-
 uniform sampler2D u_bansaTex;  // TEX 4
 uniform sampler2D u_gooljulTex;  // TEX 5
 uniform sampler2D u_dudvMap;  // TEX 6

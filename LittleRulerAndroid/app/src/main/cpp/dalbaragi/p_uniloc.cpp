@@ -53,7 +53,7 @@ namespace {
             }
         }
 
-    };
+    } g_texUnitReg;
 
 }
 
@@ -61,7 +61,11 @@ namespace {
 // SamplerInterf
 namespace dal {
 
-    void SamplerInterf::init(const GLint sampler, const GLint flagHas, const int unitIndex) {
+    void SamplerInterf::init(const GLuint shader, const GLint sampler, const GLint flagHas) {
+
+    }
+
+    void SamplerInterf::init(const GLuint shader, const GLint sampler) {
 
     }
 
@@ -177,6 +181,8 @@ namespace dal {
         this->UniInterfMesh::init(shader);
         this->UniInterfPlaneClip::init(shader);
 
+        this->u_diffuseMap = getUniloc(shader, "u_diffuseMap");
+
         this->uDlightProjViewMat[0] = glGetUniformLocation(shader, "uDlightProjViewMat[0]");
         this->uDlightProjViewMat[1] = glGetUniformLocation(shader, "uDlightProjViewMat[1]");
         this->uDlightProjViewMat[2] = glGetUniformLocation(shader, "uDlightProjViewMat[2]");
@@ -190,10 +196,6 @@ namespace dal {
 
         this->uShininess = glGetUniformLocation(shader, "uShininess");
         this->uSpecularStrength = glGetUniformLocation(shader, "uSpecularStrength");
-
-        this->uDiffuseColor = glGetUniformLocation(shader, "uDiffuseColor");
-        this->uHasDiffuseMap = glGetUniformLocation(shader, "uHasDiffuseMap");
-        this->uDiffuseMap = glGetUniformLocation(shader, "uDiffuseMap");
 
         // Directional Lights
 
@@ -223,6 +225,17 @@ namespace dal {
         this->uPlightMaxDists[1] = glGetUniformLocation(shader, "uPlightMaxDists[1]");
         this->uPlightMaxDists[2] = glGetUniformLocation(shader, "uPlightMaxDists[2]");
     }
+
+    GLint UnilocGeneral::getDiffuseMapLoc(void) const {
+        return this->u_diffuseMap;
+    }
+
+}
+
+
+namespace dal {
+
+    
 
     void UnilocOverlay::init(const GLuint shader) {
         uPoint1 = glGetUniformLocation(shader, "uPoint1");
@@ -277,10 +290,6 @@ namespace dal {
 
         this->uShininess = glGetUniformLocation(shader, "uShininess");
         this->uSpecularStrength = glGetUniformLocation(shader, "uSpecularStrength");
-
-        this->uDiffuseColor = glGetUniformLocation(shader, "uDiffuseColor");
-        this->uHasDiffuseMap = glGetUniformLocation(shader, "uHasDiffuseMap");
-        this->uDiffuseMap = glGetUniformLocation(shader, "uDiffuseMap");
 
         // Directional Lights
 

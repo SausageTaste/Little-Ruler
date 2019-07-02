@@ -459,13 +459,8 @@ namespace dal {
 
         uniloc.texScale(this->m_texScale);
 
-        glUniform3f(uniloc.uDiffuseColor, this->m_diffuseColor.x, this->m_diffuseColor.y, this->m_diffuseColor.z);
-
-        if ( nullptr == this->m_diffuseMap ) {
-            glUniform1i(uniloc.uHasDiffuseMap, 0);
-        }
-        else {
-            this->m_diffuseMap->sendUniform(uniloc.uDiffuseMap, uniloc.uHasDiffuseMap, 0);
+        if ( nullptr != this->m_diffuseMap ) {
+            this->m_diffuseMap->sendUniform(uniloc.getDiffuseMapLoc(), -1, 0);
         }
     }
 
@@ -473,15 +468,6 @@ namespace dal {
         glUniform1f(uniloc.uShininess, this->m_shininess);
         glUniform1f(uniloc.uSpecularStrength, this->m_specularStrength);
         uniloc.texScale(this->m_texScale);
-
-        glUniform3f(uniloc.uDiffuseColor, this->m_diffuseColor.x, this->m_diffuseColor.y, this->m_diffuseColor.z);
-
-        if ( nullptr == this->m_diffuseMap ) {
-            glUniform1i(uniloc.uHasDiffuseMap, 0);
-        }
-        else {
-            this->m_diffuseMap->sendUniform(uniloc.uDiffuseMap, uniloc.uHasDiffuseMap, 0);
-        }
     }
 
 }

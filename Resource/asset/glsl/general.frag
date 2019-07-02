@@ -1,12 +1,11 @@
 #include <inter_lighting.frag>
 
-// Interf - Mesh
-uniform sampler2D u_diffuseMap;  // TEX 0
 
 // Interf - PlaneClip
 uniform bool u_doClip;
 uniform vec4 u_clipPlane;
 
+uniform sampler2D u_diffuseMap;  // TEX 0
 
 in vec3 vFragPos;
 in vec2 vTexCoord;

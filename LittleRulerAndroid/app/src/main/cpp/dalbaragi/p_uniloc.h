@@ -15,7 +15,8 @@ namespace dal {
         int m_unitIndex = -1;
 
     public:
-        void init(const GLint sampler, const GLint flagHas, const int unitIndex);
+        void init(const GLuint shader, const GLint sampler, const GLint flagHas);
+        void init(const GLuint shader, const GLint sampler);
 
         GLint getSamplerLoc(void) const;
         void setFlagHas(const bool x) const;
@@ -45,7 +46,6 @@ namespace dal {
 
     private:
         GLint u_texScale = -1;
-        SamplerInterf u_diffuseMap;
 
     protected:
         void init(const GLuint shader);
@@ -94,6 +94,9 @@ namespace dal {
 
         //////// Vars ////////
 
+    private:
+        GLint u_diffuseMap;
+
     public:
         GLint uDlightProjViewMat[3];
 
@@ -107,10 +110,6 @@ namespace dal {
         GLint uShininess;
         GLint uSpecularStrength;
 
-        GLint uDiffuseColor;
-        GLint uHasDiffuseMap;
-        GLint uDiffuseMap;
-
         GLint uDlightDirecs[3];
         GLint uDlightColors[3];
         GLint uDlightDepthMap[3];
@@ -123,6 +122,8 @@ namespace dal {
 
     public:
         void init(const GLuint shader);
+
+        GLint getDiffuseMapLoc(void) const;
 
     };
 
@@ -202,10 +203,6 @@ namespace dal {
 
         GLint uShininess;
         GLint uSpecularStrength;
-
-        GLint uDiffuseColor;
-        GLint uHasDiffuseMap;
-        GLint uDiffuseMap;
 
         GLint uDlightDirecs[3];
         GLint uDlightColors[3];
