@@ -69,7 +69,7 @@ namespace {
             const auto sec = timeInfo.tm_sec;
 
             std::string buffer{ "Dalbaragi Log\n" };
-            buffer += fmt::format("{}-{}-{} {}:{}:{}\n\n", year, month, day, hour, min, sec);
+            buffer += fmt::format("{}-{:0>2}-{:0>2} {:0>2}:{:0>2}:{:0>2}\n\n", year, month, day, hour, min, sec);
 
             buffer += fmt::format("File : {}\nLine : {}\nFunction : {}\n", file, line, func);
             buffer += "Log level : ";
@@ -81,7 +81,7 @@ namespace {
             buffer += "\n\"\"\"";
             buffer += "\n\n##############\n\n";
 
-            const auto fileID = fmt::format("log::log_{}-{}-{}_{}-{}.txt", year, month, day, hour, min);
+            const auto fileID = fmt::format("log::log_{}-{:0>2}-{:0>2}_{:0>2}-{:0>2}.txt", year, month, day, hour, min);
 
             auto logFile = dal::resopen(fileID, dal::FileMode::append);
             if ( nullptr == logFile ) {
