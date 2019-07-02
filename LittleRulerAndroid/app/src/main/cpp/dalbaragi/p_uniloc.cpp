@@ -1,6 +1,7 @@
 #include "p_uniloc.h"
 
 #include <string>
+#include <unordered_map>
 
 #include <fmt/format.h>
 
@@ -25,6 +26,55 @@ namespace {
 
     void sendMatrix(const GLint loc, const glm::mat4& mat) {
         glUniformMatrix4fv(loc, 1, GL_FALSE, &mat[0][0]);
+    }
+
+}
+
+
+namespace {
+
+    class TextureUnitRegistry {
+
+    private:
+        std::unordered_map<std::string, unsigned int> m_reg;
+        unsigned int m_size = 0;
+
+    public:
+        unsigned int operator[](const std::string& key) {
+            const auto iter = this->m_reg.find(key);
+
+            if ( this->m_reg.end() != iter ) {
+                return iter->second;
+            }
+            else {
+                const auto result = this->m_reg.emplace(key, this->m_size);
+                ++this->m_size;
+                return result.second;
+            }
+        }
+
+    };
+
+}
+
+
+// SamplerInterf
+namespace dal {
+
+    void SamplerInterf::init(const GLint sampler, const GLint flagHas, const int unitIndex) {
+
+    }
+
+    GLint SamplerInterf::getSamplerLoc(void) const {
+        return this->m_samplerLoc;
+    }
+
+    void SamplerInterf::setFlagHas(const bool x) const {
+        glUniform1i(this->m_flagHas, x ? 1 : 0);
+    }
+
+    int SamplerInterf::getUnitIndex(void) const {
+        return this->m_unitIndex;
     }
 
 }

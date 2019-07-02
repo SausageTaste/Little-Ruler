@@ -458,13 +458,14 @@ namespace {
             glm::vec3 weightBuffer;
             int32_t indexBuf[3] = { -1, -1, -1 };
             for ( unsigned int j = 0; j < 3; j++ ) {
+                if ( vmap.rend() == iter ) {
+                    break;
+                }
+
                 weightBuffer[j] = iter->first;
                 indexBuf[j] = iter->second;
 
                 ++iter;
-                if ( vmap.rend() == iter ) {
-                    break;
-                }
             }
 
             weightBuffer = glm::normalize(weightBuffer);

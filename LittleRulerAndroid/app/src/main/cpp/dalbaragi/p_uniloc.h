@@ -7,6 +7,23 @@
 
 namespace dal {
 
+    class SamplerInterf {
+
+    private:
+        GLint m_samplerLoc = -1;
+        GLint m_flagHas = -1;
+        int m_unitIndex = -1;
+
+    public:
+        void init(const GLint sampler, const GLint flagHas, const int unitIndex);
+
+        GLint getSamplerLoc(void) const;
+        void setFlagHas(const bool x) const;
+        int getUnitIndex(void) const;
+
+    };
+
+
     class UniInterfGeometry {
 
     private:
@@ -28,6 +45,7 @@ namespace dal {
 
     private:
         GLint u_texScale = -1;
+        SamplerInterf u_diffuseMap;
 
     protected:
         void init(const GLuint shader);
