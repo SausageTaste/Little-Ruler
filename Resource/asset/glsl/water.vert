@@ -1,21 +1,23 @@
 // Interf - Geometry
 layout (location = 0) in vec3 i_position;
 
-layout (location = 1) in vec2 iTexCoord;
-layout (location = 2) in vec3 iNormal;
+// Interf - Mesh
+layout (location = 1) in vec2 i_texCoord;
+layout (location = 2) in vec3 i_normal;
+
 
 // Interf - Geometry
 uniform mat4 u_projMat;
 uniform mat4 u_viewMat;
 uniform mat4 u_modelMat;
 
+// Interf - Mesh
+uniform vec2 u_texScale;
+
 uniform highp int uDlightCount;
 uniform highp vec3 uViewPos;
 
 uniform mat4 uDlightProjViewMat[3];
-
-uniform float uTexScaleX;
-uniform float uTexScaleY;
 
 
 out vec3 vFragPos;
@@ -31,8 +33,8 @@ void main(void) {
 	v_clipSpace = u_projMat * u_viewMat * worldPos;
 	gl_Position = v_clipSpace;
 	vFragPos = vec3(worldPos);
-	vTexCoord = vec2(iTexCoord.x * uTexScaleX, -iTexCoord.y * uTexScaleY);
-	vNormalVec = normalize(vec3(u_modelMat * vec4(iNormal, 0.0)));
+	vTexCoord = vec2(i_texCoord.x * u_texScale.x, -i_texCoord.y * u_texScale.y);
+	vNormalVec = normalize(vec3(u_modelMat * vec4(i_normal, 0.0)));
 	v_toCamera = uViewPos - worldPos.xyz;
 
 	for (int i = 0; i < uDlightCount; i++) {

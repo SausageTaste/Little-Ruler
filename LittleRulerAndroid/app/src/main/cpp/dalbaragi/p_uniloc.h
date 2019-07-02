@@ -24,26 +24,33 @@ namespace dal {
 
      };
 
+    class UniInterfMesh : public UniInterfGeometry {
+
+    private:
+        GLint u_texScale = -1;
+
+    public:
+        void init(const GLuint shader);
+
+        void texScale(const float x, const float y) const;
+        void texScale(const glm::vec2& v) const;
+
+    };
+
     class UniInterfLight {
 
     };
 
 
-    class UnilocGeneral : public UniInterfGeometry {
+    class UnilocGeneral : public UniInterfMesh {
 
         //////// Vars ////////
 
     public:
-        GLint iTexCoord;
-        GLint iNormal;
-
         GLint u_doClip;
         GLint u_clipPlane;
 
         GLint uDlightProjViewMat[3];
-
-        GLint uTexScaleX;
-        GLint uTexScaleY;
 
         // Fragment shader
 
@@ -128,18 +135,12 @@ namespace dal {
 
     };
 
-    class UnilocWaterry : public UniInterfGeometry {
+    class UnilocWaterry : public UniInterfMesh {
 
         //////// Vars ////////
 
     public:
-        GLint iTexCoord;
-        GLint iNormal;
-
         GLint uDlightProjViewMat[3];
-
-        GLint uTexScaleX;
-        GLint uTexScaleY;
 
         // Fragment shader
 

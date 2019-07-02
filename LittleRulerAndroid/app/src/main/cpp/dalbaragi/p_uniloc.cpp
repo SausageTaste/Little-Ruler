@@ -29,12 +29,11 @@ namespace {
 
 }
 
-
+// UniInterfGeometry
 namespace dal {
 
     void UniInterfGeometry::init(const GLuint shader) {
-        const auto i_position = glGetAttribLocation(shader, "i_position");
-        dalAssertm(0 == i_position, "Uniloc i_position not found");
+        dalAssertm(0 == glGetAttribLocation(shader, "i_position"), "Uniloc i_position not found");
 
         this->u_projMat = getUniloc(shader, "u_projMat");
         this->u_viewMat = getUniloc(shader, "u_viewMat");
@@ -56,13 +55,33 @@ namespace dal {
 }
 
 
+// UniInterfMesh
+namespace dal {
+
+    void UniInterfMesh::init(const GLuint shader) {
+        this->UniInterfGeometry::init(shader);
+
+        dalAssertm(1 == glGetAttribLocation(shader, "i_texCoord"), "Uniloc i_texCoord not found");
+        //dalAssertm(2 == glGetAttribLocation(shader, "i_normal"), "Uniloc i_normal not found");
+
+        this->u_texScale = getUniloc(shader, "u_texScale");
+    }
+
+    void UniInterfMesh::texScale(const float x, const float y) const {
+        glUniform2f(this->u_texScale, x, y);
+    }
+
+    void UniInterfMesh::texScale(const glm::vec2& v) const {
+        this->texScale(v.x, v.y);
+    }
+
+}
+
+
 namespace dal {
 
     void UnilocGeneral::init(const GLuint shader) {
-        this->UniInterfGeometry::init(shader);
-
-        this->iTexCoord = glGetAttribLocation(shader, "iTexCoord"); assert(this->iTexCoord == 1);
-        this->iNormal = glGetAttribLocation(shader, "iNormal"); //assert(this->iNormal == 2);
+        this->UniInterfMesh::init(shader);
 
         this->u_doClip = glGetUniformLocation(shader, "u_doClip");
         this->u_clipPlane = glGetUniformLocation(shader, "u_clipPlane");
@@ -70,9 +89,6 @@ namespace dal {
         this->uDlightProjViewMat[0] = glGetUniformLocation(shader, "uDlightProjViewMat[0]");
         this->uDlightProjViewMat[1] = glGetUniformLocation(shader, "uDlightProjViewMat[1]");
         this->uDlightProjViewMat[2] = glGetUniformLocation(shader, "uDlightProjViewMat[2]");
-
-        this->uTexScaleX = glGetUniformLocation(shader, "uTexScaleX");
-        this->uTexScaleY = glGetUniformLocation(shader, "uTexScaleY");
 
         // Fragment shader
 
@@ -149,17 +165,11 @@ namespace dal {
     }
 
     void UnilocWaterry::init(const GLuint shader) {
-        this->UniInterfGeometry::init(shader);
-
-        this->iTexCoord = glGetAttribLocation(shader, "iTexCoord");
-        this->iNormal = glGetAttribLocation(shader, "iNormal");
+        this->UniInterfMesh::init(shader);
 
         this->uDlightProjViewMat[0] = glGetUniformLocation(shader, "uDlightProjViewMat[0]");
         this->uDlightProjViewMat[1] = glGetUniformLocation(shader, "uDlightProjViewMat[1]");
         this->uDlightProjViewMat[2] = glGetUniformLocation(shader, "uDlightProjViewMat[2]");
-
-        this->uTexScaleX = glGetUniformLocation(shader, "uTexScaleX");
-        this->uTexScaleY = glGetUniformLocation(shader, "uTexScaleY");
 
         // Fragment shader
 

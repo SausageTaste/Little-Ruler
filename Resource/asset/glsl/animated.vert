@@ -1,29 +1,28 @@
 // Interf - Geometry
 layout (location = 0) in vec3 i_position;
 
-layout (location = 1) in vec2 iTexCoord;
-layout (location = 2) in vec3 iNormal;
+// Interf - Mesh
+layout (location = 1) in vec2 i_texCoord;
+layout (location = 2) in vec3 i_normal;
+
 layout (location = 3) in ivec3 i_jointIDs;
 layout (location = 4) in vec3 i_weights;
+
 
 // Interf - Geometry
 uniform mat4 u_projMat;
 uniform mat4 u_viewMat;
 uniform mat4 u_modelMat;
 
-// From Master
+// Interf - Mesh
+uniform vec2 u_texScale;
+
 uniform highp int uDlightCount;
 uniform bool u_doClip;
 uniform vec4 u_clipPlane;
 
-// From Light
 uniform mat4 uDlightProjViewMat[3];
 
-// From Material
-uniform float uTexScaleX;
-uniform float uTexScaleY;
-
-// From animation
 uniform mat4 u_poses[30];
 
 
@@ -51,8 +50,8 @@ void main(void) {
 
     gl_Position = u_projMat * u_viewMat * worldPos;
     vFragPos = vec3(worldPos);
-    vTexCoord = vec2(iTexCoord.x * uTexScaleX, -iTexCoord.y * uTexScaleY);
-    vNormalVec = normalize(vec3(u_modelMat * boneMat * vec4(iNormal, 0.0)));
+    vTexCoord = vec2(i_texCoord.x * u_texScale.x, -i_texCoord.y * u_texScale.y);
+    vNormalVec = normalize(vec3(u_modelMat * boneMat * vec4(i_normal, 0.0)));
 
     for (int i = 0; i < uDlightCount; i++) {
         vFragPosInDlight[i] = uDlightProjViewMat[i] * worldPos;
