@@ -567,14 +567,7 @@ namespace dal {
 
         const auto materials = parseMaterials(scene);
         processAnimation(scene, info.m_animations);
-
-        if ( resID.getExt() == ".dae" ) {
-            const auto rotMat = glm::rotate(glm::mat4{ 1.0f }, glm::radians(90.0f), glm::vec3{ 1.0f, 0.0f, 0.0f });
-            info.m_model.m_globalTrans = rotMat * convertAssimpMat(scene->mRootNode->mTransformation);
-        }
-        else {
-            info.m_model.m_globalTrans = convertAssimpMat(scene->mRootNode->mTransformation);
-        }
+        info.m_model.m_globalTrans = convertAssimpMat(scene->mRootNode->mTransformation);
 
         AABBBuildInfo aabbInfo;
         const auto res = processNodeAnimated(info.m_model, materials, aabbInfo, scene, scene->mRootNode);
