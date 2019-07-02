@@ -54,8 +54,8 @@ def main():
 
     actor = aco.ActorInfo()
     actor.setName("EunChae")
-    actor.getPosHandle().setX(0)
-    actor.getPosHandle().setY(10)
+    actor.getPosHandle().setX(10)
+    actor.getPosHandle().setY(3)
     actor.getPosHandle().setZ(0)
     model.addActor(actor)
 
