@@ -267,7 +267,7 @@ namespace dal {
 #endif
             auto& unilocGeneral = this->m_shader.useGeneral();
 
-            glUniform1i(unilocGeneral.u_doClip, 1);
+            unilocGeneral.flagDoClip(true);
 
             unilocGeneral.projectMat(this->m_projectMat);
 
@@ -295,7 +295,7 @@ namespace dal {
 #endif
             auto& unilocGeneral = this->m_shader.useAnimate();
 
-            glUniform1i(unilocGeneral.u_doClip, 1);
+            unilocGeneral.flagDoClip(true);
 
             unilocGeneral.projectMat(this->m_projectMat);
 
@@ -327,7 +327,7 @@ namespace dal {
             auto& unilocGeneral = this->m_shader.useGeneral();
 
             unilocGeneral.projectMat(this->m_projectMat);
-            glUniform1i(unilocGeneral.u_doClip, 0);
+            unilocGeneral.flagDoClip(false);
             unilocGeneral.viewMat(this->m_mainCamera->getViewMat());
 
             const auto& viewPos = this->m_mainCamera->m_pos;
@@ -343,7 +343,7 @@ namespace dal {
             auto& unilocGeneral = this->m_shader.useAnimate();
 
             unilocGeneral.projectMat(this->m_projectMat);
-            glUniform1i(unilocGeneral.u_doClip, 0);
+            unilocGeneral.flagDoClip(false);
             unilocGeneral.viewMat(this->m_mainCamera->getViewMat());
 
             const auto& viewPos = this->m_mainCamera->m_pos;

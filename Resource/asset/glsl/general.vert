@@ -14,9 +14,11 @@ uniform mat4 u_modelMat;
 // Interf - Mesh
 uniform vec2 u_texScale;
 
-uniform highp int uDlightCount;
+// Interf - PlaneClip
 uniform bool u_doClip;
 uniform vec4 u_clipPlane;
+
+uniform highp int uDlightCount;
 
 uniform mat4 uDlightProjViewMat[3];
 

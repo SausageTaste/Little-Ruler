@@ -142,8 +142,8 @@ namespace dal {
             {
                 // Uniform values
 
-                glUniform4f(uniloc.u_clipPlane, 0, 1, 0, -water.getHeight() + 0.01f);
-                glUniform1i(uniloc.u_doClip, 1);
+                uniloc.flagDoClip(true);
+                uniloc.clipPlane(0.0f, 1.0f, 0.0f, -water.getHeight() + 0.01f);
 
                 glm::mat4 reflectedMat;
                 glm::vec3 reflectedPos;
@@ -164,8 +164,8 @@ namespace dal {
             {
                 // Uniform values
 
-                glUniform4f(uniloc.u_clipPlane, 0, -1, 0, water.getHeight());
-                glUniform1i(uniloc.u_doClip, 1);
+                uniloc.flagDoClip(true);
+                uniloc.clipPlane(0.0, -1.0, 0.0, water.getHeight());
 
                 const auto& viewMat = cam.getViewMat();
                 uniloc.viewMat(viewMat);
@@ -186,8 +186,8 @@ namespace dal {
             {
                 // Uniform values
 
-                glUniform4f(uniloc.u_clipPlane, 0, 1, 0, -water.getHeight() + 0.01f);
-                glUniform1i(uniloc.u_doClip, 1);
+                uniloc.flagDoClip(true);
+                uniloc.clipPlane(0.0f, 1.0f, 0.0f, -water.getHeight() + 0.01f);
 
                 glm::mat4 reflectedMat;
                 glm::vec3 reflectedPos;
@@ -208,8 +208,8 @@ namespace dal {
             {
                 // Uniform values
 
-                glUniform4f(uniloc.u_clipPlane, 0, -1, 0, water.getHeight());
-                glUniform1i(uniloc.u_doClip, 1);
+                uniloc.flagDoClip(true);
+                uniloc.clipPlane(0.0f, -1.0f, 0.0f, water.getHeight());
 
                 const auto& viewMat = cam.getViewMat();
                 uniloc.viewMat(viewMat);

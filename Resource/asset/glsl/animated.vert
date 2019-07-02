@@ -20,9 +20,11 @@ uniform vec2 u_texScale;
 // Interf - Anime
 uniform mat4 u_jointTransforms[30];
 
-uniform highp int uDlightCount;
+// Interf - PlaneClip
 uniform bool u_doClip;
 uniform vec4 u_clipPlane;
+
+uniform highp int uDlightCount;
 
 uniform mat4 uDlightProjViewMat[3];
 

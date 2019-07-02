@@ -1,13 +1,12 @@
 #include <inter_lighting.frag>
 
 
+// Interf - PlaneClip
 uniform bool u_doClip;
 uniform vec4 u_clipPlane;
 
-// From Material
 uniform vec3 uDiffuseColor;
 
-// From Texture
 uniform int uHasDiffuseMap;
 uniform sampler2D uDiffuseMap;  // TEX 0
 

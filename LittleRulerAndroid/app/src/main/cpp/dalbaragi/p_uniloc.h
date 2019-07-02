@@ -52,19 +52,31 @@ namespace dal {
 
     };
 
+    class UniInterfPlaneClip {
+
+    private:
+        GLint u_doClip = -1, u_clipPlane = -1;
+
+    protected:
+        void init(const GLuint shader);
+
+    public:
+        void flagDoClip(const bool x) const;
+        void clipPlane(const glm::vec4& plane) const;
+        void clipPlane(const float x, const float y, const float z, const float w) const;
+
+    };
+
     class UniInterfLight {
 
     };
 
 
-    class UnilocGeneral : public UniInterfMesh {
+    class UnilocGeneral : public UniInterfMesh, public UniInterfPlaneClip {
 
         //////// Vars ////////
 
     public:
-        GLint u_doClip;
-        GLint u_clipPlane;
-
         GLint uDlightProjViewMat[3];
 
         // Fragment shader

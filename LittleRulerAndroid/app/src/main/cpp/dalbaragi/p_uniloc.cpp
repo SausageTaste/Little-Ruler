@@ -98,13 +98,34 @@ namespace dal {
 }
 
 
+// UniInterfPlaneClip
+namespace dal {
+
+    void UniInterfPlaneClip::init(const GLuint shader) {
+        this->u_doClip = getUniloc(shader, "u_doClip");
+        this->u_clipPlane = getUniloc(shader, "u_clipPlane");
+    }
+
+    void UniInterfPlaneClip::flagDoClip(const bool x) const {
+        glUniform1i(this->u_doClip, x ? 1 : 0);
+    }
+
+    void UniInterfPlaneClip::clipPlane(const glm::vec4& plane) const {
+        this->clipPlane(plane.x, plane.y, plane.z, plane.w);
+    }
+
+    void UniInterfPlaneClip::clipPlane(const float x, const float y, const float z, const float w) const {
+        glUniform4f(this->u_clipPlane, x, y, z, w);
+    }
+
+}
+
+
 namespace dal {
 
     void UnilocGeneral::init(const GLuint shader) {
         this->UniInterfMesh::init(shader);
-
-        this->u_doClip = glGetUniformLocation(shader, "u_doClip");
-        this->u_clipPlane = glGetUniformLocation(shader, "u_clipPlane");
+        this->UniInterfPlaneClip::init(shader);
 
         this->uDlightProjViewMat[0] = glGetUniformLocation(shader, "uDlightProjViewMat[0]");
         this->uDlightProjViewMat[1] = glGetUniformLocation(shader, "uDlightProjViewMat[1]");
