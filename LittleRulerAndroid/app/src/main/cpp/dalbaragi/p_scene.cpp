@@ -145,9 +145,7 @@ namespace dal {
                 uniloc.flagDoClip(true);
                 uniloc.clipPlane(0.0f, 1.0f, 0.0f, -water.getHeight() + 0.01f);
 
-                glm::mat4 reflectedMat;
-                glm::vec3 reflectedPos;
-                cam.makeReflected(water.getHeight(), reflectedPos, reflectedMat);
+                auto [reflectedPos, reflectedMat] = cam.makeReflected(water.getHeight());
 
                 uniloc.viewMat(reflectedMat);
                 uniloc.viewPos(reflectedPos);
@@ -188,9 +186,7 @@ namespace dal {
                 uniloc.flagDoClip(true);
                 uniloc.clipPlane(0.0f, 1.0f, 0.0f, -water.getHeight() + 0.01f);
 
-                glm::mat4 reflectedMat;
-                glm::vec3 reflectedPos;
-                cam.makeReflected(water.getHeight(), reflectedPos, reflectedMat);
+                auto [reflectedPos, reflectedMat] = cam.makeReflected(water.getHeight());
 
                 uniloc.viewMat(reflectedMat);
                 uniloc.viewPos(reflectedPos);

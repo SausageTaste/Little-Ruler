@@ -2,6 +2,7 @@
 
 #include <string>
 #include <memory>
+#include <utility>
 
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
@@ -29,7 +30,7 @@ namespace dal {
             return this->m_viewMat;
         }
 
-        virtual void makeReflected(const float planeHeight, glm::vec3& pos, glm::mat4& mat) const = 0;
+        virtual std::pair<glm::vec3, glm::mat4> makeReflected(const float planeHeight) const = 0;
 
     };
 
@@ -66,7 +67,7 @@ namespace dal {
 
     public:
         virtual void updateViewMat(void) override;
-        void makeReflected(const float planeHeight, glm::vec3& pos, glm::mat4& mat) const override;
+        virtual std::pair<glm::vec3, glm::mat4> makeReflected(const float planeHeight) const override;
 
         glm::vec2 getViewPlane(void) const;
         void setViewPlane(const float x, const float y);

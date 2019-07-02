@@ -131,7 +131,7 @@ namespace dal {
         this->m_viewMat = glm::translate(rot, glm::vec3(-this->m_pos.x, -this->m_pos.y, -this->m_pos.z));
     }
 
-    void StrangeEulerCamera::makeReflected(const float planeHeight, glm::vec3& pos, glm::mat4& mat) const {
+    std::pair<glm::vec3, glm::mat4> StrangeEulerCamera::makeReflected(const float planeHeight) const {
         dal::StrangeEulerCamera newCam = *this;
 
         newCam.m_pos.y = 2.0f * planeHeight - newCam.m_pos.y;
@@ -141,8 +141,7 @@ namespace dal {
 
         newCam.updateViewMat();
         
-        mat = newCam.getViewMat();
-        pos = newCam.m_pos;
+        return std::make_pair(newCam.m_pos, newCam.getViewMat());
     }
 
 
