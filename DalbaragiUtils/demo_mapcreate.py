@@ -59,7 +59,7 @@ def main():
     actor.getPosHandle().setZ(0)
     model.addActor(actor)
 
-    model.setModelID("test::fuckyou.dae")
+    model.setModelID("test::wecjyu.dae")
     level.add(model)
 
     ########
