@@ -434,8 +434,9 @@ namespace {
         std::vector<std::multimap<float, unsigned int>> count;
         count.resize(mesh->mNumVertices);
 
-        renUnit.m_mesh.m_boneWeights.resize(mesh->mNumVertices * 3);
-        renUnit.m_mesh.m_boneIndex.resize(mesh->mNumVertices * 3);
+        size_t numVert = static_cast<size_t>(mesh->mNumVertices);
+        renUnit.m_mesh.m_boneWeights.resize(numVert * 3U);
+        renUnit.m_mesh.m_boneIndex.resize(numVert * 3U);
 
         copy3BasicVertexInfo(renUnit.m_mesh.m_vertices, renUnit.m_mesh.m_texcoords, renUnit.m_mesh.m_normals, aabbInfo, mesh);
        
@@ -566,7 +567,6 @@ namespace dal {
 
         const auto materials = parseMaterials(scene);
         processAnimation(scene, info.m_animations);
-
 
         if ( resID.getExt() == ".dae" ) {
             const auto rotMat = glm::rotate(glm::mat4{ 1.0f }, glm::radians(90.0f), glm::vec3{ 1.0f, 0.0f, 0.0f });
