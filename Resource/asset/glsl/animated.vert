@@ -17,13 +17,16 @@ uniform mat4 u_modelMat;
 // Interf - Mesh
 uniform vec2 u_texScale;
 
+// Interf - Anime
+uniform mat4 u_jointTransforms[30];
+
 uniform highp int uDlightCount;
 uniform bool u_doClip;
 uniform vec4 u_clipPlane;
 
 uniform mat4 uDlightProjViewMat[3];
 
-uniform mat4 u_poses[30];
+
 
 
 out vec3 vFragPos;
@@ -33,11 +36,11 @@ out vec4 vFragPosInDlight[3];
 
 
 void main(void) {
-    mat4 boneMat = u_poses[i_jointIDs[0]] * i_weights[0];
+    mat4 boneMat = u_jointTransforms[i_jointIDs[0]] * i_weights[0];
     for (int i = 1; i < 3; i++) {
         int jid = i_jointIDs[i];
         if (-1 == jid) break;
-        boneMat += u_poses[jid] * i_weights[i];
+        boneMat += u_jointTransforms[jid] * i_weights[i];
     }
 
     vec4 worldPos = u_modelMat * boneMat * vec4(i_position, 1.0);

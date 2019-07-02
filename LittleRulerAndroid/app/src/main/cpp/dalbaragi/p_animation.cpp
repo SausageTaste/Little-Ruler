@@ -121,7 +121,7 @@ namespace dal {
 
     void SkeletonInterface::sendUniform(const UnilocAnimate& uniloc) const {
         for ( unsigned i = 0; i < this->m_finalTransform.size(); i++ ) {
-            glUniformMatrix4fv(uniloc.u_poses[i], 1, GL_FALSE, &this->m_finalTransform[i][0][0]);
+            uniloc.jointTransforms(i, this->m_finalTransform[i]);
         }
     }
 

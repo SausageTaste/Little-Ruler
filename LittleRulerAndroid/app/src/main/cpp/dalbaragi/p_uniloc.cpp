@@ -78,6 +78,26 @@ namespace dal {
 }
 
 
+// UniInterfAnime
+namespace dal {
+
+    void UniInterfAnime::init(const GLuint shader) {
+        dalAssertm(3 == glGetAttribLocation(shader, "i_jointIDs"), "Uniloc i_jointIDs not found");
+        dalAssertm(4 == glGetAttribLocation(shader, "i_weights"), "Uniloc i_weights not found");
+
+        for ( unsigned int i = 0; i < this->k_maxNumJoints; ++i ) {
+            const auto id = "u_jointTransforms["s + std::to_string(i) + ']';
+            this->u_jointTransforms[i] = getUniloc(shader, id.c_str());
+        }
+    }
+
+    void UniInterfAnime::jointTransforms(const unsigned int index, const glm::mat4& mat) const {
+        sendMatrix(this->u_jointTransforms[index], mat);
+    }
+
+}
+
+
 namespace dal {
 
     void UnilocGeneral::init(const GLuint shader) {
@@ -221,15 +241,8 @@ namespace dal {
     }
 
     void UnilocAnimate::init(const GLuint shader) {
-        UnilocGeneral::init(shader);
-
-        this->i_jointIDs = glGetAttribLocation(shader, "i_jointIDs");// assert(this->i_jointIDs == 3);
-        this->i_weights = glGetAttribLocation(shader, "i_weights");// assert(this->i_weights == 4);
-
-        for ( int i = 0; i < 30; i++ ) {
-            const auto str = "u_poses[{}]"_format(i);
-            this->u_poses[i] = glGetUniformLocation(shader, str.c_str());
-        }
+        this->UnilocGeneral::init(shader);
+        this->UniInterfAnime::init(shader);
     }
 
 }

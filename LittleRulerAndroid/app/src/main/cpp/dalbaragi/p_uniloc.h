@@ -29,11 +29,26 @@ namespace dal {
     private:
         GLint u_texScale = -1;
 
-    public:
+    protected:
         void init(const GLuint shader);
 
+    public:
         void texScale(const float x, const float y) const;
         void texScale(const glm::vec2& v) const;
+
+    };
+
+    class UniInterfAnime {
+
+    private:
+        static constexpr unsigned int k_maxNumJoints = 30;
+        GLint u_jointTransforms[k_maxNumJoints] = { -1 };
+
+    protected:
+        void init(const GLuint shader);
+
+    public:
+        void jointTransforms(const unsigned int index, const glm::mat4& mat) const;
 
     };
 
@@ -177,13 +192,7 @@ namespace dal {
 
     };
 
-    class UnilocAnimate : public UnilocGeneral {
-
-    public:
-        GLint i_jointIDs;
-        GLint i_weights;
-
-        GLint u_poses[30];
+    class UnilocAnimate : public UnilocGeneral, public UniInterfAnime {
 
         //////// Funcs ////////
 
