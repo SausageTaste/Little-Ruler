@@ -18,8 +18,8 @@ uniform vec2 u_texScale;
 uniform bool u_doClip;
 uniform vec4 u_clipPlane;
 
+// Interf - LightedMesh
 uniform highp int uDlightCount;
-
 uniform mat4 uDlightProjViewMat[3];
 
 

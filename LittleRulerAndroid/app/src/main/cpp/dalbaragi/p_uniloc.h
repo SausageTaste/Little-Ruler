@@ -56,6 +56,62 @@ namespace dal {
 
     };
 
+    class UniInterfLightedMesh : public UniInterfMesh {
+
+    private:
+        GLint uDlightProjViewMat[3];
+
+        GLint uViewPos;
+        GLint uBaseAmbient;
+        GLint uDlightCount;
+        GLint uPlightCount;
+
+        GLint uShininess;
+        GLint uSpecularStrength;
+
+        GLint uDlightDirecs[3];
+        GLint uDlightColors[3];
+        GLint uDlightDepthMap[3];
+
+        GLint uPlightPoses[3];
+        GLint uPlightColors[3];
+        GLint uPlightMaxDists[3];
+
+    protected:
+        void init(const GLuint shader);
+
+    public:
+        void viewPos(const float x, const float y, const float z) const;
+        void viewPos(const glm::vec3& v) const;
+
+        void baseAmbient(const float x, const float y, const float z) const;
+        void baseAmbient(const glm::vec3& v) const;
+
+        void dlightCount(const unsigned int x) const;
+        void plightCount(const unsigned int x) const;
+        void shininess(const float x) const;
+        void specularStrength(const float x) const;
+
+        void dlightDirec(const unsigned int index, const float x, const float y, const float z) const;
+        void dlightDirec(const unsigned int index, const glm::vec3& v) const;
+
+        void dlightColor(const unsigned int index, const float x, const float y, const float z) const;
+        void dlightColor(const unsigned int index, const glm::vec3& v) const;
+
+        GLint getDlightDepthMap(const unsigned int index) const;
+        void dlightProjViewMat(const unsigned int index, glm::mat4& mat) const;
+
+        void plightPos(const unsigned int index, const float x, const float y, const float z) const;
+        void plightPos(const unsigned int index, const glm::vec3& v) const;
+
+        void plightColor(const unsigned int index, const float x, const float y, const float z) const;
+        void plightColor(const unsigned int index, const glm::vec3& v) const;
+
+        void plightMaxDist(const unsigned int index, const float x) const;
+
+    };
+
+
     class UniInterfAnime {
 
     private:
@@ -85,38 +141,13 @@ namespace dal {
 
     };
 
-    class UniInterfLight {
 
-    };
-
-
-    class UnilocGeneral : public UniInterfMesh, public UniInterfPlaneClip {
+    class UnilocGeneral : public UniInterfLightedMesh, public UniInterfPlaneClip {
 
         //////// Vars ////////
 
     private:
         GLint u_diffuseMap;
-
-    public:
-        GLint uDlightProjViewMat[3];
-
-        // Fragment shader
-
-        GLint uViewPos;
-        GLint uBaseAmbient;
-        GLint uDlightCount;
-        GLint uPlightCount;
-
-        GLint uShininess;
-        GLint uSpecularStrength;
-
-        GLint uDlightDirecs[3];
-        GLint uDlightColors[3];
-        GLint uDlightDepthMap[3];
-
-        GLint uPlightPoses[3];
-        GLint uPlightColors[3];
-        GLint uPlightMaxDists[3];
 
         //////// Funcs ////////
 
@@ -181,36 +212,16 @@ namespace dal {
 
     };
 
-    class UnilocWaterry : public UniInterfMesh {
+    class UnilocWaterry : public UniInterfLightedMesh {
 
         //////// Vars ////////
 
     public:
-        GLint uDlightProjViewMat[3];
-
-        // Fragment shader
-
-        GLint uViewPos;
-        GLint uBaseAmbient;
-        GLint uDlightCount;
-        GLint uPlightCount;
-
         GLint u_bansaTex;
         GLint u_gooljulTex;
         GLint u_dudvMap;
         GLint u_normalMap;
         GLint u_dudvMoveFactor;
-
-        GLint uShininess;
-        GLint uSpecularStrength;
-
-        GLint uDlightDirecs[3];
-        GLint uDlightColors[3];
-        GLint uDlightDepthMap[3];
-
-        GLint uPlightPoses[3];
-        GLint uPlightColors[3];
-        GLint uPlightMaxDists[3];
 
         //////// Funcs ////////
 

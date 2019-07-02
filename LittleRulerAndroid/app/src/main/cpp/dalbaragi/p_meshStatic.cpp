@@ -454,8 +454,8 @@ namespace dal {
     }
 
     void Material::sendUniform(const UnilocGeneral& uniloc) const {
-        glUniform1f(uniloc.uShininess, this->m_shininess);
-        glUniform1f(uniloc.uSpecularStrength, this->m_specularStrength);
+        uniloc.shininess(this->m_shininess);
+        uniloc.specularStrength(this->m_specularStrength);
 
         uniloc.texScale(this->m_texScale);
 
@@ -465,8 +465,8 @@ namespace dal {
     }
 
     void Material::sendUniform(const UnilocWaterry& uniloc) const {
-        glUniform1f(uniloc.uShininess, this->m_shininess);
-        glUniform1f(uniloc.uSpecularStrength, this->m_specularStrength);
+        uniloc.shininess(this->m_shininess);
+        uniloc.specularStrength(this->m_specularStrength);
         uniloc.texScale(this->m_texScale);
     }
 

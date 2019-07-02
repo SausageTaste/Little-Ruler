@@ -150,7 +150,7 @@ namespace dal {
                 cam.makeReflected(water.getHeight(), reflectedPos, reflectedMat);
 
                 uniloc.viewMat(reflectedMat);
-                glUniform3f(uniloc.uViewPos, reflectedPos.x, reflectedPos.y, reflectedPos.z);
+                uniloc.viewPos(reflectedPos);
 
                 water.m_fbuffer.bindReflectionFrameBuffer();
                 glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
@@ -167,9 +167,8 @@ namespace dal {
                 uniloc.flagDoClip(true);
                 uniloc.clipPlane(0.0, -1.0, 0.0, water.getHeight());
 
-                const auto& viewMat = cam.getViewMat();
-                uniloc.viewMat(viewMat);
-                glUniform3f(uniloc.uViewPos, cam.m_pos.x, cam.m_pos.y, cam.m_pos.z);
+                uniloc.viewMat(cam.getViewMat());
+                uniloc.viewPos(cam.m_pos);
 
                 water.m_fbuffer.bindRefractionFrameBuffer();
                 glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
@@ -194,7 +193,7 @@ namespace dal {
                 cam.makeReflected(water.getHeight(), reflectedPos, reflectedMat);
 
                 uniloc.viewMat(reflectedMat);
-                glUniform3f(uniloc.uViewPos, reflectedPos.x, reflectedPos.y, reflectedPos.z);
+                uniloc.viewPos(reflectedPos);
 
                 water.m_fbuffer.bindReflectionFrameBuffer();
                 //glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
@@ -211,9 +210,8 @@ namespace dal {
                 uniloc.flagDoClip(true);
                 uniloc.clipPlane(0.0f, -1.0f, 0.0f, water.getHeight());
 
-                const auto& viewMat = cam.getViewMat();
-                uniloc.viewMat(viewMat);
-                glUniform3f(uniloc.uViewPos, cam.m_pos.x, cam.m_pos.y, cam.m_pos.z);
+                uniloc.viewMat(cam.getViewMat());
+                uniloc.viewPos(cam.m_pos);
 
                 water.m_fbuffer.bindRefractionFrameBuffer();
                 //glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
@@ -230,7 +228,7 @@ namespace dal {
         if ( startIndex >= 3 ) dalAbort("Too many point lights.");
         if ( startIndex + this->m_plights.size() > 3 ) dalAbort("Too many point lights.");
 
-        glUniform1i(uniloc.uPlightCount, startIndex + this->m_plights.size());
+        uniloc.plightCount(startIndex + this->m_plights.size());
         for ( size_t i = 0; i < this->m_plights.size(); i++ ) {
             if ( i >= 3 ) break;
             this->m_plights.at(i).sendUniform(uniloc, startIndex + i);
@@ -243,7 +241,7 @@ namespace dal {
         if ( startIndex >= 3 ) dalAbort("Too many point lights.");
         if ( startIndex + this->m_plights.size() > 3 ) dalAbort("Too many point lights.");
 
-        glUniform1i(uniloc.uPlightCount, startIndex + this->m_plights.size());
+        uniloc.plightCount(startIndex + this->m_plights.size());
         for ( size_t i = 0; i < this->m_plights.size(); i++ ) {
             if ( i >= 3 ) break;
             this->m_plights.at(i).sendUniform(uniloc, startIndex + i);

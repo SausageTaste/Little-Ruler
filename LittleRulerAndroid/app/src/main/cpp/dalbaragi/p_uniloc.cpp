@@ -132,6 +132,134 @@ namespace dal {
 }
 
 
+// UniInterfLightedMesh
+namespace dal {
+
+    void UniInterfLightedMesh::init(const GLuint shader) {
+        this->UniInterfMesh::init(shader);
+
+        this->uDlightProjViewMat[0] = glGetUniformLocation(shader, "uDlightProjViewMat[0]");
+        this->uDlightProjViewMat[1] = glGetUniformLocation(shader, "uDlightProjViewMat[1]");
+        this->uDlightProjViewMat[2] = glGetUniformLocation(shader, "uDlightProjViewMat[2]");
+
+        // Fragment shader
+
+        this->uViewPos = glGetUniformLocation(shader, "uViewPos");
+        this->uBaseAmbient = glGetUniformLocation(shader, "uBaseAmbient");
+        this->uDlightCount = glGetUniformLocation(shader, "uDlightCount");
+        this->uPlightCount = glGetUniformLocation(shader, "uPlightCount");
+
+        this->uShininess = glGetUniformLocation(shader, "uShininess");
+        this->uSpecularStrength = glGetUniformLocation(shader, "uSpecularStrength");
+
+        // Directional Lights
+
+        this->uDlightDirecs[0] = glGetUniformLocation(shader, "uDlightDirecs[0]");
+        this->uDlightDirecs[1] = glGetUniformLocation(shader, "uDlightDirecs[1]");
+        this->uDlightDirecs[2] = glGetUniformLocation(shader, "uDlightDirecs[2]");
+
+        this->uDlightColors[0] = glGetUniformLocation(shader, "uDlightColors[0]");
+        this->uDlightColors[1] = glGetUniformLocation(shader, "uDlightColors[1]");
+        this->uDlightColors[2] = glGetUniformLocation(shader, "uDlightColors[2]");
+
+        this->uDlightDepthMap[0] = glGetUniformLocation(shader, "uDlightDepthMap[0]");
+        this->uDlightDepthMap[1] = glGetUniformLocation(shader, "uDlightDepthMap[1]");
+        this->uDlightDepthMap[2] = glGetUniformLocation(shader, "uDlightDepthMap[2]");
+
+        // Point Lights
+
+        this->uPlightPoses[0] = glGetUniformLocation(shader, "uPlightPoses[0]");
+        this->uPlightPoses[1] = glGetUniformLocation(shader, "uPlightPoses[1]");
+        this->uPlightPoses[2] = glGetUniformLocation(shader, "uPlightPoses[2]");
+
+        this->uPlightColors[0] = glGetUniformLocation(shader, "uPlightColors[0]");
+        this->uPlightColors[1] = glGetUniformLocation(shader, "uPlightColors[1]");
+        this->uPlightColors[2] = glGetUniformLocation(shader, "uPlightColors[2]");
+
+        this->uPlightMaxDists[0] = glGetUniformLocation(shader, "uPlightMaxDists[0]");
+        this->uPlightMaxDists[1] = glGetUniformLocation(shader, "uPlightMaxDists[1]");
+        this->uPlightMaxDists[2] = glGetUniformLocation(shader, "uPlightMaxDists[2]");
+    }
+
+    void UniInterfLightedMesh::viewPos(const float x, const float y, const float z) const {
+        glUniform3f(this->uViewPos, x, y, z);
+    }
+
+    void UniInterfLightedMesh::viewPos(const glm::vec3& v) const {
+        this->viewPos(v.x, v.y, v.z);
+    }
+
+    void UniInterfLightedMesh::baseAmbient(const float x, const float y, const float z) const {
+        glUniform3f(this->uBaseAmbient, x, y, z);
+    }
+
+    void UniInterfLightedMesh::baseAmbient(const glm::vec3& v) const {
+        this->baseAmbient(v.x, v.y, v.z);
+    }
+
+    void UniInterfLightedMesh::dlightCount(const unsigned int x) const {
+        glUniform1i(this->uDlightCount, x);
+    }
+
+    void UniInterfLightedMesh::plightCount(const unsigned int x) const {
+        glUniform1i(this->uPlightCount, x);
+    }
+
+    void UniInterfLightedMesh::shininess(const float x) const {
+        glUniform1f(this->uShininess, x);
+    }
+
+    void UniInterfLightedMesh::specularStrength(const float x) const {
+        glUniform1f(this->uSpecularStrength, x);
+    }
+
+    void UniInterfLightedMesh::dlightDirec(const unsigned int index, const float x, const float y, const float z) const {
+        glUniform3f(this->uDlightDirecs[index], x, y, z);
+    }
+
+    void UniInterfLightedMesh::dlightDirec(const unsigned int index, const glm::vec3& v) const {
+        this->dlightDirec(index, v.x, v.y, v.z);
+    }
+
+    void UniInterfLightedMesh::dlightColor(const unsigned int index, const float x, const float y, const float z) const {
+        glUniform3f(this->uDlightColors[index], x, y, z);
+    }
+
+    void UniInterfLightedMesh::dlightColor(const unsigned int index, const glm::vec3& v) const {
+        this->dlightColor(index, v.x, v.y, v.z);
+    }
+
+    GLint UniInterfLightedMesh::getDlightDepthMap(const unsigned int index) const {
+        return this->uDlightDepthMap[index];
+    }
+
+    void UniInterfLightedMesh::dlightProjViewMat(const unsigned int index, glm::mat4& mat) const {
+        sendMatrix(this->uDlightProjViewMat[index], mat);
+    }
+
+    void UniInterfLightedMesh::plightPos(const unsigned int index, const float x, const float y, const float z) const {
+        glUniform3f(this->uPlightPoses[index], x, y, z);
+    }
+
+    void UniInterfLightedMesh::plightPos(const unsigned int index, const glm::vec3& v) const {
+        this->plightPos(index, v.x, v.y, v.z);
+    }
+
+    void UniInterfLightedMesh::plightColor(const unsigned int index, const float x, const float y, const float z) const {
+        glUniform3f(this->uPlightColors[index], x, y, z);
+    }
+
+    void UniInterfLightedMesh::plightColor(const unsigned int index, const glm::vec3& v) const {
+        this->plightColor(index, v.x, v.y, v.z);
+    }
+
+    void UniInterfLightedMesh::plightMaxDist(const unsigned int index, const float x) const {
+        glUniform1f(this->uPlightMaxDists[index], x);
+    }
+
+}
+
+
 // UniInterfAnime
 namespace dal {
 
@@ -178,52 +306,10 @@ namespace dal {
 namespace dal {
 
     void UnilocGeneral::init(const GLuint shader) {
-        this->UniInterfMesh::init(shader);
+        this->UniInterfLightedMesh::init(shader);
         this->UniInterfPlaneClip::init(shader);
 
         this->u_diffuseMap = getUniloc(shader, "u_diffuseMap");
-
-        this->uDlightProjViewMat[0] = glGetUniformLocation(shader, "uDlightProjViewMat[0]");
-        this->uDlightProjViewMat[1] = glGetUniformLocation(shader, "uDlightProjViewMat[1]");
-        this->uDlightProjViewMat[2] = glGetUniformLocation(shader, "uDlightProjViewMat[2]");
-
-        // Fragment shader
-
-        this->uViewPos = glGetUniformLocation(shader, "uViewPos");
-        this->uBaseAmbient = glGetUniformLocation(shader, "uBaseAmbient");
-        this->uDlightCount = glGetUniformLocation(shader, "uDlightCount");
-        this->uPlightCount = glGetUniformLocation(shader, "uPlightCount");
-
-        this->uShininess = glGetUniformLocation(shader, "uShininess");
-        this->uSpecularStrength = glGetUniformLocation(shader, "uSpecularStrength");
-
-        // Directional Lights
-
-        this->uDlightDirecs[0] = glGetUniformLocation(shader, "uDlightDirecs[0]");
-        this->uDlightDirecs[1] = glGetUniformLocation(shader, "uDlightDirecs[1]");
-        this->uDlightDirecs[2] = glGetUniformLocation(shader, "uDlightDirecs[2]");
-
-        this->uDlightColors[0] = glGetUniformLocation(shader, "uDlightColors[0]");
-        this->uDlightColors[1] = glGetUniformLocation(shader, "uDlightColors[1]");
-        this->uDlightColors[2] = glGetUniformLocation(shader, "uDlightColors[2]");
-
-        this->uDlightDepthMap[0] = glGetUniformLocation(shader, "uDlightDepthMap[0]");
-        this->uDlightDepthMap[1] = glGetUniformLocation(shader, "uDlightDepthMap[1]");
-        this->uDlightDepthMap[2] = glGetUniformLocation(shader, "uDlightDepthMap[2]");
-
-        // Point Lights
-
-        this->uPlightPoses[0] = glGetUniformLocation(shader, "uPlightPoses[0]");
-        this->uPlightPoses[1] = glGetUniformLocation(shader, "uPlightPoses[1]");
-        this->uPlightPoses[2] = glGetUniformLocation(shader, "uPlightPoses[2]");
-
-        this->uPlightColors[0] = glGetUniformLocation(shader, "uPlightColors[0]");
-        this->uPlightColors[1] = glGetUniformLocation(shader, "uPlightColors[1]");
-        this->uPlightColors[2] = glGetUniformLocation(shader, "uPlightColors[2]");
-
-        this->uPlightMaxDists[0] = glGetUniformLocation(shader, "uPlightMaxDists[0]");
-        this->uPlightMaxDists[1] = glGetUniformLocation(shader, "uPlightMaxDists[1]");
-        this->uPlightMaxDists[2] = glGetUniformLocation(shader, "uPlightMaxDists[2]");
     }
 
     GLint UnilocGeneral::getDiffuseMapLoc(void) const {
@@ -269,55 +355,13 @@ namespace dal {
     }
 
     void UnilocWaterry::init(const GLuint shader) {
-        this->UniInterfMesh::init(shader);
-
-        this->uDlightProjViewMat[0] = glGetUniformLocation(shader, "uDlightProjViewMat[0]");
-        this->uDlightProjViewMat[1] = glGetUniformLocation(shader, "uDlightProjViewMat[1]");
-        this->uDlightProjViewMat[2] = glGetUniformLocation(shader, "uDlightProjViewMat[2]");
-
-        // Fragment shader
-
-        this->uViewPos = glGetUniformLocation(shader, "uViewPos");
-        this->uBaseAmbient = glGetUniformLocation(shader, "uBaseAmbient");
-        this->uDlightCount = glGetUniformLocation(shader, "uDlightCount");
-        this->uPlightCount = glGetUniformLocation(shader, "uPlightCount");
+        this->UniInterfLightedMesh::init(shader);
 
         this->u_bansaTex = glGetUniformLocation(shader, "u_bansaTex");
         this->u_gooljulTex = glGetUniformLocation(shader, "u_gooljulTex");
         this->u_dudvMap = glGetUniformLocation(shader, "u_dudvMap");
         this->u_normalMap = glGetUniformLocation(shader, "u_normalMap");
         this->u_dudvMoveFactor = glGetUniformLocation(shader, "u_dudvMoveFactor");
-
-        this->uShininess = glGetUniformLocation(shader, "uShininess");
-        this->uSpecularStrength = glGetUniformLocation(shader, "uSpecularStrength");
-
-        // Directional Lights
-
-        this->uDlightDirecs[0] = glGetUniformLocation(shader, "uDlightDirecs[0]");
-        this->uDlightDirecs[1] = glGetUniformLocation(shader, "uDlightDirecs[1]");
-        this->uDlightDirecs[2] = glGetUniformLocation(shader, "uDlightDirecs[2]");
-
-        this->uDlightColors[0] = glGetUniformLocation(shader, "uDlightColors[0]");
-        this->uDlightColors[1] = glGetUniformLocation(shader, "uDlightColors[1]");
-        this->uDlightColors[2] = glGetUniformLocation(shader, "uDlightColors[2]");
-
-        this->uDlightDepthMap[0] = glGetUniformLocation(shader, "uDlightDepthMap[0]");
-        this->uDlightDepthMap[1] = glGetUniformLocation(shader, "uDlightDepthMap[1]");
-        this->uDlightDepthMap[2] = glGetUniformLocation(shader, "uDlightDepthMap[2]");
-
-        // Point Lights
-
-        this->uPlightPoses[0] = glGetUniformLocation(shader, "uPlightPoses[0]");
-        this->uPlightPoses[1] = glGetUniformLocation(shader, "uPlightPoses[1]");
-        this->uPlightPoses[2] = glGetUniformLocation(shader, "uPlightPoses[2]");
-
-        this->uPlightColors[0] = glGetUniformLocation(shader, "uPlightColors[0]");
-        this->uPlightColors[1] = glGetUniformLocation(shader, "uPlightColors[1]");
-        this->uPlightColors[2] = glGetUniformLocation(shader, "uPlightColors[2]");
-
-        this->uPlightMaxDists[0] = glGetUniformLocation(shader, "uPlightMaxDists[0]");
-        this->uPlightMaxDists[1] = glGetUniformLocation(shader, "uPlightMaxDists[1]");
-        this->uPlightMaxDists[2] = glGetUniformLocation(shader, "uPlightMaxDists[2]");
     }
 
     void UnilocAnimate::init(const GLuint shader) {

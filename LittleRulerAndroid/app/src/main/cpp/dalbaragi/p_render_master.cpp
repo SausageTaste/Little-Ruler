@@ -271,16 +271,16 @@ namespace dal {
 
             unilocGeneral.projectMat(this->m_projectMat);
 
-            glUniform3f(unilocGeneral.uBaseAmbient, 0.3f, 0.3f, 0.3f);
+            unilocGeneral.baseAmbient(0.3f, 0.3f, 0.3f);
 
             // Lights
 
             if ( this->m_flagDrawDlight1 ) {
                 this->m_dlight1.sendUniform(unilocGeneral, 0);
-                glUniform1i(unilocGeneral.uDlightCount, 1);
+                unilocGeneral.dlightCount(1);
             }
             else {
-                glUniform1i(unilocGeneral.uDlightCount, 0);
+                unilocGeneral.dlightCount(0);
             }
 
             // Render meshes
@@ -299,16 +299,16 @@ namespace dal {
 
             unilocGeneral.projectMat(this->m_projectMat);
 
-            glUniform3f(unilocGeneral.uBaseAmbient, 0.3f, 0.3f, 0.3f);
+            unilocGeneral.baseAmbient(0.3f, 0.3f, 0.3f);
 
             // Lights
 
             if ( this->m_flagDrawDlight1 ) {
                 this->m_dlight1.sendUniform(unilocGeneral, 0);
-                glUniform1i(unilocGeneral.uDlightCount, 1);
+                unilocGeneral.dlightCount(1);
             }
             else {
-                glUniform1i(unilocGeneral.uDlightCount, 0);
+                unilocGeneral.dlightCount(0);
             }
 
             // Render meshes
@@ -329,9 +329,7 @@ namespace dal {
             unilocGeneral.projectMat(this->m_projectMat);
             unilocGeneral.flagDoClip(false);
             unilocGeneral.viewMat(this->m_mainCamera->getViewMat());
-
-            const auto& viewPos = this->m_mainCamera->m_pos;
-            glUniform3f(unilocGeneral.uViewPos, viewPos.x, viewPos.y, viewPos.z);
+            unilocGeneral.viewPos(this->m_mainCamera->m_pos);
 
             // Render meshes
 
@@ -345,9 +343,7 @@ namespace dal {
             unilocGeneral.projectMat(this->m_projectMat);
             unilocGeneral.flagDoClip(false);
             unilocGeneral.viewMat(this->m_mainCamera->getViewMat());
-
-            const auto& viewPos = this->m_mainCamera->m_pos;
-            glUniform3f(unilocGeneral.uViewPos, viewPos.x, viewPos.y, viewPos.z);
+            unilocGeneral.viewPos(this->m_mainCamera->m_pos);
 
             // Render meshes
 
@@ -360,20 +356,17 @@ namespace dal {
 
             unilocWaterry.projectMat(this->m_projectMat);
             unilocWaterry.viewMat(this->m_mainCamera->getViewMat());
-
-            const auto& viewPos = this->m_mainCamera->m_pos;
-            glUniform3f(unilocWaterry.uViewPos, viewPos.x, viewPos.y, viewPos.z);
-
-            glUniform3f(unilocWaterry.uBaseAmbient, 0.3f, 0.3f, 0.3f);
+            unilocWaterry.viewPos(this->m_mainCamera->m_pos);
+            unilocWaterry.baseAmbient(0.3f, 0.3f, 0.3f);
 
             // Lights
 
             if ( this->m_flagDrawDlight1 ) {
                 this->m_dlight1.sendUniform(unilocWaterry, 0);
-                glUniform1i(unilocWaterry.uDlightCount, 1);
+                unilocWaterry.dlightCount(1);
             }
             else {
-                glUniform1i(unilocWaterry.uDlightCount, 0);
+                unilocWaterry.dlightCount(0);
             }
 
             // Render meshes
