@@ -100,7 +100,7 @@ namespace {
             dal::LoggerGod::getinst().enable();
         }
 
-    };
+    } g_fileLogger;
 
 
     void test(void) {
@@ -160,11 +160,13 @@ namespace dal {
             this->m_camera.m_pos = { 0.0f, 3.0f, 3.0f };
         }
 
-        // Event handler
+        // Regist
         {
             mHandlerName = "dal::Mainloop";
             EventGod::getinst().registerHandler(this, EventType::quit_game);
             EventGod::getinst().registerHandler(this, EventType::window_resize);
+
+            LoggerGod::getinst().addChannel(&g_fileLogger);
         }
 
         // Misc
@@ -181,6 +183,8 @@ namespace dal {
     Mainloop::~Mainloop(void) {
         EventGod::getinst().deregisterHandler(this, EventType::quit_game);
         EventGod::getinst().deregisterHandler(this, EventType::window_resize);
+
+        LoggerGod::getinst().deleteChannel(&g_fileLogger);
     }
 
     int Mainloop::update(void) {
