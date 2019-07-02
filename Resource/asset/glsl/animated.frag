@@ -1,14 +1,12 @@
 #include <inter_lighting.frag>
 
 
+// Interf - Mesh
+uniform sampler2D u_diffuseMap;  // TEX 0
+
 // Interf - PlaneClip
 uniform bool u_doClip;
 uniform vec4 u_clipPlane;
-
-uniform vec3 uDiffuseColor;
-
-uniform int uHasDiffuseMap;
-uniform sampler2D uDiffuseMap;  // TEX 0
 
 
 in vec3 vFragPos;
@@ -38,12 +36,7 @@ void main(void) {
         lightedColor += getLightFactor_point(i, viewDir, fragNormal, vFragPos) * uPlightColors[i];
     }
 
-    if (uHasDiffuseMap != 0) {
-        vec4 texColor = texture(uDiffuseMap, vTexCoord);
-        if (texColor.a == 0.0) discard;
-        fColor = texColor * vec4(lightedColor, 1.0);
-    }
-    else {
-        fColor = vec4(uDiffuseColor, 1.0) * vec4(lightedColor, 1.0);
-    }
+    vec4 texColor = texture(u_diffuseMap, vTexCoord);
+    if (texColor.a == 0.0) discard;
+    fColor = texColor * vec4(lightedColor, 1.0);
 }

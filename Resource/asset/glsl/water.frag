@@ -1,18 +1,14 @@
 #include <inter_lighting.frag>
 
 
+// Interf - Mesh
+uniform sampler2D u_diffuseMap;  // TEX 0
+
 uniform sampler2D u_bansaTex;  // TEX 4
 uniform sampler2D u_gooljulTex;  // TEX 5
 uniform sampler2D u_dudvMap;  // TEX 6
 uniform float u_dudvMoveFactor;
 uniform sampler2D u_normalMap;  // TEX 7
-
-// From Material
-uniform vec3 uDiffuseColor;
-
-// From Texture
-uniform int uHasDiffuseMap;
-uniform sampler2D uDiffuseMap;  // TEX 0
 
 
 in vec3 vFragPos;
