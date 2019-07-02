@@ -1,21 +1,19 @@
+// Interf - Geometry
+layout (location = 0) in vec3 i_position;
 
-
-layout (location = 0) in vec3 iPosition;
 layout (location = 1) in vec2 iTexCoord;
 layout (location = 2) in vec3 iNormal;
 
-uniform mat4 uProjectMat;
-uniform mat4 uViewMat;
-uniform mat4 uModelMat;
+// Interf - Geometry
+uniform mat4 u_projMat;
+uniform mat4 u_viewMat;
+uniform mat4 u_modelMat;
 
-// From Master
 uniform highp int uDlightCount;
 uniform highp vec3 uViewPos;
 
-// From Light
 uniform mat4 uDlightProjViewMat[3];
 
-// From Material
 uniform float uTexScaleX;
 uniform float uTexScaleY;
 
@@ -29,12 +27,12 @@ out vec3 v_toCamera;
 
 
 void main(void) {
-	vec4 worldPos = uModelMat * vec4(iPosition, 1.0);
-	v_clipSpace = uProjectMat * uViewMat * worldPos;
+	vec4 worldPos = u_modelMat * vec4(i_position, 1.0);
+	v_clipSpace = u_projMat * u_viewMat * worldPos;
 	gl_Position = v_clipSpace;
-	vFragPos = vec3(uModelMat * vec4(iPosition, 1.0));
+	vFragPos = vec3(worldPos);
 	vTexCoord = vec2(iTexCoord.x * uTexScaleX, -iTexCoord.y * uTexScaleY);
-	vNormalVec = normalize(vec3(uModelMat * vec4(iNormal, 0.0)));
+	vNormalVec = normalize(vec3(u_modelMat * vec4(iNormal, 0.0)));
 	v_toCamera = uViewPos - worldPos.xyz;
 
 	for (int i = 0; i < uDlightCount; i++) {
