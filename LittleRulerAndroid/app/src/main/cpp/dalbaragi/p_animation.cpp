@@ -51,12 +51,17 @@ namespace {
         dalAssert(nextIndex < container.size());
 
         const auto deltaTime = container[nextIndex].first - container[startIndex].first;
-        const auto factor = (animTick - container[startIndex].first) / deltaTime;
-        dalAssert(0.0f <= factor && factor <= 1.0f);
-
-        const auto start = container[startIndex].second;
-        const auto end = container[nextIndex].second;
-        return interpolate(start, end, factor);
+        auto factor = (animTick - container[startIndex].first) / deltaTime;
+        if ( 0.0f <= factor && factor <= 1.0f ) {
+            const auto start = container[startIndex].second;
+            const auto end = container[nextIndex].second;
+            return interpolate(start, end, factor);
+        }
+        else {
+            const auto start = container[startIndex].second;
+            const auto end = container[nextIndex].second;
+            return interpolate(start, end, 0.0f);
+        }
     }
 
 }
