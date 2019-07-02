@@ -63,6 +63,32 @@ namespace {
 
 namespace {
 
+    std::string makeNumberedText(const std::string& text) {
+        std::string buffer;
+        size_t head = 0;
+        size_t lineNum = 1;
+
+        while ( true ) {
+            const auto tail = text.find('\n', head);
+            if ( std::string::npos != tail ) {
+                const auto line = text.substr(head, tail - head);
+                {
+                    buffer += "{:0>3}  {}\n"_format(lineNum++, line);
+                }
+                head = tail + 1;
+            }
+            else {
+                const auto line = text.substr(head);
+                {
+                    buffer += "{:0>3}  {}\n"_format(lineNum++, line);
+                }
+                break;
+            }
+        }
+
+        return buffer;
+    }
+
     enum class ShaderType { vertex, fragment };
 
     class ShaderRAII {
@@ -100,9 +126,7 @@ namespace {
             break;
         }
 
-        if ( shaderID == 0 ) {
-            dalAbort("Failed to create shader object.");
-        }
+        dalAssertm(shaderID != 0, "Failed to create shader object.");
 
         glShaderSource(shaderID, 1, &src, NULL);
         glCompileShader(shaderID);
@@ -110,10 +134,13 @@ namespace {
         GLint vShaderCompiled = GL_FALSE;
         glGetShaderiv(shaderID, GL_COMPILE_STATUS, &vShaderCompiled);
         if ( vShaderCompiled != GL_TRUE ) {
+            constexpr auto k_shaderLogBufSize = 2048;
             GLsizei length = 0;
-            char log[1024];
-            glGetShaderInfoLog(shaderID, 1024, &length, log);
-            dalAbort("Shader primitive compile error. Error message from OpenGL is\n"s + log + "\nshader source code is\n" + src + '\n');
+            char log[k_shaderLogBufSize];
+            glGetShaderInfoLog(shaderID, k_shaderLogBufSize, &length, log);
+            const auto errMsg = "Shader compile failed. Error message from OpenGL is\n"s + log + "\n\nAnd shader source is\n\n" +
+                makeNumberedText(src) + '\n';
+            dalAbort(errMsg);
         }
 
         return ShaderRAII{ shaderID };
