@@ -189,7 +189,7 @@ namespace {
 
 namespace dal {
 
-    int main_windows(void) try {
+    int main_windows(void) {
         WindowSDL window{ "Little Ruler", initWidth, initHeight, false };
 
         std::unique_ptr<Mainloop> engine{ new Mainloop(initWidth, initHeight) };
@@ -208,21 +208,6 @@ namespace dal {
             engine->update();
             window.swap();
         }
-    }
-    catch ( const std::exception& e ) {
-        dalFatal("An exception thrown: "s + e.what()); throw;
-    }
-    catch ( const std::string& e ) {
-        dalFatal("A string thrown: "s + e); throw;
-    }
-    catch ( const char* const e ) {
-        dalFatal("A char* thrown: "s + e); throw;
-    }
-    catch ( const int e ) {
-        dalFatal("An int thrown: "s + std::to_string(e)); throw;
-    }
-    catch ( ... ) {
-        dalFatal("Something unkown thrown"); throw;
     }
 
 }
