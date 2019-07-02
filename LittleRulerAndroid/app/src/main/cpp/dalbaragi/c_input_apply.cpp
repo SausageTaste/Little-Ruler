@@ -768,7 +768,7 @@ namespace dal {
 #if defined(_WIN32)
 			apply_flyPlane(deltaTime, player, this->m_overlayMas);
 #else defined(__ANDROID__)
-            apply_topdown(deltaTime, player, this->m_overlayMas);
+            apply_flyDirectional(deltaTime, player, this->m_overlayMas);
 #endif
             break;
         case GlobalGameState::menu:
