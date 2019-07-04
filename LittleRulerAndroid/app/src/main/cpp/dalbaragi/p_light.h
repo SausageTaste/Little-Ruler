@@ -28,7 +28,6 @@ namespace dal {
         DepthmapForLights& operator=(DepthmapForLights&&) noexcept;
 
         GLuint getTextureID(void);
-        Texture* getDepthMap(void);
         const Texture* getDepthMap(void) const;
 
         void startRender(void);
@@ -53,7 +52,6 @@ namespace dal {
 
     public:
         float mHalfShadowEdgeSize = 25.0f;
-
         DepthmapForLights mShadowMap;
 
     public:
@@ -63,8 +61,8 @@ namespace dal {
         void setDirectin(const float x, const float y, const float z);
         const glm::vec3& getDirection(void) const;
 
-        void sendUniform(const UnilocGeneral& uniloc, int index) const;
-        void sendUniform(const UnilocWaterry& uniloc, int index) const;
+        void sendUniform(const UniInterfLightedMesh& uniloc, int index) const;
+
         void startRenderShadowmap(const UnilocDepthmp& uniloc);
         void finishRenderShadowmap(void);
 
@@ -83,8 +81,7 @@ namespace dal {
         float mMaxDistance = 5.0f;
 
     public:
-        void sendUniform(const UnilocGeneral& uniloc, int index) const;
-        void sendUniform(const UnilocWaterry& uniloc, int index) const;
+        void sendUniform(const UniInterfLightedMesh& uniloc, int index) const;
 
     };
 

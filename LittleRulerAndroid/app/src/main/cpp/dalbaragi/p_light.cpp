@@ -108,17 +108,7 @@ namespace dal {
         return this->m_direction;
     }
 
-    void DirectionalLight::sendUniform(const UnilocGeneral& uniloc, int index) const {
-        uniloc.dlightColor(index, this->m_color);
-        uniloc.dlightDirec(index, this->m_direction);
-
-        auto projViewMat = this->makeProjMat() * this->makeViewMat();
-        uniloc.dlightProjViewMat(index, projViewMat);
-
-        this->mShadowMap.getDepthMap()->sendUniform(uniloc.getDlightDepthMap(index), -1, 1 + index);
-    }
-
-    void DirectionalLight::sendUniform(const UnilocWaterry& uniloc, int index) const {
+    void DirectionalLight::sendUniform(const UniInterfLightedMesh& uniloc, int index) const {
         uniloc.dlightColor(index, this->m_color);
         uniloc.dlightDirec(index, this->m_direction);
 
@@ -163,13 +153,7 @@ namespace dal {
 
 namespace dal {
 
-    void PointLight::sendUniform(const UnilocGeneral& uniloc, int index) const {
-        uniloc.plightColor(index, this->m_color);
-        uniloc.plightPos(index, this->mPos);
-        uniloc.plightMaxDist(index, this->mMaxDistance);
-    }
-
-    void PointLight::sendUniform(const UnilocWaterry& uniloc, int index) const {
+    void PointLight::sendUniform(const UniInterfLightedMesh& uniloc, int index) const {
         uniloc.plightColor(index, this->m_color);
         uniloc.plightPos(index, this->mPos);
         uniloc.plightMaxDist(index, this->mMaxDistance);
