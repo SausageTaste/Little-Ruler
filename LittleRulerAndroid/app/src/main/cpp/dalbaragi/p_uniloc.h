@@ -247,4 +247,15 @@ namespace dal {
 
     };
 
+    class UnilocDepthAnime {
+
+    public:
+        UniInterfGeometry m_geometry;
+        UniInterfAnime m_anime;
+
+    public:
+        UnilocDepthAnime(const GLuint shader);
+
+    };
+
 }

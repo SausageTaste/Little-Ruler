@@ -253,6 +253,7 @@ namespace dal {
         {
             auto& uniloc = this->m_shader.useDepthMp();
 
+            this->m_dlight1.clearDepthBuffer();
             m_dlight1.startRenderShadowmap(uniloc);
 
             m_scene.renderDepthMp(uniloc);

@@ -321,6 +321,18 @@ namespace dal {
 
 namespace dal {
 
+    UnilocDepthAnime::UnilocDepthAnime(const GLuint shader)
+        : m_geometry(shader)
+        , m_anime(shader)
+    {
+
+    }
+
+}
+
+
+namespace dal {
+
     UnilocOverlay::UnilocOverlay(const GLuint shader) {
         uPoint1 = glGetUniformLocation(shader, "uPoint1");
         uPoint2 = glGetUniformLocation(shader, "uPoint2");

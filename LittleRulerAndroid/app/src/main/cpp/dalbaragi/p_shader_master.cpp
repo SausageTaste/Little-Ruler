@@ -481,6 +481,8 @@ namespace dal {
         , m_waterryUniloc(m_waterry.get())
         , m_animate(g_loader["animated.vert"], g_loader["animated.frag"])
         , m_animateUniloc(m_animate.get())
+        , m_depthAnime(g_loader["depthanime.vert"], g_loader["depthanime.frag"])
+        , m_depthAnimeUniloc(m_depthAnime.get())
     {
         g_loader.clear();
     }
@@ -519,6 +521,12 @@ namespace dal {
         setFor_generalRender();
         this->m_animate.use();
         return this->m_animateUniloc;
+    }
+
+    const UnilocDepthAnime& ShaderMaster::useDepthAnime(void) const {
+        setFor_shadowmap();
+        this->m_depthAnime.use();
+        return this->m_depthAnimeUniloc;
     }
 
 }

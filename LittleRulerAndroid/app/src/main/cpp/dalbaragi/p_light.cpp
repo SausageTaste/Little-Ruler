@@ -73,11 +73,14 @@ namespace dal {
         return mDepthmap;
     }
 
+    void DepthmapForLights::clearBuffer(void) {
+        glBindFramebuffer(GL_FRAMEBUFFER, mFBO);
+        glClear(GL_DEPTH_BUFFER_BIT);
+    }
+
     void DepthmapForLights::startRender(void) {
         glBindFramebuffer(GL_FRAMEBUFFER, mFBO);
-
         glViewport(0, 0, width, height);
-        glClear(GL_DEPTH_BUFFER_BIT);
     }
 
     void DepthmapForLights::finishRender(void) {
@@ -116,6 +119,10 @@ namespace dal {
         uniloc.dlightProjViewMat(index, projViewMat);
 
         this->mShadowMap.getDepthMap()->sendUniform(uniloc.getDlightDepthMap(index), -1, 1 + index);
+    }
+
+    void DirectionalLight::clearDepthBuffer(void) {
+        this->mShadowMap.clearBuffer();
     }
 
     void DirectionalLight::startRenderShadowmap(const UnilocDepthmp& uniloc) {

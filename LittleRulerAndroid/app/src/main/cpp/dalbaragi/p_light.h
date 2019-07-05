@@ -17,19 +17,20 @@ namespace dal {
         unsigned int width = 0, height = 0;
         Texture* mDepthmap = nullptr;
 
-    public:
-        DepthmapForLights(void);
-        ~DepthmapForLights(void);
-
+    private:
         DepthmapForLights(const DepthmapForLights&) = delete;
         DepthmapForLights& operator=(const DepthmapForLights&) = delete;
 
+    public:
+        DepthmapForLights(void);
+        ~DepthmapForLights(void);
         DepthmapForLights(DepthmapForLights&& other) noexcept;
         DepthmapForLights& operator=(DepthmapForLights&&) noexcept;
 
         GLuint getTextureID(void);
         const Texture* getDepthMap(void) const;
 
+        void clearBuffer(void);
         void startRender(void);
         void finishRender(void);
 
@@ -63,6 +64,7 @@ namespace dal {
 
         void sendUniform(const UniInterfLightedMesh& uniloc, int index) const;
 
+        void clearDepthBuffer(void);
         void startRenderShadowmap(const UnilocDepthmp& uniloc);
         void finishRenderShadowmap(void);
 
