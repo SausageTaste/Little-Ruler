@@ -14,6 +14,7 @@ namespace dal {
 
     public:
         ShaderProgram2(const char* const vertSrc, const char* const fragSrc);
+        ShaderProgram2(const std::string& vertSrc, const std::string& fragSrc);
         GLuint get(void);
         void use(void) const;
 

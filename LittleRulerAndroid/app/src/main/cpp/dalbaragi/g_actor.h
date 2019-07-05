@@ -100,6 +100,9 @@ namespace dal {
         void setPos(const glm::vec3& v);
         void addPos(const glm::vec3& v);
 
+        float getScale(void) const;
+        void setScale(const float v);
+
     };
 
 

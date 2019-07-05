@@ -11,18 +11,21 @@ class ActorInfo(ein.ILevelAttrib):
     __s_field_static = "static"
     __s_field_pos = "pos"
     __s_field_quat = "quat"
+    __s_field_scale = "scale"
 
     def __init__(self):
         self.__actor_name = pri.IdentifierStr()
         self.__static = pri.BoolValue(False)
         self.__pos = pri.Vec3()
         self.__quat = pri.Quat()
+        self.__scale = pri.FloatData(1.0)
 
         super().__init__({
             self.__s_field_actor_name: self.__actor_name,
             self.__s_field_static: self.__static,
             self.__s_field_pos: self.__pos,
             self.__s_field_quat: self.__quat,
+            self.__s_field_scale: self.__scale,
         })
 
     # After that all as listed in init.
@@ -32,6 +35,7 @@ class ActorInfo(ein.ILevelAttrib):
         data += self.__static.getBinary()
         data += self.__pos.getBinary()
         data += self.__quat.getBinary()
+        data += self.__scale.getBinary()
         return data
 
     @classmethod
@@ -44,6 +48,9 @@ class ActorInfo(ein.ILevelAttrib):
 
     def getQuatHandle(self) -> pri.Quat:
         return self.__quat
+
+    def setScale(self, v: float) -> None:
+        self.__scale.set(v)
 
     def setName(self, v: str):
         self.__actor_name.setStr(v)

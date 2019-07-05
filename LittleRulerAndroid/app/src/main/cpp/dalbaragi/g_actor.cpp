@@ -210,6 +210,14 @@ namespace dal {
         this->m_pos += v;
     }
 
+    float ActorInfo::getScale(void) const {
+        return this->m_scale;
+    }
+
+    void ActorInfo::setScale(const float v) {
+        this->m_scale = v;
+    }
+
 }
 
 

@@ -162,6 +162,7 @@ namespace dal {
         std::unordered_map<std::string, std::string> m_soures;
 
     public:
+        /*
         void init(void) {
             constexpr std::array<const char*, 12> k_fileNames = {
                 "depth.vert",
@@ -199,15 +200,39 @@ namespace dal {
                 }
             }
         }
+        */
 
-        const char* const operator[](const std::string& key) {
-            const auto iter = this->m_soures.find(key);
-            if ( this->m_soures.end() == iter ) {
-                return this->loadNewShader(key);
+        std::string operator[](const std::string& key) {
+            std::string buffer;
+
+            {
+                const auto shaderType = determineShaderType(key);
+
+                switch ( shaderType ) {
+                case ShaderType::vertex:
+                    buffer = makeHeader(Precision::nodef);
+                    break;
+                case ShaderType::fragment:
+#if defined(_WIN32)
+                    buffer = makeHeader(Precision::nodef);
+#elif defined(__ANDROID__)
+                    buffer = makeHeader(Precision::mediump);
+#endif
+                    break;
+                }
             }
-            else {
-                return iter->second.c_str();
+
+            {
+                const auto iter = this->m_soures.find(key);
+                if ( this->m_soures.end() == iter ) {
+                    buffer += this->getOrLoadSrc(key);
+                }
+                else {
+                    buffer += iter->second;
+                }
             }
+
+            return buffer;
         }
 
         void clear(void) {
@@ -216,11 +241,12 @@ namespace dal {
         }
 
     private:
-        const char* loadNewShader(const std::string& key) {
+        /*
+        const char* loadNewShader(const std::string& fileName) {
             std::string buffer;
 
             {
-                const auto shaderType = determineShaderType(key);
+                const auto shaderType = determineShaderType(fileName);
 
                 switch ( shaderType ) {
                     case ShaderType::vertex:
@@ -237,20 +263,19 @@ namespace dal {
             }
 
             {
-                auto file = dal::resopen("asset::glsl/"s + key, dal::FileMode::read);
-                if ( nullptr == file ) dalAbort("Failed to load shader source file: "s + key);
+                auto file = dal::resopen("asset::glsl/"s + fileName, dal::FileMode::read);
+                if ( nullptr == file ) dalAbort("Failed to load shader source file: "s + fileName);
                 std::string fileBuf;
-                if ( !file->readText(fileBuf) ) dalAbort("Failed to read shader source file: "s + key);
+                if ( !file->readText(fileBuf) ) dalAbort("Failed to read shader source file: "s + fileName);
                 buffer += this->preprocess(fileBuf);
             }
 
-            auto [iter, success] = this->m_soures.emplace(key, std::move(buffer));
-            if (!success) {
-                dalAbort("Failed to add element into ShaderLoader::m_soures.");
-            }
+            auto [iter, success] = this->m_soures.emplace(fileName, std::move(buffer));
+            dalAssertm(success, "Failed to add element into ShaderLoader::m_soures.");
 
             return iter->second.c_str();
         }
+        */
 
         std::string preprocess(std::string src) {
             size_t lastTail = 0;
@@ -263,11 +288,11 @@ namespace dal {
                 std::vector<std::string> args;
                 const auto resDef = this->parseDefine(src.substr(head, tail - head), args);
                 if ( Defined::include == resDef ) {
-                    const auto& toInclude = this->orderShaderSrc(args[0]);
+                    const auto& toInclude = this->getOrLoadSrc(args[0]);
                     src = src.substr(0, head) + toInclude + src.substr(tail, src.size() - tail);
                     lastTail = head + toInclude.size() + 1;
                 }
-                else if ( Defined::ignore_this ==resDef ) {
+                else if ( Defined::ignore_this == resDef ) {
                     lastTail = tail + 1;
                     continue;
                 }
@@ -279,6 +304,7 @@ namespace dal {
             return src;
         }
 
+        /*
         const std::string& orderShaderSrc(const std::string& fileName) {
             auto found = this->m_soures.find(fileName);
             if ( this->m_soures.end() == found ) {
@@ -299,6 +325,24 @@ namespace dal {
                 return found->second;
             }
         }
+        */
+
+        std::string& getOrLoadSrc(const std::string& fileName) {
+            const auto found = this->m_soures.find(fileName);
+
+            if ( this->m_soures.end() != found ) {
+                return found->second;
+            }
+            else {
+                auto [iter, success] = this->m_soures.emplace(fileName, "");
+                dalAssert(success);
+                if ( !dal::futil::getRes_text("asset::glsl/"s + fileName, iter->second) ) {
+                    dalAbort("Failed to load glsl file: "s + fileName);
+                }
+                iter->second = this->preprocess(iter->second);
+                return iter->second;
+            }
+        }
 
         // Static
 
@@ -308,7 +352,7 @@ namespace dal {
                 if ( std::string::npos != head ) {
                     const auto argHead = text.find('<', head);
                     const auto argTail = text.find('>', argHead);
-                    if ( std::string::npos ==  argHead || std::string::npos ==argTail ) {
+                    if ( std::string::npos == argHead || std::string::npos == argTail ) {
                         dalError("Error during parsing #include: "s + text);
                         return Defined::parse_fail;
                     }
@@ -402,6 +446,12 @@ namespace dal {
             glGetProgramInfoLog(this->m_id, 100, &length, log);
             dalAbort("ShaderProgram linking error: "s + log);
         }
+    }
+
+    ShaderProgram2::ShaderProgram2(const std::string& vertSrc, const std::string& fragSrc)
+        : ShaderProgram2(vertSrc.c_str(), fragSrc.c_str())
+    {
+
     }
 
     GLuint ShaderProgram2::get(void) {

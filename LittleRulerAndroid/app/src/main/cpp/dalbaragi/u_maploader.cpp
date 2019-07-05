@@ -145,15 +145,17 @@ namespace {  // Make attribs
         }
 
         {
-            float numBuf[7];  // vec3 and vec4 together.
-
-            for ( unsigned int i = 0; i < 7; i++ ) {
+            // vec3 as pos, vec4 as quat, float as scale
+            constexpr auto readSize = 8;
+            float numBuf[readSize];
+            for ( unsigned int i = 0; i < readSize; i++ ) {
                 numBuf[i] = makeFloat4(header);
                 header += 4;
             }
 
             actor.setPos(glm::vec3{ numBuf[0], numBuf[1], numBuf[2] });
             actor.setQuat(glm::quat{ numBuf[6], numBuf[3], numBuf[4], numBuf[5] });
+            actor.setScale(numBuf[7]);
         }
 
         return header;
