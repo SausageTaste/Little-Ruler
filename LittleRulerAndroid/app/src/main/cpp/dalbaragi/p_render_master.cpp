@@ -155,7 +155,7 @@ namespace dal {
     void RenderMaster::MainFramebuffer::renderOnScreen(const UnilocFScreen& uniloc) {
         glBindVertexArray(m_vbo);
 
-        this->m_tex->sendUniform(uniloc.uTexture, 0, 0);
+        this->m_tex->sendUniform(uniloc.getTexture());
 
         glDrawArrays(GL_TRIANGLES, 0, 6);
     }

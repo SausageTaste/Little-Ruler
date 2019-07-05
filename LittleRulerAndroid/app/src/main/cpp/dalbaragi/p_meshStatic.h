@@ -105,6 +105,7 @@ namespace dal {
 
         void deleteTex(void);
         void sendUniform(const GLint uniloc_sampler, const GLint uniloc_has, const unsigned int index) const;
+        void sendUniform(const SamplerInterf& uniloc) const;
 
         bool isReady(void) const;
 

@@ -266,17 +266,17 @@ namespace dal {
         glUniform1i(uniloc.mUpsideDown_maskMap, upsideDown_maskMap ? 1 : 0);
 
         if ( nullptr != diffuseMap ) {
-            diffuseMap->sendUniform(uniloc.mDiffuseMap, uniloc.mHasDiffuseMap, 0);
+            diffuseMap->sendUniform(uniloc.getDiffuseMap());
         }
         else {
-            glUniform1i(uniloc.mHasDiffuseMap, 0);
+            uniloc.getDiffuseMap().setFlagHas(false);
         }
 
-        if ( nullptr == maskMap ) {
-            glUniform1i(uniloc.mHasMaskMap, 0);
+        if ( nullptr != maskMap ) {
+            maskMap->sendUniform(uniloc.getMaskMap());
         }
         else {
-            maskMap->sendUniform(uniloc.mMaskMap, uniloc.mHasMaskMap, 1);
+            uniloc.getMaskMap().setFlagHas(false);
         }
 
         RealQuadRenderer::getinst().renderOverlay();

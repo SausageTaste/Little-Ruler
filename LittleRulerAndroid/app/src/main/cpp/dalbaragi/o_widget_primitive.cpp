@@ -170,17 +170,17 @@ namespace dal {
         glUniform4f(uniloc.uColor, mColor.r, mColor.g, mColor.b, mColor.a);
 
         if ( nullptr != this->mDiffuseMap ) {
-            this->mDiffuseMap->sendUniform(uniloc.mDiffuseMap, uniloc.mHasDiffuseMap, 0);
+            this->mDiffuseMap->sendUniform(uniloc.getDiffuseMap());
         }
         else {
-            glUniform1i(uniloc.mHasDiffuseMap, 0);
+            uniloc.getDiffuseMap().setFlagHas(false);
         }
 
         if ( nullptr != this->mMaskMap ) {
-            this->mMaskMap->sendUniform(uniloc.mMaskMap, uniloc.mHasMaskMap, 1);
+            this->mMaskMap->sendUniform(uniloc.getMaskMap());
         }
         else {
-            glUniform1i(uniloc.mHasMaskMap, 0);
+            uniloc.getMaskMap().setFlagHas(false);
         }
 
         QuadRenderer::getinst().renderOverlay();

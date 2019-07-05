@@ -415,6 +415,18 @@ namespace dal {
         }
     }
 
+    void Texture::sendUniform(const SamplerInterf& uniloc) const {
+        if ( this->isReady() ) {
+            uniloc.setFlagHas(true);
+            glActiveTexture(GL_TEXTURE0 + uniloc.getUnitIndex());
+            glBindTexture(GL_TEXTURE_2D, this->m_texID);
+            glUniform1i(uniloc.getSamplerLoc(), uniloc.getUnitIndex());
+        }
+        else {
+            uniloc.setFlagHas(false);
+        }
+    }
+
     bool Texture::isReady(void) const {
         return this->m_texID != 0;
     }
@@ -460,7 +472,7 @@ namespace dal {
         uniloc.m_lightedMesh.texScale(this->m_texScale);
 
         if ( nullptr != this->m_diffuseMap ) {
-            this->m_diffuseMap->sendUniform(uniloc.getDiffuseMapLoc(), -1, 0);
+            this->m_diffuseMap->sendUniform(uniloc.getDiffuseMapLoc());
         }
     }
 

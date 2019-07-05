@@ -15,8 +15,9 @@ namespace dal {
         int m_unitIndex = -1;
 
     public:
-        void init(const GLuint shader, const GLint sampler, const GLint flagHas);
-        void init(const GLuint shader, const GLint sampler);
+        SamplerInterf(void) = default;
+        SamplerInterf(const GLint samplerLoc, const GLint flagHasLoc, const unsigned int unitIndex, const bool flagAssert = false);
+        void init(const GLint samplerLoc, const GLint flagHasLoc, const unsigned int unitIndex, const bool flagAssert = false);
 
         GLint getSamplerLoc(void) const;
         void setFlagHas(const bool x) const;
@@ -69,7 +70,7 @@ namespace dal {
 
         GLint uDlightDirecs[3];
         GLint uDlightColors[3];
-        GLint uDlightDepthMap[3];
+        SamplerInterf uDlightDepthMap[3];
 
         GLint uPlightPoses[3];
         GLint uPlightColors[3];
@@ -95,7 +96,7 @@ namespace dal {
         void dlightColor(const unsigned int index, const float x, const float y, const float z) const;
         void dlightColor(const unsigned int index, const glm::vec3& v) const;
 
-        GLint getDlightDepthMap(const unsigned int index) const;
+        const SamplerInterf& getDlightDepthMap(const unsigned int index) const;
         void dlightProjViewMat(const unsigned int index, glm::mat4& mat) const;
 
         void plightPos(const unsigned int index, const float x, const float y, const float z) const;
@@ -146,14 +147,14 @@ namespace dal {
         UniInterfPlaneClip m_planeClip;
 
     private:
-        GLint u_diffuseMap;
+        SamplerInterf u_diffuseMap;
 
         //////// Funcs ////////
 
     public:
         UnilocGeneral(const GLuint shader);
 
-        GLint getDiffuseMapLoc(void) const;
+        const SamplerInterf& getDiffuseMapLoc(void) const;
 
     };
 
@@ -172,16 +173,16 @@ namespace dal {
 
         GLint uColor;
 
-        GLint mDiffuseMap;
-        GLint mHasDiffuseMap;
-
-        GLint mMaskMap;
-        GLint mHasMaskMap;
+    private:
+        SamplerInterf m_diffuseMap, m_maskMap;
 
         //////// Funcs ////////
 
     public:
         UnilocOverlay(const GLuint shader);
+
+        const SamplerInterf& getDiffuseMap(void) const;
+        const SamplerInterf& getMaskMap(void) const;
 
     };
 
@@ -189,18 +190,20 @@ namespace dal {
 
         //////// Vars ////////
 
-    public:
+    private:
         GLint iPosition;
         GLint iTexCoord;
 
         // Fragment shader
 
-        GLint uTexture;
+        SamplerInterf m_texture;
 
         //////// Funcs ////////
 
     public:
         UnilocFScreen(const GLuint shader);
+
+        const SamplerInterf& getTexture(void) const;
 
     };
 
@@ -221,17 +224,24 @@ namespace dal {
     public:
         UniInterfLightedMesh m_lightedMesh;
 
-    public:
-        GLint u_bansaTex;
-        GLint u_gooljulTex;
-        GLint u_dudvMap;
-        GLint u_normalMap;
+    private:
+        SamplerInterf m_bansaTex;
+        SamplerInterf m_gooljulTex;
+        SamplerInterf m_dudvMap;
+        SamplerInterf m_normalMap;
         GLint u_dudvMoveFactor;
 
         //////// Funcs ////////
 
     public:
         UnilocWaterry(const GLuint shader);
+
+        void dudvFactor(const float x) const;
+
+        const SamplerInterf& getReflectionTex(void) const;
+        const SamplerInterf& getRefractionTex(void) const;
+        const SamplerInterf& getDUDVMap(void) const;
+        const SamplerInterf& getNormalMap(void) const;
 
     };
 

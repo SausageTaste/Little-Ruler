@@ -41,15 +41,15 @@ namespace {
 
     public:
         unsigned int operator[](const std::string& key) {
-            const auto iter = this->m_reg.find(key);
+            const auto found = this->m_reg.find(key);
 
-            if ( this->m_reg.end() != iter ) {
-                return iter->second;
+            if ( this->m_reg.end() != found ) {
+                return found->second;
             }
             else {
-                const auto result = this->m_reg.emplace(key, this->m_size);
+                const auto [iter, success] = this->m_reg.emplace(key, this->m_size);
                 ++this->m_size;
-                return result.second;
+                return iter->second;
             }
         }
 
@@ -61,12 +61,30 @@ namespace {
 // SamplerInterf
 namespace dal {
 
-    void SamplerInterf::init(const GLuint shader, const GLint sampler, const GLint flagHas) {
-
+    SamplerInterf::SamplerInterf(const GLint samplerLoc, const GLint flagHasLoc, const unsigned int unitIndex, const bool flagAssert) {
+        this->init(samplerLoc, flagHasLoc, unitIndex, flagAssert);
     }
 
-    void SamplerInterf::init(const GLuint shader, const GLint sampler) {
+    void SamplerInterf::init(const GLint samplerLoc, const GLint flagHasLoc, const unsigned int unitIndex, const bool flagAssert) {
+        this->m_samplerLoc = samplerLoc;
+        this->m_flagHas = flagHasLoc;
+        this->m_unitIndex = unitIndex;
 
+        if ( flagAssert ) {
+
+            if ( -1 == this->m_samplerLoc ) {
+                dalAbort("Sampler uniform location is -1.");
+            }
+
+            if ( -1 == this->m_flagHas ) {
+                dalAbort("Uniform location for flag has is -1. If you meant it, pass in any minus value other than -1, such as -2.");
+            }
+
+        }
+
+        if ( this->m_flagHas < -1 ) {
+            this->m_flagHas = -1;
+        }
     }
 
     GLint SamplerInterf::getSamplerLoc(void) const {
@@ -74,7 +92,9 @@ namespace dal {
     }
 
     void SamplerInterf::setFlagHas(const bool x) const {
-        glUniform1i(this->m_flagHas, x ? 1 : 0);
+        if ( -1 != this->m_flagHas ) {
+            glUniform1i(this->m_flagHas, x ? 1 : 0);
+        }
     }
 
     int SamplerInterf::getUnitIndex(void) const {
@@ -162,9 +182,10 @@ namespace dal {
         this->uDlightColors[1] = glGetUniformLocation(shader, "uDlightColors[1]");
         this->uDlightColors[2] = glGetUniformLocation(shader, "uDlightColors[2]");
 
-        this->uDlightDepthMap[0] = glGetUniformLocation(shader, "uDlightDepthMap[0]");
-        this->uDlightDepthMap[1] = glGetUniformLocation(shader, "uDlightDepthMap[1]");
-        this->uDlightDepthMap[2] = glGetUniformLocation(shader, "uDlightDepthMap[2]");
+        for ( int i = 0; i < 3; ++i ) {
+            const auto id = "uDlightDepthMap["s + std::to_string(i) + ']';
+            this->uDlightDepthMap[i].init(getUniloc(shader, id.c_str()), -2, g_texUnitReg[id.c_str()]);
+        }
 
         // Point Lights
 
@@ -229,7 +250,8 @@ namespace dal {
         this->dlightColor(index, v.x, v.y, v.z);
     }
 
-    GLint UniInterfLightedMesh::getDlightDepthMap(const unsigned int index) const {
+    const SamplerInterf& UniInterfLightedMesh::getDlightDepthMap(const unsigned int index) const {
+        dalAssert(index <= 3);
         return this->uDlightDepthMap[index];
     }
 
@@ -303,22 +325,109 @@ namespace dal {
 }
 
 
+// UnilocGeneral
 namespace dal {
 
     UnilocGeneral::UnilocGeneral(const GLuint shader)
         : m_lightedMesh(shader)
         , m_planeClip(shader)
     {
-        this->u_diffuseMap = getUniloc(shader, "u_diffuseMap");
+        this->u_diffuseMap.init(getUniloc(shader, "u_diffuseMap"), -2, g_texUnitReg["u_diffuseMap"]);
     }
 
-    GLint UnilocGeneral::getDiffuseMapLoc(void) const {
+    const SamplerInterf& UnilocGeneral::getDiffuseMapLoc(void) const {
         return this->u_diffuseMap;
     }
 
 }
 
 
+// UnilocOverlay
+namespace dal {
+
+    UnilocOverlay::UnilocOverlay(const GLuint shader) {
+        uPoint1 = glGetUniformLocation(shader, "uPoint1");
+        uPoint2 = glGetUniformLocation(shader, "uPoint2");
+
+        mUpsideDown_maskMap = glGetUniformLocation(shader, "mUpsideDown_maskMap");
+        m_upsideDown_diffuseMap = glGetUniformLocation(shader, "m_upsideDown_diffuseMap");
+
+        // Fragment shader
+
+        uColor = glGetUniformLocation(shader, "uColor");
+
+        this->m_diffuseMap.init(getUniloc(shader, "mDiffuseMap"), getUniloc(shader, "mHasDiffuseMap"), g_texUnitReg["mDiffuseMap"]);
+        this->m_maskMap.init(getUniloc(shader, "mMaskMap"), getUniloc(shader, "mHasMaskMap"), g_texUnitReg["mMaskMap"]);
+    }
+
+    const SamplerInterf& UnilocOverlay::getDiffuseMap(void) const {
+        return this->m_diffuseMap;
+    }
+
+    const SamplerInterf& UnilocOverlay::getMaskMap(void) const {
+        return this->m_maskMap;
+    }
+
+}
+
+
+//
+namespace dal {
+
+    UnilocFScreen::UnilocFScreen(const GLuint shader) {
+        iPosition = glGetAttribLocation(shader, "iPosition"); assert(iPosition == 0);
+        iTexCoord = glGetAttribLocation(shader, "iTexCoord"); assert(iTexCoord == 1);
+
+        // Fragment shader
+
+        this->m_texture.init(getUniloc(shader, "uTexture"), -2, g_texUnitReg["uTexture"]);
+    }
+
+    const SamplerInterf& UnilocFScreen::getTexture(void) const {
+        return this->m_texture;
+    }
+
+}
+
+
+//
+namespace dal {
+
+    UnilocWaterry::UnilocWaterry(const GLuint shader)
+        : m_lightedMesh(shader)
+    {
+        this->u_dudvMoveFactor = glGetUniformLocation(shader, "u_dudvMoveFactor");
+
+        this->m_bansaTex.init(getUniloc(shader, "u_bansaTex"), -2, g_texUnitReg["u_bansaTex"]);
+        this->m_gooljulTex.init(getUniloc(shader, "u_gooljulTex"), -2, g_texUnitReg["u_gooljulTex"]);
+        this->m_dudvMap.init(getUniloc(shader, "u_dudvMap"), -2, g_texUnitReg["u_dudvMap"]);
+        this->m_normalMap.init(getUniloc(shader, "u_normalMap"), -2, g_texUnitReg["u_normalMap"]);
+    }
+
+    void UnilocWaterry::dudvFactor(const float x) const {
+        glUniform1f(this->u_dudvMoveFactor, x);
+    }
+
+    const SamplerInterf& UnilocWaterry::getReflectionTex(void) const {
+        return this->m_bansaTex;
+    }
+
+    const SamplerInterf& UnilocWaterry::getRefractionTex(void) const {
+        return this->m_gooljulTex;
+    }
+
+    const SamplerInterf& UnilocWaterry::getDUDVMap(void) const {
+        return this->m_dudvMap;
+    }
+
+    const SamplerInterf& UnilocWaterry::getNormalMap(void) const {
+        return this->m_normalMap;
+    }
+
+}
+
+
+// UnilocDepthAnime
 namespace dal {
 
     UnilocDepthAnime::UnilocDepthAnime(const GLuint shader)
@@ -333,47 +442,10 @@ namespace dal {
 
 namespace dal {
 
-    UnilocOverlay::UnilocOverlay(const GLuint shader) {
-        uPoint1 = glGetUniformLocation(shader, "uPoint1");
-        uPoint2 = glGetUniformLocation(shader, "uPoint2");
-
-        mUpsideDown_maskMap = glGetUniformLocation(shader, "mUpsideDown_maskMap");
-        m_upsideDown_diffuseMap = glGetUniformLocation(shader, "m_upsideDown_diffuseMap");
-
-        // Fragment shader
-
-        uColor = glGetUniformLocation(shader, "uColor");
-
-        mDiffuseMap = glGetUniformLocation(shader, "mDiffuseMap");
-        mHasDiffuseMap = glGetUniformLocation(shader, "mHasDiffuseMap");
-
-        mMaskMap = glGetUniformLocation(shader, "mMaskMap");
-        mHasMaskMap = glGetUniformLocation(shader, "mHasMaskMap");
-    }
-
-    UnilocFScreen::UnilocFScreen(const GLuint shader) {
-        iPosition = glGetAttribLocation(shader, "iPosition"); assert(iPosition == 0);
-        iTexCoord = glGetAttribLocation(shader, "iTexCoord"); assert(iTexCoord == 1);
-
-        // Fragment shader
-
-        uTexture = glGetUniformLocation(shader, "uTexture");
-    }
-
     UnilocDepthmp::UnilocDepthmp(const GLuint shader)
         : m_geometry(shader)
     {
 
-    }
-
-    UnilocWaterry::UnilocWaterry(const GLuint shader)
-        : m_lightedMesh(shader)
-    {
-        this->u_bansaTex = glGetUniformLocation(shader, "u_bansaTex");
-        this->u_gooljulTex = glGetUniformLocation(shader, "u_gooljulTex");
-        this->u_dudvMap = glGetUniformLocation(shader, "u_dudvMap");
-        this->u_normalMap = glGetUniformLocation(shader, "u_normalMap");
-        this->u_dudvMoveFactor = glGetUniformLocation(shader, "u_dudvMoveFactor");
     }
 
     UnilocAnimate::UnilocAnimate(const GLuint shader)

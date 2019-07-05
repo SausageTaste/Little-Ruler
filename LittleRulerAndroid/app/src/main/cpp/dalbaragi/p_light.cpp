@@ -118,7 +118,7 @@ namespace dal {
         auto projViewMat = this->makeProjMat() * this->makeViewMat();
         uniloc.dlightProjViewMat(index, projViewMat);
 
-        this->mShadowMap.getDepthMap()->sendUniform(uniloc.getDlightDepthMap(index), -1, 1 + index);
+        this->mShadowMap.getDepthMap()->sendUniform(uniloc.getDlightDepthMap(index));
     }
 
     void DirectionalLight::clearDepthBuffer(void) {
