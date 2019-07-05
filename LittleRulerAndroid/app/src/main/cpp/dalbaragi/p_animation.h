@@ -33,7 +33,7 @@ namespace dal {
         int32_t getSize(void) const;
         bool isEmpty(void) const;
 
-        void sendUniform(const UnilocAnimate& uniloc) const;
+        void sendUniform(const UniInterfAnime& uniloc) const;
 
     private:
         int32_t upsizeAndGetIndex(void);

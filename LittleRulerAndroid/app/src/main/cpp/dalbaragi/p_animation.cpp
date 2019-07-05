@@ -124,7 +124,7 @@ namespace dal {
         return this->m_map.empty();
     }
 
-    void SkeletonInterface::sendUniform(const UnilocAnimate& uniloc) const {
+    void SkeletonInterface::sendUniform(const UniInterfAnime& uniloc) const {
         for ( unsigned i = 0; i < this->m_finalTransform.size(); i++ ) {
             uniloc.jointTransforms(i, this->m_finalTransform[i]);
         }

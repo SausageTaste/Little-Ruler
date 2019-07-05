@@ -86,7 +86,7 @@ namespace dal {
 // UniInterfGeometry
 namespace dal {
 
-    void UniInterfGeometry::init(const GLuint shader) {
+    UniInterfGeometry::UniInterfGeometry(const GLuint shader) {
         dalAssertm(0 == glGetAttribLocation(shader, "i_position"), "Uniloc i_position not found");
 
         this->u_projMat = getUniloc(shader, "u_projMat");
@@ -112,9 +112,9 @@ namespace dal {
 // UniInterfMesh
 namespace dal {
 
-    void UniInterfMesh::init(const GLuint shader) {
-        this->UniInterfGeometry::init(shader);
-
+    UniInterfMesh::UniInterfMesh(const GLuint shader)
+        : UniInterfGeometry(shader)
+    {
         dalAssertm(1 == glGetAttribLocation(shader, "i_texCoord"), "Uniloc i_texCoord not found");
         //dalAssertm(2 == glGetAttribLocation(shader, "i_normal"), "Uniloc i_normal not found");
 
@@ -135,9 +135,9 @@ namespace dal {
 // UniInterfLightedMesh
 namespace dal {
 
-    void UniInterfLightedMesh::init(const GLuint shader) {
-        this->UniInterfMesh::init(shader);
-
+    UniInterfLightedMesh::UniInterfLightedMesh(const GLuint shader)
+        : UniInterfMesh(shader)
+    {
         this->uDlightProjViewMat[0] = glGetUniformLocation(shader, "uDlightProjViewMat[0]");
         this->uDlightProjViewMat[1] = glGetUniformLocation(shader, "uDlightProjViewMat[1]");
         this->uDlightProjViewMat[2] = glGetUniformLocation(shader, "uDlightProjViewMat[2]");
@@ -263,7 +263,7 @@ namespace dal {
 // UniInterfAnime
 namespace dal {
 
-    void UniInterfAnime::init(const GLuint shader) {
+    UniInterfAnime::UniInterfAnime(const GLuint shader) {
         dalAssertm(3 == glGetAttribLocation(shader, "i_jointIDs"), "Uniloc i_jointIDs not found");
         dalAssertm(4 == glGetAttribLocation(shader, "i_weights"), "Uniloc i_weights not found");
 
@@ -283,7 +283,7 @@ namespace dal {
 // UniInterfPlaneClip
 namespace dal {
 
-    void UniInterfPlaneClip::init(const GLuint shader) {
+    UniInterfPlaneClip::UniInterfPlaneClip(const GLuint shader) {
         this->u_doClip = getUniloc(shader, "u_doClip");
         this->u_clipPlane = getUniloc(shader, "u_clipPlane");
     }
@@ -305,10 +305,10 @@ namespace dal {
 
 namespace dal {
 
-    void UnilocGeneral::init(const GLuint shader) {
-        this->UniInterfLightedMesh::init(shader);
-        this->UniInterfPlaneClip::init(shader);
-
+    UnilocGeneral::UnilocGeneral(const GLuint shader)
+        : m_lightedMesh(shader)
+        , m_planeClip(shader)
+    {
         this->u_diffuseMap = getUniloc(shader, "u_diffuseMap");
     }
 
@@ -321,9 +321,7 @@ namespace dal {
 
 namespace dal {
 
-    
-
-    void UnilocOverlay::init(const GLuint shader) {
+    UnilocOverlay::UnilocOverlay(const GLuint shader) {
         uPoint1 = glGetUniformLocation(shader, "uPoint1");
         uPoint2 = glGetUniformLocation(shader, "uPoint2");
 
@@ -341,7 +339,7 @@ namespace dal {
         mHasMaskMap = glGetUniformLocation(shader, "mHasMaskMap");
     }
 
-    void UnilocFScreen::init(const GLuint shader) {
+    UnilocFScreen::UnilocFScreen(const GLuint shader) {
         iPosition = glGetAttribLocation(shader, "iPosition"); assert(iPosition == 0);
         iTexCoord = glGetAttribLocation(shader, "iTexCoord"); assert(iTexCoord == 1);
 
@@ -350,13 +348,15 @@ namespace dal {
         uTexture = glGetUniformLocation(shader, "uTexture");
     }
 
-    void UnilocDepthmp::init(const GLuint shader) {
-        this->UniInterfGeometry::init(shader);
+    UnilocDepthmp::UnilocDepthmp(const GLuint shader)
+        : m_geometry(shader)
+    {
+
     }
 
-    void UnilocWaterry::init(const GLuint shader) {
-        this->UniInterfLightedMesh::init(shader);
-
+    UnilocWaterry::UnilocWaterry(const GLuint shader)
+        : m_lightedMesh(shader)
+    {
         this->u_bansaTex = glGetUniformLocation(shader, "u_bansaTex");
         this->u_gooljulTex = glGetUniformLocation(shader, "u_gooljulTex");
         this->u_dudvMap = glGetUniformLocation(shader, "u_dudvMap");
@@ -364,9 +364,11 @@ namespace dal {
         this->u_dudvMoveFactor = glGetUniformLocation(shader, "u_dudvMoveFactor");
     }
 
-    void UnilocAnimate::init(const GLuint shader) {
-        this->UnilocGeneral::init(shader);
-        this->UniInterfAnime::init(shader);
+    UnilocAnimate::UnilocAnimate(const GLuint shader)
+        : UnilocGeneral(shader)
+        , m_anime(shader)
+    {
+
     }
 
 }

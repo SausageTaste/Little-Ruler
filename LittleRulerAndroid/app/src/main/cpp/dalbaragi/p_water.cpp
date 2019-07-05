@@ -331,7 +331,7 @@ namespace dal {
         this->m_moveFactor = fmod(this->m_moveFactor, 1.0f);
         glUniform1f(uniloc.u_dudvMoveFactor, this->m_moveFactor);
 
-        this->m_material.sendUniform(uniloc);
+        this->m_material.sendUniform(uniloc.m_lightedMesh);
 
         this->m_fbuffer.getReflectionTexture()->sendUniform(uniloc.u_bansaTex, 0, 4);
         this->m_fbuffer.getRefractionTexture()->sendUniform(uniloc.u_gooljulTex, 0, 5);
@@ -340,7 +340,7 @@ namespace dal {
         //getWaterNormalMap()->sendUniform(uniloc.u_normalMap, 0, 7);
         this->s_normalMap->sendUniform(uniloc.u_normalMap, 0, 7);
 
-        uniloc.modelMat(glm::mat4{ 1.0f });
+        uniloc.m_lightedMesh.modelMat(glm::mat4{ 1.0f });
         this->m_mesh.draw();
     }
 

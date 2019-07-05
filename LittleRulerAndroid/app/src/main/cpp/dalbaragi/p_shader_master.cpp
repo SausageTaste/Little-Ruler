@@ -162,7 +162,7 @@ namespace dal {
         std::unordered_map<std::string, std::string> m_soures;
 
     public:
-        ShaderLoader(void) {
+        void init(void) {
             constexpr std::array<const char*, 12> k_fileNames = {
                 "depth.vert",
                 "depth.frag",
@@ -202,11 +202,56 @@ namespace dal {
 
         const char* const operator[](const std::string& key) {
             const auto iter = this->m_soures.find(key);
-            if ( this->m_soures.end() == iter ) dalAbort("\'{}\' not exist in ShaderLoader."_format(key));
-            return iter->second.c_str();
+            if ( this->m_soures.end() == iter ) {
+                return this->loadNewShader(key);
+            }
+            else {
+                return iter->second.c_str();
+            }
+        }
+
+        void clear(void) {
+            this->m_soures.clear();
+            this->m_soures.reserve(0);
         }
 
     private:
+        const char* loadNewShader(const std::string& key) {
+            std::string buffer;
+
+            {
+                const auto shaderType = determineShaderType(key);
+
+                switch ( shaderType ) {
+                    case ShaderType::vertex:
+                        buffer = makeHeader(Precision::nodef);
+                        break;
+                    case ShaderType::fragment:
+#if defined(_WIN32)
+                        buffer = makeHeader(Precision::nodef);
+#elif defined(__ANDROID__)
+                        buffer = makeHeader(Precision::mediump);
+#endif
+                        break;
+                }
+            }
+
+            {
+                auto file = dal::resopen("asset::glsl/"s + key, dal::FileMode::read);
+                if ( nullptr == file ) dalAbort("Failed to load shader source file: "s + key);
+                std::string fileBuf;
+                if ( !file->readText(fileBuf) ) dalAbort("Failed to read shader source file: "s + key);
+                buffer += this->preprocess(fileBuf);
+            }
+
+            auto [iter, success] = this->m_soures.emplace(key, std::move(buffer));
+            if (!success) {
+                dalAbort("Failed to add element into ShaderLoader::m_soures.");
+            }
+
+            return iter->second.c_str();
+        }
+
         std::string preprocess(std::string src) {
             size_t lastTail = 0;
             while ( true ) {
@@ -329,7 +374,7 @@ namespace dal {
             return fileHeader;
         }
 
-    };
+    } g_loader;
 
 }
 
@@ -337,15 +382,14 @@ namespace dal {
 // ShaderProgram2
 namespace dal {
 
-    void ShaderProgram2::init(ShaderLoader& loader, const char* const vertSrcName, const char* const fragSrcName) {
-        dalAssert(this->m_id == 0);
-
+    ShaderProgram2::ShaderProgram2(const char* const vertSrc, const char* const fragSrc) {
         this->m_id = glCreateProgram();
+        dalAssert(0 != this->m_id);
 
-        const auto verShader = compileShader2(ShaderType::vertex, loader[vertSrcName]);
-        const auto fragShader = compileShader2(ShaderType::fragment, loader[fragSrcName]);
+        const auto vertShader = compileShader2(ShaderType::vertex, vertSrc);
+        const auto fragShader = compileShader2(ShaderType::fragment, fragSrc);
 
-        glAttachShader(this->m_id, verShader.get());
+        glAttachShader(this->m_id, vertShader.get());
         glAttachShader(this->m_id, fragShader.get());
 
         glLinkProgram(this->m_id);
@@ -374,26 +418,21 @@ namespace dal {
 // Shader Master
 namespace dal {
 
-    ShaderMaster::ShaderMaster(void) {
-        ShaderLoader loader;
-
-        this->m_general.init(loader, "general.vert", "general.frag");
-        this->m_generalUniloc.init(this->m_general.get());
-
-        this->m_fscreen.init(loader, "fillscreen.vert", "fillscreen.frag");
-        this->m_fscreenUniloc.init(this->m_fscreen.get());
-
-        this->m_depthmap.init(loader, "depth.vert", "depth.frag");
-        this->m_depthmapUniloc.init(this->m_depthmap.get());
-
-        this->m_overlay.init(loader, "overlay.vert", "overlay.frag");
-        this->m_overlayUniloc.init(this->m_overlay.get());
-
-        this->m_waterry.init(loader, "water.vert", "water.frag");
-        this->m_waterryUniloc.init(this->m_waterry.get());
-
-        this->m_animate.init(loader, "animated.vert", "animated.frag");
-        this->m_animateUniloc.init(this->m_animate.get());
+    ShaderMaster::ShaderMaster(void)
+        : m_general(g_loader["general.vert"], g_loader["general.frag"])
+        , m_generalUniloc(m_general.get())
+        , m_fscreen(g_loader["fillscreen.vert"], g_loader["fillscreen.frag"])
+        , m_fscreenUniloc(m_fscreen.get())
+        , m_depthmap(g_loader["depth.vert"], g_loader["depth.frag"])
+        , m_depthmapUniloc(m_depthmap.get())
+        , m_overlay(g_loader["overlay.vert"], g_loader["overlay.frag"])
+        , m_overlayUniloc(m_overlay.get())
+        , m_waterry(g_loader["water.vert"], g_loader["water.frag"])
+        , m_waterryUniloc(m_waterry.get())
+        , m_animate(g_loader["animated.vert"], g_loader["animated.frag"])
+        , m_animateUniloc(m_animate.get())
+    {
+        g_loader.clear();
     }
 
     const UnilocGeneral& ShaderMaster::useGeneral(void) const {

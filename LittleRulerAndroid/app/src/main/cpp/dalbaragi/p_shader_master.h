@@ -13,7 +13,7 @@ namespace dal {
         GLuint m_id = 0;
 
     public:
-        void init(ShaderLoader& loader, const char* const vertSrcName, const char* const fragSrcName);
+        ShaderProgram2(const char* const vertSrc, const char* const fragSrc);
         GLuint get(void);
         void use(void) const;
 

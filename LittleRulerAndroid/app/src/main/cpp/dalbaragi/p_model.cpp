@@ -68,7 +68,7 @@ namespace dal {
             if ( !unit.m_mesh.isReady() ) continue;
 
             for ( auto& inst : actors ) {
-                uniloc.modelMat(inst.getModelMat());
+                uniloc.m_lightedMesh.modelMat(inst.getModelMat());
                 unit.m_mesh.draw();
             }
         }
@@ -81,7 +81,7 @@ namespace dal {
             if ( !unit.m_mesh.isReady() ) continue;
 
             for ( auto& inst : actors ) {
-                uniloc.modelMat(inst.getModelMat());
+                uniloc.m_geometry.modelMat(inst.getModelMat());
                 unit.m_mesh.draw();
             }
         }
@@ -127,14 +127,14 @@ namespace dal {
     void ModelAnimated::renderAnimate(const UnilocAnimate& uniloc, std::list<ActorInfo>& actors) {
         if ( !this->isReady() ) return;
 
-        this->m_jointInterface.sendUniform(uniloc);
+        this->m_jointInterface.sendUniform(uniloc.m_anime);
 
         for ( auto& unit : this->m_renderUnits ) {
             unit.m_material.sendUniform(uniloc);
             if ( !unit.m_mesh.isReady() ) continue;
 
             for ( auto& inst : actors ) {
-                uniloc.modelMat(inst.getModelMat());
+                uniloc.m_lightedMesh.modelMat(inst.getModelMat());
                 unit.m_mesh.draw();
             }
         }
@@ -147,7 +147,7 @@ namespace dal {
             if ( !unit.m_mesh.isReady() ) continue;
 
             for ( auto& inst : actors ) {
-                uniloc.modelMat(inst.getModelMat());
+                uniloc.m_geometry.modelMat(inst.getModelMat());
                 unit.m_mesh.draw();
             }
         }

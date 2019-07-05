@@ -142,13 +142,13 @@ namespace dal {
             {
                 // Uniform values
 
-                uniloc.flagDoClip(true);
-                uniloc.clipPlane(0.0f, 1.0f, 0.0f, -water.getHeight() + 0.01f);
+                uniloc.m_planeClip.flagDoClip(true);
+                uniloc.m_planeClip.clipPlane(0.0f, 1.0f, 0.0f, -water.getHeight() + 0.01f);
 
                 auto [reflectedPos, reflectedMat] = cam.makeReflected(water.getHeight());
 
-                uniloc.viewMat(reflectedMat);
-                uniloc.viewPos(reflectedPos);
+                uniloc.m_lightedMesh.viewMat(reflectedMat);
+                uniloc.m_lightedMesh.viewPos(reflectedPos);
 
                 water.m_fbuffer.bindReflectionFrameBuffer();
                 glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
@@ -162,11 +162,11 @@ namespace dal {
             {
                 // Uniform values
 
-                uniloc.flagDoClip(true);
-                uniloc.clipPlane(0.0, -1.0, 0.0, water.getHeight());
+                uniloc.m_planeClip.flagDoClip(true);
+                uniloc.m_planeClip.clipPlane(0.0, -1.0, 0.0, water.getHeight());
 
-                uniloc.viewMat(cam.getViewMat());
-                uniloc.viewPos(cam.m_pos);
+                uniloc.m_lightedMesh.viewMat(cam.getViewMat());
+                uniloc.m_lightedMesh.viewPos(cam.m_pos);
 
                 water.m_fbuffer.bindRefractionFrameBuffer();
                 glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
@@ -183,13 +183,13 @@ namespace dal {
             {
                 // Uniform values
 
-                uniloc.flagDoClip(true);
-                uniloc.clipPlane(0.0f, 1.0f, 0.0f, -water.getHeight() + 0.01f);
+                uniloc.m_planeClip.flagDoClip(true);
+                uniloc.m_planeClip.clipPlane(0.0f, 1.0f, 0.0f, -water.getHeight() + 0.01f);
 
                 auto [reflectedPos, reflectedMat] = cam.makeReflected(water.getHeight());
 
-                uniloc.viewMat(reflectedMat);
-                uniloc.viewPos(reflectedPos);
+                uniloc.m_lightedMesh.viewMat(reflectedMat);
+                uniloc.m_lightedMesh.viewPos(reflectedPos);
 
                 water.m_fbuffer.bindReflectionFrameBuffer();
                 //glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
@@ -203,11 +203,11 @@ namespace dal {
             {
                 // Uniform values
 
-                uniloc.flagDoClip(true);
-                uniloc.clipPlane(0.0f, -1.0f, 0.0f, water.getHeight());
+                uniloc.m_planeClip.flagDoClip(true);
+                uniloc.m_planeClip.clipPlane(0.0f, -1.0f, 0.0f, water.getHeight());
 
-                uniloc.viewMat(cam.getViewMat());
-                uniloc.viewPos(cam.m_pos);
+                uniloc.m_lightedMesh.viewMat(cam.getViewMat());
+                uniloc.m_lightedMesh.viewPos(cam.m_pos);
 
                 water.m_fbuffer.bindRefractionFrameBuffer();
                 //glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
@@ -224,10 +224,10 @@ namespace dal {
         if ( startIndex >= 3 ) dalAbort("Too many point lights.");
         if ( startIndex + this->m_plights.size() > 3 ) dalAbort("Too many point lights.");
 
-        uniloc.plightCount(startIndex + this->m_plights.size());
+        uniloc.m_lightedMesh.plightCount(startIndex + this->m_plights.size());
         for ( size_t i = 0; i < this->m_plights.size(); i++ ) {
             if ( i >= 3 ) break;
-            this->m_plights.at(i).sendUniform(uniloc, startIndex + i);
+            this->m_plights.at(i).sendUniform(uniloc.m_lightedMesh, startIndex + i);
         }
 
         return startIndex + this->m_plights.size();
@@ -237,10 +237,10 @@ namespace dal {
         if ( startIndex >= 3 ) dalAbort("Too many point lights.");
         if ( startIndex + this->m_plights.size() > 3 ) dalAbort("Too many point lights.");
 
-        uniloc.plightCount(startIndex + this->m_plights.size());
+        uniloc.m_lightedMesh.plightCount(startIndex + this->m_plights.size());
         for ( size_t i = 0; i < this->m_plights.size(); i++ ) {
             if ( i >= 3 ) break;
-            this->m_plights.at(i).sendUniform(uniloc, startIndex + i);
+            this->m_plights.at(i).sendUniform(uniloc.m_lightedMesh, startIndex + i);
         }
 
         return startIndex + this->m_plights.size();

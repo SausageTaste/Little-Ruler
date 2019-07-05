@@ -267,20 +267,20 @@ namespace dal {
 #endif
             auto& unilocGeneral = this->m_shader.useGeneral();
 
-            unilocGeneral.flagDoClip(true);
+            unilocGeneral.m_planeClip.flagDoClip(true);
 
-            unilocGeneral.projectMat(this->m_projectMat);
+            unilocGeneral.m_lightedMesh.projectMat(this->m_projectMat);
 
-            unilocGeneral.baseAmbient(0.3f, 0.3f, 0.3f);
+            unilocGeneral.m_lightedMesh.baseAmbient(0.3f, 0.3f, 0.3f);
 
             // Lights
 
             if ( this->m_flagDrawDlight1 ) {
-                this->m_dlight1.sendUniform(unilocGeneral, 0);
-                unilocGeneral.dlightCount(1);
+                this->m_dlight1.sendUniform(unilocGeneral.m_lightedMesh, 0);
+                unilocGeneral.m_lightedMesh.dlightCount(1);
             }
             else {
-                unilocGeneral.dlightCount(0);
+                unilocGeneral.m_lightedMesh.dlightCount(0);
             }
 
             // Render meshes
@@ -295,20 +295,20 @@ namespace dal {
 #endif
             auto& unilocGeneral = this->m_shader.useAnimate();
 
-            unilocGeneral.flagDoClip(true);
+            unilocGeneral.m_planeClip.flagDoClip(true);
 
-            unilocGeneral.projectMat(this->m_projectMat);
+            unilocGeneral.m_lightedMesh.projectMat(this->m_projectMat);
 
-            unilocGeneral.baseAmbient(0.3f, 0.3f, 0.3f);
+            unilocGeneral.m_lightedMesh.baseAmbient(0.3f, 0.3f, 0.3f);
 
             // Lights
 
             if ( this->m_flagDrawDlight1 ) {
-                this->m_dlight1.sendUniform(unilocGeneral, 0);
-                unilocGeneral.dlightCount(1);
+                this->m_dlight1.sendUniform(unilocGeneral.m_lightedMesh, 0);
+                unilocGeneral.m_lightedMesh.dlightCount(1);
             }
             else {
-                unilocGeneral.dlightCount(0);
+                unilocGeneral.m_lightedMesh.dlightCount(0);
             }
 
             // Render meshes
@@ -326,10 +326,10 @@ namespace dal {
         {
             auto& unilocGeneral = this->m_shader.useGeneral();
 
-            unilocGeneral.projectMat(this->m_projectMat);
-            unilocGeneral.flagDoClip(false);
-            unilocGeneral.viewMat(this->m_mainCamera->getViewMat());
-            unilocGeneral.viewPos(this->m_mainCamera->m_pos);
+            unilocGeneral.m_lightedMesh.projectMat(this->m_projectMat);
+            unilocGeneral.m_planeClip.flagDoClip(false);
+            unilocGeneral.m_lightedMesh.viewMat(this->m_mainCamera->getViewMat());
+            unilocGeneral.m_lightedMesh.viewPos(this->m_mainCamera->m_pos);
 
             // Render meshes
 
@@ -340,10 +340,10 @@ namespace dal {
         {
             auto& unilocGeneral = this->m_shader.useAnimate();
 
-            unilocGeneral.projectMat(this->m_projectMat);
-            unilocGeneral.flagDoClip(false);
-            unilocGeneral.viewMat(this->m_mainCamera->getViewMat());
-            unilocGeneral.viewPos(this->m_mainCamera->m_pos);
+            unilocGeneral.m_lightedMesh.projectMat(this->m_projectMat);
+            unilocGeneral.m_planeClip.flagDoClip(false);
+            unilocGeneral.m_lightedMesh.viewMat(this->m_mainCamera->getViewMat());
+            unilocGeneral.m_lightedMesh.viewPos(this->m_mainCamera->m_pos);
 
             // Render meshes
 
@@ -354,19 +354,19 @@ namespace dal {
         {
             auto& unilocWaterry = this->m_shader.useWaterry();
 
-            unilocWaterry.projectMat(this->m_projectMat);
-            unilocWaterry.viewMat(this->m_mainCamera->getViewMat());
-            unilocWaterry.viewPos(this->m_mainCamera->m_pos);
-            unilocWaterry.baseAmbient(0.3f, 0.3f, 0.3f);
+            unilocWaterry.m_lightedMesh.projectMat(this->m_projectMat);
+            unilocWaterry.m_lightedMesh.viewMat(this->m_mainCamera->getViewMat());
+            unilocWaterry.m_lightedMesh.viewPos(this->m_mainCamera->m_pos);
+            unilocWaterry.m_lightedMesh.baseAmbient(0.3f, 0.3f, 0.3f);
 
             // Lights
 
             if ( this->m_flagDrawDlight1 ) {
-                this->m_dlight1.sendUniform(unilocWaterry, 0);
-                unilocWaterry.dlightCount(1);
+                this->m_dlight1.sendUniform(unilocWaterry.m_lightedMesh, 0);
+                unilocWaterry.m_lightedMesh.dlightCount(1);
             }
             else {
-                unilocWaterry.dlightCount(0);
+                unilocWaterry.m_lightedMesh.dlightCount(0);
             }
 
             // Render meshes

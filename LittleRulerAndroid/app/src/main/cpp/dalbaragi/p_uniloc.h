@@ -32,10 +32,9 @@ namespace dal {
         GLint u_viewMat = -1;
         GLint u_modelMat = -1;
 
-    protected:
-        void init(const GLuint shader);
-
     public:
+        UniInterfGeometry(const GLuint shader);
+
         void projectMat(const glm::mat4& mat) const;
         void viewMat(const glm::mat4& mat) const;
         void modelMat(const glm::mat4& mat) const;
@@ -47,10 +46,9 @@ namespace dal {
     private:
         GLint u_texScale = -1;
 
-    protected:
-        void init(const GLuint shader);
-
     public:
+        UniInterfMesh(const GLuint shader);
+
         void texScale(const float x, const float y) const;
         void texScale(const glm::vec2& v) const;
 
@@ -77,10 +75,9 @@ namespace dal {
         GLint uPlightColors[3];
         GLint uPlightMaxDists[3];
 
-    protected:
-        void init(const GLuint shader);
-
     public:
+        UniInterfLightedMesh(const GLuint shader);
+
         void viewPos(const float x, const float y, const float z) const;
         void viewPos(const glm::vec3& v) const;
 
@@ -118,10 +115,9 @@ namespace dal {
         static constexpr unsigned int k_maxNumJoints = 30;
         GLint u_jointTransforms[k_maxNumJoints] = { -1 };
 
-    protected:
-        void init(const GLuint shader);
-
     public:
+        UniInterfAnime(const GLuint shader);
+
         void jointTransforms(const unsigned int index, const glm::mat4& mat) const;
 
     };
@@ -131,10 +127,9 @@ namespace dal {
     private:
         GLint u_doClip = -1, u_clipPlane = -1;
 
-    protected:
-        void init(const GLuint shader);
-
     public:
+        UniInterfPlaneClip(const GLuint shader);
+
         void flagDoClip(const bool x) const;
         void clipPlane(const glm::vec4& plane) const;
         void clipPlane(const float x, const float y, const float z, const float w) const;
@@ -142,9 +137,13 @@ namespace dal {
     };
 
 
-    class UnilocGeneral : public UniInterfLightedMesh, public UniInterfPlaneClip {
+    class UnilocGeneral {
 
         //////// Vars ////////
+
+    public:
+        UniInterfLightedMesh m_lightedMesh;
+        UniInterfPlaneClip m_planeClip;
 
     private:
         GLint u_diffuseMap;
@@ -152,7 +151,7 @@ namespace dal {
         //////// Funcs ////////
 
     public:
-        void init(const GLuint shader);
+        UnilocGeneral(const GLuint shader);
 
         GLint getDiffuseMapLoc(void) const;
 
@@ -182,7 +181,7 @@ namespace dal {
         //////// Funcs ////////
 
     public:
-        void init(const GLuint shader);
+        UnilocOverlay(const GLuint shader);
 
     };
 
@@ -201,20 +200,26 @@ namespace dal {
         //////// Funcs ////////
 
     public:
-        void init(const GLuint shader);
+        UnilocFScreen(const GLuint shader);
 
     };
 
-    class UnilocDepthmp : public UniInterfGeometry {
+    class UnilocDepthmp {
 
     public:
-        void init(const GLuint shader);
+        UniInterfGeometry m_geometry;
+
+    public:
+        UnilocDepthmp(const GLuint shader);
 
     };
 
-    class UnilocWaterry : public UniInterfLightedMesh {
+    class UnilocWaterry {
 
         //////// Vars ////////
+
+    public:
+        UniInterfLightedMesh m_lightedMesh;
 
     public:
         GLint u_bansaTex;
@@ -226,16 +231,19 @@ namespace dal {
         //////// Funcs ////////
 
     public:
-        void init(const GLuint shader);
+        UnilocWaterry(const GLuint shader);
 
     };
 
-    class UnilocAnimate : public UnilocGeneral, public UniInterfAnime {
+    class UnilocAnimate : public UnilocGeneral {
 
         //////// Funcs ////////
 
     public:
-        void init(const GLuint shader);
+        UniInterfAnime m_anime;
+
+    public:
+        UnilocAnimate(const GLuint shader);
 
     };
 

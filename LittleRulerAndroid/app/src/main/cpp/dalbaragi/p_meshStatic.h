@@ -135,7 +135,7 @@ namespace dal {
         void setDiffuseMap(Texture* const tex);
 
         void sendUniform(const UnilocGeneral& uniloc) const;
-        void sendUniform(const UnilocWaterry& uniloc) const;
+        void sendUniform(const UniInterfLightedMesh& unilocLight) const;
 
     };
 

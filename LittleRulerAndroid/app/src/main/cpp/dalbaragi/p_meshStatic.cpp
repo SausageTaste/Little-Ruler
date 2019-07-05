@@ -454,20 +454,20 @@ namespace dal {
     }
 
     void Material::sendUniform(const UnilocGeneral& uniloc) const {
-        uniloc.shininess(this->m_shininess);
-        uniloc.specularStrength(this->m_specularStrength);
+        uniloc.m_lightedMesh.shininess(this->m_shininess);
+        uniloc.m_lightedMesh.specularStrength(this->m_specularStrength);
 
-        uniloc.texScale(this->m_texScale);
+        uniloc.m_lightedMesh.texScale(this->m_texScale);
 
         if ( nullptr != this->m_diffuseMap ) {
             this->m_diffuseMap->sendUniform(uniloc.getDiffuseMapLoc(), -1, 0);
         }
     }
 
-    void Material::sendUniform(const UnilocWaterry& uniloc) const {
-        uniloc.shininess(this->m_shininess);
-        uniloc.specularStrength(this->m_specularStrength);
-        uniloc.texScale(this->m_texScale);
+    void Material::sendUniform(const UniInterfLightedMesh& unilocLight) const {
+        unilocLight.shininess(this->m_shininess);
+        unilocLight.specularStrength(this->m_specularStrength);
+        unilocLight.texScale(this->m_texScale);
     }
 
 }
