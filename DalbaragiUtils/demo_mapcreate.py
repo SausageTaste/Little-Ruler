@@ -41,8 +41,10 @@ def main():
 
     actor = aco.ActorInfo()
     actor.setName("ThinMatrix")
-    actor.getPosHandle().setX(-3)
+    actor.getPosHandle().setX(4)
     actor.getPosHandle().setZ(1)
+    actor.getQuatHandle().rotate(-90.0, (0, 0, 1))
+    actor.setScale(0.3)
     model.addActor(actor)
 
     model.setModelID("test::model.dae")
@@ -54,9 +56,10 @@ def main():
 
     actor = aco.ActorInfo()
     actor.setName("EunChae")
-    actor.getPosHandle().setX(10)
+    actor.getPosHandle().setX(6)
     actor.getPosHandle().setY(0)
-    actor.getPosHandle().setZ(0)
+    actor.getPosHandle().setZ(-3)
+    actor.setScale(0.3)
     model.addActor(actor)
 
     model.setModelID("test::wecjyu.dae")
@@ -120,11 +123,6 @@ def main():
     actor.getPosHandle().setX(7)
     actor.getPosHandle().setY(-0.5)
     actor.getPosHandle().setZ(-1)
-    model.addActor(actor)
-
-    actor = aco.ActorInfo()
-    actor.getPosHandle().setX(2)
-    actor.getPosHandle().setZ(-4)
     model.addActor(actor)
 
     actor = aco.ActorInfo()
