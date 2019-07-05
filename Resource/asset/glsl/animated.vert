@@ -29,8 +29,6 @@ uniform highp int uDlightCount;
 uniform mat4 uDlightProjViewMat[3];
 
 
-
-
 out vec3 vFragPos;
 out vec2 vTexCoord;
 out vec3 vNormalVec;
