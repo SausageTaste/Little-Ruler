@@ -7,7 +7,7 @@
 
 namespace {
 
-    constexpr unsigned int DEPTHMAP_RES = 1024 * 1;
+    constexpr unsigned int DEPTHMAP_RES = 1024 * 2;
 
 }
 
@@ -125,9 +125,9 @@ namespace dal {
         this->mShadowMap.clearBuffer();
     }
 
-    void DirectionalLight::startRenderShadowmap(const UnilocDepthmp& uniloc) {
-        uniloc.m_geometry.projectMat(this->makeProjMat());
-        uniloc.m_geometry.viewMat(this->makeViewMat());
+    void DirectionalLight::startRenderShadowmap(const UniInterfGeometry& uniloc) {
+        uniloc.projectMat(this->makeProjMat());
+        uniloc.viewMat(this->makeViewMat());
         mShadowMap.startRender();
     }
 

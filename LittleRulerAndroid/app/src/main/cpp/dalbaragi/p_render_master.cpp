@@ -251,12 +251,19 @@ namespace dal {
     void RenderMaster::render(void) {
         // Shadow map
         {
-            auto& uniloc = this->m_shader.useDepthMp();
-
             this->m_dlight1.clearDepthBuffer();
-            m_dlight1.startRenderShadowmap(uniloc);
 
-            m_scene.renderDepthMp(uniloc);
+            {
+                auto& uniloc = this->m_shader.useDepthMp();
+                m_dlight1.startRenderShadowmap(uniloc.m_geometry);
+                m_scene.renderDepthMp(uniloc);
+            }
+
+            {
+                auto& uniloc = this->m_shader.useDepthAnime();
+                this->m_dlight1.startRenderShadowmap(uniloc.m_geometry);
+                this->m_scene.renderDepthAnimated(uniloc);
+            }
 
             m_dlight1.finishRenderShadowmap();
         }

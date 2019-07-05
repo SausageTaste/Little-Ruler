@@ -140,8 +140,10 @@ namespace dal {
         }
     }
 
-    void ModelAnimated::renderDepthMap(const UnilocDepthmp& uniloc, std::list<ActorInfo>& actors) const {
+    void ModelAnimated::renderDepthMap(const UnilocDepthAnime& uniloc, std::list<ActorInfo>& actors) const {
         if ( !this->isReady() ) return;
+
+        this->m_jointInterface.sendUniform(uniloc.m_anime);
 
         for ( auto& unit : this->m_renderUnits ) {
             if ( !unit.m_mesh.isReady() ) continue;

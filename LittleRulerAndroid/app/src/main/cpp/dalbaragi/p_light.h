@@ -65,7 +65,7 @@ namespace dal {
         void sendUniform(const UniInterfLightedMesh& uniloc, int index) const;
 
         void clearDepthBuffer(void);
-        void startRenderShadowmap(const UnilocDepthmp& uniloc);
+        void startRenderShadowmap(const UniInterfGeometry& uniloc);
         void finishRenderShadowmap(void);
 
         glm::mat4 makeProjMat(void) const;

@@ -81,7 +81,7 @@ namespace dal {
         bool isReady(void) const;
 
         void renderAnimate(const UnilocAnimate& uniloc, std::list<ActorInfo>& actors);
-        void renderDepthMap(const UnilocDepthmp& uniloc, std::list<ActorInfo>& actors) const;
+        void renderDepthMap(const UnilocDepthAnime& uniloc, std::list<ActorInfo>& actors) const;
 
         void destroyModel(void);
 

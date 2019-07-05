@@ -105,7 +105,7 @@ namespace dal {
 
 
     void MapChunk::renderGeneral(const UnilocGeneral& uniloc) {
-        this->sendUniforms_lights(uniloc, 0);
+        this->sendUniforms_lights(uniloc.m_lightedMesh, 0);
 
         for ( auto& modelActor : this->m_modelActors ) {
             modelActor.m_model->renderGeneral(uniloc, modelActor.m_inst);
@@ -116,13 +116,16 @@ namespace dal {
         for ( auto& modelActor : this->m_modelActors ) {
             modelActor.m_model->renderDepthMap(uniloc, modelActor.m_inst);
         }
+    }
+
+    void MapChunk::renderDepthAnimated(const UnilocDepthAnime& uniloc) {
         for ( auto& model : this->m_animatedActors ) {
             model.m_model->renderDepthMap(uniloc, model.m_inst);
         }
     }
 
     void MapChunk::renderWaterry(const UnilocWaterry& uniloc) {
-        this->sendUniforms_lights(uniloc, 0);
+        this->sendUniforms_lights(uniloc.m_lightedMesh, 0);
 
         for ( auto& water : this->m_waters ) {
             water.renderWaterry(uniloc);
@@ -130,7 +133,7 @@ namespace dal {
     }
 
     void MapChunk::renderAnimate(const UnilocAnimate& uniloc) {
-        this->sendUniforms_lights(uniloc, 0);
+        this->sendUniforms_lights(uniloc.m_lightedMesh, 0);
 
         for ( auto& modelActor : this->m_animatedActors ) {
             modelActor.m_model->renderAnimate(uniloc, modelActor.m_inst);
@@ -220,27 +223,14 @@ namespace dal {
     }
 
 
-    int MapChunk::sendUniforms_lights(const UnilocGeneral& uniloc, int startIndex) const {
+    int MapChunk::sendUniforms_lights(const UniInterfLightedMesh& uniloc, int startIndex) const {
         if ( startIndex >= 3 ) dalAbort("Too many point lights.");
         if ( startIndex + this->m_plights.size() > 3 ) dalAbort("Too many point lights.");
 
-        uniloc.m_lightedMesh.plightCount(startIndex + this->m_plights.size());
+        uniloc.plightCount(startIndex + this->m_plights.size());
         for ( size_t i = 0; i < this->m_plights.size(); i++ ) {
             if ( i >= 3 ) break;
-            this->m_plights.at(i).sendUniform(uniloc.m_lightedMesh, startIndex + i);
-        }
-
-        return startIndex + this->m_plights.size();
-    }
-
-    int MapChunk::sendUniforms_lights(const UnilocWaterry& uniloc, int startIndex) const {
-        if ( startIndex >= 3 ) dalAbort("Too many point lights.");
-        if ( startIndex + this->m_plights.size() > 3 ) dalAbort("Too many point lights.");
-
-        uniloc.m_lightedMesh.plightCount(startIndex + this->m_plights.size());
-        for ( size_t i = 0; i < this->m_plights.size(); i++ ) {
-            if ( i >= 3 ) break;
-            this->m_plights.at(i).sendUniform(uniloc.m_lightedMesh, startIndex + i);
+            this->m_plights.at(i).sendUniform(uniloc, startIndex + i);
         }
 
         return startIndex + this->m_plights.size();
@@ -358,6 +348,12 @@ namespace dal {
     void SceneMaster::renderDepthMp(const UnilocDepthmp& uniloc) {
         for ( auto& map : m_mapChunks ) {
             map.renderDepthMp(uniloc);
+        }
+    }
+
+    void SceneMaster::renderDepthAnimated(const UnilocDepthAnime& uniloc) {
+        for ( auto& map : m_mapChunks ) {
+            map.renderDepthAnimated(uniloc);
         }
     }
 
