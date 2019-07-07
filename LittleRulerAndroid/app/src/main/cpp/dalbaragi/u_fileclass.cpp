@@ -38,13 +38,10 @@ using namespace fmt::literals;
 // Translation unit level globals
 namespace {
 
-    auto& g_logger = dal::LoggerGod::getinst();
-
-    const std::string PACKAGE_NAME_ASSET{ "asset" };
-    const std::string RESOURCE_FOLDER_NAME{ "Resource" };
-
-    const std::string USERDATA_FOLDER_NAME{ "userdata" };
-    const std::string LOG_FOLDER_NAME{ "log" };
+    const char* const PACKAGE_NAME_ASSET{ "asset" };
+    const char* const RESOURCE_FOLDER_NAME{ "Resource" };
+    const char* const USERDATA_FOLDER_NAME{ "userdata" };
+    const char* const LOG_FOLDER_NAME{ "log" };
 
     struct DirNode {
         std::string m_name;
@@ -354,7 +351,7 @@ namespace {
                 return true;
             }
             else {
-                g_logger.putError("Failed STDFileStream::open for: "s + path, __LINE__, __func__, __FILE__);
+                dalError("Failed STDFileStream::open for: "s + path);
                 return false;
             }
         }
