@@ -14,8 +14,6 @@ namespace dal {
         //////// Variables ////////
 
     private:
-        std::string mName;
-
         GLuint mVao = 0;
 
         GLuint mVertexArrayBuffer = 0;
@@ -37,8 +35,6 @@ namespace dal {
         void destroyData(void);
         bool isReady(void) const;
 
-        void setName(const char* const name);
-
     private:
         void createBuffers(void);
 
@@ -52,7 +48,6 @@ namespace dal {
 
     private:
         GLuint m_vao = 0;
-
         GLuint m_buffers[5];
         // vertices, texcoords, normals, bone ids, weights
 
@@ -122,21 +117,23 @@ namespace dal {
     class Material {
 
     public:
-        float m_shininess = 32.0f;
-        float m_specularStrength = 1.0f;
-        glm::vec3 m_diffuseColor{ 1.0f, 1.0f, 1.0f };
+        float m_shininess;
+        float m_specularStrength;
+        glm::vec3 m_diffuseColor;
 
     private:
-        glm::vec2 m_texScale{ 1.0f, 1.0f };
-        Texture* m_diffuseMap = nullptr;
+        glm::vec2 m_texScale;
+        const Texture* m_diffuseMap;
 
     public:
+        Material(void);
+
         // If paremeter value is 0, old value remains.
         void setTexScale(float x, float y);
-        void setDiffuseMap(Texture* const tex);
+        void setDiffuseMap(const Texture* const tex);
 
-        void sendUniform(const UnilocGeneral& uniloc) const;
         void sendUniform(const UniInterfLightedMesh& unilocLight) const;
+        void sendUniform(const UniInterfLightedMesh& unilocLight, const SamplerInterf& samplerInterf) const;
 
     };
 

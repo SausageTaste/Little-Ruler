@@ -122,10 +122,6 @@ namespace dal {
         return mVertexSize != 0;
     }
 
-    void MeshStatic::setName(const char* const name) {
-        mName = name;
-    }
-
     //// Private ////
 
     void MeshStatic::createBuffers(void) {
@@ -456,30 +452,39 @@ namespace dal {
 // Material
 namespace dal {
 
+    Material::Material(void)
+        : m_shininess(32.0f)
+        , m_specularStrength(1.0f)
+        , m_diffuseColor(1.0f, 1.0f, 1.0f)
+        , m_texScale(1.0f, 1.0f)
+        , m_diffuseMap(nullptr)
+    {
+
+    }
+
     void Material::setTexScale(float x, float y) {
         this->m_texScale.x = x;
         this->m_texScale.y = y;
     }
 
-    void Material::setDiffuseMap(Texture* const tex) {
+    void Material::setDiffuseMap(const Texture* const tex) {
         this->m_diffuseMap = tex;
-    }
-
-    void Material::sendUniform(const UnilocGeneral& uniloc) const {
-        uniloc.m_lightedMesh.shininess(this->m_shininess);
-        uniloc.m_lightedMesh.specularStrength(this->m_specularStrength);
-
-        uniloc.m_lightedMesh.texScale(this->m_texScale);
-
-        if ( nullptr != this->m_diffuseMap ) {
-            this->m_diffuseMap->sendUniform(uniloc.getDiffuseMapLoc());
-        }
     }
 
     void Material::sendUniform(const UniInterfLightedMesh& unilocLight) const {
         unilocLight.shininess(this->m_shininess);
         unilocLight.specularStrength(this->m_specularStrength);
         unilocLight.texScale(this->m_texScale);
+    }
+
+    void Material::sendUniform(const UniInterfLightedMesh& unilocLight, const SamplerInterf& samplerInterf) const {
+        unilocLight.shininess(this->m_shininess);
+        unilocLight.specularStrength(this->m_specularStrength);
+        unilocLight.texScale(this->m_texScale);
+
+        if ( nullptr != this->m_diffuseMap ) {
+            this->m_diffuseMap->sendUniform(samplerInterf);
+        }
     }
 
 }

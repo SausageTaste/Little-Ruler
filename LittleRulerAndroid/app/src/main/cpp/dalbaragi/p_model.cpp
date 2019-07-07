@@ -64,7 +64,7 @@ namespace dal {
         if ( !this->isReady() ) return;
 
         for ( auto& unit : this->m_renderUnits ) {
-            unit.m_material.sendUniform(uniloc);
+            unit.m_material.sendUniform(uniloc.m_lightedMesh, uniloc.getDiffuseMapLoc());
             if ( !unit.m_mesh.isReady() ) continue;
 
             for ( auto& inst : actors ) {
@@ -130,7 +130,7 @@ namespace dal {
         this->m_jointInterface.sendUniform(uniloc.m_anime);
 
         for ( auto& unit : this->m_renderUnits ) {
-            unit.m_material.sendUniform(uniloc);
+            unit.m_material.sendUniform(uniloc.m_lightedMesh, uniloc.getDiffuseMapLoc());
             if ( !unit.m_mesh.isReady() ) continue;
 
             for ( auto& inst : actors ) {
