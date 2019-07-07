@@ -108,19 +108,19 @@ namespace dal {
         this->sendUniforms_lights(uniloc.m_lightedMesh, 0);
 
         for ( auto& modelActor : this->m_modelActors ) {
-            modelActor.m_model->renderGeneral(uniloc, modelActor.m_inst);
+            modelActor.m_model->render(uniloc.m_lightedMesh, uniloc.getDiffuseMapLoc(), modelActor.m_inst);
         }
     }
 
     void MapChunk::renderDepthMp(const UnilocDepthmp& uniloc) {
         for ( auto& modelActor : this->m_modelActors ) {
-            modelActor.m_model->renderDepthMap(uniloc, modelActor.m_inst);
+            modelActor.m_model->renderDepthMap(uniloc.m_geometry, modelActor.m_inst);
         }
     }
 
     void MapChunk::renderDepthAnimated(const UnilocDepthAnime& uniloc) {
         for ( auto& model : this->m_animatedActors ) {
-            model.m_model->renderDepthMap(uniloc, model.m_inst);
+            model.m_model->renderDepthMap(uniloc.m_geometry, uniloc.m_anime, model.m_inst);
         }
     }
 
@@ -136,7 +136,7 @@ namespace dal {
         this->sendUniforms_lights(uniloc.m_lightedMesh, 0);
 
         for ( auto& modelActor : this->m_animatedActors ) {
-            modelActor.m_model->renderAnimate(uniloc, modelActor.m_inst);
+            modelActor.m_model->render(uniloc.m_lightedMesh, uniloc.getDiffuseMapLoc(), uniloc.m_anime, modelActor.m_inst);
         }
     }
 

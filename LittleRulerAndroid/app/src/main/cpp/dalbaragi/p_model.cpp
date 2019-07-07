@@ -60,28 +60,28 @@ namespace dal {
         return true;
     }
 
-    void ModelStatic::renderGeneral(const UnilocGeneral& uniloc, std::list<ActorInfo>& actors) const {
+    void ModelStatic::render(const UniInterfLightedMesh& unilocLighted, const SamplerInterf& samplerInterf, std::list<ActorInfo>& actors) const {
         if ( !this->isReady() ) return;
 
         for ( auto& unit : this->m_renderUnits ) {
-            unit.m_material.sendUniform(uniloc.m_lightedMesh, uniloc.getDiffuseMapLoc());
+            unit.m_material.sendUniform(unilocLighted, samplerInterf);
             if ( !unit.m_mesh.isReady() ) continue;
 
             for ( auto& inst : actors ) {
-                uniloc.m_lightedMesh.modelMat(inst.getModelMat());
+                unilocLighted.modelMat(inst.getModelMat());
                 unit.m_mesh.draw();
             }
         }
     }
 
-    void ModelStatic::renderDepthMap(const UnilocDepthmp& uniloc, std::list<ActorInfo>& actors) const {
+    void ModelStatic::renderDepthMap(const UniInterfGeometry& unilocGeometry, std::list<ActorInfo>& actors) const {
         if ( !this->isReady() ) return;
 
         for ( auto& unit : this->m_renderUnits ) {
             if ( !unit.m_mesh.isReady() ) continue;
 
             for ( auto& inst : actors ) {
-                uniloc.m_geometry.modelMat(inst.getModelMat());
+                unilocGeometry.modelMat(inst.getModelMat());
                 unit.m_mesh.draw();
             }
         }
@@ -124,32 +124,34 @@ namespace dal {
         return true;
     }
 
-    void ModelAnimated::renderAnimate(const UnilocAnimate& uniloc, std::list<ActorInfo>& actors) {
+    void ModelAnimated::render(const UniInterfLightedMesh& unilocLighted, const SamplerInterf& samplerInterf,
+        const UniInterfAnime& unilocAnime, std::list<ActorInfo>& actors)
+    {
         if ( !this->isReady() ) return;
 
-        this->m_jointInterface.sendUniform(uniloc.m_anime);
+        this->m_jointInterface.sendUniform(unilocAnime);
 
         for ( auto& unit : this->m_renderUnits ) {
-            unit.m_material.sendUniform(uniloc.m_lightedMesh, uniloc.getDiffuseMapLoc());
+            unit.m_material.sendUniform(unilocLighted, samplerInterf);
             if ( !unit.m_mesh.isReady() ) continue;
 
             for ( auto& inst : actors ) {
-                uniloc.m_lightedMesh.modelMat(inst.getModelMat());
+                unilocLighted.modelMat(inst.getModelMat());
                 unit.m_mesh.draw();
             }
         }
     }
 
-    void ModelAnimated::renderDepthMap(const UnilocDepthAnime& uniloc, std::list<ActorInfo>& actors) const {
+    void ModelAnimated::renderDepthMap(const UniInterfGeometry& unilocGeometry, const UniInterfAnime& unilocAnime, std::list<ActorInfo>& actors) const {
         if ( !this->isReady() ) return;
 
-        this->m_jointInterface.sendUniform(uniloc.m_anime);
+        this->m_jointInterface.sendUniform(unilocAnime);
 
         for ( auto& unit : this->m_renderUnits ) {
             if ( !unit.m_mesh.isReady() ) continue;
 
             for ( auto& inst : actors ) {
-                uniloc.m_geometry.modelMat(inst.getModelMat());
+                unilocGeometry.modelMat(inst.getModelMat());
                 unit.m_mesh.draw();
             }
         }
