@@ -24,8 +24,12 @@ namespace {
         return tmp;
     }
 
-    void sendMatrix(const GLint loc, const glm::mat4& mat) {
+    inline void sendMatrix(const GLint loc, const glm::mat4& mat) {
         glUniformMatrix4fv(loc, 1, GL_FALSE, &mat[0][0]);
+    }
+
+    inline void sendBool(const GLint loc, const bool x) {
+        glUniform1i(loc, x ? 1 : 0);
     }
 
 }
@@ -182,7 +186,7 @@ namespace dal {
         this->uDlightColors[1] = glGetUniformLocation(shader, "uDlightColors[1]");
         this->uDlightColors[2] = glGetUniformLocation(shader, "uDlightColors[2]");
 
-        for ( int i = 0; i < 3; ++i ) {
+        for ( int i = 0; i < this->k_maxDlight; ++i ) {
             const auto id = "uDlightDepthMap["s + std::to_string(i) + ']';
             this->uDlightDepthMap[i].init(getUniloc(shader, id.c_str()), -2, g_texUnitReg[id.c_str()]);
         }
@@ -235,47 +239,57 @@ namespace dal {
     }
 
     void UniInterfLightedMesh::dlightDirec(const unsigned int index, const float x, const float y, const float z) const {
+        dalAssert(index < this->k_maxDlight);
         glUniform3f(this->uDlightDirecs[index], x, y, z);
     }
 
     void UniInterfLightedMesh::dlightDirec(const unsigned int index, const glm::vec3& v) const {
+        dalAssert(index < this->k_maxDlight);
         this->dlightDirec(index, v.x, v.y, v.z);
     }
 
     void UniInterfLightedMesh::dlightColor(const unsigned int index, const float x, const float y, const float z) const {
+        dalAssert(index < this->k_maxDlight);
         glUniform3f(this->uDlightColors[index], x, y, z);
     }
 
     void UniInterfLightedMesh::dlightColor(const unsigned int index, const glm::vec3& v) const {
+        dalAssert(index < this->k_maxDlight);
         this->dlightColor(index, v.x, v.y, v.z);
     }
 
     const SamplerInterf& UniInterfLightedMesh::getDlightDepthMap(const unsigned int index) const {
-        dalAssert(index <= 3);
+        dalAssert(index < this->k_maxDlight);
         return this->uDlightDepthMap[index];
     }
 
     void UniInterfLightedMesh::dlightProjViewMat(const unsigned int index, glm::mat4& mat) const {
+        dalAssert(index < this->k_maxDlight);
         sendMatrix(this->uDlightProjViewMat[index], mat);
     }
 
     void UniInterfLightedMesh::plightPos(const unsigned int index, const float x, const float y, const float z) const {
+        dalAssert(index < this->k_maxPlight);
         glUniform3f(this->uPlightPoses[index], x, y, z);
     }
 
     void UniInterfLightedMesh::plightPos(const unsigned int index, const glm::vec3& v) const {
+        dalAssert(index < this->k_maxPlight);
         this->plightPos(index, v.x, v.y, v.z);
     }
 
     void UniInterfLightedMesh::plightColor(const unsigned int index, const float x, const float y, const float z) const {
+        dalAssert(index < this->k_maxPlight);
         glUniform3f(this->uPlightColors[index], x, y, z);
     }
 
     void UniInterfLightedMesh::plightColor(const unsigned int index, const glm::vec3& v) const {
+        dalAssert(index < this->k_maxPlight);
         this->plightColor(index, v.x, v.y, v.z);
     }
 
     void UniInterfLightedMesh::plightMaxDist(const unsigned int index, const float x) const {
+        dalAssert(index < this->k_maxPlight);
         glUniform1f(this->uPlightMaxDists[index], x);
     }
 
@@ -296,6 +310,7 @@ namespace dal {
     }
 
     void UniInterfAnime::jointTransforms(const unsigned int index, const glm::mat4& mat) const {
+        dalAssert(index < this->k_maxNumJoints);
         sendMatrix(this->u_jointTransforms[index], mat);
     }
 
@@ -360,6 +375,26 @@ namespace dal {
         this->m_maskMap.init(getUniloc(shader, "mMaskMap"), getUniloc(shader, "mHasMaskMap"), g_texUnitReg["mMaskMap"]);
     }
 
+    void UnilocOverlay::point1(const glm::vec2& v) const {
+        glUniform2f(this->uPoint1, v.x, v.y);
+    }
+
+    void UnilocOverlay::point2(const glm::vec2& v) const {
+        glUniform2f(this->uPoint2, v.x, v.y);
+    }
+
+    void UnilocOverlay::upsideDownDiffuseMap(const bool x) const {
+        sendBool(this->m_upsideDown_diffuseMap, x);
+    }
+
+    void UnilocOverlay::upsideDownMaskMap(const bool x) const {
+        sendBool(this->mUpsideDown_maskMap, x);
+    }
+
+    void UnilocOverlay::color(const glm::vec4& v) const {
+        glUniform4f(this->uColor, v.x, v.y, v.z, v.w);
+    }
+
     const SamplerInterf& UnilocOverlay::getDiffuseMap(void) const {
         return this->m_diffuseMap;
     }
@@ -371,7 +406,7 @@ namespace dal {
 }
 
 
-//
+// UnilocFScreen
 namespace dal {
 
     UnilocFScreen::UnilocFScreen(const GLuint shader) {
@@ -390,7 +425,7 @@ namespace dal {
 }
 
 
-//
+// UnilocWaterry
 namespace dal {
 
     UnilocWaterry::UnilocWaterry(const GLuint shader)

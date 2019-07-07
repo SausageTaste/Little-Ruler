@@ -164,10 +164,9 @@ namespace dal {
     }
 
     void QuadPrimitive::renderOverlay(const UnilocOverlay& uniloc) const {
-        glUniform2f(uniloc.uPoint1, mPointDev1.x, mPointDev1.y);
-        glUniform2f(uniloc.uPoint2, mPointDev2.x, mPointDev2.y);
-
-        glUniform4f(uniloc.uColor, mColor.r, mColor.g, mColor.b, mColor.a);
+        uniloc.point1(this->mPointDev1);
+        uniloc.point2(this->mPointDev2);
+        uniloc.color(this->mColor);
 
         if ( nullptr != this->mDiffuseMap ) {
             this->mDiffuseMap->sendUniform(uniloc.getDiffuseMap());

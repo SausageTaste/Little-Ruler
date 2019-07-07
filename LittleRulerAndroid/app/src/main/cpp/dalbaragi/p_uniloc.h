@@ -58,6 +58,9 @@ namespace dal {
     class UniInterfLightedMesh : public UniInterfMesh {
 
     private:
+        static constexpr auto k_maxDlight = 3;
+        static constexpr auto k_maxPlight = 3;
+
         GLint uDlightProjViewMat[3];
 
         GLint uViewPos;
@@ -68,13 +71,13 @@ namespace dal {
         GLint uShininess;
         GLint uSpecularStrength;
 
-        GLint uDlightDirecs[3];
-        GLint uDlightColors[3];
-        SamplerInterf uDlightDepthMap[3];
+        GLint uDlightDirecs[k_maxDlight];
+        GLint uDlightColors[k_maxDlight];
+        SamplerInterf uDlightDepthMap[k_maxDlight];
 
-        GLint uPlightPoses[3];
-        GLint uPlightColors[3];
-        GLint uPlightMaxDists[3];
+        GLint uPlightPoses[k_maxPlight];
+        GLint uPlightColors[k_maxPlight];
+        GLint uPlightMaxDists[k_maxPlight];
 
     public:
         UniInterfLightedMesh(const GLuint shader);
@@ -162,27 +165,28 @@ namespace dal {
 
         //////// Vars ////////
 
-    public:
+    private:
         GLint uPoint1;
         GLint uPoint2;
 
         GLint mUpsideDown_maskMap;
         GLint m_upsideDown_diffuseMap;
 
-        // Fragment shader
-
         GLint uColor;
 
-    private:
         SamplerInterf m_diffuseMap, m_maskMap;
-
-        //////// Funcs ////////
 
     public:
         UnilocOverlay(const GLuint shader);
 
         const SamplerInterf& getDiffuseMap(void) const;
         const SamplerInterf& getMaskMap(void) const;
+
+        void point1(const glm::vec2& v) const;
+        void point2(const glm::vec2& v) const;
+        void upsideDownDiffuseMap(const bool x) const;
+        void upsideDownMaskMap(const bool x) const;
+        void color(const glm::vec4& v) const;
 
     };
 

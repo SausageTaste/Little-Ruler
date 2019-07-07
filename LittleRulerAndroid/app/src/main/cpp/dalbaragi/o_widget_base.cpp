@@ -257,13 +257,11 @@ namespace dal {
         const Texture* const diffuseMap, const Texture* const maskMap,
         const bool upsideDown_diffuseMap, const bool upsideDown_maskMap
     ) {
-        glUniform2f(uniloc.uPoint1, devSpc.p1.x, devSpc.p1.y);
-        glUniform2f(uniloc.uPoint2, devSpc.p2.x, devSpc.p2.y);
-
-        glUniform4f(uniloc.uColor, color.r, color.g, color.b, color.a);
-
-        glUniform1i(uniloc.m_upsideDown_diffuseMap, upsideDown_diffuseMap ? 1 : 0);
-        glUniform1i(uniloc.mUpsideDown_maskMap, upsideDown_maskMap ? 1 : 0);
+        uniloc.point1(devSpc.p1);
+        uniloc.point2(devSpc.p2);
+        uniloc.color(color);
+        uniloc.upsideDownDiffuseMap(upsideDown_diffuseMap);
+        uniloc.upsideDownMaskMap(upsideDown_maskMap);
 
         if ( nullptr != diffuseMap ) {
             diffuseMap->sendUniform(uniloc.getDiffuseMap());
