@@ -19,7 +19,7 @@ in vec3 v_toCamera;
 out vec4 fColor;
 
 
-const float WAVE_STRENGTH = 0.01;
+const float WAVE_STRENGTH = 0.02;
 const float NEAR = 0.01;
 const float FAR = 100.0;
 
@@ -66,14 +66,14 @@ vec4 calculateWater(vec3 fragNormal, vec2 distortedCoords) {
 
 	vec4 bansaColor = texture(u_bansaTex, bansaCoord);
 	vec4 gooljulColor = texture(u_gooljulTex, gooljulCoord);
-	float depthFactor = clamp(waterDepth / 45.0, 0.0, 1.0);
+	float depthFactor = clamp(waterDepth / 2.0, 0.0, 1.0);
 	gooljulColor = mix(gooljulColor, vec4(0.07, 0.07, 0.15, 1.0), depthFactor);
 
 	vec3 viewVec = normalize(v_toCamera);
 	float refractiveFactor = pow(dot(viewVec, fragNormal), 0.8);
 
 	vec4 outColor = mix(bansaColor, gooljulColor, refractiveFactor);
-	outColor.a = clamp(waterDepth / 5.0, 0.0, 1.0);
+	//outColor.a = clamp(waterDepth / 5.0, 0.0, 1.0);
 
 	//outColor = vec4(vec3(waterDepth / 60.0), 1.0);
 
@@ -91,7 +91,9 @@ void main(void) {
 	int i;
 	vec3 lightedColor = uBaseAmbient;
 	for (i = 0; i < uDlightCount; i++) {
-		lightedColor += getDlightFactor(i, viewDir, fragNormal, vFragPosInDlight[i]) * uDlightColors[i];
+		vec4 fragPosInLight = vec4(vec3(vFragPosInDlight[i]) + fragNormal * 0.05, 1.0);
+		fragPosInLight.y = vFragPosInDlight[i].y;
+		lightedColor += getDlightFactor(i, viewDir, fragNormal, fragPosInLight) * uDlightColors[i];
 	}
 	for (i = 0; i < uPlightCount; i++) {
 		lightedColor += getLightFactor_point(i, viewDir, fragNormal, vFragPos) * uPlightColors[i];
