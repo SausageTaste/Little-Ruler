@@ -606,6 +606,7 @@ namespace {
             //moveDirection = glm::normalize(moveDirection);  // Maybe this is redundant.
             const float moveMultiplier = 5.0f * deltaTime;
             camera->m_pos += moveDirection * moveMultiplier;
+            camera->m_pos.y += moveDirection.y * 50.0f * deltaTime;
         }
 
         camera->updateViewMat();
