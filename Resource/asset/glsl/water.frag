@@ -4,8 +4,9 @@
 uniform sampler2D u_bansaTex;  // TEX 4
 uniform sampler2D u_gooljulTex;  // TEX 5
 uniform sampler2D u_dudvMap;  // TEX 6
-uniform float u_dudvMoveFactor;
 uniform sampler2D u_normalMap;  // TEX 7
+uniform sampler2D u_depthMap;
+uniform float u_dudvMoveFactor;
 
 
 in vec3 vFragPos;
@@ -19,6 +20,8 @@ out vec4 fColor;
 
 
 const float gk_waveStren = 0.01;
+const float NEAR = 0.01;
+const float FAR = 100.0;
 
 
 vec2 getDistortedCoords() {
@@ -41,6 +44,12 @@ vec4 calculateWater(vec3 fragNormal, vec2 distortedCoords) {
 	vec2 normalizedDeviceCoord = (v_clipSpace.xy / v_clipSpace.w) / 2.0 + 0.5;
 	vec2 bansaCoord = vec2(normalizedDeviceCoord.x, -normalizedDeviceCoord.y);
 	vec2 gooljulCoord = vec2(normalizedDeviceCoord.x, normalizedDeviceCoord.y);
+
+	float depth = texture(u_depthMap, gooljulCoord).r;
+	float floorDistance = 2.0 * NEAR * FAR / (FAR + NEAR - (2.0 * depth - 1.0) * (FAR - NEAR));
+	depth = gl_FragCoord.z;
+	float waterDistance = 2.0 * NEAR * FAR / (FAR + NEAR - (2.0 * depth - 1.0) * (FAR - NEAR));
+	float waterDepth = floorDistance - waterDistance;
 
 	vec2 totalDistortion = (texture(u_dudvMap, distortedCoords).rg * 2.0 - 1.0) * gk_waveStren;
 
@@ -81,6 +90,7 @@ void main(void) {
 	vec4 waterImage = calculateWater(fragNormal, distoredTexCoords);
 
 	// Final color
-	fColor = 0.5 * waterImage * (vec4(lightedColor, 1.0) + 1.0);
+	//fColor = 0.5 * waterImage * (vec4(lightedColor, 1.0) + 1.0);
 	//fColor += vec4(0.05, 0.05, 0.1, 0.0);
+	fColor = waterImage;
 }

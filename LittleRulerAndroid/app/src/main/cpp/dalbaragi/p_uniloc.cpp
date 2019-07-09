@@ -9,6 +9,9 @@
 #include "s_logger_god.h"
 
 
+#define ASSERT_UNILOC 0
+
+
 using namespace std::string_literals;
 using namespace fmt::literals;
 
@@ -17,10 +20,11 @@ namespace {
 
     GLint getUniloc(const GLuint shader, const char* const id, const bool asserting = true) {
         const auto tmp = glGetUniformLocation(shader, id);
+#if ASSERT_UNILOC != 0
         if ( asserting && -1 == tmp ) {
             dalAbort("Failed to find uniloc \'{}\' for shader {}."_format(id, shader));
         }
-
+#endif
         return tmp;
     }
 
@@ -74,17 +78,16 @@ namespace dal {
         this->m_flagHas = flagHasLoc;
         this->m_unitIndex = unitIndex;
 
+#if ASSERT_UNILOC != 0
         if ( flagAssert ) {
-
             if ( -1 == this->m_samplerLoc ) {
                 dalAbort("Sampler uniform location is -1.");
             }
-
             if ( -1 == this->m_flagHas ) {
                 dalAbort("Uniform location for flag has is -1. If you meant it, pass in any minus value other than -1, such as -2.");
             }
-
         }
+#endif
 
         if ( this->m_flagHas < -1 ) {
             this->m_flagHas = -1;
@@ -111,8 +114,9 @@ namespace dal {
 namespace dal {
 
     UniInterfGeometry::UniInterfGeometry(const GLuint shader) {
+#if ASSERT_UNILOC != 0
         dalAssertm(0 == glGetAttribLocation(shader, "i_position"), "Uniloc i_position not found");
-
+#endif
         this->u_projMat = getUniloc(shader, "u_projMat");
         this->u_viewMat = getUniloc(shader, "u_viewMat");
         this->u_modelMat = getUniloc(shader, "u_modelMat");
@@ -139,8 +143,10 @@ namespace dal {
     UniInterfMesh::UniInterfMesh(const GLuint shader)
         : UniInterfGeometry(shader)
     {
+#if ASSERT_UNILOC != 0
         dalAssertm(1 == glGetAttribLocation(shader, "i_texCoord"), "Uniloc i_texCoord not found");
         //dalAssertm(2 == glGetAttribLocation(shader, "i_normal"), "Uniloc i_normal not found");
+#endif
 
         this->u_texScale = getUniloc(shader, "u_texScale");
     }
@@ -300,8 +306,10 @@ namespace dal {
 namespace dal {
 
     UniInterfAnime::UniInterfAnime(const GLuint shader) {
+#if ASSERT_UNILOC != 0
         dalAssertm(3 == glGetAttribLocation(shader, "i_jointIDs"), "Uniloc i_jointIDs not found");
         dalAssertm(4 == glGetAttribLocation(shader, "i_weights"), "Uniloc i_weights not found");
+#endif
 
         for ( unsigned int i = 0; i < this->k_maxNumJoints; ++i ) {
             const auto id = "u_jointTransforms["s + std::to_string(i) + ']';
@@ -410,8 +418,10 @@ namespace dal {
 namespace dal {
 
     UnilocFScreen::UnilocFScreen(const GLuint shader) {
+#if ASSERT_UNILOC != 0
         iPosition = glGetAttribLocation(shader, "iPosition"); assert(iPosition == 0);
         iTexCoord = glGetAttribLocation(shader, "iTexCoord"); assert(iTexCoord == 1);
+#endif
 
         // Fragment shader
 
@@ -437,6 +447,7 @@ namespace dal {
         this->m_gooljulTex.init(getUniloc(shader, "u_gooljulTex"), -2, g_texUnitReg["u_gooljulTex"]);
         this->m_dudvMap.init(getUniloc(shader, "u_dudvMap"), -2, g_texUnitReg["u_dudvMap"]);
         this->m_normalMap.init(getUniloc(shader, "u_normalMap"), -2, g_texUnitReg["u_normalMap"]);
+        this->m_depthMap.init(getUniloc(shader, "u_depthMap"), -2, g_texUnitReg["u_depthMap"]);
     }
 
     void UnilocWaterry::dudvFactor(const float x) const {
@@ -457,6 +468,10 @@ namespace dal {
 
     const SamplerInterf& UnilocWaterry::getNormalMap(void) const {
         return this->m_normalMap;
+    }
+
+    const SamplerInterf& UnilocWaterry::getDepthMap(void) const {
+        return this->m_depthMap;
     }
 
 }

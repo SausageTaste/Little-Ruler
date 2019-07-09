@@ -233,6 +233,7 @@ namespace dal {
         SamplerInterf m_gooljulTex;
         SamplerInterf m_dudvMap;
         SamplerInterf m_normalMap;
+        SamplerInterf m_depthMap;
         GLint u_dudvMoveFactor;
 
         //////// Funcs ////////
@@ -246,6 +247,7 @@ namespace dal {
         const SamplerInterf& getRefractionTex(void) const;
         const SamplerInterf& getDUDVMap(void) const;
         const SamplerInterf& getNormalMap(void) const;
+        const SamplerInterf& getDepthMap(void) const;
 
     };
 

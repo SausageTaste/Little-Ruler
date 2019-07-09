@@ -336,6 +336,7 @@ namespace dal {
 
         this->m_fbuffer.getReflectionTexture()->sendUniform(uniloc.getReflectionTex());
         this->m_fbuffer.getRefractionTexture()->sendUniform(uniloc.getRefractionTex());
+        this->m_fbuffer.getRefractionDepthTexture()->sendUniform(uniloc.getDepthMap());
         //getDUDVMap()->sendUniform(uniloc.u_dudvMap, 0, 6);
         this->s_dudvMap->sendUniform(uniloc.getDUDVMap());
         //getWaterNormalMap()->sendUniform(uniloc.u_normalMap, 0, 7);
