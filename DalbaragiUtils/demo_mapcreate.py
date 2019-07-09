@@ -14,7 +14,7 @@ def main():
     light.getColorHandle().setXYZ(0.5, 0.2, 0.2)
     light.getPosHandle().setY(1.5)
     light.getPosHandle().setZ(1)
-    level.add(light)
+    #level.add(light)
 
     ########
 
@@ -23,7 +23,7 @@ def main():
     light.getColorHandle().setXYZ(0.2, 0.2, 0.5)
     light.getPosHandle().setY(1.5)
     light.getPosHandle().setZ(6)
-    level.add(light)
+    #level.add(light)
 
     ########
 
@@ -140,7 +140,7 @@ def main():
 
     water = bfi.BuildInfo_WaterPlane()
     water.getPosHandle().setX(-10)
-    water.getPosHandle().setY(10)
+    water.getPosHandle().setY(30)
     water.getPosHandle().setZ(-20)
     water.setWidth(50)
     water.setHeight(50)
