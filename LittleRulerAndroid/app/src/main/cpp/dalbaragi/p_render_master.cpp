@@ -220,6 +220,30 @@ namespace dal {
                 view->setPauseOnly(false);
                 overlay.addWidget(view);
             }
+
+            {
+                auto water = this->m_scene.getWater("test_level", 0);
+                dalAssert(water != nullptr);
+                auto view = new TextureView(nullptr, water->m_fbuffer.getRefractionDepthTexture());
+                view->setPosX(10.0f);
+                view->setPosY(30.0f + 130.0f * 2.0f);
+                view->setWidth(128.0f);
+                view->setHeight(128.0f);
+                view->setPauseOnly(false);
+                overlay.addWidget(view);
+            }
+
+            {
+                auto water = this->m_scene.getWater("test_level", 0);
+                dalAssert(water != nullptr);
+                auto view = new TextureView(nullptr, water->m_fbuffer.getRefractionTexture());
+                view->setPosX(10.0f);
+                view->setPosY(30.0f + 130.0f * 3.0f);
+                view->setWidth(128.0f);
+                view->setHeight(128.0f);
+                view->setPauseOnly(false);
+                overlay.addWidget(view);
+            }
         }
 
         // Misc

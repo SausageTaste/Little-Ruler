@@ -4,7 +4,6 @@
 
 #include <glm/glm.hpp>
 
-
 #include "s_event.h"
 
 #include "p_shader_master.h"

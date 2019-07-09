@@ -427,6 +427,14 @@ namespace dal {
         return this->m_texID != 0;
     }
 
+    void Texture::reset(const GLuint id) {
+        if ( this->m_texID != 0 ) {
+            this->deleteTex();
+        }
+
+        this->m_texID = id;
+    }
+
     // Getters
 
     GLuint Texture::get(void) {

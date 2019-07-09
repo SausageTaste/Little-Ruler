@@ -210,8 +210,8 @@ namespace dal {
         return &this->m_refractionTexture;
     }
 
-    GLuint WaterFramebuffer::getRefractionDepthTexture(void) {  //get the resulting depth texture
-        return this->m_refractionDepthTexture.get();
+    Texture* WaterFramebuffer::getRefractionDepthTexture(void) {  //get the resulting depth texture
+        return &this->m_refractionDepthTexture;
     }
 
     void WaterFramebuffer::resizeFbuffer(const unsigned int winWidth, const unsigned int winHeight) {
@@ -267,7 +267,8 @@ namespace dal {
         {
             this->m_refractionFrameBuffer.reset(genFramebuffer());
             this->m_refractionTexture.initAttach_colorMap(refracWidth, refracHeight);
-            this->m_refractionDepthTexture.reset(genDepthBufferAttachment(refracWidth, refracHeight));
+            //this->m_refractionDepthTexture.reset(genDepthBufferAttachment(refracWidth, refracHeight));
+            this->m_refractionDepthTexture.reset(genDepthTextureAttachment(refracWidth, refracHeight));
         }
 
         if ( !checkFramebuffer() ) dalError("Framebuffer creation failed for reflection.");

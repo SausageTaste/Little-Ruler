@@ -98,6 +98,8 @@ namespace dal {
         void init_maskMap(const uint8_t* const image, const unsigned int width, const unsigned int height);
         void initAttach_colorMap(const unsigned int width, const unsigned int height);
 
+        void reset(const GLuint id);
+
         void deleteTex(void);
         void sendUniform(const GLint uniloc_sampler, const GLint uniloc_has, const unsigned int index) const;
         void sendUniform(const SamplerInterf& uniloc) const;

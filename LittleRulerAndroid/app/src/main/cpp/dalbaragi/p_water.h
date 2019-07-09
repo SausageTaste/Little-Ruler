@@ -79,7 +79,7 @@ namespace dal {
 
         GLObject<deleteFramebuffer> m_refractionFrameBuffer;
         Texture m_refractionTexture;
-        GLObject<deleteRenderbuffer> m_refractionDepthTexture;
+        Texture m_refractionDepthTexture;
 
         float m_winWidth, m_winHeight;
         float m_reflecScale, m_refracScale;
@@ -92,7 +92,7 @@ namespace dal {
 
         Texture* getReflectionTexture(void);
         Texture* getRefractionTexture(void);
-        GLuint getRefractionDepthTexture(void);
+        Texture* getRefractionDepthTexture(void);
 
         void resizeFbuffer(const unsigned int winWidth, const unsigned int winHeight);
 
