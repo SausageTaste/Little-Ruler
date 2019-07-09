@@ -146,7 +146,7 @@ namespace dal {
                 // Uniform values
 
                 uniloc.m_planeClip.flagDoClip(true);
-                uniloc.m_planeClip.clipPlane(0.0f, 1.0f, 0.0f, -water.getHeight() + 0.01f);
+                uniloc.m_planeClip.clipPlane(0.0f, 1.0f, 0.0f, -water.getHeight());
 
                 auto [reflectedPos, reflectedMat] = cam.makeReflected(water.getHeight());
 
@@ -187,7 +187,7 @@ namespace dal {
                 // Uniform values
 
                 uniloc.m_planeClip.flagDoClip(true);
-                uniloc.m_planeClip.clipPlane(0.0f, 1.0f, 0.0f, -water.getHeight() + 0.01f);
+                uniloc.m_planeClip.clipPlane(0.0f, 1.0f, 0.0f, -water.getHeight());
 
                 auto [reflectedPos, reflectedMat] = cam.makeReflected(water.getHeight());
 
