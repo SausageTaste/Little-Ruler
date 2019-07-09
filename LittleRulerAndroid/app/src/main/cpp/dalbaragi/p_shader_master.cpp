@@ -155,7 +155,7 @@ namespace dal {
     class ShaderLoader {
 
     private:
-        enum class Precision { nodef, high, mediump };
+        enum class Precision { nodef, highp, mediump };
         enum class Defined { parse_fail, ignore_this, include };
 
     private:
@@ -407,7 +407,7 @@ namespace dal {
             switch ( precision ) {
             case Precision::nodef:
                 break;
-            case Precision::high:
+            case Precision::highp:
                 fileHeader += "precision highp float;\n";
                 break;
             case Precision::mediump:
