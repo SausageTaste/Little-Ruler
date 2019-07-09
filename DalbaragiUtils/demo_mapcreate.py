@@ -100,7 +100,7 @@ def main():
 
     water = bfi.BuildInfo_WaterPlane()
     water.getPosHandle().setX(-10)
-    water.getPosHandle().setY(0.5)
+    water.getPosHandle().setY(5)
     water.getPosHandle().setZ(-20)
     water.setWidth(50)
     water.setHeight(50)
