@@ -44,7 +44,7 @@ def main():
     actor.getPosHandle().setX(4)
     actor.getPosHandle().setZ(1)
     actor.getQuatHandle().rotate(-90.0, (0, 0, 1))
-    actor.setScale(0.3)
+    actor.setScale(2)
     model.addActor(actor)
 
     model.setModelID("test::model.dae")
@@ -76,8 +76,48 @@ def main():
     actor = aco.ActorInfo()
     actor.getPosHandle().setX(-10)
     actor.getPosHandle().setZ(-20)
-
     model.addActor(actor)
+
+    level.add(model)
+
+    ########
+
+    model = bfi.BuildInfo_ModelDefined()
+    model.setModelID("wallX")
+    model.getMeshHandle().setAABB(atl.Vec3(0, 0, 0), atl.Vec3(1, 50, 50))
+    model.getMaterialHandle().setDiffuseMap("asset::0021di.png")
+    model.getMaterialHandle().setTexScale(20, 20)
+
+    actor = aco.ActorInfo()
+    actor.getPosHandle().setX(-11)
+    actor.getPosHandle().setZ(-20)
+    model.addActor(actor)
+
+    actor = aco.ActorInfo()
+    actor.getPosHandle().setX(-11 + 51)
+    actor.getPosHandle().setZ(-20)
+    model.addActor(actor)
+
+    level.add(model)
+
+    ########
+
+    model = bfi.BuildInfo_ModelDefined()
+    model.setModelID("wallY")
+    model.getMeshHandle().setAABB(atl.Vec3(0, 0, 0), atl.Vec3(50, 50, 1))
+    model.getMaterialHandle().setDiffuseMap("asset::0021di.png")
+    model.getMaterialHandle().setTexScale(20, 20)
+
+    actor = aco.ActorInfo()
+    actor.getPosHandle().setX(-10)
+    actor.getPosHandle().setZ(-21)
+    model.addActor(actor)
+
+    actor = aco.ActorInfo()
+    actor.getPosHandle().setX(-10)
+    actor.getPosHandle().setZ(-21 + 51)
+    model.addActor(actor)
+
     level.add(model)
 
     ########
