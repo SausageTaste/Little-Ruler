@@ -84,7 +84,7 @@ def main():
 
     model = bfi.BuildInfo_ModelDefined()
     model.setModelID("wall")
-    model.getMeshHandle().setAABB(atl.Vec3(-4, 0, -10), atl.Vec3(4, 10, -1))
+    model.getMeshHandle().setAABB(atl.Vec3(-4, 0, -10), atl.Vec3(4, 50, -1))
     model.getMaterialHandle().setDiffuseMap("asset::grass1.png")
 
     actor = aco.ActorInfo()
@@ -100,7 +100,7 @@ def main():
 
     water = bfi.BuildInfo_WaterPlane()
     water.getPosHandle().setX(-10)
-    water.getPosHandle().setY(5)
+    water.getPosHandle().setY(40)
     water.getPosHandle().setZ(-20)
     water.setWidth(50)
     water.setHeight(50)
