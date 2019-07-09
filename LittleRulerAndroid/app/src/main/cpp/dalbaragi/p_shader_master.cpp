@@ -155,7 +155,7 @@ namespace dal {
     class ShaderLoader {
 
     private:
-        enum class Precision { nodef, highp, mediump };
+        enum class Precision { nodef, highp, mediump, lowp };
         enum class Defined { parse_fail, ignore_this, include };
 
     private:
@@ -210,13 +210,17 @@ namespace dal {
 
                 switch ( shaderType ) {
                 case ShaderType::vertex:
+#if defined(_WIN32)
                     buffer = makeHeader(Precision::nodef);
+#elif defined(__ANDROID__)
+                    buffer = makeHeader(Precision::highp);
+#endif
                     break;
                 case ShaderType::fragment:
 #if defined(_WIN32)
                     buffer = makeHeader(Precision::nodef);
 #elif defined(__ANDROID__)
-                    buffer = makeHeader(Precision::mediump);
+                    buffer = makeHeader(Precision::highp);
 #endif
                     break;
                 }
@@ -399,20 +403,36 @@ namespace dal {
         }
 
         static std::string makeHeader(const Precision precision) {
+            static const auto types = {
+                "float", "sampler2D"
+            };
+
 #if defined(_WIN32)
             std::string fileHeader = "#version 330 core\n";
 #elif defined(__ANDROID__)
             std::string fileHeader = "#version 300 es\n";
 #endif
-            switch ( precision ) {
-            case Precision::nodef:
-                break;
-            case Precision::highp:
-                fileHeader += "precision highp float;\n";
-                break;
-            case Precision::mediump:
-                fileHeader += "precision mediump float;\n";
-                break;
+
+            if ( Precision::nodef != precision ) {
+                const char* pstr = nullptr;
+
+                switch ( precision ) {
+                case Precision::highp:
+                    pstr = "highp";
+                    break;
+                case Precision::mediump:
+                    pstr = "mediump";
+                    break;
+                case Precision::lowp:
+                    pstr = "lowp";
+                    break;
+                default:
+                    dalAbort("Unkown precision qualifier.");
+                }
+
+                for ( auto x : types ) {
+                    fileHeader += "precision "s + pstr + ' ' + x + ';' + '\n';
+                }
             }
 
             return fileHeader;

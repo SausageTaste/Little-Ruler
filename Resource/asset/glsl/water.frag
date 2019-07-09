@@ -19,7 +19,7 @@ in vec3 v_toCamera;
 out vec4 fColor;
 
 
-const float gk_waveStren = 0.01;
+const float WAVE_STRENGTH = 0.01;
 const float NEAR = 0.01;
 const float FAR = 100.0;
 
@@ -40,19 +40,21 @@ vec3 makeFragNormal(vec2 distortedCoords) {
 }
 
 
+float makeWaterDepth(vec2 refractionCoords) {
+	float depth = texture(u_depthMap, refractionCoords).r;
+	float floorDistance = 2.0 * NEAR * FAR / (FAR + NEAR - (2.0 * depth - 1.0) * (FAR - NEAR));
+	depth = gl_FragCoord.z;
+	float waterDistance = 2.0 * NEAR * FAR / (FAR + NEAR - (2.0 * depth - 1.0) * (FAR - NEAR));
+	return floorDistance - waterDistance;
+}
+
+
 vec4 calculateWater(vec3 fragNormal, vec2 distortedCoords) {
 	vec2 normalizedDeviceCoord = (v_clipSpace.xy / v_clipSpace.w) / 2.0 + 0.5;
 	vec2 bansaCoord = vec2(normalizedDeviceCoord.x, -normalizedDeviceCoord.y);
 	vec2 gooljulCoord = vec2(normalizedDeviceCoord.x, normalizedDeviceCoord.y);
 
-	float depth = texture(u_depthMap, gooljulCoord).r;
-	float floorDistance = 2.0 * NEAR * FAR / (FAR + NEAR - (2.0 * depth - 1.0) * (FAR - NEAR));
-	depth = gl_FragCoord.z;
-	float waterDistance = 2.0 * NEAR * FAR / (FAR + NEAR - (2.0 * depth - 1.0) * (FAR - NEAR));
-	float waterDepth = floorDistance - waterDistance;
-
-	vec2 totalDistortion = (texture(u_dudvMap, distortedCoords).rg * 2.0 - 1.0) * gk_waveStren;
-
+	vec2 totalDistortion = (texture(u_dudvMap, distortedCoords).rg * 2.0 - 1.0) * WAVE_STRENGTH;
 	bansaCoord += totalDistortion;
 	gooljulCoord += totalDistortion;
 	
@@ -60,13 +62,25 @@ vec4 calculateWater(vec3 fragNormal, vec2 distortedCoords) {
 	bansaCoord.x = clamp(bansaCoord.x, 0.001, 0.999);
 	bansaCoord.y = clamp(bansaCoord.y, -0.999, -0.001);
 
+	float waterDepth = makeWaterDepth(gooljulCoord);
+
 	vec4 bansaColor = texture(u_bansaTex, bansaCoord);
 	vec4 gooljulColor = texture(u_gooljulTex, gooljulCoord);
+	float depthFactor = clamp(waterDepth / 50.0, 0.0, 1.0);
+	gooljulColor = mix(gooljulColor, vec4(0.05, 0.05, 0.1, 1.0), depthFactor);
 
 	vec3 viewVec = normalize(v_toCamera);
-	float refractiveFactor = pow(dot(viewVec, vec3(0.0, 1.0, 0.0)), 0.8);
+	float refractiveFactor = pow(dot(viewVec, fragNormal), 0.8);
 
-	return mix(bansaColor, gooljulColor, refractiveFactor);
+	vec4 outColor = mix(bansaColor, gooljulColor, refractiveFactor);
+#ifndef GL_ES
+	//outColor.a = clamp(waterDepth / 5.0, 0.0, 1.0);
+	// Malfunctions due to lack of precision on Android.
+#endif
+
+	//outColor = vec4(vec3(waterDepth / 60.0), 1.0);
+
+	return outColor;
 }
 
 
@@ -90,7 +104,7 @@ void main(void) {
 	vec4 waterImage = calculateWater(fragNormal, distoredTexCoords);
 
 	// Final color
-	//fColor = 0.5 * waterImage * (vec4(lightedColor, 1.0) + 1.0);
+	fColor = 0.5 * waterImage * (vec4(lightedColor, 1.0) + 1.0);
 	//fColor += vec4(0.05, 0.05, 0.1, 0.0);
-	fColor = waterImage;
+	//fColor = waterImage;
 }
