@@ -17,21 +17,11 @@ namespace dal {
     const char* getEventTypeStr(const EventType type);
 
 
-    class iKeyboardListener {
-
-    public:
-        virtual ~iKeyboardListener(void) = default;
-        virtual void give(const char* const str) = 0;
-
-    };
-
-
     struct EventStatic {
         EventType type;
         int32_t intArg1, intArg2;
         float floatArg1, floatArg2;
         const char* strArg1 = nullptr;
-        iKeyboardListener* keyListner = nullptr;
     };
 
 
