@@ -197,6 +197,7 @@ namespace dal {
         }
 
         // View
+        /*
         {
             {
                 auto water = this->m_scene.getWater("test_level", 0);
@@ -245,6 +246,7 @@ namespace dal {
                 overlay.addWidget(view);
             }
         }
+        */
 
         // Misc
         {
