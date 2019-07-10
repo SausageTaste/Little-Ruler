@@ -139,11 +139,13 @@ def main():
     ########
 
     water = bfi.BuildInfo_WaterPlane()
-    water.getPosHandle().setX(-11)
-    water.getPosHandle().setY(20)
-    water.getPosHandle().setZ(-21)
+    water.getPosHandle().setXYZ(-11, 5, -21)
     water.setWidth(52)
     water.setHeight(52)
+
+    water.setDarkestDepthPoint(6)
+    water.setWaveStreng(0.03)
+
     level.add(water)
 
     ########
@@ -152,7 +154,7 @@ def main():
     model.setModelID("box")
     model.getMeshHandle().setAABB(atl.Vec3(0, 0, 0), atl.Vec3(2, 2, 2))
     model.getMaterialHandle().setTexScale(2, 2)
-    model.getMaterialHandle().setDiffuseMap("asset::grass1.png")
+    model.getMaterialHandle().setDiffuseMap("asset::missing_no.png")
 
     actor = aco.ActorInfo()
     actor.getPosHandle().setX(5)

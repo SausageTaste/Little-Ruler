@@ -95,7 +95,7 @@ void main(void) {
     int i;
     vec3 lightedColor = uBaseAmbient;
     for (i = 0; i < uDlightCount; i++) {
-        vec4 fragPosInLight = vec4(vec3(vFragPosInDlight[i]) + fragNormal * 0.05, 1.0);
+        vec4 fragPosInLight = vec4(vec3(vFragPosInDlight[i]) + fragNormal * u_waveStrength, 1.0);
         fragPosInLight.y = vFragPosInDlight[i].y;
         lightedColor += getDlightFactor(i, viewDir, fragNormal, fragPosInLight) * uDlightColors[i];
     }

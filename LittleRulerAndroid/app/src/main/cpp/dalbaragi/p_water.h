@@ -2,6 +2,7 @@
 
 #include <glm/glm.hpp>
 
+#include "u_loadinfo.h"
 #include "p_dalopengl.h"
 #include "p_meshStatic.h"
 #include "p_uniloc.h"
@@ -108,23 +109,27 @@ namespace dal {
     private:
         MeshStatic m_mesh;
         Material m_material;
-        float m_height = 0.0f;
-        float m_moveFactor = 0.0f;
-        float m_moveSpeed = 0.03f;
         Timer m_localTimer;
+        glm::vec3 m_depthColor;
 
-        static dal::Texture *s_dudvMap, *s_normalMap;
+        float m_height;
+        float m_moveSpeed;
+        float m_waveStreng;
+        float m_darkestDepthPoint;
+        float m_moveFactor;
+
+        dal::Texture *m_dudvMap, *m_normalMap;
 
     public:
         WaterFramebuffer m_fbuffer;
 
     public:
-        WaterRenderer(const glm::vec3& pos, const glm::vec2& size, const unsigned int winWidth, const unsigned int winHeight);
+        WaterRenderer(const loadedinfo::WaterPlane& info, const unsigned int winWidth, const unsigned int winHeight);
         void renderWaterry(const UnilocWaterry& uniloc);
         float getHeight(void) const;
 
     private:
-        static void assertStaticMaps(void);
+        void initMesh(const glm::vec3& pos, const glm::vec2& size);
 
     };
 

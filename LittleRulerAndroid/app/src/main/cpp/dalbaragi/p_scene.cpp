@@ -82,8 +82,7 @@ namespace dal {
         const auto width = ConfigsGod::getinst().getWinWidth();
         const auto height = ConfigsGod::getinst().getWinHeight();
         for ( auto& waterInfo : info.m_waterPlanes ) {
-            glm::vec2 size{ waterInfo.width, waterInfo.height };
-            this->m_waters.emplace_back(waterInfo.m_pos, size, width, height);
+            this->m_waters.emplace_back(waterInfo, width, height);
         }
     }
 

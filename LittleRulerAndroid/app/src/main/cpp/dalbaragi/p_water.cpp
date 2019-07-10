@@ -279,14 +279,53 @@ namespace dal {
 
 namespace dal {
 
-    dal::Texture* WaterRenderer::s_dudvMap = nullptr;
-    dal::Texture* WaterRenderer::s_normalMap = nullptr;
-
-
-    WaterRenderer::WaterRenderer(const glm::vec3& pos, const glm::vec2& size, const unsigned int winWidth, const unsigned int winHeight)
-        : m_height(pos.y),
-        m_fbuffer(winWidth, winHeight)
+    WaterRenderer::WaterRenderer(const loadedinfo::WaterPlane& info, const unsigned int winWidth, const unsigned int winHeight)
+        : m_depthColor(info.m_depthColor)
+        , m_height(info.m_pos.y)
+        , m_moveSpeed(info.m_moveSpeed)
+        , m_waveStreng(info.m_waveStreng)
+        , m_darkestDepthPoint(info.m_darkestDepthPoint)
+        , m_moveFactor(0.0f)
+        , m_dudvMap(getDUDVMap())
+        , m_normalMap(getWaterNormalMap())
+        , m_fbuffer(winWidth, winHeight)
     {
+        glm::vec2 size{ info.m_width, info.m_height };
+        this->initMesh(info.m_pos, size);
+
+        this->m_material.m_shininess = info.m_shineness;
+        this->m_material.m_specularStrength = info.m_specStreng;
+    }
+
+    void WaterRenderer::renderWaterry(const UnilocWaterry& uniloc) {
+        const auto deltaTime = this->m_localTimer.check_getElapsed_capFPS();
+        this->m_moveFactor += this->m_moveSpeed * deltaTime;
+        this->m_moveFactor = fmod(this->m_moveFactor, 1.0f);
+        uniloc.dudvFactor(this->m_moveFactor);
+
+        uniloc.waveStrength(this->m_waveStreng);
+        uniloc.deepColor(this->m_depthColor);
+        uniloc.darkestDepthPoint(this->m_darkestDepthPoint);
+
+        this->m_material.sendUniform(uniloc.m_lightedMesh);
+
+        this->m_fbuffer.getReflectionTexture()->sendUniform(uniloc.getReflectionTex());
+        this->m_fbuffer.getRefractionTexture()->sendUniform(uniloc.getRefractionTex());
+        this->m_fbuffer.getRefractionDepthTexture()->sendUniform(uniloc.getDepthMap());
+        this->m_dudvMap->sendUniform(uniloc.getDUDVMap());
+        this->m_normalMap->sendUniform(uniloc.getNormalMap());
+
+        uniloc.m_lightedMesh.modelMat(glm::mat4{ 1.0f });
+        this->m_mesh.draw();
+    }
+
+    float WaterRenderer::getHeight(void) const {
+        return this->m_height;
+    }
+
+    // Private
+
+    void WaterRenderer::initMesh(const glm::vec3& pos, const glm::vec2& size) {
         std::array<float, 18> vertices{
             pos.x,          pos.y, pos.z,
             pos.x,          pos.y, pos.z + size.y,
@@ -317,53 +356,6 @@ namespace dal {
             texcoords.data(), texcoords.size(),
             normals.data(), normals.size()
         );
-
-        this->m_material.m_diffuseColor = { 0, 0, 1 };
-        this->m_material.m_specularStrength = 10.0f;
-        this->m_material.m_shininess = 128.0f;
-
-        this->assertStaticMaps();
-    }
-
-    void WaterRenderer::renderWaterry(const UnilocWaterry& uniloc) {
-        const auto deltaTime = this->m_localTimer.check_getElapsed_capFPS();
-        this->m_moveFactor += this->m_moveSpeed * deltaTime;
-        this->m_moveFactor = fmod(this->m_moveFactor, 1.0f);
-        uniloc.dudvFactor(this->m_moveFactor);
-
-        uniloc.waveStrength(0.02f);
-        uniloc.deepColor(0.07f, 0.07f, 0.15f);
-        uniloc.darkestDepthPoint(this->m_height);
-
-        this->m_material.sendUniform(uniloc.m_lightedMesh);
-
-        this->m_fbuffer.getReflectionTexture()->sendUniform(uniloc.getReflectionTex());
-        this->m_fbuffer.getRefractionTexture()->sendUniform(uniloc.getRefractionTex());
-        this->m_fbuffer.getRefractionDepthTexture()->sendUniform(uniloc.getDepthMap());
-        this->s_dudvMap->sendUniform(uniloc.getDUDVMap());
-        this->s_normalMap->sendUniform(uniloc.getNormalMap());
-
-        uniloc.m_lightedMesh.modelMat(glm::mat4{ 1.0f });
-        this->m_mesh.draw();
-    }
-
-    float WaterRenderer::getHeight(void) const {
-        return this->m_height;
-    }
-
-    // Private
-
-    void  WaterRenderer::assertStaticMaps(void) {
-        // This must be test in case of multiple waters.
-        // Because idk if the statement below only runs once in whole program lifetime.
-        // dal::Texture* WaterRenderer::s_dudvMap = nullptr;
-
-        if ( nullptr == s_dudvMap ) {
-            s_dudvMap = getDUDVMap();
-        }
-        if ( nullptr == s_normalMap ) {
-            s_normalMap = getWaterNormalMap();
-        }
     }
 
 }

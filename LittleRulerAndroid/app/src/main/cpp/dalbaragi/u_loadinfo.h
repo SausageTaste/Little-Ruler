@@ -90,8 +90,9 @@ namespace dal::loadedinfo {
     // Misc for maps
 
     struct WaterPlane {
-        glm::vec3 m_pos;
-        float width = 0.0f, height = 0.0f;
+        glm::vec3 m_pos, m_depthColor;
+        float m_width, m_height, m_shineness, m_specStreng;
+        float m_moveSpeed, m_waveStreng, m_darkestDepthPoint;
     };
 
     struct ImageFileData {

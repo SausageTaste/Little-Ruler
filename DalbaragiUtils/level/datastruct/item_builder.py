@@ -219,16 +219,34 @@ class BuildInfo_WaterPlane(eim.ILevelItem):
     __s_field_pos = "pos"
     __s_field_width = "width"
     __s_field_height = "height"
+    __s_field_shininess = "shininess"
+    __s_field_sepcularStrength = "spec_streng"
+    __s_field_moveSpeed = "move_speed"
+    __s_field_waveStrength = "wave_streng"
+    __s_field_darkestDepthPoint = "darkest_depth_point"
+    __s_field_deepColor = "depth_color"
 
     def __init__(self):
         self.__pos = pri.Vec3()
-        self.__width = pri.FloatData()
-        self.__height = pri.FloatData()
+        self.__width = pri.FloatData(5)
+        self.__height = pri.FloatData(5)
+        self.__shininess = pri.FloatData(128)
+        self.__sepcularStrength = pri.FloatData(10)
+        self.__moveSpeed = pri.FloatData(0.03)
+        self.__waveStrength = pri.FloatData(0.02)
+        self.__darkestDepthPoint = pri.FloatData(5)
+        self.__deepColor = pri.Vec3(0.07, 0.07, 0.15)
 
         super().__init__({
             self.__s_field_pos : self.__pos,
             self.__s_field_width : self.__width,
             self.__s_field_height : self.__height,
+            self.__s_field_shininess : self.__shininess,
+            self.__s_field_sepcularStrength : self.__sepcularStrength,
+            self.__s_field_moveSpeed : self.__moveSpeed,
+            self.__s_field_waveStrength : self.__waveStrength,
+            self.__s_field_darkestDepthPoint : self.__darkestDepthPoint,
+            self.__s_field_deepColor : self.__deepColor,
         })
 
     def getBinary(self) -> bytearray:
@@ -236,6 +254,12 @@ class BuildInfo_WaterPlane(eim.ILevelItem):
         data += self.__pos.getBinary()
         data += self.__width.getBinary()
         data += self.__height.getBinary()
+        data += self.__shininess.getBinary()
+        data += self.__sepcularStrength.getBinary()
+        data += self.__moveSpeed.getBinary()
+        data += self.__waveStrength.getBinary()
+        data += self.__darkestDepthPoint.getBinary()
+        data += self.__deepColor.getBinary()
         return data
 
     @classmethod
@@ -250,8 +274,26 @@ class BuildInfo_WaterPlane(eim.ILevelItem):
     def getPosHandle(self) -> pri.Vec3:
         return self.__pos
 
+    def getDepthColorHandle(self) -> pri.Vec3:
+        return self.__deepColor
+
     def setWidth(self, v: float) -> None:
         self.__width.set(v)
 
     def setHeight(self, v: float) -> None:
         self.__height.set(v)
+
+    def setShininess(self, v: float) -> None:
+        self.__shininess.set(v)
+
+    def setSpecStreng(self, v: float) -> None:
+        self.__sepcularStrength.set(v)
+
+    def setMoveSpeed(self, v: float) -> None:
+        self.__moveSpeed.set(v)
+
+    def setWaveStreng(self, v: float) -> None:
+        self.__waveStrength.set(v)
+
+    def setDarkestDepthPoint(self, v: float) -> None:
+        self.__darkestDepthPoint.set(v)
