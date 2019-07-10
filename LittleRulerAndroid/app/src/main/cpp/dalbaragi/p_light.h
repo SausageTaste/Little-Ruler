@@ -52,7 +52,7 @@ namespace dal {
         glm::vec3 m_direction{ -0.3f, -1.0f, -1.0f };  // This must be always normalized.
 
     public:
-        float mHalfShadowEdgeSize = 25.0f;
+        float mHalfShadowEdgeSize;
         DepthmapForLights mShadowMap;
 
     public:

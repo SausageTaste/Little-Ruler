@@ -185,7 +185,7 @@ namespace dal {
         // Lights
         {
             m_dlight1.m_color = { 0.7, 0.7, 0.7 };
-            m_dlight1.setDirectin(-1.8f, -1.0f, 2.0f);
+            m_dlight1.setDirectin(-0.3f, -2.0f, -0.5f);
         }
 
         // OpenGL global switch

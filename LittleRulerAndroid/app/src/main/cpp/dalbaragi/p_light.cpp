@@ -93,7 +93,9 @@ namespace dal {
 
 namespace dal {
 
-    DirectionalLight::DirectionalLight(void) {
+    DirectionalLight::DirectionalLight(void)
+        : mHalfShadowEdgeSize(50.0f)
+    {
         this->m_direction = glm::normalize(this->m_direction);
     }
 

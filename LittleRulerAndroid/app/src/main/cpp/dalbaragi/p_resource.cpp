@@ -32,8 +32,8 @@ namespace {
 
     public:
         LoadTask_Texture(const dal::ResourceID& texID, dal::Texture* const handle)
-            : in_texID(texID),
-            data_handle(handle)
+            : in_texID(texID)
+            , data_handle(handle)
         {
 
         }
