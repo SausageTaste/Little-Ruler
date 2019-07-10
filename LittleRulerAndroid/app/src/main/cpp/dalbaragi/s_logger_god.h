@@ -53,6 +53,9 @@ namespace dal {
 }
 
 
+#define STRINGIFY(x) #x
+#define TOSTRING(x) STRINGIFY(x)
+
 #define dalVerbose(str) dal::LoggerGod::getinst().putVerbose((str), __LINE__, __func__, __FILE__);
 #define dalDebug(str)   dal::LoggerGod::getinst().putDebug((str),   __LINE__, __func__, __FILE__);
 #define dalInfo(str)    dal::LoggerGod::getinst().putInfo((str),    __LINE__, __func__, __FILE__);
@@ -62,7 +65,7 @@ namespace dal {
 #define dalAbort(str) { dal::LoggerGod::getinst().putFatal((str),   __LINE__, __func__, __FILE__); throw -1; }
 
 #if ENABLE_ASSERT == 1
-#define dalAssert(condition) { if (!(condition)) dalAbort("Assertion failed"); }
+#define dalAssert(condition) { if (!(condition)) dalAbort("Assertion failed { " TOSTRING(condition) " }"); }
 #define dalAssertm(condition, message) { if (!(condition)) dalAbort(message); }
 #else
 #define dalAssert(condition)
