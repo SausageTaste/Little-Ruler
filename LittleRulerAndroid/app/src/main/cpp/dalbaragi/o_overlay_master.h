@@ -49,7 +49,8 @@ namespace dal {
         TextStream m_strBuffer;
         TextStreamChannel m_texStreamCh;
 
-        std::list<Widget*> m_widgets;
+        // If bool is true, the widget must be deleted in this class.
+        std::list<Widget*> m_widgets, m_toDelete;
 
     public:
 
@@ -65,9 +66,13 @@ namespace dal {
         void onKeyInput(const std::string& c);
 
         void render(void) const;
-        void addWidget(Widget* const w);
+        void giveWidgetOwnership(Widget* const w);
+        void giveWidgetRef(Widget* const w);
 
         void setDisplayedFPS(const unsigned int fps);
+
+    private:
+        void setFocusOn(Widget* const w);
 
     };
 

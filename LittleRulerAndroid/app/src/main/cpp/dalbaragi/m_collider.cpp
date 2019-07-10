@@ -64,8 +64,9 @@ namespace dal {
 
 namespace dal {
 
-    AxisAlignedBoundingBox::AxisAlignedBoundingBox(const glm::vec3& p1, const glm::vec3& p2)
+    AxisAlignedBoundingBox::AxisAlignedBoundingBox(const glm::vec3& p1, const glm::vec3& p2, const float massInv)
         : m_p1(p1), m_p2(p2)
+        , m_massInv(massInv)
     {
         this->validateOrder();
     }
@@ -80,31 +81,50 @@ namespace dal {
         this->m_p2 += offset;
     }
 
-    bool AxisAlignedBoundingBox::checkCollision(const AxisAlignedBoundingBox& other) const {
-        if ( this->m_p2.x < other.m_p1.x ) return false;
-        else if ( this->m_p1.x > other.m_p2.x ) return false;
-        else if ( this->m_p2.y < other.m_p1.y ) return false;
-        else if ( this->m_p1.y > other.m_p2.y ) return false;
-        else if ( this->m_p2.z < other.m_p1.z ) return false;
-        else if ( this->m_p1.z > other.m_p2.z ) return false;
+    // Private
+
+    void AxisAlignedBoundingBox::validateOrder(void) {
+        if ( this->m_p1.x > this->m_p2.x ) {
+            std::swap(this->m_p1.x, this->m_p2.x);
+        }
+        if ( this->m_p1.y > this->m_p2.y ) {
+            std::swap(this->m_p1.y, this->m_p2.y);
+        }
+        if ( this->m_p1.z > this->m_p2.z ) {
+            std::swap(this->m_p1.z, this->m_p2.z);
+        }
+    }
+
+}
+
+
+namespace dal {
+
+    bool checkCollision(const AxisAlignedBoundingBox& one, const AxisAlignedBoundingBox& other) {
+        if ( one.m_p2.x < other.m_p1.x ) return false;
+        else if ( one.m_p1.x > other.m_p2.x ) return false;
+        else if ( one.m_p2.y < other.m_p1.y ) return false;
+        else if ( one.m_p1.y > other.m_p2.y ) return false;
+        else if ( one.m_p2.z < other.m_p1.z ) return false;
+        else if ( one.m_p1.z > other.m_p2.z ) return false;
         else return true;
     }
 
-    CollisionResolveInfo AxisAlignedBoundingBox::getResolveInfo(const AxisAlignedBoundingBox& other) const {
-        const auto xOne = this->m_p2.x - other.m_p1.x;
-        const auto xTwo = this->m_p1.x - other.m_p2.x;
+    CollisionResolveInfo calcResolveInfo(const AxisAlignedBoundingBox& one, const AxisAlignedBoundingBox& other) {
+        const auto xOne = one.m_p2.x - other.m_p1.x;
+        const auto xTwo = one.m_p1.x - other.m_p2.x;
         const auto xDistance = abs(xOne) < abs(xTwo) ? xOne : xTwo;
 
-        const auto yOne = this->m_p2.y - other.m_p1.y;
-        const auto yTwo = this->m_p1.y - other.m_p2.y;
+        const auto yOne = one.m_p2.y - other.m_p1.y;
+        const auto yTwo = one.m_p1.y - other.m_p2.y;
         const auto yDistance = abs(yOne) < abs(yTwo) ? yOne : yTwo;
 
-        const auto zOne = this->m_p2.z - other.m_p1.z;
-        const auto zTwo = this->m_p1.z - other.m_p2.z;
+        const auto zOne = one.m_p2.z - other.m_p1.z;
+        const auto zTwo = one.m_p1.z - other.m_p2.z;
         const auto zDistance = abs(zOne) < abs(zTwo) ? zOne : zTwo;
 
-        const auto thisWeight = 1.0f;
-        const auto otherWeight = 1.0f;
+        const auto thisWeight = 1.0f / one.m_massInv;
+        const auto otherWeight = 1.0f / other.m_massInv;
         const auto weightSum = thisWeight + otherWeight;
         if ( 0.0f == weightSum )
             return CollisionResolveInfo{ { 0.0f, 0.0f, 0.0f },{ 0.0f, 0.0f, 0.0f } };
@@ -149,20 +169,6 @@ namespace dal {
             dalAbort("WTF ({}, {}, {})"_format(xForThis, yForThis, zForThis));
         }
         */
-    }
-
-    // Private
-
-    void AxisAlignedBoundingBox::validateOrder(void) {
-        if ( this->m_p1.x > this->m_p2.x ) {
-            std::swap(this->m_p1.x, this->m_p2.x);
-        }
-        if ( this->m_p1.y > this->m_p2.y ) {
-            std::swap(this->m_p1.y, this->m_p2.y);
-        }
-        if ( this->m_p1.z > this->m_p2.z ) {
-            std::swap(this->m_p1.z, this->m_p2.z);
-        }
     }
 
 }

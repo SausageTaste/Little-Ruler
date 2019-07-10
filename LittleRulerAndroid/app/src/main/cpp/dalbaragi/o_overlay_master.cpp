@@ -20,32 +20,32 @@ namespace dal {
     }
 
     void OverlayMaster::TextStreamChannel::verbose(const char* const str, const int line, const char* const func, const char* const file) {
-        const auto text = "[VERBO]"s + str + '\n';
+        const auto text = "[VERBO] "s + str + '\n';
         this->m_texStream.append(text);
     }
 
     void OverlayMaster::TextStreamChannel::debug(const char* const str, const int line, const char* const func, const char* const file) {
-        const auto text = "[DEBUG]"s + str + '\n';
+        const auto text = "[DEBUG] "s + str + '\n';
         this->m_texStream.append(text);
     }
 
     void OverlayMaster::TextStreamChannel::info(const char* const str, const int line, const char* const func, const char* const file) {
-        const auto text = "[INFO]"s + str + '\n';
+        const auto text = "[INFO] "s + str + '\n';
         this->m_texStream.append(text);
     }
 
     void OverlayMaster::TextStreamChannel::warn(const char* const str, const int line, const char* const func, const char* const file) {
-        const auto text = "[WARN]"s + str + '\n';
+        const auto text = "[WARN] "s + str + '\n';
         this->m_texStream.append(text);
     }
 
     void OverlayMaster::TextStreamChannel::error(const char* const str, const int line, const char* const func, const char* const file) {
-        const auto text = "[ERROR]"s + str + '\n';
+        const auto text = "[ERROR] "s + str + '\n';
         this->m_texStream.append(text);
     }
 
     void OverlayMaster::TextStreamChannel::fatal(const char* const str, const int line, const char* const func, const char* const file) {
-        const auto text = "[FATAL]"s + str + '\n';
+        const auto text = "[FATAL] "s + str + '\n';
         this->m_texStream.append(text);
     }
 
@@ -55,16 +55,16 @@ namespace dal {
 namespace dal {
 
     OverlayMaster::OverlayMaster(ResourceMaster& resMas, const ShaderMaster& shaderMas, const unsigned int width, const unsigned int height)
-        : m_resMas(resMas),
-        m_shaderMas(shaderMas),
-        m_unicodes(resMas),
-        mGlobalFSM(GlobalGameState::game),
-        m_texStreamCh(m_strBuffer)
+        : m_resMas(resMas)
+        , m_shaderMas(shaderMas)
+        , m_unicodes(resMas)
+        , mGlobalFSM(GlobalGameState::game)
+        , m_texStreamCh(m_strBuffer)
     {
         ConfigsGod::getinst().setWinSize(width, height);
         script::set_outputStream(&this->m_strBuffer);
 
-        /* Characters */
+        // Widgets
         {
             {
                 auto fpsDisplayer = new Label(nullptr, this->m_unicodes);
@@ -77,7 +77,7 @@ namespace dal {
                 fpsDisplayer->setBackgroundColor(0.0f, 0.0f, 0.0f, 0.5f);
 
                 this->mDisplayFPS = fpsDisplayer;
-                this->m_widgets.push_back(fpsDisplayer);
+                this->giveWidgetOwnership(fpsDisplayer);
             }
 
             {
@@ -89,11 +89,12 @@ namespace dal {
                 wid->setHeight(20.0f);
                 wid->setAlignMode(ScreenQuad::AlignMode::upper_right);
 
-                this->m_widgets.push_back(wid);
+                this->giveWidgetOwnership(wid);
             }
 
             {
                 auto wid = new TextBox(nullptr, this->m_unicodes);
+
                 this->m_strBuffer.append("Sungmin Woo\nwoos8899@gmail.com\n\n");
                 wid->setStrBuf(&this->m_strBuffer);
 
@@ -103,31 +104,26 @@ namespace dal {
                 wid->setHeight(600.0f);
                 wid->setAlignMode(ScreenQuad::AlignMode::upper_right);
 
-                this->m_widgets.push_back(wid);
+                this->giveWidgetOwnership(wid);
             }
         }
 
-        /* Event Master */
+        // Event Master
         {
             this->mHandlerName = "OverlayMaster";
             EventGod::getinst().registerHandler(this, EventType::global_fsm_change);
         }
 
-        /* Misc */
+        // Misc
         {
-            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
             LoggerGod::getinst().addChannel(&m_texStreamCh);
         }
     }
 
     OverlayMaster::~OverlayMaster(void) {
         LoggerGod::getinst().deleteChannel(&m_texStreamCh);
-
         EventGod::getinst().deregisterHandler(this, EventType::global_fsm_change);
-
         this->mDisplayFPS = nullptr;
-
         this->m_widgets.clear();
     }
 
@@ -141,7 +137,7 @@ namespace dal {
     }
 
     void OverlayMaster::onWinResize(const unsigned int width, const unsigned int height) {
-        for ( auto wid : this->m_widgets ) {
+        for ( auto& wid : this->m_widgets ) {
             wid->onResize(width, height);
         }
     }
@@ -192,7 +188,8 @@ namespace dal {
 
         auto& uniloc = this->m_shaderMas.useOverlay();
 
-        for ( auto iter = this->m_widgets.rbegin(); iter != this->m_widgets.rend(); ++iter ) {
+        const auto end = this->m_widgets.rend();
+        for ( auto iter = this->m_widgets.rbegin(); iter != end; ++iter ) {
             if ( (*iter)->getPauseOnly() ) {
                 if ( GlobalGameState::menu == mGlobalFSM ) {
                     (*iter)->renderOverlay(uniloc);
@@ -204,12 +201,39 @@ namespace dal {
         }
     }
 
-    void OverlayMaster::addWidget(Widget* const w) {
-        this->m_widgets.emplace_front(w);
+    void OverlayMaster::giveWidgetOwnership(Widget* const w) {
+        for ( auto widget : this->m_widgets ) {
+            widget->onFocusChange(false);
+        }
+
+        this->m_widgets.push_front(w);
+        this->m_toDelete.push_back(w);
+
+        w->onFocusChange(true);
+    }
+
+    void OverlayMaster::giveWidgetRef(Widget* const w) {
+        for ( auto widget : this->m_widgets ) {
+            widget->onFocusChange(false);
+        }
+
+        this->m_widgets.push_front(w);
+
+        w->onFocusChange(true);
     }
 
     void OverlayMaster::setDisplayedFPS(const unsigned int fps) {
         this->mDisplayFPS->setText(std::to_string(fps));
+    }
+
+    // Private
+
+    void OverlayMaster::setFocusOn(Widget* const w) {
+        this->m_widgets.remove(w);
+        for ( auto widget : this->m_widgets ) {
+            widget->onFocusChange(false);
+        }
+        this->m_widgets.push_front(w);
     }
 
 }

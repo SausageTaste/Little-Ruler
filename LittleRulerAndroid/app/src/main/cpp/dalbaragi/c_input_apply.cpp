@@ -161,21 +161,11 @@ namespace {
         int32_t m_moveOccupier = -1;
 
         static constexpr float k_touchDrawerThiccness = 20.0f;
-        std::array<dal::ColoredTile*, k_maxTouchCount + 1> m_touchDrawers = { nullptr };
+        std::vector<dal::ColoredTile> m_touchDrawers;
 
         //////// Func ////////
 
     public:
-        ~TouchStatesMaster(void) {
-            for ( size_t i = 0; i < this->m_touchDrawers.size(); i++ ) {
-                if ( nullptr != this->m_touchDrawers[i] ) {
-                    delete this->m_touchDrawers[i];
-                    this->m_touchDrawers[i] = nullptr;
-                }
-            }
-        }
-
-
         void fetch(void) {
             const float winWidth = (float)dal::ConfigsGod::getinst().getWinWidth();
             const float winHeight = (float)dal::ConfigsGod::getinst().getWinHeight();
@@ -318,16 +308,17 @@ namespace {
         }
 
         void initOverlay(dal::OverlayMaster& overlay) {
-            for ( size_t i = 0; i < this->m_touchDrawers.size(); i++ ) {
-                auto wid = new dal::ColoredTile(nullptr, 1.0f, 1.0f, 1.0f, 1.0f);
-                overlay.addWidget(wid);
-                this->m_touchDrawers[i] = wid;
+            this->m_touchDrawers.reserve(k_maxTouchCount + 1);
 
-                wid->setWidth(this->k_touchDrawerThiccness);
-                wid->setHeight(this->k_touchDrawerThiccness);
-                wid->setPosX(-100.0f);
-                wid->setPosY(-100.0f);
-                wid->setPauseOnly(false);
+            for ( size_t i = 0; i < k_maxTouchCount + 1; ++i ) {
+                auto& added = this->m_touchDrawers.emplace_back(nullptr, 1.0f, 1.0f, 1.0f, 1.0f);
+                overlay.giveWidgetRef(&added);
+
+                added.setWidth(this->k_touchDrawerThiccness);
+                added.setHeight(this->k_touchDrawerThiccness);
+                added.setPosX(-100.0f);
+                added.setPosY(-100.0f);
+                added.setPauseOnly(false);
             }
         }
 
@@ -342,10 +333,10 @@ namespace {
         }
 
         void updateTouchDrawer(const int32_t index, const float x, const float y) {
-            if ( nullptr != this->m_touchDrawers[index] ) {
-                auto const wid = this->m_touchDrawers[index];
-                wid->setPosX(x - this->k_touchDrawerThiccness * 0.5f);
-                wid->setPosY(y - this->k_touchDrawerThiccness * 0.5f);
+            if ( this->m_touchDrawers.size() > index ) {
+                auto& wid = this->m_touchDrawers[index];
+                wid.setPosX(x - this->k_touchDrawerThiccness * 0.5f);
+                wid.setPosY(y - this->k_touchDrawerThiccness * 0.5f);
             }
         }
 
@@ -741,10 +732,10 @@ namespace {
 namespace dal {
 
     InputApplier::InputApplier(OverlayMaster& overlayMas)
-        : mFSM(GlobalGameState::game),
-        m_overlayMas(overlayMas)
+        : mFSM(GlobalGameState::game)
+        , m_overlayMas(overlayMas)
     {
-        mHandlerName = "InputApplier";
+        this->mHandlerName = "InputApplier";
         EventGod::getinst().registerHandler(this, EventType::global_fsm_change);
 
         g_touchMas.initOverlay(overlayMas);

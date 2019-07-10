@@ -246,8 +246,8 @@ namespace dal {
                 auto box = modelInfo.m_model->getBoundingBox();
                 box.add(modelActor.getPos());
 
-                if ( actorBox.checkCollision(box) ) {
-                    const auto resolveInfo = actorBox.getResolveInfo(box);
+                if ( checkCollision(actorBox, box) ) {
+                    const auto resolveInfo = calcResolveInfo(actorBox, box);
                     actor.addPos(resolveInfo.m_this);
                     actorBox.add(resolveInfo.m_this);
                     modelActor.addPos(resolveInfo.m_other);
@@ -262,8 +262,8 @@ namespace dal {
                 auto box = modelInfo.m_model->getBoundingBox();
                 box.add(modelActor.getPos());
 
-                if ( actorBox.checkCollision(box) ) {
-                    const auto resolveInfo = actorBox.getResolveInfo(box);
+                if ( checkCollision(actorBox, box) ) {
+                    const auto resolveInfo = calcResolveInfo(actorBox, box);
                     actor.addPos(resolveInfo.m_this);
                     actorBox.add(resolveInfo.m_this);
                     modelActor.addPos(resolveInfo.m_other);
