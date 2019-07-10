@@ -13,13 +13,11 @@ namespace dal {
     const char* getEventTypeStr(const dal::EventType type) {
         static const char* const map[] = {
             "quit_game",
-            "window_resize",
-            "touch_event",
-            "touch_tap",
-            "global_fsm_change"
+            "global_fsm_change",
+            "eoe"
         };
 
-        return map[int(type)];
+        return map[static_cast<int>(type)];
     }
 
     std::string iEventHandler::getHandlerName(void) {

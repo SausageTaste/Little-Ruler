@@ -164,7 +164,6 @@ namespace dal {
         {
             mHandlerName = "dal::Mainloop";
             EventGod::getinst().registerHandler(this, EventType::quit_game);
-            EventGod::getinst().registerHandler(this, EventType::window_resize);
 
             LoggerGod::getinst().addChannel(&g_fileLogger);
         }
@@ -182,7 +181,6 @@ namespace dal {
 
     Mainloop::~Mainloop(void) {
         EventGod::getinst().deregisterHandler(this, EventType::quit_game);
-        EventGod::getinst().deregisterHandler(this, EventType::window_resize);
 
         LoggerGod::getinst().deleteChannel(&g_fileLogger);
     }
@@ -219,16 +217,8 @@ namespace dal {
     }
 
     void Mainloop::onEvent(const EventStatic& e) {
-        const auto width = static_cast<unsigned int>(e.intArg1);
-        const auto height = static_cast<unsigned int>(e.intArg2);
-
-        dalAssert(width > 7000); dalAssert(height > 7000);
-
         switch ( e.type ) {
 
-        case EventType::window_resize:
-            this->onResize(width, height);
-            break;
         case EventType::quit_game:
             this->m_flagQuit = true;
             break;
