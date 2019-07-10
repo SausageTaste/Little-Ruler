@@ -106,6 +106,7 @@ namespace {
         }
     };
 
+
     class TouchStatesMaster {
 
         //////// Definitions ////////
@@ -349,6 +350,7 @@ namespace {
         }
 
     } g_touchMas;  // class TouchStatesMaster
+
 
     class KeyboardStatesMaster {
 
