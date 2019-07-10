@@ -1,12 +1,16 @@
 #include <inter_lighting.frag>
 
 
-uniform sampler2D u_bansaTex;  // TEX 4
-uniform sampler2D u_gooljulTex;  // TEX 5
-uniform sampler2D u_dudvMap;  // TEX 6
-uniform sampler2D u_normalMap;  // TEX 7
+uniform sampler2D u_bansaTex;
+uniform sampler2D u_gooljulTex;
+uniform sampler2D u_dudvMap;
+uniform sampler2D u_normalMap;
 uniform sampler2D u_depthMap;
+
 uniform float u_dudvMoveFactor;
+uniform float u_waveStrength;
+uniform float u_darkestDepthPoint;
+uniform vec3 u_deepColor; // 0.07, 0.07, 0.15
 
 
 in vec3 vFragPos;
@@ -19,16 +23,18 @@ in vec3 v_toCamera;
 out vec4 fColor;
 
 
-const float WAVE_STRENGTH = 0.02;
 const float NEAR = 0.01;
 const float FAR = 100.0;
 
 
-vec2 getDistortedCoords() {
+vec2 getDistortedCoords(void) {
     vec2 distoredTexCoords = texture(u_dudvMap, vec2(vTexCoord.x + u_dudvMoveFactor, vTexCoord.y)).rg * 0.1;
     return vTexCoord + vec2(distoredTexCoords.x, distoredTexCoords.y + u_dudvMoveFactor);
 }
 
+float makeDepthFactor(float waterDepth) {
+    return clamp(waterDepth / u_darkestDepthPoint, 0.0, 1.0);
+}
 
 vec3 makeFragNormal(vec2 distortedCoords) {
     vec4 normalColor = texture(u_normalMap, distortedCoords);
@@ -38,7 +44,6 @@ vec3 makeFragNormal(vec2 distortedCoords) {
     normalColor.g * 2.0 - 1.0
     ));
 }
-
 
 float makeWaterDepth(vec2 refractionCoords) {
     float depth = texture(u_depthMap, refractionCoords).r;
@@ -54,7 +59,7 @@ vec4 calculateWater(vec3 fragNormal, vec2 distortedCoords) {
     vec2 bansaCoord = vec2(normalizedDeviceCoord.x, -normalizedDeviceCoord.y);
     vec2 gooljulCoord = vec2(normalizedDeviceCoord.x, normalizedDeviceCoord.y);
 
-    vec2 totalDistortion = (texture(u_dudvMap, distortedCoords).rg * 2.0 - 1.0) * WAVE_STRENGTH * clamp(makeWaterDepth(gooljulCoord) / 1.0, 0.0, 1.0);;
+    vec2 totalDistortion = (texture(u_dudvMap, distortedCoords).rg * 2.0 - 1.0) * u_waveStrength * clamp(makeWaterDepth(gooljulCoord) / 1.0, 0.0, 1.0);
     bansaCoord += totalDistortion;
     gooljulCoord += totalDistortion;
 
@@ -66,8 +71,7 @@ vec4 calculateWater(vec3 fragNormal, vec2 distortedCoords) {
 
     vec4 bansaColor = texture(u_bansaTex, bansaCoord);
     vec4 gooljulColor = texture(u_gooljulTex, gooljulCoord);
-    float depthFactor = clamp(waterDepth / 18.0, 0.0, 1.0);
-    gooljulColor = mix(gooljulColor, vec4(0.07, 0.07, 0.15, 1.0), depthFactor);
+    gooljulColor = mix(gooljulColor, vec4(u_deepColor, 1.0), makeDepthFactor(waterDepth));
 
     vec3 viewVec = normalize(v_toCamera);
     float refractiveFactor = pow(dot(viewVec, fragNormal), 0.8);

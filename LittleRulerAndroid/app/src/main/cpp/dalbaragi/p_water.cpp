@@ -110,7 +110,6 @@ namespace {
         return texture;
     }
 
-    // This doesn't work for me. Now I use genDepthTextureAttachment instead.
     GLuint genDepthBufferAttachment(const unsigned int width, const unsigned int height) {
         GLuint depthBuffer;
 
@@ -332,14 +331,16 @@ namespace dal {
         this->m_moveFactor = fmod(this->m_moveFactor, 1.0f);
         uniloc.dudvFactor(this->m_moveFactor);
 
+        uniloc.waveStrength(0.02f);
+        uniloc.deepColor(0.07f, 0.07f, 0.15f);
+        uniloc.darkestDepthPoint(this->m_height);
+
         this->m_material.sendUniform(uniloc.m_lightedMesh);
 
         this->m_fbuffer.getReflectionTexture()->sendUniform(uniloc.getReflectionTex());
         this->m_fbuffer.getRefractionTexture()->sendUniform(uniloc.getRefractionTex());
         this->m_fbuffer.getRefractionDepthTexture()->sendUniform(uniloc.getDepthMap());
-        //getDUDVMap()->sendUniform(uniloc.u_dudvMap, 0, 6);
         this->s_dudvMap->sendUniform(uniloc.getDUDVMap());
-        //getWaterNormalMap()->sendUniform(uniloc.u_normalMap, 0, 7);
         this->s_normalMap->sendUniform(uniloc.getNormalMap());
 
         uniloc.m_lightedMesh.modelMat(glm::mat4{ 1.0f });

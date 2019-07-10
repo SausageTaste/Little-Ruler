@@ -195,11 +195,6 @@ namespace dal {
         //////// Vars ////////
 
     private:
-        GLint iPosition;
-        GLint iTexCoord;
-
-        // Fragment shader
-
         SamplerInterf m_texture;
 
         //////// Funcs ////////
@@ -234,7 +229,11 @@ namespace dal {
         SamplerInterf m_dudvMap;
         SamplerInterf m_normalMap;
         SamplerInterf m_depthMap;
+
         GLint u_dudvMoveFactor;
+        GLint u_waveStrength;
+        GLint u_darkestDepthPoint;
+        GLint u_deepColor;
 
         //////// Funcs ////////
 
@@ -242,6 +241,10 @@ namespace dal {
         UnilocWaterry(const GLuint shader);
 
         void dudvFactor(const float x) const;
+        void waveStrength(const float x) const;
+        void darkestDepthPoint(const float x) const;
+        void deepColor(const float x, const float y, const float z) const;
+        void deepColor(const glm::vec3& v) const;
 
         const SamplerInterf& getReflectionTex(void) const;
         const SamplerInterf& getRefractionTex(void) const;

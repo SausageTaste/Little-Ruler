@@ -9,7 +9,7 @@
 #include "s_logger_god.h"
 
 
-#define ASSERT_UNILOC 0
+#define ASSERT_UNILOC 1
 
 
 using namespace std::string_literals;
@@ -419,11 +419,9 @@ namespace dal {
 
     UnilocFScreen::UnilocFScreen(const GLuint shader) {
 #if ASSERT_UNILOC != 0
-        iPosition = glGetAttribLocation(shader, "iPosition"); assert(iPosition == 0);
-        iTexCoord = glGetAttribLocation(shader, "iTexCoord"); assert(iTexCoord == 1);
+        dalAssert(0 == glGetAttribLocation(shader, "iPosition"));
+        dalAssert(1 == glGetAttribLocation(shader, "iTexCoord"));
 #endif
-
-        // Fragment shader
 
         this->m_texture.init(getUniloc(shader, "uTexture"), -2, g_texUnitReg["uTexture"]);
     }
@@ -441,7 +439,10 @@ namespace dal {
     UnilocWaterry::UnilocWaterry(const GLuint shader)
         : m_lightedMesh(shader)
     {
-        this->u_dudvMoveFactor = glGetUniformLocation(shader, "u_dudvMoveFactor");
+        this->u_dudvMoveFactor = getUniloc(shader, "u_dudvMoveFactor");
+        this->u_waveStrength = getUniloc(shader, "u_waveStrength");
+        this->u_darkestDepthPoint = getUniloc(shader, "u_darkestDepthPoint");
+        this->u_deepColor = getUniloc(shader, "u_deepColor");
 
         this->m_bansaTex.init(getUniloc(shader, "u_bansaTex"), -2, g_texUnitReg["u_bansaTex"]);
         this->m_gooljulTex.init(getUniloc(shader, "u_gooljulTex"), -2, g_texUnitReg["u_gooljulTex"]);
@@ -452,6 +453,22 @@ namespace dal {
 
     void UnilocWaterry::dudvFactor(const float x) const {
         glUniform1f(this->u_dudvMoveFactor, x);
+    }
+
+    void UnilocWaterry::waveStrength(const float x) const {
+        glUniform1f(this->u_waveStrength, x);
+    }
+
+    void UnilocWaterry::darkestDepthPoint(const float x) const {
+        glUniform1f(this->u_darkestDepthPoint, x);
+    }
+
+    void UnilocWaterry::deepColor(const float x, const float y, const float z) const {
+        glUniform3f(this->u_deepColor, x, y, z);
+    }
+
+    void UnilocWaterry::deepColor(const glm::vec3& v) const {
+        this->deepColor(v.x, v.y, v.z);
     }
 
     const SamplerInterf& UnilocWaterry::getReflectionTex(void) const {
