@@ -324,7 +324,7 @@ namespace dal {
             ConfigsGod::getinst().setWinSize(winWidth, winHeight);
         }
 
-        //this->loadMap("asset::map/test_level.dlb");
+        this->loadMap("asset::map/test_level.dlb");
     }
 
     SceneMaster::~SceneMaster(void) {
