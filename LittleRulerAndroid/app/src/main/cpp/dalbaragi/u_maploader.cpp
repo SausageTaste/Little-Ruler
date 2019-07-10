@@ -369,9 +369,9 @@ namespace {  // Make items
         auto& water = info.m_waterPlanes.back();
 
         // Get diffuse pos(3), width(1), height(1), shininess(1), specStreng(1),
-        // move speed(1), wave streng(1), darkest depth point(1), depth color(3)
+        // move speed(1), wave streng(1), darkest depth point(1), depth color(3), reflectivity(1)
         {
-            constexpr auto k_numNums = 13;
+            constexpr auto k_numNums = 14;
             float floatBuf[k_numNums];
             for ( int i = 0; i < k_numNums; i++ ) {
                 floatBuf[i] = makeFloat4(header); header += 4;
@@ -386,6 +386,7 @@ namespace {  // Make items
             water.m_waveStreng = floatBuf[8];
             water.m_darkestDepthPoint = floatBuf[9];
             water.m_depthColor = glm::vec3{ floatBuf[10], floatBuf[11], floatBuf[12] };
+            water.m_reflectivity = floatBuf[13];
         }
 
         return header;

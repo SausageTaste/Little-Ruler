@@ -225,6 +225,7 @@ class BuildInfo_WaterPlane(eim.ILevelItem):
     __s_field_waveStrength = "wave_streng"
     __s_field_darkestDepthPoint = "darkest_depth_point"
     __s_field_deepColor = "depth_color"
+    __s_field_reflectivity = "reflectivity"
 
     def __init__(self):
         self.__pos = pri.Vec3()
@@ -236,6 +237,7 @@ class BuildInfo_WaterPlane(eim.ILevelItem):
         self.__waveStrength = pri.FloatData(0.02)
         self.__darkestDepthPoint = pri.FloatData(5)
         self.__deepColor = pri.Vec3(0.07, 0.07, 0.15)
+        self.__reflectivity = pri.FloatData(0.05)
 
         super().__init__({
             self.__s_field_pos : self.__pos,
@@ -247,6 +249,7 @@ class BuildInfo_WaterPlane(eim.ILevelItem):
             self.__s_field_waveStrength : self.__waveStrength,
             self.__s_field_darkestDepthPoint : self.__darkestDepthPoint,
             self.__s_field_deepColor : self.__deepColor,
+            self.__s_field_reflectivity : self.__reflectivity,
         })
 
     def getBinary(self) -> bytearray:
@@ -260,6 +263,7 @@ class BuildInfo_WaterPlane(eim.ILevelItem):
         data += self.__waveStrength.getBinary()
         data += self.__darkestDepthPoint.getBinary()
         data += self.__deepColor.getBinary()
+        data += self.__reflectivity.getBinary()
         return data
 
     @classmethod
@@ -297,3 +301,6 @@ class BuildInfo_WaterPlane(eim.ILevelItem):
 
     def setDarkestDepthPoint(self, v: float) -> None:
         self.__darkestDepthPoint.set(v)
+
+    def setReflectivity(self, v: float) -> None:
+        self.__reflectivity.set(v)

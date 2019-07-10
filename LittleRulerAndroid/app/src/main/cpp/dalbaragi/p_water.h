@@ -116,6 +116,7 @@ namespace dal {
         float m_moveSpeed;
         float m_waveStreng;
         float m_darkestDepthPoint;
+        float m_reflectivity;
         float m_moveFactor;
 
         dal::Texture *m_dudvMap, *m_normalMap;

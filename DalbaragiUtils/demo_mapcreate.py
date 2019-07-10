@@ -124,12 +124,15 @@ def main():
     ########
 
     water = bfi.BuildInfo_WaterPlane()
-    water.getPosHandle().setXYZ(-11, 5, -21)
+    water.getPosHandle().setXYZ(-11, 40, -21)
     water.setWidth(52)
     water.setHeight(52)
 
-    water.setDarkestDepthPoint(6)
-    water.setWaveStreng(0.03)
+    water.setSpecStreng(3)
+    water.setDarkestDepthPoint(50)
+    water.setWaveStreng(0.01)
+    water.getDepthColorHandle().setXYZ(0.07, 0.07, 0.18)
+    water.setReflectivity(0.01)
 
     level.add(water)
 

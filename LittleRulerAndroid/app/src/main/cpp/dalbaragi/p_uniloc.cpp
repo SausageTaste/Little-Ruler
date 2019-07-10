@@ -442,6 +442,7 @@ namespace dal {
         this->u_dudvMoveFactor = getUniloc(shader, "u_dudvMoveFactor");
         this->u_waveStrength = getUniloc(shader, "u_waveStrength");
         this->u_darkestDepthPoint = getUniloc(shader, "u_darkestDepthPoint");
+        this->u_reflectivity = getUniloc(shader, "u_reflectivity");
         this->u_deepColor = getUniloc(shader, "u_deepColor");
 
         this->m_bansaTex.init(getUniloc(shader, "u_bansaTex"), -2, g_texUnitReg["u_bansaTex"]);
@@ -461,6 +462,10 @@ namespace dal {
 
     void UnilocWaterry::darkestDepthPoint(const float x) const {
         glUniform1f(this->u_darkestDepthPoint, x);
+    }
+
+    void UnilocWaterry::reflectivity(const float x) const {
+        glUniform1f(this->u_reflectivity, x);
     }
 
     void UnilocWaterry::deepColor(const float x, const float y, const float z) const {

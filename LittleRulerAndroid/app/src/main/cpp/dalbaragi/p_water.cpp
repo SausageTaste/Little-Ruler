@@ -285,6 +285,7 @@ namespace dal {
         , m_moveSpeed(info.m_moveSpeed)
         , m_waveStreng(info.m_waveStreng)
         , m_darkestDepthPoint(info.m_darkestDepthPoint)
+        , m_reflectivity(info.m_reflectivity)
         , m_moveFactor(0.0f)
         , m_dudvMap(getDUDVMap())
         , m_normalMap(getWaterNormalMap())
@@ -306,6 +307,7 @@ namespace dal {
         uniloc.waveStrength(this->m_waveStreng);
         uniloc.deepColor(this->m_depthColor);
         uniloc.darkestDepthPoint(this->m_darkestDepthPoint);
+        uniloc.reflectivity(this->m_reflectivity);
 
         this->m_material.sendUniform(uniloc.m_lightedMesh);
 

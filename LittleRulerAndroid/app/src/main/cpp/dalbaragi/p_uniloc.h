@@ -233,6 +233,7 @@ namespace dal {
         GLint u_dudvMoveFactor;
         GLint u_waveStrength;
         GLint u_darkestDepthPoint;
+        GLint u_reflectivity;
         GLint u_deepColor;
 
         //////// Funcs ////////
@@ -243,6 +244,7 @@ namespace dal {
         void dudvFactor(const float x) const;
         void waveStrength(const float x) const;
         void darkestDepthPoint(const float x) const;
+        void reflectivity(const float x) const;
         void deepColor(const float x, const float y, const float z) const;
         void deepColor(const glm::vec3& v) const;
 
