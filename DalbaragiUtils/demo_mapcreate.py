@@ -32,7 +32,7 @@ def main():
     actor.getPosHandle().setZ(5)
     #actor.getQuatHandle().rotate(-90, (0, 1, 0))
     model.addActor(actor)
-    model.setModelID("test::academy.obj")
+    model.setModelID("asset::yuri.obj")
     level.add(model)
 
     ########
@@ -41,28 +41,13 @@ def main():
 
     actor = aco.ActorInfo()
     actor.setName("ThinMatrix")
-    actor.getPosHandle().setX(4)
+    actor.getPosHandle().setX(8)
     actor.getPosHandle().setZ(1)
     actor.getQuatHandle().rotate(-90.0, (0, 0, 1))
     actor.setScale(2)
     model.addActor(actor)
 
-    model.setModelID("test::model.dae")
-    level.add(model)
-
-    ########
-
-    model = bfi.BuildInfo_ModelImportedAnimated()
-
-    actor = aco.ActorInfo()
-    actor.setName("EunChae")
-    actor.getPosHandle().setX(6)
-    actor.getPosHandle().setY(0)
-    actor.getPosHandle().setZ(-3)
-    actor.setScale(0.3)
-    model.addActor(actor)
-
-    model.setModelID("test::wecjyu.dae")
+    model.setModelID("asset::model.dae")
     level.add(model)
 
     ########
