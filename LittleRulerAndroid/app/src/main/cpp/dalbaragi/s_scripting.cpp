@@ -6,12 +6,13 @@
 #include "s_configs.h"
 #include "s_logger_god.h"
 
-#include "p_render_master.h"
+#include "x_mainloop.h"
 
 
 using namespace std::string_literals;
 
 
+// DefaultOutputStream
 namespace {
 
     class DefaultOutputStream : public dal::LuaStdOutput {
@@ -34,21 +35,10 @@ namespace {
 
     private:
         static dal::RenderMaster* s_renderMas;
+        static dal::SceneMaster* s_sceneMas;
         static dal::LuaStdOutput* s_output;
 
     public:
-        static void init_renderMas(void* p) {
-            s_renderMas = reinterpret_cast<dal::RenderMaster*>(p);
-        }
-
-        static dal::RenderMaster* get_renderMas(void) {
-            if ( nullptr == s_renderMas ) {
-                dalAbort("RenderMaster has not passed to Lua.");
-            }
-
-            return s_renderMas;
-        }
-
         static void set_output(dal::LuaStdOutput* ptr) {
             s_output = ptr;
         }
@@ -57,9 +47,25 @@ namespace {
             return s_output;
         }
 
+        static void init(void* const renderMaster, void* const sceneMaster) {
+            s_renderMas = reinterpret_cast<dal::RenderMaster*>(renderMaster);
+            s_sceneMas = reinterpret_cast<dal::SceneMaster*>(sceneMaster);
+        }
+
+        static dal::RenderMaster* getRenderMas(void) {
+            dalAssert(nullptr != s_renderMas);
+            return s_renderMas;
+        }
+
+        static dal::SceneMaster* getSceneMas(void) {
+            dalAssert(nullptr != s_sceneMas);
+            return s_sceneMas;
+        }
+
     };
 
     dal::RenderMaster* ExternalDependencies::s_renderMas = nullptr;
+    dal::SceneMaster* ExternalDependencies::s_sceneMas = nullptr;
     dal::LuaStdOutput* ExternalDependencies::s_output = &g_defaultOutput;
 
 }
@@ -95,7 +101,7 @@ namespace {
 namespace {
 
     int moon_setRenderScale(lua_State* L) {
-        auto renMas = ExternalDependencies::get_renderMas();
+        auto renderMas = ExternalDependencies::getRenderMas();
 
         const auto numParams = lua_gettop(L);
         if ( numParams < 1 ) return 0;
@@ -103,9 +109,25 @@ namespace {
         const auto param = static_cast<float>(lua_tonumber(L, 1));
         if ( param < 0.1 || param > 3.0 ) return 0;
 
-        renMas->setRenderScale(param);
+        renderMas->setRenderScale(param);
 
         return 0;
+    }
+
+}
+
+
+// Scene Master
+namespace {
+
+    int moon_loadMap(lua_State* L) {
+        const auto numParams = lua_gettop(L);
+        if ( numParams < 1 ) {
+            return 0;
+        }
+
+        const auto param1 = lua_tostring(L, 1);
+        ExternalDependencies::getSceneMas()->loadMap(param1);
     }
 
 }
@@ -114,8 +136,8 @@ namespace {
 namespace dal {
     namespace script {
 
-        void init_renderMas(void* p) {
-            ExternalDependencies::init_renderMas(p);
+        void init(void* const renderMaster, void* const sceneMaster) {
+            ExternalDependencies::init(renderMaster, sceneMaster);
         }
 
         void set_outputStream(LuaStdOutput* const ptr) {
@@ -135,6 +157,7 @@ namespace dal {
         this->addGlobalFunction("print", moon_print);
 
         this->addGlobalFunction("set_render_scale", moon_setRenderScale);
+        this->addGlobalFunction("load_map", moon_loadMap);
     }
 
     Lua::~Lua(void) {

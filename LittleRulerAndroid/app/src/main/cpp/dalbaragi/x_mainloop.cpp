@@ -166,6 +166,8 @@ namespace dal {
             EventGod::getinst().registerHandler(this, EventType::quit_game);
 
             LoggerGod::getinst().addChannel(&g_fileLogger);
+
+            script::init(&this->m_renderMan, &this->m_scene);
         }
 
         // Misc

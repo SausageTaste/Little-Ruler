@@ -20,7 +20,7 @@ namespace dal {
 
     namespace script {
 
-        void init_renderMas(void* p);
+        void init(void* const renderMaster, void* const sceneMaster);
         void set_outputStream(LuaStdOutput* const ptr);
 
     }

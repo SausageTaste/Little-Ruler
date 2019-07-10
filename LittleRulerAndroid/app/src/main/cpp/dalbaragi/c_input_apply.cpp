@@ -506,6 +506,10 @@ namespace {
                 }
             }
 
+            if ( !textBuf.empty() ) {
+                commands.emplace_back(std::move(textBuf));
+            }
+
             return commands;
         }
 
@@ -723,6 +727,7 @@ namespace {
             case TouchStatesMaster::TouchCommand::CmdType::click:
                 pos = cmd.getClickPos();
                 overlay.onClick(pos.x, pos.y);
+                break;
             default:
                 dalWarn("Unhandled touch command: "s + std::to_string(int(cmd.getType())));
 

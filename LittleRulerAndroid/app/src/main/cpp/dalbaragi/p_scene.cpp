@@ -324,7 +324,7 @@ namespace dal {
             ConfigsGod::getinst().setWinSize(winWidth, winHeight);
         }
 
-        this->loadMap("asset::map/test_level.dlb");
+        //this->loadMap("asset::map/test_level.dlb");
     }
 
     SceneMaster::~SceneMaster(void) {
@@ -430,7 +430,10 @@ namespace dal {
     void SceneMaster::loadMap(const ResourceID& mapID) {
         std::vector<uint8_t> buffer;
         auto res = futil::getRes_buffer(mapID, buffer);
-        if ( !res ) dalAbort("Failed to load map file: "s + mapID.makeIDStr());
+        if ( !res ) {
+            dalError("Failed to load map file: "s + mapID.makeIDStr());
+            return;
+        }
 
         loadedinfo::LoadedMap info;
         info.m_mapName = mapID.getBareName();
@@ -438,11 +441,11 @@ namespace dal {
 
         res = parseMap_dlb(info, buffer.data(), buffer.size());
         if ( !res ) {
-            LoggerGod::getinst().putError("Failed to parse level: "s + mapID.makeIDStr(), __LINE__, __func__, __FILE__);
+            dalError("Failed to parse level: "s + mapID.makeIDStr());
+            return;
         }
-        else {
-            this->addMap(info);
-        }
+
+        this->addMap(info);
     }
 
     void SceneMaster::onResize(const unsigned int width, const unsigned int height) {
