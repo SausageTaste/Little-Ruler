@@ -202,6 +202,7 @@ namespace dal {
 
         TaskGod::getinst().update();
 
+        this->m_scene.update(deltaTime);
         this->m_renderMan.update(deltaTime);
         this->m_renderMan.render();
         this->m_overlayMas.render();

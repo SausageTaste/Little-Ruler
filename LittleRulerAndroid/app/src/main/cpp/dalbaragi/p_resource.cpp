@@ -237,14 +237,16 @@ namespace dal {
         return model;
     }
 
-    Texture* Package::orderDiffuseMap(const ResourceID& texID, ResourceMaster* const resMas) {
+    Texture* Package::orderDiffuseMap(ResourceID texID, ResourceMaster* const resMas) {
         auto iter = this->m_textures.find(texID.makeFileName());
         if ( this->m_textures.end() == iter ) {
             auto texture = g_texturePool.alloc();
             this->m_textures.emplace(texID.makeFileName(), ManageInfo<Texture>{ texture, 2 });  // ref count is 2 because of return and task.
 
-            ResourceID idWithPackage{ this->m_name, texID.getOptionalDir(), texID.getBareName(), texID.getExt() };
-            auto task = new LoadTask_Texture(idWithPackage, texture);
+            if ( texID.getPackage().empty() ) {
+                texID.setPackage(this->m_name);
+            }
+            auto task = new LoadTask_Texture(texID, texture);
             g_sentTasks_texture.insert(task);
             TaskGod::getinst().orderTask(task, resMas);
 

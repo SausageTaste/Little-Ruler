@@ -49,7 +49,7 @@ namespace dal {
         ModelStatic* orderModel(const ResourceID& resPath, ResourceMaster* const resMas);
         ModelAnimated* orderModelAnimated(const ResourceID& resPath, ResourceMaster* const resMas);
         ModelStatic* buildModel(const loadedinfo::ModelDefined& info, ResourceMaster* const resMas);
-        Texture* orderDiffuseMap(const ResourceID& texID, ResourceMaster* const resMas);
+        Texture* orderDiffuseMap(ResourceID texID, ResourceMaster* const resMas);
 
         void getResReport(ResourceReport& report) const;
 
