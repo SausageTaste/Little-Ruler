@@ -3,6 +3,7 @@
 #include <list>
 
 #include <glm/glm.hpp>
+#include <entt/entity/registry.hpp>
 
 #include "s_event.h"
 
@@ -68,7 +69,7 @@ namespace dal {
         RenderMaster(SceneMaster& scene, ShaderMaster& shader, OverlayMaster& overlay, ICamera* const camera, const unsigned int winWidth, const unsigned int winHeight);
 
         void update(const float deltaTime);
-        void render(void);
+        void render(entt::registry& reg);
         void setRenderScale(float v);
 
         void onWinResize(const unsigned int width, const unsigned int height);

@@ -271,7 +271,7 @@ namespace dal {
         */
     }
 
-    void RenderMaster::render(void) {
+    void RenderMaster::render(entt::registry& reg) {
         // Shadow map
         {
             this->m_dlight1.clearDepthBuffer();
@@ -348,6 +348,12 @@ namespace dal {
             uniloc.m_lightedMesh.viewPos(this->m_mainCamera->m_pos);
 
             this->m_scene.renderGeneral(uniloc);
+
+            reg.view<cpnt::Transform, cpnt::StaticModel>().each(
+                [&uniloc](cpnt::Transform& trans, cpnt::StaticModel& model) {
+                    model.m_model->render(uniloc.m_lightedMesh, uniloc.getDiffuseMapLoc(), trans);
+                }
+            );
         }
 
         // Render to framebuffer animated

@@ -145,14 +145,13 @@ namespace dal {
 
         // Player
         {
-            this->m_player.replaceCamera(&this->m_camera);
+            this->m_player = this->m_enttMaster.create();
+            this->m_enttMaster.assign<cpnt::Transform>(this->m_player);
 
-            auto model = this->m_resMas.orderModel("test::academy.obj");
-            if ( nullptr == model ) dalAbort("Failed to give Player a model");
-            this->m_player.replaceModel(model);
-
-            auto actor = this->m_scene.addActor(model, "", "player_model", false);
-            this->m_player.replaceActor(actor);
+            auto model = this->m_resMas.orderModel("asset::yuri.obj");
+            dalAssert(nullptr != model);
+            auto& renderable = this->m_enttMaster.assign<cpnt::StaticModel>(this->m_player);
+            renderable.m_model = model;
         }
 
         // Camera
@@ -197,14 +196,14 @@ namespace dal {
             this->m_timerForFPSReport.check();
         }
 
-        this->m_inputApply.apply(deltaTime, this->m_player);
-        this->m_scene.applyCollision(*this->m_player.getModel(), *this->m_player.getActor());
+        this->m_inputApply.apply(deltaTime, this->m_camera, this->m_enttMaster.get<cpnt::Transform>(this->m_player));
+        //this->m_scene.applyCollision(*this->m_player.getModel(), *this->m_player.getActor());
 
         TaskGod::getinst().update();
 
         this->m_scene.update(deltaTime);
         this->m_renderMan.update(deltaTime);
-        this->m_renderMan.render();
+        this->m_renderMan.render(this->m_enttMaster);
         this->m_overlayMas.render();
 
         return 0;

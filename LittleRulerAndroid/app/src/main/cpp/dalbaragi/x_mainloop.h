@@ -1,5 +1,7 @@
 #pragma once
 
+#include <entt/entity/registry.hpp>
+
 #include "p_render_master.h"
 #include "s_event.h"
 #include "c_input_apply.h"
@@ -16,20 +18,18 @@ namespace dal {
         //// Vars ////
 
     private:
-        bool m_flagQuit;
-
-        Timer m_timer;
-        Timer m_timerForFPSReport;
-
-        StrangeEulerCamera m_camera;
-        Player m_player;
-
         ShaderMaster m_shader;
         ResourceMaster m_resMas;
         SceneMaster m_scene;
         OverlayMaster m_overlayMas;
         RenderMaster m_renderMan;
         InputApplier m_inputApply;
+        entt::registry m_enttMaster;
+
+        StrangeEulerCamera m_camera;
+        Timer m_timer, m_timerForFPSReport;
+        bool m_flagQuit;
+        uint32_t m_player;
 
         //// Funcs ////
 

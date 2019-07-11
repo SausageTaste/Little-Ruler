@@ -50,6 +50,7 @@ namespace dal {
         bool isReady(void) const;
 
         void render(const UniInterfLightedMesh& unilocLighted, const SamplerInterf& samplerInterf, std::list<ActorInfo>& actors) const;
+        void render(const UniInterfLightedMesh& unilocLighted, const SamplerInterf& samplerInterf, const cpnt::Transform& transform) const;
         void renderDepthMap(const UniInterfGeometry& unilocGeometry, std::list<ActorInfo>& actors) const;
 
         void destroyModel(void);

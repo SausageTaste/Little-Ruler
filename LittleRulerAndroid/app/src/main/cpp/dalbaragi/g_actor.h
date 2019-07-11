@@ -13,6 +13,10 @@
 namespace dal {
 
     class ModelStatic;
+    class ModelAnimated;
+
+
+    glm::quat rotateQuat(const glm::quat& q, const float radians, const glm::vec3& selector);
 
 
     class ICamera {
@@ -106,25 +110,33 @@ namespace dal {
     };
 
 
-    class Player {
+    constexpr unsigned int MAX_ID_NAME_LEN = 128;
 
-    private:
-        StrangeEulerCamera* m_camera = nullptr;
-        ActorInfo* m_actor = nullptr;
-        ModelStatic* m_model = nullptr;
 
-    public:
-        Player(void) = default;
-        Player(StrangeEulerCamera* camera, ActorInfo* actor, ModelStatic* model);
+    namespace cpnt {
 
-        StrangeEulerCamera* replaceCamera(StrangeEulerCamera* const camera);
-        ActorInfo* replaceActor(ActorInfo* const actor);
-        ModelStatic* replaceModel(ModelStatic* const model);
+        struct Transform {
+            glm::mat4 m_modelMat;
+            glm::quat m_quat;
+            glm::vec3 m_pos;
+            float m_scale = 1.0f;
 
-        StrangeEulerCamera* getCamera(void) { assert(nullptr != this->m_camera); return this->m_camera; }
-        ActorInfo* getActor(void) { assert(nullptr != this->m_actor); return this->m_actor; }
-        ModelStatic* getModel(void) { assert(nullptr != this->m_model); return this->m_model; }
+            Transform(void);
+            void updateMat(void);
+        };
 
-    };
+        struct Identifier {
+            char m_name[MAX_ID_NAME_LEN] = { 0 };
+        };
+
+        struct StaticModel {
+            ModelStatic* m_model = nullptr;
+        };
+
+        struct AnimatedModel {
+            ModelAnimated* m_model = nullptr;
+        };
+
+    }
 
 }

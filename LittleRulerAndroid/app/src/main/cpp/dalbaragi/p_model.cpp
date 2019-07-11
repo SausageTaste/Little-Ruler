@@ -74,6 +74,22 @@ namespace dal {
         }
     }
 
+    void ModelStatic::render(const UniInterfLightedMesh& unilocLighted, const SamplerInterf& samplerInterf, const cpnt::Transform& transform) const {
+        if ( !this->isReady() ) {
+            return;
+        }
+
+        for ( auto& unit : this->m_renderUnits ) {
+            unit.m_material.sendUniform(unilocLighted, samplerInterf);
+            if ( !unit.m_mesh.isReady() ) {
+                continue;
+            }
+
+            unilocLighted.modelMat(transform.m_modelMat);
+            unit.m_mesh.draw();
+        }
+    }
+
     void ModelStatic::renderDepthMap(const UniInterfGeometry& unilocGeometry, std::list<ActorInfo>& actors) const {
         if ( !this->isReady() ) return;
 

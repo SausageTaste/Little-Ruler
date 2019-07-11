@@ -25,7 +25,7 @@ namespace dal {
 
         virtual void onEvent(const EventStatic& e) override;
 
-        void apply(const float deltaTime, Player& player);
+        void apply(const float deltaTime, StrangeEulerCamera& camera, cpnt::Transform& cpntTrans);
 
     };
 

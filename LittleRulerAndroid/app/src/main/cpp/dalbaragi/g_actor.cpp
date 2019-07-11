@@ -50,6 +50,10 @@ namespace {
 
 namespace dal {
 
+    glm::quat rotateQuat(const glm::quat& q, const float radians, const glm::vec3& selector) {
+        return glm::normalize(glm::angleAxis(radians, selector) * q);
+    }
+
     glm::vec3 strangeEuler2Vec(const StrangeEuler& se) {
         const auto x = se.getX();
         const auto y = se.getY();
@@ -124,6 +128,7 @@ namespace dal {
 }
 
 
+// StrangeEulerCamera
 namespace dal {
 
     void StrangeEulerCamera::updateViewMat(void) {
@@ -163,6 +168,7 @@ namespace dal {
 }
 
 
+// ActorInfo
 namespace dal {
 
     ActorInfo::ActorInfo(const std::string& actorName, const bool flagStatic)
@@ -221,32 +227,17 @@ namespace dal {
 }
 
 
-namespace dal {
+namespace dal::cpnt {
 
-    Player::Player(StrangeEulerCamera* const camera, ActorInfo* actor, ModelStatic* model)
-        : m_camera(camera),
-        m_actor(actor),
-        m_model(model)
-    {
-
+    Transform::Transform(void) {
+        this->updateMat();
     }
 
-    StrangeEulerCamera* Player::replaceCamera(StrangeEulerCamera* const camera) {
-        const auto tmp = this->m_camera;
-        this->m_camera = camera;
-        return tmp;
-    }
-
-    ActorInfo* Player::replaceActor(ActorInfo* const actor) {
-        const auto tmp = this->m_actor;
-        this->m_actor = actor;
-        return tmp;
-    }
-
-    ModelStatic* Player::replaceModel(ModelStatic* const model) {
-        const auto tmp = this->m_model;
-        this->m_model = model;
-        return tmp;
+    void Transform::updateMat(void) {
+        const auto identity = glm::mat4{ 1.0f };
+        const auto scaleMat = glm::scale(identity, glm::vec3{ this->m_scale, this->m_scale , this->m_scale });
+        const auto translateMat = glm::translate(identity, this->m_pos);
+        this->m_modelMat = translateMat * glm::mat4_cast(this->m_quat) * scaleMat;
     }
 
 }

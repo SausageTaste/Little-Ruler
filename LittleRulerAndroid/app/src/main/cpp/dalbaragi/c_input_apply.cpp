@@ -511,10 +511,9 @@ namespace {
 
 namespace {
 
-    void apply_flyDirectional(const float deltaTime, dal::Player& player, dal::OverlayMaster& overlay) {
+    void apply_flyDirectional(const float deltaTime, dal::StrangeEulerCamera& camera, dal::OverlayMaster& overlay) {
         glm::vec2 totalMovePlane{ 0.0 };  // This means it must represent move direction when targetViewDir == { 0, 0 }.
         float moveUpOrDown = 0.0f;
-        auto const camera = player.getCamera();
 
         g_keyboardMas.fetch();
         g_touchMas.fetch();
@@ -524,18 +523,18 @@ namespace {
             NoclipMoveInfo keyboardInfo;
             if ( g_keyboardMas.makeMoveInfo(keyboardInfo, deltaTime) ) {
                 totalMovePlane += glm::vec2{ keyboardInfo.xMovePlane, keyboardInfo.zMovePlane };
-                camera->addViewPlane(keyboardInfo.xView, keyboardInfo.yView);
+                camera.addViewPlane(keyboardInfo.xView, keyboardInfo.yView);
                 moveUpOrDown += keyboardInfo.vertical;
             }
 
             NoclipMoveInfo touchInfo;
             if ( g_touchMas.makeMoveInfo(touchInfo, overlay) ) {
                 totalMovePlane += glm::vec2{ touchInfo.xMovePlane, touchInfo.zMovePlane };
-                camera->addViewPlane(touchInfo.xView, touchInfo.yView);
+                camera.addViewPlane(touchInfo.xView, touchInfo.yView);
                 moveUpOrDown += touchInfo.vertical;
             }
 
-            camera->updateViewMat();
+            camera.updateViewMat();
         }
 
         // Return if target doesn't need to move.
@@ -544,7 +543,7 @@ namespace {
         // Apply move direction
         {
             glm::mat4 viewMat{ 1.0 };
-            const auto viewVec = camera->getViewPlane();
+            const auto viewVec = camera.getViewPlane();
             viewMat = glm::rotate(viewMat, -viewVec.x, glm::vec3(0.0f, 1.0f, 0.0f));
             viewMat = glm::rotate(viewMat, viewVec.y, glm::vec3(1.0f, 0.0f, 0.0f));
 
@@ -553,15 +552,13 @@ namespace {
 
             //moveDirection = glm::normalize(moveDirection);  // Maybe this is redundant.
             const float moveMultiplier = 5.0f * deltaTime;
-            camera->m_pos += moveDirection * moveMultiplier;
+            camera.m_pos += moveDirection * moveMultiplier;
         }
 
-        camera->updateViewMat();
+        camera.updateViewMat();
     }
 
-    void apply_flyPlane(const float deltaTime, dal::Player& player, dal::OverlayMaster& overlay) {
-        auto const camera = player.getCamera();
-
+    void apply_flyPlane(const float deltaTime, dal::StrangeEulerCamera& camera, dal::OverlayMaster& overlay) {
         glm::vec2 totalMovePlane{ 0.0 };  // This means it must represent move direction when targetViewDir == { 0, 0 }.
         float moveUpOrDown = 0.0f;
 
@@ -573,18 +570,18 @@ namespace {
             NoclipMoveInfo keyboardInfo;
             if ( g_keyboardMas.makeMoveInfo(keyboardInfo, deltaTime) ) {
                 totalMovePlane += glm::vec2{ keyboardInfo.xMovePlane, keyboardInfo.zMovePlane };
-                camera->addViewPlane(keyboardInfo.xView, keyboardInfo.yView);
+                camera.addViewPlane(keyboardInfo.xView, keyboardInfo.yView);
                 moveUpOrDown += keyboardInfo.vertical;
             }
 
             NoclipMoveInfo touchInfo;
             if ( g_touchMas.makeMoveInfo(touchInfo, overlay) ) {
                 totalMovePlane += glm::vec2{ touchInfo.xMovePlane, touchInfo.zMovePlane };
-                camera->addViewPlane(touchInfo.xView, touchInfo.yView);
+                camera.addViewPlane(touchInfo.xView, touchInfo.yView);
                 moveUpOrDown += touchInfo.vertical;
             }
 
-            camera->updateViewMat();
+            camera.updateViewMat();
         }
 
         // Return if target doesn't need to move.
@@ -593,7 +590,7 @@ namespace {
         /* Apply move direction */
         {
             glm::mat4 viewMat{ 1.0 };
-            const auto viewVec = camera->getViewPlane();
+            const auto viewVec = camera.getViewPlane();
             viewMat = glm::rotate(viewMat, -viewVec.x, glm::vec3(0.0f, 1.0f, 0.0f));
             //viewMat = glm::rotate(viewMat, targetViewDir->y, glm::vec3(1.0f, 0.0f, 0.0f));
 
@@ -602,14 +599,14 @@ namespace {
 
             //moveDirection = glm::normalize(moveDirection);  // Maybe this is redundant.
             const float moveMultiplier = 5.0f * deltaTime;
-            camera->m_pos += moveDirection * moveMultiplier;
-            camera->m_pos.y += moveDirection.y * 50.0f * deltaTime;
+            camera.m_pos += moveDirection * moveMultiplier;
+            camera.m_pos.y += moveDirection.y * 50.0f * deltaTime;
         }
 
-        camera->updateViewMat();
+        camera.updateViewMat();
     }
 
-    void apply_topdown(const float deltaTime, dal::Player& player, dal::OverlayMaster& overlay) {
+    void apply_topdown(const float deltaTime, dal::StrangeEulerCamera& camera, dal::cpnt::Transform& cpntTrans, dal::OverlayMaster& overlay) {
         // This means it must represent move direction when targetViewDir == { 0, 0 }
         NoclipMoveInfo totalMoveInfo{ 0.0f };
 
@@ -647,19 +644,15 @@ namespace {
 
         // Apply move direction
         {
-            auto actor = player.getActor();
-            auto camera = player.getCamera();
-
-            const auto actor2Cam = camera->m_pos - actor->getPos();
+            const auto actor2Cam = camera.m_pos - cpntTrans.m_pos;
 
             const glm::vec3 toAddToPos{ totalMoveInfo.xMovePlane * deltaTime * 5.0f, 0.0f, totalMoveInfo.zMovePlane * deltaTime * 5.0f };
-            actor->addPos(toAddToPos);
+            cpntTrans.m_pos += toAddToPos;
 
             if ( totalMoveInfo.xMovePlane != 0.0 ||totalMoveInfo.zMovePlane != 0.0f ) {
                 const glm::vec3 moveVec3{ totalMoveInfo.xMovePlane, 0.0f, -totalMoveInfo.zMovePlane };
                 const auto stranEuler = dal::vec2StrangeEuler(moveVec3);
-                actor->setQuat(glm::quat{});
-                actor->rotate(stranEuler.getX(), glm::vec3{ 0.0f, 1.0f, 0.0f });
+                cpntTrans.m_quat = dal::rotateQuat(glm::quat{}, stranEuler.getX(), glm::vec3{ 0.0f, 1.0f, 0.0f });
             }
 
             auto camPosVec4 = glm::rotate(glm::mat4{ 1.0f }, totalMoveInfo.yView, glm::vec3{ 1.0f, 0.0f, 0.0f }) * 
@@ -669,17 +662,15 @@ namespace {
 
             const auto camSEuler = dal::vec2StrangeEuler(-camPosVec3);
 
-            camera->setViewPlane(camSEuler.getX(), camSEuler.getY());
+            camera.setViewPlane(camSEuler.getX(), camSEuler.getY());
 
             const auto len = glm::length(camPosVec3);
             if ( len > 3.0 ) {
-                camera->m_pos = actor->getPos() + (camPosVec3 / len * 3.0f);
+                camera.m_pos = cpntTrans.m_pos + (camPosVec3 / len * 3.0f);
             }
             else {
-                camera->m_pos = actor->getPos() + camPosVec3;
+                camera.m_pos = cpntTrans.m_pos + camPosVec3;
             }
-
-
 
             /*
             constexpr float cameraAngle = 55.0f;
@@ -688,7 +679,8 @@ namespace {
             camera->setViewPlane(0.0f, glm::radians(-cameraAngle));
             */
 
-            camera->updateViewMat();
+            camera.updateViewMat();
+            cpntTrans.updateMat();
         }
     }
 
@@ -759,21 +751,19 @@ namespace dal {
         }
     }
 
-    void InputApplier::apply(const float deltaTime, Player& player) {
-
-        switch ( mFSM ) {
-
-        case GlobalGameState::game:
+    void InputApplier::apply(const float deltaTime, StrangeEulerCamera& camera, cpnt::Transform& cpntTrans) {
+        if ( GlobalGameState::game == this->mFSM ) {
 #if defined(_WIN32)
-			apply_flyPlane(deltaTime, player, this->m_overlayMas);
+            apply_flyPlane(deltaTime, camera, this->m_overlayMas);
 #else defined(__ANDROID__)
-            apply_flyDirectional(deltaTime, player, this->m_overlayMas);
+            apply_flyDirectional(deltaTime, camera, this->m_overlayMas);
 #endif
-            break;
-        case GlobalGameState::menu:
+        }
+        else if ( GlobalGameState::menu == this->mFSM ) {
             apply_menuControl(this->m_overlayMas);
-            break;
-
+        }
+        else {
+            dalAbort("Unknown global game state.");
         }
     }
 
