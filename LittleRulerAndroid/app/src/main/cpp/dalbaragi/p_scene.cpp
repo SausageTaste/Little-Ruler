@@ -351,7 +351,7 @@ namespace dal {
             ConfigsGod::getinst().setWinSize(winWidth, winHeight);
         }
 
-        this->loadMap("asset::map/vast_citylike.dlb");
+        this->loadMap("asset::map/water_bowl.dlb");
     }
 
     SceneMaster::~SceneMaster(void) {

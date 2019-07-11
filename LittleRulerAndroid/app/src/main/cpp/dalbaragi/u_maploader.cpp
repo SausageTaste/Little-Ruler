@@ -424,7 +424,7 @@ namespace {  // Make items
 namespace dal {
 
     bool parseMap_dlb(loadedinfo::LoadedMap& info, const uint8_t* const buf, const size_t bufSize) {
-        const auto chunkSize = bufSize * 11;
+        const auto chunkSize = bufSize * 20;
         std::unique_ptr<uint8_t[]> decomBuf{ new uint8_t[chunkSize] };
         uLongf decomBufSize = chunkSize;
 

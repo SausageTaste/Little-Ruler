@@ -2,7 +2,7 @@ import os
 import shutil
 
 import dlbcompile as dlb
-from demo import water_bowl, vast_city_like
+from demo import water_bowl, vast_city_like, hroom
 
 
 INTERM_FOLDER: str = "./intermediates/"
@@ -22,6 +22,7 @@ def genIntermediates():
 def main():
     water_bowl.main()
     vast_city_like.main()
+    hroom.main()
 
     args = [""] + [INTERM_FOLDER + i for i in genIntermediates()]
     dlb.main(args)
