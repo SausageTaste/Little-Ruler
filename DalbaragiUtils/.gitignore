@@ -2,6 +2,7 @@
 *.json
 /__pycache__
 /level/__pycache__
+/demo/__pycache__
 /level/datastruct/__pycache__
 /intermediates
 /outputs
