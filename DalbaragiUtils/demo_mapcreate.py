@@ -71,7 +71,7 @@ def main():
     model.setModelID("wallX")
     model.getMeshHandle().setAABB(atl.Vec3(0, -50, 0), atl.Vec3(1, 10, 50))
     model.getMaterialHandle().setDiffuseMap("asset::0021di.png")
-    model.getMaterialHandle().setTexScale(25, 15)
+    model.getMaterialHandle().setTexScale(25/2, 30/2)
 
     actor = aco.ActorInfo()
     actor.getPosHandle().setX(-11)
@@ -91,7 +91,7 @@ def main():
     model.setModelID("wallY")
     model.getMeshHandle().setAABB(atl.Vec3(0, -50, 0), atl.Vec3(50, 10, 1))
     model.getMaterialHandle().setDiffuseMap("asset::0021di.png")
-    model.getMaterialHandle().setTexScale(25, 15)
+    model.getMaterialHandle().setTexScale(25/2, 30/2)
 
     actor = aco.ActorInfo()
     actor.getPosHandle().setX(-10)
@@ -109,8 +109,8 @@ def main():
 
     model = bfi.BuildInfo_ModelDefined()
     model.setModelID("tall")
-    model.getMeshHandle().setAABB(atl.Vec3(-4, 0, -9), atl.Vec3(4, 50, -1))
-    model.getMaterialHandle().setTexScale(4, 25)
+    model.getMeshHandle().setAABB(atl.Vec3(-4, -50, -9), atl.Vec3(4, 50, -1))
+    model.getMaterialHandle().setTexScale(2, 25)
     model.getMaterialHandle().setDiffuseMap("asset::grass1.png")
 
     actor = aco.ActorInfo()

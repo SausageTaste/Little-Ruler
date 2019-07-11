@@ -18,7 +18,7 @@ uniform vec3      uDlightColors[3];
 uniform sampler2D uDlightDepthMap[3];  // TEX 1, 2, 3
 
 
-float sampleDlightDepth(int index, vec2 coord) {
+float _sampleDlightDepth(int index, vec2 coord) {
 
 #ifdef GL_ES
     switch (index){
@@ -37,7 +37,6 @@ float sampleDlightDepth(int index, vec2 coord) {
 
 }
 
-
 float _getShadowFactor_directional(int index, vec4 fragPosInDlight) {
     vec3 projCoords = fragPosInDlight.xyz / fragPosInDlight.w;
     if (projCoords.z > 1.0) return 1.0;
@@ -46,7 +45,7 @@ float _getShadowFactor_directional(int index, vec4 fragPosInDlight) {
     if (projCoords.x > 1.0 || projCoords.x < 0.0) return 1.0;
     if (projCoords.y > 1.0 || projCoords.y < 0.0) return 1.0;
 
-    float closestDepth = sampleDlightDepth(index, projCoords.xy);
+    float closestDepth = _sampleDlightDepth(index, projCoords.xy);
     float currentDepth = projCoords.z;
 
     //float bias = max(0.05 * (1.0 - dot(vNormalVec, -uDlightDirs[index])), 0.005);
@@ -56,7 +55,6 @@ float _getShadowFactor_directional(int index, vec4 fragPosInDlight) {
 
     return shadow;
 }
-
 
 float _distanceDecreaser(float dist) {
     const float k_startDecrease = 15.0;
@@ -69,7 +67,6 @@ float _distanceDecreaser(float dist) {
     else
         return (dist - k_endDecrea) / (k_startDecrease - k_endDecrea);
 }
-
 
 float _getLightFactor_directional(int index, vec3 viewDir, vec3 fragNormal) {
     vec3 lightLocDir = normalize(-uDlightDirecs[index]);
@@ -88,7 +85,6 @@ float _getLightFactor_directional(int index, vec3 viewDir, vec3 fragNormal) {
         return diff + specular;
     }
 }
-
 
 float getDlightFactor(int index, vec3 viewDir, vec3 fragNormal, vec4 fragPosInDlight) {
     return _getLightFactor_directional(index, viewDir, fragNormal) * _getShadowFactor_directional(index, fragPosInDlight);
@@ -113,14 +109,28 @@ float getLightFactor_point(int index, vec3 viewDir, vec3 fragNormal, vec3 fragPo
 }
 
 
-float _calcFogFactor(float fragDistance) {
+float _calcHeightFogFactor(vec3 fragPos) {
+    float fragHeight = fragPos.y;
+    const float lambda = 10.0;
+    const float maxFactor = 0.1;
+    float factor = -maxFactor * (fragHeight / lambda - 1.0);
+    return clamp(factor, 0.0, maxFactor);
+}
+
+float _calcDistanceFogFactor(vec3 fragPos) {
+    float fragDistance = distance(fragPos, uViewPos);
     float factor = fragDistance * u_fogMaxPointInvSqr * fragDistance;
     return clamp(factor, 0.0, 1.0);
 }
 
+float _calcFogFactor(vec3 fragPos) {
+    float factor = _calcDistanceFogFactor(fragPos);
+    factor += _calcHeightFogFactor(fragPos);
+    return clamp(factor, 0.0, 1.0);
+}
 
-vec4 calcFogMixedColor(vec4 color, float fragDistance) {
-    float factor = _calcFogFactor(fragDistance);
+vec4 calcFogMixedColor(vec4 color, vec3 fragPos) {
+    float factor = _calcFogFactor(fragPos);
     vec3 mixedColor = mix(color.xyz, u_fogColor, factor);
     return vec4(mixedColor, color.a);
 }

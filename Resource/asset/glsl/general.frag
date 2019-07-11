@@ -37,5 +37,5 @@ void main(void) {
     vec4 texColor = texture(u_diffuseMap, vTexCoord);
     if (texColor.a == 0.0) discard;
     fColor = texColor * vec4(lightedColor, 1.0);
-    fColor = calcFogMixedColor(fColor, distance(vFragPos, uViewPos));
+    fColor = calcFogMixedColor(fColor, vFragPos);
 }

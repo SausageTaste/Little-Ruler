@@ -161,12 +161,6 @@ namespace dal {
         glDrawArrays(GL_TRIANGLES, 0, 6);
     }
 
-    /*
-    Texture* RenderMaster::MainFramebuffer::getTex(void) {
-        return this->m_tex;
-    }
-    */
-
 }
 
 
