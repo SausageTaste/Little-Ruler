@@ -85,6 +85,16 @@ namespace {
         }
     }
 
+    /*
+    In OpenGL coordinate system, if input is (x, z), rotation follows left hand rule.
+    */
+    glm::vec2 rotateVec2(const glm::vec2& v, const float radians) {
+        return glm::vec2{
+            v.x * cos(radians) - v.y * sin(radians),
+            v.x * sin(radians) + v.y * cos(radians)
+        };
+    }
+
 }  // namespace
 
 
@@ -644,6 +654,18 @@ namespace {
 
         // Apply move direction
         {
+            const auto camViewVec = dal::strangeEuler2Vec(camera.getStrangeEuler());
+            const auto rotatorAsCamX = glm::rotate(glm::mat4{ 1.0f }, camera.getStrangeEuler().getX(), glm::vec3{ 0.0f, 1.0f, 0.0f });
+            const auto rotatedMoveVec = rotateVec2(glm::vec2{ totalMoveInfo.xMovePlane, totalMoveInfo.zMovePlane }, camera.getStrangeEuler().getX());
+
+            cpntTrans.m_pos += glm::vec3{ rotatedMoveVec.x, totalMoveInfo.vertical, rotatedMoveVec.y } * deltaTime;
+            cpntTrans.m_quat = dal::rotateQuat(glm::quat{}, atan2(rotatedMoveVec.x, rotatedMoveVec.y), glm::vec3{ 0.0f, 1.0f, 0.0f });
+
+            const auto cam2ObjVec = cpntTrans.m_pos - camera.m_pos + glm::vec3{ 0.0f, 1.0f, 0.0f };
+            const auto cam2ObjSEuler = dal::vec2StrangeEuler(cam2ObjVec);
+            camera.setViewPlane(cam2ObjSEuler.getX(), cam2ObjSEuler.getY());
+
+            /*
             const auto actor2Cam = camera.m_pos - cpntTrans.m_pos;
 
             const glm::vec3 toAddToPos{ totalMoveInfo.xMovePlane * deltaTime * 5.0f, 0.0f, totalMoveInfo.zMovePlane * deltaTime * 5.0f };
@@ -671,6 +693,7 @@ namespace {
             else {
                 camera.m_pos = cpntTrans.m_pos + camPosVec3;
             }
+            */
 
             /*
             constexpr float cameraAngle = 55.0f;
@@ -754,9 +777,9 @@ namespace dal {
     void InputApplier::apply(const float deltaTime, StrangeEulerCamera& camera, cpnt::Transform& cpntTrans) {
         if ( GlobalGameState::game == this->mFSM ) {
 #if defined(_WIN32)
-            apply_flyPlane(deltaTime, camera, this->m_overlayMas);
+            apply_topdown(deltaTime, camera, cpntTrans, this->m_overlayMas);
 #else defined(__ANDROID__)
-            apply_flyDirectional(deltaTime, camera, this->m_overlayMas);
+            apply_topdown(deltaTime, camera, cpntTrans, this->m_overlayMas);
 #endif
         }
         else if ( GlobalGameState::menu == this->mFSM ) {

@@ -145,7 +145,7 @@ def main():
     model.getMaterialHandle().setTexScale(1, 1)
     model.getMaterialHandle().setDiffuseMap("asset::missing_no.png")
 
-    for _ in range(100):
+    for _ in range(30):
         x = random.randint(-8, 38)
         y = random.randint(-30, 5)
         z = random.randint(-17, 22)

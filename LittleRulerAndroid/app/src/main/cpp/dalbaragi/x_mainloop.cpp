@@ -148,7 +148,7 @@ namespace dal {
             this->m_player = this->m_enttMaster.create();
             this->m_enttMaster.assign<cpnt::Transform>(this->m_player);
 
-            auto model = this->m_resMas.orderModel("asset::yuri.obj");
+            auto model = this->m_resMas.orderModel("test::academy.obj");
             dalAssert(nullptr != model);
             auto& renderable = this->m_enttMaster.assign<cpnt::StaticModel>(this->m_player);
             renderable.m_model = model;

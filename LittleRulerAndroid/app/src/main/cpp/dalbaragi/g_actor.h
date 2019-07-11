@@ -74,6 +74,7 @@ namespace dal {
         virtual std::pair<glm::vec3, glm::mat4> makeReflected(const float planeHeight) const override;
 
         glm::vec2 getViewPlane(void) const;
+        StrangeEuler& getStrangeEuler(void);
         const StrangeEuler& getStrangeEuler(void) const;
         void setViewPlane(const float x, const float y);
         void addViewPlane(const float x, const float y);
