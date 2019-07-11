@@ -107,19 +107,25 @@ namespace dal {
         this->sendUniforms_lights(uniloc.m_lightedMesh, 0);
 
         for ( auto& modelActor : this->m_modelActors ) {
-            modelActor.m_model->render(uniloc.m_lightedMesh, uniloc.getDiffuseMapLoc(), modelActor.m_inst);
+            for ( auto& actor : modelActor.m_inst ) {
+                modelActor.m_model->render(uniloc.m_lightedMesh, uniloc.getDiffuseMapLoc(), actor.getModelMat());
+            }
         }
     }
 
     void MapChunk::renderDepthMp(const UnilocDepthmp& uniloc) {
         for ( auto& modelActor : this->m_modelActors ) {
-            modelActor.m_model->renderDepthMap(uniloc.m_geometry, modelActor.m_inst);
+            for ( auto& actor : modelActor.m_inst ) {
+                modelActor.m_model->renderDepthMap(uniloc.m_geometry, actor.getModelMat());
+            }
         }
     }
 
     void MapChunk::renderDepthAnimated(const UnilocDepthAnime& uniloc) {
-        for ( auto& model : this->m_animatedActors ) {
-            model.m_model->renderDepthMap(uniloc.m_geometry, uniloc.m_anime, model.m_inst);
+        for ( auto& modelActor : this->m_animatedActors ) {
+            for ( auto& actor : modelActor.m_inst ) {
+                modelActor.m_model->renderDepthMap(uniloc.m_geometry, uniloc.m_anime, actor.getModelMat());
+            }
         }
     }
 
@@ -135,11 +141,15 @@ namespace dal {
         this->sendUniforms_lights(uniloc.m_lightedMesh, 0);
 
         for ( auto& modelActor : this->m_animatedActors ) {
-            modelActor.m_model->render(uniloc.m_lightedMesh, uniloc.getDiffuseMapLoc(), uniloc.m_anime, modelActor.m_inst);
+            for ( auto& actor : modelActor.m_inst ) {
+                modelActor.m_model->render(uniloc.m_lightedMesh, uniloc.getDiffuseMapLoc(), uniloc.m_anime, actor.getModelMat());
+            }
         }
     }
 
-    void MapChunk::renderGeneral_onWater(const UnilocGeneral& uniloc, const ICamera& cam, MapChunk* const additional) {
+    void MapChunk::renderGeneral_onWater(const UnilocGeneral& uniloc, const ICamera& cam, entt::registry& reg) {
+        const auto view = reg.view<cpnt::Transform, cpnt::StaticModel>();
+
         for ( auto& water : this->m_waters ) {
             {
                 // Uniform values
@@ -158,7 +168,11 @@ namespace dal {
                 // Render map general
                 this->renderGeneral(uniloc);
 
-                if ( nullptr != additional ) additional->renderGeneral(uniloc);
+                view.each(
+                    [&uniloc](const cpnt::Transform& trans, const cpnt::StaticModel& model) {
+                        model.m_model->render(uniloc.m_lightedMesh, uniloc.getDiffuseMapLoc(), trans.m_modelMat);
+                    }
+                );
             }
 
             {
@@ -175,12 +189,19 @@ namespace dal {
 
                 // Render map general
                 this->renderGeneral(uniloc);
-                if ( nullptr != additional ) additional->renderGeneral(uniloc);
+
+                view.each(
+                    [&uniloc](const cpnt::Transform& trans, const cpnt::StaticModel& model) {
+                        model.m_model->render(uniloc.m_lightedMesh, uniloc.getDiffuseMapLoc(), trans.m_modelMat);
+                    }
+                );
             }
         }
     }
 
-    void MapChunk::renderAnimate_onWater(const UnilocAnimate& uniloc, const ICamera& cam, MapChunk* const additional) {
+    void MapChunk::renderAnimate_onWater(const UnilocAnimate& uniloc, const ICamera& cam, entt::registry& reg) {
+        const auto view = reg.view<cpnt::Transform, cpnt::AnimatedModel>();
+
         for ( auto& water : this->m_waters ) {
             {
                 // Uniform values
@@ -199,7 +220,11 @@ namespace dal {
                 // Render map general
                 this->renderAnimate(uniloc);
 
-                if ( nullptr != additional ) additional->renderGeneral(uniloc);
+                view.each(
+                    [&uniloc](const cpnt::Transform& trans, const cpnt::AnimatedModel& model) {
+                        model.m_model->render(uniloc.m_lightedMesh, uniloc.getDiffuseMapLoc(), uniloc.m_anime, trans.m_modelMat);
+                    }
+                );
             }
 
             {
@@ -216,7 +241,12 @@ namespace dal {
 
                 // Render map general
                 this->renderAnimate(uniloc);
-                if ( nullptr != additional ) additional->renderAnimate(uniloc);
+
+                view.each(
+                    [&uniloc](const cpnt::Transform& trans, const cpnt::AnimatedModel& model) {
+                        model.m_model->render(uniloc.m_lightedMesh, uniloc.getDiffuseMapLoc(), uniloc.m_anime, trans.m_modelMat);
+                    }
+                );
             }
         }
     }
@@ -365,15 +395,15 @@ namespace dal {
         }
     }
 
-    void SceneMaster::renderGeneral_onWater(const UnilocGeneral& uniloc, const ICamera& cam) {
+    void SceneMaster::renderGeneral_onWater(const UnilocGeneral& uniloc, const ICamera& cam, entt::registry& reg) {
         for ( auto& map : this->m_mapChunks ) {
-            map.renderGeneral_onWater(uniloc, cam, nullptr);
+            map.renderGeneral_onWater(uniloc, cam, reg);
         }
     }
 
-    void SceneMaster::renderAnimate_onWater(const UnilocAnimate& uniloc, const ICamera& cam) {
+    void SceneMaster::renderAnimate_onWater(const UnilocAnimate& uniloc, const ICamera& cam, entt::registry& reg) {
         for (auto& map : this->m_mapChunks ) {
-            map.renderAnimate_onWater(uniloc, cam, nullptr);
+            map.renderAnimate_onWater(uniloc, cam, reg);
         }
     }
 

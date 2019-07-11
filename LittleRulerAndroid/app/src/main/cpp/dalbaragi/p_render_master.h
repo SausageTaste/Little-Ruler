@@ -43,7 +43,7 @@ namespace dal {
             void setRenderScale(float v, unsigned int widWidth, unsigned int widHeight);
             void resizeFbuffer(unsigned int w, unsigned int h);
 
-            void startRenderOn(void);
+            void clearAndstartRenderOn(void);
             void renderOnScreen(const UnilocFScreen& uniloc);
 
             //Texture* getTex(void);

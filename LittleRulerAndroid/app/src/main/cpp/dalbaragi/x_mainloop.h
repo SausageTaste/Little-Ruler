@@ -29,7 +29,7 @@ namespace dal {
         StrangeEulerCamera m_camera;
         Timer m_timer, m_timerForFPSReport;
         bool m_flagQuit;
-        uint32_t m_player;
+        entt::entity m_player;
 
         //// Funcs ////
 

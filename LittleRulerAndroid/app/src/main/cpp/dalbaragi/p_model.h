@@ -49,9 +49,8 @@ namespace dal {
 
         bool isReady(void) const;
 
-        void render(const UniInterfLightedMesh& unilocLighted, const SamplerInterf& samplerInterf, std::list<ActorInfo>& actors) const;
-        void render(const UniInterfLightedMesh& unilocLighted, const SamplerInterf& samplerInterf, const cpnt::Transform& transform) const;
-        void renderDepthMap(const UniInterfGeometry& unilocGeometry, std::list<ActorInfo>& actors) const;
+        void render(const UniInterfLightedMesh& unilocLighted, const SamplerInterf& samplerInterf, const glm::mat4& modelMat) const;
+        void renderDepthMap(const UniInterfGeometry& unilocGeometry, const glm::mat4& modelMat) const;
 
         void destroyModel(void);
 
@@ -81,9 +80,9 @@ namespace dal {
 
         bool isReady(void) const;
 
-        void render(const UniInterfLightedMesh& unilocLighted, const SamplerInterf& samplerInterf,
-            const UniInterfAnime& unilocAnime, std::list<ActorInfo>& actors);
-        void renderDepthMap(const UniInterfGeometry& unilocGeometry, const UniInterfAnime& unilocAnime, std::list<ActorInfo>& actors) const;
+        void render(const UniInterfLightedMesh& unilocLighted, const SamplerInterf& samplerInterf, const UniInterfAnime& unilocAnime,
+            const glm::mat4 modelMat);
+        void renderDepthMap(const UniInterfGeometry& unilocGeometry, const UniInterfAnime& unilocAnime, const glm::mat4 modelMat) const;
 
         void destroyModel(void);
 

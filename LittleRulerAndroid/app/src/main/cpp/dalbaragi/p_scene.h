@@ -4,6 +4,8 @@
 #include <vector>
 #include <list>
 
+#include <entt/entity/registry.hpp>
+
 #include "p_uniloc.h"
 #include "u_loadinfo.h"
 #include "p_resource.h"
@@ -50,8 +52,8 @@ namespace dal {
         void renderDepthAnimated(const UnilocDepthAnime& uniloc);
         void renderWaterry(const UnilocWaterry& uniloc);
         void renderAnimate(const UnilocAnimate& uniloc);
-        void renderGeneral_onWater(const UnilocGeneral& uniloc, const ICamera& cam, MapChunk* const additional);
-        void renderAnimate_onWater(const UnilocAnimate& uniloc, const ICamera& cam, MapChunk* const additional);
+        void renderGeneral_onWater(const UnilocGeneral& uniloc, const ICamera& cam, entt::registry& reg);
+        void renderAnimate_onWater(const UnilocAnimate& uniloc, const ICamera& cam, entt::registry& reg);
 
         void applyCollision(ModelStatic& model, ActorInfo& actor);
 
@@ -86,8 +88,8 @@ namespace dal {
         void renderDepthAnimated(const UnilocDepthAnime& uniloc);
         void renderWaterry(const UnilocWaterry& uniloc);
         void renderAnimate(const UnilocAnimate& uniloc);
-        void renderGeneral_onWater(const UnilocGeneral& uniloc, const ICamera& cam);
-        void renderAnimate_onWater(const UnilocAnimate& uniloc, const ICamera& cam);
+        void renderGeneral_onWater(const UnilocGeneral& uniloc, const ICamera& cam, entt::registry& reg);
+        void renderAnimate_onWater(const UnilocAnimate& uniloc, const ICamera& cam, entt::registry& reg);
 
         ActorInfo* addActor(ModelStatic* const model, const std::string& mapName, const std::string& actorName, bool flagStatic);
         WaterRenderer* getWater(const std::string& mapName, const size_t index);

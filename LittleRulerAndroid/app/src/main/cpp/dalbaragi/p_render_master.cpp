@@ -147,9 +147,10 @@ namespace dal {
         glBindRenderbuffer(GL_RENDERBUFFER, 0);
     }
 
-    void RenderMaster::MainFramebuffer::startRenderOn(void) {
+    void RenderMaster::MainFramebuffer::clearAndstartRenderOn(void) {
         glBindFramebuffer(GL_FRAMEBUFFER, m_mainFbuf);
         glViewport(0, 0, m_bufWidth, m_bufHeight);
+        glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
     }
 
     void RenderMaster::MainFramebuffer::renderOnScreen(const UnilocFScreen& uniloc) {
@@ -272,6 +273,9 @@ namespace dal {
     }
 
     void RenderMaster::render(entt::registry& reg) {
+        const auto viewStatic = reg.view<cpnt::Transform, cpnt::StaticModel>();
+        const auto viewAnimated = reg.view<cpnt::Transform, cpnt::AnimatedModel>();
+
         // Shadow map
         {
             this->m_dlight1.clearDepthBuffer();
@@ -280,22 +284,35 @@ namespace dal {
                 auto& uniloc = this->m_shader.useDepthMp();
                 m_dlight1.startRenderShadowmap(uniloc.m_geometry);
                 m_scene.renderDepthMp(uniloc);
+
+                viewStatic.each(
+                    [&uniloc](const cpnt::Transform& trans, const cpnt::StaticModel& model) {
+                        model.m_model->renderDepthMap(uniloc.m_geometry, trans.m_modelMat);
+                    }
+                );
             }
 
             {
                 auto& uniloc = this->m_shader.useDepthAnime();
                 this->m_dlight1.startRenderShadowmap(uniloc.m_geometry);
                 this->m_scene.renderDepthAnimated(uniloc);
+
+                viewAnimated.each(
+                    [&uniloc](const cpnt::Transform& trans, const cpnt::AnimatedModel& model) {
+                        model.m_model->renderDepthMap(uniloc.m_geometry, uniloc.m_anime, trans.m_modelMat);
+                    }
+                );
             }
 
             m_dlight1.finishRenderShadowmap();
         }
 
+#ifdef _WIN32
+        glEnable(GL_CLIP_DISTANCE0);
+#endif
+
         // Render to water framebuffer
         {
-#ifdef _WIN32
-            glEnable(GL_CLIP_DISTANCE0);
-#endif
             auto& uniloc = this->m_shader.useGeneral();
 
             uniloc.m_planeClip.flagDoClip(true);
@@ -310,7 +327,7 @@ namespace dal {
                 uniloc.m_lightedMesh.dlightCount(0);
             }
 
-            this->m_scene.renderGeneral_onWater(uniloc, *this->m_mainCamera);
+            this->m_scene.renderGeneral_onWater(uniloc, *this->m_mainCamera, reg);
         }
 
         // Render animated to water framebuffer
@@ -329,11 +346,10 @@ namespace dal {
                 uniloc.m_lightedMesh.dlightCount(0);
             }
 
-            this->m_scene.renderAnimate_onWater(uniloc, *this->m_mainCamera);
+            this->m_scene.renderAnimate_onWater(uniloc, *this->m_mainCamera, reg);
         }
 
-        this->m_fbuffer.startRenderOn();
-        glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+        this->m_fbuffer.clearAndstartRenderOn();
 #ifdef _WIN32
         glDisable(GL_CLIP_DISTANCE0);
 #endif
@@ -349,9 +365,9 @@ namespace dal {
 
             this->m_scene.renderGeneral(uniloc);
 
-            reg.view<cpnt::Transform, cpnt::StaticModel>().each(
-                [&uniloc](cpnt::Transform& trans, cpnt::StaticModel& model) {
-                    model.m_model->render(uniloc.m_lightedMesh, uniloc.getDiffuseMapLoc(), trans);
+            viewStatic.each(
+                [&uniloc](const cpnt::Transform& trans, const cpnt::StaticModel& model) {
+                    model.m_model->render(uniloc.m_lightedMesh, uniloc.getDiffuseMapLoc(), trans.m_modelMat);
                 }
             );
         }
@@ -366,6 +382,12 @@ namespace dal {
             uniloc.m_lightedMesh.viewPos(this->m_mainCamera->m_pos);
 
             this->m_scene.renderAnimate(uniloc);
+
+            viewAnimated.each(
+                [&uniloc](const cpnt::Transform& trans, const cpnt::AnimatedModel& model) {
+                    model.m_model->render(uniloc.m_lightedMesh, uniloc.getDiffuseMapLoc(), uniloc.m_anime, trans.m_modelMat);
+                }
+            );
         }
 
         // Render water to framebuffer
