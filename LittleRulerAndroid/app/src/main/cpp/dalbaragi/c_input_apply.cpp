@@ -654,16 +654,44 @@ namespace {
 
         // Apply move direction
         {
-            const auto camViewVec = dal::strangeEuler2Vec(camera.getStrangeEuler());
-            const auto rotatorAsCamX = glm::rotate(glm::mat4{ 1.0f }, camera.getStrangeEuler().getX(), glm::vec3{ 0.0f, 1.0f, 0.0f });
-            const auto rotatedMoveVec = rotateVec2(glm::vec2{ totalMoveInfo.xMovePlane, totalMoveInfo.zMovePlane }, camera.getStrangeEuler().getX());
+            const glm::vec3 k_modelCamOffset{ 0.0f, 1.3f, 0.0f };
 
-            cpntTrans.m_pos += glm::vec3{ rotatedMoveVec.x, totalMoveInfo.vertical, rotatedMoveVec.y } * deltaTime;
-            cpntTrans.m_quat = dal::rotateQuat(glm::quat{}, atan2(rotatedMoveVec.x, rotatedMoveVec.y), glm::vec3{ 0.0f, 1.0f, 0.0f });
+            {
+                const auto camViewVec = dal::strangeEuler2Vec(camera.getStrangeEuler());
+                const auto rotatorAsCamX = glm::rotate(glm::mat4{ 1.0f }, camera.getStrangeEuler().getX(), glm::vec3{ 0.0f, 1.0f, 0.0f });
+                const auto rotatedMoveVec = rotateVec2(glm::vec2{ totalMoveInfo.xMovePlane, totalMoveInfo.zMovePlane }, camera.getStrangeEuler().getX());
 
-            const auto cam2ObjVec = cpntTrans.m_pos - camera.m_pos + glm::vec3{ 0.0f, 1.0f, 0.0f };
-            const auto cam2ObjSEuler = dal::vec2StrangeEuler(cam2ObjVec);
-            camera.setViewPlane(cam2ObjSEuler.getX(), cam2ObjSEuler.getY());
+                cpntTrans.m_pos += glm::vec3{ rotatedMoveVec.x, totalMoveInfo.vertical, rotatedMoveVec.y } *deltaTime * 5.0f;
+                if ( rotatedMoveVec.x != 0.0f || rotatedMoveVec.y != 0.0f ) {
+                    cpntTrans.m_quat = dal::rotateQuat(glm::quat{}, atan2(rotatedMoveVec.x, rotatedMoveVec.y), glm::vec3{ 0.0f, 1.0f, 0.0f });
+                }
+            }
+
+            {
+                const auto obj2CamVec = camera.m_pos - (cpntTrans.m_pos + k_modelCamOffset);
+                const auto len = glm::length(obj2CamVec);
+                auto obj2CamSEuler = dal::vec2StrangeEuler(obj2CamVec);
+
+                //const auto rotatedVec2 = rotateVec2(glm::vec2{ obj2CamVec.x, obj2CamVec.z }, totalMoveInfo.xView);
+                //camera.m_pos = cpntTrans.m_pos + k_modelCamOffset + glm::vec3{ rotatedVec2.x, obj2CamVec.y, rotatedVec2.y };
+
+                obj2CamSEuler.addX(totalMoveInfo.xView);
+                obj2CamSEuler.addY(-totalMoveInfo.yView);
+                const auto rotatedVec = dal::strangeEuler2Vec(obj2CamSEuler);
+                camera.m_pos = cpntTrans.m_pos + k_modelCamOffset + rotatedVec * len;
+            }
+
+            {
+                const auto cam2ObjVec = cpntTrans.m_pos - camera.m_pos + k_modelCamOffset;
+                const auto cam2ObjSEuler = dal::vec2StrangeEuler(cam2ObjVec);
+                camera.setViewPlane(cam2ObjSEuler.getX(), cam2ObjSEuler.getY());
+
+                const auto len = glm::length(cam2ObjVec);
+                if ( len > 2.0f ) {
+                    const auto shorterVec = cam2ObjVec / len * 2.0f;
+                    camera.m_pos = cpntTrans.m_pos + k_modelCamOffset - shorterVec;
+                }
+            }
 
             /*
             const auto actor2Cam = camera.m_pos - cpntTrans.m_pos;
