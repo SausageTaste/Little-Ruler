@@ -7,7 +7,7 @@ import level.datastruct.attrib_complex as aco
 
 
 def main():
-    level = lvb.LevelBuilder("test_level")
+    level = lvb.LevelBuilder("water_bowl")
 
     ########
 

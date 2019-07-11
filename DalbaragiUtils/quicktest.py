@@ -16,7 +16,7 @@ def copyOutputf() -> None:
 
 def main():
     mcr.main()
-    dlb.main(["", "intermediates/test_level.json"])
+    dlb.main(["", "intermediates/water_bowl.json"])
     copyOutputf()
 
 
