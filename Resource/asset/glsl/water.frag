@@ -80,7 +80,6 @@ float makeWaterDepth1(vec2 refractionCoords) {
     return floorDistance - waterDistance;
 }
 
-
 float makeWaterDepth(vec2 refractionCoords) {
     float sampled = texture(u_depthMap, refractionCoords).r;
     vec3 refractionWorldPos = getWorldPosFromDepth(sampled, refractionCoords);
@@ -96,7 +95,7 @@ vec4 calculateWater(vec3 fragNormal, vec2 distortedCoords) {
     vec2 bansaCoord = vec2(normalizedDeviceCoord.x, -normalizedDeviceCoord.y);
     vec2 gooljulCoord = vec2(normalizedDeviceCoord.x, normalizedDeviceCoord.y);
 
-    vec2 totalDistortion = (texture(u_dudvMap, distortedCoords).rg * 2.0 - 1.0) * u_waveStrength * clamp(makeWaterDepth(gooljulCoord) / 1.0, 0.0, 1.0);
+    vec2 totalDistortion = (texture(u_dudvMap, distortedCoords).rg * 2.0 - 1.0) * u_waveStrength;// * clamp(makeWaterDepth(gooljulCoord) / 1.0, 0.0, 1.0);
     bansaCoord += totalDistortion;
     gooljulCoord += totalDistortion;
 
@@ -145,6 +144,7 @@ void main(void) {
 
     // Final color
     fColor = 0.5 * waterImage * (vec4(lightedColor, 1.0) + 1.0);
+    fColor = mix(fColor, SKY_COLOR, calcFogFactor(distance(vFragPos, uViewPos)));
     //fColor += vec4(0.05, 0.05, 0.1, 0.0);
     //fColor = waterImage;
 }

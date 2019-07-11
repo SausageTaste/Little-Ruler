@@ -1,3 +1,5 @@
+import random
+
 import level.datastruct.item_builder as bfi
 import level.datastruct.level_builder as lvb
 import level.datastruct.attrib_leaf as atl
@@ -9,28 +11,10 @@ def main():
 
     ########
 
-    light = bfi.BuildInfo_LightPoint()
-    light.setName("center_light")
-    light.getColorHandle().setXYZ(0.5, 0.2, 0.2)
-    light.getPosHandle().setY(1.5)
-    light.getPosHandle().setZ(1)
-    #level.add(light)
-
-    ########
-
-    light = bfi.BuildInfo_LightPoint()
-    light.setName("center_light_2")
-    light.getColorHandle().setXYZ(0.2, 0.2, 0.5)
-    light.getPosHandle().setY(1.5)
-    light.getPosHandle().setZ(6)
-    #level.add(light)
-
-    ########
-
     model = bfi.BuildInfo_ModelImported()
     actor = aco.ActorInfo()
     actor.getPosHandle().setZ(5)
-    #actor.getQuatHandle().rotate(-90, (0, 1, 0))
+    actor.getQuatHandle().rotate(-90, (0, 1, 0))
     model.addActor(actor)
     model.setModelID("asset::yuri.obj")
     level.add(model)
@@ -53,10 +37,10 @@ def main():
     ########
 
     model = bfi.BuildInfo_ModelDefined()
-    model.setModelID("floor")
-    model.getMeshHandle().setAABB(atl.Vec3(0, -1, 0), atl.Vec3(50, 0, 50))
+    model.setModelID("floor_upper")
+    model.getMeshHandle().setAABB(atl.Vec3(0, -1, 0), atl.Vec3(20, 0, 50))
     model.getMaterialHandle().setDiffuseMap("asset::0021di.png")
-    model.getMaterialHandle().setTexScale(20, 20)
+    model.getMaterialHandle().setTexScale(10, 25)
 
     actor = aco.ActorInfo()
     actor.getPosHandle().setX(-10)
@@ -68,10 +52,26 @@ def main():
     ########
 
     model = bfi.BuildInfo_ModelDefined()
-    model.setModelID("wallX")
-    model.getMeshHandle().setAABB(atl.Vec3(0, 0, 0), atl.Vec3(1, 50, 50))
+    model.setModelID("floor_below")
+    model.getMeshHandle().setAABB(atl.Vec3(0, -1, 0), atl.Vec3(50, 0, 50))
     model.getMaterialHandle().setDiffuseMap("asset::0021di.png")
-    model.getMaterialHandle().setTexScale(20, 20)
+    model.getMaterialHandle().setTexScale(25, 25)
+
+    actor = aco.ActorInfo()
+    actor.getPosHandle().setX(-10)
+    actor.getPosHandle().setY(-30)
+    actor.getPosHandle().setZ(-20)
+    model.addActor(actor)
+
+    level.add(model)
+
+    ########
+
+    model = bfi.BuildInfo_ModelDefined()
+    model.setModelID("wallX")
+    model.getMeshHandle().setAABB(atl.Vec3(0, -50, 0), atl.Vec3(1, 10, 50))
+    model.getMaterialHandle().setDiffuseMap("asset::0021di.png")
+    model.getMaterialHandle().setTexScale(25, 15)
 
     actor = aco.ActorInfo()
     actor.getPosHandle().setX(-11)
@@ -89,9 +89,9 @@ def main():
 
     model = bfi.BuildInfo_ModelDefined()
     model.setModelID("wallY")
-    model.getMeshHandle().setAABB(atl.Vec3(0, 0, 0), atl.Vec3(50, 50, 1))
+    model.getMeshHandle().setAABB(atl.Vec3(0, -50, 0), atl.Vec3(50, 10, 1))
     model.getMaterialHandle().setDiffuseMap("asset::0021di.png")
-    model.getMaterialHandle().setTexScale(20, 20)
+    model.getMaterialHandle().setTexScale(25, 15)
 
     actor = aco.ActorInfo()
     actor.getPosHandle().setX(-10)
@@ -108,15 +108,16 @@ def main():
     ########
 
     model = bfi.BuildInfo_ModelDefined()
-    model.setModelID("wall")
-    model.getMeshHandle().setAABB(atl.Vec3(-4, 0, -10), atl.Vec3(4, 50, -1))
+    model.setModelID("tall")
+    model.getMeshHandle().setAABB(atl.Vec3(-4, 0, -9), atl.Vec3(4, 50, -1))
+    model.getMaterialHandle().setTexScale(4, 25)
     model.getMaterialHandle().setDiffuseMap("asset::grass1.png")
 
     actor = aco.ActorInfo()
     model.addActor(actor)
 
     actor = aco.ActorInfo()
-    actor.getPosHandle().setXYZ(30, -2, 3)
+    actor.getPosHandle().setXYZ(30, -5, 3)
     model.addActor(actor)
 
     level.add(model)
@@ -129,10 +130,10 @@ def main():
     water.setHeight(52)
 
     water.setSpecStreng(3)
-    water.setDarkestDepthPoint(7)
+    water.setDarkestDepthPoint(40)
     water.setWaveStreng(0.01)
-    water.getDepthColorHandle().setXYZ(0.07, 0.07, 0.18)
-    water.setReflectivity(0.8)
+    water.getDepthColorHandle().setXYZ(0.07, 0.07, 0.2)
+    water.setReflectivity(0.2)
 
     level.add(water)
 
@@ -141,30 +142,17 @@ def main():
     model = bfi.BuildInfo_ModelDefined()
     model.setModelID("box")
     model.getMeshHandle().setAABB(atl.Vec3(0, 0, 0), atl.Vec3(2, 2, 2))
-    model.getMaterialHandle().setTexScale(2, 2)
+    model.getMaterialHandle().setTexScale(1, 1)
     model.getMaterialHandle().setDiffuseMap("asset::missing_no.png")
 
-    actor = aco.ActorInfo()
-    actor.getPosHandle().setX(5)
-    actor.getPosHandle().setZ(2)
-    model.addActor(actor)
+    for _ in range(100):
+        x = random.randint(-8, 38)
+        y = random.randint(-30, 5)
+        z = random.randint(-17, 22)
 
-    actor = aco.ActorInfo()
-    actor.getPosHandle().setX(7)
-    actor.getPosHandle().setY(-0.5)
-    actor.getPosHandle().setZ(-1)
-    model.addActor(actor)
-
-    actor = aco.ActorInfo()
-    actor.getPosHandle().setX(-5)
-    actor.getPosHandle().setZ(3)
-    model.addActor(actor)
-
-    actor = aco.ActorInfo()
-    actor.getPosHandle().setX(-3)
-    actor.getPosHandle().setY(-1)
-    actor.getPosHandle().setZ(6)
-    model.addActor(actor)
+        actor = aco.ActorInfo()
+        actor.getPosHandle().setXYZ(x, y, z)
+        model.addActor(actor)
 
     level.add(model)
 

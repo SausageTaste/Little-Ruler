@@ -9,7 +9,7 @@
 #include "s_logger_god.h"
 
 
-#define ASSERT_UNILOC 1
+#define ASSERT_UNILOC 0
 
 
 using namespace std::string_literals;

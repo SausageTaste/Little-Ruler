@@ -19,6 +19,9 @@ uniform vec3      uDlightColors[3];
 uniform sampler2D uDlightDepthMap[3];  // TEX 1, 2, 3
 
 
+const vec4 SKY_COLOR = vec4(0.6, 0.6, 0.9, 1.0);
+
+
 float sampleDlightDepth(int index, vec2 coord) {
 
 #ifdef GL_ES
@@ -111,4 +114,10 @@ float getLightFactor_point(int index, vec3 viewDir, vec3 fragNormal, vec3 fragPo
     float specular = max(uSpecularStrength * spec, 0.0);
 
     return (diff + specular) * _distanceDecreaser(dist);
+}
+
+
+float calcFogFactor(float fragDistance) {
+    float factor = fragDistance / 100.0;
+    return clamp(factor, 0.0, 1.0);
 }

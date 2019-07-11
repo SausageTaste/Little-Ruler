@@ -176,7 +176,7 @@ namespace dal {
 
     WaterFramebuffer::WaterFramebuffer(const unsigned int winWidth, const unsigned int winHeight)
         : m_winWidth(static_cast<float>(winWidth)), m_winHeight(static_cast<float>(winHeight)),
-        m_reflecScale(0.3f), m_refracScale(0.3f)
+        m_reflecScale(0.8f), m_refracScale(0.8f)
     {
         const auto REFLECTION_WIDTH = static_cast<GLsizei>(this->m_winWidth  * this->m_reflecScale);
         const auto REFLECTION_HEIGHT = static_cast<GLsizei>(this->m_winHeight * this->m_reflecScale);

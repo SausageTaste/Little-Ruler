@@ -93,7 +93,7 @@ def saveLevelBinary(level: LevelBuilder, outputFolder: str = "outputs/"):
         os.mkdir(outputFolder)
 
     binData = level.getBinary()
-    zipData = zlib.compress(binData, zlib.Z_BEST_COMPRESSION)
+    zipData: bytes = zlib.compress(binData, zlib.Z_BEST_COMPRESSION)
     print("Compressed {} -> {} ({:%})".format(len(binData), len(zipData), len(zipData)/len(binData)))
 
     filePath: str = "{}/{}.dlb".format(outputFolder, level.getLevelName())

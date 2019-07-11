@@ -424,34 +424,34 @@ namespace {  // Make items
 namespace dal {
 
     bool parseMap_dlb(loadedinfo::LoadedMap& info, const uint8_t* const buf, const size_t bufSize) {
-        constexpr size_t k_chunkSize = 2048 * 5;
-        uint8_t decomBuf[k_chunkSize];
-        uLongf decomBufSize = k_chunkSize;
+        const auto chunkSize = bufSize * 11;
+        std::unique_ptr<uint8_t[]> decomBuf{ new uint8_t[chunkSize] };
+        uLongf decomBufSize = chunkSize;
 
         {
-            const auto res = uncompress(decomBuf, &decomBufSize, buf, bufSize);
+            const auto res = uncompress(decomBuf.get(), &decomBufSize, buf, bufSize);
             switch ( res ) {
 
             case Z_OK:
                 break;
             case Z_BUF_ERROR:
-                dalError("Failed to uncompress map file: buffer is not large enough");
+                dalError("Zlib fail: buffer is not large enough");
                 return false;
             case Z_MEM_ERROR:
-                dalError("Failed to uncompress map file: Insufficient memory");
+                dalError("Zlib fail: Insufficient memory");
                 return false;
             case Z_DATA_ERROR:
-                dalError("Failed to uncompress map file: Corrupted data");
+                dalError("Zlib fail: Corrupted data");
                 return false;
             default:
-                dalError("Failed to uncompress map file: Unknown reason ({})"_format(res));
+                dalError("Zlib fail: Unknown reason ({})"_format(res));
                 return false;
 
             }
         }
 
-        const auto end = decomBuf + decomBufSize;
-        const uint8_t* header = decomBuf;
+        const auto end = decomBuf.get() + decomBufSize;
+        const uint8_t* header = decomBuf.get();
 
         while ( true ) {
             const auto typeCode = makeInt2(header);
