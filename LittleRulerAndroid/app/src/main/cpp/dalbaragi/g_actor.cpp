@@ -27,8 +27,8 @@ namespace {
     }
 
     inline constexpr float clampStrangeEulerY(const float y) {
-        constexpr auto plus90Degree = glm::radians(90.0f);
-        constexpr auto minus90Degree = glm::radians(-90.0f);
+        constexpr auto plus90Degree = glm::radians(89.9f);
+        constexpr auto minus90Degree = glm::radians(-89.9f);
 
         if ( y > plus90Degree ) {
             return plus90Degree;
