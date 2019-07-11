@@ -72,7 +72,6 @@ namespace dal {
     private:
         ResourceMaster& m_resMas;
         std::list<MapChunk> m_mapChunks;
-        MapChunk* m_persistantMap;
 
         //////// Methods ////////
 

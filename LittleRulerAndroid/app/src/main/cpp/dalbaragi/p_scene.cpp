@@ -316,9 +316,6 @@ namespace dal {
     SceneMaster::SceneMaster(ResourceMaster& resMas, const unsigned int winWidth, const unsigned int winHeight)
         : m_resMas(resMas)
     {
-        m_mapChunks.emplace_front("persis");
-        m_persistantMap = &m_mapChunks.front();
-
         // This is needed by Water objects
         {
             ConfigsGod::getinst().setWinSize(winWidth, winHeight);
@@ -369,34 +366,22 @@ namespace dal {
     }
 
     void SceneMaster::renderGeneral_onWater(const UnilocGeneral& uniloc, const ICamera& cam) {
-        auto iter = this->m_mapChunks.begin();
-        const auto end = this->m_mapChunks.end();
-        iter->renderGeneral_onWater(uniloc, cam, nullptr);
-        ++iter;
-
-        while ( end != iter ) {
-            iter->renderGeneral_onWater(uniloc, cam, this->m_persistantMap);
-            ++iter;
+        for ( auto& map : this->m_mapChunks ) {
+            map.renderGeneral_onWater(uniloc, cam, nullptr);
         }
     }
 
     void SceneMaster::renderAnimate_onWater(const UnilocAnimate& uniloc, const ICamera& cam) {
-        auto iter = this->m_mapChunks.begin();
-        const auto end = this->m_mapChunks.end();
-        iter->renderAnimate_onWater(uniloc, cam, nullptr);
-        ++iter;
-
-        while ( end != iter ) {
-            iter->renderAnimate_onWater(uniloc, cam, this->m_persistantMap);
-            ++iter;
+        for (auto& map : this->m_mapChunks ) {
+            map.renderAnimate_onWater(uniloc, cam, nullptr);
         }
     }
 
 
     ActorInfo* SceneMaster::addActor(ModelStatic* const model, const std::string& mapName, const std::string& actorName, bool flagStatic) {
-        auto map = mapName.empty() ? this->m_persistantMap : this->findMap(mapName);
+        auto map = this->findMap(mapName);
         if ( nullptr == map ) {
-            dalError("Failed to find map: "s + mapName);
+            return nullptr;
         }
         return map->addActor(model, actorName, flagStatic, this->m_resMas);
     }
@@ -462,13 +447,18 @@ namespace dal {
     }
 
     MapChunk* SceneMaster::findMap(const std::string& name) {
+        if ( name.empty() ) {
+            dalError("Failed to find map because map name was not given.");
+            return nullptr;
+        }
+
         for ( auto& map : this->m_mapChunks ) {
             if ( name == map.getName() ) {
                 return &map;
             }
         }
 
-        dalWarn("Failed to find map in SceneMaster: "s + name);
+        dalError("Failed to find map in SceneMaster: "s + name);
         return nullptr;
     }
 
