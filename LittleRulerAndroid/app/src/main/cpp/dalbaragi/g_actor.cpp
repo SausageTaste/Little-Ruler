@@ -154,6 +154,10 @@ namespace dal {
         return glm::vec2{ this->m_stranEuler.getX(), this->m_stranEuler.getY() };
     }
 
+    const StrangeEuler& StrangeEulerCamera::getStrangeEuler(void) const {
+        return this->m_stranEuler;
+    }
+
     void StrangeEulerCamera::setViewPlane(const float x, const float y) {
         this->m_stranEuler.setX(x);
         this->m_stranEuler.setY(y);
