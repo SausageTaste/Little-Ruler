@@ -64,8 +64,9 @@ namespace dal {
 #define dalFatal(str)   dal::LoggerGod::getinst().putFatal((str),   __LINE__, __func__, __FILE__);
 #define dalAbort(str) { dal::LoggerGod::getinst().putFatal((str),   __LINE__, __func__, __FILE__); throw -1; }
 
+
 #if ENABLE_ASSERT == 1
-#define dalAssert(condition) { if (!(condition)) dalAbort("Assertion failed { " TOSTRING(condition) " }"); }
+#define dalAssert(condition) { if (!(condition)) dalAbort("Assertion failed ( " TOSTRING(condition) " ), file " __FILE__ ", line " TOSTRING(__LINE__)); }
 #define dalAssertm(condition, message) { if (!(condition)) dalAbort(message); }
 #else
 #define dalAssert(condition)
