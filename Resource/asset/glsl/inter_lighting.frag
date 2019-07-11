@@ -1,25 +1,21 @@
 uniform highp vec3 uViewPos;
 
-// From Master
 uniform vec3 uBaseAmbient;
 uniform highp int uDlightCount;
 uniform int uPlightCount;
 
 uniform float uShininess;
 uniform float uSpecularStrength;
+uniform float u_fogMaxPointInvSqr;
+uniform vec3 u_fogColor;
 
-// From PointLight
 uniform vec3  uPlightPoses[3];
 uniform vec3  uPlightColors[3];
 uniform float uPlightMaxDists[3];
 
-// From DirectionalLight
 uniform vec3      uDlightDirecs[3];
 uniform vec3      uDlightColors[3];
 uniform sampler2D uDlightDepthMap[3];  // TEX 1, 2, 3
-
-
-const vec4 SKY_COLOR = vec4(0.6, 0.6, 0.9, 1.0);
 
 
 float sampleDlightDepth(int index, vec2 coord) {
@@ -117,7 +113,14 @@ float getLightFactor_point(int index, vec3 viewDir, vec3 fragNormal, vec3 fragPo
 }
 
 
-float calcFogFactor(float fragDistance) {
-    float factor = fragDistance / 100.0;
+float _calcFogFactor(float fragDistance) {
+    float factor = fragDistance * u_fogMaxPointInvSqr * fragDistance;
     return clamp(factor, 0.0, 1.0);
+}
+
+
+vec4 calcFogMixedColor(vec4 color, float fragDistance) {
+    float factor = _calcFogFactor(fragDistance);
+    vec3 mixedColor = mix(color.xyz, u_fogColor, factor);
+    return vec4(mixedColor, color.a);
 }

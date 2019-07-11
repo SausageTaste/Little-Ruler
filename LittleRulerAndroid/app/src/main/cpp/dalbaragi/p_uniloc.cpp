@@ -181,6 +181,8 @@ namespace dal {
 
         this->uShininess = glGetUniformLocation(shader, "uShininess");
         this->uSpecularStrength = glGetUniformLocation(shader, "uSpecularStrength");
+        this->u_fogMaxPointInvSqr = glGetUniformLocation(shader, "u_fogMaxPointInvSqr");
+        this->u_fogColor = glGetUniformLocation(shader, "u_fogColor");
 
         // Directional Lights
 
@@ -242,6 +244,23 @@ namespace dal {
 
     void UniInterfLightedMesh::specularStrength(const float x) const {
         glUniform1f(this->uSpecularStrength, x);
+    }
+
+    void UniInterfLightedMesh::fogMaxPoint(const float x) const {
+        dalAssert(0 != x);
+        glUniform1f(this->u_fogMaxPointInvSqr, 1.0f / (x * x));
+    }
+
+    void UniInterfLightedMesh::fogMaxPointAsInfinity(void) const {
+        glUniform1f(this->u_fogMaxPointInvSqr, 0.0f);
+    }
+
+    void UniInterfLightedMesh::fogColor(const float x, const float y, const float z) const {
+        glUniform3f(this->u_fogColor, x, y, z);
+    }
+
+    void UniInterfLightedMesh::fogColor(const glm::vec3& v) const {
+        this->fogColor(v.x, v.y, v.z);
     }
 
     void UniInterfLightedMesh::dlightDirec(const unsigned int index, const float x, const float y, const float z) const {

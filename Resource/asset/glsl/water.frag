@@ -144,7 +144,7 @@ void main(void) {
 
     // Final color
     fColor = 0.5 * waterImage * (vec4(lightedColor, 1.0) + 1.0);
-    fColor = mix(fColor, SKY_COLOR, calcFogFactor(distance(vFragPos, uViewPos)));
+    fColor = calcFogMixedColor(fColor, distance(vFragPos, uViewPos));
     //fColor += vec4(0.05, 0.05, 0.1, 0.0);
     //fColor = waterImage;
 }

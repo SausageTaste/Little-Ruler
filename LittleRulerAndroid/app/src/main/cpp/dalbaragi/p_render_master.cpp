@@ -175,14 +175,15 @@ namespace dal {
 
     RenderMaster::RenderMaster(SceneMaster& scene, ShaderMaster& shader, OverlayMaster& overlay,
         ICamera* const camera, const unsigned int winWidth, const unsigned int winHeight)
-        : m_scene(scene),
-        m_shader(shader),
-        m_fbuffer(winWidth, winHeight),
-        m_winWidth(winWidth), m_winHeight(winHeight),
-        m_projectMat(1.0),
-        m_flagDrawDlight1(true),
-        m_skyColor(0.6f, 0.6f, 0.9f),
-        m_mainCamera(camera)
+        : m_scene(scene)
+        , m_shader(shader)
+        , m_fbuffer(winWidth, winHeight)
+        , m_winWidth(winWidth), m_winHeight(winHeight)
+        , m_flagDrawDlight1(true)
+        , m_skyColor(0.6f, 0.6f, 0.9f)
+        , m_mainCamera(camera)
+        , m_farPlaneDistance(100.0f)
+        , m_baseAmbientColor(0.3f, 0.3f, 0.3f)
     {
         // Lights
         {
@@ -253,7 +254,7 @@ namespace dal {
         // Misc
         {
             float radio = static_cast<float>(m_winWidth) / static_cast<float>(m_winHeight);
-            this->m_projectMat = glm::perspective(glm::radians(90.0f), radio, 0.01f, 100.0f);
+            this->m_projectMat = glm::perspective(glm::radians(90.0f), radio, 0.01f, this->m_farPlaneDistance);
         }
     }
 
@@ -317,7 +318,9 @@ namespace dal {
 
             uniloc.m_planeClip.flagDoClip(true);
             uniloc.m_lightedMesh.projectMat(this->m_projectMat);
-            uniloc.m_lightedMesh.baseAmbient(0.3f, 0.3f, 0.3f);
+            uniloc.m_lightedMesh.baseAmbient(this->m_baseAmbientColor);
+            uniloc.m_lightedMesh.fogMaxPoint(this->m_farPlaneDistance);
+            uniloc.m_lightedMesh.fogColor(this->m_skyColor);
 
             if ( this->m_flagDrawDlight1 ) {
                 this->m_dlight1.sendUniform(uniloc.m_lightedMesh, 0);
@@ -336,7 +339,9 @@ namespace dal {
 
             uniloc.m_planeClip.flagDoClip(true);
             uniloc.m_lightedMesh.projectMat(this->m_projectMat);
-            uniloc.m_lightedMesh.baseAmbient(0.3f, 0.3f, 0.3f);
+            uniloc.m_lightedMesh.baseAmbient(this->m_baseAmbientColor);
+            uniloc.m_lightedMesh.fogMaxPoint(this->m_farPlaneDistance);
+            uniloc.m_lightedMesh.fogColor(this->m_skyColor);
 
             if ( this->m_flagDrawDlight1 ) {
                 this->m_dlight1.sendUniform(uniloc.m_lightedMesh, 0);
@@ -362,6 +367,9 @@ namespace dal {
             uniloc.m_planeClip.flagDoClip(false);
             uniloc.m_lightedMesh.viewMat(this->m_mainCamera->getViewMat());
             uniloc.m_lightedMesh.viewPos(this->m_mainCamera->m_pos);
+            uniloc.m_lightedMesh.baseAmbient(this->m_baseAmbientColor);
+            uniloc.m_lightedMesh.fogMaxPoint(this->m_farPlaneDistance);
+            uniloc.m_lightedMesh.fogColor(this->m_skyColor);
 
             this->m_scene.renderGeneral(uniloc);
 
@@ -380,6 +388,9 @@ namespace dal {
             uniloc.m_planeClip.flagDoClip(false);
             uniloc.m_lightedMesh.viewMat(this->m_mainCamera->getViewMat());
             uniloc.m_lightedMesh.viewPos(this->m_mainCamera->m_pos);
+            uniloc.m_lightedMesh.baseAmbient(this->m_baseAmbientColor);
+            uniloc.m_lightedMesh.fogMaxPoint(this->m_farPlaneDistance);
+            uniloc.m_lightedMesh.fogColor(this->m_skyColor);
 
             this->m_scene.renderAnimate(uniloc);
 
@@ -397,7 +408,9 @@ namespace dal {
             uniloc.m_lightedMesh.projectMat(this->m_projectMat);
             uniloc.m_lightedMesh.viewMat(this->m_mainCamera->getViewMat());
             uniloc.m_lightedMesh.viewPos(this->m_mainCamera->m_pos);
-            uniloc.m_lightedMesh.baseAmbient(0.3f, 0.3f, 0.3f);
+            uniloc.m_lightedMesh.baseAmbient(this->m_baseAmbientColor);
+            uniloc.m_lightedMesh.fogMaxPoint(this->m_farPlaneDistance);
+            uniloc.m_lightedMesh.fogColor(this->m_skyColor);
 
             if ( this->m_flagDrawDlight1 ) {
                 this->m_dlight1.sendUniform(uniloc.m_lightedMesh, 0);
@@ -429,7 +442,7 @@ namespace dal {
         this->m_winHeight = height;
 
         float radio = static_cast<float>(width) / static_cast<float>(height);
-        this->m_projectMat = glm::perspective(glm::radians(90.0f), radio, 0.01f, 100.0f);
+        this->m_projectMat = glm::perspective(glm::radians(90.0f), radio, 0.01f, this->m_farPlaneDistance);
 
         this->m_fbuffer.resizeFbuffer(width, height);
     }

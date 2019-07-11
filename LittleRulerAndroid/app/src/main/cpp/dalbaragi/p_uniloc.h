@@ -70,6 +70,8 @@ namespace dal {
 
         GLint uShininess;
         GLint uSpecularStrength;
+        GLint u_fogMaxPointInvSqr;
+        GLint u_fogColor;
 
         GLint uDlightDirecs[k_maxDlight];
         GLint uDlightColors[k_maxDlight];
@@ -92,6 +94,11 @@ namespace dal {
         void plightCount(const unsigned int x) const;
         void shininess(const float x) const;
         void specularStrength(const float x) const;
+        void fogMaxPoint(const float x) const;
+        void fogMaxPointAsInfinity(void) const;
+
+        void fogColor(const float x, const float y, const float z) const;
+        void fogColor(const glm::vec3& v) const;
 
         void dlightDirec(const unsigned int index, const float x, const float y, const float z) const;
         void dlightDirec(const unsigned int index, const glm::vec3& v) const;

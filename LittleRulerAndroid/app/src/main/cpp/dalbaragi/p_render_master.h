@@ -65,6 +65,9 @@ namespace dal {
         glm::vec3 m_skyColor;
         ICamera* m_mainCamera;
 
+        float m_farPlaneDistance;
+        glm::vec3 m_baseAmbientColor;
+
     public:
         RenderMaster(SceneMaster& scene, ShaderMaster& shader, OverlayMaster& overlay, ICamera* const camera, const unsigned int winWidth, const unsigned int winHeight);
 
