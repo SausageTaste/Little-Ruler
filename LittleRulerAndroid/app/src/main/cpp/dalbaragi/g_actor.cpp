@@ -118,6 +118,15 @@ namespace dal {
         this->y = clampStrangeEulerY(this->y + v);
     }
 
+    void StrangeEuler::clampY(const float min, const float max) {
+        if ( y > max ) {
+            this->y = max;
+        }
+        else if ( y < min ) {
+            this->y = min;
+        }
+    }
+
     glm::mat4 StrangeEuler::makeRotateMat(void) const {
         glm::mat4 mat{ 1.0f };
         mat = glm::rotate(mat, this->y, glm::vec3(-1.0f, 0.0f, 0.0f));

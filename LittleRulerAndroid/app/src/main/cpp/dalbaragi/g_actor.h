@@ -54,6 +54,7 @@ namespace dal {
         void setY(const float v);
         void addX(const float v);
         void addY(const float v);
+        void clampY(const float min, const float max);
 
         glm::mat4 makeRotateMat(void) const;
 

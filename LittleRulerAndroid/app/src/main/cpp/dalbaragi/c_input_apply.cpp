@@ -677,6 +677,8 @@ namespace {
 
                 obj2CamSEuler.addX(totalMoveInfo.xView);
                 obj2CamSEuler.addY(-totalMoveInfo.yView);
+                constexpr float k_maxDeg = 75.0f;
+                obj2CamSEuler.clampY(glm::radians(-k_maxDeg), glm::radians(k_maxDeg));
                 const auto rotatedVec = dal::strangeEuler2Vec(obj2CamSEuler);
                 camera.m_pos = cpntTrans.m_pos + k_modelCamOffset + rotatedVec * len;
             }
@@ -686,9 +688,25 @@ namespace {
                 const auto cam2ObjSEuler = dal::vec2StrangeEuler(cam2ObjVec);
                 camera.setViewPlane(cam2ObjSEuler.getX(), cam2ObjSEuler.getY());
 
+                constexpr float k_objCamDistance = 2.0f;
+
                 const auto len = glm::length(cam2ObjVec);
-                if ( len > 2.0f ) {
-                    const auto shorterVec = cam2ObjVec / len * 2.0f;
+                if ( len > k_objCamDistance ) {
+                    const auto circleOfIntersecRadiusSqr = k_objCamDistance * k_objCamDistance - cam2ObjVec.y * cam2ObjVec.y;
+                    if ( circleOfIntersecRadiusSqr > 0.0f ) {
+                        const auto circleOfIntersecRadius = sqrt(circleOfIntersecRadiusSqr);
+                        const auto resizedVec2 = glm::normalize(glm::vec2{ cam2ObjVec.x, cam2ObjVec.z }) * circleOfIntersecRadius;
+                        const auto resizedVec3 = glm::vec3{ resizedVec2.x, cam2ObjVec.y, resizedVec2.y } *k_objCamDistance;
+
+                        camera.m_pos = cpntTrans.m_pos + k_modelCamOffset - resizedVec3;
+                    }
+                    else {
+                        const auto shorterVec = cam2ObjVec / len * k_objCamDistance;
+                        camera.m_pos = cpntTrans.m_pos + k_modelCamOffset - shorterVec;
+                    }
+                }
+                else if ( len < k_objCamDistance ) {
+                    const auto shorterVec = cam2ObjVec / len * k_objCamDistance;
                     camera.m_pos = cpntTrans.m_pos + k_modelCamOffset - shorterVec;
                 }
             }
