@@ -18,6 +18,13 @@ using namespace std::string_literals;
 
 namespace {
 
+    const float DPAD_RADIUS_FACTOR_INV = 4.0f;
+
+}
+
+
+namespace {
+
     void toggleGameState(void) {
         dal::EventStatic e;
         e.type = dal::EventType::global_fsm_change;
@@ -112,6 +119,26 @@ namespace {
         else {
             return glm::normalize(v) * sphereRadius;
         }
+    }
+
+    glm::vec2 clampVec(glm::vec2 v, const float maxLen) {
+        const auto lenSqr = glm::dot(v, v);
+        if ( lenSqr > maxLen * maxLen ) {
+            v *= glm::inversesqrt(lenSqr) * maxLen;
+        }
+        return v;
+    }
+
+    template <unsigned int MAX_LEN>
+    glm::vec2 clampVec(glm::vec2 v) {
+        constexpr auto maxLen = static_cast<float>(MAX_LEN);
+        constexpr auto maxLenSqr = static_cast<float>(MAX_LEN * MAX_LEN);
+
+        const auto lenSqr = glm::dot(v, v);
+        if ( lenSqr > maxLenSqr ) {
+            v *= glm::inversesqrt(lenSqr) * maxLen;
+        }
+        return v;
     }
 
 }  // namespace
@@ -223,6 +250,11 @@ namespace {
                     state.m_pos = pos;
                     state.m_sec = touch.timeSec;
                     this->updateTouchDrawer(touch.id, pos.x, pos.y);
+
+                    if ( touch.id == this->m_moveOccupier ) {
+                        const auto moveStickPos = clampVec(glm::vec2{ pos.x, pos.y } - state.m_lastDownPos, widthOrHeightButShorter / DPAD_RADIUS_FACTOR_INV) + state.m_lastDownPos;
+                        this->updateTouchDrawer(touch.id, moveStickPos.x, moveStickPos.y);
+                    }
                 }
                 else if ( dal::TouchType::down == touch.type ) {
                     state.m_pos = pos;
@@ -235,6 +267,8 @@ namespace {
 
                     if ( touch.x < aThridWidth && -1 == this->m_moveOccupier ) {
                         this->m_moveOccupier = touch.id;
+                        const auto moveStickPos = clampVec<1>(glm::vec2{ pos.x, pos.y });
+                        this->updateTouchDrawer(touch.id, moveStickPos.x, moveStickPos.y);
                         this->updateTouchDrawer(k_maxTouchCount, state.m_lastDownPos.x, state.m_lastDownPos.y);
                     }
                 }
@@ -242,11 +276,11 @@ namespace {
                     state.m_pos = pos;
                     state.m_sec = touch.timeSec;
                     state.m_down = false;
-                    this->updateTouchDrawer(touch.id, -100.0f, -100.0f);
+                    this->hideTouchDrawer(touch.id);
 
                     if ( touch.id == this->m_moveOccupier ) {
                         this->m_moveOccupier = -1;
-                        this->updateTouchDrawer(k_maxTouchCount, -100.0f, -100.0f);
+                        this->hideTouchDrawer(k_maxTouchCount);
                     }
                 }
                 else {
@@ -273,7 +307,7 @@ namespace {
 
                 if ( thisStat.m_down ) {  // Being touched
                     if ( this->m_moveOccupier == index ) {
-                        auto rel = (thisStat.m_pos - thisStat.m_lastDownPos) * 3.0f / widthOrHeightButShorter;
+                        auto rel = (thisStat.m_pos - thisStat.m_lastDownPos) * DPAD_RADIUS_FACTOR_INV / widthOrHeightButShorter;
                         if ( rel.x != 0.0f || rel.y != 0.0f ) {
                             //rel = glm::normalize(rel);
                             info.xMovePlane = rel.x;
@@ -366,6 +400,14 @@ namespace {
                 auto& wid = this->m_touchDrawers[index];
                 wid.setPosX(x - this->k_touchDrawerThiccness * 0.5f);
                 wid.setPosY(y - this->k_touchDrawerThiccness * 0.5f);
+            }
+        }
+
+        void hideTouchDrawer(const int32_t index) {
+            if ( this->m_touchDrawers.size() > index ) {
+                auto& wid = this->m_touchDrawers[index];
+                wid.setPosX(-100.0f - this->k_touchDrawerThiccness * 0.5f);
+                wid.setPosY(-100.0f - this->k_touchDrawerThiccness * 0.5f);
             }
         }
 
@@ -636,6 +678,8 @@ namespace {
     }
 
     void apply_topdown(const float deltaTime, dal::StrangeEulerCamera& camera, dal::cpnt::Transform& cpntTrans, dal::OverlayMaster& overlay) {
+
+
         // This means it must represent move direction when targetViewDir == { 0, 0 }
         NoclipMoveInfo totalMoveInfo{ 0.0f };
 
@@ -653,11 +697,7 @@ namespace {
             NoclipMoveInfo touchInfo;
             const auto touchUpdated = g_touchMas.makeMoveInfo(touchInfo, overlay);
             if ( touchUpdated ) {
-                auto moveVec = glm::vec2{ touchInfo.xMovePlane, touchInfo.zMovePlane };
-                auto moveVecLen = glm::length(moveVec);
-                if ( moveVecLen > 1.0f ) {
-                    moveVec /= moveVecLen;
-                }
+                const auto moveVec = clampVec<1>(glm::vec2{ touchInfo.xMovePlane, touchInfo.zMovePlane });
                 touchInfo.xMovePlane = moveVec.x;
                 touchInfo.zMovePlane = moveVec.y;
 
@@ -674,38 +714,44 @@ namespace {
             const glm::vec3 k_modelCamOffset{ 0.0f, 1.3f, 0.0f };
 
             {
+                constexpr float CAM_ROTATE_SPEED_INV = 0.5f;
+                static_assert(0.0f <= CAM_ROTATE_SPEED_INV && CAM_ROTATE_SPEED_INV <= 1.0f);
+
                 const auto camViewVec = dal::strangeEuler2Vec(camera.getStrangeEuler());
                 const auto rotatorAsCamX = glm::rotate(glm::mat4{ 1.0f }, camera.getStrangeEuler().getX(), glm::vec3{ 0.0f, 1.0f, 0.0f });
                 const auto rotatedMoveVec = rotateVec2(glm::vec2{ totalMoveInfo.xMovePlane, totalMoveInfo.zMovePlane }, camera.getStrangeEuler().getX());
 
                 const auto deltaPos = glm::vec3{ rotatedMoveVec.x, totalMoveInfo.vertical, rotatedMoveVec.y } *deltaTime * 5.0f;
                 cpntTrans.m_pos += deltaPos;
-                camera.m_pos += deltaPos;
+                camera.m_pos += deltaPos * CAM_ROTATE_SPEED_INV;
                 if ( rotatedMoveVec.x != 0.0f || rotatedMoveVec.y != 0.0f ) {
                     cpntTrans.m_quat = dal::rotateQuat(glm::quat{}, atan2(rotatedMoveVec.x, rotatedMoveVec.y), glm::vec3{ 0.0f, 1.0f, 0.0f });
                 }
             }
 
             {
+                constexpr float MAX_Y_DEGREE = 75.0f;
+
                 const auto obj2CamVec = camera.m_pos - (cpntTrans.m_pos + k_modelCamOffset);
                 const auto len = glm::length(obj2CamVec);
                 auto obj2CamSEuler = dal::vec2StrangeEuler(obj2CamVec);
 
                 obj2CamSEuler.addX(totalMoveInfo.xView);
                 obj2CamSEuler.addY(-totalMoveInfo.yView);
-                constexpr float k_maxDeg = 75.0f;
-                obj2CamSEuler.clampY(glm::radians(-k_maxDeg), glm::radians(k_maxDeg));
+
+                obj2CamSEuler.clampY(glm::radians(-MAX_Y_DEGREE), glm::radians(MAX_Y_DEGREE));
                 const auto rotatedVec = dal::strangeEuler2Vec(obj2CamSEuler);
                 camera.m_pos = cpntTrans.m_pos + k_modelCamOffset + rotatedVec * len;
             }
 
             {
+                constexpr float OBJ_CAM_DISTANCE = 2.0f;
+
                 const auto cam2ObjVec = cpntTrans.m_pos - camera.m_pos + k_modelCamOffset;
                 const auto cam2ObjSEuler = dal::vec2StrangeEuler(cam2ObjVec);
                 camera.setViewPlane(cam2ObjSEuler.getX(), cam2ObjSEuler.getY());
 
-                constexpr float k_objCamDistance = 2.0f;
-                camera.m_pos = cpntTrans.m_pos + k_modelCamOffset - resizeOnlyXZ(cam2ObjVec, k_objCamDistance);
+                camera.m_pos = cpntTrans.m_pos + k_modelCamOffset - resizeOnlyXZ(cam2ObjVec, OBJ_CAM_DISTANCE);
             }
 
             camera.updateViewMat();
