@@ -11,6 +11,7 @@
 using namespace std::string_literals;
 
 
+// FileLoggingChannel
 namespace {
 
     class FileLoggingChannel : public dal::ILoggingChannel {
@@ -132,6 +133,11 @@ namespace {
 }
 
 
+namespace {
+
+}
+
+
 namespace dal {
 
     // Static
@@ -168,11 +174,13 @@ namespace dal {
         // Player
         {
             this->m_player = this->m_enttMaster.create();
-            this->m_enttMaster.assign<cpnt::Transform>(this->m_player);
 
-            auto model = this->m_resMas.orderModel("test::academy.obj");
+            auto& transform = this->m_enttMaster.assign<cpnt::Transform>(this->m_player);
+            transform.m_scale = 0.2f;
+
+            auto model = this->m_resMas.orderModelAnimated("asset::model.dae");
             dalAssert(nullptr != model);
-            auto& renderable = this->m_enttMaster.assign<cpnt::StaticModel>(this->m_player);
+            auto& renderable = this->m_enttMaster.assign<cpnt::AnimatedModel>(this->m_player);
             renderable.m_model = model;
         }
 
@@ -222,6 +230,13 @@ namespace dal {
         //this->m_scene.applyCollision(*this->m_player.getModel(), *this->m_player.getActor());
 
         TaskGod::getinst().update();
+
+        auto view = this->m_enttMaster.view<cpnt::AnimatedModel>();
+        view.each(
+            [](cpnt::AnimatedModel& animatedModel) {
+                animatedModel.m_model->updateAnimation0();
+            }
+        );
 
         this->m_scene.update(deltaTime);
         this->m_renderMan.update(deltaTime);
