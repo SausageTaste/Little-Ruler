@@ -24,8 +24,10 @@ namespace dal {
     public:
         virtual ~ISingleUsageQueue(void) = default;
     private:
-        ISingleUsageQueue(ISingleUsageQueue&) = delete;
-        ISingleUsageQueue& operator=(ISingleUsageQueue&) = delete;
+        ISingleUsageQueue(const ISingleUsageQueue&) = delete;
+        ISingleUsageQueue& operator=(const ISingleUsageQueue&) = delete;
+        ISingleUsageQueue(ISingleUsageQueue&&) = delete;
+        ISingleUsageQueue& operator=(ISingleUsageQueue&&) = delete;
 
     public:
         void clear(void);
