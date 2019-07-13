@@ -95,6 +95,22 @@ namespace {
         };
     }
 
+    /*
+    Normalize xz components on the plane (0, 1, 0, -v.y).
+    So if v.y is longer than length, all 3 components must be resized to make it onto sphere.
+    */
+    glm::vec3 resizeOnlyXZ(const glm::vec3& v, const float sphereRadius) {
+        const auto circleOfIntersecRadiusSqr = sphereRadius * sphereRadius - v.y * v.y;
+        if ( circleOfIntersecRadiusSqr > 0.0f ) {
+            const auto circleOfIntersecRadius = sqrt(circleOfIntersecRadiusSqr);
+            const auto resizedVecXZ = glm::normalize(glm::vec2{ v.x, v.z }) * circleOfIntersecRadius;
+            return glm::vec3{ resizedVecXZ.x, v.y, resizedVecXZ.y };
+        }
+        else {
+            return glm::normalize(v) * sphereRadius;
+        }
+    }
+
 }  // namespace
 
 
@@ -625,17 +641,15 @@ namespace {
             g_keyboardMas.fetch();
             g_touchMas.fetch();
 
-            bool updated = false;
-
             NoclipMoveInfo keyboardInfo;
-            updated = updated || g_keyboardMas.makeMoveInfo(keyboardInfo, deltaTime);
-            if ( updated ) {
+            const auto keyUpdated = g_keyboardMas.makeMoveInfo(keyboardInfo, deltaTime);
+            if ( keyUpdated ) {
                 totalMoveInfo += keyboardInfo;
             }
 
             NoclipMoveInfo touchInfo;
-            updated = updated || g_touchMas.makeMoveInfo(touchInfo, overlay);
-            if ( updated ) {
+            const auto touchUpdated = g_touchMas.makeMoveInfo(touchInfo, overlay);
+            if ( touchUpdated ) {
                 auto moveVec = glm::vec2{ touchInfo.xMovePlane, touchInfo.zMovePlane };
                 auto moveVecLen = glm::length(moveVec);
                 if ( moveVecLen > 1.0f ) {
@@ -647,7 +661,7 @@ namespace {
                 totalMoveInfo += touchInfo;
             }
 
-            if ( !updated ) {
+            if ( !keyUpdated && !touchUpdated ) {
                 return;
             }
         }
@@ -661,7 +675,9 @@ namespace {
                 const auto rotatorAsCamX = glm::rotate(glm::mat4{ 1.0f }, camera.getStrangeEuler().getX(), glm::vec3{ 0.0f, 1.0f, 0.0f });
                 const auto rotatedMoveVec = rotateVec2(glm::vec2{ totalMoveInfo.xMovePlane, totalMoveInfo.zMovePlane }, camera.getStrangeEuler().getX());
 
-                cpntTrans.m_pos += glm::vec3{ rotatedMoveVec.x, totalMoveInfo.vertical, rotatedMoveVec.y } *deltaTime * 5.0f;
+                const auto deltaPos = glm::vec3{ rotatedMoveVec.x, totalMoveInfo.vertical, rotatedMoveVec.y } *deltaTime * 5.0f;
+                cpntTrans.m_pos += deltaPos;
+                camera.m_pos += deltaPos;
                 if ( rotatedMoveVec.x != 0.0f || rotatedMoveVec.y != 0.0f ) {
                     cpntTrans.m_quat = dal::rotateQuat(glm::quat{}, atan2(rotatedMoveVec.x, rotatedMoveVec.y), glm::vec3{ 0.0f, 1.0f, 0.0f });
                 }
@@ -671,9 +687,6 @@ namespace {
                 const auto obj2CamVec = camera.m_pos - (cpntTrans.m_pos + k_modelCamOffset);
                 const auto len = glm::length(obj2CamVec);
                 auto obj2CamSEuler = dal::vec2StrangeEuler(obj2CamVec);
-
-                //const auto rotatedVec2 = rotateVec2(glm::vec2{ obj2CamVec.x, obj2CamVec.z }, totalMoveInfo.xView);
-                //camera.m_pos = cpntTrans.m_pos + k_modelCamOffset + glm::vec3{ rotatedVec2.x, obj2CamVec.y, rotatedVec2.y };
 
                 obj2CamSEuler.addX(totalMoveInfo.xView);
                 obj2CamSEuler.addY(-totalMoveInfo.yView);
@@ -689,64 +702,8 @@ namespace {
                 camera.setViewPlane(cam2ObjSEuler.getX(), cam2ObjSEuler.getY());
 
                 constexpr float k_objCamDistance = 2.0f;
-
-                const auto len = glm::length(cam2ObjVec);
-                if ( len > k_objCamDistance ) {
-                    const auto circleOfIntersecRadiusSqr = k_objCamDistance * k_objCamDistance - cam2ObjVec.y * cam2ObjVec.y;
-                    if ( circleOfIntersecRadiusSqr > 0.0f ) {
-                        const auto circleOfIntersecRadius = sqrt(circleOfIntersecRadiusSqr);
-                        const auto resizedVec2 = glm::normalize(glm::vec2{ cam2ObjVec.x, cam2ObjVec.z }) * circleOfIntersecRadius;
-                        const auto resizedVec3 = glm::vec3{ resizedVec2.x, cam2ObjVec.y, resizedVec2.y } *k_objCamDistance;
-
-                        camera.m_pos = cpntTrans.m_pos + k_modelCamOffset - resizedVec3;
-                    }
-                    else {
-                        const auto shorterVec = cam2ObjVec / len * k_objCamDistance;
-                        camera.m_pos = cpntTrans.m_pos + k_modelCamOffset - shorterVec;
-                    }
-                }
-                else if ( len < k_objCamDistance ) {
-                    const auto shorterVec = cam2ObjVec / len * k_objCamDistance;
-                    camera.m_pos = cpntTrans.m_pos + k_modelCamOffset - shorterVec;
-                }
+                camera.m_pos = cpntTrans.m_pos + k_modelCamOffset - resizeOnlyXZ(cam2ObjVec, k_objCamDistance);
             }
-
-            /*
-            const auto actor2Cam = camera.m_pos - cpntTrans.m_pos;
-
-            const glm::vec3 toAddToPos{ totalMoveInfo.xMovePlane * deltaTime * 5.0f, 0.0f, totalMoveInfo.zMovePlane * deltaTime * 5.0f };
-            cpntTrans.m_pos += toAddToPos;
-
-            if ( totalMoveInfo.xMovePlane != 0.0 ||totalMoveInfo.zMovePlane != 0.0f ) {
-                const glm::vec3 moveVec3{ totalMoveInfo.xMovePlane, 0.0f, -totalMoveInfo.zMovePlane };
-                const auto stranEuler = dal::vec2StrangeEuler(moveVec3);
-                cpntTrans.m_quat = dal::rotateQuat(glm::quat{}, stranEuler.getX(), glm::vec3{ 0.0f, 1.0f, 0.0f });
-            }
-
-            auto camPosVec4 = glm::rotate(glm::mat4{ 1.0f }, totalMoveInfo.yView, glm::vec3{ 1.0f, 0.0f, 0.0f }) * 
-                glm::rotate(glm::mat4{ 1.0f }, -totalMoveInfo.xView, glm::vec3{ 0.0f, 1.0f, 0.0f }) *
-                glm::vec4{ actor2Cam.x, actor2Cam.y, actor2Cam.z, 1.0f };
-            glm::vec3 camPosVec3{ camPosVec4 };
-
-            const auto camSEuler = dal::vec2StrangeEuler(-camPosVec3);
-
-            camera.setViewPlane(camSEuler.getX(), camSEuler.getY());
-
-            const auto len = glm::length(camPosVec3);
-            if ( len > 3.0 ) {
-                camera.m_pos = cpntTrans.m_pos + (camPosVec3 / len * 3.0f);
-            }
-            else {
-                camera.m_pos = cpntTrans.m_pos + camPosVec3;
-            }
-            */
-
-            /*
-            constexpr float cameraAngle = 55.0f;
-            const auto camOffset = glm::vec3{ 0.0, sin(glm::radians(cameraAngle)), cos(glm::radians(cameraAngle)) } * 3.0f;
-            camera->m_pos = actor->getPos() + camOffset + glm::vec3{ 0.0, 1.0, 0.0 };
-            camera->setViewPlane(0.0f, glm::radians(-cameraAngle));
-            */
 
             camera.updateViewMat();
             cpntTrans.updateMat();
