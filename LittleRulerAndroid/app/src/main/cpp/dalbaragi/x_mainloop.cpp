@@ -121,8 +121,12 @@ namespace {
 
     };
 
-    void test(void) {
-
+    void test(const float deltaTime) {
+#ifdef _DEBUG
+        constexpr int ITER_COUNT = 1000000;
+#else
+        constexpr int ITER_COUNT = 100000000;
+#endif
     }
 
 }
@@ -194,7 +198,7 @@ namespace dal {
 
         // Test
         {
-            test();
+            test(this->m_timer.getElapsed());
         }
     }
 
