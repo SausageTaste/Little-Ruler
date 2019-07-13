@@ -249,12 +249,13 @@ namespace {
                 if ( dal::TouchType::move == touch.type ) {
                     state.m_pos = pos;
                     state.m_sec = touch.timeSec;
-                    this->updateTouchDrawer(touch.id, pos.x, pos.y);
 
                     if ( touch.id == this->m_moveOccupier ) {
                         const auto moveStickPos = clampVec(glm::vec2{ pos.x, pos.y } - state.m_lastDownPos, widthOrHeightButShorter / DPAD_RADIUS_FACTOR_INV) + state.m_lastDownPos;
-                        this->updateTouchDrawer(touch.id, moveStickPos.x, moveStickPos.y);
+                        state.m_pos = moveStickPos;
                     }
+
+                    this->updateTouchDrawer(touch.id);
                 }
                 else if ( dal::TouchType::down == touch.type ) {
                     state.m_pos = pos;
@@ -263,14 +264,13 @@ namespace {
 
                     state.m_lastDownPos = pos;
                     state.m_lastDownSec = touch.timeSec;
-                    this->updateTouchDrawer(touch.id, pos.x, pos.y);
 
                     if ( touch.x < aThridWidth && -1 == this->m_moveOccupier ) {
                         this->m_moveOccupier = touch.id;
-                        const auto moveStickPos = clampVec<1>(glm::vec2{ pos.x, pos.y });
-                        this->updateTouchDrawer(touch.id, moveStickPos.x, moveStickPos.y);
-                        this->updateTouchDrawer(k_maxTouchCount, state.m_lastDownPos.x, state.m_lastDownPos.y);
+                        this->setTouchDrawer(k_maxTouchCount, state.m_lastDownPos.x, state.m_lastDownPos.y);
                     }
+
+                    this->setTouchDrawer(touch.id, pos.x, pos.y);
                 }
                 else if ( dal::TouchType::up == touch.type ) {
                     state.m_pos = pos;
@@ -395,7 +395,15 @@ namespace {
             return true;
         }
 
-        void updateTouchDrawer(const int32_t index, const float x, const float y) {
+        void updateTouchDrawer(const int32_t index) {
+            if ( this->m_touchDrawers.size() > index ) {
+                auto& wid = this->m_touchDrawers[index];
+                wid.setPosX(this->m_thisStates[index].m_pos.x - this->k_touchDrawerThiccness * 0.5f);
+                wid.setPosY(this->m_thisStates[index].m_pos.y - this->k_touchDrawerThiccness * 0.5f);
+            }
+        }
+
+        void setTouchDrawer(const int32_t index, const float x, const float y) {
             if ( this->m_touchDrawers.size() > index ) {
                 auto& wid = this->m_touchDrawers[index];
                 wid.setPosX(x - this->k_touchDrawerThiccness * 0.5f);
@@ -697,7 +705,8 @@ namespace {
             NoclipMoveInfo touchInfo;
             const auto touchUpdated = g_touchMas.makeMoveInfo(touchInfo, overlay);
             if ( touchUpdated ) {
-                const auto moveVec = clampVec<1>(glm::vec2{ touchInfo.xMovePlane, touchInfo.zMovePlane });
+                //const auto moveVec = clampVec<1>(glm::vec2{ touchInfo.xMovePlane, touchInfo.zMovePlane });
+                const auto moveVec = glm::vec2{ touchInfo.xMovePlane, touchInfo.zMovePlane };
                 touchInfo.xMovePlane = moveVec.x;
                 touchInfo.zMovePlane = moveVec.y;
 
@@ -707,6 +716,13 @@ namespace {
             if ( !keyUpdated && !touchUpdated ) {
                 return;
             }
+        }
+
+        // Post process
+        {
+            const auto clampedMovePlane = clampVec<1>(glm::vec2{ totalMoveInfo.xMovePlane, totalMoveInfo.zMovePlane });
+            totalMoveInfo.xMovePlane = clampedMovePlane.x;
+            totalMoveInfo.zMovePlane = clampedMovePlane.y;
         }
 
         // Apply move direction
