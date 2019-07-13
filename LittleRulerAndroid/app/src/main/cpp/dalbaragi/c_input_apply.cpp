@@ -42,29 +42,29 @@ namespace {
     }
 
     constexpr char encodeToAscii(const dal::KeySpec key, const bool shift) {
-        const auto keyInt = int(key);
+        const auto keyInt = static_cast<int>(key);
 
-        if ( int(dal::KeySpec::a) <= keyInt&& keyInt <= int(dal::KeySpec::z) ) {
+        if ( static_cast<int>(dal::KeySpec::a) <= keyInt && keyInt <= static_cast<int>(dal::KeySpec::z) ) {
             if ( shift ) {
-                return char(int('A') + keyInt - int(dal::KeySpec::a));
+                return static_cast<char>(static_cast<int>('A') + keyInt - static_cast<int>(dal::KeySpec::a));
             }
             else {
-                return char(int('a') + keyInt - int(dal::KeySpec::a));
+                return char(static_cast<int>('a') + keyInt - static_cast<int>(dal::KeySpec::a));
             }
         }
-        else if ( int(dal::KeySpec::n0) <= keyInt && keyInt <= int(dal::KeySpec::n9) ) {
+        else if ( static_cast<int>(dal::KeySpec::n0) <= keyInt && keyInt <= static_cast<int>(dal::KeySpec::n9) ) {
             if ( shift ) {
-                const auto index = keyInt - int(dal::KeySpec::n0);
+                const auto index = keyInt - static_cast<int>(dal::KeySpec::n0);
                 constexpr char map[] = { ')','!','@','#','$','%','^','&','*','(' };
                 return map[index];
             }
             else {
-                return char(int('0') + keyInt - int(dal::KeySpec::n0));
+                return static_cast<char>(static_cast<int>('0') + keyInt - static_cast<int>(dal::KeySpec::n0));
             }
         }
-        else if ( int(dal::KeySpec::backquote) <= keyInt && keyInt <= int(dal::KeySpec::slash) ) {
+        else if ( static_cast<int>(dal::KeySpec::backquote) <= keyInt && keyInt <= static_cast<int>(dal::KeySpec::slash) ) {
             // backquote, minus, equal, lbracket, rbracket, backslash, semicolon, quote, comma, period, slash
-            const auto index = keyInt - int(dal::KeySpec::backquote);
+            const auto index = keyInt - static_cast<int>(dal::KeySpec::backquote);
             if ( shift ) {
                 constexpr char map[] = { '~', '_', '+', '{', '}', '|', ':', '"', '<', '>', '?' };
                 return map[index];
@@ -74,9 +74,9 @@ namespace {
                 return map[index];
             }
         }
-        else if ( int(dal::KeySpec::space) <= keyInt && keyInt <= int(dal::KeySpec::tab) ) {
+        else if ( static_cast<int>(dal::KeySpec::space) <= keyInt && keyInt <= static_cast<int>(dal::KeySpec::tab) ) {
             // space, enter, backspace, tab
-            const auto index = keyInt - int(dal::KeySpec::space);
+            const auto index = keyInt - static_cast<int>(dal::KeySpec::space);
             constexpr char map[] = { ' ', '\n', '\b', '\t' };
             return map[index];
         }
