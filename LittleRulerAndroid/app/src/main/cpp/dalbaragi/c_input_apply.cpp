@@ -89,9 +89,12 @@ namespace {
     In OpenGL coordinate system, if input is (x, z), rotation follows left hand rule.
     */
     glm::vec2 rotateVec2(const glm::vec2& v, const float radians) {
+        const auto sinVal = sin(radians);
+        const auto cosVal = cos(radians);
+
         return glm::vec2{
-            v.x * cos(radians) - v.y * sin(radians),
-            v.x * sin(radians) + v.y * cos(radians)
+            v.x * cosVal - v.y * sinVal,
+            v.x * sinVal + v.y * cosVal
         };
     }
 

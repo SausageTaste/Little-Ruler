@@ -102,6 +102,24 @@ namespace {
 
     } g_fileLogger;
 
+}
+
+
+// Test codes
+namespace {
+
+    class RAIITimer {
+
+    private:
+        dal::Timer m_timer;
+
+    public:
+        ~RAIITimer(void) {
+            const auto elapsed = this->m_timer.getElapsed();
+            dalVerbose("Test elapsed: "s + std::to_string(elapsed));
+        }
+
+    };
 
     void test(void) {
 
