@@ -21,21 +21,6 @@ def main():
 
     ########
 
-    model = bfi.BuildInfo_ModelImportedAnimated()
-
-    actor = aco.ActorInfo()
-    actor.setName("ThinMatrix")
-    actor.getPosHandle().setX(8)
-    actor.getPosHandle().setZ(1)
-    actor.getQuatHandle().rotate(-90.0, (0, 0, 1))
-    actor.setScale(2)
-    model.addActor(actor)
-
-    model.setModelID("asset::model.dae")
-    level.add(model)
-
-    ########
-
     model = bfi.BuildInfo_ModelDefined()
     model.setModelID("floor_upper")
     model.getMeshHandle().setAABB(atl.Vec3(0, -1, 0), atl.Vec3(20, 0, 50))
