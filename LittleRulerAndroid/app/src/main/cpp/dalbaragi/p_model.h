@@ -88,21 +88,6 @@ namespace dal {
 
         void updateAnimation0(void);
 
-        /*
-        // Just in case
-        void BoneTransform(float TimeInSeconds);
-        void ReadNodeHeirarchy(float AnimationTime, const aiNode* pNode, const glm::mat4& ParentTransform);
-        const aiNodeAnim* FindNodeAnim(const aiAnimation* const pAnimation, const std::string& NodeName);
-
-        void CalcInterpolatedPosition(aiVector3D& Out, float AnimationTime, const aiNodeAnim* pNodeAnim);
-        void CalcInterpolatedRotation(aiQuaternion& Out, float AnimationTime, const aiNodeAnim* pNodeAnim);
-        void CalcInterpolatedScaling(aiVector3D& Out, float AnimationTime, const aiNodeAnim* pNodeAnim);
-
-        unsigned int FindPosition(float AnimationTime, const aiNodeAnim* pNodeAnim);
-        unsigned int FindRotation(float AnimationTime, const aiNodeAnim* pNodeAnim);
-        unsigned int FindScaling(float AnimationTime, const aiNodeAnim* pNodeAnim);
-        */
-
     };
 
 }
