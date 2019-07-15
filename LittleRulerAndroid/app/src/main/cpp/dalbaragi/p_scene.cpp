@@ -40,33 +40,28 @@ namespace dal {
         : m_name(info.m_mapName)
     {
         for ( auto& definedModel : info.m_definedModels ) {
-            this->m_modelActors.emplace_back();
-            auto& modelActor = this->m_modelActors.back();
-
-            modelActor.m_model = resMas.buildModel(definedModel, info.m_packageName.c_str());
-            modelActor.m_inst.assign(definedModel.m_actors.begin(), definedModel.m_actors.end());
+            auto& [model, actors] = this->m_modelActors.emplace_back(resMas.buildModel(definedModel, info.m_packageName.c_str()));
+            actors.assign(definedModel.m_actors.begin(), definedModel.m_actors.end());
         }
 
         for ( auto& importedModel : info.m_importedModels ) {
-            this->m_modelActors.emplace_back();
-            auto& model = this->m_modelActors.back();
-
             ResourceID modelResID{ importedModel.m_modelID };
-            if ( modelResID.getPackage().empty() ) modelResID.setPackage(info.m_packageName);
+            if ( modelResID.getPackage().empty() ) {
+                modelResID.setPackage(info.m_packageName);
+            }
 
-            model.m_model = resMas.orderModel(modelResID);
-            model.m_inst.assign(importedModel.m_actors.begin(), importedModel.m_actors.end());
+            auto& [model, actors] = this->m_modelActors.emplace_back(resMas.orderModel(modelResID));
+            actors.assign(importedModel.m_actors.begin(), importedModel.m_actors.end());
         }
 
         for ( auto& animatedModel : info.m_animatedModels ) {
-            this->m_animatedActors.emplace_back();
-            auto& model = this->m_animatedActors.back();
+            auto& [model, actors] = this->m_animatedActors.emplace_back();
 
             ResourceID modelResID{ animatedModel.m_modelID };
             if ( modelResID.getPackage().empty() ) modelResID.setPackage(info.m_packageName);
 
-            model.m_model = resMas.orderModelAnimated(modelResID);
-            model.m_inst.assign(animatedModel.m_actors.begin(), animatedModel.m_actors.end());
+            model = resMas.orderModelAnimated(modelResID);
+            actors.assign(animatedModel.m_actors.begin(), animatedModel.m_actors.end());
         }
 
         for ( auto& pointLight : info.m_pointLights ) {
@@ -98,7 +93,7 @@ namespace dal {
 
     void MapChunk::update(const float deltaTime) {
         for ( auto& model : this->m_animatedActors ) {
-            model.m_model->updateAnimation0();
+            model.first->updateAnimation0();
         }
     }
 
@@ -106,25 +101,25 @@ namespace dal {
     void MapChunk::renderGeneral(const UnilocGeneral& uniloc) {
         this->sendUniforms_lights(uniloc.m_lightedMesh, 0);
 
-        for ( auto& modelActor : this->m_modelActors ) {
-            for ( auto& actor : modelActor.m_inst ) {
-                modelActor.m_model->render(uniloc.m_lightedMesh, uniloc.getDiffuseMapLoc(), actor.getModelMat());
+        for ( auto& [model, actors] :this->m_modelActors ) {
+            for ( auto& actor : actors ) {
+                model.render(uniloc.m_lightedMesh, uniloc.getDiffuseMapLoc(), actor.getModelMat());
             }
         }
     }
 
     void MapChunk::renderDepthMp(const UnilocDepthmp& uniloc) {
-        for ( auto& modelActor : this->m_modelActors ) {
-            for ( auto& actor : modelActor.m_inst ) {
-                modelActor.m_model->renderDepthMap(uniloc.m_geometry, actor.getModelMat());
+        for ( auto& [mdl, actors] : this->m_modelActors ) {
+            for ( auto& actor : actors ) {
+                mdl.renderDepthMap(uniloc.m_geometry, actor.getModelMat());
             }
         }
     }
 
     void MapChunk::renderDepthAnimated(const UnilocDepthAnime& uniloc) {
         for ( auto& modelActor : this->m_animatedActors ) {
-            for ( auto& actor : modelActor.m_inst ) {
-                modelActor.m_model->renderDepthMap(uniloc.m_geometry, uniloc.m_anime, actor.getModelMat());
+            for ( auto& actor : modelActor.second ) {
+                modelActor.first->renderDepthMap(uniloc.m_geometry, uniloc.m_anime, actor.getModelMat());
             }
         }
     }
@@ -141,8 +136,8 @@ namespace dal {
         this->sendUniforms_lights(uniloc.m_lightedMesh, 0);
 
         for ( auto& modelActor : this->m_animatedActors ) {
-            for ( auto& actor : modelActor.m_inst ) {
-                modelActor.m_model->render(uniloc.m_lightedMesh, uniloc.getDiffuseMapLoc(), uniloc.m_anime, actor.getModelMat());
+            for ( auto& actor : modelActor.second ) {
+                modelActor.first->render(uniloc.m_lightedMesh, uniloc.getDiffuseMapLoc(), uniloc.m_anime, actor.getModelMat());
             }
         }
     }
@@ -265,38 +260,38 @@ namespace dal {
         return startIndex + this->m_plights.size();
     }
 
-    void MapChunk::applyCollision(ModelStatic& model, ActorInfo& actor) {
-        auto actorBox = model.getBoundingBox();
-        actorBox.add(actor.getPos());
+    void MapChunk::applyCollision(ModelStaticHandle& model, ActorInfo& actor) {
+        auto inputActorBBox = model.getBoundingBox();
+        inputActorBBox.add(actor.getPos());
 
-        for ( auto& modelInfo : this->m_modelActors ) {
-            for ( auto& modelActor : modelInfo.m_inst ) {
-                if ( &modelActor == &actor ) continue;
+        for ( auto& [mdl, actors] : this->m_modelActors ) {
+            for ( auto& targetActor : actors ) {
+                if ( &targetActor == &actor ) continue;
 
-                auto box = modelInfo.m_model->getBoundingBox();
-                box.add(modelActor.getPos());
+                auto targetBBox = model.getBoundingBox();
+                targetBBox.add(targetActor.getPos());
 
-                if ( checkCollision(actorBox, box) ) {
-                    const auto resolveInfo = calcResolveInfo(actorBox, box);
+                if ( checkCollision(inputActorBBox, targetBBox) ) {
+                    const auto resolveInfo = calcResolveInfo(inputActorBBox, targetBBox);
                     actor.addPos(resolveInfo.m_this);
-                    actorBox.add(resolveInfo.m_this);
-                    modelActor.addPos(resolveInfo.m_other);
+                    inputActorBBox.add(resolveInfo.m_this);
+                    targetActor.addPos(resolveInfo.m_other);
                 }
             }
         }
 
-        for ( auto& modelInfo : this->m_animatedActors ) {
-            for ( auto& modelActor : modelInfo.m_inst ) {
-                if ( &modelActor == &actor ) continue;
+        for ( auto& [mdl, actors] : this->m_animatedActors ) {
+            for ( auto& targetActor : actors ) {
+                if ( &targetActor == &actor ) continue;
 
-                auto box = modelInfo.m_model->getBoundingBox();
-                box.add(modelActor.getPos());
+                auto targetBBox = model.getBoundingBox();
+                targetBBox.add(targetActor.getPos());
 
-                if ( checkCollision(actorBox, box) ) {
-                    const auto resolveInfo = calcResolveInfo(actorBox, box);
+                if ( checkCollision(inputActorBBox, targetBBox) ) {
+                    const auto resolveInfo = calcResolveInfo(inputActorBBox, targetBBox);
                     actor.addPos(resolveInfo.m_this);
-                    actorBox.add(resolveInfo.m_this);
-                    modelActor.addPos(resolveInfo.m_other);
+                    inputActorBBox.add(resolveInfo.m_this);
+                    targetActor.addPos(resolveInfo.m_other);
                 }
             }
         }
@@ -312,27 +307,23 @@ namespace dal {
         }
     }
 
-    ActorInfo* MapChunk::addActor(ModelStatic* const model, const std::string& actorName, bool flagStatic, ResourceMaster& resMas) {
-        for ( auto& modelActor : this->m_modelActors ) {
-            if ( model == modelActor.m_model ) {
-                modelActor.m_inst.emplace_back(actorName, flagStatic);
-                return &modelActor.m_inst.back();
+    ActorInfo* MapChunk::addActor(ModelStaticHandle const model, const std::string& actorName, bool flagStatic, ResourceMaster& resMas) {
+        for ( auto& [mdl, actors] : this->m_modelActors ) {
+            if ( model == mdl ) {
+                return &(actors.emplace_back(actorName, flagStatic));
             }
         }
 
-        auto takenModel = resMas.orderModel(model->getModelResID());
-        if ( nullptr == takenModel ) dalAbort("WTF??");
-        this->m_modelActors.emplace_back(takenModel);
-        auto& modelActor = this->m_modelActors.back();
-        modelActor.m_inst.emplace_back(actorName, flagStatic);
-        return &modelActor.m_inst.back();
+        this->m_modelActors.emplace_back(resMas.orderModel(model.getResID()));
+        auto& [mdl, actors] = this->m_modelActors.back();
+        return &actors.emplace_back(actorName, flagStatic);
     }
 
     ModelAnimated* MapChunk::getModelNActorAnimated(const ResourceID& resID) {
-        for ( auto& x : this->m_animatedActors ) {
-            const auto name = x.m_model->getModelResID().makeFileName();
+        for ( auto& [mdl, actors] : this->m_animatedActors ) {
+            const auto name = mdl->getModelResID().makeFileName();
             if ( name == resID.makeFileName() ) {
-                return x.m_model;
+                return mdl;
             }
         }
         return nullptr;
@@ -408,7 +399,7 @@ namespace dal {
     }
 
 
-    ActorInfo* SceneMaster::addActor(ModelStatic* const model, const std::string& mapName, const std::string& actorName, bool flagStatic) {
+    ActorInfo* SceneMaster::addActor(ModelStaticHandle model, const std::string& mapName, const std::string& actorName, bool flagStatic) {
         auto map = this->findMap(mapName);
         if ( nullptr == map ) {
             return nullptr;
@@ -435,7 +426,7 @@ namespace dal {
         return nullptr;
     }
 
-    void SceneMaster::applyCollision(ModelStatic& model, ActorInfo& actor) {
+    void SceneMaster::applyCollision(ModelStaticHandle& model, ActorInfo& actor) {
         for ( auto& map : this->m_mapChunks ) {
             map.applyCollision(model, actor);
         }

@@ -18,20 +18,18 @@ namespace dal {
     class MapChunk {
 
     private:
-        template <typename T>
-        struct ModelNActor {
-            T* m_model = nullptr;
-            std::list<ActorInfo> m_inst;
+        struct StaticModelActor {
+            ModelStaticHandle m_model;
+            std::list<ActorInfo> m_actors;
 
-            ModelNActor(void) = default;
-            ModelNActor(T* const model) : m_model(model) {}
+            StaticModelActor(ModelStaticHandle&& model) : m_model(std::move(model)) {}
         };
 
     private:
         std::string m_name;
 
-        std::vector<ModelNActor<ModelStatic>> m_modelActors;
-        std::vector<ModelNActor<ModelAnimated>> m_animatedActors;
+        std::vector<StaticModelActor> m_modelActors;
+        std::vector<std::pair<ModelAnimated*, std::list<ActorInfo>>> m_animatedActors;
 
         std::vector<DirectionalLight> m_dlights;
         std::vector<PointLight> m_plights;
@@ -55,10 +53,10 @@ namespace dal {
         void renderGeneral_onWater(const UnilocGeneral& uniloc, const ICamera& cam, entt::registry& reg);
         void renderAnimate_onWater(const UnilocAnimate& uniloc, const ICamera& cam, entt::registry& reg);
 
-        void applyCollision(ModelStatic& model, ActorInfo& actor);
+        void applyCollision(ModelStaticHandle& model, ActorInfo& actor);
 
         WaterRenderer* getWater(const size_t index);
-        ActorInfo* addActor(ModelStatic* const model, const std::string& actorName, bool flagStatic, ResourceMaster& resMas);
+        ActorInfo* addActor(ModelStaticHandle const model, const std::string& actorName, bool flagStatic, ResourceMaster& resMas);
         ModelAnimated* getModelNActorAnimated(const ResourceID& resID);
 
     private:
@@ -91,11 +89,11 @@ namespace dal {
         void renderGeneral_onWater(const UnilocGeneral& uniloc, const ICamera& cam, entt::registry& reg);
         void renderAnimate_onWater(const UnilocAnimate& uniloc, const ICamera& cam, entt::registry& reg);
 
-        ActorInfo* addActor(ModelStatic* const model, const std::string& mapName, const std::string& actorName, bool flagStatic);
+        ActorInfo* addActor(ModelStaticHandle const model, const std::string& mapName, const std::string& actorName, bool flagStatic);
         WaterRenderer* getWater(const std::string& mapName, const size_t index);
         ModelAnimated* getModelNActorAnimated(const ResourceID& resID, const std::string& mapName);
 
-        void applyCollision(ModelStatic& model, ActorInfo& actor);
+        void applyCollision(ModelStaticHandle& model, ActorInfo& actor);
 
         void loadMap(const ResourceID& mapID);
 

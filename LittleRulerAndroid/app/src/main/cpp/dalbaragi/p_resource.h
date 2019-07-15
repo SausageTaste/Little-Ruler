@@ -35,7 +35,6 @@ namespace dal {
 
     };
 
-
     class ModelStatic : public IModel {
 
     private:
@@ -48,6 +47,15 @@ namespace dal {
         std::vector<RenderUnit> m_renderUnits;
 
     public:
+        ModelStatic(const ModelStatic&) = delete;
+        ModelStatic& operator=(const ModelStatic&) = delete;
+        ModelStatic(ModelStatic&&) = delete;
+        ModelStatic& operator=(ModelStatic&&) = delete;
+
+    public:
+        ModelStatic(void) = default;
+        ~ModelStatic(void);
+
         //RenderUnit* addRenderUnit(void);
         void init(const ResourceID& resID, const loadedinfo::ModelStatic& info, ResourceMaster& resMas);
         void init(const loadedinfo::ModelDefined& info, ResourceMaster& resMas);
@@ -60,7 +68,6 @@ namespace dal {
         void destroyModel(void);
 
     };
-
 
     class ModelAnimated : public IModel {
 
@@ -101,11 +108,11 @@ namespace dal {
     class ModelStaticHandle {
 
     private:
+        // This shouldn't be null.
         ModelStaticHandleImpl* m_pimpl;
 
     public:
-        ModelStaticHandle(const ModelStaticHandle&) = delete;
-        ModelStaticHandle& operator=(const ModelStaticHandle&) = delete;
+        
         static void* operator new(size_t) = delete;
         static void* operator new[](size_t) = delete;
         static void operator delete(void*) = delete;
@@ -113,29 +120,27 @@ namespace dal {
 
     public:
         ModelStaticHandle(void);
+        explicit ModelStaticHandle(ModelStatic* const model);
 
         ~ModelStaticHandle(void);
-
+        ModelStaticHandle(const ModelStaticHandle&);
+        ModelStaticHandle& operator=(const ModelStaticHandle&);
         ModelStaticHandle(ModelStaticHandle&&) noexcept;
         ModelStaticHandle& operator=(ModelStaticHandle&&) noexcept;
 
+        bool operator==(ModelStaticHandle& other) const;
+
         void render(const UniInterfLightedMesh& unilocLighted, const SamplerInterf& samplerInterf, const glm::mat4& modelMat) const;
         void renderDepthMap(const UniInterfGeometry& unilocGeometry, const glm::mat4& modelMat) const;
+
+        unsigned int getRefCount(void) const;
+        const AxisAlignedBoundingBox& getBoundingBox(void) const;
+        const ResourceID& getResID(void) const;
 
     };
 
 
     class Package {
-
-    public:
-        struct ResourceReport {
-            std::string m_packageName;
-            std::vector<std::pair<std::string, unsigned int>> m_models;
-            std::vector<std::pair<std::string, unsigned int>> m_textures;
-
-            void print(void) const;
-            std::string getStr(void) const;
-        };
 
     private:
         template <typename T>
@@ -146,7 +151,7 @@ namespace dal {
 
     private:
         std::string m_name;
-        std::unordered_map<std::string, ManageInfo<ModelStatic>> m_models;
+        std::unordered_map<std::string, ModelStaticHandle> m_models;
         std::unordered_map<std::string, ManageInfo<ModelAnimated>> m_animatedModels;
         std::unordered_map<std::string, ManageInfo<Texture>> m_textures;
 
@@ -154,12 +159,10 @@ namespace dal {
         void setName(const char* const packageName);
         void setName(const std::string& packageName);
 
-        ModelStatic* orderModel(const ResourceID& resPath, ResourceMaster* const resMas);
+        ModelStaticHandle orderModel(const ResourceID& resPath, ResourceMaster* const resMas);
         ModelAnimated* orderModelAnimated(const ResourceID& resPath, ResourceMaster* const resMas);
-        ModelStatic* buildModel(const loadedinfo::ModelDefined& info, ResourceMaster* const resMas);
+        ModelStaticHandle buildModel(const loadedinfo::ModelDefined& info, ResourceMaster* const resMas);
         Texture* orderDiffuseMap(ResourceID texID, ResourceMaster* const resMas);
-
-        void getResReport(ResourceReport& report) const;
 
         void clear(void);
 
@@ -183,16 +186,14 @@ namespace dal {
 
         virtual void notifyTask(std::unique_ptr<ITask> task) override;
 
-        ModelStatic* orderModel(const ResourceID& resID);
+        ModelStaticHandle orderModel(const ResourceID& resID);
         ModelAnimated* orderModelAnimated(const ResourceID& resID);
-        ModelStatic* buildModel(const loadedinfo::ModelDefined& info, const char* const packageName);
+        ModelStaticHandle buildModel(const loadedinfo::ModelDefined& info, const char* const packageName);
 
         Texture* orderTexture(const ResourceID& resID);
 
         static Texture* getUniqueTexture(void);
         static void dumpUniqueTexture(Texture* const tex);
-
-        size_t getResReports(std::vector<Package::ResourceReport>& reports) const;
 
     private:
         Package& orderPackage(const std::string& packName);

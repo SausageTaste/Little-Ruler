@@ -170,12 +170,9 @@ namespace dal {
 // ModelStatic
 namespace dal {
 
-    /*
-    ModelStatic::RenderUnit* ModelStatic::addRenderUnit(void) {
-        this->m_renderUnits.emplace_back();
-        return &this->m_renderUnits.back();
+    ModelStatic::~ModelStatic(void) {
+        this->destroyModel();
     }
-    */
 
     void ModelStatic::init(const ResourceID& resID, const loadedinfo::ModelStatic& info, ResourceMaster& resMas) {
         this->setModelResID(std::move(resID));
@@ -381,9 +378,26 @@ namespace dal {
 
     }
 
+    ModelStaticHandle::ModelStaticHandle(dal::ModelStatic* const model)
+        : m_pimpl(g_staticModelCtrlBlckPool.alloc())
+    {
+        this->m_pimpl->m_model = model;
+    }
+    
+
     ModelStaticHandle::~ModelStaticHandle(void) {
         dalAssert(nullptr != this->m_pimpl);
-        this->m_pimpl->m_model = nullptr;
+
+        --this->m_pimpl->m_refCount;
+        if ( 0 == this->m_pimpl->m_refCount ) {
+            if ( nullptr != this->m_pimpl->m_model ) {
+                g_modelPool.free(this->m_pimpl->m_model);
+                this->m_pimpl->m_model = nullptr;
+            }
+
+            g_staticModelCtrlBlckPool.free(this->m_pimpl);
+            this->m_pimpl = nullptr;
+        }
     }
 
     ModelStaticHandle::ModelStaticHandle(ModelStaticHandle&& other) noexcept
@@ -392,17 +406,83 @@ namespace dal {
         std::swap(this->m_pimpl, other.m_pimpl);
     }
 
+    ModelStaticHandle::ModelStaticHandle(const ModelStaticHandle& other)
+        : m_pimpl(other.m_pimpl)
+    {
+        ++this->m_pimpl->m_refCount;
+    }
+
+    ModelStaticHandle& ModelStaticHandle::operator=(const ModelStaticHandle& other) {
+        this->m_pimpl = other.m_pimpl;
+        ++this->m_pimpl->m_refCount;
+        return *this;
+    }
+
     ModelStaticHandle& ModelStaticHandle::operator=(ModelStaticHandle&& other) noexcept {
         std::swap(this->m_pimpl, other.m_pimpl);
         return *this;
     }
 
-    void ModelStaticHandle::render(const UniInterfLightedMesh& unilocLighted, const SamplerInterf& samplerInterf, const glm::mat4& modelMat) const {
+    bool ModelStaticHandle::operator==(ModelStaticHandle& other) const {
+        dalAssert(nullptr != this->m_pimpl);
+        dalAssert(nullptr != other.m_pimpl);
 
+        if ( nullptr == this->m_pimpl->m_model ) {
+            return false;
+        }
+        else if ( nullptr == other.m_pimpl->m_model ) {
+            return false;
+        }
+        else if ( this->m_pimpl->m_model != other.m_pimpl->m_model ) {
+            return false;
+        }
+        else {
+            return true;
+        }
+    }
+
+    void ModelStaticHandle::render(const UniInterfLightedMesh& unilocLighted, const SamplerInterf& samplerInterf, const glm::mat4& modelMat) const {
+        dalAssert(nullptr != this->m_pimpl);
+        if ( nullptr != this->m_pimpl->m_model ) {
+            this->m_pimpl->m_model->render(unilocLighted, samplerInterf, modelMat);
+        }
+        else {
+            dalAbort("Not implemented.");
+        }
     }
 
     void ModelStaticHandle::renderDepthMap(const UniInterfGeometry& unilocGeometry, const glm::mat4& modelMat) const {
+        dalAssert(nullptr != this->m_pimpl);
+        if ( nullptr != this->m_pimpl->m_model ) {
+            this->m_pimpl->m_model->renderDepthMap(unilocGeometry, modelMat);
+        }
+        else {
+            dalAbort("Not implemented.");
+        }
+    }
 
+    unsigned int ModelStaticHandle::getRefCount(void) const {
+        return this->m_pimpl->m_refCount;
+    }
+
+    const AxisAlignedBoundingBox& ModelStaticHandle::getBoundingBox(void) const {
+        dalAssert(nullptr != this->m_pimpl);
+        if ( nullptr != this->m_pimpl->m_model ) {
+            return this->m_pimpl->m_model->getBoundingBox();
+        }
+        else {
+            dalAbort("Not implemented.");
+        }
+    }
+
+    const ResourceID& ModelStaticHandle::getResID(void) const {
+        dalAssert(nullptr != this->m_pimpl);
+        if ( nullptr != this->m_pimpl->m_model ) {
+            return this->m_pimpl->m_model->getModelResID();
+        }
+        else {
+            dalAbort("Not implemented.");
+        }
     }
 
 }
@@ -410,40 +490,6 @@ namespace dal {
 
 // Package
 namespace dal {
-
-    void Package::ResourceReport::print(void) const {
-        dalInfo("Package : "s + m_packageName);
-        dalInfo("\tModels");
-
-        for ( auto& x : m_models ) {
-            dalInfo("\t\t"s + x.first + " (" + std::to_string(x.second) + ")");
-        }
-
-        dalInfo("\tTextures");
-
-        for ( auto& x : m_textures ) {
-            dalInfo("\t\t"s + x.first + " (" + std::to_string(x.second) + ")");
-        }
-    }
-
-    std::string Package::ResourceReport::getStr(void) const {
-        std::string result;
-
-        result.append("Package : "s + m_packageName + '\n');
-        result.append("\tModels"s + '\n');
-
-        for ( auto& [name, refCount] : m_models ) {
-            result.append("\t\t"s + name + " (" + std::to_string(refCount) + ")" + '\n');
-        }
-
-        result.append("\tTextures"s + '\n');
-
-        for ( auto& [name, refCount] : m_textures ) {
-            result.append("\t\t"s + name + " (" + std::to_string(refCount) + ")" + '\n');
-        }
-
-        return result;
-    }
 
     void Package::setName(const char* const packageName) {
         this->m_name = packageName;
@@ -453,24 +499,25 @@ namespace dal {
         this->m_name = packageName;
     }
 
-    ModelStatic* Package::orderModel(const ResourceID& resPath, ResourceMaster* const resMas) {
+    ModelStaticHandle Package::orderModel(const ResourceID& resPath, ResourceMaster* const resMas) {
         std::string modelIDStr{ resPath.makeFileName() };
 
         auto iter = this->m_models.find(modelIDStr);
         if ( this->m_models.end() != iter ) {
-            return iter->second.m_data;
+            return iter->second;
         }
         else {
-            auto model = g_modelPool.alloc();
+            auto model = g_modelPool.alloc(); dalAssert(nullptr != model);
+            ModelStaticHandle modelHandle{ model };
             model->setModelResID(resPath);
-            this->m_models.emplace(modelIDStr, ManageInfo<ModelStatic>{ model, 2 });
+            this->m_models.emplace(modelIDStr, modelHandle);
 
             ResourceID idWithPackage{ this->m_name, resPath.getOptionalDir(), resPath.getBareName(), resPath.getExt() };
             auto task = new LoadTask_Model{ idWithPackage, *model, *this };
             g_sentTasks_model.insert(task);
             TaskGod::getinst().orderTask(task, resMas);
 
-            return model;
+            return std::move(modelHandle);
         }
     }
 
@@ -495,13 +542,14 @@ namespace dal {
         }
     }
 
-    ModelStatic* Package::buildModel(const loadedinfo::ModelDefined& info, ResourceMaster* const resMas) {
+    ModelStaticHandle Package::buildModel(const loadedinfo::ModelDefined& info, ResourceMaster* const resMas) {
         auto model = g_modelPool.alloc();
-        this->m_models.emplace(info.m_modelID, ManageInfo<ModelStatic>{ model, 1 });
+        ModelStaticHandle modelHandle{ model };
+        this->m_models.emplace(info.m_modelID, modelHandle);
 
         model->init(info, *resMas);
 
-        return model;
+        return modelHandle;
     }
 
     Texture* Package::orderDiffuseMap(ResourceID texID, ResourceMaster* const resMas) {
@@ -542,27 +590,7 @@ namespace dal {
         return tex;
     }
 
-    void Package::getResReport(ResourceReport& report) const {
-        report.m_packageName = this->m_name;
-
-        report.m_models.clear();
-        report.m_models.reserve(this->m_models.size());
-        for ( auto& x : this->m_models ) {
-            report.m_models.emplace_back(x.first, x.second.m_refCount);
-        }
-
-        report.m_textures.clear();
-        report.m_textures.reserve(this->m_textures.size());
-        for ( auto& x : this->m_textures ) {
-            report.m_textures.emplace_back(x.first, x.second.m_refCount);
-        }
-    }
-
     void Package::clear(void) {
-        for ( auto& modelPair : this->m_models ) {
-            modelPair.second.m_data->destroyModel();
-            g_modelPool.free(modelPair.second.m_data);
-        }
         this->m_models.clear();
 
         for ( auto& tex : this->m_textures ) {
@@ -663,7 +691,7 @@ namespace dal {
         }
     }
 
-    ModelStatic* ResourceMaster::orderModel(const ResourceID& resID) {
+    ModelStaticHandle ResourceMaster::orderModel(const ResourceID& resID) {
         auto& package = this->orderPackage(resID.getPackage());
 
         return package.orderModel(resID, this);
@@ -675,7 +703,7 @@ namespace dal {
         return package.orderModelAnimated(resID, this);
     }
 
-    ModelStatic* ResourceMaster::buildModel(const loadedinfo::ModelDefined& info, const char* const packageName) {
+    ModelStaticHandle ResourceMaster::buildModel(const loadedinfo::ModelDefined& info, const char* const packageName) {
         auto& package = this->orderPackage(packageName);
         return package.buildModel(info, this);
     }
@@ -684,19 +712,6 @@ namespace dal {
         const auto& packageName = resID.getPackage();
         auto& package = this->orderPackage(packageName);
         return package.orderDiffuseMap(resID, this);
-    }
-
-    size_t ResourceMaster::getResReports(std::vector<Package::ResourceReport>& reports) const {
-        reports.clear();
-        reports.resize(this->m_packages.size());
-
-        int i = 0;
-        for ( auto& x : this->m_packages ) {
-            x.second.getResReport(reports[i]);
-            i++;
-        }
-
-        return reports.size();
     }
 
     // Static
