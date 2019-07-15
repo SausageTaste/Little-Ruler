@@ -366,7 +366,7 @@ namespace dal {
         ModelStatic* m_model = nullptr;
         unsigned int m_refCount = 0;
 
-        static void* operator new(size_t) = delete;
+        //static void* operator new(size_t) = delete;
         static void* operator new[](size_t) = delete;
         static void operator delete(void*) = delete;
         static void operator delete[](void*) = delete;
@@ -394,6 +394,7 @@ namespace dal {
 
     ModelStaticHandle& ModelStaticHandle::operator=(ModelStaticHandle&& other) noexcept {
         std::swap(this->m_pimpl, other.m_pimpl);
+        return *this;
     }
 
     void ModelStaticHandle::render(const UniInterfLightedMesh& unilocLighted, const SamplerInterf& samplerInterf, const glm::mat4& modelMat) const {
