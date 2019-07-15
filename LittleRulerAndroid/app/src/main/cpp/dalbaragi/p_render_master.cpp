@@ -18,7 +18,7 @@ using namespace std::string_literals;
 namespace {
 
 #ifdef _WIN32
-    void glDebugCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam) {
+    void GLAPIENTRY glDebugCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam) {
         dalWarn(message);
     }
 #endif
