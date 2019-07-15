@@ -69,7 +69,7 @@ namespace {
 
 namespace dal {
 
-    int32_t SkeletonInterface::getIndexOf(const std::string& jointName) const {
+    jointID_t SkeletonInterface::getIndexOf(const std::string& jointName) const {
         auto iter = this->m_map.find(jointName);
         if ( this->m_map.end() == iter ) {
             return -1;
@@ -79,7 +79,7 @@ namespace dal {
         }
     }
 
-    int32_t SkeletonInterface::getOrMakeIndexOf(const std::string& jointName) {
+    jointID_t SkeletonInterface::getOrMakeIndexOf(const std::string& jointName) {
         const auto index = this->getIndexOf(jointName);
 
         if ( -1 == index ) {
@@ -92,31 +92,31 @@ namespace dal {
         }
     }
 
-    void SkeletonInterface::setOffsetMat(const int32_t index, const glm::mat4& mat) {
+    void SkeletonInterface::setOffsetMat(const jointID_t index, const glm::mat4& mat) {
         dalAssert(this->isIndexValid(index));
 
         this->m_boneOffsets[index] = mat;
     }
 
-    const glm::mat4& SkeletonInterface::getOffsetMat(const int32_t index) const {
+    const glm::mat4& SkeletonInterface::getOffsetMat(const jointID_t index) const {
         dalAssert(this->isIndexValid(index));
 
         return this->m_boneOffsets[index];
     }
 
-    void SkeletonInterface::setFinalTransform(const int32_t index, const glm::mat4& mat) {
+    void SkeletonInterface::setFinalTransform(const jointID_t index, const glm::mat4& mat) {
         dalAssert(this->isIndexValid(index));
 
         this->m_finalTransform[index] = mat;
     }
 
-    const glm::mat4& SkeletonInterface::getFinalTransform(const int32_t index) const {
+    const glm::mat4& SkeletonInterface::getFinalTransform(const jointID_t index) const {
         dalAssert(this->isIndexValid(index));
 
         return this->m_finalTransform[index];
     }
 
-    int32_t SkeletonInterface::getSize(void) const {
+    jointID_t SkeletonInterface::getSize(void) const {
         return static_cast<int32_t>(this->m_boneOffsets.size());
     }
 
@@ -130,14 +130,16 @@ namespace dal {
         }
     }
 
-    int32_t SkeletonInterface::upsizeAndGetIndex(void) {
+    // Private
+
+    jointID_t SkeletonInterface::upsizeAndGetIndex(void) {
         this->m_lastMadeIndex++;
         this->m_boneOffsets.emplace_back();
         this->m_finalTransform.emplace_back();
         return this->m_lastMadeIndex;
     }
 
-    bool SkeletonInterface::isIndexValid(const int32_t index) const {
+    bool SkeletonInterface::isIndexValid(const jointID_t index) const {
         if ( index < 0 ) return false;
         else if ( static_cast<unsigned int>(index) >= this->m_boneOffsets.size() ) return false;
         else return true;

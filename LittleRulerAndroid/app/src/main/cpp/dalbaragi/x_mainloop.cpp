@@ -219,9 +219,9 @@ namespace dal {
     int Mainloop::update(void) {
         if ( m_flagQuit ) return -1;
 
-        const auto deltaTime = m_timer.check_getElapsed();
+        const auto deltaTime = m_timer.checkGetElapsed();
 
-        if ( this->m_timerForFPSReport.hasElapsed(0.1f) ) {
+        if ( this->m_timerForFPSReport.getElapsed() > 0.1f ) {
             this->m_overlayMas.setDisplayedFPS((unsigned int)(1.0f / deltaTime));
             this->m_timerForFPSReport.check();
         }

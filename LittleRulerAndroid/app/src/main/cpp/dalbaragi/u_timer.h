@@ -42,7 +42,7 @@ namespace dal {
     };
 
 
-    class TimerThatCaps : Timer {
+    class TimerThatCaps : public Timer {
 
     private:
         uint32_t m_desiredDeltaMicrosec;

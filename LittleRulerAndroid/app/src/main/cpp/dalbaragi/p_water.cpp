@@ -299,7 +299,7 @@ namespace dal {
     }
 
     void WaterRenderer::renderWaterry(const UnilocWaterry& uniloc) {
-        const auto deltaTime = this->m_localTimer.check_getElapsed_capFPS();
+        const auto deltaTime = this->m_localTimer.checkGetElapsed();
         this->m_moveFactor += this->m_moveSpeed * deltaTime;
         this->m_moveFactor = fmod(this->m_moveFactor, 1.0f);
         uniloc.dudvFactor(this->m_moveFactor);

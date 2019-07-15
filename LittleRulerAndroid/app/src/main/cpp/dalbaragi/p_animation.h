@@ -8,9 +8,13 @@
 #include <glm/gtc/quaternion.hpp>
 
 #include "p_uniloc.h"
+#include "u_timer.h"
 
 
 namespace dal {
+
+    using jointID_t = int32_t;
+
 
     class SkeletonInterface {
 
@@ -21,23 +25,23 @@ namespace dal {
         int32_t m_lastMadeIndex = -1;
 
     public:
-        int32_t getIndexOf(const std::string& jointName) const;
-        int32_t getOrMakeIndexOf(const std::string& jointName);
+        jointID_t getIndexOf(const std::string& jointName) const;
+        jointID_t getOrMakeIndexOf(const std::string& jointName);
 
-        void setOffsetMat(const int32_t index, const glm::mat4& mat);
-        const glm::mat4& getOffsetMat(const int32_t index) const;
+        void setOffsetMat(const jointID_t index, const glm::mat4& mat);
+        const glm::mat4& getOffsetMat(const jointID_t index) const;
 
-        void setFinalTransform(const int32_t index, const glm::mat4& mat);
-        const glm::mat4& getFinalTransform(const int32_t index) const;
+        void setFinalTransform(const jointID_t index, const glm::mat4& mat);
+        const glm::mat4& getFinalTransform(const jointID_t index) const;
 
-        int32_t getSize(void) const;
+        jointID_t getSize(void) const;
         bool isEmpty(void) const;
 
         void sendUniform(const UniInterfAnime& uniloc) const;
 
     private:
-        int32_t upsizeAndGetIndex(void);
-        bool isIndexValid(const int32_t index) const;
+        jointID_t upsizeAndGetIndex(void);
+        bool isIndexValid(const jointID_t index) const;
 
     };
 
@@ -55,7 +59,7 @@ namespace dal {
     private:
         std::string m_name;
         glm::mat4 m_transform;
-        
+
         std::vector<std::pair<float, glm::vec3>> m_poses;
         std::vector<std::pair<float, glm::quat>> m_rotates;
         std::vector<std::pair<float, float>> m_scales;
@@ -66,6 +70,7 @@ namespace dal {
     public:
         JointNode(const JointKeyframeInfo& info, const glm::mat4& transform, JointNode* const parent);
         JointNode(const std::string& name, const glm::mat4& transform, JointNode* const parent);
+
         JointNode* emplaceChild(const JointKeyframeInfo& info, const glm::mat4& transform, JointNode* const parent);
         JointNode* emplaceChild(const std::string& name, const glm::mat4& transform, JointNode* const parent);
 
@@ -97,6 +102,16 @@ namespace dal {
         float getDurationInTick(void) const { return this->m_durationInTick; }
 
         void sample(const float animTick, SkeletonInterface& interf, const glm::mat4& globalInvMat) const;
+
+    };
+
+
+    class AnimationState {
+
+    private:
+        Timer m_localTimeline;
+        std::string m_animationName;
+        std::vector<glm::mat4> m_finalTransform;
 
     };
 

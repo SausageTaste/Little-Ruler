@@ -27,7 +27,8 @@ namespace dal {
         entt::registry m_enttMaster;
 
         StrangeEulerCamera m_camera;
-        TimerThatCaps m_timer, m_timerForFPSReport;
+        TimerThatCaps m_timer;
+        Timer m_timerForFPSReport;
         bool m_flagQuit;
         entt::entity m_player;
 

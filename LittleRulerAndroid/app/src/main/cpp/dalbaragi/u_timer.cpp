@@ -105,7 +105,7 @@ namespace dal {
 namespace dal {
 
     TimerThatCaps::TimerThatCaps(void)
-        : mDesiredDeltaMicrosec(0)
+        : m_desiredDeltaMicrosec(0)
     {
 
     }
@@ -136,7 +136,7 @@ namespace dal {
         sleepHotUntil(wakeTime);
 #if PRINT_OVESRLEEP == 1
         const auto sleepTime = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - startSleep).count();
-        const auto sleepRate = double(sleepTime) / double(mDesiredDeltaMicrosec);
+        const auto sleepRate = double(sleepTime) / double(this->m_desiredDeltaMicrosec);
         dalDebug("Sleep rate: "s + std::to_string(sleepRate));
 #endif
     }
