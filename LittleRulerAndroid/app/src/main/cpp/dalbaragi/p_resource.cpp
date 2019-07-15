@@ -383,10 +383,12 @@ namespace dal {
     {
         this->m_pimpl->m_model = model;
     }
-    
+
 
     ModelStaticHandle::~ModelStaticHandle(void) {
-        dalAssert(nullptr != this->m_pimpl);
+        if ( nullptr == this->m_pimpl ) {
+            return;
+        }
 
         --this->m_pimpl->m_refCount;
         if ( 0 == this->m_pimpl->m_refCount ) {
@@ -401,7 +403,7 @@ namespace dal {
     }
 
     ModelStaticHandle::ModelStaticHandle(ModelStaticHandle&& other) noexcept
-        : m_pimpl(g_staticModelCtrlBlckPool.alloc())
+        : m_pimpl(nullptr)
     {
         std::swap(this->m_pimpl, other.m_pimpl);
     }
@@ -693,13 +695,11 @@ namespace dal {
 
     ModelStaticHandle ResourceMaster::orderModel(const ResourceID& resID) {
         auto& package = this->orderPackage(resID.getPackage());
-
         return package.orderModel(resID, this);
     }
 
     ModelAnimated* ResourceMaster::orderModelAnimated(const ResourceID& resID) {
         auto& package = this->orderPackage(resID.getPackage());
-
         return package.orderModelAnimated(resID, this);
     }
 

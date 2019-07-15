@@ -50,7 +50,8 @@ namespace dal {
                 modelResID.setPackage(info.m_packageName);
             }
 
-            auto& [model, actors] = this->m_modelActors.emplace_back(resMas.orderModel(modelResID));
+            auto modelHandle = resMas.orderModel(modelResID);
+            auto& [model, actors] = this->m_modelActors.emplace_back(std::move(modelHandle));
             actors.assign(importedModel.m_actors.begin(), importedModel.m_actors.end());
         }
 

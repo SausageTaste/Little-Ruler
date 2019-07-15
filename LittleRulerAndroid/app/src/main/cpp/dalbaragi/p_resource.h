@@ -121,11 +121,11 @@ namespace dal {
     public:
         ModelStaticHandle(void);
         explicit ModelStaticHandle(ModelStatic* const model);
-
-        ~ModelStaticHandle(void);
         ModelStaticHandle(const ModelStaticHandle&);
-        ModelStaticHandle& operator=(const ModelStaticHandle&);
         ModelStaticHandle(ModelStaticHandle&&) noexcept;
+        ~ModelStaticHandle(void);
+
+        ModelStaticHandle& operator=(const ModelStaticHandle&);
         ModelStaticHandle& operator=(ModelStaticHandle&&) noexcept;
 
         bool operator==(ModelStaticHandle& other) const;
