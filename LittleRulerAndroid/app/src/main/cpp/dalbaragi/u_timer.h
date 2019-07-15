@@ -26,17 +26,32 @@ namespace dal {
     class Timer {
 
     private:
-        uint32_t mDesiredDeltaMicrosec;
-        std::chrono::steady_clock::time_point mLastChecked;
+        std::chrono::steady_clock::time_point m_lastChecked;
 
     public:
         Timer(void);
 
         void check(void);
         float getElapsed(void) const;
+
+        float checkGetElapsed(void);
+
+    protected:
+        const std::chrono::steady_clock::time_point& getLastChecked(void) const;
+
+    };
+
+
+    class TimerThatCaps : Timer {
+
+    private:
+        uint32_t m_desiredDeltaMicrosec;
+
+    public:
+        TimerThatCaps(void);
+
         bool hasElapsed(const float sec) const;
 
-        float check_getElapsed(void);
         float check_getElapsed_capFPS(void);
 
         void setCapFPS(const uint32_t v);

@@ -112,7 +112,7 @@ namespace {
     class RAIITimer {
 
     private:
-        dal::Timer m_timer;
+        dal::TimerThatCaps m_timer;
 
     public:
         ~RAIITimer(void) {

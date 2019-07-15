@@ -7,7 +7,7 @@
 
 #include "s_logger_god.h"
 
-#define PRINT_OVESRLEEP 0
+#define PRINT_OVESRLEEP 1
 
 
 using namespace std::string_literals;
@@ -73,57 +73,71 @@ namespace dal {
 namespace dal {
 
     Timer::Timer(void)
-        : mDesiredDeltaMicrosec(0),
-        mLastChecked(std::chrono::steady_clock::now())
+        : m_lastChecked(std::chrono::steady_clock::now())
     {
 
     }
 
     void Timer::check(void) {
-        this->mLastChecked = std::chrono::steady_clock::now();
-    }
-
-    float Timer::check_getElapsed(void) {
-        auto now = std::chrono::steady_clock::now();
-        auto deltaTime_microsec = (float)std::chrono::duration_cast<std::chrono::microseconds>(now - this->mLastChecked).count();
-        this->mLastChecked = now;
-
-        return float(deltaTime_microsec / float(k_microsecBySec));
-    }
-
-    float Timer::check_getElapsed_capFPS(void) {
-        this->waitToCapFPS();
-        return this->check_getElapsed();
+        this->m_lastChecked = std::chrono::steady_clock::now();
     }
 
     float Timer::getElapsed(void) const {
-        auto deltaTime_microsec = (float)std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - this->mLastChecked).count();
-        return float(deltaTime_microsec / float(k_microsecBySec));
+        const auto deltaTime_microsec = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - this->m_lastChecked).count();
+        return static_cast<float>(deltaTime_microsec) / static_cast<float>(k_microsecBySec);
     }
 
-    bool Timer::hasElapsed(const float sec) const {
+    float Timer::checkGetElapsed(void) {
+        const auto now = std::chrono::steady_clock::now();
+        const auto deltaTime_microsec = std::chrono::duration_cast<std::chrono::microseconds>(now - this->m_lastChecked).count();
+        this->m_lastChecked = now;
+
+        return static_cast<float>(deltaTime_microsec) / static_cast<float>(k_microsecBySec);
+    }
+
+    const std::chrono::steady_clock::time_point& Timer::getLastChecked(void) const {
+        return this->m_lastChecked;
+    }
+
+}
+
+
+namespace dal {
+
+    TimerThatCaps::TimerThatCaps(void)
+        : mDesiredDeltaMicrosec(0)
+    {
+
+    }
+
+    float TimerThatCaps::check_getElapsed_capFPS(void) {
+        this->waitToCapFPS();
+        return this->checkGetElapsed();
+    }
+
+    bool TimerThatCaps::hasElapsed(const float sec) const {
         return this->getElapsed() >= sec;
     }
 
-    void Timer::setCapFPS(const uint32_t v) {
+    void TimerThatCaps::setCapFPS(const uint32_t v) {
         if ( 0 == v ) {
-            this->mDesiredDeltaMicrosec = 0;
+            this->m_desiredDeltaMicrosec = 0;
         }
         else {
-            mDesiredDeltaMicrosec = k_microsecBySec / v;
+            this->m_desiredDeltaMicrosec = k_microsecBySec / v;
         }
     }
 
-    void Timer::waitToCapFPS(void) {
-        const auto wakeTime = this->mLastChecked + std::chrono::microseconds{ mDesiredDeltaMicrosec };
+    void TimerThatCaps::waitToCapFPS(void) {
+        const auto wakeTime = this->getLastChecked() + std::chrono::microseconds{ this->m_desiredDeltaMicrosec };
 #if PRINT_OVESRLEEP == 1
-        const auto startSleep = chrono::steady_clock::now();
+        const auto startSleep = std::chrono::steady_clock::now();
 #endif
         sleepHotUntil(wakeTime);
 #if PRINT_OVESRLEEP == 1
-        const auto sleepTime = chrono::duration_cast<chrono::microseconds>(chrono::steady_clock::now() - startSleep).count();
+        const auto sleepTime = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - startSleep).count();
         const auto sleepRate = double(sleepTime) / double(mDesiredDeltaMicrosec);
-        LoggerGod::getinst().putDebug("Sleep rate: "s + to_string(sleepRate));
+        dalDebug("Sleep rate: "s + std::to_string(sleepRate));
 #endif
     }
 
