@@ -112,7 +112,6 @@ namespace dal {
         ModelStaticHandleImpl* m_pimpl;
 
     public:
-        
         static void* operator new(size_t) = delete;
         static void* operator new[](size_t) = delete;
         static void operator delete(void*) = delete;

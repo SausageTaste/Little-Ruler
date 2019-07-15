@@ -23,7 +23,6 @@ namespace {
 
     inline glm::mat4 aiMatrix4x4ToGlm(const aiMatrix4x4* from) {
         glm::mat4 to;
-        using GLfloat = float;
 
         to[0][0] = (GLfloat)from->a1; to[0][1] = (GLfloat)from->b1;  to[0][2] = (GLfloat)from->c1; to[0][3] = (GLfloat)from->d1;
         to[1][0] = (GLfloat)from->a2; to[1][1] = (GLfloat)from->b2;  to[1][2] = (GLfloat)from->c2; to[1][3] = (GLfloat)from->d2;
@@ -136,9 +135,6 @@ namespace {
     dal::StaticPool<dal::Texture, 200> g_texturePool;
 
 }
-
-
-
 
 
 // IModel
