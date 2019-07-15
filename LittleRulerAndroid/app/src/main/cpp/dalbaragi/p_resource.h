@@ -96,20 +96,25 @@ namespace dal {
     };
 
 
+    struct ModelStaticHandleImpl;
+
     class ModelStaticHandle {
 
     private:
-        struct Impl;
+        ModelStaticHandleImpl* m_pimpl;
 
-    private:
-        Impl* pimpl;
+    public:
+        ModelStaticHandle(const ModelStaticHandle&) = delete;
+        ModelStaticHandle& operator=(const ModelStaticHandle&) = delete;
+        static void* operator new(size_t) = delete;
+        static void* operator new[](size_t) = delete;
+        static void operator delete(void*) = delete;
+        static void operator delete[](void*) = delete;
 
     public:
         ModelStaticHandle(void);
-        ~ModelStaticHandle(void);
 
-        ModelStaticHandle(const ModelStaticHandle&) = delete;
-        ModelStaticHandle& operator=(const ModelStaticHandle&) = delete;
+        ~ModelStaticHandle(void);
 
         ModelStaticHandle(ModelStaticHandle&&) noexcept;
         ModelStaticHandle& operator=(ModelStaticHandle&&) noexcept;

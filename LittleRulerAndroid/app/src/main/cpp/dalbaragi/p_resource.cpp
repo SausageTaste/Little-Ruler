@@ -362,30 +362,38 @@ namespace dal {
 // ModelStaticHandle
 namespace dal {
 
-    struct ModelStaticHandle::Impl {
+    struct ModelStaticHandleImpl {
         ModelStatic* m_model = nullptr;
         unsigned int m_refCount = 0;
+
+        static void* operator new(size_t) = delete;
+        static void* operator new[](size_t) = delete;
+        static void operator delete(void*) = delete;
+        static void operator delete[](void*) = delete;
     };
 
+    dal::StaticPool<dal::ModelStaticHandleImpl, 20> g_staticModelCtrlBlckPool;
+
+
     ModelStaticHandle::ModelStaticHandle(void)
-        : pimpl(nullptr)
+        : m_pimpl(g_staticModelCtrlBlckPool.alloc())
     {
 
     }
 
     ModelStaticHandle::~ModelStaticHandle(void) {
-        if ( nullptr != this->pimpl ) {
-            delete this->pimpl;
-            this->pimpl = nullptr;
-        }
+        dalAssert(nullptr != this->m_pimpl);
+        this->m_pimpl->m_model = nullptr;
     }
 
-    ModelStaticHandle::ModelStaticHandle(ModelStaticHandle&& other) noexcept {
-        std::swap(this->pimpl, other.pimpl);
+    ModelStaticHandle::ModelStaticHandle(ModelStaticHandle&& other) noexcept
+        : m_pimpl(g_staticModelCtrlBlckPool.alloc())
+    {
+        std::swap(this->m_pimpl, other.m_pimpl);
     }
 
     ModelStaticHandle& ModelStaticHandle::operator=(ModelStaticHandle&& other) noexcept {
-        std::swap(this->pimpl, other.pimpl);
+        std::swap(this->m_pimpl, other.m_pimpl);
     }
 
     void ModelStaticHandle::render(const UniInterfLightedMesh& unilocLighted, const SamplerInterf& samplerInterf, const glm::mat4& modelMat) const {
