@@ -2,6 +2,9 @@
 
 #include <unordered_set>
 
+#include <glm/gtc/matrix_transform.hpp>
+#include <assimp/matrix4x4.h>
+
 #include "p_dalopengl.h"
 #include "s_logger_god.h"
 #include "u_fileclass.h"
@@ -14,6 +17,23 @@
 
 
 using namespace std::string_literals;
+
+
+namespace {
+
+    inline glm::mat4 aiMatrix4x4ToGlm(const aiMatrix4x4* from) {
+        glm::mat4 to;
+        using GLfloat = float;
+
+        to[0][0] = (GLfloat)from->a1; to[0][1] = (GLfloat)from->b1;  to[0][2] = (GLfloat)from->c1; to[0][3] = (GLfloat)from->d1;
+        to[1][0] = (GLfloat)from->a2; to[1][1] = (GLfloat)from->b2;  to[1][2] = (GLfloat)from->c2; to[1][3] = (GLfloat)from->d2;
+        to[2][0] = (GLfloat)from->a3; to[2][1] = (GLfloat)from->b3;  to[2][2] = (GLfloat)from->c3; to[2][3] = (GLfloat)from->d3;
+        to[3][0] = (GLfloat)from->a4; to[3][1] = (GLfloat)from->b4;  to[3][2] = (GLfloat)from->c4; to[3][3] = (GLfloat)from->d4;
+
+        return to;
+    }
+
+}
 
 
 // Tasks
@@ -118,6 +138,267 @@ namespace {
 }
 
 
+
+
+
+// IModel
+namespace dal {
+
+    void IModel::setModelResID(const ResourceID& resID) {
+        this->m_modelResID = resID;
+    }
+
+    void IModel::setModelResID(ResourceID&& resID) {
+        this->m_modelResID = std::move(resID);
+    }
+
+    const ResourceID& IModel::getModelResID(void) const {
+        return this->m_modelResID;
+    }
+
+    void IModel::setBoundingBox(const AxisAlignedBoundingBox& box) {
+        this->m_boundingBox = box;
+    }
+
+    const AxisAlignedBoundingBox& IModel::getBoundingBox(void) const {
+        return this->m_boundingBox;
+    }
+
+}
+
+
+// ModelStatic
+namespace dal {
+
+    /*
+    ModelStatic::RenderUnit* ModelStatic::addRenderUnit(void) {
+        this->m_renderUnits.emplace_back();
+        return &this->m_renderUnits.back();
+    }
+    */
+
+    void ModelStatic::init(const ResourceID& resID, const loadedinfo::ModelStatic& info, ResourceMaster& resMas) {
+        this->setModelResID(std::move(resID));
+        this->setBoundingBox(info.m_aabb);
+
+        for ( auto& unitInfo : info.m_renderUnits ) {
+            auto& unit = this->m_renderUnits.emplace_back();
+
+            unit.m_mesh.buildData(
+                unitInfo.m_mesh.m_vertices.data(), unitInfo.m_mesh.m_vertices.size(),
+                unitInfo.m_mesh.m_texcoords.data(), unitInfo.m_mesh.m_texcoords.size(),
+                unitInfo.m_mesh.m_normals.data(), unitInfo.m_mesh.m_normals.size()
+            );
+            unit.m_meshName = unitInfo.m_name;
+
+            unit.m_material.m_diffuseColor = unitInfo.m_material.m_diffuseColor;
+            unit.m_material.m_shininess = unitInfo.m_material.m_shininess;
+            unit.m_material.m_specularStrength = unitInfo.m_material.m_specStrength;
+
+            if ( !unitInfo.m_material.m_diffuseMap.empty() ) {
+                ResourceID texResID{ unitInfo.m_material.m_diffuseMap };
+                texResID.setPackageIfEmpty(resID.getPackage());
+                auto tex = resMas.orderTexture(texResID);
+                unit.m_material.setDiffuseMap(tex);
+            }
+        }
+    }
+
+    void ModelStatic::init(const loadedinfo::ModelDefined& info, ResourceMaster& resMas) {
+        this->setBoundingBox(info.m_boundingBox);
+
+        auto& unitInfo = info.m_renderUnit;
+        auto& unit = this->m_renderUnits.emplace_back();
+
+        unit.m_mesh.buildData(
+            unitInfo.m_mesh.m_vertices.data(), unitInfo.m_mesh.m_vertices.size(),
+            unitInfo.m_mesh.m_texcoords.data(), unitInfo.m_mesh.m_texcoords.size(),
+            unitInfo.m_mesh.m_normals.data(), unitInfo.m_mesh.m_normals.size()
+        );
+        unit.m_meshName = unitInfo.m_name;
+
+        unit.m_material.m_diffuseColor = unitInfo.m_material.m_diffuseColor;
+        unit.m_material.m_shininess = unitInfo.m_material.m_shininess;
+        unit.m_material.m_specularStrength = unitInfo.m_material.m_specStrength;
+        unit.m_material.setTexScale(info.m_renderUnit.m_material.m_texSize.x, info.m_renderUnit.m_material.m_texSize.y);
+
+        if ( !unitInfo.m_material.m_diffuseMap.empty() ) {
+            auto tex = resMas.orderTexture(unitInfo.m_material.m_diffuseMap);
+            unit.m_material.setDiffuseMap(tex);
+        }
+    }
+
+    bool ModelStatic::isReady(void) const {
+        for ( const auto& unit : this->m_renderUnits ) {
+            if ( !unit.m_mesh.isReady() ) return false;
+        }
+
+        return true;
+    }
+
+    void ModelStatic::render(const UniInterfLightedMesh& unilocLighted, const SamplerInterf& samplerInterf, const glm::mat4& modelMat) const {
+        if ( !this->isReady() ) {
+            return;
+        }
+
+        for ( auto& unit : this->m_renderUnits ) {
+            unit.m_material.sendUniform(unilocLighted, samplerInterf);
+            if ( !unit.m_mesh.isReady() ) {
+                continue;
+            }
+
+            unilocLighted.modelMat(modelMat);
+            unit.m_mesh.draw();
+        }
+    }
+
+    void ModelStatic::renderDepthMap(const UniInterfGeometry& unilocGeometry, const glm::mat4& modelMat) const {
+        if ( !this->isReady() ) {
+            return;
+        }
+
+        for ( auto& unit : this->m_renderUnits ) {
+            if ( !unit.m_mesh.isReady() ) {
+                continue;
+            }
+
+            unilocGeometry.modelMat(modelMat);
+            unit.m_mesh.draw();
+        }
+    }
+
+    void ModelStatic::destroyModel(void) {
+        for ( auto& unit : this->m_renderUnits ) {
+            unit.m_mesh.destroyData();
+        }
+        this->m_renderUnits.clear();
+    }
+
+}
+
+
+// ModelAnimated
+namespace dal {
+
+    ModelAnimated::RenderUnit* ModelAnimated::addRenderUnit(void) {
+        this->m_renderUnits.emplace_back();
+        return &this->m_renderUnits.back();
+    }
+
+    void ModelAnimated::setSkeletonInterface(SkeletonInterface&& joints) {
+        this->m_jointInterface = std::move(joints);
+    }
+
+    void ModelAnimated::setAnimations(std::vector<Animation>&& animations) {
+        this->m_animations = std::move(animations);
+    }
+
+    void ModelAnimated::setGlobalMat(const glm::mat4 mat) {
+        this->m_globalInvMat = glm::inverse(mat);
+    }
+
+    bool ModelAnimated::isReady(void) const {
+        for ( const auto& unit : this->m_renderUnits ) {
+            if ( !unit.m_mesh.isReady() ) return false;
+        }
+
+        return true;
+    }
+
+    void ModelAnimated::render(const UniInterfLightedMesh& unilocLighted, const SamplerInterf& samplerInterf,
+        const UniInterfAnime& unilocAnime, const glm::mat4 modelMat)
+    {
+        if ( !this->isReady() ) return;
+
+        this->m_jointInterface.sendUniform(unilocAnime);
+
+        for ( auto& unit : this->m_renderUnits ) {
+            unit.m_material.sendUniform(unilocLighted, samplerInterf);
+            if ( !unit.m_mesh.isReady() ) continue;
+
+            unilocLighted.modelMat(modelMat);
+            unit.m_mesh.draw();
+        }
+    }
+
+    void ModelAnimated::renderDepthMap(const UniInterfGeometry& unilocGeometry, const UniInterfAnime& unilocAnime, const glm::mat4 modelMat) const {
+        if ( !this->isReady() ) return;
+
+        this->m_jointInterface.sendUniform(unilocAnime);
+
+        for ( auto& unit : this->m_renderUnits ) {
+            if ( !unit.m_mesh.isReady() ) continue;
+
+            unilocGeometry.modelMat(modelMat);
+            unit.m_mesh.draw();
+        }
+    }
+
+    void ModelAnimated::destroyModel(void) {
+        for ( auto& unit : this->m_renderUnits ) {
+            unit.m_mesh.destroyData();
+        }
+    }
+
+    void ModelAnimated::updateAnimation0(void) {
+        if ( this->m_animations.empty() ) {
+            return;
+        }
+
+        const auto& anim = this->m_animations.back();
+        const auto elapsed = this->m_animLocalTimer.getElapsed();
+        const auto animDuration = anim.getDurationInTick();
+        const auto animTickPerSec = anim.getTickPerSec();
+
+        float TimeInTicks = elapsed * animTickPerSec;
+        const auto animTick = fmod(TimeInTicks, animDuration);
+
+        anim.sample(animTick, this->m_jointInterface, this->m_globalInvMat);
+    }
+
+}
+
+
+// ModelStaticHandle
+namespace dal {
+
+    struct ModelStaticHandle::Impl {
+        ModelStatic* m_model = nullptr;
+        unsigned int m_refCount = 0;
+    };
+
+    ModelStaticHandle::ModelStaticHandle(void)
+        : pimpl(nullptr)
+    {
+
+    }
+
+    ModelStaticHandle::~ModelStaticHandle(void) {
+        if ( nullptr != this->pimpl ) {
+            delete this->pimpl;
+            this->pimpl = nullptr;
+        }
+    }
+
+    ModelStaticHandle::ModelStaticHandle(ModelStaticHandle&& other) noexcept {
+        std::swap(this->pimpl, other.pimpl);
+    }
+
+    ModelStaticHandle& ModelStaticHandle::operator=(ModelStaticHandle&& other) noexcept {
+        std::swap(this->pimpl, other.pimpl);
+    }
+
+    void ModelStaticHandle::render(const UniInterfLightedMesh& unilocLighted, const SamplerInterf& samplerInterf, const glm::mat4& modelMat) const {
+
+    }
+
+    void ModelStaticHandle::renderDepthMap(const UniInterfGeometry& unilocGeometry, const glm::mat4& modelMat) const {
+
+    }
+
+}
+
+
 // Package
 namespace dal {
 
@@ -209,30 +490,7 @@ namespace dal {
         auto model = g_modelPool.alloc();
         this->m_models.emplace(info.m_modelID, ManageInfo<ModelStatic>{ model, 1 });
 
-        // Bounding box
-        model->setBoundingBox(info.m_boundingBox);
-
-        {
-            // Render units
-            auto renderUnit = model->addRenderUnit();
-            renderUnit->m_mesh.buildData(
-                info.m_renderUnit.m_mesh.m_vertices.data(), info.m_renderUnit.m_mesh.m_vertices.size(),
-                info.m_renderUnit.m_mesh.m_texcoords.data(), info.m_renderUnit.m_mesh.m_texcoords.size(),
-                info.m_renderUnit.m_mesh.m_normals.data(), info.m_renderUnit.m_mesh.m_normals.size()
-            );
-
-            // Material
-            renderUnit->m_material.m_specularStrength = info.m_renderUnit.m_material.m_specStrength;
-            renderUnit->m_material.m_shininess = info.m_renderUnit.m_material.m_shininess;
-            renderUnit->m_material.m_diffuseColor = info.m_renderUnit.m_material.m_diffuseColor;
-            renderUnit->m_material.setTexScale(info.m_renderUnit.m_material.m_texSize.x, info.m_renderUnit.m_material.m_texSize.y);
-
-            if ( !info.m_renderUnit.m_material.m_diffuseMap.empty() ) {
-                auto texHandle = this->orderDiffuseMap(info.m_renderUnit.m_material.m_diffuseMap.c_str(), resMas);
-                renderUnit->m_material.setDiffuseMap(texHandle);
-            }
-
-        }
+        model->init(info, *resMas);
 
         return model;
     }
@@ -332,28 +590,7 @@ namespace dal {
                 return;
             }
 
-            loaded->data_coresponding.setBoundingBox(loaded->out_info.m_aabb);
-
-            for ( auto& unitInfo : loaded->out_info.m_renderUnits ) {
-                auto unit = loaded->data_coresponding.addRenderUnit();
-                assert(nullptr != unit);
-
-                unit->m_mesh.buildData(
-                    unitInfo.m_mesh.m_vertices.data(), unitInfo.m_mesh.m_vertices.size(),
-                    unitInfo.m_mesh.m_texcoords.data(), unitInfo.m_mesh.m_texcoords.size(),
-                    unitInfo.m_mesh.m_normals.data(), unitInfo.m_mesh.m_normals.size()
-                );
-                unit->m_meshName = unitInfo.m_name;
-
-                unit->m_material.m_diffuseColor = unitInfo.m_material.m_diffuseColor;
-                unit->m_material.m_shininess = unitInfo.m_material.m_shininess;
-                unit->m_material.m_specularStrength = unitInfo.m_material.m_specStrength;
-
-                if ( !unitInfo.m_material.m_diffuseMap.empty() ) {
-                    auto tex = loaded->data_package.orderDiffuseMap(unitInfo.m_material.m_diffuseMap, this);
-                    unit->m_material.setDiffuseMap(tex);
-                }
-            }
+            loaded->data_coresponding.init(loaded->in_modelID, loaded->out_info, *this);
         }
         else if ( g_sentTasks_texture.find(task.get()) != g_sentTasks_texture.end() ) {
             g_sentTasks_texture.erase(task.get());
@@ -434,6 +671,12 @@ namespace dal {
         return package.buildModel(info, this);
     }
 
+    Texture* ResourceMaster::orderTexture(const ResourceID& resID) {
+        const auto& packageName = resID.getPackage();
+        auto& package = this->orderPackage(packageName);
+        return package.orderDiffuseMap(resID, this);
+    }
+
     size_t ResourceMaster::getResReports(std::vector<Package::ResourceReport>& reports) const {
         reports.clear();
         reports.resize(this->m_packages.size());
@@ -462,14 +705,14 @@ namespace dal {
     Package& ResourceMaster::orderPackage(const std::string& packName) {
         std::string packNameStr{ packName };
 
-        decltype(this->m_packages.end()) iter = this->m_packages.find(packNameStr);
+        auto iter = this->m_packages.find(packNameStr);
         if ( iter != this->m_packages.end() ) {
             return iter->second;
         }
         else { // If not found
             Package package;
             package.setName(packName);
-            auto res = this->m_packages.emplace(packName, package);
+            auto res = this->m_packages.emplace(packName, std::move(package));
             return res.first->second;
         }
     }

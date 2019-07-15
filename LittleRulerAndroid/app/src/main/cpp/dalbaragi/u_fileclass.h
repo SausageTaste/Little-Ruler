@@ -30,6 +30,7 @@ namespace dal {
         std::string makeFilePath(void) const;
 
         void setPackage(const std::string& t);
+        void setPackageIfEmpty(const std::string& t);
         void setOptionalDir(const std::string& t);
 
     };

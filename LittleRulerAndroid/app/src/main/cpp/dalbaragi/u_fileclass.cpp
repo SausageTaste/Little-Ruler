@@ -706,6 +706,12 @@ namespace dal {
         this->m_package = t;
     }
 
+    void ResourceID::setPackageIfEmpty(const std::string& t) {
+        if ( this->m_package.empty() ) {
+            this->m_package = t;
+        }
+    }
+
     void ResourceID::setOptionalDir(const std::string& t) {
         this->m_dir = t;
         if ( !this->m_dir.empty() && '/' != this->m_dir.back() ) {
