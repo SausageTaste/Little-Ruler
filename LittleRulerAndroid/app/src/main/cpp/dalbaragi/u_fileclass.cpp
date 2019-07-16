@@ -346,9 +346,9 @@ namespace {
                 return std::ios::out | std::ios::binary;
             case dal::FileMode::bappend:
                 return std::ios::out | std::ios::app | std::ios::binary;
-            default:
-                dalAbort("Unkown dal::FileMode: "_format(static_cast<unsigned int>(mode)));
         }
+
+        dalAbort("Unkown dal::FileMode: "_format(static_cast<unsigned int>(mode)));
     }
 
 }
@@ -697,15 +697,17 @@ namespace dal {
         if ( !this->m_dir.empty() && this->m_dir.back() != '/' ) this->m_dir.push_back('/');
     }
 
-    ResourceID::ResourceID(const char* const resourceID) : ResourceID(std::string{ resourceID }) {
+    ResourceID::ResourceID(const char* const resourceID)
+        : ResourceID(std::string{ resourceID })
+    {
 
     }
 
     ResourceID::ResourceID(const std::string& package, const std::string& optionalDir, const std::string& bareName, const std::string& ext)
-        : m_package(package),
-        m_dir(optionalDir),
-        m_bareName(bareName),
-        m_ext(ext)
+        : m_package(package)
+        , m_dir(optionalDir)
+        , m_bareName(bareName)
+        , m_ext(ext)
     {
 
     }
@@ -763,7 +765,9 @@ namespace dal::futil {
 
     bool getRes_text(const ResourceID& resID, std::string& buffer) {
         auto file = resopen(resID, FileMode::read);
-        if ( nullptr == file ) return false;
+        if ( nullptr == file ) {
+            return false;
+        }
 
         return file->readText(buffer);
     }
@@ -791,14 +795,16 @@ namespace dal::futil {
 
         const auto success = found->second(data, fileBuffer);
         if ( !success ) {
-            dalError(fmt::format("Error while parsing image ({}) : {}", found->first, resID.makeIDStr()));
+            dalError("Error while parsing image ({}) : {}"_format(found->first, resID.makeIDStr()));
         }
         return success;
     }
 
     bool getRes_buffer(const ResourceID& resID, std::vector<uint8_t>& buffer) {
         auto file = resopen(resID, FileMode::bread);
-        if ( nullptr == file ) return false;
+        if ( nullptr == file ) {
+            return false;
+        }
 
         const auto fileSize = file->getSize();
         buffer.resize(fileSize);
