@@ -332,20 +332,20 @@ namespace {
         return buffer;
     }
 
-    auto makeFsteamOpenmode(const dal::FileMode mode){
+    int makeFsteamOpenmode(const dal::FileMode mode){
         switch ( mode ) {
             case dal::FileMode::read:
                 return std::ios::in;
             case dal::FileMode::write:
                 return std::ios::out;
             case dal::FileMode::append:
-                return std::ios::out | std::ios::app;
+                return (std::ios::out | std::ios::app);
             case dal::FileMode::bread:
-                return std::ios::in | std::ios::binary;
+                return (std::ios::in | std::ios::binary);
             case dal::FileMode::bwrite:
-                return std::ios::out | std::ios::binary;
+                return (std::ios::out | std::ios::binary);
             case dal::FileMode::bappend:
-                return std::ios::out | std::ios::app | std::ios::binary;
+                return (std::ios::out | std::ios::app | std::ios::binary);
         }
 
         dalAbort("Unkown dal::FileMode: "_format(static_cast<unsigned int>(mode)));
@@ -401,11 +401,13 @@ namespace {
             if ( !this->m_file ) {
                 if ( readSize < sizeToRead ) {
                     dalError("File not read completely. {} out of {} has been read. Err flags are \"{}\"."_format(
-                            readSize, sizeToRead, makeFstreamErrFlagStr(this->m_file.rdstate())))
+                        readSize, sizeToRead, makeFstreamErrFlagStr(this->m_file.rdstate())
+                    ));
                 }
                 else {
                     dalError("File not read completely. Err flags are \"{}\"."_format(
-                            makeFstreamErrFlagStr(this->m_file.rdstate())))
+                        makeFstreamErrFlagStr(this->m_file.rdstate())
+                    ));
                 }
             }
 

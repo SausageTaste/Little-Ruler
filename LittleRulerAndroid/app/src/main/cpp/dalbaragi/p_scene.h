@@ -29,7 +29,7 @@ namespace dal {
         std::string m_name;
 
         std::vector<StaticModelActor> m_modelActors;
-        std::vector<std::pair<ModelAnimated*, std::list<ActorInfo>>> m_animatedActors;
+        std::vector<std::tuple<ModelAnimated*, std::list<ActorInfo>, AnimationState>> m_animatedActors;
 
         std::vector<DirectionalLight> m_dlights;
         std::vector<PointLight> m_plights;

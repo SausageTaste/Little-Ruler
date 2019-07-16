@@ -294,7 +294,7 @@ namespace {
         }
     }
 
-    void buildNodesRecur(const aiNode* const node, dal::JointNode& parentJoint, const JointRegistry& jointRegistry) {
+    void buildNodesRecur(const aiNode* const node, dal::Animation::JointNode& parentJoint, const JointRegistry& jointRegistry) {
         const auto thisNodeName = node->mName.C_Str();
         const auto keyframeInfo = findJointRegistry(thisNodeName, jointRegistry);
 
@@ -307,13 +307,13 @@ namespace {
         }
     }
 
-    dal::JointNode makeJointHierarchy(const aiNode* const node, const JointRegistry& jointRegistry) {
+    dal::Animation::JointNode makeJointHierarchy(const aiNode* const node, const JointRegistry& jointRegistry) {
         const auto thisNodeName = node->mName.C_Str();
         const auto keyframeInfo = findJointRegistry(thisNodeName, jointRegistry);
 
         auto rootNode = nullptr != keyframeInfo ?
-            dal::JointNode{ *keyframeInfo, convertAssimpMat(node->mTransformation), nullptr } :
-            dal::JointNode{ thisNodeName, convertAssimpMat(node->mTransformation), nullptr };
+            dal::Animation::JointNode{ *keyframeInfo, convertAssimpMat(node->mTransformation), nullptr } :
+            dal::Animation::JointNode{ thisNodeName, convertAssimpMat(node->mTransformation), nullptr };
 
         for ( unsigned int i = 0; i < node->mNumChildren; i++ ) {
             buildNodesRecur(node->mChildren[i], rootNode, jointRegistry);

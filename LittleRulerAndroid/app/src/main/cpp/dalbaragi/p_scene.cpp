@@ -56,7 +56,7 @@ namespace dal {
         }
 
         for ( auto& animatedModel : info.m_animatedModels ) {
-            auto& [model, actors] = this->m_animatedActors.emplace_back();
+            auto& [model, actors, animStat] = this->m_animatedActors.emplace_back();
 
             ResourceID modelResID{ animatedModel.m_modelID };
             if ( modelResID.getPackage().empty() ) modelResID.setPackage(info.m_packageName);
@@ -93,8 +93,16 @@ namespace dal {
     }
 
     void MapChunk::update(const float deltaTime) {
-        for ( auto& model : this->m_animatedActors ) {
-            model.first->updateAnimation0();
+        for ( auto& [mdl, actors, animStat] : this->m_animatedActors ) {
+            auto& anims = mdl->getAnimations();
+            if ( anims.empty() ) {
+                continue;
+            }
+
+            const auto& anim = anims.back();
+            const auto elapsed = animStat.getElapsed();
+            const auto animTick = anim.calcAnimTick(elapsed);
+            anim.sample(animTick, mdl->getSkeletonInterf(), mdl->getGlobalInvMat(), animStat.getTransformArray());
         }
     }
 
@@ -118,9 +126,9 @@ namespace dal {
     }
 
     void MapChunk::renderDepthAnimated(const UnilocDepthAnime& uniloc) {
-        for ( auto& modelActor : this->m_animatedActors ) {
-            for ( auto& actor : modelActor.second ) {
-                modelActor.first->renderDepthMap(uniloc.m_geometry, uniloc.m_anime, actor.getModelMat());
+        for ( auto& [mdl, actors, animStat] : this->m_animatedActors ) {
+            for ( auto& actor : actors ) {
+                mdl->renderDepthMap(uniloc.m_geometry, uniloc.m_anime, actor.getModelMat(), animStat.getTransformArray());
             }
         }
     }
@@ -136,9 +144,9 @@ namespace dal {
     void MapChunk::renderAnimate(const UnilocAnimate& uniloc) {
         this->sendUniforms_lights(uniloc.m_lightedMesh, 0);
 
-        for ( auto& modelActor : this->m_animatedActors ) {
-            for ( auto& actor : modelActor.second ) {
-                modelActor.first->render(uniloc.m_lightedMesh, uniloc.getDiffuseMapLoc(), uniloc.m_anime, actor.getModelMat());
+        for ( auto& [mdl, actors, animStat] : this->m_animatedActors ) {
+            for ( auto& actor : actors ) {
+                mdl->render(uniloc.m_lightedMesh, uniloc.getDiffuseMapLoc(), uniloc.m_anime, actor.getModelMat(), animStat.getTransformArray());
             }
         }
     }
@@ -216,11 +224,13 @@ namespace dal {
                 // Render map general
                 this->renderAnimate(uniloc);
 
-                view.each(
-                    [&uniloc](const cpnt::Transform& trans, const cpnt::AnimatedModel& model) {
-                        model.m_model->render(uniloc.m_lightedMesh, uniloc.getDiffuseMapLoc(), uniloc.m_anime, trans.m_modelMat);
-                    }
-                );
+                for ( const auto entity : view ) {
+                    auto& cpntTransform = view.get<cpnt::Transform>(entity);
+                    auto& cpntModel = view.get<cpnt::AnimatedModel>(entity);
+
+                    cpntModel.m_model->render(uniloc.m_lightedMesh, uniloc.getDiffuseMapLoc(), uniloc.m_anime, cpntTransform.m_modelMat,
+                        cpntModel.m_animState.getTransformArray());
+                }
             }
 
             {
@@ -238,11 +248,13 @@ namespace dal {
                 // Render map general
                 this->renderAnimate(uniloc);
 
-                view.each(
-                    [&uniloc](const cpnt::Transform& trans, const cpnt::AnimatedModel& model) {
-                        model.m_model->render(uniloc.m_lightedMesh, uniloc.getDiffuseMapLoc(), uniloc.m_anime, trans.m_modelMat);
-                    }
-                );
+                for ( const auto entity : view ) {
+                    auto& cpntTransform = view.get<cpnt::Transform>(entity);
+                    auto& cpntModel = view.get<cpnt::AnimatedModel>(entity);
+
+                    cpntModel.m_model->render(uniloc.m_lightedMesh, uniloc.getDiffuseMapLoc(), uniloc.m_anime, cpntTransform.m_modelMat,
+                        cpntModel.m_animState.getTransformArray());
+                }
             }
         }
     }
@@ -281,7 +293,7 @@ namespace dal {
             }
         }
 
-        for ( auto& [mdl, actors] : this->m_animatedActors ) {
+        for ( auto& [mdl, actors, animStat] : this->m_animatedActors ) {
             for ( auto& targetActor : actors ) {
                 if ( &targetActor == &actor ) continue;
 
@@ -321,7 +333,7 @@ namespace dal {
     }
 
     ModelAnimated* MapChunk::getModelNActorAnimated(const ResourceID& resID) {
-        for ( auto& [mdl, actors] : this->m_animatedActors ) {
+        for ( auto& [mdl, actors, animStat] : this->m_animatedActors ) {
             const auto name = mdl->getModelResID().makeFileName();
             if ( name == resID.makeFileName() ) {
                 return mdl;

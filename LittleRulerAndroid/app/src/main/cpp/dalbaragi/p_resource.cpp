@@ -299,11 +299,11 @@ namespace dal {
     }
 
     void ModelAnimated::render(const UniInterfLightedMesh& unilocLighted, const SamplerInterf& samplerInterf,
-        const UniInterfAnime& unilocAnime, const glm::mat4 modelMat)
+        const UniInterfAnime& unilocAnime, const glm::mat4 modelMat, const JointTransformArray& transformArr)
     {
         if ( !this->isReady() ) return;
 
-        this->m_jointInterface.sendUniform(unilocAnime);
+        transformArr.sendUniform(unilocAnime);
 
         for ( auto& unit : this->m_renderUnits ) {
             unit.m_material.sendUniform(unilocLighted, samplerInterf);
@@ -314,10 +314,11 @@ namespace dal {
         }
     }
 
-    void ModelAnimated::renderDepthMap(const UniInterfGeometry& unilocGeometry, const UniInterfAnime& unilocAnime, const glm::mat4 modelMat) const {
+    void ModelAnimated::renderDepthMap(const UniInterfGeometry& unilocGeometry, const UniInterfAnime& unilocAnime, const glm::mat4 modelMat,
+        const JointTransformArray& transformArr) const {
         if ( !this->isReady() ) return;
 
-        this->m_jointInterface.sendUniform(unilocAnime);
+        transformArr.sendUniform(unilocAnime);
 
         for ( auto& unit : this->m_renderUnits ) {
             if ( !unit.m_mesh.isReady() ) continue;
@@ -333,6 +334,7 @@ namespace dal {
         }
     }
 
+    /*
     void ModelAnimated::updateAnimation0(void) {
         if ( this->m_animations.empty() ) {
             return;
@@ -348,6 +350,7 @@ namespace dal {
 
         anim.sample(animTick, this->m_jointInterface, this->m_globalInvMat);
     }
+    */
 
 }
 

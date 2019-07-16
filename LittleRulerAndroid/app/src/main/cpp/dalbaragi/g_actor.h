@@ -8,6 +8,7 @@
 #include <glm/gtc/quaternion.hpp>
 
 #include "m_collider.h"
+#include "p_animation.h"
 
 
 namespace dal {
@@ -138,6 +139,7 @@ namespace dal {
 
         struct AnimatedModel {
             ModelAnimated* m_model = nullptr;
+            AnimationState m_animState;
         };
 
     }

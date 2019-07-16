@@ -292,11 +292,12 @@ namespace dal {
                 this->m_dlight1.startRenderShadowmap(uniloc.m_geometry);
                 this->m_scene.renderDepthAnimated(uniloc);
 
-                viewAnimated.each(
-                    [&uniloc](const cpnt::Transform& trans, const cpnt::AnimatedModel& model) {
-                        model.m_model->renderDepthMap(uniloc.m_geometry, uniloc.m_anime, trans.m_modelMat);
-                    }
-                );
+                for ( const auto entity : viewAnimated ) {
+                    auto& cpntTrans = viewAnimated.get<cpnt::Transform>(entity);
+                    auto& cpntModel = viewAnimated.get<cpnt::AnimatedModel>(entity);
+
+                    cpntModel.m_model->renderDepthMap(uniloc.m_geometry, uniloc.m_anime, cpntTrans.m_modelMat, cpntModel.m_animState.getTransformArray());
+                }
             }
 
             m_dlight1.finishRenderShadowmap();
@@ -388,11 +389,13 @@ namespace dal {
 
             this->m_scene.renderAnimate(uniloc);
 
-            viewAnimated.each(
-                [&uniloc](const cpnt::Transform& trans, const cpnt::AnimatedModel& model) {
-                    model.m_model->render(uniloc.m_lightedMesh, uniloc.getDiffuseMapLoc(), uniloc.m_anime, trans.m_modelMat);
-                }
-            );
+            for ( const auto entity : viewAnimated ) {
+                auto& cpntTrans = viewAnimated.get<cpnt::Transform>(entity);
+                auto& cpntModel = viewAnimated.get<cpnt::AnimatedModel>(entity);
+
+                cpntModel.m_model->render(uniloc.m_lightedMesh, uniloc.getDiffuseMapLoc(), uniloc.m_anime, cpntTrans.m_modelMat,
+                    cpntModel.m_animState.getTransformArray());
+            }
         }
 
         // Render water to framebuffer

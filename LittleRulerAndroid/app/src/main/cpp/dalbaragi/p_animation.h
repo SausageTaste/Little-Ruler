@@ -16,12 +16,19 @@ namespace dal {
     using jointID_t = int32_t;
 
 
+    struct JointKeyframeInfo {
+        std::string m_name;
+        std::map<float, glm::vec3> m_poses;
+        std::map<float, glm::quat> m_rotates;
+        std::map<float, float> m_scales;
+    };
+
+
     class SkeletonInterface {
 
     private:
         std::map<std::string, int32_t> m_map;
         std::vector<glm::mat4> m_boneOffsets;
-        std::vector<glm::mat4> m_finalTransform;
         int32_t m_lastMadeIndex = -1;
 
     public:
@@ -31,13 +38,8 @@ namespace dal {
         void setOffsetMat(const jointID_t index, const glm::mat4& mat);
         const glm::mat4& getOffsetMat(const jointID_t index) const;
 
-        void setFinalTransform(const jointID_t index, const glm::mat4& mat);
-        const glm::mat4& getFinalTransform(const jointID_t index) const;
-
         jointID_t getSize(void) const;
         bool isEmpty(void) const;
-
-        void sendUniform(const UniInterfAnime& uniloc) const;
 
     private:
         jointID_t upsizeAndGetIndex(void);
@@ -46,48 +48,54 @@ namespace dal {
     };
 
 
-    struct JointKeyframeInfo {
-        std::string m_name;
-        std::map<float, glm::vec3> m_poses;
-        std::map<float, glm::quat> m_rotates;
-        std::map<float, float> m_scales;
-    };
-
-
-    class JointNode {
+    class JointTransformArray {
 
     private:
-        std::string m_name;
-        glm::mat4 m_transform;
-
-        std::vector<std::pair<float, glm::vec3>> m_poses;
-        std::vector<std::pair<float, glm::quat>> m_rotates;
-        std::vector<std::pair<float, float>> m_scales;
-
-        JointNode* m_parent;
-        std::vector<JointNode> m_children;
+        std::vector<glm::mat4> m_array;
 
     public:
-        JointNode(const JointKeyframeInfo& info, const glm::mat4& transform, JointNode* const parent);
-        JointNode(const std::string& name, const glm::mat4& transform, JointNode* const parent);
-
-        JointNode* emplaceChild(const JointKeyframeInfo& info, const glm::mat4& transform, JointNode* const parent);
-        JointNode* emplaceChild(const std::string& name, const glm::mat4& transform, JointNode* const parent);
-
-        void sample(const float animTick, const glm::mat4& parentTrans, SkeletonInterface& interf, const glm::mat4& globalInvMat) const;
-
-    private:
-        bool hasKeyframes(void) const;
-
-        glm::vec3 makePosInterp(const float animTick) const;
-        glm::quat makeRotateInterp(const float animTick) const;
-        float makeScaleInterp(const float animTick) const;
-        glm::mat4 makeTransformInterp(const float animTick) const;
+        void setSize(const jointID_t size);
+        void setTransform(const jointID_t index, const glm::mat4& mat);
+        void sendUniform(const UniInterfAnime& uniloc) const;
 
     };
 
 
     class Animation {
+
+    public:
+        class JointNode {
+
+        private:
+            std::string m_name;
+            glm::mat4 m_transform;
+
+            std::vector<std::pair<float, glm::vec3>> m_poses;
+            std::vector<std::pair<float, glm::quat>> m_rotates;
+            std::vector<std::pair<float, float>> m_scales;
+
+            JointNode* m_parent;
+            std::vector<JointNode> m_children;
+
+        public:
+            JointNode(const JointKeyframeInfo& info, const glm::mat4& transform, JointNode* const parent);
+            JointNode(const std::string& name, const glm::mat4& transform, JointNode* const parent);
+
+            JointNode* emplaceChild(const JointKeyframeInfo& info, const glm::mat4& transform, JointNode* const parent);
+            JointNode* emplaceChild(const std::string& name, const glm::mat4& transform, JointNode* const parent);
+
+            void sample(const float animTick, const glm::mat4& parentTrans, const SkeletonInterface& interf, const glm::mat4& globalInvMat,
+                JointTransformArray& transformArr) const;
+
+        private:
+            bool hasKeyframes(void) const;
+
+            glm::vec3 makePosInterp(const float animTick) const;
+            glm::quat makeRotateInterp(const float animTick) const;
+            float makeScaleInterp(const float animTick) const;
+            glm::mat4 makeTransformInterp(const float animTick) const;
+
+        };
 
     private:
         std::string m_name;
@@ -101,7 +109,8 @@ namespace dal {
         float getTickPerSec(void) const { return this->m_tickPerSec; }
         float getDurationInTick(void) const { return this->m_durationInTick; }
 
-        void sample(const float animTick, SkeletonInterface& interf, const glm::mat4& globalInvMat) const;
+        void sample(const float animTick, const SkeletonInterface& interf, const glm::mat4& globalInvMat, JointTransformArray& transformArr) const;
+        float calcAnimTick(const float seconds) const;
 
     };
 
@@ -111,7 +120,15 @@ namespace dal {
     private:
         Timer m_localTimeline;
         std::string m_animationName;
-        std::vector<glm::mat4> m_finalTransform;
+        JointTransformArray m_finalTransform;
+
+    public:
+        float getElapsed(void) const {
+            return this->m_localTimeline.getElapsed();
+        }
+        JointTransformArray& getTransformArray(void) {
+            return this->m_finalTransform;
+        }
 
     };
 

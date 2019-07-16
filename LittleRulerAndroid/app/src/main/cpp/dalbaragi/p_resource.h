@@ -82,7 +82,6 @@ namespace dal {
         SkeletonInterface m_jointInterface;
         std::vector<Animation> m_animations;
         glm::mat4 m_globalInvMat;
-        Timer m_animLocalTimer;
 
     public:
         RenderUnit* addRenderUnit(void);
@@ -93,12 +92,23 @@ namespace dal {
         bool isReady(void) const;
 
         void render(const UniInterfLightedMesh& unilocLighted, const SamplerInterf& samplerInterf, const UniInterfAnime& unilocAnime,
-            const glm::mat4 modelMat);
-        void renderDepthMap(const UniInterfGeometry& unilocGeometry, const UniInterfAnime& unilocAnime, const glm::mat4 modelMat) const;
+            const glm::mat4 modelMat, const JointTransformArray& transformArr);
+        void renderDepthMap(const UniInterfGeometry& unilocGeometry, const UniInterfAnime& unilocAnime, const glm::mat4 modelMat,
+            const JointTransformArray& transformArr) const;
 
         void destroyModel(void);
 
-        void updateAnimation0(void);
+        //void updateAnimation0(void);
+
+        const SkeletonInterface& getSkeletonInterf(void) const {
+            return this->m_jointInterface;
+        }
+        const std::vector<Animation>& getAnimations(void) const {
+            return this->m_animations;
+        }
+        const glm::mat4& getGlobalInvMat(void) const {
+            return this->m_globalInvMat;
+        }
 
     };
 

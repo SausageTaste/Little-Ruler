@@ -232,11 +232,20 @@ namespace dal {
         TaskGod::getinst().update();
 
         auto view = this->m_enttMaster.view<cpnt::AnimatedModel>();
-        view.each(
-            [](cpnt::AnimatedModel& animatedModel) {
-                animatedModel.m_model->updateAnimation0();
+        for ( const auto entity : view ) {
+            auto& cpntModel = view.get(entity);
+
+            const auto animations = cpntModel.m_model->getAnimations();
+            if ( animations.empty() ) {
+                continue;
             }
-        );
+
+            const auto& anim = animations.back();
+            const auto elapsed = cpntModel.m_animState.getElapsed();
+            const auto animTick = anim.calcAnimTick(elapsed);
+            anim.sample(animTick, cpntModel.m_model->getSkeletonInterf(), cpntModel.m_model->getGlobalInvMat(),
+                cpntModel.m_animState.getTransformArray());
+        }
 
         this->m_scene.update(deltaTime);
         this->m_renderMan.update(deltaTime);
