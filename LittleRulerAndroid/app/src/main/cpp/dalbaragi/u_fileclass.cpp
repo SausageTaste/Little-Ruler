@@ -313,6 +313,44 @@ namespace {
 
     }
 
+
+    std::string makeFstreamErrFlagStr(unsigned int errFlag) {
+        std::string buffer;
+        buffer.reserve(15);
+
+        if ( 0 != (errFlag & std::fstream::eofbit) )
+            buffer += "eof, ";
+        if ( 0 != (errFlag & std::fstream::failbit) )
+            buffer += "fail, ";
+        if ( 0 != (errFlag & std::fstream::badbit) )
+            buffer += "bad, ";
+
+        if ( !buffer.empty() ) {
+            buffer.resize(buffer.size() - 2);
+        }
+
+        return buffer;
+    }
+
+    auto makeFsteamOpenmode(const dal::FileMode mode){
+        switch ( mode ) {
+            case dal::FileMode::read:
+                return std::ios::in;
+            case dal::FileMode::write:
+                return std::ios::out;
+            case dal::FileMode::append:
+                return std::ios::out | std::ios::app;
+            case dal::FileMode::bread:
+                return std::ios::in | std::ios::binary;
+            case dal::FileMode::bwrite:
+                return std::ios::out | std::ios::binary;
+            case dal::FileMode::bappend:
+                return std::ios::out | std::ios::app | std::ios::binary;
+            default:
+                dalAbort("Unkown dal::FileMode: "_format(static_cast<unsigned int>(mode)));
+        }
+    }
+
 }
 
 
@@ -332,20 +370,7 @@ namespace {
         virtual bool open(const char* const path, const dal::FileMode mode) override {
             this->close();
 
-            switch ( mode ) {
-            case dal::FileMode::read:
-                this->m_file.open(path, std::ios::in); break;
-            case dal::FileMode::write:
-                this->m_file.open(path, std::ios::out); break;
-            case dal::FileMode::append:
-                this->m_file.open(path, std::ios::out | std::ios::app); break;
-            case dal::FileMode::bread:
-                this->m_file.open(path, std::ios::in | std::ios::binary); break;
-            case dal::FileMode::bwrite:
-                this->m_file.open(path, std::ios::out | std::ios::binary); break;
-            case dal::FileMode::bappend:
-                this->m_file.open(path, std::ios::out | std::ios::app | std::ios::binary); break;
-            }
+            this->m_file.open(path, makeFsteamOpenmode(mode));
 
             if ( this->isOpen() ) {
                 return true;
@@ -357,32 +382,31 @@ namespace {
         }
 
         virtual void close(void) override {
-            if ( this->isOpen() ) this->m_file.close();
+            if ( this->isOpen() ) {
+                this->m_file.close();
+            }
         }
 
         virtual size_t read(uint8_t* const buf, const size_t bufSize) override {
             const auto remaining = this->getSize() - this->tell();
             const auto sizeToRead = bufSize < remaining ? bufSize : remaining;
-            if ( sizeToRead <= 0 ) return 0;
+            if ( sizeToRead <= 0 ) {
+                return 0;
+            }
 
             this->m_file.read(reinterpret_cast<char*>(buf), sizeToRead);
             const auto readSize = this->m_file.gcount();
+            dalAssert(readSize >= 0);
 
             if ( !this->m_file ) {
-                std::string errMsg;
-                const auto errFlags = this->m_file.rdstate();
-
-                if ( (errFlags & std::fstream::eofbit) != 0 )
-                    errMsg += "eof, ";
-                if ( (errFlags & std::fstream::failbit) != 0 )
-                    errMsg += "fail, ";
-                if ( (errFlags & std::fstream::badbit) != 0 )
-                    errMsg += "bad, ";
-
-                if ( readSize < sizeToRead )
-                    errMsg += "{} out of {} has been read"_format(readSize, sizeToRead);
-
-                dalError("File not read completely, here are errors: " + errMsg);
+                if ( readSize < sizeToRead ) {
+                    dalError("File not read completely. {} out of {} has been read. Err flags are \"{}\"."_format(
+                            readSize, sizeToRead, makeFstreamErrFlagStr(this->m_file.rdstate())))
+                }
+                else {
+                    dalError("File not read completely. Err flags are \"{}\"."_format(
+                            makeFstreamErrFlagStr(this->m_file.rdstate())))
+                }
             }
 
             return static_cast<size_t>(readSize);
@@ -405,6 +429,11 @@ namespace {
 
         virtual bool write(const char* const str) override {
             this->m_file.write(str, std::strlen(str));
+            return true;
+        }
+
+        virtual bool write(const std::string& str) override {
+            this->m_file.write(str.c_str(), str.size());
             return true;
         }
 
@@ -532,6 +561,10 @@ namespace {
             dalAbort("Writing is illegal on assets.");
         }
 
+        virtual bool write(const std::string& str) override {
+            dalAbort("Writing is illegal on assets.");
+        }
+
         virtual size_t getSize(void) override {
             return this->m_fileSize;
         }
@@ -593,7 +626,10 @@ namespace {
 
     bool parseImageTGA(dal::loadedinfo::ImageFileData& output, std::vector<uint8_t>& dataBuffer) {
         int w, h, p;
-        std::unique_ptr<uint8_t, decltype(free)*> result{ tga_load_memory(dataBuffer.data(), static_cast<int>(dataBuffer.size()), &w, &h, &p), free };
+        std::unique_ptr<uint8_t, decltype(free)*> result{
+            tga_load_memory(dataBuffer.data(), static_cast<int>(dataBuffer.size()), &w, &h, &p), free
+        };
+
         if ( nullptr == result ) {
             dalError("Failed to parse tga file.");
             return false;
