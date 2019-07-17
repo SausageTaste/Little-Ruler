@@ -396,7 +396,7 @@ namespace {
         }
 
         void updateTouchDrawer(const int32_t index) {
-            if ( this->m_touchDrawers.size() > index ) {
+            if ( static_cast<int64_t>(this->m_touchDrawers.size()) > index ) {
                 auto& wid = this->m_touchDrawers[index];
                 wid.setPosX(this->m_thisStates[index].m_pos.x - this->k_touchDrawerThiccness * 0.5f);
                 wid.setPosY(this->m_thisStates[index].m_pos.y - this->k_touchDrawerThiccness * 0.5f);
@@ -404,7 +404,7 @@ namespace {
         }
 
         void setTouchDrawer(const int32_t index, const float x, const float y) {
-            if ( this->m_touchDrawers.size() > index ) {
+            if ( static_cast<int64_t>(this->m_touchDrawers.size()) > index ) {
                 auto& wid = this->m_touchDrawers[index];
                 wid.setPosX(x - this->k_touchDrawerThiccness * 0.5f);
                 wid.setPosY(y - this->k_touchDrawerThiccness * 0.5f);
@@ -412,7 +412,7 @@ namespace {
         }
 
         void hideTouchDrawer(const int32_t index) {
-            if ( this->m_touchDrawers.size() > index ) {
+            if ( static_cast<int64_t>(this->m_touchDrawers.size()) > index ) {
                 auto& wid = this->m_touchDrawers[index];
                 wid.setPosX(-100.0f - this->k_touchDrawerThiccness * 0.5f);
                 wid.setPosY(-100.0f - this->k_touchDrawerThiccness * 0.5f);

@@ -18,9 +18,9 @@ namespace dal {
 
 
     struct EventStatic {
-        EventType type;
-        int32_t intArg1, intArg2;
-        float floatArg1, floatArg2;
+        EventType type = EventType::eoe;
+        int32_t intArg1 = 0, intArg2 = 0;
+        float floatArg1 = 0.0f, floatArg2 = 0.0f;
         const char* strArg1 = nullptr;
     };
 
