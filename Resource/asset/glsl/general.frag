@@ -3,22 +3,25 @@
 
 // Interf - PlaneClip
 uniform bool u_doClip;
-uniform vec4 u_clipPlane;
 
 uniform sampler2D u_diffuseMap;  // TEX 0
+
 
 in vec3 vFragPos;
 in vec2 vTexCoord;
 in vec3 vNormalVec;
 in vec4 vFragPosInDlight[3];
+#ifdef GL_ES
+in float v_clipDistance;
+#endif
 
 out vec4 fColor;
 
 
 void main(void) {
 #ifdef GL_ES
-    if (u_doClip) {
-        if ( dot(vec4(vFragPos, 1.0), u_clipPlane) < 0.0 ) discard;
+    if (u_doClip && v_clipDistance < 0.0) {
+        discard;
     }
 #endif
 

@@ -30,10 +30,13 @@ uniform highp int uDlightCount;
 uniform mat4 uDlightProjViewMat[3];
 
 
-out vec3 vFragPos;
+out vec3 v_fragPos;
 out vec2 vTexCoord;
 out vec3 vNormalVec;
 out vec4 vFragPosInDlight[3];
+#ifdef GL_ES
+out float v_clipDistance;
+#endif
 
 
 void main(void) {
@@ -46,14 +49,16 @@ void main(void) {
 
     vec4 worldPos = u_modelMat * boneMat * vec4(i_position, 1.0);
 
-#ifndef GL_ES
     if (u_doClip) {
+#ifdef GL_ES
+        v_clipDistance = dot(worldPos, u_clipPlane);
+#else
         gl_ClipDistance[0] = dot(worldPos, u_clipPlane);
-    }
 #endif
+    }
 
     gl_Position = u_projMat * u_viewMat * worldPos;
-    vFragPos = vec3(worldPos);
+    v_fragPos = vec3(worldPos);
     vTexCoord = vec2(i_texCoord.x * u_texScale.x, -i_texCoord.y * u_texScale.y);
     vNormalVec = normalize(vec3(u_modelMat * boneMat * vec4(i_normal, 0.0)));
 

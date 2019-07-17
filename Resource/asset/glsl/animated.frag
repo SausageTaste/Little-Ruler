@@ -3,27 +3,29 @@
 
 // Interf - PlaneClip
 uniform bool u_doClip;
-uniform vec4 u_clipPlane;
 
 uniform sampler2D u_diffuseMap;  // TEX 0
 
 
-in vec3 vFragPos;
+in vec3 v_fragPos;
 in vec2 vTexCoord;
 in vec3 vNormalVec;
 in vec4 vFragPosInDlight[3];
+#ifdef GL_ES
+in float v_clipDistance;
+#endif
 
 out vec4 fColor;
 
 
 void main(void) {
 #ifdef GL_ES
-    if (u_doClip) {
-        if ( dot(vec4(vFragPos, 1.0), u_clipPlane) < 0.0 ) discard;
+    if (u_doClip && v_clipDistance < 0.0) {
+        discard;
     }
 #endif
 
-    vec3 viewDir = normalize(uViewPos - vFragPos);
+    vec3 viewDir = normalize(uViewPos - v_fragPos);
     vec3 lightedColor = uBaseAmbient;
     vec3 fragNormal = vNormalVec;
 
@@ -32,11 +34,13 @@ void main(void) {
         lightedColor += getDlightFactor(i, viewDir, fragNormal, vFragPosInDlight[i]) * uDlightColors[i];
     }
     for (i = 0; i < uPlightCount; i++) {
-        lightedColor += getLightFactor_point(i, viewDir, fragNormal, vFragPos) * uPlightColors[i];
+        lightedColor += getLightFactor_point(i, viewDir, fragNormal, v_fragPos) * uPlightColors[i];
     }
 
     vec4 texColor = texture(u_diffuseMap, vTexCoord);
-    if (texColor.a == 0.0) discard;
+    if (texColor.a < 0.5) {
+        discard;
+    }
     fColor = texColor * vec4(lightedColor, 1.0);
-    fColor = calcFogMixedColor(fColor, vFragPos);
+    fColor = calcFogMixedColor(fColor, v_fragPos);
 }

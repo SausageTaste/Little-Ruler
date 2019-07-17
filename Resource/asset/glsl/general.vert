@@ -27,16 +27,21 @@ out vec3 vFragPos;
 out vec2 vTexCoord;
 out vec3 vNormalVec;
 out vec4 vFragPosInDlight[3];
+#ifdef GL_ES
+out float v_clipDistance;
+#endif
 
 
 void main(void) {
 	vec4 worldPos = u_modelMat * vec4(i_position, 1.0);
 
-#ifndef GL_ES
-	if (u_doClip) {
-		gl_ClipDistance[0] = dot(worldPos, u_clipPlane);
-	}
+    if (u_doClip) {
+#ifdef GL_ES
+        v_clipDistance = dot(worldPos, u_clipPlane);
+#else
+        gl_ClipDistance[0] = dot(worldPos, u_clipPlane);
 #endif
+    }
 
 	gl_Position = u_projMat * u_viewMat * worldPos;
 	vFragPos = vec3(worldPos);
