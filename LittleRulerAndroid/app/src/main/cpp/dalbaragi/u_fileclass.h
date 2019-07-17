@@ -1,6 +1,5 @@
 #pragma once
 
-#include <vector>
 #include <string>
 #include <memory>
 
@@ -54,9 +53,10 @@ namespace dal::futil {
 
 namespace dal {
 
-    enum class FileMode { read, write, append, bread, bwrite, bappend };
+    enum class FileMode { read = 0, write, append, bread, bwrite, bappend };  // Order shouldn't change.
     enum class Whence { beg, cur, end };
 
+    //FileMode mapFileMode(const char* const str);
     FileMode mapFileMode(const char* const str);
 
 

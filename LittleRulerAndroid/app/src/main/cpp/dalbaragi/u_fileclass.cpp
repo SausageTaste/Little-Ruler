@@ -900,7 +900,7 @@ namespace dal {
         return true;
     }
 
-
+    /*
     FileMode mapFileMode(const char* const str) {
         // "wb", "w", "wt", "rb", "r", "rt".
 
@@ -923,6 +923,58 @@ namespace dal {
         else {
             dalAbort("Unkown file mode str: "s + str);
         }
+    }
+    */
+
+    /*
+    Input should be one of followings
+    { "wb", "w", "wt", "rb", "r", "rt", "ab", "a", "at" }
+    */
+    FileMode mapFileMode(const char* const str) {
+        // { read, write, append, bread, bwrite, bappend };
+        // This order is important!
+
+        constexpr unsigned int NULL_CODE = 4444;
+
+        const size_t inputLen = std::strlen(str);
+        dalAssert(0 != inputLen);
+
+        unsigned int workType = NULL_CODE;  // 0 for read, 1 for write, 2 for append.
+        unsigned int byteModeFlag = NULL_CODE;  // 0 for text, 1 for byte.
+
+        // Fill variable workType.
+        {
+            switch ( str[0] ) {
+            case 'r':
+                workType = 0; break;
+            case 'w':
+                workType = 1; break;
+            case 'a':
+                workType = 3; break;
+            default:
+                dalAbort("Unknown file open mode: "s + str);
+            }
+        }
+
+        // Fill byteModeFlag
+        {
+            if ( 1 == inputLen ) {
+                byteModeFlag = 0;
+            }
+            else {
+                switch ( str[1] ) {
+                case 't':
+                    byteModeFlag = 0; break;
+                case 'b':
+                    byteModeFlag = 1; break;
+                default:
+                    dalAbort("Unknown file open mode: "s + str);
+                }
+            }
+        }
+
+        const auto enumIndex = workType + 3 * byteModeFlag;
+        return static_cast<FileMode>(enumIndex);
     }
 
     std::unique_ptr<IResourceStream> resopen(ResourceID resID, const FileMode mode) {
