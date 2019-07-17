@@ -133,11 +133,6 @@ namespace {
 }
 
 
-namespace {
-
-}
-
-
 namespace dal {
 
     // Static
@@ -226,7 +221,7 @@ namespace dal {
             this->m_timerForFPSReport.check();
         }
 
-        this->m_inputApply.apply(deltaTime, this->m_camera, this->m_enttMaster.get<cpnt::Transform>(this->m_player));
+        this->m_inputApply.apply(deltaTime, this->m_camera, this->m_player, this->m_enttMaster);
         //this->m_scene.applyCollision(*this->m_player.getModel(), *this->m_player.getActor());
 
         TaskGod::getinst().update();
@@ -234,17 +229,8 @@ namespace dal {
         auto view = this->m_enttMaster.view<cpnt::AnimatedModel>();
         for ( const auto entity : view ) {
             auto& cpntModel = view.get(entity);
-
-            const auto animations = cpntModel.m_model->getAnimations();
-            if ( animations.empty() ) {
-                continue;
-            }
-
-            const auto& anim = animations.back();
-            const auto elapsed = cpntModel.m_animState.getElapsed();
-            const auto animTick = anim.calcAnimTick(elapsed);
-            anim.sample(animTick, cpntModel.m_model->getSkeletonInterf(), cpntModel.m_model->getGlobalInvMat(),
-                cpntModel.m_animState.getTransformArray());
+            auto pModel = cpntModel.m_model;
+            updateAnimeState(cpntModel.m_animState, pModel->getAnimations(), pModel->getSkeletonInterf(), pModel->getGlobalInvMat());
         }
 
         this->m_scene.update(deltaTime);

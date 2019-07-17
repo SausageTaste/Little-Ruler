@@ -685,11 +685,14 @@ namespace {
         camera.updateViewMat();
     }
 
-    void apply_topdown(const float deltaTime, dal::StrangeEulerCamera& camera, dal::cpnt::Transform& cpntTrans, dal::OverlayMaster& overlay) {
-
-
+    void apply_topdown(const float deltaTime, dal::StrangeEulerCamera& camera, dal::OverlayMaster& overlay,
+        const entt::entity targetEntity, entt::registry& reg) {
         // This means it must represent move direction when targetViewDir == { 0, 0 }
         NoclipMoveInfo totalMoveInfo{ 0.0f };
+
+        if ( reg.has<dal::cpnt::AnimatedModel>(targetEntity) ) {
+            reg.get<dal::cpnt::AnimatedModel>(targetEntity).m_animState.setSelectedAnimeIndex(0);
+        }
 
         // Take inputs
         {
@@ -729,8 +732,11 @@ namespace {
         {
             const glm::vec3 k_modelCamOffset{ 0.0f, 1.3f, 0.0f };
 
+            dalAssert(reg.has<dal::cpnt::Transform>(targetEntity));
+            auto& cpntTrans = reg.get<dal::cpnt::Transform>(targetEntity);
+
             {
-                constexpr float CAM_ROTATE_SPEED_INV = 0.5f;
+                constexpr float CAM_ROTATE_SPEED_INV = 1.0f;
                 static_assert(0.0f <= CAM_ROTATE_SPEED_INV && CAM_ROTATE_SPEED_INV <= 1.0f);
 
                 const auto camViewVec = dal::strangeEuler2Vec(camera.getStrangeEuler());
@@ -740,8 +746,27 @@ namespace {
                 const auto deltaPos = glm::vec3{ rotatedMoveVec.x, totalMoveInfo.vertical, rotatedMoveVec.y } *deltaTime * 5.0f;
                 cpntTrans.m_pos += deltaPos;
                 camera.m_pos += deltaPos * CAM_ROTATE_SPEED_INV;
-                if ( rotatedMoveVec.x != 0.0f || rotatedMoveVec.y != 0.0f ) {
+                if ( rotatedMoveVec.x != 0.0f || rotatedMoveVec.y != 0.0f ) {  // If moved position
                     cpntTrans.m_quat = dal::rotateQuat(glm::quat{}, atan2(rotatedMoveVec.x, rotatedMoveVec.y), glm::vec3{ 0.0f, 1.0f, 0.0f });
+                    if ( reg.has<dal::cpnt::AnimatedModel>(targetEntity) ) {
+                        auto& animModel = reg.get<dal::cpnt::AnimatedModel>(targetEntity);
+                        animModel.m_animState.setSelectedAnimeIndex(1);
+                        const auto moveSpeed = glm::length(rotatedMoveVec);
+                        const auto animeSpeed = 1.0f / moveSpeed;
+                        constexpr float epsilon = 0.0001f;
+                        if ( epsilon > animeSpeed && animeSpeed > -epsilon ) {  // animeSpeed is near zero than epsion.
+                            animModel.m_animState.setTimeScale(0.0f);
+                        }
+                        else {
+                            animModel.m_animState.setTimeScale(1.0f / animeSpeed);
+                        }
+                    }
+                }
+                else {
+                    if ( reg.has<dal::cpnt::AnimatedModel>(targetEntity) ) {
+                        auto& animModel = reg.get<dal::cpnt::AnimatedModel>(targetEntity);
+                        animModel.m_animState.setSelectedAnimeIndex(0);
+                    }
                 }
             }
 
@@ -842,12 +867,12 @@ namespace dal {
         }
     }
 
-    void InputApplier::apply(const float deltaTime, StrangeEulerCamera& camera, cpnt::Transform& cpntTrans) {
+    void InputApplier::apply(const float deltaTime, StrangeEulerCamera& camera, const entt::entity targetEntity, entt::registry& reg) {
         if ( GlobalGameState::game == this->mFSM ) {
 #if defined(_WIN32)
-            apply_topdown(deltaTime, camera, cpntTrans, this->m_overlayMas);
+            apply_topdown(deltaTime, camera, this->m_overlayMas, targetEntity, reg);
 #else defined(__ANDROID__)
-            apply_topdown(deltaTime, camera, cpntTrans, this->m_overlayMas);
+            apply_topdown(deltaTime, camera, this->m_overlayMas, targetEntity, reg);
 #endif
         }
         else if ( GlobalGameState::menu == this->mFSM ) {

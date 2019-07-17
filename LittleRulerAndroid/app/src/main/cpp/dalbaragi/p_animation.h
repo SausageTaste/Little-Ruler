@@ -58,6 +58,10 @@ namespace dal {
         void setTransform(const jointID_t index, const glm::mat4& mat);
         void sendUniform(const UniInterfAnime& uniloc) const;
 
+        jointID_t getSize(void) const {
+            return this->m_array.size();
+        }
+
     };
 
 
@@ -118,18 +122,35 @@ namespace dal {
     class AnimationState {
 
     private:
-        Timer m_localTimeline;
-        std::string m_animationName;
+        Timer m_localTimer;
         JointTransformArray m_finalTransform;
+        unsigned int m_selectedAnimIndex = 0;
+        float m_timeScale = 1.0f;
+        float m_localTimeAccumulator = 0.0f;
 
     public:
-        float getElapsed(void) const {
-            return this->m_localTimeline.getElapsed();
+        float getElapsed(void) {
+            const auto deltaTime = this->m_localTimer.checkGetElapsed();
+            this->m_localTimeAccumulator += deltaTime * this->m_timeScale;
+            return this->m_localTimeAccumulator;
         }
         JointTransformArray& getTransformArray(void) {
             return this->m_finalTransform;
         }
+        unsigned int getSelectedAnimeIndex(void) const {
+            return this->m_selectedAnimIndex;
+        }
+
+        void setSelectedAnimeIndex(const unsigned int index) {
+            this->m_selectedAnimIndex = index;
+        }
+        void setTimeScale(const float scale) {
+            this->m_timeScale = scale;
+        }
 
     };
+
+
+    void updateAnimeState(AnimationState& state, const std::vector<Animation>& anims, const SkeletonInterface& skeletonInterf, const glm::mat4& globalMatInv);
 
 }

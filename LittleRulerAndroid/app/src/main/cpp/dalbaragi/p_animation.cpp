@@ -284,3 +284,26 @@ namespace dal {
     }
 
 }  // namespace dal
+
+
+// Functions
+namespace dal {
+
+    void updateAnimeState(AnimationState& state, const std::vector<Animation>& anims, const SkeletonInterface& skeletonInterf, const glm::mat4& globalMatInv) {
+        if ( anims.empty() ) {
+            return;
+        }
+
+        const auto selectedAnimIndex = state.getSelectedAnimeIndex();
+        if ( selectedAnimIndex >= anims.size() ) {
+            dalError("Selected animation index out of range");
+            return;
+        }
+
+        const auto& anim = anims[selectedAnimIndex];
+        const auto elapsed = state.getElapsed();
+        const auto animTick = anim.calcAnimTick(elapsed);
+        anim.sample(animTick, skeletonInterf, globalMatInv, state.getTransformArray());
+    }
+
+}

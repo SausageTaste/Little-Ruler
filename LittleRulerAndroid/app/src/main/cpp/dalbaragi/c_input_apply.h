@@ -3,6 +3,7 @@
 #include <array>
 
 #include <glm/glm.hpp>
+#include <entt/entity/registry.hpp>
 
 #include "o_widget_primitive.h"
 #include "s_event.h"
@@ -25,7 +26,7 @@ namespace dal {
 
         virtual void onEvent(const EventStatic& e) override;
 
-        void apply(const float deltaTime, StrangeEulerCamera& camera, cpnt::Transform& cpntTrans);
+        void apply(const float deltaTime, StrangeEulerCamera& camera, const entt::entity targetEntity, entt::registry& reg);
 
     };
 
