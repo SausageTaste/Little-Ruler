@@ -109,7 +109,7 @@ namespace {
         const auto param = static_cast<float>(lua_tonumber(L, 1));
         if ( param < 0.1 || param > 3.0 ) return 0;
 
-        renderMas->setRenderScale(param);
+        renderMas->resizeRenderScale(param);
 
         return 0;
     }

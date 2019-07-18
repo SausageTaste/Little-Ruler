@@ -40,13 +40,13 @@ namespace dal {
             MainFramebuffer(const unsigned int widWidth, const unsigned int widHeight);
             ~MainFramebuffer(void);
 
-            void setRenderScale(float v, unsigned int widWidth, unsigned int widHeight);
-            void resizeFbuffer(unsigned int w, unsigned int h);
+            void setRenderScale(const float v) {
+                this->m_renderScale = v;
+            }
+            void resizeFbuffer(const unsigned int w, const unsigned int h);
 
             void clearAndstartRenderOn(void);
             void renderOnScreen(const UnilocFScreen& uniloc);
-
-            //Texture* getTex(void);
 
         };
 
@@ -73,7 +73,7 @@ namespace dal {
 
         void update(const float deltaTime);
         void render(entt::registry& reg);
-        void setRenderScale(float v);
+        void resizeRenderScale(const float v);
 
         void onWinResize(const unsigned int width, const unsigned int height);
 

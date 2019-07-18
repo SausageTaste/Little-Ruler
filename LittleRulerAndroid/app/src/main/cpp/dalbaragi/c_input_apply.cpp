@@ -18,7 +18,7 @@ using namespace std::string_literals;
 
 namespace {
 
-    const float DPAD_RADIUS_FACTOR_INV = 4.0f;
+    const float DPAD_RADIUS_FACTOR_INV = 7.0f;
 
 }
 
@@ -736,7 +736,7 @@ namespace {
             auto& cpntTrans = reg.get<dal::cpnt::Transform>(targetEntity);
 
             {
-                constexpr float CAM_ROTATE_SPEED_INV = 1.0f;
+                constexpr float CAM_ROTATE_SPEED_INV = 0.0f;
                 static_assert(0.0f <= CAM_ROTATE_SPEED_INV && CAM_ROTATE_SPEED_INV <= 1.0f);
 
                 const auto camViewVec = dal::strangeEuler2Vec(camera.getStrangeEuler());

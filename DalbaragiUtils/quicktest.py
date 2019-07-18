@@ -22,7 +22,6 @@ def genIntermediates():
 def main():
     water_bowl.main()
     vast_city_like.main()
-    hroom.main()
 
     args = [""] + [INTERM_FOLDER + i for i in genIntermediates()]
     dlb.main(args)

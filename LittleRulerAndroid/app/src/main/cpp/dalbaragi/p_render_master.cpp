@@ -17,6 +17,9 @@ using namespace std::string_literals;
 
 namespace {
 
+    constexpr unsigned int MAX_SCREEN_RES   = 720;
+    constexpr float        MAX_SCREEN_RES_F = 720.0f;
+
 #ifdef _WIN32
     void GLAPIENTRY glDebugCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam) {
         dalWarn(message);
@@ -125,13 +128,6 @@ namespace dal {
         glDeleteFramebuffers(1, &this->m_mainFbuf);
 
         glDeleteFramebuffers(1, &m_mainFbuf);
-    }
-
-    void RenderMaster::MainFramebuffer::setRenderScale(float v, unsigned int win_width, unsigned int win_height) {
-        m_renderScale = v;
-        auto w = static_cast<unsigned int>(float(win_width) * v);
-        auto h = static_cast<unsigned int>(float(win_height) * v);
-        this->resizeFbuffer(w, h);
     }
 
     void RenderMaster::MainFramebuffer::resizeFbuffer(unsigned int newWin_width, unsigned int newWin_height) {
@@ -249,6 +245,12 @@ namespace dal {
         {
             float radio = static_cast<float>(m_winWidth) / static_cast<float>(m_winHeight);
             this->m_projectMat = glm::perspective(glm::radians(90.0f), radio, 0.01f, this->m_farPlaneDistance);
+
+            const auto shorter = this->m_winWidth < this->m_winHeight ? this->m_winWidth : this->m_winHeight;
+            if ( shorter > MAX_SCREEN_RES ) {
+                auto renderScale = MAX_SCREEN_RES_F / static_cast<float>(shorter);
+                this->resizeRenderScale(renderScale);
+            }
         }
     }
 
@@ -430,8 +432,9 @@ namespace dal {
         }
     }
 
-    void RenderMaster::setRenderScale(float v) {
-        this->m_fbuffer.setRenderScale(v, m_winWidth, m_winHeight);
+    void RenderMaster::resizeRenderScale(const float v) {
+        this->m_fbuffer.setRenderScale(v);
+        this->m_fbuffer.resizeFbuffer(this->m_winWidth, this->m_winHeight);
     }
 
     void RenderMaster::onWinResize(const unsigned int width, const unsigned int height) {
@@ -440,6 +443,12 @@ namespace dal {
 
         float radio = static_cast<float>(width) / static_cast<float>(height);
         this->m_projectMat = glm::perspective(glm::radians(90.0f), radio, 0.01f, this->m_farPlaneDistance);
+
+        const auto shorter = this->m_winWidth < this->m_winHeight ? this->m_winWidth : this->m_winHeight;
+        if ( shorter > MAX_SCREEN_RES ) {
+            auto renderScale = MAX_SCREEN_RES_F / static_cast<float>(shorter);
+            this->m_fbuffer.setRenderScale(renderScale);
+        }
 
         this->m_fbuffer.resizeFbuffer(width, height);
     }
