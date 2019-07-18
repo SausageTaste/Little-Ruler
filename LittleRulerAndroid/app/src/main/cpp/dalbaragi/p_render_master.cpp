@@ -4,6 +4,7 @@
 #include <vector>
 #include <memory>
 
+#include <fmt/format.h>
 #include <glm/gtc/matrix_transform.hpp>
 
 #include "u_fileclass.h"
@@ -13,6 +14,7 @@
 
 
 using namespace std::string_literals;
+using namespace fmt::literals;
 
 
 namespace {
@@ -241,7 +243,7 @@ namespace dal {
         }
         */
 
-        // Misc
+        // Similar to on resize method
         {
             float radio = static_cast<float>(m_winWidth) / static_cast<float>(m_winHeight);
             this->m_projectMat = glm::perspective(glm::radians(90.0f), radio, 0.01f, this->m_farPlaneDistance);
@@ -251,6 +253,12 @@ namespace dal {
                 auto renderScale = MAX_SCREEN_RES_F / static_cast<float>(shorter);
                 this->resizeRenderScale(renderScale);
             }
+        }
+
+        // Misc
+        {
+            const auto renderer = reinterpret_cast<const char*>(glGetString(GL_RENDERER));
+            dalVerbose("Graphics device name: {}"_format(renderer));
         }
     }
 
