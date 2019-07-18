@@ -2,7 +2,7 @@ import os
 import shutil
 
 import dlbcompile as dlb
-from demo import water_bowl, vast_city_like, hroom
+from demo import water_bowl, vast_city_like
 
 
 INTERM_FOLDER: str = "./intermediates/"

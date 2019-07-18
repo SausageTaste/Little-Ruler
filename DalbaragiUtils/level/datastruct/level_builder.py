@@ -84,7 +84,7 @@ class LevelBuilder(ein.ILevelElement):
         return self.__levelName.getStr()
 
 
-def saveLevelBinary(level: LevelBuilder, outputFolder: str = "outputs/"):
+def saveLevelBinary(level: LevelBuilder, outputFolder: str = "outputs/") -> str:
     report = level.getIntegrityReport()
     if report.isFatal():
         raise RuntimeError(report.getFormattedStr())
@@ -96,9 +96,13 @@ def saveLevelBinary(level: LevelBuilder, outputFolder: str = "outputs/"):
     zipData: bytes = zlib.compress(binData, zlib.Z_BEST_COMPRESSION)
     print("Compressed {} -> {} ({:%})".format(len(binData), len(zipData), len(zipData)/len(binData)))
 
-    filePath: str = "{}/{}.dlb".format(outputFolder, level.getLevelName())
+    if outputFolder[-1] != "/":
+        outputFolder += "/"
+    filePath: str = outputFolder + level.getLevelName() + ".dlb"
     with open(filePath, "wb") as file:
         file.write(zipData)
+
+    return filePath
 
 
 def saveLevelJson(level: LevelBuilder, outputFolder: str = "intermediates/"):
