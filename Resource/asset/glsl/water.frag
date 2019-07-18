@@ -50,7 +50,7 @@ vec3 makeFragNormal(vec2 distortedCoords) {
 
 
 float makeDepthFactor_linear(float waterDepth) {
-    float factor = waterDepth / u_darkestDepthPoint;
+    float factor = waterDepth / u_darkestDepthPoint * 1.5;
     return clamp(factor, 0.2, 1.0);
 }
 
