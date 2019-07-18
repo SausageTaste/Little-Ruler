@@ -94,7 +94,7 @@ def saveLevelBinary(level: LevelBuilder, outputFolder: str = "outputs/") -> str:
 
     binData = level.getBinary()
     zipData: bytes = zlib.compress(binData, zlib.Z_BEST_COMPRESSION)
-    print("Compressed {} -> {} ({:%})".format(len(binData), len(zipData), len(zipData)/len(binData)))
+    print("Compressed {} bytes -> {} bytes ({:%})".format(len(binData), len(zipData), len(zipData)/len(binData)))
 
     if outputFolder[-1] != "/":
         outputFolder += "/"

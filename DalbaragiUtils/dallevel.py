@@ -9,6 +9,11 @@ import level.datastruct.level_builder as lvb
 cmdFunc_t = Callable[[List[str]], int]
 
 
+def printErr(text: str) -> None:
+    sys.stdout.flush()
+    print(text, file=sys.stderr)
+    sys.stderr.flush()
+
 def pathSplit(path: str) -> Tuple[str, str, str]:
     forderPath, fileNameExt = os.path.split(path)
     fileName, ext = os.path.splitext(fileNameExt)
@@ -22,9 +27,21 @@ def cmdCompile(args: List[str]) -> int:
         print("Start compiling: " + filePath)
         folpath, filename, fileext = pathSplit(filePath)
         level = lvb.LevelBuilder(filename)
-        with open(filePath, "r", encoding="utf8") as file:
-            data = json.load(file)
-            level.setJson(data)
+
+        try:
+            file = open(filePath, "r", encoding="utf8")
+        except FileNotFoundError:
+            printErr("[ERROR] input file not found: " + filePath)
+            continue
+
+        try:
+            data = json.load(file)  # Just let it throw exception which is great hint for user.
+        except json.decoder.JSONDecodeError as e:
+            printErr("[ERROR] JSONDecodeError: " + str(e))
+            continue
+
+        file.close()
+        level.setJson(data)
         savedPath: str = lvb.saveLevelBinary(level, folpath + "/")
         print("Compile done: " + savedPath)
 
