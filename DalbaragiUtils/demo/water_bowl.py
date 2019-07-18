@@ -37,6 +37,22 @@ def main():
     ########
 
     model = bfi.BuildInfo_ModelDefined()
+    model.setModelID("floor_slop")
+    model.getMeshHandle().setAABB(atl.Vec3(0, -1, 0), atl.Vec3(20, 0, 50))
+    model.getMaterialHandle().setDiffuseMap("asset::0021di.png")
+    model.getMaterialHandle().setTexScale(10, 25)
+
+    actor = aco.ActorInfo()
+    actor.getPosHandle().setX(0)
+    actor.getPosHandle().setZ(-20)
+    actor.getQuatHandle().rotate(50, (0, 0, 1))
+    model.addActor(actor)
+
+    level.add(model)
+
+    ########
+
+    model = bfi.BuildInfo_ModelDefined()
     model.setModelID("floor_below")
     model.getMeshHandle().setAABB(atl.Vec3(0, -1, 0), atl.Vec3(50, 0, 50))
     model.getMaterialHandle().setDiffuseMap("asset::0021di.png")
@@ -102,7 +118,7 @@ def main():
     model.addActor(actor)
 
     actor = aco.ActorInfo()
-    actor.getPosHandle().setXYZ(30, -5, 3)
+    actor.getPosHandle().setXYZ(30, -50, 3)
     model.addActor(actor)
 
     level.add(model)
@@ -118,7 +134,7 @@ def main():
     water.setDarkestDepthPoint(40)
     water.setWaveStreng(0.01)
     water.getDepthColorHandle().setXYZ(0.07, 0.07, 0.2)
-    water.setReflectivity(0.2)
+    water.setReflectivity(0.3)
 
     level.add(water)
 
