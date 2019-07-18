@@ -7,8 +7,8 @@ layout (location = 2) in vec3 i_normal;
 
 
 // Interf - Geometry
-uniform mat4 u_projMat;
-uniform mat4 u_viewMat;
+uniform highp mat4 u_projMat;
+uniform highp mat4 u_viewMat;
 uniform mat4 u_modelMat;
 
 // Interf - Mesh

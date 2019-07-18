@@ -2,14 +2,14 @@
 
 
 // Interf - Geometry
-uniform mat4 u_projMat;
-uniform mat4 u_viewMat;
+uniform highp mat4 u_projMat;
+uniform highp mat4 u_viewMat;
 
 uniform sampler2D u_bansaTex;
 uniform sampler2D u_gooljulTex;
 uniform sampler2D u_dudvMap;
 uniform sampler2D u_normalMap;
-uniform sampler2D u_depthMap;
+uniform highp sampler2D u_depthMap;
 
 uniform float u_dudvMoveFactor;
 uniform float u_waveStrength;
@@ -34,10 +34,10 @@ const float WATER_SAMPLER_OFFSET = 0.003;
 const float WATER_SAMPLER_OFFSET_INV = 1.0 - WATER_SAMPLER_OFFSET;
 
 
-vec3 getWorldPosFromDepth(float depth, vec2 TexCoord) {
-    float z = depth * 2.0 - 1.0;
+vec3 getWorldPosFromDepth(highp float depth, vec2 TexCoord) {
+    highp float z = depth * 2.0 - 1.0;
 
-    vec4 clipSpacePosition = vec4(TexCoord * 2.0 - 1.0, z, 1.0);
+    highp vec4 clipSpacePosition = vec4(TexCoord * 2.0 - 1.0, z, 1.0);
     vec4 viewSpacePosition = inverse(u_projMat) * clipSpacePosition;
 
     // Perspective division

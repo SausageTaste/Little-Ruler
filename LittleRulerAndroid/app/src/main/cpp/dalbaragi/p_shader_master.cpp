@@ -213,14 +213,14 @@ namespace dal {
 #if defined(_WIN32)
                     buffer = makeHeader(Precision::nodef);
 #elif defined(__ANDROID__)
-                    buffer = makeHeader(Precision::highp);
+                    buffer = makeHeader(Precision::nodef);
 #endif
                     break;
                 case ShaderType::fragment:
 #if defined(_WIN32)
                     buffer = makeHeader(Precision::nodef);
 #elif defined(__ANDROID__)
-                    buffer = makeHeader(Precision::highp);
+                    buffer = makeHeader(Precision::mediump);
 #endif
                     break;
                 }
