@@ -3,7 +3,6 @@
 #include <array>
 #include <string>
 
-#include "s_logger_god.h"
 #include "s_configs.h"
 
 

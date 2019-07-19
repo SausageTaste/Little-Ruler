@@ -92,11 +92,13 @@ namespace dal {
         void setUpsideDown_maskMap(const bool v);
 
         void renderQuad(const UnilocOverlay& uniloc, const QuadInfo& devSpc);
+        void renderQuad(const UnilocOverlay& uniloc, const glm::vec2& devSpcP1, const glm::vec2& devSpcP2);
 
+        static void statelessRender(const UnilocOverlay& uniloc, const glm::vec2& devSpcP1, const glm::vec2& devSpcP2, const glm::vec4& color,
+            const Texture* const diffuseMap, const Texture* const maskMap, const bool upsideDown_diffuseMap, const bool upsideDown_maskMap);
         static void statelessRender(const UnilocOverlay& uniloc, const QuadInfo& devSpc, const glm::vec4& color,
-            const Texture* const diffuseMap, const Texture* const maskMap,
-            const bool upsideDown_diffuseMap, const bool upsideDown_maskMap
-        );
+            const Texture* const diffuseMap, const Texture* const maskMap, const bool upsideDown_diffuseMap, const bool upsideDown_maskMap);
+
     };
 
 

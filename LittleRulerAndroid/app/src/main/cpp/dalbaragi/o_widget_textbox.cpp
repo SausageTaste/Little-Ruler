@@ -202,6 +202,86 @@ namespace dal {
 }
 
 
+// Label2
+namespace dal {
+
+    Label2::Label2(Widget2* parent, UnicodeCache& asciiCache)
+        : Widget2(parent),
+        m_textColor(1.0, 1.0, 1.0, 1.0),
+        m_unicodeCache(asciiCache)
+    {
+        this->setPos(60.0f, 40.0f);
+        this->setWidth(400.0f);
+        this->setHeight(400.0f);
+
+        this->m_background.setColor(g_darkTheme, g_darkTheme, g_darkTheme, 1.0f);
+    }
+
+    void Label2::render(const UnilocOverlay& uniloc, const float width, const float height) {
+        {
+            const auto [p1, p2] = this->makeDeviceSpace(width, height);
+            this->m_background.renderQuad(uniloc, p1, p2);
+        }
+
+        const auto scrInfoP1 = this->getPoint00();
+        const auto srcInfoP2 = this->getPoint11();
+
+        float xAdvance = scrInfoP1.x;
+        const float boxHeight = srcInfoP2.y - scrInfoP1.y;
+        const float yHeight = srcInfoP2.y - boxHeight / 4.0f;
+
+        auto header = this->m_text.begin();
+        const auto end = this->m_text.end();
+
+        while ( end != header ) {
+            uint32_t c = 0;
+            {
+                const auto ch = static_cast<uint8_t>(*header++);
+                const auto codeSize = utf8_codepoint_size(ch);
+                if ( codeSize > 1 ) {
+                    uint8_t buf[4];
+                    for ( size_t i = 0; i < codeSize; i++ ) {
+                        buf[i] = ch;
+                    }
+
+                    c = convert_utf8_to_utf32(buf, buf + codeSize);
+                }
+                else {
+                    c = ch;
+                }
+            }
+
+            auto& charac = this->m_unicodeCache.at(c);
+
+            QuadInfo charQuad;
+
+            charQuad.p1.x = xAdvance + charac.bearing.x;
+            charQuad.p1.y = yHeight - charac.bearing.y;
+
+            charQuad.p2.x = charQuad.p1.x + charac.size.x;
+            charQuad.p2.y = charQuad.p1.y + charac.size.y;
+
+            QuadRenderer::statelessRender(uniloc, charQuad.screen2device(), this->m_textColor, nullptr, charac.tex, false, true);
+
+            xAdvance += (charac.advance >> 6);
+        }
+    }
+
+    InputCtrlFlag Label2::onTouch(const TouchEvent& e) {
+        return InputCtrlFlag::ignored;
+    }
+
+    InputCtrlFlag Label2::onKeyInput(const KeyboardEvent& e) {
+        return InputCtrlFlag::ignored;
+    }
+
+    void Label2::onParentResize(const float width, const float height) {
+
+    }
+
+}
+
+
 namespace dal {
 
     LineEdit::LineEdit(Widget* parent, UnicodeCache& asciiCache)

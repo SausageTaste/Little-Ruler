@@ -33,14 +33,29 @@ namespace {
 // ScreenSpaceBox
 namespace dal {
 
-    std::pair<glm::vec2, glm::vec2> ScreenSpaceBox::makeDeviceSpace(const unsigned int winWidth, const unsigned int winHeight) const {
+    std::pair<glm::vec2, glm::vec2> IScreenSpaceBox::makeDeviceSpace(const float width, const float height) const {
         std::pair<glm::vec2, glm::vec2> result;
 
-        result.first = screen2device(this->getPoint01(), winWidth, winHeight);
-        result.second = screen2device(this->getPoint10(), winWidth, winHeight);
+        result.first = screen2device(this->getPoint01(), width, height);
+        result.second = screen2device(this->getPoint10(), width, height);
 
         dalAssert(result.first.x <= result.second.x);
         dalAssert(result.first.y <= result.second.y);
+
+        return result;
+    }
+
+}
+
+
+// Widget2
+namespace dal {
+
+    Widget2::Widget2(Widget2* const parent)
+        : m_parent(parent)
+        , m_flagDraw(true)
+    {
+
     }
 
 }

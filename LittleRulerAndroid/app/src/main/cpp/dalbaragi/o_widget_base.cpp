@@ -247,18 +247,25 @@ namespace dal {
 
     void QuadRenderer::renderQuad(const UnilocOverlay& uniloc, const QuadInfo& devSpc) {
         this->statelessRender(
-            uniloc, devSpc, this->m_color, this->m_diffuseMap, this->m_maskMap,
+            uniloc, devSpc.p1, devSpc.p2, this->m_color, this->m_diffuseMap, this->m_maskMap,
             this->m_upsideDown_diffuseMap, this->m_upsideDown_maskMap
         );
     }
 
-    void QuadRenderer::statelessRender(
-        const UnilocOverlay& uniloc, const QuadInfo& devSpc, const glm::vec4& color,
+    void QuadRenderer::renderQuad(const UnilocOverlay& uniloc, const glm::vec2& devSpcP1, const glm::vec2& devSpcP2) {
+        this->statelessRender(
+            uniloc, devSpcP1, devSpcP2, this->m_color, this->m_diffuseMap, this->m_maskMap,
+            this->m_upsideDown_diffuseMap, this->m_upsideDown_maskMap
+        );
+    }
+
+    void QuadRenderer::statelessRender(const UnilocOverlay& uniloc, const glm::vec2& devSpcP1,
+        const glm::vec2& devSpcP2, const glm::vec4& color,
         const Texture* const diffuseMap, const Texture* const maskMap,
         const bool upsideDown_diffuseMap, const bool upsideDown_maskMap
     ) {
-        uniloc.point1(devSpc.p1);
-        uniloc.point2(devSpc.p2);
+        uniloc.point1(devSpcP1);
+        uniloc.point2(devSpcP2);
         uniloc.color(color);
         uniloc.upsideDownDiffuseMap(upsideDown_diffuseMap);
         uniloc.upsideDownMaskMap(upsideDown_maskMap);
@@ -278,6 +285,12 @@ namespace dal {
         }
 
         RealQuadRenderer::getinst().renderOverlay();
+    }
+
+    void QuadRenderer::statelessRender(const UnilocOverlay& uniloc, const QuadInfo& devSpc, const glm::vec4& color,
+        const Texture* const diffuseMap, const Texture* const maskMap, const bool upsideDown_diffuseMap, const bool upsideDown_maskMap)
+    {
+        statelessRender(uniloc, devSpc.p1, devSpc.p2, color, diffuseMap, maskMap, upsideDown_diffuseMap, upsideDown_maskMap);
     }
 
 }

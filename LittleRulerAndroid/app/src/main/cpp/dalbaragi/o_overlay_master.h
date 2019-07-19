@@ -51,13 +51,20 @@ namespace dal {
 
         // If bool is true, the widget must be deleted in this class.
         std::list<Widget*> m_widgets, m_toDelete;
+        std::list<Widget2*> m_widgets2, m_toDelete2;
 
-    public:
+        float m_winWidth, m_winHeight;
 
         //////// Funcs ////////
 
+    public:
+        OverlayMaster(const OverlayMaster&) = delete;
+        OverlayMaster& operator=(const OverlayMaster&) = delete;
+
+    public:
         OverlayMaster(ResourceMaster& resMas, const ShaderMaster& shaderMas, const unsigned int width, const unsigned int height);
         virtual ~OverlayMaster(void) override;
+
         virtual void onEvent(const EventStatic& e) override;
         void onWinResize(const unsigned int width, const unsigned int height);
 

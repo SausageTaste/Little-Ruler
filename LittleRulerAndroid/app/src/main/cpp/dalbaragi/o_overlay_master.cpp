@@ -60,6 +60,8 @@ namespace dal {
         , m_unicodes(resMas)
         , mGlobalFSM(GlobalGameState::game)
         , m_texStreamCh(m_strBuffer)
+        , m_winWidth(static_cast<float>(width))
+        , m_winHeight(static_cast<float>(height))
     {
         ConfigsGod::getinst().setWinSize(width, height);
         script::set_outputStream(&this->m_strBuffer);
@@ -108,6 +110,13 @@ namespace dal {
             }
         }
 
+        // Widgets 2
+        {
+            auto widget = new Label2(nullptr, this->m_unicodes);
+            this->m_toDelete2.push_front(widget);
+            this->m_widgets2.push_front(widget);
+        }
+
         // Event Master
         {
             this->mHandlerName = "OverlayMaster";
@@ -125,6 +134,12 @@ namespace dal {
         EventGod::getinst().deregisterHandler(this, EventType::global_fsm_change);
         this->mDisplayFPS = nullptr;
         this->m_widgets.clear();
+        for ( auto w : this->m_toDelete ) {
+            delete w;
+        }
+        for ( auto w : this->m_toDelete2 ) {
+            delete w;
+        }
     }
 
     void OverlayMaster::onEvent(const EventStatic& e) {
@@ -137,8 +152,15 @@ namespace dal {
     }
 
     void OverlayMaster::onWinResize(const unsigned int width, const unsigned int height) {
+        this->m_winWidth = static_cast<float>(width);
+        this->m_winHeight = static_cast<float>(height);
+
         for ( auto& wid : this->m_widgets ) {
             wid->onResize(width, height);
+        }
+
+        for ( auto w : this->m_widgets2 ) {
+            w->onParentResize(this->m_winWidth, this->m_winHeight);
         }
     }
 
@@ -198,6 +220,10 @@ namespace dal {
             else {
                 (*iter)->renderOverlay(uniloc);
             }
+        }
+
+        for ( auto w : this->m_widgets2 ) {
+            w->render(uniloc, this->m_winWidth, this->m_winHeight);
         }
     }
 

@@ -8,6 +8,7 @@
 #include "s_event.h"
 #include "o_text_cache.h"
 #include "o_widget_base.h"
+#include "o_widgetbase.h"
 #include "s_scripting.h"
 
 
@@ -31,6 +32,38 @@ namespace dal {
         const std::string& getText(void) const;
         void setTextColor(const float r, const float g, const float b, const float a);
         void setBackgroundColor(const float r, const float g, const float b, const float a);
+
+    };
+
+
+    class Label2 : public Widget2 {
+
+    private:
+        QuadRenderer m_background;
+        std::string m_text;
+        glm::vec4 m_textColor;
+        UnicodeCache& m_unicodeCache;
+
+    public:
+        Label2(Widget2* const parent, UnicodeCache& asciiCache);
+
+        virtual void render(const UnilocOverlay& uniloc, const float width, const float height) override;
+        virtual InputCtrlFlag onTouch(const TouchEvent& e) override;
+        virtual InputCtrlFlag onKeyInput(const KeyboardEvent& e) override;
+        virtual void onParentResize(const float width, const float height) override;
+
+        void setText(const std::string& t) {
+            this->m_text = t;
+        }
+        const std::string& getText(void) const {
+            return this->m_text;
+        }
+        void setTextColor(const glm::vec4 color) {
+            this->m_textColor = color;
+        }
+        void setBackgroundColor(const glm::vec4 color) {
+            this->m_background.setColor(color.x, color.y, color.z, color.w);
+        }
 
     };
 
