@@ -71,10 +71,13 @@ namespace dal {
         void onClick(const float x, const float y);
         void onDrag(const glm::vec2& start, const glm::vec2& end);
         void onKeyInput(const std::string& c);
+        void updateInputs(void);
 
         void render(void) const;
         void giveWidgetOwnership(Widget* const w);
+        void giveWidgetOwnership(Widget2* const w);
         void giveWidgetRef(Widget* const w);
+        void giveWidgetRef(Widget2* const w);
 
         void setDisplayedFPS(const unsigned int fps);
 

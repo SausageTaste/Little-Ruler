@@ -152,7 +152,7 @@ namespace dal {
         , m_scene(m_resMas, winWidth, winHeight)
         , m_overlayMas(m_resMas, m_shader, winWidth, winHeight)
         , m_renderMan(m_scene, m_shader, m_overlayMas, &m_camera, winWidth, winHeight)
-        , m_inputApply(m_overlayMas)
+        , m_inputApply(m_overlayMas, winWidth, winHeight)
     {
         // This might be done already by SceneMaster or OverlayMaster but still...
         {
@@ -221,6 +221,7 @@ namespace dal {
             this->m_timerForFPSReport.check();
         }
 
+        this->m_overlayMas.updateInputs();
         this->m_inputApply.apply(deltaTime, this->m_camera, this->m_player, this->m_enttMaster);
         //this->m_scene.applyCollision(*this->m_player.getModel(), *this->m_player.getActor());
 

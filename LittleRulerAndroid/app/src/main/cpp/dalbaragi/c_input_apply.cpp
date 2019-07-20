@@ -4,6 +4,7 @@
 #include <array>
 #include <vector>
 
+#include <fmt/format.h>
 #include <glm/gtc/matrix_transform.hpp>
 
 #include "s_input_queue.h"
@@ -11,9 +12,11 @@
 #include "s_event.h"
 #include "u_timer.h"
 #include "o_widget_texview.h"
+#include "o_widgetbase.h"
 
 
 using namespace std::string_literals;
+using namespace fmt::literals;
 
 
 namespace {
@@ -590,6 +593,7 @@ namespace {
 
 namespace {
 
+    /*
     void apply_flyDirectional(const float deltaTime, dal::StrangeEulerCamera& camera, dal::OverlayMaster& overlay) {
         glm::vec2 totalMovePlane{ 0.0 };  // This means it must represent move direction when targetViewDir == { 0, 0 }.
         float moveUpOrDown = 0.0f;
@@ -597,7 +601,7 @@ namespace {
         g_keyboardMas.fetch();
         g_touchMas.fetch();
 
-        /* Take inputs */
+        // Take inputs
         {
             NoclipMoveInfo keyboardInfo;
             if ( g_keyboardMas.makeMoveInfo(keyboardInfo, deltaTime) ) {
@@ -644,7 +648,7 @@ namespace {
         g_keyboardMas.fetch();
         g_touchMas.fetch();
 
-        /* Take inputs */
+        // Take inputs
         {
             NoclipMoveInfo keyboardInfo;
             if ( g_keyboardMas.makeMoveInfo(keyboardInfo, deltaTime) ) {
@@ -666,7 +670,7 @@ namespace {
         // Return if target doesn't need to move.
         if ( totalMovePlane.x == 0.0f && totalMovePlane.y == 0.0f && moveUpOrDown == 0.0f ) return;
 
-        /* Apply move direction */
+        // Apply move direction
         {
             glm::mat4 viewMat{ 1.0 };
             const auto viewVec = camera.getViewPlane();
@@ -833,20 +837,212 @@ namespace {
             }
         }
     }
+    */
 
 }  // namespace
 
 
+namespace {
+
+    void apply_topdown(const float deltaTime, const NoclipMoveInfo& totalMoveInfo,
+        dal::StrangeEulerCamera& camera, const entt::entity targetEntity, entt::registry& reg)
+    {
+        if ( reg.has<dal::cpnt::AnimatedModel>(targetEntity) ) {
+            reg.get<dal::cpnt::AnimatedModel>(targetEntity).m_animState.setSelectedAnimeIndex(0);
+        }
+
+        // Apply move direction
+        {
+            const glm::vec3 k_modelCamOffset{ 0.0f, 1.3f, 0.0f };
+
+            dalAssert(reg.has<dal::cpnt::Transform>(targetEntity));
+            auto& cpntTrans = reg.get<dal::cpnt::Transform>(targetEntity);
+
+            {
+                constexpr float CAM_ROTATE_SPEED_INV = 1.0f;
+                static_assert(0.0f <= CAM_ROTATE_SPEED_INV && CAM_ROTATE_SPEED_INV <= 1.0f);
+
+                const auto camViewVec = dal::strangeEuler2Vec(camera.getStrangeEuler());
+                const auto rotatorAsCamX = glm::rotate(glm::mat4{ 1.0f }, camera.getStrangeEuler().getX(), glm::vec3{ 0.0f, 1.0f, 0.0f });
+                const auto rotatedMoveVec = rotateVec2(glm::vec2{ totalMoveInfo.xMovePlane, totalMoveInfo.zMovePlane }, camera.getStrangeEuler().getX());
+
+                const auto deltaPos = glm::vec3{ rotatedMoveVec.x, totalMoveInfo.vertical, rotatedMoveVec.y } *deltaTime * 5.0f;
+                cpntTrans.m_pos += deltaPos;
+                camera.m_pos += deltaPos * CAM_ROTATE_SPEED_INV;
+                if ( rotatedMoveVec.x != 0.0f || rotatedMoveVec.y != 0.0f ) {  // If moved position
+                    cpntTrans.m_quat = dal::rotateQuat(glm::quat{}, atan2(rotatedMoveVec.x, rotatedMoveVec.y), glm::vec3{ 0.0f, 1.0f, 0.0f });
+                    if ( reg.has<dal::cpnt::AnimatedModel>(targetEntity) ) {
+                        auto& animModel = reg.get<dal::cpnt::AnimatedModel>(targetEntity);
+                        animModel.m_animState.setSelectedAnimeIndex(1);
+                        const auto moveSpeed = glm::length(rotatedMoveVec);
+                        const auto animeSpeed = 1.0f / moveSpeed;
+                        constexpr float epsilon = 0.0001f;
+                        if ( epsilon > animeSpeed && animeSpeed > -epsilon ) {  // animeSpeed is near zero than epsion.
+                            animModel.m_animState.setTimeScale(0.0f);
+                        }
+                        else {
+                            animModel.m_animState.setTimeScale(1.0f / animeSpeed);
+                        }
+                    }
+                }
+                else {
+                    if ( reg.has<dal::cpnt::AnimatedModel>(targetEntity) ) {
+                        auto& animModel = reg.get<dal::cpnt::AnimatedModel>(targetEntity);
+                        animModel.m_animState.setSelectedAnimeIndex(0);
+                    }
+                }
+            }
+
+            {
+                constexpr float MAX_Y_DEGREE = 75.0f;
+
+                const auto obj2CamVec = camera.m_pos - (cpntTrans.m_pos + k_modelCamOffset);
+                const auto len = glm::length(obj2CamVec);
+                auto obj2CamSEuler = dal::vec2StrangeEuler(obj2CamVec);
+
+                obj2CamSEuler.addX(totalMoveInfo.xView);
+                obj2CamSEuler.addY(-totalMoveInfo.yView);
+
+                obj2CamSEuler.clampY(glm::radians(-MAX_Y_DEGREE), glm::radians(MAX_Y_DEGREE));
+                const auto rotatedVec = dal::strangeEuler2Vec(obj2CamSEuler);
+                camera.m_pos = cpntTrans.m_pos + k_modelCamOffset + rotatedVec * len;
+            }
+
+            {
+                constexpr float OBJ_CAM_DISTANCE = 2.0f;
+
+                const auto cam2ObjVec = cpntTrans.m_pos - camera.m_pos + k_modelCamOffset;
+                const auto cam2ObjSEuler = dal::vec2StrangeEuler(cam2ObjVec);
+                camera.setViewPlane(cam2ObjSEuler.getX(), cam2ObjSEuler.getY());
+
+                camera.m_pos = cpntTrans.m_pos + k_modelCamOffset - resizeOnlyXZ(cam2ObjVec, OBJ_CAM_DISTANCE);
+            }
+
+            camera.updateViewMat();
+            cpntTrans.updateMat();
+        }
+    }
+
+}
+
+
+namespace {
+
+    static constexpr float CORNER_MARGIN = 40.0f;
+    static constexpr float RENDERED_POINT_EDGE_LEN_HALF = 5.0f;
+
+}
+
+
+// Widgets
 namespace dal {
 
-    InputApplier::InputApplier(OverlayMaster& overlayMas)
+    InputApplier::MoveDPad::MoveDPad(const float winWidth, const float winHeight)
+        : Widget2(nullptr)
+    {
+        this->onParentResize(winWidth, winHeight);
+
+        this->m_fixedCenterPoint.setColor(1.0, 1.0, 1.0, 1.0);
+        this->m_touchedPoint.setColor(1.0, 1.0, 1.0, 1.0);
+    }
+
+    void InputApplier::MoveDPad::render(const UnilocOverlay& uniloc, const float width, const float height) {
+        {
+            const auto fixedCenterPos = this->makeFixedCenterPos();
+            this->m_fixedCenterPoint.renderQuad(uniloc,
+                screen2device(fixedCenterPos - RENDERED_POINT_EDGE_LEN_HALF, width, height),
+                screen2device(fixedCenterPos + RENDERED_POINT_EDGE_LEN_HALF, width, height)
+            );
+        }
+
+
+        if ( -1 != this->m_owning ) {
+            this->m_touchedPoint.renderQuad(uniloc,
+                screen2device(this->m_touchedPos - RENDERED_POINT_EDGE_LEN_HALF, width, height),
+                screen2device(this->m_touchedPos + RENDERED_POINT_EDGE_LEN_HALF, width, height)
+            );
+        }
+    }
+
+    InputCtrlFlag InputApplier::MoveDPad::onTouch(const dal::TouchEvent& e) {
+        if ( e.id == this->m_owning ) {
+            if ( e.type == TouchType::move ) {
+                this->updateTouchedPos(e.x, e.y, this->m_touchedPos);
+                return InputCtrlFlag::owned;
+            }
+            else if ( TouchType::up == e.type ) {
+                this->m_owning = -1;
+                return InputCtrlFlag::consumed;
+            }
+        }
+        else {
+            if ( TouchType::down == e.type ) {
+                this->m_owning = e.id;
+                this->updateTouchedPos(e.x, e.y, this->m_touchedPos);
+                return InputCtrlFlag::owned;
+                printf("shit");
+            }
+        }
+
+        return InputCtrlFlag::ignored;
+    }
+
+    InputCtrlFlag InputApplier::MoveDPad::onKeyInput(const dal::KeyboardEvent& e) {
+        return dal::InputCtrlFlag::ignored;
+    }
+
+    void InputApplier::MoveDPad::onParentResize(const float width, const float height) {
+        const auto shorter = width < height ? width : height;
+        const auto edgeLen = shorter * 0.5f;
+        this->setPos(CORNER_MARGIN, height - edgeLen - CORNER_MARGIN);
+        this->setSize(edgeLen, edgeLen);
+    }
+
+    glm::vec2 InputApplier::MoveDPad::getRel(void) const {
+        if ( !this->isActive() ) {
+            return glm::vec2{ 0.0f };
+        }
+
+        const auto shorter = this->getWidth() < this->getHeight() ? this->getWidth() : this->getHeight();
+        const auto fixedCenter = this->makeFixedCenterPos();;
+        return (this->m_touchedPos - fixedCenter) / (shorter * 0.5f);
+    }
+
+    bool InputApplier::MoveDPad::isActive(void) const {
+        return -1 != this->m_owning;
+    }
+
+    // Private
+
+    void InputApplier::MoveDPad::updateTouchedPos(const float x, const float y, glm::vec2& target) const {
+        const auto shorter = this->getWidth() < this->getHeight() ? this->getWidth() : this->getHeight();
+        const auto fixedCenter = this->makeFixedCenterPos();;
+        target = clampVec(glm::vec2{ x, y } -fixedCenter, shorter * 0.5f) + fixedCenter;
+    }
+
+    glm::vec2 InputApplier::MoveDPad::makeFixedCenterPos(void) const {
+        return glm::vec2{
+            this->getPosX() + this->getWidth() * 0.5f,
+            this->getPosY() + this->getHeight() * 0.5f
+        };
+    }
+
+}
+
+
+namespace dal {
+
+    InputApplier::InputApplier(OverlayMaster& overlayMas, const unsigned int width, const unsigned int height)
         : mFSM(GlobalGameState::game)
         , m_overlayMas(overlayMas)
+        , m_dpadWidget(static_cast<float>(width), static_cast<float>(height))
     {
         this->mHandlerName = "InputApplier";
         EventGod::getinst().registerHandler(this, EventType::global_fsm_change);
 
         g_touchMas.initOverlay(overlayMas);
+
+        overlayMas.giveWidgetRef(&this->m_dpadWidget);
     }
 
     InputApplier::~InputApplier(void) {
@@ -861,12 +1057,13 @@ namespace dal {
             mFSM = GlobalGameState(e.intArg1);
             break;
         default:
-            LoggerGod::getinst().putWarn("InputApplier can't handle this event: "s + getEventTypeStr(e.type), __LINE__, __func__, __FILE__);
+            dalWarn("InputApplier can't handle this event: "s + getEventTypeStr(e.type));
             break;
 
         }
     }
 
+    /*
     void InputApplier::apply(const float deltaTime, StrangeEulerCamera& camera, const entt::entity targetEntity, entt::registry& reg) {
         if ( GlobalGameState::game == this->mFSM ) {
 #if defined(_WIN32)
@@ -881,6 +1078,16 @@ namespace dal {
         else {
             dalAbort("Unknown global game state.");
         }
+    }
+    */
+
+    void InputApplier::apply(const float deltaTime, StrangeEulerCamera& camera, const entt::entity targetEntity, entt::registry& reg) {
+        const auto rel = this->m_dpadWidget.getRel();
+        NoclipMoveInfo info;
+        info.xMovePlane = rel.x;
+        info.zMovePlane = rel.y;
+
+        apply_topdown(deltaTime, info, camera, targetEntity, reg);
     }
 
 }  // namespace dal

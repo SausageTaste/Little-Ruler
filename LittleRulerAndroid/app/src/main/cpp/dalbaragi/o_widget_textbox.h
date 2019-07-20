@@ -43,6 +43,7 @@ namespace dal {
         std::string m_text;
         glm::vec4 m_textColor;
         UnicodeCache& m_unicodeCache;
+        touchID_t m_owningTouchID = -1;
 
     public:
         Label2(Widget2* const parent, UnicodeCache& asciiCache);
@@ -62,7 +63,10 @@ namespace dal {
             this->m_textColor = color;
         }
         void setBackgroundColor(const glm::vec4 color) {
-            this->m_background.setColor(color.x, color.y, color.z, color.w);
+            this->setBackgroundColor(color.x, color.y, color.z, color.w);
+        }
+        void setBackgroundColor(const float x, const float y, const float z, const float w) {
+            this->m_background.setColor(x, y, z, w);
         }
 
     };

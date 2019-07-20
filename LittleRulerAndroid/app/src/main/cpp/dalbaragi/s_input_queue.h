@@ -41,12 +41,15 @@ namespace dal {
 
 namespace dal {
 
+    // -1 refers to null.
+    using touchID_t = int32_t;
+
     enum class TouchType { down = 1, move = 2, up = 3 };
 
 
     struct TouchEvent {
         TouchType type;
-        int32_t id;
+        touchID_t id;
         float timeSec;
         float x, y;
     };
@@ -64,8 +67,8 @@ namespace dal {
     public:
         static TouchEvtQueueGod& getinst(void);
 
-        bool emplaceBack(const float x, const float y, const TouchType type, const int32_t id, const float timeSec);
-        bool emplaceBack(const float x, const float y, const TouchType type, const int32_t id);
+        bool emplaceBack(const float x, const float y, const TouchType type, const touchID_t id, const float timeSec);
+        bool emplaceBack(const float x, const float y, const TouchType type, const touchID_t id);
 
         const TouchEvent& at(const unsigned int index) const;
 

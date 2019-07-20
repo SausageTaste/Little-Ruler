@@ -268,7 +268,25 @@ namespace dal {
     }
 
     InputCtrlFlag Label2::onTouch(const TouchEvent& e) {
-        return InputCtrlFlag::ignored;
+        if ( e.id != this->m_owningTouchID ) {
+            if ( TouchType::down == e.type ) {
+                this->m_owningTouchID = e.id;
+                return InputCtrlFlag::owned;
+            }
+            else {
+                return InputCtrlFlag::ignored;
+            }
+        }
+        else {
+            if ( TouchType::move == e.type ) {
+                fmt::print("touch event{{}} pos{{ {}, {} }}, id{{ {} }}\n", e.x, e.y, e.id);
+                return InputCtrlFlag::owned;
+            }
+            else if ( TouchType::up == e.type ) {
+                this->m_owningTouchID = -1;
+                return InputCtrlFlag::consumed;
+            }
+        }
     }
 
     InputCtrlFlag Label2::onKeyInput(const KeyboardEvent& e) {

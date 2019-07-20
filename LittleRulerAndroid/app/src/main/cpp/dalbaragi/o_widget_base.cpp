@@ -63,14 +63,14 @@ namespace {
     };
 
 
-    glm::vec2 screen2device(const glm::vec2& p, const float winWidth, const float winHeight) {
+    glm::vec2 screen2device1(const glm::vec2& p, const float winWidth, const float winHeight) {
         return {
              2.0f * p.x / winWidth - 1.0f,
             -2.0f * p.y / winHeight + 1.0f
         };
     }
 
-    glm::vec2 device2screen(const glm::vec2& p, const float winWidth, const float winHeight) {
+    glm::vec2 device2screen1(const glm::vec2& p, const float winWidth, const float winHeight) {
         return {
             (p.x + 1.0f) * winWidth / 2.0f,
             (1.0f - p.y) * winHeight / 2.0f
@@ -88,8 +88,8 @@ namespace dal {
 
         QuadInfo newinfo;
 
-        newinfo.p1 = ::screen2device(this->p1, winWidth, winHeight);
-        newinfo.p2 = ::screen2device(this->p2, winWidth, winHeight);
+        newinfo.p1 = ::screen2device1(this->p1, winWidth, winHeight);
+        newinfo.p2 = ::screen2device1(this->p2, winWidth, winHeight);
 
         /* Validate PointDev order */
         {

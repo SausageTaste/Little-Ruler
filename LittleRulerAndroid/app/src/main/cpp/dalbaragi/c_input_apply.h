@@ -17,11 +17,38 @@ namespace dal {
     class InputApplier : public iEventHandler {
 
     private:
+        class MoveDPad : public dal::Widget2 {
+
+        private:
+            dal::QuadRenderer m_fixedCenterPoint, m_touchedPoint;
+
+            glm::vec2 m_touchedPos;
+            touchID_t m_owning = -1;
+
+        public:
+            MoveDPad(const float winWidth, const float winHeight);
+
+            virtual void render(const dal::UnilocOverlay& uniloc, const float width, const float height) override;
+            virtual dal::InputCtrlFlag onTouch(const dal::TouchEvent& e) override;
+            virtual dal::InputCtrlFlag onKeyInput(const dal::KeyboardEvent& e) override;
+            virtual void onParentResize(const float width, const float height) override;
+
+            glm::vec2 getRel(void) const;
+            bool isActive(void) const;
+
+        private:
+            void updateTouchedPos(const float x, const float y, glm::vec2& target) const;
+            glm::vec2 makeFixedCenterPos(void) const;
+
+        };
+
+    private:
         GlobalGameState mFSM;
         OverlayMaster& m_overlayMas;
+        MoveDPad m_dpadWidget;
 
     public:
-        InputApplier(OverlayMaster& overlayMas);
+        InputApplier(OverlayMaster& overlayMas, const unsigned int width, const unsigned int height);
         ~InputApplier(void);
 
         virtual void onEvent(const EventStatic& e) override;

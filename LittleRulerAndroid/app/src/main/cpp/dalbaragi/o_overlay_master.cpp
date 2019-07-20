@@ -1,6 +1,9 @@
 #include "o_overlay_master.h"
 
 #include <string>
+#include <unordered_map>
+
+#include <fmt/format.h>
 
 #include "u_fileclass.h"
 #include "s_logger_god.h"
@@ -9,8 +12,102 @@
 
 
 using namespace std::string_literals;
+using namespace fmt::literals;
 
 
+namespace {
+
+    class TouchStatesMaster {
+
+    private:
+        struct TouchState {
+            glm::vec2 m_lastDownPos, m_pos;
+            dal::Widget2* m_owner = nullptr;
+            float m_lastDownSec = 0.0f, m_sec = 0.0f;
+            bool m_down = false;
+        };
+
+    private:
+        using states_t = std::unordered_map<dal::touchID_t, TouchState>;
+        states_t m_states;
+
+    public:
+        void dispatch(const float winWidth, const float winHeight, std::list<dal::Widget2*>& widgets) {
+            const float widthOrHeightButShorter = winWidth < winHeight ? winWidth : winHeight;
+            const float aThridWidth = winWidth / 3.0f;
+
+            auto& tq = dal::TouchEvtQueueGod::getinst();
+
+            for ( unsigned int i = 0; i < tq.getSize(); i++ ) {
+                const auto& tevent = tq.at(i);
+                auto& state = this->getOrMakeTouchState(tevent.id, this->m_states);
+
+                if ( nullptr != state.m_owner ) {
+                    const auto ctrlFlag = state.m_owner->onTouch(tevent);
+                    switch ( ctrlFlag ) {
+
+                    case dal::InputCtrlFlag::consumed:
+                        state.m_owner = nullptr;
+                        break;
+                    case dal::InputCtrlFlag::ignored:
+                        state.m_owner = nullptr;
+                        goto startWidgetsLoop;
+                    case dal::InputCtrlFlag::owned:
+                        break;
+                    default:
+                        dalAbort("Shouldn't reach here, the enum's index is: {}"_format(static_cast<int>(ctrlFlag)));
+
+                    }
+                }
+                else {
+                startWidgetsLoop:
+
+                    for ( auto w : widgets ) {
+                        if ( !w->isPointInside(tevent.x, tevent.y) ) {
+                            continue;
+                        }
+
+                        const auto ctrlFlag = w->onTouch(tevent);
+                        switch ( ctrlFlag ) {
+
+                        case dal::InputCtrlFlag::consumed:
+                            goto endWidgetsLoop;
+                        case dal::InputCtrlFlag::ignored:
+                            continue;
+                        case dal::InputCtrlFlag::owned:
+                            state.m_owner = w;
+                            goto endWidgetsLoop;
+                        default:
+                            dalAbort("Shouldn't reach here, the enum's index is: {}"_format(static_cast<int>(ctrlFlag)));
+
+                        }
+                    }
+
+                endWidgetsLoop:
+                    continue;
+                }
+            }  // for
+
+            tq.clear();
+        }  // func dispatch
+
+    private:
+        TouchState& getOrMakeTouchState(const dal::touchID_t id, states_t& states) const {
+            auto found = states.find(id);
+            if ( this->m_states.end() != found ) {
+                return found->second;
+            }
+            else {
+                return states.emplace(id, TouchState{}).first->second;
+            }
+        }
+
+    } g_touchMas;  // class TouchStatesMaster
+
+}
+
+
+// TextStreamChannel
 namespace dal {
 
     OverlayMaster::TextStreamChannel::TextStreamChannel(dal::TextStream& texStream)
@@ -113,8 +210,14 @@ namespace dal {
         // Widgets 2
         {
             auto widget = new Label2(nullptr, this->m_unicodes);
+
+            widget->setText("fuck you");
+            widget->setSize(50.0f, 20.0f);
+            widget->setBackgroundColor(0.0f, 0.0f, 0.0f, 0.5f);
+
             this->m_toDelete2.push_front(widget);
             this->m_widgets2.push_front(widget);
+            
         }
 
         // Event Master
@@ -205,6 +308,10 @@ namespace dal {
         this->m_widgets.front()->onKeyInput(str.c_str());
     }
 
+    void OverlayMaster::updateInputs(void) {
+        g_touchMas.dispatch(this->m_winWidth, this->m_winHeight, this->m_widgets2);
+    }
+
     void OverlayMaster::render(void) const {
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
@@ -238,6 +345,11 @@ namespace dal {
         w->onFocusChange(true);
     }
 
+    void OverlayMaster::giveWidgetOwnership(Widget2* const w) {
+        this->m_widgets2.push_front(w);
+        this->m_toDelete2.push_back(w);
+    }
+
     void OverlayMaster::giveWidgetRef(Widget* const w) {
         for ( auto widget : this->m_widgets ) {
             widget->onFocusChange(false);
@@ -246,6 +358,10 @@ namespace dal {
         this->m_widgets.push_front(w);
 
         w->onFocusChange(true);
+    }
+
+    void OverlayMaster::giveWidgetRef(Widget2* const w) {
+        this->m_widgets2.push_front(w);
     }
 
     void OverlayMaster::setDisplayedFPS(const unsigned int fps) {

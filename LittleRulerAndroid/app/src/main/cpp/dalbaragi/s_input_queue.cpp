@@ -35,13 +35,17 @@ namespace dal {
         return inst;
     }
 
-    bool TouchEvtQueueGod::emplaceBack(const float x, const float y, const TouchType type, const int32_t id) {
+    bool TouchEvtQueueGod::emplaceBack(const float x, const float y, const TouchType type, const touchID_t id) {
         return this->emplaceBack(x, y, type, id, getTime_sec());
     }
 
-    bool TouchEvtQueueGod::emplaceBack(const float x, const float y, const TouchType type, const int32_t id, const float timeSec) {
+    bool TouchEvtQueueGod::emplaceBack(const float x, const float y, const TouchType type, const touchID_t id, const float timeSec) {
         if ( 0 > id || id >= 5 ) {
             dalWarn("Touch id is "s + std::to_string(id));
+        }
+        if ( -1 == id ) {
+            dalWarn("Touch id -1 is for null.");
+            return false;
         }
 
         if ( !isFull() ) {
@@ -60,7 +64,12 @@ namespace dal {
     }
 
     const TouchEvent& TouchEvtQueueGod::at(const unsigned int index) const {
-        return mArray.at(index);
+        try {
+            return this->mArray.at(index);
+        }
+        catch ( const std::out_of_range& e ) {
+            dalAbort("Out of range exception thrown.");
+        }
     }
 
 }

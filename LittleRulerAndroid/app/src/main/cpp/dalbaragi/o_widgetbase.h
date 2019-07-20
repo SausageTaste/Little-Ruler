@@ -10,6 +10,12 @@
 
 namespace dal {
 
+    glm::vec2 screen2device(const glm::vec2& p, const float winWidth, const float winHeight);
+    glm::vec2 screen2device(const glm::vec2& p, const unsigned int winWidth, const unsigned int winHeight);
+    glm::vec2 device2screen(const glm::vec2& p, const float winWidth, const float winHeight);
+    glm::vec2 device2screen(const glm::vec2& p, const unsigned int winWidth, const unsigned int winHeight);
+
+
     enum class InputCtrlFlag { ignored, consumed, owned };
 
 
@@ -96,6 +102,9 @@ namespace dal {
         void setSize(const glm::vec2& v) {
             this->setSize(v.x, v.y);
         }
+
+        bool isPointInside(const glm::vec2& v) const;
+        bool isPointInside(const float x, const float y) const;
 
         std::pair<glm::vec2, glm::vec2> makeDeviceSpace(const float width, const float height) const;
 
