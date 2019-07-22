@@ -31,6 +31,9 @@
 #endif
 
 
+#define DAL_PRINT_RESOLVING 0
+
+
 using namespace std::string_literals;
 using namespace fmt::literals;
 
@@ -207,13 +210,18 @@ namespace {
             std::vector<std::string> dirs;
             getFileList_asset(newPath, dirs);
             for ( auto& fileName : dirs ) {
+#if DAL_PRINT_RESOLVING != 0
+				dalVerbose(newPath + '/' + fileName);
+#endif
                 if ( criteria == fileName ) {
                     result = newPath;
                     return true;
                 }
             }
 
-            if ( findMatchingAsset(result, folNode, newPath, criteria) ) return true;
+            if ( findMatchingAsset(result, folNode, newPath, criteria) ) {
+				return true;
+            }
         }
 
         return false;
@@ -825,7 +833,7 @@ namespace dal {
         const auto fileName = result.makeFileName();
 
         if ( result.getPackage().empty() ) {
-            dalError("Cannot resolve " + fileName + " without package defined.");
+            dalError("Cannot resolve \"{}\" without package defined."_format(fileName));
             return false;
         }
 
@@ -857,7 +865,7 @@ namespace dal {
                 return true;
             }
             else {
-                dalError(resolveFailMsg + result.makeIDStr());
+                dalError("Failed to resolve an asset \'{}\'"_format(result.makeIDStr()));
                 return false;
             }
         }
@@ -870,7 +878,7 @@ namespace dal {
                 return true;
             }
             else {
-                dalError(resolveFailMsg + result.makeIDStr());
+                dalError("Failed to resolve a resource \"{}\""_format(result.makeIDStr()));
                 return false;
             }
         }
