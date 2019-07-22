@@ -39,14 +39,12 @@ namespace dal {
     class Label2 : public Widget2 {
 
     private:
-        QuadRenderer m_background;
-        std::string m_text;
-        glm::vec4 m_textColor;
-        UnicodeCache& m_unicodeCache;
+        TextRenderer m_textRenderer;
+        glm::vec4 m_backgroundColor;
         touchID_t m_owningTouchID = -1;
 
     public:
-        Label2(Widget2* const parent, UnicodeCache& asciiCache);
+        Label2(Widget2* const parent);
 
         virtual void render(const UnilocOverlay& uniloc, const float width, const float height) override;
         virtual InputCtrlFlag onTouch(const TouchEvent& e) override;
@@ -54,20 +52,23 @@ namespace dal {
         virtual void onParentResize(const float width, const float height) override;
 
         void setText(const std::string& t) {
-            this->m_text = t;
+            this->m_textRenderer.setText(t);
         }
         const std::string& getText(void) const {
-            return this->m_text;
+            return this->m_textRenderer.getText();
         }
         void setTextColor(const glm::vec4 color) {
-            this->m_textColor = color;
+            this->m_textRenderer.setTextColor(color);
         }
         void setBackgroundColor(const glm::vec4 color) {
-            this->setBackgroundColor(color.x, color.y, color.z, color.w);
+            this->m_backgroundColor = color;
         }
         void setBackgroundColor(const float x, const float y, const float z, const float w) {
-            this->m_background.setColor(x, y, z, w);
+            this->m_backgroundColor = glm::vec4{ x, y, z, w };
         }
+
+    protected:
+        virtual void onScrSpaceBoxUpdate(void) override;
 
     };
 

@@ -137,27 +137,32 @@ namespace {
     class FPSCounter : public dal::Widget2 {
 
     private:
-        //dal::Label2 m_label;
+        dal::Label2 m_label;
 
     public:
         FPSCounter(void) 
             : dal::Widget2(nullptr)
+            , m_label(this)
         {
             this->setPos(10.0f, 10.0f);
             this->setSize(50.0f, 20.0f);
         }
 
         virtual void render(const dal::UnilocOverlay& uniloc, const float width, const float height) {
-        
+            this->m_label.render(uniloc, width, height);
+        }
+
+        void setText(const unsigned int fps) {
+            this->m_label.setText(std::to_string(fps));
         }
 
     protected:
         virtual void onScrSpaceBoxUpdate(void) override {
-            //this->m_label.setSize(this->getSize());
-            //this->m_label.setPos(this->getPos());
+            this->m_label.setSize(this->getSize());
+            this->m_label.setPos(this->getPos());
         };
 
-    };
+    } g_fpsCounter;
 
 }
 
@@ -221,6 +226,8 @@ namespace dal {
             LoggerGod::getinst().addChannel(&g_fileLogger);
 
             script::init(&this->m_renderMan, &this->m_scene);
+
+            this->m_overlayMas.giveWidgetRef(&g_fpsCounter);
         }
 
         // Misc
@@ -246,7 +253,7 @@ namespace dal {
         const auto deltaTime = m_timer.checkGetElapsed();
 
         if ( this->m_timerForFPSReport.getElapsed() > 0.1f ) {
-            this->m_overlayMas.setDisplayedFPS((unsigned int)(1.0f / deltaTime));
+            g_fpsCounter.setText(static_cast<unsigned int>(1.0f / deltaTime));
             this->m_timerForFPSReport.check();
         }
 

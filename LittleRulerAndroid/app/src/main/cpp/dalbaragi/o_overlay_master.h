@@ -45,7 +45,6 @@ namespace dal {
 
         GlobalGameState mGlobalFSM;
 
-        Label* mDisplayFPS;
         TextStream m_strBuffer;
         TextStreamChannel m_texStreamCh;
 
@@ -84,8 +83,6 @@ namespace dal {
 
         void giveBackgroudWidgetRef(Widget2* const w);
         void giveBackgroudWidgetOwnership(Widget2* const w);
-
-        void setDisplayedFPS(const unsigned int fps);
 
     private:
         void setFocusOn(Widget* const w);

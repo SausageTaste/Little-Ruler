@@ -164,6 +164,7 @@ namespace dal {
 
     private:
         std::string m_text;
+        glm::vec4 m_textColor;
         glm::vec2 m_offset;
         unsigned int m_textSize;
         float m_lineSpacingRate;
@@ -182,6 +183,19 @@ namespace dal {
         }
         const std::string& getText(void) const {
             return this->m_text;
+        }
+
+        const glm::vec4& getTextColor(void) const {
+            return this->m_textColor;
+        }
+        void setTextColor(const float x, const float y, const float z, const float w) {
+            this->m_textColor.x = x;
+            this->m_textColor.y = y;
+            this->m_textColor.z = z;
+            this->m_textColor.w = w;
+        }
+        void setTextColor(const glm::vec4& v) {
+            this->m_textColor = v;
         }
 
         const glm::vec2& getOffset(void) const {

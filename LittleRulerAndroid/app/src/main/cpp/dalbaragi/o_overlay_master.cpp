@@ -194,20 +194,6 @@ namespace dal {
         // Widgets
         {
             {
-                auto fpsDisplayer = new Label(nullptr, this->m_unicodes);
-
-                fpsDisplayer->setPosX(10.0f);
-                fpsDisplayer->setPosY(10.0f);
-                fpsDisplayer->setWidth(50.0f);
-                fpsDisplayer->setHeight(20.0f);
-                fpsDisplayer->setPauseOnly(false);
-                fpsDisplayer->setBackgroundColor(0.0f, 0.0f, 0.0f, 0.5f);
-
-                this->mDisplayFPS = fpsDisplayer;
-                this->giveWidgetOwnership(fpsDisplayer);
-            }
-
-            {
                 auto wid = new LineEdit(nullptr, this->m_unicodes);
 
                 wid->setPosX(10.0f);
@@ -238,17 +224,6 @@ namespace dal {
         // Widgets 2
         {
             {
-                auto widget = new Label2(nullptr, this->m_unicodes);
-
-                widget->setText("fuck you");
-                widget->setSize(50.0f, 20.0f);
-                widget->setBackgroundColor(0.0f, 0.0f, 0.0f, 0.5f);
-
-                this->m_toDelete2.push_front(widget);
-                this->m_widgets2.push_front(widget);
-            }
-            
-            {
                 auto t = new TextRenderer(nullptr);
 
                 t->setPos(100.0, 100.0);
@@ -274,11 +249,12 @@ namespace dal {
     OverlayMaster::~OverlayMaster(void) {
         LoggerGod::getinst().deleteChannel(&m_texStreamCh);
         EventGod::getinst().deregisterHandler(this, EventType::global_fsm_change);
-        this->mDisplayFPS = nullptr;
+
         this->m_widgets.clear();
         for ( auto w : this->m_toDelete ) {
             delete w;
         }
+        this->m_widgets2.clear();
         for ( auto w : this->m_toDelete2 ) {
             delete w;
         }
@@ -433,10 +409,6 @@ namespace dal {
         this->clearBackgroudWidget();
         this->m_backgroundWidget = w;
         this->m_backgroundOwned = true;
-    }
-
-    void OverlayMaster::setDisplayedFPS(const unsigned int fps) {
-        this->mDisplayFPS->setText(std::to_string(fps));
     }
 
     // Private

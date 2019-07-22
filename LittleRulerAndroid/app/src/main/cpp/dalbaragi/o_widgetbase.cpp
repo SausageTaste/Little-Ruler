@@ -351,6 +351,7 @@ namespace dal {
 
     TextRenderer::TextRenderer(Widget2* const parent)
         : Widget2(parent)
+        , m_textColor(1.0f, 1.0f, 1.0f, 1.0f)
         , m_textSize(15)
         , m_lineSpacingRate(1.2f)
         , m_wordWrap(false)
@@ -428,7 +429,7 @@ namespace dal {
                 screen2device(charQuad.first, width, height),
                 screen2device(charQuad.second, width, height)
             );
-            renderQuadOverlay(uniloc, deviceSpace, { 1.0, 1.0, 1.0, 1.0 }, nullptr, charInfo.tex, false, false);
+            renderQuadOverlay(uniloc, deviceSpace, this->m_textColor, nullptr, charInfo.tex, false, false);
 
             xAdvance += (charInfo.advance >> 6);
         }
