@@ -18,6 +18,9 @@ namespace dal {
 
     private:
         class MoveDPad : public dal::Widget2 {
+            /*
+             * Widget2's width and height always must be same, which means it's always sqaure.
+             */
 
         private:
             dal::QuadRenderer m_fixedCenterPoint, m_touchedPoint;

@@ -1028,9 +1028,10 @@ namespace dal {
             return glm::vec2{ 0.0f };
         }
 
-        const auto shorter = this->getWidth() < this->getHeight() ? this->getWidth() : this->getHeight();
-        const auto fixedCenter = this->makeFixedCenterPos();;
-        return (this->m_touchedPos - fixedCenter) / (shorter * 0.5f);
+        dalAssert(this->getWidth() == this->getHeight());
+
+        const auto fixedCenter = this->makeFixedCenterPos();
+        return (this->m_touchedPos - fixedCenter) / (this->getWidth() * 0.5f);
     }
 
     bool InputApplier::MoveDPad::isActive(void) const {
@@ -1040,9 +1041,10 @@ namespace dal {
     // Private
 
     void InputApplier::MoveDPad::updateTouchedPos(const float x, const float y, glm::vec2& target) const {
-        const auto shorter = this->getWidth() < this->getHeight() ? this->getWidth() : this->getHeight();
+        dalAssert(this->getWidth() == this->getHeight());
+
         const auto fixedCenter = this->makeFixedCenterPos();;
-        target = clampVec(glm::vec2{ x, y } -fixedCenter, shorter * 0.5f) + fixedCenter;
+        target = clampVec(glm::vec2{ x, y } -fixedCenter, this->getWidth() * 0.5f) + fixedCenter;
     }
 
     glm::vec2 InputApplier::MoveDPad::makeFixedCenterPos(void) const {
