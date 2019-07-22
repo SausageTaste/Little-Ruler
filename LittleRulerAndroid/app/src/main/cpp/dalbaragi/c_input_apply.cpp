@@ -965,26 +965,6 @@ namespace dal {
     }
 
     InputCtrlFlag InputApplier::MoveDPad::onTouch(const dal::TouchEvent& e) {
-        /*
-        if ( e.id == this->m_owning ) {
-            if ( e.type == TouchType::move ) {
-                this->updateTouchedPos(e.x, e.y, this->m_touchedPos);
-                return InputCtrlFlag::owned;
-            }
-            else if ( TouchType::up == e.type ) {
-                this->m_owning = -1;
-                return InputCtrlFlag::consumed;
-            }
-        }
-        else {
-            if ( !this->isActive() && TouchType::down == e.type ) {
-                this->m_owning = e.id;
-                this->updateTouchedPos(e.x, e.y, this->m_touchedPos);
-                return InputCtrlFlag::owned;
-            }
-        }
-        */
-
         if ( this->isActive() ) {
             if ( e.id == this->m_owning ) {
                 if ( e.type == TouchType::move ) {
@@ -1005,7 +985,8 @@ namespace dal {
             // If else ignores.
         }
         else {  // If not active.
-            if ( TouchType::down == e.type ) {  // Start owning the touch id.
+            if ( TouchType::down == e.type && this->isInsideCircle(e.x, e.y) ) {
+                // Start owning the touch id.
                 this->m_owning = e.id;
                 this->updateTouchedPos(e.x, e.y, this->m_touchedPos);
                 return InputCtrlFlag::owned;
@@ -1054,6 +1035,14 @@ namespace dal {
         };
     }
 
+    bool InputApplier::MoveDPad::isInsideCircle(const glm::vec2& v) const {
+        const float radiusSqr = this->getWidth() * this->getWidth() * 0.5f * 0.5f;
+        const auto center = this->makeFixedCenterPos();
+        const auto rel = v - center;
+        const auto lenSqr = glm::dot(rel, rel);
+        return lenSqr < radiusSqr;
+    }
+
 }
 
 
@@ -1062,20 +1051,73 @@ namespace dal {
     InputApplier::PlayerControlWidget::PlayerControlWidget(const float winWidth, const float winHeight)
         : Widget2(nullptr)
         , m_dpad(this, winWidth, winHeight)
+        , m_owningForView(-1)
     {
-
+        this->setPos(0.0f, 0.0f);
+        this->setSize(winWidth, winHeight);
     }
 
     void InputApplier::PlayerControlWidget::render(const UnilocOverlay& uniloc, const float width, const float height) {
-
+        this->m_dpad.render(uniloc, width, height);
     }
 
     InputCtrlFlag InputApplier::PlayerControlWidget::onTouch(const TouchEvent& e) {
-        return InputCtrlFlag::ignored;
+        const auto dpadReturnFlag = this->m_dpad.onTouch(e);
+
+        if ( InputCtrlFlag::ignored != dpadReturnFlag ) {
+            return dpadReturnFlag;
+        }
+        else {
+            if ( -1 != this->m_owningForView ) {
+                if ( e.id == this->m_owningForView ) {
+                    if ( e.type == TouchType::move ) {
+                        this->m_viewTouchAccum = glm::vec2{ e.x, e.y } - this->m_lastViewTouchPos;
+                        this->m_lastViewTouchPos = glm::vec2{ e.x, e.y };
+                        return InputCtrlFlag::owned;
+                    }
+                    else if ( TouchType::up == e.type ) {
+                        this->m_owningForView = -1;
+                        return InputCtrlFlag::consumed;
+                    }
+                    else {
+                        // Else case is when event type is down, which shouldn't happen.
+                        // But it's really Android system who is responsible for that so I can't assure.
+                        dalWarn("Got touch event type down for the id which was already being processed as down.");
+                        return InputCtrlFlag::ignored;
+                    }
+                }
+                // If else ignores.
+            }
+            else {  // If not active.
+                if ( TouchType::down == e.type ) {
+                    // Start owning the touch id.
+                    this->m_owningForView = e.id;
+                    this->m_lastViewTouchPos = glm::vec2{ e.x, e.y };
+                    this->m_viewTouchAccum = glm::vec2{ 0.0f };
+                    return InputCtrlFlag::owned;
+                }
+                // If else ignores.
+            }
+
+            return InputCtrlFlag::ignored;
+        }
     }
 
     void InputApplier::PlayerControlWidget::onParentResize(const float width, const float height) {
+        this->m_dpad.onParentResize(width, height);
 
+        this->setPos(0.0f, 0.0f);
+        this->setSize(width, height);
+    }
+
+    glm::vec2 InputApplier::PlayerControlWidget::getMoveVec(void) const {
+        return this->m_dpad.getRel();
+    }
+
+    glm::vec2 InputApplier::PlayerControlWidget::getResetViewAccum(void) {
+        const auto tmp = this->m_viewTouchAccum;
+        this->m_viewTouchAccum = glm::vec2{ 0.0f };
+        return tmp;
     }
 
 }
@@ -1086,14 +1128,14 @@ namespace dal {
     InputApplier::InputApplier(OverlayMaster& overlayMas, const unsigned int width, const unsigned int height)
         : mFSM(GlobalGameState::game)
         , m_overlayMas(overlayMas)
-        , m_dpadWidget(nullptr, static_cast<float>(width), static_cast<float>(height))
+        , m_ctrlInputWidget(static_cast<float>(width), static_cast<float>(height))
     {
         this->mHandlerName = "InputApplier";
         EventGod::getinst().registerHandler(this, EventType::global_fsm_change);
 
         g_touchMas.initOverlay(overlayMas);
 
-        overlayMas.giveWidgetRef(&this->m_dpadWidget);
+        this->m_overlayMas.giveBackgroudWidgetRef(&this->m_ctrlInputWidget);
     }
 
     InputApplier::~InputApplier(void) {
@@ -1135,11 +1177,23 @@ namespace dal {
     void InputApplier::apply(const float deltaTime, StrangeEulerCamera& camera, const entt::entity targetEntity, entt::registry& reg) {
         NoclipMoveInfo info;
 
+        const float winWidth = (float)dal::ConfigsGod::getinst().getWinWidth();
+        const float winHeight = (float)dal::ConfigsGod::getinst().getWinHeight();
+        const float widthOrHeightButShorter = winWidth < winHeight ? winWidth : winHeight;
+        const float viewMultiplier = 5.0f / widthOrHeightButShorter;
+
         {
-            const auto rel = this->m_dpadWidget.getRel();
+            const auto rel = this->m_ctrlInputWidget.getMoveVec();
 
             info.xMovePlane = rel.x;
             info.zMovePlane = rel.y;
+        }
+
+        {
+            const auto rel = this->m_ctrlInputWidget.getResetViewAccum();
+
+            info.xView = rel.x * viewMultiplier;
+            info.yView = -rel.y * viewMultiplier;
         }
 
         apply_topdown(deltaTime, info, camera, targetEntity, reg);

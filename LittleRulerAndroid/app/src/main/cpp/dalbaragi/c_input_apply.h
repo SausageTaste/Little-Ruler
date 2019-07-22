@@ -41,6 +41,10 @@ namespace dal {
         private:
             void updateTouchedPos(const float x, const float y, glm::vec2& target) const;
             glm::vec2 makeFixedCenterPos(void) const;
+            bool isInsideCircle(const glm::vec2& v) const;
+            bool isInsideCircle(const float x, const float y) const {
+                return this->isInsideCircle(glm::vec2{ x, y });
+            }
 
         };
 
@@ -49,6 +53,9 @@ namespace dal {
         private:
             MoveDPad m_dpad;
 
+            touchID_t m_owningForView;
+            glm::vec2 m_lastViewTouchPos, m_viewTouchAccum;
+
         public:
             PlayerControlWidget(const float winWidth, const float winHeight);
 
@@ -56,12 +63,15 @@ namespace dal {
             virtual dal::InputCtrlFlag onTouch(const dal::TouchEvent& e) override;
             virtual void onParentResize(const float width, const float height) override;
 
+            glm::vec2 getMoveVec(void) const;
+            glm::vec2 getResetViewAccum(void);
+
         };
 
     private:
         GlobalGameState mFSM;
         OverlayMaster& m_overlayMas;
-        MoveDPad m_dpadWidget;
+        PlayerControlWidget m_ctrlInputWidget;
 
     public:
         InputApplier(OverlayMaster& overlayMas, const unsigned int width, const unsigned int height);

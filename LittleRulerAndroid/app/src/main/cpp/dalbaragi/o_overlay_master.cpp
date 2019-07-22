@@ -32,7 +32,7 @@ namespace {
         states_t m_states;
 
     public:
-        void dispatch(const float winWidth, const float winHeight, std::list<dal::Widget2*>& widgets) {
+        void dispatch(const float winWidth, const float winHeight, std::list<dal::Widget2*>& widgets, dal::Widget2* const bgWidget) {
             const float widthOrHeightButShorter = winWidth < winHeight ? winWidth : winHeight;
             const float aThridWidth = winWidth / 3.0f;
 
@@ -83,6 +83,23 @@ namespace {
                         }
                     }
 
+                    if ( nullptr != bgWidget && bgWidget->isPointInside(tevent.x, tevent.y) ) {
+                        const auto ctrlFlag = bgWidget->onTouch(tevent);
+                        switch ( ctrlFlag ) {
+
+                        case dal::InputCtrlFlag::consumed:
+                            goto endWidgetsLoop;
+                        case dal::InputCtrlFlag::ignored:
+                            goto endWidgetsLoop;
+                        case dal::InputCtrlFlag::owned:
+                            state.m_owner = bgWidget;
+                            goto endWidgetsLoop;
+                        default:
+                            dalAbort("Shouldn't reach here, the enum's index is: {}"_format(static_cast<int>(ctrlFlag)));
+
+                        }
+                    }
+
                 endWidgetsLoop:
                     continue;
                 }
@@ -90,6 +107,15 @@ namespace {
 
             tq.clear();
         }  // func dispatch
+
+        void notifyWidgetRemoved(dal::Widget2* const w) {
+            for ( auto& [id, state] : this->m_states ) {
+                if ( w == state.m_owner ) {
+                    state.m_owner = nullptr;
+                    return;
+                }
+            }
+        }
 
     private:
         TouchState& getOrMakeTouchState(const dal::touchID_t id, states_t& states) const {
@@ -159,6 +185,8 @@ namespace dal {
         , m_texStreamCh(m_strBuffer)
         , m_winWidth(static_cast<float>(width))
         , m_winHeight(static_cast<float>(height))
+        , m_backgroundWidget(nullptr)
+        , m_backgroundOwned(false)
     {
         ConfigsGod::getinst().setWinSize(width, height);
         script::set_outputStream(&this->m_strBuffer);
@@ -262,6 +290,7 @@ namespace dal {
             wid->onResize(width, height);
         }
 
+        this->m_backgroundWidget->onParentResize(this->m_winWidth, this->m_winHeight);
         for ( auto w : this->m_widgets2 ) {
             w->onParentResize(this->m_winWidth, this->m_winHeight);
         }
@@ -309,7 +338,7 @@ namespace dal {
     }
 
     void OverlayMaster::updateInputs(void) {
-        g_touchMas.dispatch(this->m_winWidth, this->m_winHeight, this->m_widgets2);
+        g_touchMas.dispatch(this->m_winWidth, this->m_winHeight, this->m_widgets2, this->m_backgroundWidget);
     }
 
     void OverlayMaster::render(void) const {
@@ -329,8 +358,15 @@ namespace dal {
             }
         }
 
-        for ( auto w : this->m_widgets2 ) {
-            w->render(uniloc, this->m_winWidth, this->m_winHeight);
+        {
+            if ( nullptr != this->m_backgroundWidget ) {
+                this->m_backgroundWidget->render(uniloc, this->m_winWidth, this->m_winHeight);
+            }
+
+            const auto end = this->m_widgets2.rend();
+            for ( auto iter = this->m_widgets2.rbegin(); iter != end; ++iter ) {
+                (*iter)->render(uniloc, this->m_winWidth, this->m_winHeight);
+            }
         }
     }
 
@@ -364,6 +400,30 @@ namespace dal {
         this->m_widgets2.push_front(w);
     }
 
+    bool OverlayMaster::removeWidgetRef(Widget2* const w) {
+        const auto end = this->m_widgets2.end();
+        const auto found = std::find(this->m_widgets2.begin(), end, w);
+        if ( end != found ) {
+            this->m_widgets2.erase(found);
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+
+    void OverlayMaster::giveBackgroudWidgetRef(Widget2* const w) {
+        this->clearBackgroudWidget();
+        this->m_backgroundWidget = w;
+        this->m_backgroundOwned = false;
+    }
+
+    void OverlayMaster::giveBackgroudWidgetOwnership(Widget2* const w) {
+        this->clearBackgroudWidget();
+        this->m_backgroundWidget = w;
+        this->m_backgroundOwned = true;
+    }
+
     void OverlayMaster::setDisplayedFPS(const unsigned int fps) {
         this->mDisplayFPS->setText(std::to_string(fps));
     }
@@ -376,6 +436,15 @@ namespace dal {
             widget->onFocusChange(false);
         }
         this->m_widgets.push_front(w);
+    }
+
+    void OverlayMaster::clearBackgroudWidget(void) {
+        if ( nullptr != this->m_backgroundWidget ) {
+            if ( this->m_backgroundOwned ) {
+                delete this->m_backgroundWidget;
+            }
+            this->m_backgroundWidget = nullptr;
+        }
     }
 
 }

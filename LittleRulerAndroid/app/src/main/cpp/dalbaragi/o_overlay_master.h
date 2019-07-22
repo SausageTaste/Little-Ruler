@@ -52,6 +52,8 @@ namespace dal {
         // If bool is true, the widget must be deleted in this class.
         std::list<Widget*> m_widgets, m_toDelete;
         std::list<Widget2*> m_widgets2, m_toDelete2;
+        Widget2* m_backgroundWidget;
+        bool m_backgroundOwned;
 
         float m_winWidth, m_winHeight;
 
@@ -78,11 +80,16 @@ namespace dal {
         void giveWidgetOwnership(Widget2* const w);
         void giveWidgetRef(Widget* const w);
         void giveWidgetRef(Widget2* const w);
+        bool removeWidgetRef(Widget2* const w);
+
+        void giveBackgroudWidgetRef(Widget2* const w);
+        void giveBackgroudWidgetOwnership(Widget2* const w);
 
         void setDisplayedFPS(const unsigned int fps);
 
     private:
         void setFocusOn(Widget* const w);
+        void clearBackgroudWidget(void);
 
     };
 
