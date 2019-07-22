@@ -8,6 +8,7 @@
 #include "p_meshStatic.h"
 #include "p_uniloc.h"
 #include "s_input_queue.h"
+#include "u_timer.h"
 
 
 namespace dal {
@@ -123,6 +124,12 @@ namespace dal {
 
     class Widget2 : public IScreenSpaceBox {
 
+    public:
+        struct KeyAdditionalStates {
+            unsigned int m_order = 0;
+            bool m_shifted = false;
+        };
+
     private:
         glm::vec2 m_offset;
         Widget2* m_parent;
@@ -152,20 +159,26 @@ namespace dal {
         virtual InputCtrlFlag onTouch(const TouchEvent& e) {
             return InputCtrlFlag::ignored;
         }
-        virtual InputCtrlFlag onKeyInput(const KeyboardEvent& e) {
+        virtual InputCtrlFlag onKeyInput(const KeyboardEvent& e, const KeyAdditionalStates& additional = KeyAdditionalStates{}) {
             return InputCtrlFlag::ignored;
         }
         virtual void onParentResize(const float width, const float height) {}
+        virtual void onFocusChange(const bool v) {}
 
     };
 
 
     class TextRenderer : public Widget2 {
 
+    public:
+        static constexpr size_t cursorNullPos = SIZE_MAX;
+
     private:
         std::string m_text;
         glm::vec4 m_textColor;
         glm::vec2 m_offset;
+        Timer m_cursorTimer;
+        size_t m_cursorPos;
         unsigned int m_textSize;
         float m_lineSpacingRate;
         bool m_wordWrap;
@@ -175,14 +188,24 @@ namespace dal {
 
         virtual void render(const UnilocOverlay& uniloc, const float width, const float height) override;
 
+        const std::string& getText(void) const {
+            return this->m_text;
+        }
         void setText(const std::string& t) {
             this->m_text = t;
         }
         void setText(std::string&& t) {
             this->m_text = std::move(t);
         }
-        const std::string& getText(void) const {
-            return this->m_text;
+
+        void appendText(const std::string& t) {
+            this->m_text.append(t);
+        }
+        void appendText(const char c) {
+            this->m_text += c;
+        }
+        void popBackText(void) {
+            this->m_text.pop_back();
         }
 
         const glm::vec4& getTextColor(void) const {
@@ -207,6 +230,10 @@ namespace dal {
         }
         void setOffset(const glm::vec2& v) {
             this->m_offset = v;
+        }
+
+        void setCursorPos(const size_t pos) {
+            this->m_cursorPos = pos;
         }
 
         unsigned int getTextSize(void) const {

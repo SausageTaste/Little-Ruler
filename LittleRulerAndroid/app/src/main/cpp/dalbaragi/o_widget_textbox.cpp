@@ -117,91 +117,6 @@ namespace {
 }
 
 
-// Label
-namespace dal {
-
-    Label::Label(Widget* parent, UnicodeCache& asciiCache)
-        : Widget(parent),
-        m_textColor(1.0, 1.0, 1.0, 1.0),
-        m_unicodeCache(asciiCache)
-    {
-        this->setPosX(10.0f);
-        this->setPosY(40.0f);
-        this->setWidth(400.0f);
-        this->setHeight(20.0f);
-
-        this->m_background.setColor(g_darkTheme, g_darkTheme, g_darkTheme, 1.0f);
-    }
-
-    void Label::onClick(const float x, const float y) {
-        toggleGameState();
-    }
-
-    void Label::renderOverlay(const UnilocOverlay& uniloc) {
-        this->m_background.renderQuad(uniloc, this->getDeviceSpace());
-
-        const auto screenInfo = this->makeScreenSpace();
-
-        float xAdvance = screenInfo.p1.x;
-        const float boxHeight = screenInfo.p2.y - screenInfo.p1.y;
-        const float yHeight = screenInfo.p2.y - boxHeight / 4.0f;
-
-        auto header = this->m_text.begin();
-        const auto end = this->m_text.end();
-
-        while ( end != header ) {
-            uint32_t c = 0;
-            {
-                const auto ch = static_cast<uint8_t>(*header++);
-                const auto codeSize = utf8_codepoint_size(ch);
-                if ( codeSize > 1 ) {
-                    uint8_t buf[4];
-                    for ( size_t i = 0; i < codeSize; i++ ) {
-                        buf[i] = ch;
-                    }
-
-                    c = convert_utf8_to_utf32(buf, buf + codeSize);
-                }
-                else {
-                    c = ch;
-                }
-            }
-
-            auto& charac = this->m_unicodeCache.at(c);
-
-            QuadInfo charQuad;
-
-            charQuad.p1.x = xAdvance + charac.bearing.x;
-            charQuad.p1.y = yHeight - charac.bearing.y;
-
-            charQuad.p2.x = charQuad.p1.x + charac.size.x;
-            charQuad.p2.y = charQuad.p1.y + charac.size.y;
-
-            QuadRenderer::statelessRender(uniloc, charQuad.screen2device(), this->m_textColor, nullptr, charac.tex, false, true);
-
-            xAdvance += (charac.advance >> 6);
-        }
-    }
-
-    void Label::setText(const std::string& t) {
-        this->m_text = t;
-    }
-
-    const std::string& Label::getText(void) const {
-        return this->m_text;
-    }
-
-    void Label::setTextColor(const float r, const float g, const float b, const float a) {
-        this->m_textColor = { r, g, b, a };
-    }
-
-    void Label::setBackgroundColor(const float r, const float g, const float b, const float a) {
-        this->m_background.setColor(r, g, b, a);
-    }
-
-}
-
-
 // Label2
 namespace dal {
 
@@ -222,36 +137,6 @@ namespace dal {
         this->m_textRenderer.render(uniloc, width, height);
     }
 
-    InputCtrlFlag Label2::onTouch(const TouchEvent& e) {
-        if ( e.id != this->m_owningTouchID ) {
-            if ( TouchType::down == e.type ) {
-                this->m_owningTouchID = e.id;
-                return InputCtrlFlag::owned;
-            }
-            else {
-                return InputCtrlFlag::ignored;
-            }
-        }
-        else {
-            if ( TouchType::move == e.type ) {
-                fmt::print("touch event{{}} pos{{ {}, {} }}, id{{ {} }}\n", e.x, e.y, e.id);
-                return InputCtrlFlag::owned;
-            }
-            else if ( TouchType::up == e.type ) {
-                this->m_owningTouchID = -1;
-                return InputCtrlFlag::consumed;
-            }
-        }
-    }
-
-    InputCtrlFlag Label2::onKeyInput(const KeyboardEvent& e) {
-        return InputCtrlFlag::ignored;
-    }
-
-    void Label2::onParentResize(const float width, const float height) {
-
-    }
-
     // Protected
 
     void Label2::onScrSpaceBoxUpdate(void) {
@@ -264,22 +149,41 @@ namespace dal {
 
 namespace dal {
 
-    LineEdit::LineEdit(Widget* parent, UnicodeCache& asciiCache)
-        : Label(parent, asciiCache)
+    LineEdit::LineEdit(Widget2* const parent)
+        : Label2(parent)
+        , m_onFocus(false)
     {
 
     }
 
-    void LineEdit::onClick(const float x, const float y) {
+    void LineEdit::render(const UnilocOverlay& uniloc, const float width, const float height) {
+        if ( this->m_onFocus ) {
+            this->getTextRenderer().setCursorPos(this->getText().size() - 1);
+        }
+        else {
+            this->getTextRenderer().setCursorPos(TextRenderer::cursorNullPos);
+        }
 
+        Label2::render(uniloc, width, height);
     }
 
-    void LineEdit::onKeyInput(const char* const str) {
-        auto text = this->getText();
-        const auto len = std::strlen(str);
+    InputCtrlFlag LineEdit::onTouch(const TouchEvent& e) {
+        if ( e.type == TouchType::down ) {
+            return InputCtrlFlag::consumed;
+        }
+        else {
+            return InputCtrlFlag::ignored;
+        }
+    }
 
-        for ( size_t i = 0; i < len; i++ ) {
-            const auto c = str[i];
+    InputCtrlFlag LineEdit::onKeyInput(const KeyboardEvent& e, const KeyAdditionalStates& a) {
+        if ( !this->m_onFocus ) {
+            return InputCtrlFlag::ignored;
+        }
+
+        if ( KeyboardType::down == e.type ) {
+            auto& text = this->getTextRenderer();
+            const auto c = encodeKeySpecToAscii(e.key, a.m_shifted);
 
             switch ( c ) {
 
@@ -287,36 +191,40 @@ namespace dal {
                 this->onReturn();
                 break;
             case '\b':
-                if ( text.empty() ) break;
-                text.pop_back();
-                break;
-            case '\t':
-                text.append("    ");  // 4 whitespaces. 
+                if (!text.getText().empty() ) {
+                    text.popBackText();
+                }
                 break;
             case '\0':
-                return;
+                break;
             default:
-                text += c;
+                text.appendText(c);
                 break;
 
             }
+
+            return InputCtrlFlag::consumed;
         }
 
-        this->setText(text);
+        return InputCtrlFlag::ignored;
     }
+
+    void LineEdit::onFocusChange(const bool v) {
+        this->m_onFocus = v;
+
+        if ( v ) {
+            dalVerbose("LineEdit god focus.")
+        }
+        else {
+            dalVerbose("LineEdit lost focus.")
+        }
+    }
+
+    // Private
 
     void LineEdit::onReturn(void) {
         Lua::getinst().doString(this->getText().c_str());
         this->setText("");
-    }
-
-    void LineEdit::onFocusChange(bool isFocus) {
-        if ( isFocus ) {
-            this->setTextColor(1.0f, 1.0f, 1.0f, 1.0f);
-        }
-        else {
-            this->setTextColor(0.6f, 0.6f, 0.6f, 1.0f);
-        }
     }
 
 }

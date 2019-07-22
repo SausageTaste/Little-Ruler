@@ -17,14 +17,37 @@ using namespace fmt::literals;
 
 namespace {
 
+    class KeyStatesMaster {
+
+    public:
+        void dispatch(const float winWidth, const float winHeight, std::list<dal::Widget2*>& widgets, dal::Widget2* const bgWidget) {
+            auto& kq = dal::KeyboardEvtQueueGod::getinst();
+            const auto kqSize = kq.getSize();
+
+            for ( unsigned int i = 0; i < kqSize; ++i ) {
+                const auto& kevent = kq.at(i);
+
+                unsigned int order = 0;
+                for ( auto w : widgets ) {
+                    if ( dal::InputCtrlFlag::ignored != w->onKeyInput(kevent, dal::Widget2::KeyAdditionalStates{ order }) ) {
+                        break;
+                    }
+
+                    ++order;
+                }
+            }
+
+            kq.clear();
+        }
+
+    } g_keyMas;  // KeyStatesMaster
+
+
     class TouchStatesMaster {
 
     private:
         struct TouchState {
-            glm::vec2 m_lastDownPos, m_pos;
             dal::Widget2* m_owner = nullptr;
-            float m_lastDownSec = 0.0f, m_sec = 0.0f;
-            bool m_down = false;
         };
 
     private:
@@ -71,11 +94,13 @@ namespace {
                         switch ( ctrlFlag ) {
 
                         case dal::InputCtrlFlag::consumed:
+                            this->moveOnTop(w, widgets);
                             goto endWidgetsLoop;
                         case dal::InputCtrlFlag::ignored:
                             continue;
                         case dal::InputCtrlFlag::owned:
                             state.m_owner = w;
+                            this->moveOnTop(w, widgets);
                             goto endWidgetsLoop;
                         default:
                             dalAbort("Shouldn't reach here, the enum's index is: {}"_format(static_cast<int>(ctrlFlag)));
@@ -88,10 +113,12 @@ namespace {
                         switch ( ctrlFlag ) {
 
                         case dal::InputCtrlFlag::consumed:
+                            widgets.front()->onFocusChange(false);
                             goto endWidgetsLoop;
                         case dal::InputCtrlFlag::ignored:
                             goto endWidgetsLoop;
                         case dal::InputCtrlFlag::owned:
+                            widgets.front()->onFocusChange(false);
                             state.m_owner = bgWidget;
                             goto endWidgetsLoop;
                         default:
@@ -126,6 +153,18 @@ namespace {
             else {
                 return states.emplace(id, TouchState{}).first->second;
             }
+        }
+
+        static void moveOnTop(dal::Widget2* const w, std::list<dal::Widget2*>& widgets) {
+            if ( widgets.front() == w ) {
+                widgets.front()->onFocusChange(true);
+                return;
+            }
+
+            widgets.front()->onFocusChange(false);
+            widgets.remove(w);
+            widgets.push_front(w);
+            widgets.front()->onFocusChange(true);
         }
 
     } g_touchMas;  // class TouchStatesMaster
@@ -191,46 +230,25 @@ namespace dal {
         ConfigsGod::getinst().setWinSize(width, height);
         script::set_outputStream(&this->m_strBuffer);
 
-        // Widgets
-        {
-            {
-                auto wid = new LineEdit(nullptr, this->m_unicodes);
-
-                wid->setPosX(10.0f);
-                wid->setPosY(10.0f);
-                wid->setWidth(800.0f);
-                wid->setHeight(20.0f);
-                wid->setAlignMode(ScreenQuad::AlignMode::upper_right);
-
-                this->giveWidgetOwnership(wid);
-            }
-
-            {
-                auto wid = new TextBox(nullptr, this->m_unicodes);
-
-                this->m_strBuffer.append("Sungmin Woo\nwoos8899@gmail.com\n\n");
-                wid->setStrBuf(&this->m_strBuffer);
-
-                wid->setPosX(10.0f);
-                wid->setPosY(40.0f);
-                wid->setWidth(800.0f);
-                wid->setHeight(600.0f);
-                wid->setAlignMode(ScreenQuad::AlignMode::upper_right);
-
-                this->giveWidgetOwnership(wid);
-            }
-        }
-
         // Widgets 2
         {
             {
-                auto t = new TextRenderer(nullptr);
+                //auto t = new TextRenderer(nullptr);
 
-                t->setPos(100.0, 100.0);
-                t->setSize(205.0, 200.0);
-                t->setText("Fuck me.\nthishASFt;ashdljfkasjdASFflAFajsdl;fkjasl;jWEWASFfd;lasjdfljaslfjkdsaf\nAAAA\tAAAAAAAAAAAAAA");
+                //t->setPos(100.0, 100.0);
+                //t->setSize(205.0, 200.0);
+                //t->setText("Fuck me.\nthishASFt;ashdljfkasjdASFflAFajsdl;fkjasl;jWEWASFfd;lasjdfljaslfjkdsaf\nAAAA\tAAAAAAAAAAAAAA");
 
-                this->giveWidgetOwnership(t);
+                //this->giveWidgetOwnership(t);
+            }
+
+            {
+                auto w = new LineEdit(nullptr);
+
+                w->setPos(300, 20);
+                w->setSize(200, 20);
+
+                this->giveWidgetOwnership(w);
             }
         }
 
@@ -250,10 +268,6 @@ namespace dal {
         LoggerGod::getinst().deleteChannel(&m_texStreamCh);
         EventGod::getinst().deregisterHandler(this, EventType::global_fsm_change);
 
-        this->m_widgets.clear();
-        for ( auto w : this->m_toDelete ) {
-            delete w;
-        }
         this->m_widgets2.clear();
         for ( auto w : this->m_toDelete2 ) {
             delete w;
@@ -273,114 +287,34 @@ namespace dal {
         this->m_winWidth = static_cast<float>(width);
         this->m_winHeight = static_cast<float>(height);
 
-        for ( auto& wid : this->m_widgets ) {
-            wid->onResize(width, height);
-        }
-
         this->m_backgroundWidget->onParentResize(this->m_winWidth, this->m_winHeight);
         for ( auto w : this->m_widgets2 ) {
             w->onParentResize(this->m_winWidth, this->m_winHeight);
         }
     }
 
-    void OverlayMaster::onClick(const float x, const float y) {
-        if ( GlobalGameState::game == this->mGlobalFSM ) {
-            for ( auto wid : this->m_widgets ) {
-                if ( wid->getPauseOnly() ) continue;
-                if ( !wid->isInside(x, y) ) continue;
-
-                wid->onClick(x, y);
-                break;
-            }
-        }
-        else {
-            for ( auto wid : this->m_widgets ) {
-                if ( wid->isInside(x, y) ) {
-                    this->m_widgets.remove(wid);
-                    this->m_widgets.push_front(wid);
-
-                    wid->onClick(x, y);
-                    wid->onFocusChange(true);
-                    break;
-                }
-            }
-
-            auto iter = this->m_widgets.begin();
-            while ( ++iter != this->m_widgets.end() ) {
-                (*iter)->onFocusChange(false);
-            }
-        }
-    }
-
-    void OverlayMaster::onDrag(const glm::vec2& start, const glm::vec2& end) {
-        //g_logger.putTrace(
-        //	"Drag: "s + std::to_string(start.x) + ", " + std::to_string(start.y) + " -> " + std::to_string(end.x) + ", " + std::to_string(end.y)
-        //);
-    }
-
-    void OverlayMaster::onKeyInput(const std::string& str) {
-        if ( this->m_widgets.empty() ) return;
-
-        this->m_widgets.front()->onKeyInput(str.c_str());
-    }
-
     void OverlayMaster::updateInputs(void) {
         g_touchMas.dispatch(this->m_winWidth, this->m_winHeight, this->m_widgets2, this->m_backgroundWidget);
+        g_keyMas.dispatch(this->m_winWidth, this->m_winHeight, this->m_widgets2, this->m_backgroundWidget);
     }
 
     void OverlayMaster::render(void) const {
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
         auto& uniloc = this->m_shaderMas.useOverlay();
 
-        const auto end = this->m_widgets.rend();
-        for ( auto iter = this->m_widgets.rbegin(); iter != end; ++iter ) {
-            if ( (*iter)->getPauseOnly() ) {
-                if ( GlobalGameState::menu == mGlobalFSM ) {
-                    (*iter)->renderOverlay(uniloc);
-                }
-            }
-            else {
-                (*iter)->renderOverlay(uniloc);
-            }
+        if ( nullptr != this->m_backgroundWidget ) {
+            this->m_backgroundWidget->render(uniloc, this->m_winWidth, this->m_winHeight);
         }
 
-        {
-            if ( nullptr != this->m_backgroundWidget ) {
-                this->m_backgroundWidget->render(uniloc, this->m_winWidth, this->m_winHeight);
-            }
-
-            const auto end = this->m_widgets2.rend();
-            for ( auto iter = this->m_widgets2.rbegin(); iter != end; ++iter ) {
-                (*iter)->render(uniloc, this->m_winWidth, this->m_winHeight);
-            }
+        const auto end = this->m_widgets2.rend();
+        for ( auto iter = this->m_widgets2.rbegin(); iter != end; ++iter ) {
+            (*iter)->render(uniloc, this->m_winWidth, this->m_winHeight);
         }
-    }
-
-    void OverlayMaster::giveWidgetOwnership(Widget* const w) {
-        for ( auto widget : this->m_widgets ) {
-            widget->onFocusChange(false);
-        }
-
-        this->m_widgets.push_front(w);
-        this->m_toDelete.push_back(w);
-
-        w->onFocusChange(true);
     }
 
     void OverlayMaster::giveWidgetOwnership(Widget2* const w) {
         this->m_widgets2.push_front(w);
         this->m_toDelete2.push_back(w);
-    }
-
-    void OverlayMaster::giveWidgetRef(Widget* const w) {
-        for ( auto widget : this->m_widgets ) {
-            widget->onFocusChange(false);
-        }
-
-        this->m_widgets.push_front(w);
-
-        w->onFocusChange(true);
     }
 
     void OverlayMaster::giveWidgetRef(Widget2* const w) {
@@ -412,14 +346,6 @@ namespace dal {
     }
 
     // Private
-
-    void OverlayMaster::setFocusOn(Widget* const w) {
-        this->m_widgets.remove(w);
-        for ( auto widget : this->m_widgets ) {
-            widget->onFocusChange(false);
-        }
-        this->m_widgets.push_front(w);
-    }
 
     void OverlayMaster::clearBackgroudWidget(void) {
         if ( nullptr != this->m_backgroundWidget ) {

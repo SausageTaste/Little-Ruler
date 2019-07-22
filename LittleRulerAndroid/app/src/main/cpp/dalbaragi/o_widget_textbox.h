@@ -14,28 +14,6 @@
 
 namespace dal {
 
-    class Label : public Widget {
-
-    private:
-        QuadRenderer m_background;
-        std::string m_text;
-        glm::vec4 m_textColor;
-        UnicodeCache& m_unicodeCache;
-
-    public:
-        Label(Widget* parent, UnicodeCache& asciiCache);
-
-        virtual void onClick(const float x, const float y) override;
-        virtual void renderOverlay(const UnilocOverlay& uniloc) override;
-
-        void setText(const std::string& t);
-        const std::string& getText(void) const;
-        void setTextColor(const float r, const float g, const float b, const float a);
-        void setBackgroundColor(const float r, const float g, const float b, const float a);
-
-    };
-
-
     class Label2 : public Widget2 {
 
     private:
@@ -47,9 +25,6 @@ namespace dal {
         Label2(Widget2* const parent);
 
         virtual void render(const UnilocOverlay& uniloc, const float width, const float height) override;
-        virtual InputCtrlFlag onTouch(const TouchEvent& e) override;
-        virtual InputCtrlFlag onKeyInput(const KeyboardEvent& e) override;
-        virtual void onParentResize(const float width, const float height) override;
 
         void setText(const std::string& t) {
             this->m_textRenderer.setText(t);
@@ -69,19 +44,28 @@ namespace dal {
 
     protected:
         virtual void onScrSpaceBoxUpdate(void) override;
+        TextRenderer& getTextRenderer(void) {
+            return this->m_textRenderer;
+        }
 
     };
 
 
-    class LineEdit : public Label {
+    class LineEdit : public Label2 {
+
+    private:
+        bool m_onFocus;
 
     public:
-        LineEdit(Widget* parent, UnicodeCache& asciiCache);
-        void onReturn(void);
+        LineEdit(Widget2* const parent);
 
-        virtual void onClick(const float x, const float y) override;
-        virtual void onKeyInput(const char* const c) override;
-        virtual void onFocusChange(bool isFocus) override;
+        virtual void render(const UnilocOverlay& uniloc, const float width, const float height) override;
+        virtual InputCtrlFlag onTouch(const TouchEvent& e) override;
+        virtual InputCtrlFlag onKeyInput(const KeyboardEvent& e, const KeyAdditionalStates& additional) override;
+        virtual void onFocusChange(const bool v) override;
+
+    private:
+        void onReturn(void);
 
     };
 

@@ -352,6 +352,7 @@ namespace dal {
     TextRenderer::TextRenderer(Widget2* const parent)
         : Widget2(parent)
         , m_textColor(1.0f, 1.0f, 1.0f, 1.0f)
+        , m_cursorPos(cursorNullPos)
         , m_textSize(15)
         , m_lineSpacingRate(1.2f)
         , m_wordWrap(false)
@@ -369,7 +370,11 @@ namespace dal {
         auto header = this->m_text.begin();
         const auto end = this->m_text.end();
 
+        int64_t charCount = -1;
+
         while ( end != header ) {
+            ++charCount;
+
             uint32_t c = 0;
             {
                 const auto ch = static_cast<uint8_t>(*header++);
@@ -397,6 +402,10 @@ namespace dal {
                 xAdvance += TAP_CHAR_WIDTH;
                 continue;
             }
+            else if ( ' ' == c ) {
+                xAdvance += g_charCache.at(c, this->m_textSize).advance >> 6;
+                continue;
+            }
 
             auto& charInfo = g_charCache.at(c, this->m_textSize);
 
@@ -422,7 +431,15 @@ namespace dal {
             charQuad.second.x = charQuad.first.x + charInfo.size.x;
             charQuad.second.y = charQuad.first.y + charInfo.size.y;
             if ( charQuad.second.y > parentP2.y ) {
-                return;
+                break;
+            }
+
+            if ( this->m_cursorPos == charCount ) {
+                const auto p1 = glm::vec2{ charQuad.second.x, charQuad.second.y - static_cast<float>(this->m_textSize) };
+                const auto p2 = glm::vec2{ charQuad.second.x + 1.0f, charQuad.second.y };
+                const auto cursorPos1 = screen2device(p1, width, height);
+                const auto cursorPos2 = screen2device(p2, width, height);
+                renderQuadOverlay(uniloc, cursorPos1, cursorPos2, this->m_textColor, nullptr, nullptr, false, false);
             }
 
             std::pair<glm::vec2, glm::vec2> deviceSpace = std::make_pair(
@@ -432,6 +449,14 @@ namespace dal {
             renderQuadOverlay(uniloc, deviceSpace, this->m_textColor, nullptr, charInfo.tex, false, false);
 
             xAdvance += (charInfo.advance >> 6);
+        }
+
+        if ( this->m_cursorPos == charCount ) {
+            const auto p1 = glm::vec2{ xAdvance, yHeight - static_cast<float>(this->m_textSize) };
+            const auto p2 = glm::vec2{ xAdvance + 1.0f, yHeight };
+            const auto cursorPos1 = screen2device(p1, width, height);
+            const auto cursorPos2 = screen2device(p2, width, height);
+            renderQuadOverlay(uniloc, cursorPos1, cursorPos2, this->m_textColor, nullptr, nullptr, false, false);
         }
     }
 

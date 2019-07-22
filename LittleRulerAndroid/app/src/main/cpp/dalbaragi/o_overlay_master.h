@@ -49,7 +49,6 @@ namespace dal {
         TextStreamChannel m_texStreamCh;
 
         // If bool is true, the widget must be deleted in this class.
-        std::list<Widget*> m_widgets, m_toDelete;
         std::list<Widget2*> m_widgets2, m_toDelete2;
         Widget2* m_backgroundWidget;
         bool m_backgroundOwned;
@@ -69,15 +68,11 @@ namespace dal {
         virtual void onEvent(const EventStatic& e) override;
         void onWinResize(const unsigned int width, const unsigned int height);
 
-        void onClick(const float x, const float y);
-        void onDrag(const glm::vec2& start, const glm::vec2& end);
-        void onKeyInput(const std::string& c);
         void updateInputs(void);
 
         void render(void) const;
-        void giveWidgetOwnership(Widget* const w);
+
         void giveWidgetOwnership(Widget2* const w);
-        void giveWidgetRef(Widget* const w);
         void giveWidgetRef(Widget2* const w);
         bool removeWidgetRef(Widget2* const w);
 
@@ -85,7 +80,6 @@ namespace dal {
         void giveBackgroudWidgetOwnership(Widget2* const w);
 
     private:
-        void setFocusOn(Widget* const w);
         void clearBackgroudWidget(void);
 
     };
