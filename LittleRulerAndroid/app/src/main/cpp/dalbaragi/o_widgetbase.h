@@ -257,6 +257,9 @@ namespace dal {
             this->m_wordWrap = v;
         }
 
+    private:
+        bool canDrawCursor(void);
+
     };
 
 }

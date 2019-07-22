@@ -434,7 +434,7 @@ namespace dal {
                 break;
             }
 
-            if ( this->m_cursorPos == charCount ) {
+            if ( this->m_cursorPos == charCount && this->canDrawCursor() ) {
                 const auto p1 = glm::vec2{ charQuad.second.x, charQuad.second.y - static_cast<float>(this->m_textSize) };
                 const auto p2 = glm::vec2{ charQuad.second.x + 1.0f, charQuad.second.y };
                 const auto cursorPos1 = screen2device(p1, width, height);
@@ -451,13 +451,17 @@ namespace dal {
             xAdvance += (charInfo.advance >> 6);
         }
 
-        if ( this->m_cursorPos == charCount ) {
+        if ( this->m_cursorPos == charCount && this->canDrawCursor() ) {
             const auto p1 = glm::vec2{ xAdvance, yHeight - static_cast<float>(this->m_textSize) };
             const auto p2 = glm::vec2{ xAdvance + 1.0f, yHeight };
             const auto cursorPos1 = screen2device(p1, width, height);
             const auto cursorPos2 = screen2device(p2, width, height);
             renderQuadOverlay(uniloc, cursorPos1, cursorPos2, this->m_textColor, nullptr, nullptr, false, false);
         }
+    }
+
+    bool TextRenderer::canDrawCursor(void) {
+        return std::fmodf(this->m_cursorTimer.getElapsed(), 1.0f) >= 0.5f;
     }
 
 }
