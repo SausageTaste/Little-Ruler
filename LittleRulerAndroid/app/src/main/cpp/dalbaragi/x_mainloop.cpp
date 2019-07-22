@@ -122,12 +122,9 @@ namespace {
 
     };
 
+
     void test(const float deltaTime) {
-#ifdef _DEBUG
-        constexpr int ITER_COUNT = 1000000;
-#else
-        constexpr int ITER_COUNT = 100000000;
-#endif
+
     }
 
 }
@@ -173,7 +170,7 @@ namespace dal {
             auto& transform = this->m_enttMaster.assign<cpnt::Transform>(this->m_player);
             transform.m_scale = 0.2f;
 
-            auto model = this->m_resMas.orderModelAnimated("asset::model.dae");
+            auto model = this->m_resMas.orderModelAnimated("asset::Character Running.dae");
             dalAssert(nullptr != model);
             auto& renderable = this->m_enttMaster.assign<cpnt::AnimatedModel>(this->m_player);
             renderable.m_model = model;
