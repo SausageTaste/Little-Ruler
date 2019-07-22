@@ -159,7 +159,7 @@ namespace dal {
         virtual InputCtrlFlag onTouch(const TouchEvent& e) {
             return InputCtrlFlag::ignored;
         }
-        virtual InputCtrlFlag onKeyInput(const KeyboardEvent& e, const KeyAdditionalStates& additional = KeyAdditionalStates{}) {
+        virtual InputCtrlFlag onKeyInput(const KeyboardEvent& e, const KeyAdditionalStates& additional) {
             return InputCtrlFlag::ignored;
         }
         virtual void onParentResize(const float width, const float height) {}
