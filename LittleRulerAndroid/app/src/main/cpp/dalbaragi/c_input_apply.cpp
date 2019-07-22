@@ -937,8 +937,8 @@ namespace {
 // Widgets
 namespace dal {
 
-    InputApplier::MoveDPad::MoveDPad(const float winWidth, const float winHeight)
-        : Widget2(nullptr)
+    InputApplier::MoveDPad::MoveDPad(dal::Widget2* const parent, const float winWidth, const float winHeight)
+        : Widget2(parent)
     {
         this->onParentResize(winWidth, winHeight);
 
@@ -965,6 +965,7 @@ namespace dal {
     }
 
     InputCtrlFlag InputApplier::MoveDPad::onTouch(const dal::TouchEvent& e) {
+        /*
         if ( e.id == this->m_owning ) {
             if ( e.type == TouchType::move ) {
                 this->updateTouchedPos(e.x, e.y, this->m_touchedPos);
@@ -976,19 +977,43 @@ namespace dal {
             }
         }
         else {
-            if ( TouchType::down == e.type ) {
+            if ( !this->isActive() && TouchType::down == e.type ) {
                 this->m_owning = e.id;
                 this->updateTouchedPos(e.x, e.y, this->m_touchedPos);
                 return InputCtrlFlag::owned;
-                printf("shit");
             }
+        }
+        */
+
+        if ( this->isActive() ) {
+            if ( e.id == this->m_owning ) {
+                if ( e.type == TouchType::move ) {
+                    this->updateTouchedPos(e.x, e.y, this->m_touchedPos);
+                    return InputCtrlFlag::owned;
+                }
+                else if ( TouchType::up == e.type ) {
+                    this->m_owning = -1;
+                    return InputCtrlFlag::consumed;
+                }
+                else {
+                    // Else case is when event type is down, which shouldn't happen.
+                    // But it's really Android system who is responsible for that so I can't assure.
+                    dalWarn("Got touch event type down for the id which was already being processed as down.");
+                    return InputCtrlFlag::ignored;
+                }
+            }
+            // If else ignores.
+        }
+        else {  // If not active.
+            if ( TouchType::down == e.type ) {  // Start owning the touch id.
+                this->m_owning = e.id;
+                this->updateTouchedPos(e.x, e.y, this->m_touchedPos);
+                return InputCtrlFlag::owned;
+            }
+            // If else ignores.
         }
 
         return InputCtrlFlag::ignored;
-    }
-
-    InputCtrlFlag InputApplier::MoveDPad::onKeyInput(const dal::KeyboardEvent& e) {
-        return dal::InputCtrlFlag::ignored;
     }
 
     void InputApplier::MoveDPad::onParentResize(const float width, const float height) {
@@ -1032,10 +1057,34 @@ namespace dal {
 
 namespace dal {
 
+    InputApplier::PlayerControlWidget::PlayerControlWidget(const float winWidth, const float winHeight)
+        : Widget2(nullptr)
+        , m_dpad(this, winWidth, winHeight)
+    {
+
+    }
+
+    void InputApplier::PlayerControlWidget::render(const UnilocOverlay& uniloc, const float width, const float height) {
+
+    }
+
+    InputCtrlFlag InputApplier::PlayerControlWidget::onTouch(const TouchEvent& e) {
+        return InputCtrlFlag::ignored;
+    }
+
+    void InputApplier::PlayerControlWidget::onParentResize(const float width, const float height) {
+
+    }
+
+}
+
+
+namespace dal {
+
     InputApplier::InputApplier(OverlayMaster& overlayMas, const unsigned int width, const unsigned int height)
         : mFSM(GlobalGameState::game)
         , m_overlayMas(overlayMas)
-        , m_dpadWidget(static_cast<float>(width), static_cast<float>(height))
+        , m_dpadWidget(nullptr, static_cast<float>(width), static_cast<float>(height))
     {
         this->mHandlerName = "InputApplier";
         EventGod::getinst().registerHandler(this, EventType::global_fsm_change);
@@ -1082,10 +1131,14 @@ namespace dal {
     */
 
     void InputApplier::apply(const float deltaTime, StrangeEulerCamera& camera, const entt::entity targetEntity, entt::registry& reg) {
-        const auto rel = this->m_dpadWidget.getRel();
         NoclipMoveInfo info;
-        info.xMovePlane = rel.x;
-        info.zMovePlane = rel.y;
+
+        {
+            const auto rel = this->m_dpadWidget.getRel();
+
+            info.xMovePlane = rel.x;
+            info.zMovePlane = rel.y;
+        }
 
         apply_topdown(deltaTime, info, camera, targetEntity, reg);
     }

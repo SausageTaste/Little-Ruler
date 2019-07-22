@@ -26,11 +26,10 @@ namespace dal {
             touchID_t m_owning = -1;
 
         public:
-            MoveDPad(const float winWidth, const float winHeight);
+            MoveDPad(dal::Widget2* const parent, const float winWidth, const float winHeight);
 
             virtual void render(const dal::UnilocOverlay& uniloc, const float width, const float height) override;
             virtual dal::InputCtrlFlag onTouch(const dal::TouchEvent& e) override;
-            virtual dal::InputCtrlFlag onKeyInput(const dal::KeyboardEvent& e) override;
             virtual void onParentResize(const float width, const float height) override;
 
             glm::vec2 getRel(void) const;
@@ -39,6 +38,20 @@ namespace dal {
         private:
             void updateTouchedPos(const float x, const float y, glm::vec2& target) const;
             glm::vec2 makeFixedCenterPos(void) const;
+
+        };
+
+        class PlayerControlWidget : public dal::Widget2 {
+
+        private:
+            MoveDPad m_dpad;
+
+        public:
+            PlayerControlWidget(const float winWidth, const float winHeight);
+
+            virtual void render(const dal::UnilocOverlay& uniloc, const float width, const float height) override;
+            virtual dal::InputCtrlFlag onTouch(const dal::TouchEvent& e) override;
+            virtual void onParentResize(const float width, const float height) override;
 
         };
 
