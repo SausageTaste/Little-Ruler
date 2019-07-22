@@ -24,8 +24,12 @@ namespace dal {
 
         FreetypeGod(void);
         ~FreetypeGod(void);
-        FreetypeGod(FreetypeGod&) = delete;
-        FreetypeGod& operator=(FreetypeGod&) = delete;
+
+    public:
+        FreetypeGod(const FreetypeGod&) = delete;
+        FreetypeGod(FreetypeGod&&) = delete;
+        FreetypeGod& operator=(const FreetypeGod&) = delete;
+        FreetypeGod& operator=(FreetypeGod&&) = delete;
 
     public:
         static FreetypeGod& getinst(void);

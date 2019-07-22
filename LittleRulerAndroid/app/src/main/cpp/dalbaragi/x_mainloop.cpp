@@ -6,9 +6,34 @@
 
 #include "s_logger_god.h"
 #include "s_configs.h"
+#include "o_widget_textbox.h"
 
 
 using namespace std::string_literals;
+
+
+// Test codes
+namespace {
+
+    class RAIITimer {
+
+    private:
+        dal::TimerThatCaps m_timer;
+
+    public:
+        ~RAIITimer(void) {
+            const auto elapsed = this->m_timer.getElapsed();
+            dalVerbose("Test elapsed: "s + std::to_string(elapsed));
+        }
+
+    };
+
+
+    void test(const float deltaTime) {
+
+    }
+
+}
 
 
 // FileLoggingChannel
@@ -106,26 +131,33 @@ namespace {
 }
 
 
-// Test codes
+// FPS counter widget
 namespace {
 
-    class RAIITimer {
+    class FPSCounter : public dal::Widget2 {
 
     private:
-        dal::TimerThatCaps m_timer;
+        //dal::Label2 m_label;
 
     public:
-        ~RAIITimer(void) {
-            const auto elapsed = this->m_timer.getElapsed();
-            dalVerbose("Test elapsed: "s + std::to_string(elapsed));
+        FPSCounter(void) 
+            : dal::Widget2(nullptr)
+        {
+            this->setPos(10.0f, 10.0f);
+            this->setSize(50.0f, 20.0f);
         }
 
+        virtual void render(const dal::UnilocOverlay& uniloc, const float width, const float height) {
+        
+        }
+
+    protected:
+        virtual void onScrSpaceBoxUpdate(void) override {
+            //this->m_label.setSize(this->getSize());
+            //this->m_label.setPos(this->getPos());
+        };
+
     };
-
-
-    void test(const float deltaTime) {
-
-    }
 
 }
 

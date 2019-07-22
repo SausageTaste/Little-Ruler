@@ -237,15 +237,26 @@ namespace dal {
 
         // Widgets 2
         {
-            auto widget = new Label2(nullptr, this->m_unicodes);
+            {
+                auto widget = new Label2(nullptr, this->m_unicodes);
 
-            widget->setText("fuck you");
-            widget->setSize(50.0f, 20.0f);
-            widget->setBackgroundColor(0.0f, 0.0f, 0.0f, 0.5f);
+                widget->setText("fuck you");
+                widget->setSize(50.0f, 20.0f);
+                widget->setBackgroundColor(0.0f, 0.0f, 0.0f, 0.5f);
 
-            this->m_toDelete2.push_front(widget);
-            this->m_widgets2.push_front(widget);
+                this->m_toDelete2.push_front(widget);
+                this->m_widgets2.push_front(widget);
+            }
             
+            {
+                auto t = new TextRenderer(nullptr);
+
+                t->setPos(100.0, 100.0);
+                t->setSize(205.0, 200.0);
+                t->setText("Fuck me.\nthishASFt;ashdljfkasjdASFflAFajsdl;fkjasl;jWEWASFfd;lasjdfljaslfjkdsaf\nAAAA\tAAAAAAAAAAAAAA");
+
+                this->giveWidgetOwnership(t);
+            }
         }
 
         // Event Master
