@@ -37,6 +37,7 @@ namespace {
 }
 
 
+// Header functions
 namespace dal {
 
     float getTime_sec(void) {
@@ -52,24 +53,7 @@ namespace dal {
 }
 
 
-namespace dal {
-
-    ScopedTimer::ScopedTimer(const std::string& msg)
-        : m_constructedTime(std::chrono::steady_clock::now()),
-        m_msg(msg)
-    {
-
-    }
-
-    ScopedTimer::~ScopedTimer(void) {
-        const auto uptime = std::chrono::steady_clock::now() - this->m_constructedTime;
-        const auto what = static_cast<double>(uptime.count()) / k_nanosecBySec_d;
-        dalDebug("ScopedTimer{{ {} }} ({}): "_format(this->m_msg, what));
-    }
-
-}
-
-
+// class Timer
 namespace dal {
 
     Timer::Timer(void)
@@ -95,6 +79,8 @@ namespace dal {
         return static_cast<float>(deltaTime_microsec) / static_cast<float>(k_microsecBySec);
     }
 
+    // Protected
+
     const std::chrono::steady_clock::time_point& Timer::getLastChecked(void) const {
         return this->m_lastChecked;
     }
@@ -102,6 +88,7 @@ namespace dal {
 }
 
 
+// class TimerThatCaps
 namespace dal {
 
     TimerThatCaps::TimerThatCaps(void)
@@ -128,6 +115,8 @@ namespace dal {
         }
     }
 
+    // Private
+
     void TimerThatCaps::waitToCapFPS(void) {
         const auto wakeTime = this->getLastChecked() + std::chrono::microseconds{ this->m_desiredDeltaMicrosec };
 #if PRINT_OVESRLEEP == 1
@@ -139,6 +128,22 @@ namespace dal {
         const auto sleepRate = double(sleepTime) / double(this->m_desiredDeltaMicrosec);
         dalDebug("Sleep rate: "s + std::to_string(sleepRate));
 #endif
+    }
+
+}
+
+
+// class ScopedTimer
+namespace dal {
+
+    ScopedTimer::ScopedTimer(const std::string& msg)
+        : m_msg(msg)
+    {
+
+    }
+
+    ScopedTimer::~ScopedTimer(void) {
+        dalDebug("ScopedTimer{{ {} }} ({}): "_format(this->m_msg, this->m_timer.getElapsed()));
     }
 
 }

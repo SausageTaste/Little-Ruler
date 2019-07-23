@@ -10,19 +10,6 @@ namespace dal {
     void sleepFor(const float v);
 
 
-    class ScopedTimer {
-
-    private:
-        std::chrono::steady_clock::time_point m_constructedTime;
-        std::string m_msg;
-
-    public:
-        ScopedTimer(const std::string& msg);
-        ~ScopedTimer(void);
-
-    };
-
-
     class Timer {
 
     private:
@@ -58,6 +45,19 @@ namespace dal {
 
     private:
         void waitToCapFPS(void);
+
+    };
+
+
+    class ScopedTimer {
+
+    private:
+        Timer m_timer;
+        std::string m_msg;
+
+    public:
+        ScopedTimer(const std::string& msg);
+        ~ScopedTimer(void);
 
     };
 
