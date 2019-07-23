@@ -179,6 +179,9 @@ namespace dal {
         GLint mUpsideDown_maskMap;
         GLint m_upsideDown_diffuseMap;
 
+        GLint u_texOffset;
+        GLint u_texScale;
+
         GLint uColor;
 
         SamplerInterf m_diffuseMap, m_maskMap;
@@ -188,6 +191,11 @@ namespace dal {
 
         const SamplerInterf& getDiffuseMap(void) const;
         const SamplerInterf& getMaskMap(void) const;
+
+        void texOffset(const float x, const float y) const;
+        void texOffset(const glm::vec2& v) const;
+        void texScale(const float x, const float y) const;
+        void texScale(const glm::vec2& v) const;
 
         void point1(const glm::vec2& v) const;
         void point2(const glm::vec2& v) const;

@@ -388,18 +388,37 @@ namespace dal {
 namespace dal {
 
     UnilocOverlay::UnilocOverlay(const GLuint shader) {
-        uPoint1 = glGetUniformLocation(shader, "uPoint1");
-        uPoint2 = glGetUniformLocation(shader, "uPoint2");
+        this->uPoint1 = getUniloc(shader, "uPoint1");
+        this->uPoint2 = getUniloc(shader, "uPoint2");
 
-        mUpsideDown_maskMap = glGetUniformLocation(shader, "mUpsideDown_maskMap");
-        m_upsideDown_diffuseMap = glGetUniformLocation(shader, "m_upsideDown_diffuseMap");
+        this->mUpsideDown_maskMap = getUniloc(shader, "mUpsideDown_maskMap");
+        this->m_upsideDown_diffuseMap = getUniloc(shader, "m_upsideDown_diffuseMap");
+
+        this->u_texOffset = getUniloc(shader, "u_texOffset");
+        this->u_texScale = getUniloc(shader, "u_texScale");
 
         // Fragment shader
 
-        uColor = glGetUniformLocation(shader, "uColor");
+        this->uColor = getUniloc(shader, "uColor");
 
         this->m_diffuseMap.init(getUniloc(shader, "mDiffuseMap"), getUniloc(shader, "mHasDiffuseMap"), g_texUnitReg["mDiffuseMap"]);
         this->m_maskMap.init(getUniloc(shader, "mMaskMap"), getUniloc(shader, "mHasMaskMap"), g_texUnitReg["mMaskMap"]);
+    }
+
+    void UnilocOverlay::texOffset(const float x, const float y) const {
+        glUniform2f(this->u_texOffset, x, y);
+    }
+
+    void UnilocOverlay::texOffset(const glm::vec2& v) const {
+        this->texOffset(v.x, v.y);
+    }
+
+    void UnilocOverlay::texScale(const float x, const float y) const {
+        glUniform2f(this->u_texScale, x, y);
+    }
+
+    void UnilocOverlay::texScale(const glm::vec2& v) const {
+        this->texScale(v.x, v.y);
     }
 
     void UnilocOverlay::point1(const glm::vec2& v) const {

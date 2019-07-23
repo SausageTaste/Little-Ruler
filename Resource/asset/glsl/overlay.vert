@@ -8,6 +8,9 @@ uniform vec2 uPoint2;
 uniform bool mUpsideDown_maskMap;
 uniform bool m_upsideDown_diffuseMap;
 
+uniform vec2 u_texOffset;
+uniform vec2 u_texScale;
+
 out vec2 vTexCoord;
 out vec2 vTexCoord_maskMap;
 
@@ -27,6 +30,8 @@ void main(void) {
     else {
         vTexCoord = iPosition;
     }
+
+    vTexCoord = vTexCoord * u_texScale + u_texOffset;
 
     vec2 newPoint = iPosition;
 

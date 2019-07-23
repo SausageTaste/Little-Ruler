@@ -132,7 +132,7 @@ namespace dal {
 
     void Label2::render(const UnilocOverlay& uniloc, const float width, const float height) {
         const auto deviceSpace = this->makeDeviceSpace(width, height);
-        renderQuadOverlay(uniloc, deviceSpace, this->m_backgroundColor, nullptr, nullptr, false, false);
+        renderQuadOverlay(uniloc, deviceSpace.first, deviceSpace.second, this->m_backgroundColor);
 
         this->m_textRenderer.render(uniloc, width, height);
     }
@@ -248,7 +248,7 @@ namespace dal {
         this->m_strBuf->clear();
 
         const auto info = this->makeDeviceSpace(width, height);
-        renderQuadOverlay(uniloc, info, glm::vec4{ g_darkTheme, g_darkTheme, g_darkTheme, 1.0f }, nullptr, nullptr, false, false);
+        renderQuadOverlay(uniloc, info.first, info.second, glm::vec4{ g_darkTheme, g_darkTheme, g_darkTheme, 1.0f });
 
         this->m_textRenderer.render(uniloc, width, height);
     }

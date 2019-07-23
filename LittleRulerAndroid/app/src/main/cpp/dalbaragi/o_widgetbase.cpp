@@ -256,8 +256,10 @@ namespace dal {
         return device2screen(p, static_cast<float>(winWidth), static_cast<float>(winHeight));
     }
 
+
     void renderQuadOverlay(const UnilocOverlay& uniloc, const glm::vec2& devSpcP1, const glm::vec2& devSpcP2, const glm::vec4& color,
-        const Texture* const diffuseMap, const Texture* const maskMap, const bool upsideDown_diffuseMap, const bool upsideDown_maskMap)
+        const Texture* const diffuseMap, const Texture* const maskMap, const bool upsideDown_diffuseMap, const bool upsideDown_maskMap,
+        const glm::vec2& texOffset, const glm::vec2& texScale)
     {
         uniloc.point1(devSpcP1);
         uniloc.point2(devSpcP2);
@@ -282,10 +284,26 @@ namespace dal {
         RealQuadRenderer2::getinst().drawArray();
     }
 
+    void renderQuadOverlay(const UnilocOverlay& uniloc, const glm::vec2& devSpcP1, const glm::vec2& devSpcP2, const glm::vec4& color,
+        const Texture* const diffuseMap, const Texture* const maskMap, const bool upsideDown_diffuseMap, const bool upsideDown_maskMap)
+    {
+        glm::vec2 nullVec2;
+        renderQuadOverlay(uniloc, devSpcP1, devSpcP2, color, diffuseMap, maskMap, upsideDown_diffuseMap, upsideDown_maskMap, nullVec2, nullVec2);
+    }
+
     void renderQuadOverlay(const UnilocOverlay& uniloc, const std::pair<glm::vec2, glm::vec2>& devSpc, const glm::vec4& color,
         const Texture* const diffuseMap, const Texture* const maskMap, const bool upsideDown_diffuseMap, const bool upsideDown_maskMap)
     {
         renderQuadOverlay(uniloc, devSpc.first, devSpc.second, color, diffuseMap, maskMap, upsideDown_diffuseMap, upsideDown_maskMap);
+    }
+
+    void renderQuadOverlay(const UnilocOverlay& uniloc, const glm::vec2& devSpcP1, const glm::vec2& devSpcP2, const glm::vec4& color) {
+        renderQuadOverlay(uniloc, devSpcP1, devSpcP2, color, nullptr, nullptr, false, false);
+    }
+
+    void renderQuadOverlay(const UnilocOverlay& uniloc, const QuadRenderInfo& info) {
+        renderQuadOverlay(uniloc, info.m_devSpcP1, info.m_devSpcP2, info.m_color, info.m_diffuseMap, info.m_maskMap,
+            info.m_upsideDown_diffuse, info.m_upsideDown_mask, info.m_texOffset, info.m_texScale);
     }
 
 }
@@ -430,6 +448,7 @@ namespace dal {
             }
 
             std::pair<glm::vec2, glm::vec2> charQuad;
+            
 
             charQuad.first.x = xAdvance + charInfo.bearing.x;
             charQuad.first.y = yHeight - charInfo.bearing.y;
@@ -454,14 +473,19 @@ namespace dal {
                 const auto p2 = glm::vec2{ charQuad.second.x + 1.0f, charQuad.second.y };
                 const auto cursorPos1 = screen2device(p1, width, height);
                 const auto cursorPos2 = screen2device(p2, width, height);
-                renderQuadOverlay(uniloc, cursorPos1, cursorPos2, this->m_textColor, nullptr, nullptr, false, false);
+                renderQuadOverlay(uniloc, cursorPos1, cursorPos2, this->m_textColor);
             }
 
-            std::pair<glm::vec2, glm::vec2> deviceSpace = std::make_pair(
-                screen2device(charQuad.first, width, height),
-                screen2device(charQuad.second, width, height)
-            );
-            renderQuadOverlay(uniloc, deviceSpace, this->m_textColor, nullptr, charInfo.tex, false, false);
+            QuadRenderInfo charQuadInfo;
+            {
+                charQuadInfo.m_devSpcP1 = screen2device(charQuad.first, width, height);
+                charQuadInfo.m_devSpcP2 = screen2device(charQuad.second, width, height);
+
+                charQuadInfo.m_color = this->m_textColor;
+                charQuadInfo.m_maskMap = charInfo.tex;
+            }
+
+            renderQuadOverlay(uniloc, charQuadInfo);
 
             xAdvance += (charInfo.advance >> 6);
         }
@@ -471,7 +495,7 @@ namespace dal {
             const auto p2 = glm::vec2{ xAdvance + 1.0f, yHeight };
             const auto cursorPos1 = screen2device(p1, width, height);
             const auto cursorPos2 = screen2device(p2, width, height);
-            renderQuadOverlay(uniloc, cursorPos1, cursorPos2, this->m_textColor, nullptr, nullptr, false, false);
+            renderQuadOverlay(uniloc, cursorPos1, cursorPos2, this->m_textColor);
         }
     }
 
