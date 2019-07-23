@@ -9,6 +9,7 @@
 #include "s_event.h"
 #include "p_globalfsm.h"
 #include "o_overlay_master.h"
+#include "o_widget_texview.h"
 #include "g_actor.h"
 
 
@@ -23,7 +24,7 @@ namespace dal {
              */
 
         private:
-            dal::QuadRenderer m_fixedCenterPoint, m_touchedPoint;
+            dal::ColoredTile m_fixedCenterPoint, m_touchedPoint;
 
             glm::vec2 m_touchedPos;
             touchID_t m_owning = -1;

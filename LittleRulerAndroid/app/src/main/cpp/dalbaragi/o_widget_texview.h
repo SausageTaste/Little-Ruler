@@ -1,35 +1,39 @@
 #pragma once
 
-#include "o_widget_base.h"
 #include "p_dalopengl.h"
 #include "p_resource.h"
+#include "o_widgetbase.h"
 
 
 namespace dal {
 
-    class TextureView : public Widget {
+    class TextureView : public Widget2 {
 
     private:
-        QuadRenderer m_quadRender;
+        Texture* m_tex;
+        bool m_upsideDown;
 
     public:
-        TextureView(Widget* parent, const Texture* const tex = nullptr);
-        virtual void renderOverlay(const UnilocOverlay& uniloc) override;
-        void setTexture(Texture* const tex);
+        TextureView(Widget2* parent, const Texture* const tex = nullptr);
 
+        virtual void render(const UnilocOverlay& uniloc, const float width, const float height) override;
+
+        void setTexture(Texture* const tex);
         void setUpsideDown(const bool v);
 
     };
 
 
-    class ColoredTile : public Widget {
+    class ColoredTile : public Widget2 {
 
     private:
-        QuadRenderer m_quadRender;
+        glm::vec4 m_color;
 
     public:
-        ColoredTile(Widget* const parent, const float r, const float g, const float b, const float a);
-        virtual void renderOverlay(const UnilocOverlay& uniloc) override;
+        ColoredTile(Widget2* const parent, const float r, const float g, const float b, const float a);
+
+        virtual void render(const UnilocOverlay& uniloc, const float width, const float height) override;
+
         void setColor(const float r, const float g, const float b, const float a);
 
     };

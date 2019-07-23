@@ -244,8 +244,8 @@ namespace dal {
             {
                 auto w = new LineEdit(nullptr);
 
-                w->setPos(300, 20);
-                w->setSize(200, 20);
+                w->setPos(20, 50);
+                w->setSize(500, 20);
 
                 this->giveWidgetOwnership(w);
             }
@@ -253,8 +253,8 @@ namespace dal {
             {
                 auto w = new TextBox(nullptr);
 
-                w->setPos(300, 50);
-                w->setSize(200, 300);
+                w->setPos(20, 80);
+                w->setSize(500, 400);
                 w->replaceBuffer(script::getLuaStdOutBuffer());
 
                 this->giveWidgetOwnership(w);

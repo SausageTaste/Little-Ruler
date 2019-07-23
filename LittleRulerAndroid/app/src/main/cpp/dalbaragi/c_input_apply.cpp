@@ -178,7 +178,6 @@ namespace {
         int32_t m_moveOccupier = -1;
 
         static constexpr float k_touchDrawerThiccness = 20.0f;
-        std::vector<dal::ColoredTile> m_touchDrawers;
 
         //////// Func ////////
 
@@ -215,8 +214,6 @@ namespace {
                         const auto moveStickPos = clampVec(glm::vec2{ pos.x, pos.y } - state.m_lastDownPos, widthOrHeightButShorter / DPAD_RADIUS_FACTOR_INV) + state.m_lastDownPos;
                         state.m_pos = moveStickPos;
                     }
-
-                    this->updateTouchDrawer(touch.id);
                 }
                 else if ( dal::TouchType::down == touch.type ) {
                     state.m_pos = pos;
@@ -228,20 +225,15 @@ namespace {
 
                     if ( touch.x < aThridWidth && -1 == this->m_moveOccupier ) {
                         this->m_moveOccupier = touch.id;
-                        this->setTouchDrawer(k_maxTouchCount, state.m_lastDownPos.x, state.m_lastDownPos.y);
                     }
-
-                    this->setTouchDrawer(touch.id, pos.x, pos.y);
                 }
                 else if ( dal::TouchType::up == touch.type ) {
                     state.m_pos = pos;
                     state.m_sec = touch.timeSec;
                     state.m_down = false;
-                    this->hideTouchDrawer(touch.id);
 
                     if ( touch.id == this->m_moveOccupier ) {
                         this->m_moveOccupier = -1;
-                        this->hideTouchDrawer(k_maxTouchCount);
                     }
                 }
                 else {
@@ -326,20 +318,6 @@ namespace {
             this->m_moveOccupier = -1;
         }
 
-        void initOverlay(dal::OverlayMaster& overlay) {
-            this->m_touchDrawers.reserve(k_maxTouchCount + 1);
-
-            for ( size_t i = 0; i < k_maxTouchCount + 1; ++i ) {
-                auto& added = this->m_touchDrawers.emplace_back(nullptr, 1.0f, 1.0f, 1.0f, 1.0f);
-
-                added.setWidth(this->k_touchDrawerThiccness);
-                added.setHeight(this->k_touchDrawerThiccness);
-                added.setPosX(-100.0f);
-                added.setPosY(-100.0f);
-                added.setPauseOnly(false);
-            }
-        }
-
     private:
         static bool isTap(const TouchState& state) {
             if ( dal::getTime_sec() - state.m_lastDownSec > 0.2f ) return false;
@@ -348,30 +326,6 @@ namespace {
             if ( glm::length(rel) > 10.0f ) return false;
 
             return true;
-        }
-
-        void updateTouchDrawer(const int32_t index) {
-            if ( static_cast<int64_t>(this->m_touchDrawers.size()) > index ) {
-                auto& wid = this->m_touchDrawers[index];
-                wid.setPosX(this->m_thisStates[index].m_pos.x - this->k_touchDrawerThiccness * 0.5f);
-                wid.setPosY(this->m_thisStates[index].m_pos.y - this->k_touchDrawerThiccness * 0.5f);
-            }
-        }
-
-        void setTouchDrawer(const int32_t index, const float x, const float y) {
-            if ( static_cast<int64_t>(this->m_touchDrawers.size()) > index ) {
-                auto& wid = this->m_touchDrawers[index];
-                wid.setPosX(x - this->k_touchDrawerThiccness * 0.5f);
-                wid.setPosY(y - this->k_touchDrawerThiccness * 0.5f);
-            }
-        }
-
-        void hideTouchDrawer(const int32_t index) {
-            if ( static_cast<int64_t>(this->m_touchDrawers.size()) > index ) {
-                auto& wid = this->m_touchDrawers[index];
-                wid.setPosX(-100.0f - this->k_touchDrawerThiccness * 0.5f);
-                wid.setPosY(-100.0f - this->k_touchDrawerThiccness * 0.5f);
-            }
         }
 
     } g_touchMas;  // class TouchStatesMaster
@@ -881,7 +835,7 @@ namespace {
 namespace {
 
     static constexpr float CORNER_MARGIN = 40.0f;
-    static constexpr float RENDERED_POINT_EDGE_LEN_HALF = 5.0f;
+    static constexpr float RENDERED_POINT_EDGE_LEN_HALF = 10.0f;
 
 }
 
@@ -891,28 +845,23 @@ namespace dal {
 
     InputApplier::MoveDPad::MoveDPad(dal::Widget2* const parent, const float winWidth, const float winHeight)
         : Widget2(parent)
+        , m_fixedCenterPoint(this, 1.0f, 1.0f, 1.0f, 1.0f)
+        , m_touchedPoint(this, 1.0f, 1.0f, 1.0f, 1.0f)
     {
         this->onParentResize(winWidth, winHeight);
 
-        this->m_fixedCenterPoint.setColor(1.0, 1.0, 1.0, 1.0);
-        this->m_touchedPoint.setColor(1.0, 1.0, 1.0, 1.0);
+        this->m_fixedCenterPoint.setSize(RENDERED_POINT_EDGE_LEN_HALF * 2.0f, RENDERED_POINT_EDGE_LEN_HALF * 2.0f);
+        this->m_fixedCenterPoint.setPos(this->makeFixedCenterPos() - RENDERED_POINT_EDGE_LEN_HALF);
+
+        this->m_touchedPoint.setSize(RENDERED_POINT_EDGE_LEN_HALF * 2.0f, RENDERED_POINT_EDGE_LEN_HALF * 2.0f);
     }
 
     void InputApplier::MoveDPad::render(const UnilocOverlay& uniloc, const float width, const float height) {
-        {
-            const auto fixedCenterPos = this->makeFixedCenterPos();
-            this->m_fixedCenterPoint.renderQuad(uniloc,
-                screen2device(fixedCenterPos - RENDERED_POINT_EDGE_LEN_HALF, width, height),
-                screen2device(fixedCenterPos + RENDERED_POINT_EDGE_LEN_HALF, width, height)
-            );
-        }
-
+        this->m_fixedCenterPoint.render(uniloc, width, height);
 
         if ( -1 != this->m_owning ) {
-            this->m_touchedPoint.renderQuad(uniloc,
-                screen2device(this->m_touchedPos - RENDERED_POINT_EDGE_LEN_HALF, width, height),
-                screen2device(this->m_touchedPos + RENDERED_POINT_EDGE_LEN_HALF, width, height)
-            );
+            this->m_touchedPoint.setPos(this->m_touchedPos - RENDERED_POINT_EDGE_LEN_HALF);
+            this->m_touchedPoint.render(uniloc, width, height);
         }
     }
 
@@ -954,6 +903,8 @@ namespace dal {
         const auto edgeLen = shorter * 0.5f;
         this->setPos(CORNER_MARGIN, height - edgeLen - CORNER_MARGIN);
         this->setSize(edgeLen, edgeLen);
+
+        this->m_fixedCenterPoint.setPos(this->makeFixedCenterPos() - RENDERED_POINT_EDGE_LEN_HALF);
     }
 
     glm::vec2 InputApplier::MoveDPad::getRel(void) const {
@@ -1084,8 +1035,6 @@ namespace dal {
     {
         this->mHandlerName = "InputApplier";
         EventGod::getinst().registerHandler(this, EventType::global_fsm_change);
-
-        g_touchMas.initOverlay(overlayMas);
 
         this->m_overlayMas.giveBackgroudWidgetRef(&this->m_ctrlInputWidget);
     }
