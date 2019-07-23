@@ -289,6 +289,7 @@ namespace dal {
         CharPassFlag isCharQuadInside(glm::vec2& p1, glm::vec2& p2) const;
         std::string::iterator findNextReturnChar(std::string::iterator begin, const std::string::iterator& end);
         void makeOffsetApproch(void);
+        std::pair<glm::vec2, glm::vec2> makeCutCharArea(glm::vec2 p1, glm::vec2 p2);
 
     };
 

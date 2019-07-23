@@ -25,13 +25,15 @@ void main(void) {
     }
 
     if (m_upsideDown_diffuseMap) {
-        vTexCoord = vec2( iPosition.x, 1.0 - iPosition.y );
+        //vTexCoord = vec2( iPosition.x, 1.0 - iPosition.y );
+        vTexCoord = iPosition;
     }
     else {
         vTexCoord = iPosition;
     }
 
     vTexCoord = vTexCoord * u_texScale + u_texOffset;
+    vTexCoord_maskMap = vTexCoord_maskMap * u_texScale + u_texOffset;
 
     vec2 newPoint = iPosition;
 

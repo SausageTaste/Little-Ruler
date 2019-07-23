@@ -102,6 +102,30 @@ namespace {
 
 namespace {
 
+    using vec2Pair_t = std::pair<glm::vec2, glm::vec2>;
+
+    vec2Pair_t calcScaleOffset(const vec2Pair_t& larger, const vec2Pair_t& smaller) {
+        const auto lWidth = larger.second.x - larger.first.x;
+        const auto lHeight = larger.second.y - larger.first.y;
+        const auto sWidth = smaller.second.x - smaller.first.x;
+        const auto sHeight = smaller.second.y - smaller.first.y;
+
+        const glm::vec2 scale{ sWidth / lWidth , sHeight / lHeight };
+
+        // IDK why but I need to assume that origin of tex coords is upper left.
+        const glm::vec2 lPoint01{ larger.first };
+        const glm::vec2 sPoint01{ smaller.first };
+
+        const glm::vec2 offset{ (sPoint01.x - lPoint01.x) / lWidth, (sPoint01.y - lPoint01.y) / lHeight };
+
+        return std::make_pair(scale, offset);
+    }
+
+}
+
+
+namespace {
+
     class RealQuadRenderer2 {
 
     private:
@@ -266,6 +290,8 @@ namespace dal {
         uniloc.color(color);
         uniloc.upsideDownDiffuseMap(upsideDown_diffuseMap);
         uniloc.upsideDownMaskMap(upsideDown_maskMap);
+        uniloc.texOffset(texOffset);
+        uniloc.texScale(texScale);
 
         if ( nullptr != diffuseMap ) {
             diffuseMap->sendUniform(uniloc.getDiffuseMap());
@@ -436,7 +462,7 @@ namespace dal {
             auto& charInfo = g_charCache.at(c, this->m_textSize);
 
             // Carriage return if current line is full.
-            if ( xAdvance + charInfo.size.x >= parentP2.x ) {
+            if ( xAdvance >= parentP2.x ) {
                 if ( this->m_wordWrap ) {
                     yHeight += static_cast<float>(this->m_textSize) * this->m_lineSpacingRate;
                     xAdvance = xInit;
@@ -476,13 +502,22 @@ namespace dal {
                 renderQuadOverlay(uniloc, cursorPos1, cursorPos2, this->m_textColor);
             }
 
+            const auto charQuadCut = this->makeCutCharArea(charQuad.first, charQuad.second);
+
             QuadRenderInfo charQuadInfo;
             {
-                charQuadInfo.m_devSpcP1 = screen2device(charQuad.first, width, height);
-                charQuadInfo.m_devSpcP2 = screen2device(charQuad.second, width, height);
+                charQuadInfo.m_devSpcP1 = screen2device(charQuadCut.first, width, height);
+                charQuadInfo.m_devSpcP2 = screen2device(charQuadCut.second, width, height);
 
                 charQuadInfo.m_color = this->m_textColor;
                 charQuadInfo.m_maskMap = charInfo.tex;
+
+                if ( charQuadCut.first != charQuad.first || charQuadCut.second != charQuad.second ) {
+                    const auto [scale, offset] = calcScaleOffset(charQuad, charQuadCut);
+
+                    charQuadInfo.m_texScale = scale;
+                    charQuadInfo.m_texOffset = offset;
+                }
             }
 
             renderQuadOverlay(uniloc, charQuadInfo);
@@ -541,17 +576,17 @@ namespace dal {
     TextRenderer::CharPassFlag TextRenderer::isCharQuadInside(glm::vec2& p1, glm::vec2& p2) const {
         const auto pp11 = this->getPoint11();
 
-        if ( p2.x > pp11.x ) {
+        if ( p1.x > pp11.x ) {
             // This shouldn't happen because carriage return already dealt in render function body.
             return CharPassFlag::carriageReturn;
         }
-        else if ( p2.y > pp11.y ) {
+        else if ( p1.y > pp11.y ) {
             return CharPassFlag::continuee;
         }
-        else if ( p1.x < this->getPosX() ) {
+        else if ( p2.x < this->getPosX() ) {
             return CharPassFlag::continuee;
         }
-        else if ( p1.y < this->getPosY() ) {
+        else if ( p2.y < this->getPosY() ) {
             return CharPassFlag::continuee;
         }
         else {
@@ -581,6 +616,26 @@ namespace dal {
         if ( this->m_offset.y > 0 ) {
             this->m_offset.y = this->m_offset.y * 0.9f;
         }
+    }
+
+    std::pair<glm::vec2, glm::vec2> TextRenderer::makeCutCharArea(glm::vec2 p1, glm::vec2 p2) {
+        if ( p1.x < this->getPosX() ) {
+            p1.x = this->getPosX();
+        }
+        if ( p1.y < this->getPosY() ) {
+            p1.y = this->getPosY();
+        }
+
+        const auto pp11 = this->getPoint11();
+
+        if ( p2.x > pp11.x ) {
+            p2.x = pp11.x;
+        }
+        if ( p2.y > pp11.y ) {
+            p2.y = pp11.y;
+        }
+
+        return std::make_pair(p1, p2);
     }
 
 }
