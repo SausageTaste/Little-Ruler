@@ -51,8 +51,6 @@ namespace {
         return static_cast<dal::KeySpec>(index + static_cast<unsigned int>(dal::KeySpec::unknown));
     }
 
-    
-
     /*
     In OpenGL coordinate system, if input is (x, z), rotation follows left hand rule.
     */
@@ -779,7 +777,9 @@ namespace {
                     cpntTrans.m_quat = dal::rotateQuat(glm::quat{}, atan2(rotatedMoveVec.x, rotatedMoveVec.y), glm::vec3{ 0.0f, 1.0f, 0.0f });
                     if ( reg.has<dal::cpnt::AnimatedModel>(targetEntity) ) {
                         auto& animModel = reg.get<dal::cpnt::AnimatedModel>(targetEntity);
+
                         animModel.m_animState.setSelectedAnimeIndex(1);
+
                         const auto moveSpeed = glm::length(rotatedMoveVec);
                         const auto animeSpeed = 1.0f / moveSpeed;
                         constexpr float epsilon = 0.0001f;

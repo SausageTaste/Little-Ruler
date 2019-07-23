@@ -142,7 +142,9 @@ namespace dal {
         }
 
         void setSelectedAnimeIndex(const unsigned int index) {
-            this->m_selectedAnimIndex = index;
+            if ( this->m_selectedAnimIndex != index ) {
+                this->m_selectedAnimIndex = index;
+            }
         }
         void setTimeScale(const float scale) {
             this->m_timeScale = scale;
