@@ -15,20 +15,6 @@ using namespace std::string_literals;
 // Test codes
 namespace {
 
-    class RAIITimer {
-
-    private:
-        dal::TimerThatCaps m_timer;
-
-    public:
-        ~RAIITimer(void) {
-            const auto elapsed = this->m_timer.getElapsed();
-            dalVerbose("Test elapsed: "s + std::to_string(elapsed));
-        }
-
-    };
-
-
     void test(const float deltaTime) {
 
     }
