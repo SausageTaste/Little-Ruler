@@ -175,7 +175,7 @@ namespace {
 // TextStreamChannel
 namespace dal {
 
-    OverlayMaster::TextStreamChannel::TextStreamChannel(dal::TextStream& texStream)
+    OverlayMaster::TextStreamChannel::TextStreamChannel(dal::StringBufferBasic& texStream)
         : m_texStream(texStream)
     {
 
@@ -183,32 +183,32 @@ namespace dal {
 
     void OverlayMaster::TextStreamChannel::verbose(const char* const str, const int line, const char* const func, const char* const file) {
         const auto text = "[VERBO] "s + str + '\n';
-        this->m_texStream.append(text);
+        this->m_texStream.append(text.data(), text.size());
     }
 
     void OverlayMaster::TextStreamChannel::debug(const char* const str, const int line, const char* const func, const char* const file) {
         const auto text = "[DEBUG] "s + str + '\n';
-        this->m_texStream.append(text);
+        this->m_texStream.append(text.data(), text.size());
     }
 
     void OverlayMaster::TextStreamChannel::info(const char* const str, const int line, const char* const func, const char* const file) {
         const auto text = "[INFO] "s + str + '\n';
-        this->m_texStream.append(text);
+        this->m_texStream.append(text.data(), text.size());
     }
 
     void OverlayMaster::TextStreamChannel::warn(const char* const str, const int line, const char* const func, const char* const file) {
         const auto text = "[WARN] "s + str + '\n';
-        this->m_texStream.append(text);
+        this->m_texStream.append(text.data(), text.size());
     }
 
     void OverlayMaster::TextStreamChannel::error(const char* const str, const int line, const char* const func, const char* const file) {
         const auto text = "[ERROR] "s + str + '\n';
-        this->m_texStream.append(text);
+        this->m_texStream.append(text.data(), text.size());
     }
 
     void OverlayMaster::TextStreamChannel::fatal(const char* const str, const int line, const char* const func, const char* const file) {
         const auto text = "[FATAL] "s + str + '\n';
-        this->m_texStream.append(text);
+        this->m_texStream.append(text.data(), text.size());
     }
 
 }
@@ -221,14 +221,13 @@ namespace dal {
         , m_shaderMas(shaderMas)
         , m_unicodes(resMas)
         , mGlobalFSM(GlobalGameState::game)
-        , m_texStreamCh(m_strBuffer)
+        , m_texStreamCh(*script::getLuaStdOutBuffer())
         , m_winWidth(static_cast<float>(width))
         , m_winHeight(static_cast<float>(height))
         , m_backgroundWidget(nullptr)
         , m_backgroundOwned(false)
     {
         ConfigsGod::getinst().setWinSize(width, height);
-        script::set_outputStream(&this->m_strBuffer);
 
         // Widgets 2
         {
@@ -247,6 +246,16 @@ namespace dal {
 
                 w->setPos(300, 20);
                 w->setSize(200, 20);
+
+                this->giveWidgetOwnership(w);
+            }
+
+            {
+                auto w = new TextBox(nullptr);
+
+                w->setPos(300, 50);
+                w->setSize(200, 300);
+                w->replaceBuffer(script::getLuaStdOutBuffer());
 
                 this->giveWidgetOwnership(w);
             }

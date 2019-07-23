@@ -15,15 +15,7 @@ using namespace std::string_literals;
 // DefaultOutputStream
 namespace {
 
-    class DefaultOutputStream : public dal::LuaStdOutput {
-
-        virtual bool append(const char* const str) override {
-            std::cout << str;
-
-            return true;
-        }
-
-    } g_defaultOutput;
+    dal::StringBufferBasic g_defaultOutput;
 
 }
 
@@ -36,14 +28,14 @@ namespace {
     private:
         static dal::RenderMaster* s_renderMas;
         static dal::SceneMaster* s_sceneMas;
-        static dal::LuaStdOutput* s_output;
+        static dal::StringBufferBasic* s_output;
 
     public:
-        static void set_output(dal::LuaStdOutput* ptr) {
+        static void set_output(dal::StringBufferBasic* ptr) {
             s_output = ptr;
         }
 
-        static dal::LuaStdOutput* get_output(void) {
+        static dal::StringBufferBasic* get_output(void) {
             return s_output;
         }
 
@@ -66,7 +58,7 @@ namespace {
 
     dal::RenderMaster* ExternalDependencies::s_renderMas = nullptr;
     dal::SceneMaster* ExternalDependencies::s_sceneMas = nullptr;
-    dal::LuaStdOutput* ExternalDependencies::s_output = &g_defaultOutput;
+    dal::StringBufferBasic* ExternalDependencies::s_output = &g_defaultOutput;
 
 }
 
@@ -86,11 +78,11 @@ namespace {
             auto aText = lua_tostring(L, i);
             if ( nullptr == aText ) continue;
 
-            output->append(aText);
-            output->append(" ");
+            output->append(aText, std::strlen(aText));
+            output->append(' ');
         }
 
-        output->append("\n");
+        output->append('\n');
         return 0;
     }
 
@@ -140,8 +132,12 @@ namespace dal {
             ExternalDependencies::init(renderMaster, sceneMaster);
         }
 
-        void set_outputStream(LuaStdOutput* const ptr) {
+        void set_outputStream(StringBufferBasic* const ptr) {
             ExternalDependencies::set_output(ptr);
+        }
+
+        StringBufferBasic* getLuaStdOutBuffer(void) {
+            return ExternalDependencies::get_output();
         }
 
     }
@@ -177,8 +173,8 @@ namespace dal {
 
             auto output = ExternalDependencies::get_output();
             if ( output != nullptr ) {
-                output->append(srrMsg);
-                output->append("\n");
+                output->append(srrMsg, std::strlen(srrMsg));
+                output->append('\n');
             }
 
             lua_pop(L, 1);

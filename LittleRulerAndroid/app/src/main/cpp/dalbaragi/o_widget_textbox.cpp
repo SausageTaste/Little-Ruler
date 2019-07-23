@@ -232,159 +232,45 @@ namespace dal {
 
 namespace dal {
 
-    bool TextStream::append(const char* const str) {
-        return this->append(str, std::strlen(str));
-    }
-
-    bool TextStream::append(const std::string& str) {
-        return this->append(str.c_str(), str.size());
-    }
-
-    const char* TextStream::get(void) {
-        if ( 0 == this->m_topIndex ) return nullptr;
-
-        this->m_buffer.at(this->m_topIndex) = '\0';
-        return this->m_buffer.data();
-    }
-
-    void TextStream::clear(void) {
-        this->m_topIndex = 0;
-    }
-
-    unsigned int TextStream::getSize(void) const {
-        return this->m_topIndex;
-    }
-
-    unsigned int TextStream::getReserved(void) const {
-        return this->m_buffer.size();
-    }
-
-    // Private
-
-    bool TextStream::append(const char* const ptr, const size_t size) {
-        const auto remaining = this->getReserved() - this->getSize();
-
-        if ( size > remaining ) {
-            return false;
-        }
-
-        std::memcpy(&this->m_buffer[this->m_topIndex], ptr, size);
-        this->m_topIndex += size;
-        return true;
-    }
-
-}
-
-
-namespace dal {
-
-    TextBox::TextBox(Widget* parent, UnicodeCache& unicodes)
-        : Widget(parent),
-        m_unicodes(unicodes)
+    TextBox::TextBox(Widget2* const parent)
+        : Widget2(parent)
+        , m_textRenderer(this)
+        , m_strBuf(nullptr)
     {
-        this->m_quadRender.setColor(g_darkTheme, g_darkTheme, g_darkTheme, 1.0f);
+
     }
 
-    TextStream* TextBox::setStrBuf(TextStream* const strBuf) {
-        auto tmp = this->m_strBuffer;
-        this->m_strBuffer = strBuf;
+    void TextBox::render(const UnilocOverlay& uniloc, const float width, const float height) {
+        auto str = this->m_strBuf->getStrBuf();
+        if ( nullptr != str ) {
+            this->m_textRenderer.appendText(str);
+        }
+        this->m_strBuf->clear();
+
+        const auto info = this->makeDeviceSpace(width, height);
+        renderQuadOverlay(uniloc, info, glm::vec4{ g_darkTheme, g_darkTheme, g_darkTheme, 1.0f }, nullptr, nullptr, false, false);
+
+        this->m_textRenderer.render(uniloc, width, height);
+    }
+
+    InputCtrlFlag TextBox::onTouch(const TouchEvent& e) {
+        return this->m_textRenderer.onTouch(e);
+    }
+
+    InputCtrlFlag TextBox::onKeyInput(const KeyboardEvent& e, const KeyAdditionalStates& additional) {
+        return InputCtrlFlag::ignored;
+    }
+
+    StringBufferBasic* TextBox::replaceBuffer(StringBufferBasic* const buffer) {
+        const auto tmp = this->m_strBuf;
+        this->m_strBuf = buffer;
         return tmp;
     }
 
-    void TextBox::renderOverlay(const UnilocOverlay& uniloc) {
-        this->fetchStream();
-        m_quadRender.renderQuad(uniloc, this->getDeviceSpace());
+    // Protected
 
-        {
-            auto info = this->makeScreenSpace();
-
-            const float xInit = info.p1.x + 5.0f;
-            float xAdvance = xInit;
-            float yHeight = info.p1.y + 20.0f - this->m_scroll;
-
-            auto header = this->m_text.begin();
-            const auto end = this->m_text.end();
-
-            while ( end != header ) {
-                uint32_t c = 0;
-                {
-                    const auto ch = static_cast<uint8_t>(*header++);
-                    const auto codeSize = utf8_codepoint_size(ch);
-                    if ( codeSize > 1 ) {
-                        std::vector<uint8_t> buffer;
-                        for ( size_t i = 0; i < codeSize; i++ ) {
-                            buffer.push_back(ch);
-                        }
-
-                        c = convert_utf8_to_utf32(&buffer[0], &buffer[0] + buffer.size());
-                    }
-                    else {
-                        c = ch;
-                    }
-                }
-
-                if ( '\n' == c ) {
-                    yHeight += 20.0f;
-                    xAdvance = xInit;
-                    continue;
-                }
-                else if ( '\t' == c ) {
-                    xAdvance += 20.0f;
-                    continue;
-                }
-
-                auto& charac = this->m_unicodes.at(c);
-
-                // Returns if line is full.
-                if ( xAdvance + charac.size.x >= info.p2.x ) {
-                    yHeight += 20.0f;
-                    xAdvance = xInit;
-                }
-
-                QuadInfo charQuad;
-
-                charQuad.p1.x = xAdvance + charac.bearing.x;
-                charQuad.p1.y = yHeight - charac.bearing.y;
-                if ( charQuad.p1.y < info.p1.y ) continue;
-
-                charQuad.p2.x = charQuad.p1.x + charac.size.x;
-                charQuad.p2.y = charQuad.p1.y + charac.size.y;
-                if ( charQuad.p2.y > info.p2.y ) return;
-
-                QuadRenderer::statelessRender(uniloc, charQuad.screen2device(), { 1.0, 1.0, 1.0, 1.0 }, nullptr, charac.tex, false, true);
-
-                xAdvance += (charac.advance >> 6);
-            }
-        }
-    }
-
-    int TextBox::addScroll(int v) {
-        this->m_scroll += v;
-        return this->m_scroll;
-    }
-
-    void TextBox::onClick(const float x, const float y) {
-        constexpr int scrollSpeed = 20;
-        const auto halfHeightScreen = this->getPosY() + this->getHeight() * 0.5f;
-
-        if ( halfHeightScreen < y ) {
-            this->m_scroll += scrollSpeed;
-        }
-        else {
-            this->m_scroll -= scrollSpeed;
-        }
-    }
-
-    // Private
-
-    void TextBox::fetchStream(void) {
-        if ( nullptr == this->m_strBuffer ) return;
-
-        auto str = this->m_strBuffer->get();
-        if ( nullptr == str ) return;
-
-        this->m_text += str;
-        this->m_strBuffer->clear();
+    void TextBox::onScrSpaceBoxUpdate(void) {
+        this->m_textRenderer.copy(*this);
     }
 
 }

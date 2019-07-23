@@ -21,10 +21,10 @@ namespace dal {
         class TextStreamChannel : public dal::ILoggingChannel {
 
         private:
-            dal::TextStream& m_texStream;
+            dal::StringBufferBasic& m_texStream;
 
         public:
-            TextStreamChannel(dal::TextStream& texStream);
+            TextStreamChannel(dal::StringBufferBasic& texStream);
 
             virtual void verbose(const char* const str, const int line, const char* const func, const char* const file) override;
             virtual void debug(const char* const str, const int line, const char* const func, const char* const file) override;
@@ -45,7 +45,6 @@ namespace dal {
 
         GlobalGameState mGlobalFSM;
 
-        TextStream m_strBuffer;
         TextStreamChannel m_texStreamCh;
 
         // If bool is true, the widget must be deleted in this class.

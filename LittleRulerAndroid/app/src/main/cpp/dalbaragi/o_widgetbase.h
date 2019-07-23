@@ -36,6 +36,11 @@ namespace dal {
     public:
         virtual ~IScreenSpaceBox(void) = default;
 
+        void copy(const IScreenSpaceBox& other) {
+            this->m_pos = other.m_pos;
+            this->m_size = other.m_size;
+        }
+
         float getPosX(void) const {
             return this->m_pos.x;
         }
@@ -131,7 +136,6 @@ namespace dal {
         };
 
     private:
-        glm::vec2 m_offset;
         Widget2* m_parent;
         bool m_flagDraw;
 
@@ -170,23 +174,28 @@ namespace dal {
 
     class TextRenderer : public Widget2 {
 
+    private:
+        enum class CharPassFlag { okk, continuee, breakk, carriageReturn };
+
     public:
         static constexpr size_t cursorNullPos = SIZE_MAX;
 
     private:
         std::string m_text;
         glm::vec4 m_textColor;
-        glm::vec2 m_offset;
+        glm::vec2 m_offset, m_lastTouchPos;
         Timer m_cursorTimer;
         size_t m_cursorPos;
         unsigned int m_textSize;
         float m_lineSpacingRate;
         bool m_wordWrap;
+        touchID_t m_owning;
 
     public:
         TextRenderer(Widget2* const parent);
 
         virtual void render(const UnilocOverlay& uniloc, const float width, const float height) override;
+        virtual InputCtrlFlag onTouch(const TouchEvent& e) override;
 
         const std::string& getText(void) const {
             return this->m_text;
@@ -259,6 +268,9 @@ namespace dal {
 
     private:
         bool canDrawCursor(void);
+        CharPassFlag isCharQuadInside(glm::vec2& p1, glm::vec2& p2) const;
+        std::string::iterator findNextReturnChar(std::string::iterator begin, const std::string::iterator& end);
+        void makeOffsetApproch(void);
 
     };
 

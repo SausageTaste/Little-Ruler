@@ -6,22 +6,15 @@ extern "C" {
 #include <lualib.h>
 }
 
+#include "u_strbuf.h"
+
 
 namespace dal {
-
-    class LuaStdOutput {
-
-    public:
-        virtual ~LuaStdOutput(void) = default;
-        virtual bool append(const char* const str) = 0;
-
-    };
-
 
     namespace script {
 
         void init(void* const renderMaster, void* const sceneMaster);
-        void set_outputStream(LuaStdOutput* const ptr);
+        StringBufferBasic* getLuaStdOutBuffer(void);
 
     }
 

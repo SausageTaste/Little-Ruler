@@ -356,11 +356,14 @@ namespace dal {
         , m_textSize(15)
         , m_lineSpacingRate(1.2f)
         , m_wordWrap(false)
+        , m_owning(-1)
     {
 
     }
 
     void TextRenderer::render(const UnilocOverlay& uniloc, const float width, const float height) {
+        this->makeOffsetApproch();
+
         const auto parentP2 = this->getPoint11();
 
         const float xInit = this->getPosX() + this->m_offset.x;
@@ -376,6 +379,8 @@ namespace dal {
             ++charCount;
 
             uint32_t c = 0;
+
+            // Fetch utf-32 char
             {
                 const auto ch = static_cast<uint8_t>(*header++);
                 const auto codeSize = utf8_codepoint_size(ch);
@@ -393,18 +398,21 @@ namespace dal {
                 }
             }
 
-            if ( '\n' == c ) {
-                yHeight += static_cast<float>(this->m_textSize) * this->m_lineSpacingRate;
-                xAdvance = xInit;
-                continue;
-            }
-            else if ( '\t' == c ) {
-                xAdvance += TAP_CHAR_WIDTH;
-                continue;
-            }
-            else if ( ' ' == c ) {
-                xAdvance += g_charCache.at(c, this->m_textSize).advance >> 6;
-                continue;
+            // Process control char
+            {
+                if ( '\n' == c ) {
+                    yHeight += static_cast<float>(this->m_textSize) * this->m_lineSpacingRate;
+                    xAdvance = xInit;
+                    continue;
+                }
+                else if ( '\t' == c ) {
+                    xAdvance += TAP_CHAR_WIDTH;
+                    continue;
+                }
+                else if ( ' ' == c ) {
+                    xAdvance += g_charCache.at(c, this->m_textSize).advance >> 6;
+                    continue;
+                }
             }
 
             auto& charInfo = g_charCache.at(c, this->m_textSize);
@@ -416,6 +424,7 @@ namespace dal {
                     xAdvance = xInit;
                 }
                 else {
+                    header = this->findNextReturnChar(header, end);
                     continue;
                 }
             }
@@ -424,14 +433,20 @@ namespace dal {
 
             charQuad.first.x = xAdvance + charInfo.bearing.x;
             charQuad.first.y = yHeight - charInfo.bearing.y;
-            if ( charQuad.first.y < this->getPosY() ) {
-                continue;
-            }
-
             charQuad.second.x = charQuad.first.x + charInfo.size.x;
             charQuad.second.y = charQuad.first.y + charInfo.size.y;
-            if ( charQuad.second.y > parentP2.y ) {
+
+            const auto flag = this->isCharQuadInside(charQuad.first, charQuad.second);
+            if ( CharPassFlag::breakk == flag ) {
                 break;
+            }
+            else if ( CharPassFlag::continuee == flag ) {
+                xAdvance += (charInfo.advance >> 6);
+                continue;
+            }
+            else if ( CharPassFlag::carriageReturn == flag ) {
+                header = this->findNextReturnChar(header, end);
+                continue;
             }
 
             if ( this->m_cursorPos == charCount && this->canDrawCursor() ) {
@@ -460,8 +475,88 @@ namespace dal {
         }
     }
 
+    InputCtrlFlag TextRenderer::onTouch(const TouchEvent& e) {
+        if ( -1 != this->m_owning ) {
+            if ( e.id == this->m_owning ) {
+                if ( TouchType::move == e.type ) {
+                    const auto rel = glm::vec2{ e.x, e.y } -this->m_lastTouchPos;
+                    this->m_lastTouchPos = glm::vec2{ e.x, e.y };
+                    this->m_offset += rel;
+                    return InputCtrlFlag::owned;
+                }
+                else if ( TouchType::up == e.type ) {
+                    const auto rel = glm::vec2{ e.x, e.y } -this->m_lastTouchPos;
+                    this->m_lastTouchPos = glm::vec2{ e.x, e.y };
+                    this->m_offset += rel;
+
+                    this->m_owning = -1;
+                    return InputCtrlFlag::consumed;
+                }
+                // If else ignores.
+            }
+            // If else ignores.
+        }
+        else {
+            if ( TouchType::down == e.type ) {
+                this->m_lastTouchPos = glm::vec2{ e.x, e.y };
+                this->m_owning = e.id;
+                return InputCtrlFlag::owned;
+            }
+            // If else ignores.
+        }
+
+        return InputCtrlFlag::ignored;
+    }
+
+    // Private
+
     bool TextRenderer::canDrawCursor(void) {
         return std::fmodf(this->m_cursorTimer.getElapsed(), 1.0f) >= 0.5f;
+    }
+
+    TextRenderer::CharPassFlag TextRenderer::isCharQuadInside(glm::vec2& p1, glm::vec2& p2) const {
+        const auto pp11 = this->getPoint11();
+
+        if ( p2.x > pp11.x ) {
+            // This shouldn't happen because carriage return already dealt in render function body.
+            return CharPassFlag::carriageReturn;
+        }
+        else if ( p2.y > pp11.y ) {
+            return CharPassFlag::continuee;
+        }
+        else if ( p1.x < this->getPosX() ) {
+            return CharPassFlag::continuee;
+        }
+        else if ( p1.y < this->getPosY() ) {
+            return CharPassFlag::continuee;
+        }
+        else {
+            return CharPassFlag::okk;
+        }
+    }
+
+    std::string::iterator TextRenderer::findNextReturnChar(std::string::iterator beg, const std::string::iterator& end) {
+        for ( ; beg != end; ++beg ) {
+            const auto c = *beg;
+            if ( c == '\n' ) {
+                return beg;
+            }
+        }
+        
+        return end;
+    }
+
+    void TextRenderer::makeOffsetApproch(void) {
+        if ( -1 != this->m_owning ) {
+            return;
+        }
+
+        if ( this->m_offset.x > 0 ) {
+            this->m_offset.x = this->m_offset.x * 0.9f;
+        }
+        if ( this->m_offset.y > 0 ) {
+            this->m_offset.y = this->m_offset.y * 0.9f;
+        }
     }
 
 }
