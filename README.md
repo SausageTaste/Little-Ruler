@@ -24,7 +24,7 @@
 ### LittleRulerAndroid 폴더
 
 * 안드로이드 apk로 빌드 하기 위한 안드로이드 스튜디오 프로젝트입니다.
-* 제가 작성한 모든 C++ 소스 파일들은 이곳에 들어 있습니다. `repo_root/LittleRulerAndroid/app/src/main/cpp/`
+* 게임 엔진 코드들은 모두 다음 경로에 들어 있습니다. `repo_root/LittleRulerAndroid/app/src/main/cpp/`
 
 ### LittleRulerWindows 폴더
 
@@ -152,6 +152,7 @@
 * [TGA](https://github.com/ColumbusUtrigas/TGA)
 * [zlib](https://www.zlib.net/)
 * [fmt](http://fmtlib.net/latest/index.html)
+* [entt](https://github.com/skypjack/entt)
 
 ### Python 3.6.8
 
