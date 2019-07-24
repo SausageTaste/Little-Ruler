@@ -65,7 +65,6 @@
 * 스페이스바 : 수직 상승
 * 좌측 쉬프트 : 수직 하강
 * 마우스 클릭 및 드래그 : 안드로이드의 터치 조작과 동일
-* ESC : 메뉴 열기/닫기
 * 메뉴를 연 상태에서 `print("Hello world!")`가 적혀 있는 상자를 클릭하면 아스키 문자를 입력할 수 있습니다. 문자를 입력하고 엔터를 누르면 해당 문자를 Lua 인터프리터로 실행합니다. 결과는 우측 검은 상자에 나타납니다.
 
 ![alt text](./screenshots/script.png)
@@ -82,8 +81,8 @@
 > 아직 제대로 테스트 해보지 않았습니다. 제대로 작동하지 않을 수 있습니다.
 
 * 깃 저장소를 체크아웃 하거나 다운로드해 주세요.
-* [구글 드라이브](https://drive.google.com/open?id=1xwQg17bW5f346rpXe2RFgifUFEycAm3t)에서 *Resource.zip*, *Library.zip* 두 파일을 다운로드하여 압축을 풀어 주세요. (암호 : moonlight)
-* 압축 해제한 *Resource* 폴더와 *Library* 폴더를 깃 저장소 폴더에 넣어 주세요. 이때 폴더 구조는 다음과 같아야 합니다.
+* [구글 드라이브](https://drive.google.com/open?id=1xwQg17bW5f346rpXe2RFgifUFEycAm3t)에서 *Library.zip* 파일을 다운로드하여 압축을 풀어 주세요. (암호 : moonlight)
+* 압축 해제한 *Library* 폴더를 깃 저장소 폴더에 넣어 주세요. 이때 폴더 구조는 다음과 같아야 합니다.
 
 > ─ LittleRuler *(깃 저장소 루트 폴더)*
 > <br>　└ **Library**
@@ -104,7 +103,6 @@
 
 ### Android
 * 안드로이드 장치를 이용해 디버깅 apk를 설치하려면 **Android Studio**로 `LittleRuler/LittleRulerAndroid` 프로젝트 폴더를 열어서 실행하시면 됩니다.
-* 서명이 안 되어 있기 때문에 apk 파일을 직접 설치할 수는 없는 것 같습니다. ADB(Android Debug Bridge)로 설치해 주세요.
 * 2019년 5월 2일부로 개발자 등록 완료하였습니다. [이곳](https://drive.google.com/open?id=1xwQg17bW5f346rpXe2RFgifUFEycAm3t)에서 apk를 다운로드 할 수 있습니다.
 
 <br>
@@ -132,7 +130,7 @@
     <tr>
         <td>파일 읽기</td>
         <td>C++ std::fstream</td>
-        <td>Android Asset Manager</td>
+        <td>Android Asset Manager 및 std::fstream</td>
     </tr>
 </table>
 
