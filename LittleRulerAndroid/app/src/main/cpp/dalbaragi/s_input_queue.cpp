@@ -126,6 +126,13 @@ namespace dal {
 
 namespace dal {
 
+    void KeyStatesRegistry::updateOne(const KeyboardEvent& e) {
+        const auto index = this->keySpecToIndex(e.key);
+        this->m_states[index].m_lastUpdated = e.timeSec;
+        this->m_states[index].m_pressed = (e.type == KeyboardType::down);
+    }
+
+
     KeyboardEvtQueueGod& KeyboardEvtQueueGod::getinst(void) {
         static KeyboardEvtQueueGod inst;
         return inst;
@@ -141,15 +148,24 @@ namespace dal {
             return false;
         }
 
-        mArray[mCurIndex].key = key;
-        mArray[mCurIndex].type = type;
-        mArray[mCurIndex].timeSec = timeSec;
-        mCurIndex++;
+        this->mArray[mCurIndex].key = key;
+        this->mArray[mCurIndex].type = type;
+        this->mArray[mCurIndex].timeSec = timeSec;
+
+        this->m_states.updateOne(this->mArray[this->mCurIndex]);
+
+        this->mCurIndex++;
+
         return true;
     }
 
     const KeyboardEvent& KeyboardEvtQueueGod::at(const unsigned int index) const {
-        return mArray.at(index);
+        try {
+            return this->mArray.at(index);
+        }
+        catch ( const std::out_of_range& e ) {
+            dalAbort("Out of range exception thrown.");
+        }
     }
 
 }

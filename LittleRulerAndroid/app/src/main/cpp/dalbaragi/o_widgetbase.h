@@ -147,12 +147,6 @@ namespace dal {
 
     class Widget2 : public IScreenSpaceBox {
 
-    public:
-        struct KeyAdditionalStates {
-            unsigned int m_order = 0;
-            bool m_shifted = false;
-        };
-
     private:
         Widget2* m_parent;
         bool m_flagDraw;
@@ -181,7 +175,7 @@ namespace dal {
         virtual InputCtrlFlag onTouch(const TouchEvent& e) {
             return InputCtrlFlag::ignored;
         }
-        virtual InputCtrlFlag onKeyInput(const KeyboardEvent& e, const KeyAdditionalStates& additional) {
+        virtual InputCtrlFlag onKeyInput(const KeyboardEvent& e, const KeyStatesRegistry& keyStates) {
             return InputCtrlFlag::ignored;
         }
         virtual void onParentResize(const float width, const float height) {}

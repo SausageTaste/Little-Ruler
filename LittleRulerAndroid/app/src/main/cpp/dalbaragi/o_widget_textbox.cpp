@@ -176,14 +176,16 @@ namespace dal {
         }
     }
 
-    InputCtrlFlag LineEdit::onKeyInput(const KeyboardEvent& e, const KeyAdditionalStates& a) {
+    InputCtrlFlag LineEdit::onKeyInput(const KeyboardEvent& e, const KeyStatesRegistry& keyStates) {
         if ( !this->m_onFocus ) {
             return InputCtrlFlag::ignored;
         }
 
+        const auto shifted = keyStates[KeySpec::lshfit].m_pressed;
+
         if ( KeyboardType::down == e.type ) {
             auto& text = this->getTextRenderer();
-            const auto c = encodeKeySpecToAscii(e.key, a.m_shifted);
+            const auto c = encodeKeySpecToAscii(e.key, shifted);
 
             switch ( c ) {
 
@@ -257,7 +259,7 @@ namespace dal {
         return this->m_textRenderer.onTouch(e);
     }
 
-    InputCtrlFlag TextBox::onKeyInput(const KeyboardEvent& e, const KeyAdditionalStates& additional) {
+    InputCtrlFlag TextBox::onKeyInput(const KeyboardEvent& e, const KeyStatesRegistry& keyStates) {
         return InputCtrlFlag::ignored;
     }
 

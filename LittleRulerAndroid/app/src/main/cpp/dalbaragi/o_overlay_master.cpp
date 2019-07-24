@@ -27,13 +27,11 @@ namespace {
             for ( unsigned int i = 0; i < kqSize; ++i ) {
                 const auto& kevent = kq.at(i);
 
-                unsigned int order = 0;
                 for ( auto w : widgets ) {
-                    if ( dal::InputCtrlFlag::ignored != w->onKeyInput(kevent, dal::Widget2::KeyAdditionalStates{ order }) ) {
+                    const auto ctrlFlag = w->onKeyInput(kevent, kq.getKeyStates());
+                    if ( dal::InputCtrlFlag::ignored != ctrlFlag ) {
                         break;
                     }
-
-                    ++order;
                 }
             }
 

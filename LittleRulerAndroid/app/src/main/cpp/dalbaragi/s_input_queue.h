@@ -95,6 +95,7 @@ namespace dal {
         /* EOF just to calculate number of elements of Enum class */
         eof
     };
+
     constexpr unsigned int KEY_SPEC_SIZE = int(KeySpec::eof) - int(KeySpec::unknown);
 
     char encodeKeySpecToAscii(const dal::KeySpec key, const bool shift);
@@ -103,6 +104,7 @@ namespace dal {
     enum class KeyboardType { down, up };
 
 
+    // TODO: Rename this to KeyActionType.
     struct KeyboardEvent {
         KeySpec key;
         KeyboardType type;
@@ -110,14 +112,41 @@ namespace dal {
     };
 
 
-    class KeyboardEvtQueueGod : public dal::ISingleUsageQueue {
+    class KeyStatesRegistry {
 
-        //////// vars ////////
+    public:
+        struct KeyState {
+            float m_lastUpdated = 0.0f;
+            bool m_pressed = false;
+        };
+
+    private:
+        std::array<KeyState, KEY_SPEC_SIZE> m_states;
+
+    public:
+        void updateOne(const KeyboardEvent& e);
+
+        KeyState& operator[](const KeySpec key) {
+            return this->m_states[this->keySpecToIndex(key)];
+        }
+
+        const KeyState& operator[](const KeySpec key) const {
+            return this->m_states[this->keySpecToIndex(key)];
+        }
+
+    private:
+        static size_t keySpecToIndex(const KeySpec key) {
+            return static_cast<size_t>(key) - static_cast<size_t>(KeySpec::unknown);
+        }
+
+    };
+
+
+    class KeyboardEvtQueueGod : public dal::ISingleUsageQueue {
 
     private:
         std::array<KeyboardEvent, kCapacity> mArray;
-
-        //////// funcs ////////
+        KeyStatesRegistry m_states;
 
     public:
         static KeyboardEvtQueueGod& getinst(void);
@@ -126,6 +155,13 @@ namespace dal {
         bool emplaceBack(const KeySpec key, const KeyboardType type, const float timeSec);
 
         const KeyboardEvent& at(const unsigned int index) const;
+        const KeyboardEvent& operator[](const unsigned int index) const {
+            return this->mArray[index];
+        }
+
+        const KeyStatesRegistry& getKeyStates(void) const {
+            return this->m_states;
+        }
 
     };
 
