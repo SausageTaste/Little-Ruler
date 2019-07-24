@@ -30,9 +30,14 @@ namespace {
                 for ( auto w : widgets ) {
                     const auto ctrlFlag = w->onKeyInput(kevent, kq.getKeyStates());
                     if ( dal::InputCtrlFlag::ignored != ctrlFlag ) {
-                        break;
+                        goto finishWidgetLoop;
                     }
                 }
+
+                bgWidget->onKeyInput(kevent, kq.getKeyStates());
+
+            finishWidgetLoop:
+                continue;
             }
 
             kq.clear();

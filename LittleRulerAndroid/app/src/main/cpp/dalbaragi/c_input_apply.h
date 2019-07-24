@@ -17,6 +17,25 @@ namespace dal {
 
     class InputApplier : public iEventHandler {
 
+    public:
+        struct MoveInputInfo {
+            glm::vec2 m_view, m_move;
+            float m_vertical = 0.0f;
+
+            void clear(void) {
+                this->m_view = glm::vec2{ 0.0f };
+                this->m_move = glm::vec2{ 0.0f };
+                this->m_vertical = 0.0f;
+            }
+            MoveInputInfo& operator+=(const MoveInputInfo& other) {
+                this->m_view += other.m_view;
+                this->m_move += other.m_move;
+                this->m_vertical += other.m_vertical;
+
+                return *this;
+            }
+        };
+
     private:
         class MoveDPad : public dal::Widget2 {
             /*
@@ -57,13 +76,19 @@ namespace dal {
             touchID_t m_owningForView;
             glm::vec2 m_lastViewTouchPos, m_viewTouchAccum;
 
+            MoveInputInfo m_keyboardMoveInfo;
+
         public:
             PlayerControlWidget(const float winWidth, const float winHeight);
 
             virtual void render(const dal::UnilocOverlay& uniloc, const float width, const float height) override;
             virtual dal::InputCtrlFlag onTouch(const dal::TouchEvent& e) override;
+            virtual InputCtrlFlag onKeyInput(const KeyboardEvent& e, const KeyStatesRegistry& keyStates) override;
             virtual void onParentResize(const float width, const float height) override;
 
+            MoveInputInfo getMoveInfo(const float deltaTime, const float winWidth, const float winHeight);
+
+        private:
             glm::vec2 getMoveVec(void) const;
             glm::vec2 getResetViewAccum(void);
 

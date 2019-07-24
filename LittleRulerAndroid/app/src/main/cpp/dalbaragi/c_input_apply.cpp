@@ -325,8 +325,9 @@ namespace {
         }
 
     } g_touchMas;  // class TouchStatesMaster
+    */
 
-
+    /*
     class KeyboardStatesMaster {
 
         //////// Definitions ////////
@@ -747,7 +748,7 @@ namespace {
 
 namespace {
 
-    void apply_topdown(const float deltaTime, const NoclipMoveInfo& totalMoveInfo,
+    void apply_topdown(const float deltaTime, const dal::InputApplier::MoveInputInfo& totalMoveInfo,
         dal::StrangeEulerCamera& camera, const entt::entity targetEntity, entt::registry& reg)
     {
         if ( reg.has<dal::cpnt::AnimatedModel>(targetEntity) ) {
@@ -767,9 +768,9 @@ namespace {
 
                 const auto camViewVec = dal::strangeEuler2Vec(camera.getStrangeEuler());
                 const auto rotatorAsCamX = glm::rotate(glm::mat4{ 1.0f }, camera.getStrangeEuler().getX(), glm::vec3{ 0.0f, 1.0f, 0.0f });
-                const auto rotatedMoveVec = rotateVec2(glm::vec2{ totalMoveInfo.xMovePlane, totalMoveInfo.zMovePlane }, camera.getStrangeEuler().getX());
+                const auto rotatedMoveVec = rotateVec2(glm::vec2{ totalMoveInfo.m_move.x, totalMoveInfo.m_move.y }, camera.getStrangeEuler().getX());
 
-                const auto deltaPos = glm::vec3{ rotatedMoveVec.x, totalMoveInfo.vertical, rotatedMoveVec.y } *deltaTime * 5.0f;
+                const auto deltaPos = glm::vec3{ rotatedMoveVec.x, totalMoveInfo.m_vertical, rotatedMoveVec.y } *deltaTime * 5.0f;
                 cpntTrans.m_pos += deltaPos;
                 camera.m_pos += deltaPos * CAM_ROTATE_SPEED_INV;
                 if ( rotatedMoveVec.x != 0.0f || rotatedMoveVec.y != 0.0f ) {  // If moved position
@@ -805,8 +806,8 @@ namespace {
                 const auto len = glm::length(obj2CamVec);
                 auto obj2CamSEuler = dal::vec2StrangeEuler(obj2CamVec);
 
-                obj2CamSEuler.addX(totalMoveInfo.xView);
-                obj2CamSEuler.addY(-totalMoveInfo.yView);
+                obj2CamSEuler.addX(totalMoveInfo.m_view.x);
+                obj2CamSEuler.addY(-totalMoveInfo.m_view.y);
 
                 obj2CamSEuler.clampY(glm::radians(-MAX_Y_DEGREE), glm::radians(MAX_Y_DEGREE));
                 const auto rotatedVec = dal::strangeEuler2Vec(obj2CamSEuler);
@@ -1005,12 +1006,82 @@ namespace dal {
         }
     }
 
+    InputCtrlFlag InputApplier::PlayerControlWidget::onKeyInput(const KeyboardEvent& e, const KeyStatesRegistry& keyStates) {
+        this->m_keyboardMoveInfo.clear();
+
+        if ( keyStates[dal::KeySpec::w].m_pressed ) {
+            this->m_keyboardMoveInfo.m_move.y -= 1;
+        }
+        if ( keyStates[(dal::KeySpec::s)].m_pressed ) {
+            this->m_keyboardMoveInfo.m_move.y += 1;
+        }
+        if ( keyStates[(dal::KeySpec::a)].m_pressed ) {
+            this->m_keyboardMoveInfo.m_move.x -= 1;
+        }
+        if ( keyStates[(dal::KeySpec::d)].m_pressed ) {
+            this->m_keyboardMoveInfo.m_move.x += 1;
+        }
+        if ( keyStates[(dal::KeySpec::space)].m_pressed ) {
+            this->m_keyboardMoveInfo.m_vertical += 0.5f;
+        }
+        if ( keyStates[(dal::KeySpec::lshfit)].m_pressed ) {
+            this->m_keyboardMoveInfo.m_vertical -= 0.5f;
+        }
+
+        constexpr float viewMultiplier = 1.0f;
+
+        if ( keyStates[(dal::KeySpec::left)].m_pressed ) {
+            this->m_keyboardMoveInfo.m_view.x -= viewMultiplier;
+        }
+        if ( keyStates[(dal::KeySpec::right)].m_pressed ) {
+            this->m_keyboardMoveInfo.m_view.x += viewMultiplier;
+        }
+        if ( keyStates[(dal::KeySpec::up)].m_pressed ) {
+            this->m_keyboardMoveInfo.m_view.y += viewMultiplier;
+        }
+        if ( keyStates[(dal::KeySpec::down)].m_pressed ) {
+            this->m_keyboardMoveInfo.m_view.y -= viewMultiplier;
+        }
+
+        if ( this->m_keyboardMoveInfo.m_move.x != 0.0f || this->m_keyboardMoveInfo.m_move.y != 0.0f ) {
+            this->m_keyboardMoveInfo.m_move = glm::normalize(this->m_keyboardMoveInfo.m_move);
+        }
+
+        return InputCtrlFlag::consumed;
+    }
+
     void InputApplier::PlayerControlWidget::onParentResize(const float width, const float height) {
         this->m_dpad.onParentResize(width, height);
 
         this->setPos(0.0f, 0.0f);
         this->setSize(width, height);
     }
+
+    InputApplier::MoveInputInfo InputApplier::PlayerControlWidget::getMoveInfo(const float deltaTime, const float winWidth, const float winHeight) {
+        MoveInputInfo info;
+
+        const float widthOrHeightButShorter = winWidth < winHeight ? winWidth : winHeight;
+        const float viewMultiplier = 5.0f / widthOrHeightButShorter;
+
+        {
+            info += this->m_keyboardMoveInfo;
+            info.m_view *= deltaTime * 2.0f;
+        }
+
+        {
+            info.m_move += this->getMoveVec();
+        }
+
+        {
+            const auto rel = this->getResetViewAccum();
+            info.m_view.x += rel.x * viewMultiplier;
+            info.m_view.y += -rel.y * viewMultiplier;
+        }
+
+        return info;
+    }
+
+    // Private
 
     glm::vec2 InputApplier::PlayerControlWidget::getMoveVec(void) const {
         return this->m_dpad.getRel();
@@ -1074,26 +1145,10 @@ namespace dal {
     */
 
     void InputApplier::apply(const float deltaTime, StrangeEulerCamera& camera, const entt::entity targetEntity, entt::registry& reg) {
-        NoclipMoveInfo info;
-
         const float winWidth = (float)dal::ConfigsGod::getinst().getWinWidth();
         const float winHeight = (float)dal::ConfigsGod::getinst().getWinHeight();
-        const float widthOrHeightButShorter = winWidth < winHeight ? winWidth : winHeight;
-        const float viewMultiplier = 5.0f / widthOrHeightButShorter;
 
-        {
-            const auto rel = this->m_ctrlInputWidget.getMoveVec();
-
-            info.xMovePlane = rel.x;
-            info.zMovePlane = rel.y;
-        }
-
-        {
-            const auto rel = this->m_ctrlInputWidget.getResetViewAccum();
-
-            info.xView = rel.x * viewMultiplier;
-            info.yView = -rel.y * viewMultiplier;
-        }
+        const auto info = this->m_ctrlInputWidget.getMoveInfo(deltaTime, winWidth, winHeight);
 
         apply_topdown(deltaTime, info, camera, targetEntity, reg);
     }
