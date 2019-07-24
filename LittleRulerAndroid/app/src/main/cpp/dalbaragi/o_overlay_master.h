@@ -7,7 +7,6 @@
 #include "p_resource.h"
 #include "p_globalfsm.h"
 #include "p_shader_master.h"
-#include "o_text_cache.h"
 #include "o_widget_textbox.h"
 #include "s_logger_god.h"
 
@@ -39,8 +38,6 @@ namespace dal {
     private:
         ResourceMaster& m_resMas;
         const ShaderMaster& m_shaderMas;
-
-        UnicodeCache m_unicodes;
 
         GlobalGameState mGlobalFSM;
 

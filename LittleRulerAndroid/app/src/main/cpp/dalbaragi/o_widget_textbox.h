@@ -5,7 +5,6 @@
 #include <glm/glm.hpp>
 
 #include "s_event.h"
-#include "o_text_cache.h"
 #include "o_widgetbase.h"
 #include "s_scripting.h"
 

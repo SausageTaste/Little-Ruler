@@ -222,7 +222,6 @@ namespace dal {
     OverlayMaster::OverlayMaster(ResourceMaster& resMas, const ShaderMaster& shaderMas, const unsigned int width, const unsigned int height)
         : m_resMas(resMas)
         , m_shaderMas(shaderMas)
-        , m_unicodes(resMas)
         , mGlobalFSM(GlobalGameState::game)
         , m_texStreamCh(*script::getLuaStdOutBuffer())
         , m_winWidth(static_cast<float>(width))
@@ -234,16 +233,6 @@ namespace dal {
 
         // Widgets 2
         {
-            {
-                //auto t = new TextRenderer(nullptr);
-
-                //t->setPos(100.0, 100.0);
-                //t->setSize(205.0, 200.0);
-                //t->setText("Fuck me.\nthishASFt;ashdljfkasjdASFflAFajsdl;fkjasl;jWEWASFfd;lasjdfljaslfjkdsaf\nAAAA\tAAAAAAAAAAAAAA");
-
-                //this->giveWidgetOwnership(t);
-            }
-
             {
                 auto w = new LineEdit(nullptr);
 
