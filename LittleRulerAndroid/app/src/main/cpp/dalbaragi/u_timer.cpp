@@ -1,6 +1,5 @@
 #include "u_timer.h"
 
-#include <string>
 #include <thread>
 
 #include <fmt/format.h>

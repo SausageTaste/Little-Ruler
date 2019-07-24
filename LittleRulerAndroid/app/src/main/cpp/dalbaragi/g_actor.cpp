@@ -3,7 +3,6 @@
 #include <fmt/format.h>
 #include <glm/gtc/matrix_transform.hpp>
 
-#include "p_resource.h"
 #include "s_logger_god.h"
 
 

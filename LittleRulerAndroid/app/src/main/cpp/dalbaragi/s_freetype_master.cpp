@@ -1,7 +1,5 @@
 #include "s_freetype_master.h"
 
-#include <string>
-
 #include "s_logger_god.h"
 #include "u_fileclass.h"
 

@@ -7,10 +7,7 @@
 #include <fmt/format.h>
 #include <glm/gtc/matrix_transform.hpp>
 
-#include "u_fileclass.h"
 #include "s_logger_god.h"
-#include "s_scripting.h"
-#include "o_widget_texview.h"
 
 
 using namespace std::string_literals;

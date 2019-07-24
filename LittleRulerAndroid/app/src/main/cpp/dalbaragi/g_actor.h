@@ -1,13 +1,8 @@
 #pragma once
 
-#include <string>
-#include <memory>
-#include <utility>
-
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
 
-#include "m_collider.h"
 #include "p_animation.h"
 
 

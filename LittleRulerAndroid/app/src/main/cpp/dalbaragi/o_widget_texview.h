@@ -1,6 +1,5 @@
 #pragma once
 
-#include "p_dalopengl.h"
 #include "p_resource.h"
 #include "o_widgetbase.h"
 

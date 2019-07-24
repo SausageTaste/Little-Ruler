@@ -5,9 +5,6 @@
 
 #include "u_fileclass.h"
 
-#include <string>
-#include <vector>
-#include <memory>
 #include <fstream>
 #include <cassert>
 #include <sys/stat.h>

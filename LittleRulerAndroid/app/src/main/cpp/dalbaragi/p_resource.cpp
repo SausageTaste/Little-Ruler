@@ -1,14 +1,9 @@
 #include "p_resource.h"
 
-#include <unordered_set>
-
 #include <glm/gtc/matrix_transform.hpp>
 #include <assimp/matrix4x4.h>
 
-#include "p_dalopengl.h"
 #include "s_logger_god.h"
-#include "u_fileclass.h"
-#include "s_threader.h"
 #include "u_objparser.h"
 #include "u_pool.h"
 

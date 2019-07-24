@@ -1,9 +1,6 @@
 #include "s_threader.h"
 
 #include <thread>
-#include <mutex>
-#include <atomic>
-#include <vector>
 #include <queue>
 #include <array>
 

@@ -5,10 +5,11 @@
 
 #include <fmt/format.h>
 
-#include "u_fileclass.h"
 #include "s_logger_god.h"
 #include "s_freetype_master.h"
 #include "s_configs.h"
+#include "s_scripting.h"
+#include "o_widget_textbox.h"
 
 
 using namespace std::string_literals;

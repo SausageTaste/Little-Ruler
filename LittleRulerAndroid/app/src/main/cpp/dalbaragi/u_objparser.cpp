@@ -19,7 +19,6 @@
 #include <assimp/postprocess.h>
 
 #include "s_logger_god.h"
-#include "u_fileclass.h"
 #include "u_timer.h"
 
 

@@ -1,14 +1,10 @@
 #pragma once
 
-#include <array>
-#include <list>
-
-#include "s_event.h"
 #include "p_resource.h"
-#include "p_globalfsm.h"
 #include "p_shader_master.h"
-#include "o_widget_textbox.h"
-#include "s_logger_god.h"
+#include "o_widgetbase.h"
+#include "u_strbuf.h"
+#include "s_logchannel.h"
 
 
 namespace dal {

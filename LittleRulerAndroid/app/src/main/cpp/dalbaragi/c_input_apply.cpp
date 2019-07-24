@@ -1,18 +1,9 @@
 #include "c_input_apply.h"
 
-#include <string>
-#include <array>
-#include <vector>
-
 #include <fmt/format.h>
 #include <glm/gtc/matrix_transform.hpp>
 
-#include "s_input_queue.h"
-#include "s_configs.h"
-#include "s_event.h"
-#include "u_timer.h"
-#include "o_widget_texview.h"
-#include "o_widgetbase.h"
+#include "s_logger_god.h"
 
 
 using namespace std::string_literals;

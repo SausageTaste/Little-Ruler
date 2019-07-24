@@ -1,8 +1,5 @@
 #pragma once
 
-#include <vector>
-#include <string>
-
 extern "C" {
 #include <ft2build.h>
 #include FT_FREETYPE_H

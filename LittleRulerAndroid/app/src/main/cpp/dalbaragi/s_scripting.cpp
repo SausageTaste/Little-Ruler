@@ -1,12 +1,10 @@
 #include "s_scripting.h"
 
 #include <iostream>
-#include <string>
 
 #include "s_configs.h"
 #include "s_logger_god.h"
-
-#include "x_mainloop.h"
+#include "p_render_master.h"
 
 
 using namespace std::string_literals;

@@ -1,13 +1,8 @@
 #pragma once
 
-#include <atomic>
-#include <thread>
 #include <memory>
-#include <string>
 #include <unordered_map>
 #include <unordered_set>
-
-#include "s_event.h"
 
 
 namespace dal {

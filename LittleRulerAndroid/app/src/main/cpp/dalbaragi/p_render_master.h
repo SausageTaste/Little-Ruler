@@ -5,17 +5,8 @@
 #include <glm/glm.hpp>
 #include <entt/entity/registry.hpp>
 
-#include "s_event.h"
-
-#include "p_shader_master.h"
-#include "p_uniloc.h"
-#include "p_meshStatic.h"
-#include "p_light.h"
 #include "o_overlay_master.h"
-#include "p_dalopengl.h"
 #include "p_scene.h"
-#include "g_actor.h"
-#include "p_water.h"
 
 
 namespace dal {

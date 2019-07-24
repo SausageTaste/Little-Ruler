@@ -1,7 +1,5 @@
 #include "s_event.h"
 
-#include <string>
-
 #include "s_logger_god.h"
 
 

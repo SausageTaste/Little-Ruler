@@ -4,13 +4,9 @@
 #include <gl\glew.h>
 #include <SDL_opengl.h>
 
-#include <string>
-#include <memory>
-#include <iostream>
-#include <unordered_map>
-
 #include "x_mainloop.h"
 #include "s_input_queue.h"
+#include "s_logger_god.h"
 
 
 using namespace std::string_literals;
