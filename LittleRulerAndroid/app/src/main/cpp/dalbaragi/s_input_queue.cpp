@@ -1,10 +1,13 @@
 #include "s_input_queue.h"
 
+#include <fmt/format.h>
+
 #include "u_timer.h"
 #include "s_logger_god.h"
 
 
 using namespace std::string_literals;
+using namespace fmt::literals;
 
 
 namespace dal {
@@ -68,7 +71,7 @@ namespace dal {
             return this->mArray.at(index);
         }
         catch ( const std::out_of_range& e ) {
-            dalAbort("Out of range exception thrown.");
+            dalAbort("Out of range exception thrown: {}"_format(e.what()));
         }
     }
 
@@ -164,7 +167,7 @@ namespace dal {
             return this->mArray.at(index);
         }
         catch ( const std::out_of_range& e ) {
-            dalAbort("Out of range exception thrown.");
+            dalAbort("Out of range exception thrown: {}"_format(e.what()));
         }
     }
 

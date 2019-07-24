@@ -51,9 +51,9 @@ namespace dal {
 
     struct TouchEvent {
         glm::vec2 m_pos;
-        TouchActionType m_actionType;
+        TouchActionType m_actionType = TouchActionType::down;
         touchID_t m_id = -1;
-        float m_timeInSec;
+        float m_timeInSec = 0.0f;
     };
 
 
@@ -109,8 +109,8 @@ namespace dal {
     // TODO: Rename this to KeyActionType.
     struct KeyboardEvent {
         KeySpec m_key = KeySpec::unknown;
-        KeyActionType m_actionType;
-        float m_timeInSec;
+        KeyActionType m_actionType = KeyActionType::down;
+        float m_timeInSec = 0.0f;
     };
 
 

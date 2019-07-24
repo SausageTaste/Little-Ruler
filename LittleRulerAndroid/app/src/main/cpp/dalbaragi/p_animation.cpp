@@ -136,7 +136,8 @@ namespace dal {
     }
 
     void JointTransformArray::setTransform(const jointID_t index, const glm::mat4& mat) {
-        dalAssert(index < this->m_array.size());
+        dalAssert(index >= 0);
+        dalAssert(static_cast<size_t>(index) < this->m_array.size());
         this->m_array[index] = mat;
     }
 
