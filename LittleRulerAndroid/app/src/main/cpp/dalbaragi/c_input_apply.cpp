@@ -121,7 +121,7 @@ namespace {
         }
     };
 
-
+    /*
     class TouchStatesMaster {
 
         //////// Definitions ////////
@@ -489,6 +489,7 @@ namespace {
         }
 
     } g_keyboardMas;  // class KeyboardStatesMaster
+    */
 
 }  // namespace
 
@@ -1045,8 +1046,7 @@ namespace dal {
         switch ( e.type ) {
 
         case EventType::global_fsm_change:
-            g_touchMas.reset();
-            mFSM = GlobalGameState(e.intArg1);
+            this->mFSM = GlobalGameState(e.intArg1);
             break;
         default:
             dalWarn("InputApplier can't handle this event: "s + getEventTypeStr(e.type));

@@ -98,7 +98,7 @@ namespace dal {
         eof
     };
 
-    constexpr unsigned int KEY_SPEC_SIZE = int(KeySpec::eof) - int(KeySpec::unknown);
+    //constexpr unsigned int KEY_SPEC_SIZE = int(KeySpec::eof) - int(KeySpec::unknown);
 
     char encodeKeySpecToAscii(const dal::KeySpec key, const bool shift);
 
