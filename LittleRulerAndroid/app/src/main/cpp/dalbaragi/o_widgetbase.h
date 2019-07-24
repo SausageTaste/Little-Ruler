@@ -134,8 +134,10 @@ namespace dal {
             this->setSize(v.x, v.y);
         }
 
-        bool isPointInside(const glm::vec2& v) const;
         bool isPointInside(const float x, const float y) const;
+        bool isPointInside(const glm::vec2& v) const {
+            return this->isPointInside(v.x, v.y);
+        }
 
         std::pair<glm::vec2, glm::vec2> makeDeviceSpace(const float width, const float height) const;
 

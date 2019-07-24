@@ -192,45 +192,43 @@ namespace {
 
             for ( unsigned int i = 0; i < tq.getSize(); i++ ) {
                 const auto& touch = tq.at(i);
-                if ( 0 > touch.id || touch.id >= this->k_maxTouchCount ) {
-                    dalWarn("Touch id is out of boundary: "s + std::to_string(touch.id));
+                if ( 0 > touch.m_id || touch.m_id >= this->k_maxTouchCount ) {
+                    dalWarn("Touch id is out of boundary: {}"_format(touch.m_id));
                     continue;
                 }
-                auto& state = this->m_thisStates[touch.id];
-                const auto pos = glm::vec2{ touch.x, touch.y };
-                
+                auto& state = this->m_thisStates[touch.m_id];
 
-                if ( this->m_updated.end() == std::find(this->m_updated.begin(), this->m_updated.end(), touch.id) ) {
-                    this->m_updated.push_back(touch.id);
+                if ( this->m_updated.end() == std::find(this->m_updated.begin(), this->m_updated.end(), touch.m_id) ) {
+                    this->m_updated.push_back(touch.m_id);
                 }
 
-                if ( dal::TouchType::move == touch.type ) {
-                    state.m_pos = pos;
-                    state.m_sec = touch.timeSec;
+                if ( dal::TouchActionType::move == touch.m_actionType ) {
+                    state.m_pos = touch.m_pos;
+                    state.m_sec = touch.m_timeInSec;
 
-                    if ( touch.id == this->m_moveOccupier ) {
-                        const auto moveStickPos = clampVec(glm::vec2{ pos.x, pos.y } - state.m_lastDownPos, widthOrHeightButShorter / DPAD_RADIUS_FACTOR_INV) + state.m_lastDownPos;
+                    if ( touch.m_id == this->m_moveOccupier ) {
+                        const auto moveStickPos = clampVec(touch.m_pos - state.m_lastDownPos, widthOrHeightButShorter / DPAD_RADIUS_FACTOR_INV) + state.m_lastDownPos;
                         state.m_pos = moveStickPos;
                     }
                 }
-                else if ( dal::TouchType::down == touch.type ) {
-                    state.m_pos = pos;
-                    state.m_sec = touch.timeSec;
+                else if ( dal::TouchActionType::down == touch.m_actionType ) {
+                    state.m_pos = touch.m_pos;
+                    state.m_sec = touch.m_timeInSec;
                     state.m_down = true;
 
-                    state.m_lastDownPos = pos;
-                    state.m_lastDownSec = touch.timeSec;
+                    state.m_lastDownPos = touch.m_pos;
+                    state.m_lastDownSec = touch.m_timeInSec;
 
-                    if ( touch.x < aThridWidth && -1 == this->m_moveOccupier ) {
-                        this->m_moveOccupier = touch.id;
+                    if ( touch.m_pos.x < aThridWidth && -1 == this->m_moveOccupier ) {
+                        this->m_moveOccupier = touch.m_id;
                     }
                 }
-                else if ( dal::TouchType::up == touch.type ) {
-                    state.m_pos = pos;
-                    state.m_sec = touch.timeSec;
+                else if ( dal::TouchActionType::up == touch.m_actionType ) {
+                    state.m_pos = touch.m_pos;
+                    state.m_sec = touch.m_timeInSec;
                     state.m_down = false;
 
-                    if ( touch.id == this->m_moveOccupier ) {
+                    if ( touch.m_id == this->m_moveOccupier ) {
                         this->m_moveOccupier = -1;
                     }
                 }
@@ -389,15 +387,15 @@ namespace {
 
             for ( size_t i = 0; i < kq.getSize(); i++ ) {
                 const auto& keyEvent = kq.at(i);
-                const auto keyIndex = enum2Index(keyEvent.key);
+                const auto keyIndex = enum2Index(keyEvent.m_key);
                 auto& theState = this->m_states.at(keyIndex);
 
                 this->m_recentlyUpdatedIndex.push_back(keyIndex);
 
                 theState.m_withShift = (this->m_states[enum2Index(dal::KeySpec::lshfit)].m_pressed ||
                                         this->m_states[enum2Index(dal::KeySpec::rshfit)].m_pressed);
-                theState.m_lastUpdated = keyEvent.timeSec;
-                theState.m_pressed = (keyEvent.type == dal::KeyboardType::down);
+                theState.m_lastUpdated = keyEvent.m_timeInSec;
+                theState.m_pressed = (keyEvent.m_actionType == dal::KeyActionType::down);
             }
 
             kq.clear();
@@ -867,12 +865,12 @@ namespace dal {
 
     InputCtrlFlag InputApplier::MoveDPad::onTouch(const dal::TouchEvent& e) {
         if ( this->isActive() ) {
-            if ( e.id == this->m_owning ) {
-                if ( e.type == TouchType::move ) {
-                    this->updateTouchedPos(e.x, e.y, this->m_touchedPos);
+            if ( e.m_id == this->m_owning ) {
+                if ( e.m_actionType == TouchActionType::move ) {
+                    this->updateTouchedPos(e.m_pos.x, e.m_pos.y, this->m_touchedPos);
                     return InputCtrlFlag::owned;
                 }
-                else if ( TouchType::up == e.type ) {
+                else if ( TouchActionType::up == e.m_actionType ) {
                     this->m_owning = -1;
                     return InputCtrlFlag::consumed;
                 }
@@ -886,10 +884,10 @@ namespace dal {
             // If else ignores.
         }
         else {  // If not active.
-            if ( TouchType::down == e.type && this->isInsideCircle(e.x, e.y) ) {
+            if ( TouchActionType::down == e.m_actionType && this->isInsideCircle(e.m_pos.x, e.m_pos.y) ) {
                 // Start owning the touch id.
-                this->m_owning = e.id;
-                this->updateTouchedPos(e.x, e.y, this->m_touchedPos);
+                this->m_owning = e.m_id;
+                this->updateTouchedPos(e.m_pos.x, e.m_pos.y, this->m_touchedPos);
                 return InputCtrlFlag::owned;
             }
             // If else ignores.
@@ -972,13 +970,13 @@ namespace dal {
         }
         else {
             if ( -1 != this->m_owningForView ) {
-                if ( e.id == this->m_owningForView ) {
-                    if ( e.type == TouchType::move ) {
-                        this->m_viewTouchAccum = glm::vec2{ e.x, e.y } - this->m_lastViewTouchPos;
-                        this->m_lastViewTouchPos = glm::vec2{ e.x, e.y };
+                if ( e.m_id == this->m_owningForView ) {
+                    if ( e.m_actionType == TouchActionType::move ) {
+                        this->m_viewTouchAccum = e.m_pos - this->m_lastViewTouchPos;
+                        this->m_lastViewTouchPos = e.m_pos;
                         return InputCtrlFlag::owned;
                     }
-                    else if ( TouchType::up == e.type ) {
+                    else if ( TouchActionType::up == e.m_actionType ) {
                         this->m_owningForView = -1;
                         return InputCtrlFlag::consumed;
                     }
@@ -992,10 +990,10 @@ namespace dal {
                 // If else ignores.
             }
             else {  // If not active.
-                if ( TouchType::down == e.type ) {
+                if ( TouchActionType::down == e.m_actionType ) {
                     // Start owning the touch id.
-                    this->m_owningForView = e.id;
-                    this->m_lastViewTouchPos = glm::vec2{ e.x, e.y };
+                    this->m_owningForView = e.m_id;
+                    this->m_lastViewTouchPos = e.m_pos;
                     this->m_viewTouchAccum = glm::vec2{ 0.0f };
                     return InputCtrlFlag::owned;
                 }

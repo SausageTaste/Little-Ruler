@@ -3,6 +3,8 @@
 #include <array>
 #include <string>
 
+#include <glm/vec2.hpp>
+
 #include "s_configs.h"
 
 
@@ -44,14 +46,14 @@ namespace dal {
     // -1 refers to null.
     using touchID_t = int32_t;
 
-    enum class TouchType { down = 1, move = 2, up = 3 };
+    enum class TouchActionType { down = 1, move = 2, up = 3 };
 
 
     struct TouchEvent {
-        TouchType type;
-        touchID_t id;
-        float timeSec;
-        float x, y;
+        glm::vec2 m_pos;
+        TouchActionType m_actionType;
+        touchID_t m_id = -1;
+        float m_timeInSec;
     };
 
 
@@ -67,8 +69,8 @@ namespace dal {
     public:
         static TouchEvtQueueGod& getinst(void);
 
-        bool emplaceBack(const float x, const float y, const TouchType type, const touchID_t id, const float timeSec);
-        bool emplaceBack(const float x, const float y, const TouchType type, const touchID_t id);
+        bool emplaceBack(const float x, const float y, const TouchActionType type, const touchID_t id, const float timeSec);
+        bool emplaceBack(const float x, const float y, const TouchActionType type, const touchID_t id);
 
         const TouchEvent& at(const unsigned int index) const;
 
@@ -101,14 +103,14 @@ namespace dal {
     char encodeKeySpecToAscii(const dal::KeySpec key, const bool shift);
 
 
-    enum class KeyboardType { down, up };
+    enum class KeyActionType { down, up };
 
 
     // TODO: Rename this to KeyActionType.
     struct KeyboardEvent {
-        KeySpec key;
-        KeyboardType type;
-        float timeSec;
+        KeySpec m_key = KeySpec::unknown;
+        KeyActionType m_actionType;
+        float m_timeInSec;
     };
 
 
@@ -121,7 +123,8 @@ namespace dal {
         };
 
     private:
-        std::array<KeyState, KEY_SPEC_SIZE> m_states;
+        static constexpr auto KEY_SPEC_SIZE_U = static_cast<unsigned int>(KeySpec::eof) - static_cast<unsigned int>(KeySpec::unknown);
+        std::array<KeyState, KEY_SPEC_SIZE_U> m_states;
 
     public:
         void updateOne(const KeyboardEvent& e);
@@ -151,8 +154,8 @@ namespace dal {
     public:
         static KeyboardEvtQueueGod& getinst(void);
 
-        bool emplaceBack(const KeySpec key, const KeyboardType type);
-        bool emplaceBack(const KeySpec key, const KeyboardType type, const float timeSec);
+        bool emplaceBack(const KeySpec key, const KeyActionType type);
+        bool emplaceBack(const KeySpec key, const KeyActionType type, const float timeSec);
 
         const KeyboardEvent& at(const unsigned int index) const;
         const KeyboardEvent& operator[](const unsigned int index) const {

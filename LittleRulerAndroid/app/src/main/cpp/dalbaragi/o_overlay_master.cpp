@@ -61,7 +61,7 @@ namespace {
 
             for ( unsigned int i = 0; i < tq.getSize(); i++ ) {
                 const auto& tevent = tq.at(i);
-                auto& state = this->getOrMakeTouchState(tevent.id, this->m_states);
+                auto& state = this->getOrMakeTouchState(tevent.m_id, this->m_states);
 
                 if ( nullptr != state.m_owner ) {
                     const auto ctrlFlag = state.m_owner->onTouch(tevent);
@@ -84,7 +84,7 @@ namespace {
                 startWidgetsLoop:
 
                     for ( auto w : widgets ) {
-                        if ( !w->isPointInside(tevent.x, tevent.y) ) {
+                        if ( !w->isPointInside(tevent.m_pos) ) {
                             continue;
                         }
 
@@ -106,7 +106,7 @@ namespace {
                         }
                     }
 
-                    if ( nullptr != bgWidget && bgWidget->isPointInside(tevent.x, tevent.y) ) {
+                    if ( nullptr != bgWidget && bgWidget->isPointInside(tevent.m_pos) ) {
                         const auto ctrlFlag = bgWidget->onTouch(tevent);
                         switch ( ctrlFlag ) {
 

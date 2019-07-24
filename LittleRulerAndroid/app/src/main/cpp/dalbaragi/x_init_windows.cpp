@@ -79,19 +79,19 @@ namespace {
 
         while ( SDL_PollEvent(&e) != 0 ) {
             if ( e.type == SDL_KEYDOWN ) {
-                dal::KeyboardEvtQueueGod::getinst().emplaceBack(mapKeySpec(e.key.keysym.sym), dal::KeyboardType::down);
+                dal::KeyboardEvtQueueGod::getinst().emplaceBack(mapKeySpec(e.key.keysym.sym), dal::KeyActionType::down);
             }
             else if ( e.type == SDL_KEYUP ) {
-                dal::KeyboardEvtQueueGod::getinst().emplaceBack(mapKeySpec(e.key.keysym.sym), dal::KeyboardType::up);
+                dal::KeyboardEvtQueueGod::getinst().emplaceBack(mapKeySpec(e.key.keysym.sym), dal::KeyActionType::up);
             }
             else if ( e.type == SDL_MOUSEMOTION ) {
-                dal::TouchEvtQueueGod::getinst().emplaceBack(float(e.motion.x), float(e.motion.y), dal::TouchType::move, 0);
+                dal::TouchEvtQueueGod::getinst().emplaceBack(float(e.motion.x), float(e.motion.y), dal::TouchActionType::move, 0);
             }
             else if ( e.type == SDL_MOUSEBUTTONDOWN ) {
-                dal::TouchEvtQueueGod::getinst().emplaceBack(float(e.motion.x), float(e.motion.y), dal::TouchType::down, 0);
+                dal::TouchEvtQueueGod::getinst().emplaceBack(float(e.motion.x), float(e.motion.y), dal::TouchActionType::down, 0);
             }
             else if ( e.type == SDL_MOUSEBUTTONUP ) {
-                dal::TouchEvtQueueGod::getinst().emplaceBack(float(e.motion.x), float(e.motion.y), dal::TouchType::up, 0);
+                dal::TouchEvtQueueGod::getinst().emplaceBack(float(e.motion.x), float(e.motion.y), dal::TouchActionType::up, 0);
             }
             else if ( e.type == SDL_WINDOWEVENT ) {
                 if ( e.window.event == SDL_WINDOWEVENT_RESIZED ) {

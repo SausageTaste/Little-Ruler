@@ -168,7 +168,7 @@ namespace dal {
     }
 
     InputCtrlFlag LineEdit::onTouch(const TouchEvent& e) {
-        if ( e.type == TouchType::down ) {
+        if ( e.m_actionType == TouchActionType::down ) {
             return InputCtrlFlag::consumed;
         }
         else {
@@ -183,9 +183,9 @@ namespace dal {
 
         const auto shifted = keyStates[KeySpec::lshfit].m_pressed;
 
-        if ( KeyboardType::down == e.type ) {
+        if ( KeyActionType::down == e.m_actionType ) {
             auto& text = this->getTextRenderer();
-            const auto c = encodeKeySpecToAscii(e.key, shifted);
+            const auto c = encodeKeySpecToAscii(e.m_key, shifted);
 
             switch ( c ) {
 

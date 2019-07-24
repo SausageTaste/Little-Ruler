@@ -338,10 +338,6 @@ namespace dal {
 // ScreenSpaceBox
 namespace dal {
 
-    bool IScreenSpaceBox::isPointInside(const glm::vec2& v) const {
-        return this->isPointInside(v.x, v.y);
-    }
-
     bool IScreenSpaceBox::isPointInside(const float x, const float y) const {
         const auto p1 = this->getPoint00();
         const auto p2 = this->getPoint11();
@@ -536,16 +532,16 @@ namespace dal {
 
     InputCtrlFlag TextRenderer::onTouch(const TouchEvent& e) {
         if ( -1 != this->m_owning ) {
-            if ( e.id == this->m_owning ) {
-                if ( TouchType::move == e.type ) {
-                    const auto rel = glm::vec2{ e.x, e.y } -this->m_lastTouchPos;
-                    this->m_lastTouchPos = glm::vec2{ e.x, e.y };
+            if ( e.m_id == this->m_owning ) {
+                if ( TouchActionType::move == e.m_actionType ) {
+                    const auto rel = e.m_pos -this->m_lastTouchPos;
+                    this->m_lastTouchPos = e.m_pos;
                     this->m_offset += rel;
                     return InputCtrlFlag::owned;
                 }
-                else if ( TouchType::up == e.type ) {
-                    const auto rel = glm::vec2{ e.x, e.y } -this->m_lastTouchPos;
-                    this->m_lastTouchPos = glm::vec2{ e.x, e.y };
+                else if ( TouchActionType::up == e.m_actionType ) {
+                    const auto rel = e.m_pos -this->m_lastTouchPos;
+                    this->m_lastTouchPos = e.m_pos;
                     this->m_offset += rel;
 
                     this->m_owning = -1;
@@ -556,9 +552,9 @@ namespace dal {
             // If else ignores.
         }
         else {
-            if ( TouchType::down == e.type ) {
-                this->m_lastTouchPos = glm::vec2{ e.x, e.y };
-                this->m_owning = e.id;
+            if ( TouchActionType::down == e.m_actionType ) {
+                this->m_lastTouchPos = e.m_pos;
+                this->m_owning = e.m_id;
                 return InputCtrlFlag::owned;
             }
             // If else ignores.

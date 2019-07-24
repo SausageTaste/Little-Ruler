@@ -35,11 +35,11 @@ namespace dal {
         return inst;
     }
 
-    bool TouchEvtQueueGod::emplaceBack(const float x, const float y, const TouchType type, const touchID_t id) {
+    bool TouchEvtQueueGod::emplaceBack(const float x, const float y, const TouchActionType type, const touchID_t id) {
         return this->emplaceBack(x, y, type, id, getTime_sec());
     }
 
-    bool TouchEvtQueueGod::emplaceBack(const float x, const float y, const TouchType type, const touchID_t id, const float timeSec) {
+    bool TouchEvtQueueGod::emplaceBack(const float x, const float y, const TouchActionType type, const touchID_t id, const float timeSec) {
         if ( 0 > id || id >= 5 ) {
             dalWarn("Touch id is "s + std::to_string(id));
         }
@@ -49,11 +49,11 @@ namespace dal {
         }
 
         if ( !isFull() ) {
-            mArray[mCurIndex].x = x;
-            mArray[mCurIndex].y = y;
-            mArray[mCurIndex].type = type;
-            mArray[mCurIndex].id = id;
-            mArray[mCurIndex].timeSec = timeSec;
+            mArray[mCurIndex].m_pos.x = x;
+            mArray[mCurIndex].m_pos.y = y;
+            mArray[mCurIndex].m_actionType = type;
+            mArray[mCurIndex].m_id = id;
+            mArray[mCurIndex].m_timeInSec = timeSec;
             mCurIndex++;
             return true;
         }
@@ -127,9 +127,9 @@ namespace dal {
 namespace dal {
 
     void KeyStatesRegistry::updateOne(const KeyboardEvent& e) {
-        const auto index = this->keySpecToIndex(e.key);
-        this->m_states[index].m_lastUpdated = e.timeSec;
-        this->m_states[index].m_pressed = (e.type == KeyboardType::down);
+        const auto index = this->keySpecToIndex(e.m_key);
+        this->m_states[index].m_lastUpdated = e.m_timeInSec;
+        this->m_states[index].m_pressed = (e.m_actionType == KeyActionType::down);
     }
 
 
@@ -138,19 +138,19 @@ namespace dal {
         return inst;
     }
 
-    bool KeyboardEvtQueueGod::emplaceBack(const KeySpec key, const KeyboardType type) {
+    bool KeyboardEvtQueueGod::emplaceBack(const KeySpec key, const KeyActionType type) {
         return this->emplaceBack(key, type, getTime_sec());
     }
 
-    bool KeyboardEvtQueueGod::emplaceBack(const KeySpec key, const KeyboardType type, const float timeSec) {
+    bool KeyboardEvtQueueGod::emplaceBack(const KeySpec key, const KeyActionType type, const float timeSec) {
         if ( isFull() ) {
             dalWarn("KeyboardEvtQueueGod is full");
             return false;
         }
 
-        this->mArray[mCurIndex].key = key;
-        this->mArray[mCurIndex].type = type;
-        this->mArray[mCurIndex].timeSec = timeSec;
+        this->mArray[mCurIndex].m_key = key;
+        this->mArray[mCurIndex].m_actionType = type;
+        this->mArray[mCurIndex].m_timeInSec = timeSec;
 
         this->m_states.updateOne(this->mArray[this->mCurIndex]);
 
