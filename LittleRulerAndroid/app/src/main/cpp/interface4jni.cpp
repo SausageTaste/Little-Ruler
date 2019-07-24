@@ -119,15 +119,16 @@ extern "C" {
 
                 switch (*etype) {
                     case 1:  // ACTION_DOWN
-                        touchQ.emplaceBack(*xPos, *yPos, dal::TouchType::down, *id);
+                        touchQ.emplaceBack(*xPos, *yPos, dal::TouchActionType::down, *id);
                         break;
                     case 2:  // ACTION_MOVE
-                        touchQ.emplaceBack(*xPos, *yPos, dal::TouchType::move, *id);
+                        touchQ.emplaceBack(*xPos, *yPos, dal::TouchActionType::move, *id);
                         break;
                     case 3:  // ACTION_UP
-                        touchQ.emplaceBack(*xPos, *yPos, dal::TouchType::up, *id);
+                        touchQ.emplaceBack(*xPos, *yPos, dal::TouchActionType::up, *id);
                         break;
                     default:
+                        dalWarn("Unknwon touch event type from Java.");
                         break;
                 }
             }
