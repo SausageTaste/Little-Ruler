@@ -4,7 +4,7 @@
 * 사용 언어는 C++이며, 안드로이드에서는 JNI 인터페이스를 이용한 NDK를 사용합니다.
 * 독자적인 레벨 에디터, 루아 스크립팅 등을 지원할 예정입니다.
 
-![alt text](./screenshots/main.png)
+![alt text](./screenshots/main.jpg)
 
 <br>
 
