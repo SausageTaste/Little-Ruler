@@ -258,25 +258,25 @@ namespace {
 
 namespace dal {
 
-    glm::vec2 screen2device(const glm::vec2& p, const float winWidth, const float winHeight) {
+    inline glm::vec2 screen2device(const glm::vec2& p, const float winWidth, const float winHeight) {
         return glm::vec2{
              2.0f * p.x / (winWidth) - 1.0f,
             -2.0f * p.y / (winHeight) + 1.0f
         };
     }
 
-    glm::vec2 screen2device(const glm::vec2& p, const unsigned int winWidth, const unsigned int winHeight) {
+    inline glm::vec2 screen2device(const glm::vec2& p, const unsigned int winWidth, const unsigned int winHeight) {
         return screen2device(p, static_cast<float>(winWidth), static_cast<float>(winHeight));
     }
 
-    glm::vec2 device2screen(const glm::vec2& p, const float winWidth, const float winHeight) {
+    inline glm::vec2 device2screen(const glm::vec2& p, const float winWidth, const float winHeight) {
         return glm::vec2{
             (p.x + 1.0f) * (winWidth) / 2.0f,
             (1.0f - p.y) * (winHeight) / 2.0f
         };
     }
 
-    glm::vec2 device2screen(const glm::vec2& p, const unsigned int winWidth, const unsigned int winHeight) {
+    inline glm::vec2 device2screen(const glm::vec2& p, const unsigned int winWidth, const unsigned int winHeight) {
         return device2screen(p, static_cast<float>(winWidth), static_cast<float>(winHeight));
     }
 
@@ -394,7 +394,7 @@ namespace dal {
         , m_textColor(1.0f, 1.0f, 1.0f, 1.0f)
         , m_cursorPos(cursorNullPos)
         , m_textSize(15)
-        , m_lineSpacingRate(1.2f)
+        , m_lineSpacingRate(1.9f)
         , m_wordWrap(false)
         , m_owning(-1)
     {
@@ -406,7 +406,7 @@ namespace dal {
 
         const auto parentP2 = this->getPoint11();
 
-        const float xInit = this->getPosX() + this->m_offset.x;
+        const float xInit = this->m_wordWrap ? this->getPosX() : (this->getPosX() +this->m_offset.x);
         float xAdvance = xInit;
         float yHeight = this->getPosY() + static_cast<float>(this->m_textSize) + this->m_offset.y;
 
@@ -472,10 +472,10 @@ namespace dal {
             std::pair<glm::vec2, glm::vec2> charQuad;
             
 
-            charQuad.first.x = xAdvance + charInfo.bearing.x;
-            charQuad.first.y = yHeight - charInfo.bearing.y;
-            charQuad.second.x = charQuad.first.x + charInfo.size.x;
-            charQuad.second.y = charQuad.first.y + charInfo.size.y;
+            charQuad.first.x = roundf(xAdvance + charInfo.bearing.x);
+            charQuad.first.y = roundf(yHeight - charInfo.bearing.y);
+            charQuad.second.x = charQuad.first.x + static_cast<float>(charInfo.size.x);
+            charQuad.second.y = charQuad.first.y + static_cast<float>(charInfo.size.y);
 
             const auto flag = this->isCharQuadInside(charQuad.first, charQuad.second);
             if ( CharPassFlag::breakk == flag ) {
