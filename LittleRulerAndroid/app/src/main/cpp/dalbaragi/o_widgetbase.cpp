@@ -406,7 +406,7 @@ namespace dal {
 
         const auto parentP2 = this->getPoint11();
 
-        const float xInit = this->m_wordWrap ? this->getPosX() : (this->getPosX() +this->m_offset.x);
+        const float xInit = this->m_wordWrap ? this->getPosX() : (this->getPosX() + this->m_offset.x);
         float xAdvance = xInit;
         float yHeight = this->getPosY() + static_cast<float>(this->m_textSize) + this->m_offset.y;
 
@@ -470,7 +470,6 @@ namespace dal {
             }
 
             std::pair<glm::vec2, glm::vec2> charQuad;
-            
 
             charQuad.first.x = roundf(xAdvance + charInfo.bearing.x);
             charQuad.first.y = roundf(yHeight - charInfo.bearing.y);
@@ -534,13 +533,13 @@ namespace dal {
         if ( -1 != this->m_owning ) {
             if ( e.m_id == this->m_owning ) {
                 if ( TouchActionType::move == e.m_actionType ) {
-                    const auto rel = e.m_pos -this->m_lastTouchPos;
+                    const auto rel = e.m_pos - this->m_lastTouchPos;
                     this->m_lastTouchPos = e.m_pos;
                     this->m_offset += rel;
                     return InputCtrlFlag::owned;
                 }
                 else if ( TouchActionType::up == e.m_actionType ) {
-                    const auto rel = e.m_pos -this->m_lastTouchPos;
+                    const auto rel = e.m_pos - this->m_lastTouchPos;
                     this->m_lastTouchPos = e.m_pos;
                     this->m_offset += rel;
 
@@ -597,7 +596,7 @@ namespace dal {
                 return beg;
             }
         }
-        
+
         return end;
     }
 
