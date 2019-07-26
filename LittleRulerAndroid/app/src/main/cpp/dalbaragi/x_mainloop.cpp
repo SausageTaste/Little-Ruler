@@ -150,6 +150,137 @@ namespace {
 
     } g_fpsCounter;
 
+
+    class LuaConsole : public dal::Widget2 {
+
+    private:
+        class TextStreamChannel : public dal::ILoggingChannel {
+
+        private:
+            dal::StringBufferBasic& m_texStream;
+
+        public:
+            TextStreamChannel(dal::StringBufferBasic& texStream)
+                : m_texStream(texStream)
+            {
+
+            }
+
+            virtual void verbose(const char* const str, const int line, const char* const func, const char* const file) override {
+                const auto text = "[VERBO] "s + str + '\n';
+                this->m_texStream.append(text.data(), text.size());
+            }
+
+            virtual void debug(const char* const str, const int line, const char* const func, const char* const file) override {
+                const auto text = "[DEBUG] "s + str + '\n';
+                this->m_texStream.append(text.data(), text.size());
+            }
+
+            virtual void info(const char* const str, const int line, const char* const func, const char* const file) override {
+                const auto text = "[INFO] "s + str + '\n';
+                this->m_texStream.append(text.data(), text.size());
+            }
+
+            virtual void warn(const char* const str, const int line, const char* const func, const char* const file) override {
+                const auto text = "[WARN] "s + str + '\n';
+                this->m_texStream.append(text.data(), text.size());
+            }
+
+            virtual void error(const char* const str, const int line, const char* const func, const char* const file) override {
+                const auto text = "[ERROR] "s + str + '\n';
+                this->m_texStream.append(text.data(), text.size());
+            }
+
+            virtual void fatal(const char* const str, const int line, const char* const func, const char* const file) override {
+                const auto text = "[FATAL] "s + str + '\n';
+                this->m_texStream.append(text.data(), text.size());
+            }
+
+        };
+
+    private:
+        TextStreamChannel m_stream;
+        dal::LineEdit m_lineEdit;
+        dal::TextBox m_textBox;
+        glm::vec4 m_bgColor;
+
+    public:
+        LuaConsole(void)
+            : dal::Widget2(nullptr)
+            , m_stream(*dal::script::getLuaStdOutBuffer())
+            , m_lineEdit(this)
+            , m_textBox(this)
+            , m_bgColor(0.0f, 0.0f, 0.0f, 1.0f)
+        {
+            this->m_lineEdit.setHeight(20.0f);
+
+            this->m_textBox.replaceBuffer(dal::script::getLuaStdOutBuffer());
+            dal::LoggerGod::getinst().addChannel(&this->m_stream);
+
+            this->setPos(300.0f, 20.0f);
+            this->setSize(300.0f, 300.0f);
+        }
+
+        ~LuaConsole(void) {
+            dal::LoggerGod::getinst().deleteChannel(&this->m_stream);
+        }
+
+        virtual void render(const dal::UnilocOverlay& uniloc, const float width, const float height) override {
+            const auto [a, b] = this->makeDeviceSpace(width, height);
+            dal::renderQuadOverlay(uniloc, a, b, this->m_bgColor);
+
+            this->m_lineEdit.render(uniloc, width, height);
+            this->m_textBox.render(uniloc, width, height);
+        }
+
+        virtual dal::InputCtrlFlag onTouch(const dal::TouchEvent& e) override {
+            const auto lineEditFlag = this->m_lineEdit.onTouch(e);
+            if ( dal::InputCtrlFlag::ignored != lineEditFlag ) {
+                return lineEditFlag;
+            }
+
+            const auto textBoxFlag = this->m_textBox.onTouch(e);
+            if ( dal::InputCtrlFlag::ignored != textBoxFlag ) {
+                return textBoxFlag;
+            }
+
+            return dal::InputCtrlFlag::consumed;
+        }
+
+        virtual dal::InputCtrlFlag onKeyInput(const dal::KeyboardEvent& e, const dal::KeyStatesRegistry& keyStates) override {
+            return this->m_lineEdit.onKeyInput(e, keyStates);
+        }
+
+        virtual void onFocusChange(const bool v) override {
+            if ( !v ) {
+                this->m_lineEdit.onFocusChange(false);
+                this->m_textBox.onFocusChange(false);
+            }
+        }
+
+    protected:
+        virtual void onScrSpaceBoxUpdate(void) {
+            constexpr float INNER_MARGIN = 5.0f;
+
+            const auto pp1 = this->getPoint00();
+            const auto pp2 = this->getPoint11();
+
+            {
+                this->m_lineEdit.setPos(pp1.x + INNER_MARGIN, pp2.y - INNER_MARGIN - this->m_lineEdit.getHeight());
+                this->m_lineEdit.setWidth(this->getWidth() - INNER_MARGIN - INNER_MARGIN);
+            }
+
+            {
+                this->m_textBox.setPos(pp1.x + INNER_MARGIN, pp1.y + INNER_MARGIN);
+                this->m_textBox.setSize(
+                    this->getWidth() - INNER_MARGIN - INNER_MARGIN,
+                    this->getHeight() - this->m_lineEdit.getHeight() - INNER_MARGIN - INNER_MARGIN - INNER_MARGIN
+                );
+            }
+        };
+
+    } g_luaConsole;
+
 }
 
 
@@ -214,6 +345,7 @@ namespace dal {
             script::init(&this->m_renderMan, &this->m_scene);
 
             this->m_overlayMas.giveWidgetRef(&g_fpsCounter);
+            this->m_overlayMas.giveWidgetRef(&g_luaConsole);
         }
 
         // Misc
@@ -231,6 +363,9 @@ namespace dal {
         EventGod::getinst().deregisterHandler(this, EventType::quit_game);
 
         LoggerGod::getinst().deleteChannel(&g_fileLogger);
+
+        this->m_overlayMas.removeWidgetRef(&g_fpsCounter);
+        this->m_overlayMas.removeWidgetRef(&g_luaConsole);
     }
 
     int Mainloop::update(void) {

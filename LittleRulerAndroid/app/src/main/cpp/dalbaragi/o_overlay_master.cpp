@@ -232,7 +232,7 @@ namespace dal {
         ConfigsGod::getinst().setWinSize(width, height);
 
         // Widgets 2
-        {
+        /*{
             {
                 auto w = new LineEdit(nullptr);
 
@@ -251,7 +251,7 @@ namespace dal {
 
                 this->giveWidgetOwnership(w);
             }
-        }
+        }*/
 
         // Event Master
         {

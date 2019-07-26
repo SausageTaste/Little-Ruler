@@ -519,7 +519,7 @@ namespace dal {
         , m_textColor(1.0f, 1.0f, 1.0f, 1.0f)
         , m_cursorPos(cursorNullPos)
         , m_textSize(15)
-        , m_lineSpacingRate(1.9f)
+        , m_lineSpacingRate(1.3f)
         , m_wordWrap(false)
         , m_owning(-1)
     {

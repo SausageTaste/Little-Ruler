@@ -61,6 +61,9 @@ namespace dal {
         virtual InputCtrlFlag onKeyInput(const KeyboardEvent& e, const KeyStatesRegistry& keyStates) override;
         virtual void onFocusChange(const bool v) override;
 
+    protected:
+        virtual void onScrSpaceBoxUpdate(void) override;
+
     private:
         void onReturn(void);
 
@@ -78,7 +81,6 @@ namespace dal {
 
         virtual void render(const UnilocOverlay& uniloc, const float width, const float height) override;
         virtual InputCtrlFlag onTouch(const TouchEvent& e) override;
-        virtual InputCtrlFlag onKeyInput(const KeyboardEvent& e, const KeyStatesRegistry& keyStates) override;
 
         StringBufferBasic* replaceBuffer(StringBufferBasic* const buffer);
 

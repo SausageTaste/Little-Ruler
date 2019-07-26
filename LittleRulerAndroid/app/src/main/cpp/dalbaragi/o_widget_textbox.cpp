@@ -125,9 +125,7 @@ namespace dal {
         , m_textRenderer(this)
         , m_backgroundColor(g_darkTheme, g_darkTheme, g_darkTheme, 1.0f)
     {
-        this->setPos(60.0f, 40.0f);
-        this->setWidth(400.0f);
-        this->setHeight(400.0f);
+
     }
 
     void Label2::render(const UnilocOverlay& uniloc, const float width, const float height) {
@@ -177,10 +175,6 @@ namespace dal {
     }
 
     InputCtrlFlag LineEdit::onKeyInput(const KeyboardEvent& e, const KeyStatesRegistry& keyStates) {
-        if ( !this->m_onFocus ) {
-            return InputCtrlFlag::ignored;
-        }
-
         const auto shifted = keyStates[KeySpec::lshfit].m_pressed;
 
         if ( KeyActionType::down == e.m_actionType ) {
@@ -213,13 +207,13 @@ namespace dal {
 
     void LineEdit::onFocusChange(const bool v) {
         this->m_onFocus = v;
+    }
 
-        if ( v ) {
-            dalVerbose("LineEdit god focus.")
-        }
-        else {
-            dalVerbose("LineEdit lost focus.")
-        }
+    // Protected
+
+    void LineEdit::onScrSpaceBoxUpdate(void) {
+        this->getTextRenderer().setPos(this->getPos());
+        this->getTextRenderer().setSize(this->getSize());
     }
 
     // Private
@@ -243,11 +237,11 @@ namespace dal {
     }
 
     void TextBox::render(const UnilocOverlay& uniloc, const float width, const float height) {
-        auto str = this->m_strBuf->getStrBuf();
-        if ( nullptr != str ) {
+        if ( nullptr != this->m_strBuf ) {
+            auto str = this->m_strBuf->getStrBuf();
             this->m_textRenderer.appendText(str);
+            this->m_strBuf->clear();
         }
-        this->m_strBuf->clear();
 
         const auto info = this->makeDeviceSpace(width, height);
         renderQuadOverlay(uniloc, info.first, info.second, glm::vec4{ g_darkTheme, g_darkTheme, g_darkTheme, 1.0f });
@@ -257,10 +251,6 @@ namespace dal {
 
     InputCtrlFlag TextBox::onTouch(const TouchEvent& e) {
         return this->m_textRenderer.onTouch(e);
-    }
-
-    InputCtrlFlag TextBox::onKeyInput(const KeyboardEvent& e, const KeyStatesRegistry& keyStates) {
-        return InputCtrlFlag::ignored;
     }
 
     StringBufferBasic* TextBox::replaceBuffer(StringBufferBasic* const buffer) {
