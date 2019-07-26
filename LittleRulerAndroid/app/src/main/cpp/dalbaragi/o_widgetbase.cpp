@@ -3,10 +3,15 @@
 #include <unordered_map>
 
 #include <fmt/format.h>
+extern "C" {
+#include <ft2build.h>
+#include FT_FREETYPE_H
+#include FT_CACHE_H
+}
 
 #include "s_logger_god.h"
-#include "s_freetype_master.h"
 #include "p_resource.h"
+#include "u_fileclass.h"
 
 
 using namespace fmt::literals;
@@ -100,6 +105,7 @@ namespace {
 }
 
 
+// Util functions
 namespace {
 
     using vec2Pair_t = std::pair<glm::vec2, glm::vec2>;
@@ -124,6 +130,7 @@ namespace {
 }
 
 
+// Util classes
 namespace {
 
     class RealQuadRenderer2 {
@@ -191,11 +198,142 @@ namespace {
         };
 
     private:
+        class FreetypeMaster {
+
+        public:
+            class FreetypeFace {
+
+            private:
+                FT_Face m_face;
+                std::vector<FT_Byte> m_fontData;
+                std::string m_fontName;
+
+            public:
+                FreetypeFace(const FreetypeFace&) = delete;
+                FreetypeFace& operator=(const FreetypeFace&) = delete;
+
+            public:
+                FreetypeFace(void)
+                    : m_face(nullptr)
+                {
+
+                }
+
+                FreetypeFace(const std::string& fontName, FT_Library ftLib) {
+                    if ( !dal::futil::getRes_buffer(fontName, this->m_fontData) ) {
+                        dalAbort("Failed to load font file: {}"_format(fontName));
+                    }
+
+                    const auto error = FT_New_Memory_Face(ftLib, this->m_fontData.data(), static_cast<FT_Long>(this->m_fontData.size()), 0, &this->m_face);
+                    if ( error ) {
+                        dalAbort("Failed to find font: {}"_format(fontName));
+                    }
+
+                    this->setPixelSize(17);
+                }
+
+                FreetypeFace(FreetypeFace&& other) noexcept
+                    : m_face(other.m_face)
+                    , m_fontData(std::move(other.m_fontData))
+                    , m_fontName(std::move(other.m_fontName))
+                {
+                    other.m_face = nullptr;
+                }
+
+                FreetypeFace& operator=(FreetypeFace&& other) noexcept {
+                    this->invalidateFace();
+
+                    this->m_face = other.m_face;
+                    other.m_face = nullptr;
+
+                    std::swap(this->m_fontData, other.m_fontData);
+                    std::swap(this->m_fontName, other.m_fontName);
+                }
+
+                ~FreetypeFace(void) {
+                    this->invalidateFace();
+                }
+
+                void setPixelSize(FT_UInt size) {
+                    FT_Set_Pixel_Sizes(this->m_face, 0, size);
+                }
+
+                void loadCharData(const uint32_t utf32Char, CharacterUnit& charUnit) {
+                    const auto glyphIndex = FT_Get_Char_Index(this->m_face, utf32Char);
+                    if ( FT_Load_Glyph(this->m_face, glyphIndex, FT_LOAD_RENDER) != 0 ) {
+                        dalAbort("Failed to get Glyph for utf-32 char \'{}\' in font \"{}\""_format(utf32Char, this->m_fontName));
+                    }
+
+                    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);  // Text looks broken without this.
+                    charUnit.tex = dal::ResourceMaster::getUniqueTexture();
+                    charUnit.tex->init_maskMap(this->m_face->glyph->bitmap.buffer, this->m_face->glyph->bitmap.width, this->m_face->glyph->bitmap.rows);
+                    glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+
+                    charUnit.size = glm::vec2{ this->m_face->glyph->bitmap.width, this->m_face->glyph->bitmap.rows };
+                    charUnit.bearing = glm::vec2{ this->m_face->glyph->bitmap_left, this->m_face->glyph->bitmap_top };
+                    charUnit.advance = static_cast<int32_t>(this->m_face->glyph->advance.x);
+                }
+
+            private:
+                void loadChar(const char c) {
+                    if ( FT_Load_Char(this->m_face, c, FT_LOAD_RENDER) ) {
+                        dalAbort("Failed to load Glyph \'{}\' for font \"{}\""_format(c, this->m_fontName));
+                    }
+                }
+
+                void invalidateFace(void) {
+                    if ( nullptr != this->m_face ) {
+                        FT_Done_Face(this->m_face);
+                        this->m_face = nullptr;
+                    }
+                }
+
+            };
+
+        private:
+            FT_Library m_library = nullptr;
+            std::unordered_map<std::string, FreetypeFace> m_faces;
+
+        public:
+            FreetypeMaster(const FreetypeMaster&) = delete;
+            FreetypeMaster(FreetypeMaster&&) = delete;
+            FreetypeMaster& operator=(const FreetypeMaster&) = delete;
+            FreetypeMaster& operator=(FreetypeMaster&&) = delete;
+
+        public:
+            FreetypeMaster(void) {
+                if ( FT_Init_FreeType(&this->m_library) != 0 ) {
+                    dalAbort("Failed to init FreeType library.");
+                }
+            }
+
+            ~FreetypeMaster(void) {
+                FT_Done_FreeType(this->m_library);
+            }
+
+            FreetypeFace& getFace(const std::string& fontName) {
+                auto found = this->m_faces.find(fontName);
+
+                if ( this->m_faces.end() != found ) {
+                    return found->second;
+                }
+                else {
+                    auto [inserted, success] = this->m_faces.emplace(fontName, FreetypeFace{ fontName, this->m_library });
+                    dalAssert(success);
+                    return inserted->second;
+                }
+            }
+
+        };
+
+    private:
+        static inline const std::string BASIC_FONT_NAME{ "asset::NanumGothic.ttf" };
+
         using utf32ToTexMap_t = std::unordered_map<uint32_t, CharacterUnit>;
         // This is map from font size to another map.
         using textSizeToSubmap_t = std::unordered_map<unsigned int, utf32ToTexMap_t>;
-
         textSizeToSubmap_t m_cache;
+        FreetypeMaster m_freetypeMas;
 
     public:
         const CharacterUnit& at(const uint32_t utf32Char, unsigned int textSize) {
@@ -232,23 +370,9 @@ namespace {
         }
 
         void fillData(CharacterUnit& charUnit, const uint32_t utf32Char, unsigned int textSize) {
-            auto& ftype = dal::FreetypeGod::getinst();
-
-            ftype.setFontSize(textSize);
-            auto& face = ftype.getFace();
-            const auto glyphIndex = FT_Get_Char_Index(face, utf32Char);
-            if ( FT_Load_Glyph(face, glyphIndex, FT_LOAD_RENDER) != 0 ) {
-                dalAbort("Failed to load Glyph for utf-32 char: {}"_format(utf32Char));
-            }
-
-            glPixelStorei(GL_UNPACK_ALIGNMENT, 1);  // Text looks broken without this.
-            charUnit.tex = dal::ResourceMaster::getUniqueTexture();
-            charUnit.tex->init_maskMap(face->glyph->bitmap.buffer, face->glyph->bitmap.width, face->glyph->bitmap.rows);
-            glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
-
-            charUnit.size = glm::vec2{ face->glyph->bitmap.width, face->glyph->bitmap.rows };
-            charUnit.bearing = glm::vec2{ face->glyph->bitmap_left, face->glyph->bitmap_top };
-            charUnit.advance = static_cast<int32_t>(face->glyph->advance.x);
+            auto& face = this->m_freetypeMas.getFace(BASIC_FONT_NAME);
+            face.setPixelSize(textSize);
+            face.loadCharData(utf32Char, charUnit);
         }
 
     } g_charCache;
@@ -256,6 +380,7 @@ namespace {
 }
 
 
+// Header functions
 namespace dal {
 
     inline glm::vec2 screen2device(const glm::vec2& p, const float winWidth, const float winHeight) {
