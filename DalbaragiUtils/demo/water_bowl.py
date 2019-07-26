@@ -12,6 +12,17 @@ def main():
     ########
 
     model = bfi.BuildInfo_ModelImported()
+
+    actor = aco.ActorInfo()
+    actor.getPosHandle().setXYZ(2, 1, 5)
+    model.addActor(actor)
+
+    model.setModelID("asset::sheeptangball.dae")
+    level.add(model)
+
+    ########
+
+    model = bfi.BuildInfo_ModelImported()
     actor = aco.ActorInfo()
     actor.getPosHandle().setZ(5)
     actor.getQuatHandle().rotate(-90, (0, 1, 0))
