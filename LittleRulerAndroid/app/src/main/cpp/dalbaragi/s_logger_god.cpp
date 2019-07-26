@@ -110,16 +110,22 @@ namespace dal {
     }
 
     void LoggerGod::addChannel(ILoggingChannel* const ch) {
+        dalAssert(nullptr != ch);
+
         std::unique_lock<std::mutex> lck{ this->m_mut, std::defer_lock };
 
         this->m_channels.push_back(ch);
     }
 
     void LoggerGod::deleteChannel(ILoggingChannel* const ch) {
+        dalAssert(nullptr != ch);
+
         std::unique_lock<std::mutex> lck{ this->m_mut, std::defer_lock };
 
         const auto found = std::find(this->m_channels.begin(), this->m_channels.end(), ch);
-        if ( this->m_channels.end() != found ) this->m_channels.erase(found);
+        if ( this->m_channels.end() != found ) {
+            this->m_channels.erase(found);
+        }
     }
 
     void LoggerGod::disable(void) {
