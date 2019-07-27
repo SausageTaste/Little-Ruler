@@ -59,9 +59,6 @@ namespace {
 
     public:
         void dispatch(const float winWidth, const float winHeight, std::list<dal::Widget2*>& widgets, dal::Widget2* const bgWidget) {
-            const float widthOrHeightButShorter = winWidth < winHeight ? winWidth : winHeight;
-            const float aThridWidth = winWidth / 3.0f;
-
             auto& tq = dal::TouchEvtQueueGod::getinst();
 
             for ( unsigned int i = 0; i < tq.getSize(); i++ ) {
@@ -226,8 +223,6 @@ namespace dal {
         , m_texStreamCh(*script::getLuaStdOutBuffer())
         , m_winWidth(static_cast<float>(width))
         , m_winHeight(static_cast<float>(height))
-        , m_backgroundWidget(nullptr)
-        , m_backgroundOwned(false)
     {
         ConfigsGod::getinst().setWinSize(width, height);
 
@@ -269,10 +264,10 @@ namespace dal {
         LoggerGod::getinst().deleteChannel(&m_texStreamCh);
         EventGod::getinst().deregisterHandler(this, EventType::global_fsm_change);
 
-        this->m_widgets2.clear();
-        for ( auto w : this->m_toDelete2 ) {
+        for ( auto w : this->m_toDelete ) {
             delete w;
         }
+        this->m_toDelete.clear();
     }
 
     void OverlayMaster::onEvent(const EventStatic& e) {
@@ -288,73 +283,65 @@ namespace dal {
         this->m_winWidth = static_cast<float>(width);
         this->m_winHeight = static_cast<float>(height);
 
-        this->m_backgroundWidget->onParentResize(this->m_winWidth, this->m_winHeight);
-        for ( auto w : this->m_widgets2 ) {
+        for ( auto w : this->m_widgets ) {
             w->onParentResize(this->m_winWidth, this->m_winHeight);
         }
     }
 
     void OverlayMaster::updateInputs(void) {
-        g_touchMas.dispatch(this->m_winWidth, this->m_winHeight, this->m_widgets2, this->m_backgroundWidget);
-        g_keyMas.dispatch(this->m_winWidth, this->m_winHeight, this->m_widgets2, this->m_backgroundWidget);
+        //g_touchMas.dispatch(this->m_winWidth, this->m_winHeight, this->m_widgets2, this->m_backgroundWidget);
+        //g_keyMas.dispatch(this->m_winWidth, this->m_winHeight, this->m_widgets2, this->m_backgroundWidget);
+
+        {
+            auto& tq = dal::TouchEvtQueueGod::getinst();
+
+            for ( unsigned int i = 0; i < tq.getSize(); i++ ) {
+                const auto& e = tq.at(i);
+                const auto [flag, focused] = this->m_dispatcher.dispatch(this->m_widgets.getIterFront(), this->m_widgets.getEndIterFront(), e);
+                this->m_widgets.setFocusOn(focused);
+            }  // for
+
+            tq.clear();
+        }
+        
+        {
+            auto& kq = dal::KeyboardEvtQueueGod::getinst();
+            const auto kqSize = kq.getSize();
+
+            for ( unsigned int i = 0; i < kqSize; ++i ) {
+                const auto& e = kq.at(i);
+                this->m_dispatcher.dispatch(this->m_widgets.getIterFront(), this->m_widgets.getEndIterFront(), e, kq.getKeyStates());
+            }
+
+            kq.clear();
+        }
     }
 
     void OverlayMaster::render(void) const {
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         auto& uniloc = this->m_shaderMas.useOverlay();
 
-        if ( nullptr != this->m_backgroundWidget ) {
-            this->m_backgroundWidget->render(uniloc, this->m_winWidth, this->m_winHeight);
-        }
-
-        const auto end = this->m_widgets2.rend();
-        for ( auto iter = this->m_widgets2.rbegin(); iter != end; ++iter ) {
+        const auto end = this->m_widgets.getEndIterBack();
+        for ( auto iter = this->m_widgets.getIterBack(); iter != end; ++iter ) {
             (*iter)->render(uniloc, this->m_winWidth, this->m_winHeight);
         }
     }
 
     void OverlayMaster::giveWidgetOwnership(Widget2* const w) {
-        this->m_widgets2.push_front(w);
-        this->m_toDelete2.push_back(w);
+        this->m_widgets.add(w);
+        this->m_toDelete.push_back(w);
     }
 
     void OverlayMaster::giveWidgetRef(Widget2* const w) {
-        this->m_widgets2.push_front(w);
+        this->m_widgets.add(w);
     }
 
     bool OverlayMaster::removeWidgetRef(Widget2* const w) {
-        const auto end = this->m_widgets2.end();
-        const auto found = std::find(this->m_widgets2.begin(), end, w);
-        if ( end != found ) {
-            this->m_widgets2.erase(found);
-            return true;
-        }
-        else {
-            return false;
-        }
+        return this->m_widgets.remove(w);
     }
 
     void OverlayMaster::giveBackgroudWidgetRef(Widget2* const w) {
-        this->clearBackgroudWidget();
-        this->m_backgroundWidget = w;
-        this->m_backgroundOwned = false;
-    }
-
-    void OverlayMaster::giveBackgroudWidgetOwnership(Widget2* const w) {
-        this->clearBackgroudWidget();
-        this->m_backgroundWidget = w;
-        this->m_backgroundOwned = true;
-    }
-
-    // Private
-
-    void OverlayMaster::clearBackgroudWidget(void) {
-        if ( nullptr != this->m_backgroundWidget ) {
-            if ( this->m_backgroundOwned ) {
-                delete this->m_backgroundWidget;
-            }
-            this->m_backgroundWidget = nullptr;
-        }
+        this->m_widgets.addBack(w);
     }
 
 }

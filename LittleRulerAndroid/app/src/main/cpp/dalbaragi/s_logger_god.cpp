@@ -114,6 +114,11 @@ namespace dal {
 
         std::unique_lock<std::mutex> lck{ this->m_mut, std::defer_lock };
 
+        if ( std::find(this->m_channels.begin(), this->m_channels.end(), ch) != this->m_channels.end() ) {
+            dalWarn("Tried to add a logger channel that has been already added.");
+            return;
+        }
+
         this->m_channels.push_back(ch);
     }
 

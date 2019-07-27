@@ -1048,6 +1048,12 @@ namespace dal {
         this->setSize(width, height);
     }
 
+    void InputApplier::PlayerControlWidget::onFocusChange(const bool v) {
+        if ( v ) {
+            this->m_keyboardMoveInfo.clear();
+        }
+    }
+
     InputApplier::MoveInputInfo InputApplier::PlayerControlWidget::getMoveInfo(const float deltaTime, const float winWidth, const float winHeight) {
         MoveInputInfo info;
 
@@ -1102,6 +1108,8 @@ namespace dal {
 
     InputApplier::~InputApplier(void) {
         EventGod::getinst().deregisterHandler(this, EventType::global_fsm_change);
+
+        this->m_overlayMas.removeWidgetRef(&this->m_ctrlInputWidget);
     }
 
     void InputApplier::onEvent(const EventStatic& e) {

@@ -846,7 +846,6 @@ namespace dal {
         std::string resultStr;
         if ( findRecur_win(resultStr, path, fileName) ) {
             result.setOptionalDir(resultStr.substr(path.size(), resultStr.find(fileName) - path.size()));
-            dalInfo(resolveSucMsg + result.makeIDStr());
             return true;
         }
         else {
@@ -858,7 +857,6 @@ namespace dal {
             std::string foundStr;
             if ( findMatchingAsset(foundStr, g_assetFolders, "", fileName) ) {
                 result.setOptionalDir(foundStr);
-                dalInfo(resolveSucMsg + result.makeIDStr());
                 return true;
             }
             else {
@@ -871,7 +869,6 @@ namespace dal {
             std::string bufferResult;
             if ( findMatchingFileName_recursive_internalStorage(bufferResult, fileName, filePath) ) {
                 result.setOptionalDir(bufferResult.substr(filePath.size(), bufferResult.size() - filePath.size()));
-                dalInfo(resolveSucMsg + result.makeIDStr());
                 return true;
             }
             else {

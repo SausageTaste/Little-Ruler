@@ -3,6 +3,7 @@
 #include "p_resource.h"
 #include "p_shader_master.h"
 #include "o_widgetbase.h"
+#include "o_widgetmanager.h"
 #include "u_strbuf.h"
 #include "s_logchannel.h"
 
@@ -37,12 +38,11 @@ namespace dal {
 
         GlobalGameState mGlobalFSM;
 
-        TextStreamChannel m_texStreamCh;
+        WidgetStorage m_widgets;
+        std::vector<Widget2*> m_toDelete;
+        WidgetInputDispatcher m_dispatcher;
 
-        // If bool is true, the widget must be deleted in this class.
-        std::list<Widget2*> m_widgets2, m_toDelete2;
-        Widget2* m_backgroundWidget;
-        bool m_backgroundOwned;
+        TextStreamChannel m_texStreamCh;
 
         float m_winWidth, m_winHeight;
 
@@ -68,10 +68,6 @@ namespace dal {
         bool removeWidgetRef(Widget2* const w);
 
         void giveBackgroudWidgetRef(Widget2* const w);
-        void giveBackgroudWidgetOwnership(Widget2* const w);
-
-    private:
-        void clearBackgroudWidget(void);
 
     };
 

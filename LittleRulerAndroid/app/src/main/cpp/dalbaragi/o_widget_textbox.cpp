@@ -13,6 +13,7 @@
 
 
 using namespace std::string_literals;
+using namespace fmt::literals;
 
 
 namespace {
@@ -198,11 +199,9 @@ namespace dal {
                 break;
 
             }
-
-            return InputCtrlFlag::consumed;
         }
 
-        return InputCtrlFlag::ignored;
+        return InputCtrlFlag::consumed;
     }
 
     void LineEdit::onFocusChange(const bool v) {

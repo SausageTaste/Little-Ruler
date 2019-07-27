@@ -79,6 +79,7 @@ namespace dal {
             virtual dal::InputCtrlFlag onTouch(const dal::TouchEvent& e) override;
             virtual InputCtrlFlag onKeyInput(const KeyboardEvent& e, const KeyStatesRegistry& keyStates) override;
             virtual void onParentResize(const float width, const float height) override;
+            virtual void onFocusChange(const bool v) override;
 
             MoveInputInfo getMoveInfo(const float deltaTime, const float winWidth, const float winHeight);
 

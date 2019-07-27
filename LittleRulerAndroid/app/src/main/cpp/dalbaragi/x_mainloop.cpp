@@ -7,9 +7,11 @@
 #include "s_logger_god.h"
 #include "s_configs.h"
 #include "o_widget_textbox.h"
+#include "o_widgetmanager.h"
 
 
 using namespace std::string_literals;
+using namespace fmt::literals;
 
 
 // Test codes
@@ -199,10 +201,12 @@ namespace {
         };
 
     private:
+        dal::WidgetInputDispatcher m_dispatcher;
         TextStreamChannel m_stream;
         dal::LineEdit m_lineEdit;
         dal::TextBox m_textBox;
         glm::vec4 m_bgColor;
+        Widget2* m_focused;
 
     public:
         LuaConsole(void)
@@ -211,6 +215,7 @@ namespace {
             , m_lineEdit(this)
             , m_textBox(this)
             , m_bgColor(0.0f, 0.0f, 0.0f, 1.0f)
+            , m_focused(nullptr)
         {
             this->m_lineEdit.setHeight(20.0f);
 
@@ -234,27 +239,29 @@ namespace {
         }
 
         virtual dal::InputCtrlFlag onTouch(const dal::TouchEvent& e) override {
-            const auto lineEditFlag = this->m_lineEdit.onTouch(e);
-            if ( dal::InputCtrlFlag::ignored != lineEditFlag ) {
-                return lineEditFlag;
-            }
+            dal::Widget2* widgetArr[2] = { &this->m_lineEdit, &this->m_textBox };
+            const auto [flag, focused] = this->m_dispatcher.dispatch(widgetArr, widgetArr + 2, e);
 
-            const auto textBoxFlag = this->m_textBox.onTouch(e);
-            if ( dal::InputCtrlFlag::ignored != textBoxFlag ) {
-                return textBoxFlag;
-            }
+            this->m_focused = dal::resolveNewFocus(this->m_focused, focused);
 
-            return dal::InputCtrlFlag::consumed;
+            return flag;
         }
 
         virtual dal::InputCtrlFlag onKeyInput(const dal::KeyboardEvent& e, const dal::KeyStatesRegistry& keyStates) override {
-            return this->m_lineEdit.onKeyInput(e, keyStates);
+            if ( &this->m_lineEdit == this->m_focused ) {
+                const auto iter = &this->m_focused;
+                const auto end = iter + 1;
+                return this->m_dispatcher.dispatch(iter, end, e, keyStates);
+            }
+
+            return dal::InputCtrlFlag::ignored;
         }
 
         virtual void onFocusChange(const bool v) override {
             if ( !v ) {
                 this->m_lineEdit.onFocusChange(false);
                 this->m_textBox.onFocusChange(false);
+                this->m_focused = nullptr;
             }
         }
 
