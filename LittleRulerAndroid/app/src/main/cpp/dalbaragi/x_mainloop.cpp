@@ -347,8 +347,6 @@ namespace dal {
             mHandlerName = "dal::Mainloop";
             EventGod::getinst().registerHandler(this, EventType::quit_game);
 
-            LoggerGod::getinst().addChannel(&g_fileLogger);
-
             script::init(&this->m_renderMan, &this->m_scene);
 
             this->m_overlayMas.giveWidgetRef(&g_fpsCounter);
@@ -368,8 +366,6 @@ namespace dal {
 
     Mainloop::~Mainloop(void) {
         EventGod::getinst().deregisterHandler(this, EventType::quit_game);
-
-        LoggerGod::getinst().deleteChannel(&g_fileLogger);
 
         this->m_overlayMas.removeWidgetRef(&g_fpsCounter);
         this->m_overlayMas.removeWidgetRef(&g_luaConsole);
