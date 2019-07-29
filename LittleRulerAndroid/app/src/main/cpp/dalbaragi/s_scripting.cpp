@@ -144,7 +144,7 @@ namespace dal {
 
 namespace dal {
 
-    Lua::Lua(void) {
+    LuaGod::LuaGod(void) {
         L = luaL_newstate();
         luaL_openlibs(L);
 
@@ -154,16 +154,16 @@ namespace dal {
         this->addGlobalFunction("load_map", moon_loadMap);
     }
 
-    Lua::~Lua(void) {
+    LuaGod::~LuaGod(void) {
         lua_close(L);
     }
 
-    Lua& Lua::getinst(void) {
-        static Lua inst;
+    LuaGod& LuaGod::getinst(void) {
+        static LuaGod inst;
         return inst;
     }
 
-    void Lua::doString(const char* const t) {
+    void LuaGod::doString(const char* const t) {
         // It crashes with script "print(shit)" without shit defined.
         auto err = luaL_dostring(L, t);
         if ( err ) {
@@ -179,7 +179,7 @@ namespace dal {
         }
     }
 
-    void Lua::addGlobalFunction(const char* const identifier, lua_CFunction funcPointer) {
+    void LuaGod::addGlobalFunction(const char* const identifier, lua_CFunction funcPointer) {
         const struct luaL_Reg funcArr[] = {
             {identifier, funcPointer},
             {nullptr, nullptr} /* end of array */

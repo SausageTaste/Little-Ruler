@@ -19,16 +19,16 @@ namespace dal {
     }
 
 
-    class Lua {
+    class LuaGod {
 
     private:
         lua_State* L;
 
-        Lua(void);
-        ~Lua(void);
+        LuaGod(void);
+        ~LuaGod(void);
 
     public:
-        static Lua& getinst(void);
+        static LuaGod& getinst(void);
 
         void doString(const char* const t);
         void addGlobalFunction(const char* const identifier, lua_CFunction funcPointer);
