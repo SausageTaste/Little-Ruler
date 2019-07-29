@@ -219,14 +219,14 @@ namespace {
 
                 }
 
-                FreetypeFace(const std::string& fontName, FT_Library ftLib) {
-                    if ( !dal::futil::getRes_buffer(fontName, this->m_fontData) ) {
-                        dalAbort("Failed to load font file: {}"_format(fontName));
+                FreetypeFace(const dal::ResourceID& fontResID, FT_Library ftLib) {
+                    if ( !dal::futil::getRes_buffer(fontResID, this->m_fontData) ) {
+                        dalAbort("Failed to load font file: {}"_format(fontResID.makeIDStr()));
                     }
 
                     const auto error = FT_New_Memory_Face(ftLib, this->m_fontData.data(), static_cast<FT_Long>(this->m_fontData.size()), 0, &this->m_face);
                     if ( error ) {
-                        dalAbort("Failed to find font: {}"_format(fontName));
+                        dalAbort("Failed to initiate freetype face: {}"_format(fontResID.makeIDStr()));
                     }
 
                     this->setPixelSize(17);
@@ -311,14 +311,14 @@ namespace {
                 FT_Done_FreeType(this->m_library);
             }
 
-            FreetypeFace& getFace(const std::string& fontName) {
-                auto found = this->m_faces.find(fontName);
+            FreetypeFace& getFace(const std::string& fontResBasicForm) {
+                auto found = this->m_faces.find(fontResBasicForm);
 
                 if ( this->m_faces.end() != found ) {
                     return found->second;
                 }
                 else {
-                    auto [inserted, success] = this->m_faces.emplace(fontName, FreetypeFace{ fontName, this->m_library });
+                    auto [inserted, success] = this->m_faces.emplace(fontResBasicForm, FreetypeFace{ fontResBasicForm, this->m_library });
                     dalAssert(success);
                     return inserted->second;
                 }
