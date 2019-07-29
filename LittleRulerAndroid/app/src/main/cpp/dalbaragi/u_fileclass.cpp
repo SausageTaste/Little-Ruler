@@ -664,7 +664,7 @@ namespace {
 // Resource ID
 namespace dal {
 
-    ResourceID::ResourceID(const std::string& resourceID) {
+    ResourceIDString::ResourceIDString(const std::string& resourceID) {
         const auto& pathStr = resourceID;
 
         const auto packagePos = pathStr.find("::");
@@ -704,13 +704,13 @@ namespace dal {
         if ( !this->m_dir.empty() && this->m_dir.back() != '/' ) this->m_dir.push_back('/');
     }
 
-    ResourceID::ResourceID(const char* const resourceID)
+    ResourceIDString::ResourceIDString(const char* const resourceID)
         : ResourceID(std::string{ resourceID })
     {
 
     }
 
-    ResourceID::ResourceID(const std::string& package, const std::string& optionalDir, const std::string& bareName, const std::string& ext)
+    ResourceIDString::ResourceIDString(const std::string& package, const std::string& optionalDir, const std::string& bareName, const std::string& ext)
         : m_package(package)
         , m_dir(optionalDir)
         , m_bareName(bareName)
@@ -719,45 +719,49 @@ namespace dal {
 
     }
 
-    const std::string& ResourceID::getPackage(void) const {
+    const std::string& ResourceIDString::getPackage(void) const {
         return this->m_package;
     }
 
-    const std::string& ResourceID::getOptionalDir(void) const {
+    const std::string& ResourceIDString::getOptionalDir(void) const {
         return this->m_dir;
     }
 
-    const std::string& ResourceID::getBareName(void) const {
+    const std::string& ResourceIDString::getBareName(void) const {
         return this->m_bareName;
     }
 
-    const std::string& ResourceID::getExt(void) const {
+    const std::string& ResourceIDString::getExt(void) const {
         return this->m_ext;
     }
 
-    std::string ResourceID::makeIDStr(void) const {
+    std::string ResourceIDString::makeIDStr(void) const {
         return this->m_package + "::" + this->m_dir + this->m_bareName + this->m_ext;
     }
 
-    std::string ResourceID::makeFileName(void) const {
+    std::string ResourceIDString::makeFileName(void) const {
         return this->m_bareName + this->m_ext;
     }
 
-    std::string ResourceID::makeFilePath(void) const {
+    std::string ResourceIDString::makeFilePath(void) const {
         return this->m_dir + this->m_bareName + this->m_ext;
     }
 
-    void ResourceID::setPackage(const std::string& t) {
+    std::string ResourceIDString::makeBasicForm(void) const {
+        return this->m_package + this->m_bareName + this->m_ext;
+    }
+
+    void ResourceIDString::setPackage(const std::string& t) {
         this->m_package = t;
     }
 
-    void ResourceID::setPackageIfEmpty(const std::string& t) {
+    void ResourceIDString::setPackageIfEmpty(const std::string& t) {
         if ( this->m_package.empty() ) {
             this->m_package = t;
         }
     }
 
-    void ResourceID::setOptionalDir(const std::string& t) {
+    void ResourceIDString::setOptionalDir(const std::string& t) {
         this->m_dir = t;
         if ( !this->m_dir.empty() && '/' != this->m_dir.back() ) {
             this->m_dir.push_back('/');

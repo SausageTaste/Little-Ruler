@@ -8,16 +8,16 @@
 
 namespace dal {
 
-    class ResourceID {
+    class ResourceIDString {
 
     private:
         std::string m_package, m_dir, m_bareName, m_ext;
 
     public:
-        ResourceID(void) = default;
-        ResourceID(const char* const resourceID);
-        ResourceID(const std::string& resourceID);
-        ResourceID(const std::string& package, const std::string& optionalDir, const std::string& bareName, const std::string& ext);
+        ResourceIDString(void) = default;
+        ResourceIDString(const char* const resourceID);
+        ResourceIDString(const std::string& resourceID);
+        ResourceIDString(const std::string& package, const std::string& optionalDir, const std::string& bareName, const std::string& ext);
 
         const std::string& getPackage(void) const;
         const std::string& getOptionalDir(void) const;
@@ -27,12 +27,16 @@ namespace dal {
         std::string makeIDStr(void) const;
         std::string makeFileName(void) const;
         std::string makeFilePath(void) const;
+        std::string makeBasicForm(void) const;
 
         void setPackage(const std::string& t);
         void setPackageIfEmpty(const std::string& t);
         void setOptionalDir(const std::string& t);
 
     };
+
+    using ResourceID = ResourceIDString;
+
 
     bool resolveRes(dal::ResourceID& result);
 
