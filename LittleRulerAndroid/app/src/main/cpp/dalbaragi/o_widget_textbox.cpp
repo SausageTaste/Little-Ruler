@@ -218,7 +218,13 @@ namespace dal {
     // Private
 
     void LineEdit::onReturn(void) {
-        LuaGod::getinst().doString(this->getText().c_str());
+        if ( this->m_callbackOnEnter ) {
+            this->m_callbackOnEnter(this->getText().c_str());
+        }
+        else {
+            LuaGod::getinst().doString(this->getText().c_str());
+        }
+
         this->setText("");
     }
 

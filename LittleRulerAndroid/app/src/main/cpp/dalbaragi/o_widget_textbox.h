@@ -2,6 +2,8 @@
 
 #include <array>
 #include <string>
+#include <functional>
+
 #include <glm/glm.hpp>
 
 #include "s_event.h"
@@ -52,6 +54,7 @@ namespace dal {
 
     private:
         bool m_onFocus;
+        std::function<void(const char* const)> m_callbackOnEnter;
 
     public:
         LineEdit(Widget2* const parent);
@@ -60,6 +63,10 @@ namespace dal {
         virtual InputCtrlFlag onTouch(const TouchEvent& e) override;
         virtual InputCtrlFlag onKeyInput(const KeyboardEvent& e, const KeyStatesRegistry& keyStates) override;
         virtual void onFocusChange(const bool v) override;
+
+        void setCallbackOnEnter(std::function<void(const char* const)> func) {
+            this->m_callbackOnEnter = func;
+        }
 
     protected:
         virtual void onScrSpaceBoxUpdate(void) override;

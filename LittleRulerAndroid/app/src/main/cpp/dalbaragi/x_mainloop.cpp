@@ -8,6 +8,7 @@
 #include "s_configs.h"
 #include "o_widget_textbox.h"
 #include "o_widgetmanager.h"
+#include "u_luascript.h"
 
 
 using namespace std::string_literals;
@@ -207,6 +208,7 @@ namespace {
         dal::TextBox m_textBox;
         glm::vec4 m_bgColor;
         Widget2* m_focused;
+        dal::LuaState m_luaState;
 
     public:
         LuaConsole(void)
@@ -218,6 +220,9 @@ namespace {
             , m_focused(nullptr)
         {
             this->m_lineEdit.setHeight(20.0f);
+            this->m_lineEdit.setCallbackOnEnter([this](const char* const text) {
+                this->m_luaState.exec(text);
+                });
 
             this->m_textBox.replaceBuffer(dal::script::getLuaStdOutBuffer());
             dal::LoggerGod::getinst().addChannel(&this->m_stream);
