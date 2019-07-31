@@ -38,7 +38,45 @@ namespace {
             lua_pop(L, 1);
         }
 
+        void reserve(const size_t s) {
+            this->m_arr.reserve(s);
+        }
+
     };
+
+
+    dal::LuaState* findLuaState(lua_State* const L) {
+        lua_getglobal(L, "_G");              // Stack 1
+        lua_pushstring(L, "_dal_luastate");  // Stack 2
+        lua_gettable(L, -2);                 // Stack 2
+        auto ptr = lua_touserdata(L, -1);    // Stack 2
+        dalAssert(nullptr != ptr);
+        auto luaState = *reinterpret_cast<dal::LuaState**>(ptr);
+        lua_pop(L, 2);                       // Stack 0
+
+        return luaState;
+    }
+
+    void addPtrToGlobal(lua_State* const L, void* const p) {
+        lua_getglobal(L, "_G");                          // 1
+        lua_pushstring(L, "_dal_luastate");              // 2
+        auto added = lua_newuserdata(L, sizeof(void*));  // 3
+        auto userdata = reinterpret_cast<void**>(added);
+        *userdata = p;
+        lua_settable(L, -3);                             // 1
+        lua_pop(L, 1);                                   // 0
+    }
+
+    void addFunc(lua_State* const L, const char* const name, const lua_CFunction func) {
+        luaL_Reg funcs[] = {
+            { name   , func    },
+            { nullptr, nullptr }
+        };
+
+        lua_getglobal(L, "_G");      // 1
+        luaL_setfuncs(L, funcs, 0);  // 1
+        lua_pop(L, 1);               // 0
+    }
 
 }
 
@@ -46,20 +84,28 @@ namespace {
 // Misc functions
 namespace {
 
-    int moon_print(lua_State* L) {
+    int moon_print(lua_State* const L) {
         std::string buffer;
+        auto luaState = findLuaState(L);
 
         const auto nargs = lua_gettop(L);
         for ( int i = 1; i <= nargs; ++i ) {
+            if ( lua_isnil(L, i) ) {
+                break;
+            }
+
             auto arg = lua_tostring(L, i);
             if ( nullptr == arg ) {
                 continue;
             }
 
-            buffer += arg + ' ';
+            buffer.append(arg);
+            buffer += ' ';
         }
 
-        dalVerbose(buffer);
+        if ( !buffer.empty() ) {
+            luaState->appendTextLine(buffer.data(), buffer.size() - 1);
+        }
 
         return 0;
     }
@@ -69,10 +115,14 @@ namespace {
 
 namespace dal {
 
-    LuaState::LuaState(void) 
+    LuaState::LuaState(void)
         : m_lua(luaL_newstate())
+        , m_strbuf(nullptr)
     {
         luaL_openlibs(this->m_lua);
+
+        addPtrToGlobal(this->m_lua, this);
+        addFunc(this->m_lua, "print", moon_print);
     }
 
     LuaState::~LuaState(void) {
@@ -80,11 +130,27 @@ namespace dal {
         this->m_lua = nullptr;
     }
 
+    StringBufferBasic* LuaState::replaceStrbuf(StringBufferBasic* const strbuf) {
+        const auto tmp = this->m_strbuf;
+        this->m_strbuf = strbuf;
+        return tmp;
+    }
+
+    bool LuaState::appendTextLine(const char* const buf, const size_t bufSize) {
+        if ( nullptr != this->m_strbuf ) {
+            this->m_strbuf->append(buf, bufSize);
+            return this->m_strbuf->append('\n');
+        }
+        else {
+            return false;
+        }
+    }
+
     void LuaState::exec(const char* const statements) {
         auto err = luaL_dostring(this->m_lua, statements);
         if ( err ) {
             auto errMsg = lua_tostring(this->m_lua, -1);
-            dalError(errMsg);
+            this->appendTextLine(errMsg, std::strlen(errMsg));
             lua_pop(this->m_lua, 1);
         }
     }

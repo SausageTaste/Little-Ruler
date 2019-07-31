@@ -203,28 +203,30 @@ namespace {
 
     private:
         dal::WidgetInputDispatcher m_dispatcher;
-        TextStreamChannel m_stream;
         dal::LineEdit m_lineEdit;
         dal::TextBox m_textBox;
         glm::vec4 m_bgColor;
         Widget2* m_focused;
         dal::LuaState m_luaState;
+        dal::StringBufferBasic m_strbuf;
+        TextStreamChannel m_stream;
 
     public:
         LuaConsole(void)
             : dal::Widget2(nullptr)
-            , m_stream(*dal::script::getLuaStdOutBuffer())
             , m_lineEdit(this)
             , m_textBox(this)
             , m_bgColor(0.0f, 0.0f, 0.0f, 1.0f)
             , m_focused(nullptr)
+            , m_stream(m_strbuf)
         {
             this->m_lineEdit.setHeight(20.0f);
             this->m_lineEdit.setCallbackOnEnter([this](const char* const text) {
                 this->m_luaState.exec(text);
                 });
 
-            this->m_textBox.replaceBuffer(dal::script::getLuaStdOutBuffer());
+            this->m_luaState.replaceStrbuf(&this->m_strbuf);
+            this->m_textBox.replaceBuffer(&this->m_strbuf);
             dal::LoggerGod::getinst().addChannel(&this->m_stream);
 
             this->setPos(300.0f, 20.0f);

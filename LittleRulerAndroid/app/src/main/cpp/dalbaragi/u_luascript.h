@@ -6,6 +6,8 @@ extern "C" {
 #include <lualib.h>
 }
 
+#include "u_strbuf.h"
+
 
 namespace dal {
 
@@ -13,6 +15,8 @@ namespace dal {
 
     private:
         lua_State* m_lua;
+        StringBufferBasic* m_strbuf;
+        char m_name[10] = "fuck you";
 
     public:
         LuaState(const LuaState&) = delete;
@@ -24,6 +28,8 @@ namespace dal {
         LuaState(void);
         ~LuaState(void);
 
+        StringBufferBasic* replaceStrbuf(StringBufferBasic* const strbuf);
+        bool appendTextLine(const char* const buf, const size_t bufSize);
         void exec(const char* const statements);
 
         // This is gonna be called from Mainloop's ctor and dtor.
