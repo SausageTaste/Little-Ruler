@@ -15,8 +15,9 @@ using namespace fmt::literals;
 
 namespace {
 
-    constexpr unsigned int initWidth = 1280;
-    constexpr unsigned int initHeight = 720;
+    constexpr unsigned int INIT_WIN_WIDTH = 1920;
+    constexpr unsigned int INIT_WIN_HEIGHT = 1080;
+
 
     dal::KeySpec mapKeySpec(uint32_t sdlKey) {
         if ( SDLK_a <= sdlKey && sdlKey <= SDLK_z ) {
@@ -71,7 +72,7 @@ namespace {
 
     enum class InputOrder { nothing, quit };
 
-    InputOrder pullEventSDL(dal::Mainloop* const engine) {
+    InputOrder pullEventSDL(dal::Mainloop& engine) {
         SDL_Event e;
 
         while ( SDL_PollEvent(&e) != 0 ) {
@@ -92,7 +93,7 @@ namespace {
             }
             else if ( e.type == SDL_WINDOWEVENT ) {
                 if ( e.window.event == SDL_WINDOWEVENT_RESIZED ) {
-                    engine->onResize(e.window.data1, e.window.data2);
+                    engine.onResize(e.window.data1, e.window.data2);
                 }
             }
             else if ( e.type == SDL_QUIT ) {
@@ -188,13 +189,11 @@ namespace {
 namespace dal {
 
     int main_windows(void) {
-        WindowSDL window{ "Little Ruler", initWidth, initHeight, false };
-
-        std::unique_ptr<Mainloop> engine{ new Mainloop(initWidth, initHeight) };
+        WindowSDL window{ "Little Ruler", INIT_WIN_WIDTH, INIT_WIN_HEIGHT, true };
+        std::unique_ptr<Mainloop> engine{ new Mainloop{ INIT_WIN_WIDTH, INIT_WIN_HEIGHT } };
 
         while ( true ) {
-            auto order = pullEventSDL(engine.get());
-            switch ( order ) {
+            switch ( pullEventSDL(*engine.get()) ) {
 
             case InputOrder::quit:
                 return 0;
