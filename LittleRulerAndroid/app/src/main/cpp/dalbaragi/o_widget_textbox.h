@@ -8,7 +8,7 @@
 
 #include "s_event.h"
 #include "o_widgetbase.h"
-#include "s_scripting.h"
+#include "u_strbuf.h"
 
 
 namespace dal {

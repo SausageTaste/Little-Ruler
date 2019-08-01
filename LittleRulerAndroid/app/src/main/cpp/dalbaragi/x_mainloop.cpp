@@ -354,8 +354,6 @@ namespace dal {
             mHandlerName = "dal::Mainloop";
             EventGod::getinst().registerHandler(this, EventType::quit_game);
 
-            script::init(&this->m_renderMan, &this->m_scene);
-
             this->m_overlayMas.giveWidgetRef(&g_fpsCounter);
             this->m_overlayMas.giveWidgetRef(&g_luaConsole);
         }

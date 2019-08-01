@@ -42,8 +42,6 @@ namespace dal {
         std::vector<Widget2*> m_toDelete;
         WidgetInputDispatcher m_dispatcher;
 
-        TextStreamChannel m_texStreamCh;
-
         float m_winWidth, m_winHeight;
 
         //////// Funcs ////////

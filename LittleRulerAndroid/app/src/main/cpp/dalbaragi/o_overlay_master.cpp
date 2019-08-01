@@ -220,7 +220,6 @@ namespace dal {
         : m_resMas(resMas)
         , m_shaderMas(shaderMas)
         , mGlobalFSM(GlobalGameState::game)
-        , m_texStreamCh(*script::getLuaStdOutBuffer())
         , m_winWidth(static_cast<float>(width))
         , m_winHeight(static_cast<float>(height))
     {
@@ -253,15 +252,9 @@ namespace dal {
             this->mHandlerName = "OverlayMaster";
             EventGod::getinst().registerHandler(this, EventType::global_fsm_change);
         }
-
-        // Misc
-        {
-            LoggerGod::getinst().addChannel(&m_texStreamCh);
-        }
     }
 
     OverlayMaster::~OverlayMaster(void) {
-        LoggerGod::getinst().deleteChannel(&m_texStreamCh);
         EventGod::getinst().deregisterHandler(this, EventType::global_fsm_change);
 
         for ( auto w : this->m_toDelete ) {
