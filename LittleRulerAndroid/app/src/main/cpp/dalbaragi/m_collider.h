@@ -5,21 +5,6 @@
 
 namespace dal {
 
-    class AABB_2D {
-
-    private:
-        glm::vec2 p1, p2;
-
-    public:
-        void setPoints(const glm::vec2& p1, const glm::vec2& p2);
-        bool isInside(const glm::vec2& p) const;
-
-    private:
-        void validateOrder(void);
-
-    };
-
-
     struct CollisionResolveInfo {
         glm::vec3 m_this, m_other;
     };
