@@ -284,15 +284,15 @@ namespace {
                 dalWarn("Checked isdir but dir already exists upon _mkdir for userdata.");
                 break;
             case ENOENT:
-                dalAbort("Invalid path name in assertDir_userdata: "s + path);
+                dalAbort("Invalid path name in assertDir_userdata: {}"_format(path));
             case EROFS:
-                dalAbort("Parent folder is read only: "s + path);
+                dalAbort("Parent folder is read only: {}"_format(path));
             default:
-                dalAbort("Unknown errno for _mkdir in assertDir_userdata: "s + std::to_string(errno));
+                dalAbort("Unknown errno for _mkdir in assertDir_userdata: {}"_format(errno));
             }
         }
         else {
-            dalInfo("Folder created: "s + path);
+            dalInfo("Folder created: {}"_format(path));
         }
     }
 
@@ -381,7 +381,7 @@ namespace {
                 return true;
             }
             else {
-                dalError("Failed STDFileStream::open for: "s + path);
+                dalError("Failed STDFileStream::open for: {}"_format(path));
                 return false;
             }
         }
@@ -617,7 +617,7 @@ namespace {
         unsigned int w, h;
         auto error = lodepng::decode(output.m_buf, w, h, dataBuffer);
         if ( error ) {
-            dalError("PNG decode error: "s + lodepng_error_text(error));
+            dalError("PNG decode error: {}"_format(lodepng_error_text(error)));
             return false;
         }
 
@@ -786,7 +786,7 @@ namespace dal::futil {
     bool getRes_image(const ResourceID& resID, loadedinfo::ImageFileData& data) {
         const auto found = IMAGE_PARSER_MAP.find(resID.getExt());
         if ( IMAGE_PARSER_MAP.end() == found ) {
-            dalError("Not supported image file format: "s + resID.makeIDStr());
+            dalError("Not supported image file format: {}"_format(resID.makeIDStr()));
             return false;
         }
 
@@ -892,7 +892,7 @@ namespace dal {
 
         if ( nullptr == sdcardPath ) return false;
         g_storagePath = sdcardPath;
-        dalInfo("Storage path set: "s + g_storagePath);
+        dalInfo("Storage path set: {}"_format(g_storagePath));
 #endif
 
         return true;
@@ -938,7 +938,7 @@ namespace dal {
     */
     FileMode mapFileMode(const char* const str) {
         // { read, write, append, bread, bwrite, bappend };
-        // This order is important!
+        // The order is important!
 
         constexpr unsigned int NULL_CODE = 4444;
 
@@ -958,7 +958,7 @@ namespace dal {
             case 'a':
                 workType = 3; break;
             default:
-                dalAbort("Unknown file open mode: "s + str);
+                dalAbort("Unknown file open mode: {}"_format(str));
             }
         }
 
@@ -974,7 +974,7 @@ namespace dal {
                 case 'b':
                     byteModeFlag = 1; break;
                 default:
-                    dalAbort("Unknown file open mode: "s + str);
+                    dalAbort("Unknown file open mode: {}"_format(str));
                 }
             }
         }
@@ -985,7 +985,7 @@ namespace dal {
 
     std::unique_ptr<IResourceStream> resopen(ResourceID resID, const FileMode mode) {
         if ( resID.getPackage().empty() ) {
-            dalError("Caanot open resource without package specified: "s + resID.makeIDStr());
+            dalError("Caanot open resource without package specified: {}"_format(resID.makeIDStr()));
             return { nullptr };
         }
 
@@ -1004,21 +1004,22 @@ namespace dal {
 #if defined(_WIN32)
         std::string filePath;
         if ( resID.getPackage() == PACKAGE_NAME_ASSET ) {
-            filePath = getResourceDir_win() + PACKAGE_NAME_ASSET + '/' + resID.makeFilePath();
+            filePath = fmt::format("{}{}/{}", getResourceDir_win(), PACKAGE_NAME_ASSET, resID.makeFilePath());
         }
         else if ( resID.getPackage() == LOG_FOLDER_NAME ) {
-            filePath = getResourceDir_win() + LOG_FOLDER_NAME + '/' + resID.makeFilePath();
+            filePath = fmt::format("{}{}/{}", getResourceDir_win(), LOG_FOLDER_NAME, resID.makeFilePath());
             assertDir_log();
         }
         else {
-            filePath = getResourceDir_win() + USERDATA_FOLDER_NAME + '/' + resID.getPackage() + '/' + resID.makeFilePath();
+            const auto dirToAssert = fmt::format("{}{}/{}", getResourceDir_win(), USERDATA_FOLDER_NAME, resID.getPackage());
+            filePath = fmt::format("{}/{}", dirToAssert, resID.makeFilePath());
             assertDir_userdata();
-            assertDir((getResourceDir_win() + USERDATA_FOLDER_NAME + '/' + resID.getPackage()).c_str());
+            assertDir(dirToAssert.c_str());
         }
 
         std::unique_ptr<IResourceStream> file{ new STDFileStream };
         if ( false == file->open(filePath.c_str(), mode) ) {
-            dalError("Failed to open file: "s + filePath);
+            dalError("Failed to open file: {}"_format(filePath));
             return { nullptr };
         }
 
@@ -1032,19 +1033,20 @@ namespace dal {
             file.reset(new AssetSteam);
         }
         else if ( LOG_FOLDER_NAME == resID.getPackage() ) {
-            filePath = g_storagePath + LOG_FOLDER_NAME + '/' + resID.makeFilePath();
+            filePath = fmt::format("{}{}/{}", g_storagePath, LOG_FOLDER_NAME, resID.makeFilePath());
             assertDir_log();
             file.reset(new STDFileStream);
         }
         else {
-            filePath = g_storagePath + USERDATA_FOLDER_NAME + '/' + resID.getPackage() + '/' + resID.makeFilePath();
+            const auto dirToAssert = fmt::format("{}{}/{}", g_storagePath, USERDATA_FOLDER_NAME, resID.getPackage());
+            filePath = fmt::format("{}/{}", dirToAssert, resID.makeFilePath());
             assertDir_userdata();
-            assertDir((g_storagePath + USERDATA_FOLDER_NAME + '/' + resID.getPackage()).c_str());
+            assertDir(dirToAssert.c_str());
             file.reset(new STDFileStream);
         }
 
         if ( !file->open(filePath.c_str(), mode) ) {
-            dalError("Failed to open file: "s + resID.makeIDStr());
+            dalError("Failed to open file: {}"_format(resID.makeIDStr()));
             return { nullptr };
         }
 

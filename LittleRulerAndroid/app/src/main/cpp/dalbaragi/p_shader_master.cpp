@@ -429,7 +429,7 @@ namespace dal {
                 }
 
                 for ( auto x : types ) {
-                    fileHeader += "[recision {} {};\n"_format(pstr, x);
+                    fileHeader += "precision {} {};\n"_format(pstr, x);
                 }
             }
 
