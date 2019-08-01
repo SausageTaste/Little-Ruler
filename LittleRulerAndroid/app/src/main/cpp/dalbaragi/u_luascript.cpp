@@ -2,6 +2,7 @@
 
 #include "s_logger_god.h"
 #include "p_render_master.h"
+#include "s_configs.h"
 
 
 // Dependencies
@@ -107,6 +108,18 @@ namespace {
         return 0;
     }
 
+    int moon_setFullscreen(lua_State* const L) {
+        const auto nargs = lua_gettop(L);
+        if ( nargs < 1 ) {
+            return -1;
+        }
+
+        auto arg = static_cast<bool>(lua_toboolean(L, 1));
+        dal::GlobalStateGod::getinst().setFullscreen(arg);
+
+        return 0;
+    }
+
 }
 
 
@@ -120,6 +133,7 @@ namespace dal {
 
         addPtrToGlobal(this->m_lua, this);
         addFunc(this->m_lua, "print", moon_print);
+        addFunc(this->m_lua, "setFullscreen", moon_setFullscreen);
     }
 
     LuaState::~LuaState(void) {

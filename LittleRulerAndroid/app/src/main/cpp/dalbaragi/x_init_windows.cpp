@@ -178,6 +178,10 @@ namespace {
             SDL_GL_SwapWindow(this->mWindow);
         }
 
+        void setFullscreen(const bool yes) {
+            SDL_SetWindowFullscreen(this->mWindow, yes ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0);
+        }
+
     private:
         static void initGLew(void) {
             glewExperimental = GL_TRUE;
@@ -197,7 +201,12 @@ namespace dal {
 
     int main_windows(void) {
         WindowSDL window{ "Little Ruler", INIT_WIN_WIDTH, INIT_WIN_HEIGHT, FULLSCREEN };
+
         std::unique_ptr<Mainloop> engine{ new Mainloop{ INIT_WIN_WIDTH, INIT_WIN_HEIGHT } };
+
+        Mainloop::giveWindowCtrlFuncs([&window, &engine](bool fscreen) {
+            window.setFullscreen(fscreen);
+            });
 
         while ( true ) {
             switch ( pullEventSDL(*engine.get()) ) {

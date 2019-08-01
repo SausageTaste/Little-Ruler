@@ -333,6 +333,10 @@ namespace dal {
         return isFilesystemReady();
     }
 
+    void Mainloop::giveWindowCtrlFuncs(std::function<void(bool)> fullscreenToggle) {
+        GlobalStateGod::getinst().giveFscreenToggleFunc(fullscreenToggle);
+    }
+
     // Public
 
     Mainloop::Mainloop(const unsigned int winWidth, const unsigned int winHeight)
