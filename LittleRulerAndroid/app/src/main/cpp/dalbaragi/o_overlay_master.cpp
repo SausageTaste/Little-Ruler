@@ -7,7 +7,6 @@
 
 #include "s_logger_god.h"
 #include "s_configs.h"
-#include "o_widget_textbox.h"
 
 
 using namespace std::string_literals;
@@ -16,36 +15,13 @@ using namespace fmt::literals;
 
 namespace dal {
 
-    OverlayMaster::OverlayMaster(ResourceMaster& resMas, const ShaderMaster& shaderMas, const unsigned int width, const unsigned int height)
-        : m_resMas(resMas)
-        , m_shaderMas(shaderMas)
+    OverlayMaster::OverlayMaster(const ShaderMaster& shaderMas, const unsigned int width, const unsigned int height)
+        : m_shaderMas(shaderMas)
         , mGlobalFSM(GlobalGameState::game)
         , m_winWidth(static_cast<float>(width))
         , m_winHeight(static_cast<float>(height))
     {
         ConfigsGod::getinst().setWinSize(width, height);
-
-        // Widgets 2
-        /*{
-            {
-                auto w = new LineEdit(nullptr);
-
-                w->setPos(20, 50);
-                w->setSize(500, 20);
-
-                this->giveWidgetOwnership(w);
-            }
-
-            {
-                auto w = new TextBox(nullptr);
-
-                w->setPos(20, 80);
-                w->setSize(500, 400);
-                w->replaceBuffer(script::getLuaStdOutBuffer());
-
-                this->giveWidgetOwnership(w);
-            }
-        }*/
 
         // Event Master
         {
@@ -65,10 +41,10 @@ namespace dal {
 
     void OverlayMaster::onEvent(const EventStatic& e) {
         if ( EventType::global_fsm_change == e.type ) {
-            mGlobalFSM = GlobalGameState(e.intArg1);
+            this->mGlobalFSM = static_cast<GlobalGameState>(e.intArg1);
         }
         else {
-            LoggerGod::getinst().putWarn("Unhanlded event in OverlayMaster.", __LINE__, __func__, __FILE__);
+            dalWarn("Unhanlded event in OverlayMaster.");
         }
     }
 
@@ -82,9 +58,6 @@ namespace dal {
     }
 
     void OverlayMaster::updateInputs(void) {
-        //g_touchMas.dispatch(this->m_winWidth, this->m_winHeight, this->m_widgets2, this->m_backgroundWidget);
-        //g_keyMas.dispatch(this->m_winWidth, this->m_winHeight, this->m_widgets2, this->m_backgroundWidget);
-
         {
             auto& tq = dal::TouchEvtQueueGod::getinst();
 

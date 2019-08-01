@@ -6,8 +6,6 @@
 #include <fmt/format.h>
 
 #include "s_logger_god.h"
-#include "m_collider.h"
-#include "p_globalfsm.h"
 #include "s_configs.h"
 
 
@@ -17,9 +15,7 @@ using namespace fmt::literals;
 
 namespace {
 
-    auto& g_logger = dal::LoggerGod::getinst();
-
-    constexpr float g_darkTheme = 30.0f / 255.0f;
+    constexpr float DARK_THEME_COLOR = 30.0f / 255.0f;
 
 
     void toggleGameState(void) {
@@ -123,7 +119,7 @@ namespace dal {
     Label2::Label2(Widget2* parent)
         : Widget2(parent)
         , m_textRenderer(this)
-        , m_backgroundColor(g_darkTheme, g_darkTheme, g_darkTheme, 1.0f)
+        , m_backgroundColor(DARK_THEME_COLOR, DARK_THEME_COLOR, DARK_THEME_COLOR, 1.0f)
     {
 
     }
@@ -244,7 +240,7 @@ namespace dal {
         }
 
         const auto info = this->makeDeviceSpace(width, height);
-        renderQuadOverlay(uniloc, info.first, info.second, glm::vec4{ g_darkTheme, g_darkTheme, g_darkTheme, 1.0f });
+        renderQuadOverlay(uniloc, info.first, info.second, glm::vec4{ DARK_THEME_COLOR, DARK_THEME_COLOR, DARK_THEME_COLOR, 1.0f });
 
         this->m_textRenderer.render(uniloc, width, height);
     }

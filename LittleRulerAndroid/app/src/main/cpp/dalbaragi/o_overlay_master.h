@@ -1,10 +1,8 @@
 #pragma once
 
-#include "p_resource.h"
 #include "p_shader_master.h"
 #include "o_widgetbase.h"
 #include "o_widgetmanager.h"
-#include "u_strbuf.h"
 #include "s_logchannel.h"
 
 
@@ -15,7 +13,6 @@ namespace dal {
         //////// Vars ////////
 
     private:
-        ResourceMaster& m_resMas;
         const ShaderMaster& m_shaderMas;
 
         GlobalGameState mGlobalFSM;
@@ -33,7 +30,7 @@ namespace dal {
         OverlayMaster& operator=(const OverlayMaster&) = delete;
 
     public:
-        OverlayMaster(ResourceMaster& resMas, const ShaderMaster& shaderMas, const unsigned int width, const unsigned int height);
+        OverlayMaster(const ShaderMaster& shaderMas, const unsigned int width, const unsigned int height);
         virtual ~OverlayMaster(void) override;
 
         virtual void onEvent(const EventStatic& e) override;
