@@ -116,45 +116,20 @@ namespace {
 
 namespace {
 
-    /*
-    void apply_flyDirectional(const float deltaTime, dal::StrangeEulerCamera& camera, dal::OverlayMaster& overlay) {
-        glm::vec2 totalMovePlane{ 0.0 };  // This means it must represent move direction when targetViewDir == { 0, 0 }.
-        float moveUpOrDown = 0.0f;
+    void apply_flyDirectional(const float deltaTime, const dal::InputApplier::MoveInputInfo& totalMoveInfo, dal::StrangeEulerCamera& camera) {
+        camera.addViewPlane(totalMoveInfo.m_view.x, totalMoveInfo.m_view.y);
 
-        g_keyboardMas.fetch();
-        g_touchMas.fetch();
-
-        // Take inputs
-        {
-            NoclipMoveInfo keyboardInfo;
-            if ( g_keyboardMas.makeMoveInfo(keyboardInfo, deltaTime) ) {
-                totalMovePlane += glm::vec2{ keyboardInfo.xMovePlane, keyboardInfo.zMovePlane };
-                camera.addViewPlane(keyboardInfo.xView, keyboardInfo.yView);
-                moveUpOrDown += keyboardInfo.vertical;
-            }
-
-            NoclipMoveInfo touchInfo;
-            if ( g_touchMas.makeMoveInfo(touchInfo, overlay) ) {
-                totalMovePlane += glm::vec2{ touchInfo.xMovePlane, touchInfo.zMovePlane };
-                camera.addViewPlane(touchInfo.xView, touchInfo.yView);
-                moveUpOrDown += touchInfo.vertical;
-            }
-
-            camera.updateViewMat();
-        }
-
-        // Return if target doesn't need to move.
-        if ( totalMovePlane.x == 0.0f && totalMovePlane.y == 0.0f && moveUpOrDown == 0.0f ) return;
-
-        // Apply move direction
-        {
+        // Apply move direction if target need to move.
+        if ( totalMoveInfo.m_move.x != 0.0f || totalMoveInfo.m_move.y != 0.0f || totalMoveInfo.m_vertical != 0.0f ) {
             glm::mat4 viewMat{ 1.0 };
             const auto viewVec = camera.getViewPlane();
             viewMat = glm::rotate(viewMat, -viewVec.x, glm::vec3(0.0f, 1.0f, 0.0f));
             viewMat = glm::rotate(viewMat, viewVec.y, glm::vec3(1.0f, 0.0f, 0.0f));
 
-            glm::vec3 moveDirection{ viewMat * glm::vec4{totalMovePlane.x, 0.0, totalMovePlane.y, 1.0} };
-            if ( moveUpOrDown ) moveDirection.y = moveUpOrDown;
+            glm::vec3 moveDirection{ viewMat * glm::vec4{totalMoveInfo.m_move.x, 0.0, totalMoveInfo.m_move.y, 1.0} };
+            if ( totalMoveInfo.m_vertical ) {
+                moveDirection.y = totalMoveInfo.m_vertical;
+            }
 
             //moveDirection = glm::normalize(moveDirection);  // Maybe this is redundant.
             const float moveMultiplier = 5.0f * deltaTime;
@@ -164,44 +139,19 @@ namespace {
         camera.updateViewMat();
     }
 
-    void apply_flyPlane(const float deltaTime, dal::StrangeEulerCamera& camera, dal::OverlayMaster& overlay) {
-        glm::vec2 totalMovePlane{ 0.0 };  // This means it must represent move direction when targetViewDir == { 0, 0 }.
-        float moveUpOrDown = 0.0f;
+    void apply_flyPlane(const float deltaTime, const dal::InputApplier::MoveInputInfo& totalMoveInfo, dal::StrangeEulerCamera& camera) {
+        // Apply view
+        camera.addViewPlane(totalMoveInfo.m_view.x, totalMoveInfo.m_view.y);
 
-        g_keyboardMas.fetch();
-        g_touchMas.fetch();
-
-        // Take inputs
-        {
-            NoclipMoveInfo keyboardInfo;
-            if ( g_keyboardMas.makeMoveInfo(keyboardInfo, deltaTime) ) {
-                totalMovePlane += glm::vec2{ keyboardInfo.xMovePlane, keyboardInfo.zMovePlane };
-                camera.addViewPlane(keyboardInfo.xView, keyboardInfo.yView);
-                moveUpOrDown += keyboardInfo.vertical;
-            }
-
-            NoclipMoveInfo touchInfo;
-            if ( g_touchMas.makeMoveInfo(touchInfo, overlay) ) {
-                totalMovePlane += glm::vec2{ touchInfo.xMovePlane, touchInfo.zMovePlane };
-                camera.addViewPlane(touchInfo.xView, touchInfo.yView);
-                moveUpOrDown += touchInfo.vertical;
-            }
-
-            camera.updateViewMat();
-        }
-
-        // Return if target doesn't need to move.
-        if ( totalMovePlane.x == 0.0f && totalMovePlane.y == 0.0f && moveUpOrDown == 0.0f ) return;
-
-        // Apply move direction
-        {
+        // Apply move direction if target need to move.
+        if ( totalMoveInfo.m_move.x != 0.0f || totalMoveInfo.m_move.y != 0.0f || totalMoveInfo.m_vertical != 0.0f ) {
             glm::mat4 viewMat{ 1.0 };
             const auto viewVec = camera.getViewPlane();
             viewMat = glm::rotate(viewMat, -viewVec.x, glm::vec3(0.0f, 1.0f, 0.0f));
             //viewMat = glm::rotate(viewMat, targetViewDir->y, glm::vec3(1.0f, 0.0f, 0.0f));
 
-            glm::vec3 moveDirection{ viewMat * glm::vec4{totalMovePlane.x, 0.0, totalMovePlane.y, 1.0} };
-            if ( moveUpOrDown ) moveDirection.y = moveUpOrDown;
+            glm::vec3 moveDirection{ viewMat * glm::vec4{totalMoveInfo.m_move.x, 0.0, totalMoveInfo.m_move.y, 1.0} };
+            moveDirection.y = totalMoveInfo.m_vertical;
 
             //moveDirection = glm::normalize(moveDirection);  // Maybe this is redundant.
             const float moveMultiplier = 5.0f * deltaTime;
@@ -212,160 +162,14 @@ namespace {
         camera.updateViewMat();
     }
 
-    void apply_topdown(const float deltaTime, dal::StrangeEulerCamera& camera, dal::OverlayMaster& overlay,
-        const entt::entity targetEntity, entt::registry& reg) {
-        // This means it must represent move direction when targetViewDir == { 0, 0 }
-        NoclipMoveInfo totalMoveInfo{ 0.0f };
-
-        if ( reg.has<dal::cpnt::AnimatedModel>(targetEntity) ) {
-            reg.get<dal::cpnt::AnimatedModel>(targetEntity).m_animState.setSelectedAnimeIndex(0);
-        }
-
-        // Take inputs
-        {
-            g_keyboardMas.fetch();
-            g_touchMas.fetch();
-
-            NoclipMoveInfo keyboardInfo;
-            const auto keyUpdated = g_keyboardMas.makeMoveInfo(keyboardInfo, deltaTime);
-            if ( keyUpdated ) {
-                totalMoveInfo += keyboardInfo;
-            }
-
-            NoclipMoveInfo touchInfo;
-            const auto touchUpdated = g_touchMas.makeMoveInfo(touchInfo, overlay);
-            if ( touchUpdated ) {
-                //const auto moveVec = clampVec<1>(glm::vec2{ touchInfo.xMovePlane, touchInfo.zMovePlane });
-                const auto moveVec = glm::vec2{ touchInfo.xMovePlane, touchInfo.zMovePlane };
-                touchInfo.xMovePlane = moveVec.x;
-                touchInfo.zMovePlane = moveVec.y;
-
-                totalMoveInfo += touchInfo;
-            }
-
-            if ( !keyUpdated && !touchUpdated ) {
-                return;
-            }
-        }
-
-        // Post process
-        {
-            const auto clampedMovePlane = clampVec<1>(glm::vec2{ totalMoveInfo.xMovePlane, totalMoveInfo.zMovePlane });
-            totalMoveInfo.xMovePlane = clampedMovePlane.x;
-            totalMoveInfo.zMovePlane = clampedMovePlane.y;
-        }
-
-        // Apply move direction
-        {
-            const glm::vec3 k_modelCamOffset{ 0.0f, 1.3f, 0.0f };
-
-            dalAssert(reg.has<dal::cpnt::Transform>(targetEntity));
-            auto& cpntTrans = reg.get<dal::cpnt::Transform>(targetEntity);
-
-            {
-                constexpr float CAM_ROTATE_SPEED_INV = 1.0f;
-                static_assert(0.0f <= CAM_ROTATE_SPEED_INV && CAM_ROTATE_SPEED_INV <= 1.0f);
-
-                const auto camViewVec = dal::strangeEuler2Vec(camera.getStrangeEuler());
-                const auto rotatorAsCamX = glm::rotate(glm::mat4{ 1.0f }, camera.getStrangeEuler().getX(), glm::vec3{ 0.0f, 1.0f, 0.0f });
-                const auto rotatedMoveVec = rotateVec2(glm::vec2{ totalMoveInfo.xMovePlane, totalMoveInfo.zMovePlane }, camera.getStrangeEuler().getX());
-
-                const auto deltaPos = glm::vec3{ rotatedMoveVec.x, totalMoveInfo.vertical, rotatedMoveVec.y } *deltaTime * 5.0f;
-                cpntTrans.m_pos += deltaPos;
-                camera.m_pos += deltaPos * CAM_ROTATE_SPEED_INV;
-                if ( rotatedMoveVec.x != 0.0f || rotatedMoveVec.y != 0.0f ) {  // If moved position
-                    cpntTrans.m_quat = dal::rotateQuat(glm::quat{}, atan2(rotatedMoveVec.x, rotatedMoveVec.y), glm::vec3{ 0.0f, 1.0f, 0.0f });
-                    if ( reg.has<dal::cpnt::AnimatedModel>(targetEntity) ) {
-                        auto& animModel = reg.get<dal::cpnt::AnimatedModel>(targetEntity);
-                        animModel.m_animState.setSelectedAnimeIndex(1);
-                        const auto moveSpeed = glm::length(rotatedMoveVec);
-                        const auto animeSpeed = 1.0f / moveSpeed;
-                        constexpr float epsilon = 0.0001f;
-                        if ( epsilon > animeSpeed && animeSpeed > -epsilon ) {  // animeSpeed is near zero than epsion.
-                            animModel.m_animState.setTimeScale(0.0f);
-                        }
-                        else {
-                            animModel.m_animState.setTimeScale(1.0f / animeSpeed);
-                        }
-                    }
-                }
-                else {
-                    if ( reg.has<dal::cpnt::AnimatedModel>(targetEntity) ) {
-                        auto& animModel = reg.get<dal::cpnt::AnimatedModel>(targetEntity);
-                        animModel.m_animState.setSelectedAnimeIndex(0);
-                    }
-                }
-            }
-
-            {
-                constexpr float MAX_Y_DEGREE = 75.0f;
-
-                const auto obj2CamVec = camera.m_pos - (cpntTrans.m_pos + k_modelCamOffset);
-                const auto len = glm::length(obj2CamVec);
-                auto obj2CamSEuler = dal::vec2StrangeEuler(obj2CamVec);
-
-                obj2CamSEuler.addX(totalMoveInfo.xView);
-                obj2CamSEuler.addY(-totalMoveInfo.yView);
-
-                obj2CamSEuler.clampY(glm::radians(-MAX_Y_DEGREE), glm::radians(MAX_Y_DEGREE));
-                const auto rotatedVec = dal::strangeEuler2Vec(obj2CamSEuler);
-                camera.m_pos = cpntTrans.m_pos + k_modelCamOffset + rotatedVec * len;
-            }
-
-            {
-                constexpr float OBJ_CAM_DISTANCE = 2.0f;
-
-                const auto cam2ObjVec = cpntTrans.m_pos - camera.m_pos + k_modelCamOffset;
-                const auto cam2ObjSEuler = dal::vec2StrangeEuler(cam2ObjVec);
-                camera.setViewPlane(cam2ObjSEuler.getX(), cam2ObjSEuler.getY());
-
-                camera.m_pos = cpntTrans.m_pos + k_modelCamOffset - resizeOnlyXZ(cam2ObjVec, OBJ_CAM_DISTANCE);
-            }
-
-            camera.updateViewMat();
-            cpntTrans.updateMat();
-        }
+    void apply_flyForPlatform(const float deltaTime, const dal::InputApplier::MoveInputInfo& totalMoveInfo, dal::StrangeEulerCamera& camera) {
+#if defined(_WIN32)
+        apply_flyPlane(deltaTime, totalMoveInfo, camera);
+#elif defined(__ANDROID__)
+        apply_flyDirectional(deltaTime, totalMoveInfo, camera);
+#endif
     }
 
-    void apply_menuControl(dal::OverlayMaster& overlay) {
-        g_touchMas.fetch();
-        g_keyboardMas.fetch();
-
-        for ( const auto& com : g_keyboardMas.getCommands() ) {
-            switch ( com.getType() ) {
-
-            case KeyboardStatesMaster::KeyboardCommand::CmdType::text:
-                overlay.onKeyInput(com.getData_text());
-                break;
-            case KeyboardStatesMaster::KeyboardCommand::CmdType::toggle_game_state:
-                toggleGameState();
-                break;
-            default:
-                dalWarn("Unhandled keyboard command: "s + std::to_string(int(com.getType())));
-
-            }
-        }
-
-        glm::vec2 pos;
-        for ( const auto& cmd : g_touchMas.getCommands() ) {
-            switch ( cmd.getType() ) {
-
-            case TouchStatesMaster::TouchCommand::CmdType::click:
-                pos = cmd.getClickPos();
-                overlay.onClick(pos.x, pos.y);
-                break;
-            default:
-                dalWarn("Unhandled touch command: "s + std::to_string(int(cmd.getType())));
-
-            }
-        }
-    }
-    */
-
-}  // namespace
-
-
-namespace {
 
     void apply_topdown(const float deltaTime, const dal::InputApplier::MoveInputInfo& totalMoveInfo,
         dal::StrangeEulerCamera& camera, const entt::entity targetEntity, entt::registry& reg)
@@ -443,9 +247,10 @@ namespace {
                 camera.m_pos = cpntTrans.m_pos + k_modelCamOffset - resizeOnlyXZ(cam2ObjVec, OBJ_CAM_DISTANCE);
             }
 
-            camera.updateViewMat();
             cpntTrans.updateMat();
         }
+
+        camera.updateViewMat();
     }
 
 }
@@ -753,24 +558,6 @@ namespace dal {
         }
     }
 
-    /*
-    void InputApplier::apply(const float deltaTime, StrangeEulerCamera& camera, const entt::entity targetEntity, entt::registry& reg) {
-        if ( GlobalGameState::game == this->mFSM ) {
-#if defined(_WIN32)
-            apply_topdown(deltaTime, camera, this->m_overlayMas, targetEntity, reg);
-#else defined(__ANDROID__)
-            apply_topdown(deltaTime, camera, this->m_overlayMas, targetEntity, reg);
-#endif
-        }
-        else if ( GlobalGameState::menu == this->mFSM ) {
-            apply_menuControl(this->m_overlayMas);
-        }
-        else {
-            dalAbort("Unknown global game state.");
-        }
-    }
-    */
-
     void InputApplier::apply(const float deltaTime, StrangeEulerCamera& camera, const entt::entity targetEntity, entt::registry& reg) {
         const float winWidth = (float)dal::GlobalStateGod::getinst().getWinWidth();
         const float winHeight = (float)dal::GlobalStateGod::getinst().getWinHeight();
@@ -778,6 +565,7 @@ namespace dal {
         const auto info = this->m_ctrlInputWidget.getMoveInfo(deltaTime, winWidth, winHeight);
 
         apply_topdown(deltaTime, info, camera, targetEntity, reg);
+        //apply_flyForPlatform(deltaTime, info, camera);
     }
 
 }  // namespace dal
