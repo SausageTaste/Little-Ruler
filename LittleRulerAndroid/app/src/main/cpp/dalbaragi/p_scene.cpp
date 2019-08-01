@@ -77,8 +77,8 @@ namespace dal {
             plight.mMaxDistance = pointLight.m_maxDist;
         }
 
-        const auto width = ConfigsGod::getinst().getWinWidth();
-        const auto height = ConfigsGod::getinst().getWinHeight();
+        const auto width = GlobalStateGod::getinst().getWinWidth();
+        const auto height = GlobalStateGod::getinst().getWinHeight();
         for ( auto& waterInfo : info.m_waterPlanes ) {
             this->m_waters.emplace_back(waterInfo, width, height);
         }
@@ -354,7 +354,7 @@ namespace dal {
     {
         // This is needed by Water objects
         {
-            ConfigsGod::getinst().setWinSize(winWidth, winHeight);
+            GlobalStateGod::getinst().setWinSize(winWidth, winHeight);
         }
 
         this->loadMap("asset::map/water_bowl.dlb");

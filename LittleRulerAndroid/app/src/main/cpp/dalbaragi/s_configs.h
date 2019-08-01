@@ -6,19 +6,23 @@
 
 namespace dal {
 
-    class ConfigsGod : public iEventHandler {
+    class GlobalStateGod : public iEventHandler {
 
     private:
         unsigned int mWinWidth, mWinHeight;
         GlobalGameState m_gameState;
 
-        ConfigsGod(void);
-        ~ConfigsGod(void);
-        ConfigsGod(const ConfigsGod&) = delete;
-        ConfigsGod& operator=(const ConfigsGod&) = delete;
+        GlobalStateGod(void);
+        ~GlobalStateGod(void);
 
     public:
-        static ConfigsGod& getinst(void);
+        GlobalStateGod(const GlobalStateGod&) = delete;
+        GlobalStateGod(GlobalStateGod&&) = delete;
+        GlobalStateGod& operator=(const GlobalStateGod&) = delete;
+        GlobalStateGod& operator=(GlobalStateGod&&) = delete;
+
+    public:
+        static GlobalStateGod& getinst(void);
 
         virtual void onEvent(const EventStatic& e) override;
 

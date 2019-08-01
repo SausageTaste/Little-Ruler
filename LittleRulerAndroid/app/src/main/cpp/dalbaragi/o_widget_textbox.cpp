@@ -21,7 +21,7 @@ namespace {
         dal::EventStatic e;
         e.type = dal::EventType::global_fsm_change;
 
-        const auto curState = dal::ConfigsGod::getinst().getGlobalGameState();
+        const auto curState = dal::GlobalStateGod::getinst().getGlobalGameState();
 
         switch ( curState ) {
         case dal::GlobalGameState::game:

@@ -22,7 +22,7 @@ namespace {
         dal::EventStatic e;
         e.type = dal::EventType::global_fsm_change;
 
-        const auto curState = dal::ConfigsGod::getinst().getGlobalGameState();
+        const auto curState = dal::GlobalStateGod::getinst().getGlobalGameState();
         switch ( curState ) {
         case dal::GlobalGameState::game:
             e.intArg1 = static_cast<int>(dal::GlobalGameState::menu); break;
@@ -171,8 +171,8 @@ namespace {
 
     public:
         void fetch(void) {
-            const float winWidth = (float)dal::ConfigsGod::getinst().getWinWidth();
-            const float winHeight = (float)dal::ConfigsGod::getinst().getWinHeight();
+            const float winWidth = (float)dal::GlobalStateGod::getinst().getWinWidth();
+            const float winHeight = (float)dal::GlobalStateGod::getinst().getWinHeight();
             const float widthOrHeightButShorter = winWidth < winHeight ? winWidth : winHeight;
             const float aThridWidth = winWidth / 3.0f;
 
@@ -231,8 +231,8 @@ namespace {
         }
 
         bool makeMoveInfo(NoclipMoveInfo& info, dal::OverlayMaster& overlay) const {
-            const float winWidth = (float)dal::ConfigsGod::getinst().getWinWidth();
-            const float winHeight = (float)dal::ConfigsGod::getinst().getWinHeight();
+            const float winWidth = (float)dal::GlobalStateGod::getinst().getWinWidth();
+            const float winHeight = (float)dal::GlobalStateGod::getinst().getWinHeight();
             const float widthOrHeightButShorter = winWidth < winHeight ? winWidth : winHeight;
             const float viewMultiplier = 5.0f / widthOrHeightButShorter;
 
@@ -1143,8 +1143,8 @@ namespace dal {
     */
 
     void InputApplier::apply(const float deltaTime, StrangeEulerCamera& camera, const entt::entity targetEntity, entt::registry& reg) {
-        const float winWidth = (float)dal::ConfigsGod::getinst().getWinWidth();
-        const float winHeight = (float)dal::ConfigsGod::getinst().getWinHeight();
+        const float winWidth = (float)dal::GlobalStateGod::getinst().getWinWidth();
+        const float winHeight = (float)dal::GlobalStateGod::getinst().getWinHeight();
 
         const auto info = this->m_ctrlInputWidget.getMoveInfo(deltaTime, winWidth, winHeight);
 

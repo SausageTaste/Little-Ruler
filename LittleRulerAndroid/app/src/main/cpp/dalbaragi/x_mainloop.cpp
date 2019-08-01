@@ -344,7 +344,7 @@ namespace dal {
     {
         // This might be done already by SceneMaster or OverlayMaster but still...
         {
-            ConfigsGod::getinst().setWinSize(winWidth, winHeight);
+            GlobalStateGod::getinst().setWinSize(winWidth, winHeight);
         }
 
         // Check filesystem init
@@ -436,7 +436,7 @@ namespace dal {
     }
 
     void Mainloop::onResize(unsigned int width, unsigned int height) {
-        ConfigsGod::getinst().setWinSize(width, height);
+        GlobalStateGod::getinst().setWinSize(width, height);
 
         this->m_renderMan.onWinResize(width, height);
         this->m_overlayMas.onWinResize(width, height);

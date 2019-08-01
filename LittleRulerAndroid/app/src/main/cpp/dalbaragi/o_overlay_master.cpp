@@ -20,7 +20,7 @@ namespace dal {
         , m_winWidth(static_cast<float>(width))
         , m_winHeight(static_cast<float>(height))
     {
-        ConfigsGod::getinst().setWinSize(width, height);
+        GlobalStateGod::getinst().setWinSize(width, height);
 
         // Event Master
         {
