@@ -12,24 +12,6 @@ namespace dal {
 
     class OverlayMaster : public iEventHandler {
 
-    private:
-        class TextStreamChannel : public dal::ILoggingChannel {
-
-        private:
-            dal::StringBufferBasic& m_texStream;
-
-        public:
-            TextStreamChannel(dal::StringBufferBasic& texStream);
-
-            virtual void verbose(const char* const str, const int line, const char* const func, const char* const file) override;
-            virtual void debug(const char* const str, const int line, const char* const func, const char* const file) override;
-            virtual void info(const char* const str, const int line, const char* const func, const char* const file) override;
-            virtual void warn(const char* const str, const int line, const char* const func, const char* const file) override;
-            virtual void error(const char* const str, const int line, const char* const func, const char* const file) override;
-            virtual void fatal(const char* const str, const int line, const char* const func, const char* const file) override;
-
-        };
-
         //////// Vars ////////
 
     private:

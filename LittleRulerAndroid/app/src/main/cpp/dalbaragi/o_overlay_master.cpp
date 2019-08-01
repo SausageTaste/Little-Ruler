@@ -14,48 +14,6 @@ using namespace std::string_literals;
 using namespace fmt::literals;
 
 
-// TextStreamChannel
-namespace dal {
-
-    OverlayMaster::TextStreamChannel::TextStreamChannel(dal::StringBufferBasic& texStream)
-        : m_texStream(texStream)
-    {
-
-    }
-
-    void OverlayMaster::TextStreamChannel::verbose(const char* const str, const int line, const char* const func, const char* const file) {
-        const auto text = "[VERBO] "s + str + '\n';
-        this->m_texStream.append(text.data(), text.size());
-    }
-
-    void OverlayMaster::TextStreamChannel::debug(const char* const str, const int line, const char* const func, const char* const file) {
-        const auto text = "[DEBUG] "s + str + '\n';
-        this->m_texStream.append(text.data(), text.size());
-    }
-
-    void OverlayMaster::TextStreamChannel::info(const char* const str, const int line, const char* const func, const char* const file) {
-        const auto text = "[INFO] "s + str + '\n';
-        this->m_texStream.append(text.data(), text.size());
-    }
-
-    void OverlayMaster::TextStreamChannel::warn(const char* const str, const int line, const char* const func, const char* const file) {
-        const auto text = "[WARN] "s + str + '\n';
-        this->m_texStream.append(text.data(), text.size());
-    }
-
-    void OverlayMaster::TextStreamChannel::error(const char* const str, const int line, const char* const func, const char* const file) {
-        const auto text = "[ERROR] "s + str + '\n';
-        this->m_texStream.append(text.data(), text.size());
-    }
-
-    void OverlayMaster::TextStreamChannel::fatal(const char* const str, const int line, const char* const func, const char* const file) {
-        const auto text = "[FATAL] "s + str + '\n';
-        this->m_texStream.append(text.data(), text.size());
-    }
-
-}
-
-
 namespace dal {
 
     OverlayMaster::OverlayMaster(ResourceMaster& resMas, const ShaderMaster& shaderMas, const unsigned int width, const unsigned int height)
