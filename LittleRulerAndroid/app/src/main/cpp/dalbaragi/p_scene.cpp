@@ -3,12 +3,14 @@
 #include <unordered_set>
 #include <cassert>
 
+#include <fmt/format.h>
+
 #include "s_logger_god.h"
 #include "u_maploader.h"
 #include "s_configs.h"
 
 
-using namespace std::string_literals;
+using namespace fmt::literals;
 
 
 namespace {
@@ -450,7 +452,7 @@ namespace dal {
         std::vector<uint8_t> buffer;
         auto res = futil::getRes_buffer(mapID, buffer);
         if ( !res ) {
-            dalError("Failed to load map file: "s + mapID.makeIDStr());
+            dalError("Failed to load map file: {}"_format(mapID.makeIDStr()));
             return;
         }
 
@@ -460,7 +462,7 @@ namespace dal {
 
         res = parseMap_dlb(info, buffer.data(), buffer.size());
         if ( !res ) {
-            dalError("Failed to parse level: "s + mapID.makeIDStr());
+            dalError("Failed to parse level: {}"_format(mapID.makeIDStr()));
             return;
         }
 
@@ -477,7 +479,7 @@ namespace dal {
 
     void SceneMaster::addMap(const loadedinfo::LoadedMap& map) {
         this->m_mapChunks.emplace_back(map, this->m_resMas);
-        dalInfo("Map added: "s + this->m_mapChunks.back().getName());
+        dalInfo("Map added: {}"_format(this->m_mapChunks.back().getName()));
     }
 
     MapChunk* SceneMaster::findMap(const std::string& name) {
@@ -492,7 +494,7 @@ namespace dal {
             }
         }
 
-        dalError("Failed to find map in SceneMaster: "s + name);
+        dalError("Failed to find map in SceneMaster: {}"_format(name));
         return nullptr;
     }
 

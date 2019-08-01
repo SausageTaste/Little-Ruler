@@ -1,5 +1,6 @@
 #include "p_resource.h"
 
+#include <fmt/format.h>
 #include <glm/gtc/matrix_transform.hpp>
 #include <assimp/matrix4x4.h>
 
@@ -11,7 +12,7 @@
 #define BLOCKY_TEXTURE 0
 
 
-using namespace std::string_literals;
+using namespace fmt::literals;
 
 
 namespace {
@@ -579,7 +580,7 @@ namespace dal {
             tex->init_diffueMap(info.m_buf.data(), info.m_width, info.m_height);
         }
         else {
-            dalError("Not supported pixel size: "s + texID.makeIDStr() + ", " + std::to_string(info.m_pixSize));
+            dalError("Not supported pixel size: {}, {}"_format(texID.makeIDStr(), info.m_pixSize));
         }
 
         this->m_textures.emplace(texID.makeFileName(), ManageInfo<Texture>{ tex, 1 });
@@ -619,7 +620,7 @@ namespace dal {
 
             auto loaded = reinterpret_cast<LoadTask_Model*>(task.get());
             if ( !loaded->out_success ) {
-                dalError("Failed to load model: "s + loaded->in_modelID.makeIDStr());
+                dalError("Failed to load model: {}"_format(loaded->in_modelID.makeIDStr()));
                 return;
             }
 
@@ -630,7 +631,7 @@ namespace dal {
 
             auto loaded = reinterpret_cast<LoadTask_Texture*>(task.get());
             if ( !loaded->out_success ) {
-                dalError("Failed to load texture: "s + loaded->in_texID.makeIDStr());
+                dalError("Failed to load texture: {}"_format(loaded->in_texID.makeIDStr()));
                 return;
             }
 
@@ -641,7 +642,7 @@ namespace dal {
                 loaded->data_handle->init_diffueMap(loaded->out_img.m_buf.data(), loaded->out_img.m_width, loaded->out_img.m_height);
             }
             else {
-                dalAbort("Unknown pix size: "s + std::to_string(loaded->out_img.m_pixSize));
+                dalAbort("Not supported pixel size: {}"_format(loaded->out_img.m_pixSize));
             }
         }
         else if ( g_sentTasks_modelAnimated.find(task.get()) != g_sentTasks_modelAnimated.end() ) {
@@ -649,7 +650,7 @@ namespace dal {
 
             auto loaded = reinterpret_cast<LoadTask_ModelAnimated*>(task.get());
             if ( !loaded->out_success ) {
-                dalError("Failed to load model: "s + loaded->in_modelID.makeIDStr());
+                dalError("Failed to load model: {}"_format(loaded->in_modelID.makeIDStr()));
                 return;
             }
 

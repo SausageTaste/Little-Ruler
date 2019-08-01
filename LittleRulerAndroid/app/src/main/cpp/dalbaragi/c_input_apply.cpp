@@ -6,7 +6,6 @@
 #include "s_logger_god.h"
 
 
-using namespace std::string_literals;
 using namespace fmt::literals;
 
 
@@ -1119,7 +1118,7 @@ namespace dal {
             this->mFSM = GlobalGameState(e.intArg1);
             break;
         default:
-            dalWarn("InputApplier can't handle this event: "s + getEventTypeStr(e.type));
+            dalWarn("InputApplier can't handle this event: {}"_format(getEventTypeStr(e.type)));
             break;
 
         }

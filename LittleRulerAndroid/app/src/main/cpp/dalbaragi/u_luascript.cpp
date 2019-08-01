@@ -4,9 +4,6 @@
 #include "p_render_master.h"
 
 
-using namespace std::string_literals;
-
-
 // Dependencies
 namespace {
 

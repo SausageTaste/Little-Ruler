@@ -22,7 +22,6 @@
 #include "u_timer.h"
 
 
-using namespace std::string_literals;
 using namespace fmt::literals;
 
 
@@ -32,7 +31,7 @@ namespace {
     dal::ResourceID makeFromAssimpResID(const std::string& path) {
         const auto packageSlashPos = path.find("/");
         if ( std::string::npos == packageSlashPos ) {
-            dalAbort("Invalid assimp res id: "s + path);
+            dalAbort("Invalid assimp res id: {}"_format(path));
         }
         const auto package = path.substr(0, packageSlashPos);
         const auto rest = path.substr(packageSlashPos + 1, path.size() - packageSlashPos - 1);
@@ -117,7 +116,7 @@ namespace {
                 whence = dal::Whence::end;
                 break;
             default:
-                dal::LoggerGod::getinst().putError("Invalid pOrigin value for AssIOStreamAsset::Seek: "s + std::to_string(pOrigin), __LINE__, __func__, __FILE__);
+                dalError("Invalid pOrigin value for AssIOStreamAsset::Seek: {}"_format(pOrigin));
                 return aiReturn_FAILURE;
 
             }
@@ -540,7 +539,7 @@ namespace dal {
         importer.SetIOHandler(new AssResourceIOSystem);
         const auto scene = importer.ReadFile(makeAssimpResID(assetPath).c_str(), aiProcess_Triangulate);
         if ( !isSceneComplete(scene) ) {
-            dalError("Assimp read fail: "s + importer.GetErrorString());
+            dalError("Assimp read fail: {}"_format(importer.GetErrorString()));
             return false;
         }
 
@@ -560,7 +559,7 @@ namespace dal {
         importer.SetIOHandler(new AssResourceIOSystem);
         const auto scene = importer.ReadFile(makeAssimpResID(resID).c_str(), aiProcess_Triangulate);
         if ( !isSceneComplete(scene) ) {
-            dalError("Assimp read fail: "s +  importer.GetErrorString());
+            dalError("Assimp read fail: {}"_format(importer.GetErrorString()));
             return false;
         }
 

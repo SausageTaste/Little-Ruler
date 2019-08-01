@@ -2,19 +2,18 @@
 
 #include <string>
 
+#include <fmt/format.h>
+
 #include "s_logger_god.h"
 
 
-using namespace std::string_literals;
+using namespace fmt::literals;
 
 
 namespace dal {
 
     void MeshStatic::draw(void) const {
-#ifdef _DEBUG
-        if ( !this->isReady() )
-            LoggerGod::getinst().putError("MeshStatic::renderDepthmap called without being built.", __LINE__, __func__, __FILE__);
-#endif
+        dalAssert(this->isReady());
 
         this->bindVAO();
         glDrawArrays(GL_TRIANGLES, 0, this->mVertexSize);
@@ -29,19 +28,19 @@ namespace dal {
         /* Check if data is wrong. */
         {
             if ( this->isReady() ) {
-                LoggerGod::getinst().putError("MeshStatic's data already built.", __LINE__, __func__, __FILE__);
+                dalError("MeshStatic's data already built.");
                 return -1;
             }
 
             const auto numOfVertex = vertSize / 3;
 
             if ( numOfVertex != (texcorSize / 2) ) {
-                LoggerGod::getinst().putError(std::string("\'texCoords\' have different number of vertices: " + std::to_string(vertSize) + ", " + std::to_string(texcorSize)), __LINE__, __func__, __FILE__);
+                dalError("\'texCoords\' have different number of vertices -> vertSize : {}, texcorSize : {}"_format(vertSize, texcorSize));
                 return -1;
             }
 
             if ( numOfVertex != (norSize / 3) ) {
-                LoggerGod::getinst().putError("\'normals\' have different number of vertices: "s + std::to_string(vertSize) + ", "s + std::to_string(norSize), __LINE__, __func__, __FILE__);
+                dalError("\'normals\' have different number of vertices -> vertSize : {}, norSize : {}"_format(vertSize, norSize));
                 return -1;
             }
         }
@@ -91,8 +90,6 @@ namespace dal {
         {
             this->unbindVAO();
             this->mVertexSize = vertSize / 3;
-
-            //LoggerGod::getinst().putInfo("created MeshStatic with "s + to_string(this->mVertexSize) + " vertices."s);
         }
 
         return 0;
@@ -115,7 +112,7 @@ namespace dal {
 
         this->mVertexSize = 0;
 
-        LoggerGod::getinst().putInfo("destroyed MeshStatic with "s + std::to_string(this->mVertexSize) + " vertices."s, __LINE__, __func__, __FILE__);
+        dalInfo("destroyed MeshStatic that has {} vertices."_format(this->mVertexSize));
     }
 
     bool MeshStatic::isReady(void) const {
@@ -450,7 +447,7 @@ namespace dal {
 
         glGenTextures(1, &m_texID);
         if ( m_texID == 0 ) {
-            dalAbort("Failed to init dal::Texture::init_depthMap::"s + str4Log);
+            dalAbort("Failed to init dal::Texture::init_depthMap::{}"_format(str4Log));
         }
     }
 

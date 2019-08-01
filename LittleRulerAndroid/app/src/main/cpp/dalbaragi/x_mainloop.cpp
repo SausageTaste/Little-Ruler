@@ -11,7 +11,6 @@
 #include "u_luascript.h"
 
 
-using namespace std::string_literals;
 using namespace fmt::literals;
 
 
@@ -170,32 +169,32 @@ namespace {
             }
 
             virtual void verbose(const char* const str, const int line, const char* const func, const char* const file) override {
-                const auto text = "[VERBO] "s + str + '\n';
+                const auto text = "[VERBO] {}\n"_format(str);
                 this->m_texStream.append(text.data(), text.size());
             }
 
             virtual void debug(const char* const str, const int line, const char* const func, const char* const file) override {
-                const auto text = "[DEBUG] "s + str + '\n';
+                const auto text = "[DEBUG] {}\n"_format(str);
                 this->m_texStream.append(text.data(), text.size());
             }
 
             virtual void info(const char* const str, const int line, const char* const func, const char* const file) override {
-                const auto text = "[INFO] "s + str + '\n';
+                const auto text = "[INFO] {}\n"_format(str);
                 this->m_texStream.append(text.data(), text.size());
             }
 
             virtual void warn(const char* const str, const int line, const char* const func, const char* const file) override {
-                const auto text = "[WARN] "s + str + '\n';
+                const auto text = "[WARN] {}\n"_format(str);
                 this->m_texStream.append(text.data(), text.size());
             }
 
             virtual void error(const char* const str, const int line, const char* const func, const char* const file) override {
-                const auto text = "[ERROR] "s + str + '\n';
+                const auto text = "[ERROR] {}\n"_format(str);
                 this->m_texStream.append(text.data(), text.size());
             }
 
             virtual void fatal(const char* const str, const int line, const char* const func, const char* const file) override {
-                const auto text = "[FATAL] "s + str + '\n';
+                const auto text = "[FATAL] {}\n"_format(str);
                 this->m_texStream.append(text.data(), text.size());
             }
 

@@ -13,13 +13,12 @@
 #endif
 
 
-using namespace std::string_literals;
 using namespace fmt::literals;
 
 
 namespace {
 
-    const char* const k_packageName = "DALBARAGI";
+    const char* const ANDROID_JAVA_PACKAGE_NAME = "DALBARAGI";
 
 }
 
@@ -31,62 +30,62 @@ namespace {
 
     public:
         virtual void verbose(const char* const str, const int line, const char* const func, const char* const file) override {
-            const auto text = "[VERBO] "s + str;
+            const auto text = "[VERBO] {}"_format(str);
 
 #if defined(_WIN32)
             std::cout << text << '\n';
 #elif defined(__ANDROID__)
-            __android_log_print(ANDROID_LOG_VERBOSE, k_packageName, "%s\n", text.c_str());
+            __android_log_print(ANDROID_LOG_VERBOSE, ANDROID_JAVA_PACKAGE_NAME, "%s\n", text.c_str());
 #endif
         }
 
         virtual void debug(const char* const str, const int line, const char* const func, const char* const file) override {
-            const auto text = "[DEBUG] "s + str;
+            const auto text = "[DEBUG] {}"_format(str);
 
 #if defined(_WIN32)
             std::cout << text << '\n';
 #elif defined(__ANDROID__)
-            __android_log_print(ANDROID_LOG_DEBUG, k_packageName, "%s\n", text.c_str());
+            __android_log_print(ANDROID_LOG_DEBUG, ANDROID_JAVA_PACKAGE_NAME, "%s\n", text.c_str());
 #endif
         }
 
         virtual void info(const char* const str, const int line, const char* const func, const char* const file) override {
-            auto newText = "[INFO ] "s + str;
+            auto newText = "[INFO ] {}"_format(str);
 
 #if defined(_WIN32)
             std::cout << newText << '\n';
 #elif defined(__ANDROID__)
-            __android_log_print(ANDROID_LOG_INFO, k_packageName, "%s\n", newText.c_str());
+            __android_log_print(ANDROID_LOG_INFO, ANDROID_JAVA_PACKAGE_NAME, "%s\n", newText.c_str());
 #endif
         }
 
         virtual void warn(const char* const str, const int line, const char* const func, const char* const file) override {
-            const auto text = "[WARN ] "s + str;
+            const auto text = "[WARN ] {}"_format(str);
 
 #if defined(_WIN32)
             std::cout << text << '\n';
 #elif defined(__ANDROID__)
-            __android_log_print(ANDROID_LOG_WARN, k_packageName, "%s\n", text.c_str());
+            __android_log_print(ANDROID_LOG_WARN, ANDROID_JAVA_PACKAGE_NAME, "%s\n", text.c_str());
 #endif
         }
 
         virtual void error(const char* const str, const int line, const char* const func, const char* const file) override {
-            const auto text = "[ERROR] "s + str;
+            const auto text = "[ERROR] {}"_format(str);
 
 #if defined(_WIN32)
             std::cout << text << '\n';
 #elif defined(__ANDROID__)
-            __android_log_print(ANDROID_LOG_ERROR, k_packageName, "%s\n", text.c_str());
+            __android_log_print(ANDROID_LOG_ERROR, ANDROID_JAVA_PACKAGE_NAME, "%s\n", text.c_str());
 #endif
         }
 
         virtual void fatal(const char* const str, const int line, const char* const func, const char* const file) override {
-            const auto text = "[FATAL] "s + str;
+            const auto text = "[FATAL] {}"_format(str);
 
 #if defined(_WIN32)
             std::cout << text << '\n';
 #elif defined(__ANDROID__)
-            __android_log_print(ANDROID_LOG_FATAL, k_packageName, "%s\n", text.c_str());
+            __android_log_print(ANDROID_LOG_FATAL, ANDROID_JAVA_PACKAGE_NAME, "%s\n", text.c_str());
 #endif
         }
 

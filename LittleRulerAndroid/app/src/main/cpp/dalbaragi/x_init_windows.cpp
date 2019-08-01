@@ -3,13 +3,14 @@
 #include <SDL.h>
 #include <gl\glew.h>
 #include <SDL_opengl.h>
+#include <fmt/format.h>
 
 #include "x_mainloop.h"
 #include "s_input_queue.h"
 #include "s_logger_god.h"
 
 
-using namespace std::string_literals;
+using namespace fmt::literals;
 
 
 namespace {
@@ -127,32 +128,32 @@ namespace {
                 SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 
                 if ( fullscreen ) {
-                    mWindow = SDL_CreateWindow(
+                    this->mWindow = SDL_CreateWindow(
                         title, 50, 50, winWidth, winHeight,
                         SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_FULLSCREEN
                     );
                 }
                 else {
-                    mWindow = SDL_CreateWindow(
+                    this->mWindow = SDL_CreateWindow(
                         title, 50, 50, winWidth, winHeight,
                         SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE
                     );
 
                 }
 
-                if ( nullptr == mWindow ) {
-                    dalAbort("Creating window failed, SDL Error: "s + SDL_GetError());
+                if ( nullptr == this->mWindow ) {
+                    dalAbort("Creating window failed, SDL Error: {}"_format(SDL_GetError()));
                 }
             }
 
             // Create context
-            mContext = SDL_GL_CreateContext(mWindow);
-            if ( nullptr == mContext ) {
-                dalAbort("Creating OpenGL context failed, SDL Error: "s + SDL_GetError());
+            this->mContext = SDL_GL_CreateContext(this->mWindow);
+            if ( nullptr == this->mContext ) {
+                dalAbort("Creating OpenGL context failed, SDL Error: {}"_format(SDL_GetError()));
             }
 
             if ( SDL_GL_SetSwapInterval(0) < 0 ) {
-                dalError("Unable to disable VSync, SDL Error: "s + SDL_GetError())
+                dalError("Unable to disable VSync, SDL Error: {}"_format(SDL_GetError()));
             }
 
             this->initGLew();
@@ -174,7 +175,8 @@ namespace {
             glewExperimental = GL_TRUE;
             const GLenum glewError = glewInit();
             if ( GLEW_OK != glewError ) {
-                dalAbort("Initializing GLEW failed, glew error: "s + reinterpret_cast<const char*>(glewGetErrorString(glewError)));
+                const auto glewErrMsg = reinterpret_cast<const char*>(glewGetErrorString(glewError));
+                dalAbort("Initializing GLEW failed, glew error: {}"_format(glewErrMsg));
             }
         }
 

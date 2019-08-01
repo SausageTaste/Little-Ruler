@@ -7,7 +7,6 @@
 #include "s_logger_god.h"
 
 
-using namespace std::string_literals;
 using namespace fmt::literals;
 
 

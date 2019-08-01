@@ -10,7 +10,6 @@
 #include "s_logger_god.h"
 
 
-using namespace std::string_literals;
 using namespace fmt::literals;
 
 
@@ -134,12 +133,11 @@ namespace {
         GLint vShaderCompiled = GL_FALSE;
         glGetShaderiv(shaderID, GL_COMPILE_STATUS, &vShaderCompiled);
         if ( vShaderCompiled != GL_TRUE ) {
-            constexpr auto k_shaderLogBufSize = 2048;
+            constexpr auto SHADER_COMPILER_LOG_BUF_SIZE = 2048;
             GLsizei length = 0;
-            char log[k_shaderLogBufSize];
-            glGetShaderInfoLog(shaderID, k_shaderLogBufSize, &length, log);
-            const auto errMsg = "Shader compile failed. Error message from OpenGL is\n"s + log + "\n\nAnd shader source is\n\n" +
-                makeNumberedText(src) + '\n';
+            char log[SHADER_COMPILER_LOG_BUF_SIZE];
+            glGetShaderInfoLog(shaderID, SHADER_COMPILER_LOG_BUF_SIZE, &length, log);
+            const auto errMsg = "Shader compile failed. Error message from OpenGL is\n{}\n\nAnd shader source is\n\n{}\n"_format(log, makeNumberedText(src));
             dalAbort(errMsg);
         }
 
@@ -340,8 +338,8 @@ namespace dal {
             else {
                 auto [iter, success] = this->m_soures.emplace(fileName, "");
                 dalAssert(success);
-                if ( !dal::futil::getRes_text("asset::glsl/"s + fileName, iter->second) ) {
-                    dalAbort("Failed to load glsl file: "s + fileName);
+                if ( !dal::futil::getRes_text("asset::glsl/{}"_format(fileName), iter->second) ) {
+                    dalAbort("Failed to load glsl file: {}"_format(fileName));
                 }
                 iter->second = this->preprocess(iter->second);
                 return iter->second;
@@ -357,7 +355,7 @@ namespace dal {
                     const auto argHead = text.find('<', head);
                     const auto argTail = text.find('>', argHead);
                     if ( std::string::npos == argHead || std::string::npos == argTail ) {
-                        dalError("Error during parsing #include: "s + text);
+                        dalError("Error during parsing \"#include\": {}"_format(text));
                         return Defined::parse_fail;
                     }
 
@@ -386,7 +384,7 @@ namespace dal {
                 if ( std::string::npos != head ) return Defined::ignore_this;
             }
 
-            dalError("Unknown define in shader: "s + text);
+            dalError("Unknown define in shader: {}"_format(text));
             return Defined::parse_fail;
         }
 
@@ -398,7 +396,7 @@ namespace dal {
                 return ShaderType::fragment;
             }
             else {
-                dalAbort("Can't determine shader type for: "s + fileName);
+                dalAbort("Can't determine shader type for: {}"_format(fileName));
             }
         }
 
@@ -431,7 +429,7 @@ namespace dal {
                 }
 
                 for ( auto x : types ) {
-                    fileHeader += "precision "s + pstr + ' ' + x + ';' + '\n';
+                    fileHeader += "[recision {} {};\n"_format(pstr, x);
                 }
             }
 
@@ -464,7 +462,7 @@ namespace dal {
             GLsizei length = 0;
             char log[100];
             glGetProgramInfoLog(this->m_id, 100, &length, log);
-            dalAbort("ShaderProgram linking error: "s + log);
+            dalAbort("ShaderProgram linking error occured. Here's log:\n{}"_format(log));
         }
     }
 

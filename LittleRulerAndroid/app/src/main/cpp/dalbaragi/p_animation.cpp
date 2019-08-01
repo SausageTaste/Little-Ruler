@@ -1,11 +1,12 @@
 #include "p_animation.h"
 
+#include <fmt/format.h>
 #include <glm/gtc/matrix_transform.hpp>
 
 #include "s_logger_god.h"
 
 
-using namespace std::string_literals;
+using namespace fmt::literals;
 
 
 namespace {
@@ -216,7 +217,7 @@ namespace dal {
 
     glm::vec3 Animation::JointNode::makePosInterp(const float animTick) const {
         if ( 0 == this->m_poses.size() ) {
-            dalAbort("Trying to interpolate poses when there is no pos keyframes for: "s + this->m_name);
+            dalAbort("Trying to interpolate poses when there is no pos keyframes for: {}"_format(this->m_name));
         }
 
         return makeInterpValue(animTick, this->m_poses);
@@ -224,7 +225,7 @@ namespace dal {
 
     glm::quat Animation::JointNode::makeRotateInterp(const float animTick) const {
         if ( 0 == this->m_rotates.size() ) {
-            dalAbort("Trying to interpolate rotates when there is no rotate keyframes for: "s + this->m_name);
+            dalAbort("Trying to interpolate rotates when there is no rotate keyframes for: {}"_format(this->m_name));
         }
 
         return makeInterpValue(animTick, this->m_rotates);
@@ -232,7 +233,7 @@ namespace dal {
 
     float Animation::JointNode::makeScaleInterp(const float animTick) const {
         if ( 0 == this->m_scales.size() ) {
-            dalAbort("Trying to interpolate scales when there is no scale keyframes for: "s + this->m_name);
+            dalAbort("Trying to interpolate scales when there is no scale keyframes for: {}"_format(this->m_name));
         }
 
         return makeInterpValue(animTick, this->m_scales);

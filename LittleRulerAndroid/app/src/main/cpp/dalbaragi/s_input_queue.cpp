@@ -6,7 +6,6 @@
 #include "s_logger_god.h"
 
 
-using namespace std::string_literals;
 using namespace fmt::literals;
 
 
@@ -44,7 +43,7 @@ namespace dal {
 
     bool TouchEvtQueueGod::emplaceBack(const float x, const float y, const TouchActionType type, const touchID_t id, const float timeSec) {
         if ( 0 > id || id >= 5 ) {
-            dalWarn("Touch id is "s + std::to_string(id));
+            dalWarn("Touch id is \"{}\""_format(id));
         }
         if ( -1 == id ) {
             dalWarn("Touch id -1 is for null.");

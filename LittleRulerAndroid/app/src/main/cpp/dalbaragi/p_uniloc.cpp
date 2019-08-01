@@ -12,7 +12,6 @@
 #define ASSERT_UNILOC 0
 
 
-using namespace std::string_literals;
 using namespace fmt::literals;
 
 
@@ -195,7 +194,7 @@ namespace dal {
         this->uDlightColors[2] = glGetUniformLocation(shader, "uDlightColors[2]");
 
         for ( int i = 0; i < this->k_maxDlight; ++i ) {
-            const auto id = "uDlightDepthMap["s + std::to_string(i) + ']';
+            const auto id = "uDlightDepthMap[{}]"_format(i);
             this->uDlightDepthMap[i].init(getUniloc(shader, id.c_str()), -2, g_texUnitReg[id.c_str()]);
         }
 
@@ -331,7 +330,7 @@ namespace dal {
 #endif
 
         for ( unsigned int i = 0; i < this->k_maxNumJoints; ++i ) {
-            const auto id = "u_jointTransforms["s + std::to_string(i) + ']';
+            const auto id = "u_jointTransforms[{}]"_format(i);
             this->u_jointTransforms[i] = getUniloc(shader, id.c_str());
         }
     }

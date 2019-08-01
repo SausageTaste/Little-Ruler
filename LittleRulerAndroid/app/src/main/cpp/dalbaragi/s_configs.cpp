@@ -1,9 +1,11 @@
 #include "s_configs.h"
 
+#include <fmt/format.h>
+
 #include "s_logger_god.h"
 
 
-using namespace std::string_literals;
+using namespace fmt::literals;
 
 
 namespace dal {
@@ -26,16 +28,12 @@ namespace dal {
     }
 
     void ConfigsGod::onEvent(const EventStatic& e) {
-        switch ( e.type ) {
-
-        case EventType::global_fsm_change:
+        if ( EventType::global_fsm_change == e.type ) {
             this->m_gameState = static_cast<GlobalGameState>(e.intArg1);
-            break;
-        default:
-            const auto eventTypeIndex = static_cast<int>(e.type);
-            LoggerGod::getinst().putWarn("dal::ConfigsGod can't handle this event:"s + std::to_string(eventTypeIndex), __LINE__, __func__, __FILE__);
-            break;
-
+        }
+        else {
+            const auto eventTypeIndex = static_cast<unsigned int>(e.type);
+            dalWarn("dal::ConfigsGod can't handle this event: {}"_format(eventTypeIndex));
         }
     }
 

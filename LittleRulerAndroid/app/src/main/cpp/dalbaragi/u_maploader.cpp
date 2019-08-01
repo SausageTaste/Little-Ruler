@@ -10,7 +10,6 @@
 #include "s_logger_god.h"
 
 
-using namespace std::string_literals;
 using namespace fmt::literals;
 
 
@@ -411,7 +410,7 @@ namespace {  // Make items
             return make_waterPlane;
 
         default:
-            dalError("Unknown map item typeCode: "s + std::to_string(typeCode));
+            dalError("Unknown map item typeCode: {}"_format(typeCode));
             return nullptr;
 
         }
