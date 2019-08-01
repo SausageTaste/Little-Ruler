@@ -64,7 +64,7 @@ namespace {
 
     private:
         static void saveToFile(const char* const logLevel, const char* const str, const int line, const char* const func, const char* const file) {
-            dal::LoggerGod::getinst().disable();
+            const auto autoDeleted = dal::LoggerGod::getinst().disable();
 
             const auto theTime = time(nullptr);
             struct std::tm timeInfo;
@@ -100,18 +100,14 @@ namespace {
             auto logFile = dal::resopen(fileID, dal::FileMode::append);
             if ( nullptr == logFile ) {
                 fmt::print("Failed to create log file: {}\n", fileID);
-                dal::LoggerGod::getinst().enable();
                 return;
             }
 
             const auto res = logFile->write(buffer.c_str());
             if ( !res ) {
                 fmt::print("Failed to write to log file: {}\n", fileID);
-                dal::LoggerGod::getinst().enable();
                 return;
             }
-
-            dal::LoggerGod::getinst().enable();
         }
 
     } g_fileLogger;

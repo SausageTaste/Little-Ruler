@@ -3,6 +3,7 @@
 #include <thread>
 #include <queue>
 #include <array>
+#include <atomic>
 
 #include <fmt/format.h>
 

@@ -1,7 +1,6 @@
 #pragma once
 
 #include <mutex>
-#include <atomic>
 #include <string>
 #include <vector>
 
@@ -13,21 +12,61 @@
 
 namespace dal {
 
+    class RefCounter {
+
+          // Possible race condition.
+         //  If thread A acquires this while thread B is logging, thread B can still write log.
+        //   But I'm gonna leave it as it is because atm only one thread writes log.
+
+    public:
+        struct Impl;
+
+    private:
+        Impl* pimpl;
+
+    public:
+        RefCounter(void);
+        RefCounter(const RefCounter&);
+        RefCounter& operator=(const RefCounter&);
+        RefCounter(RefCounter&& other) noexcept;
+        RefCounter& operator=(RefCounter&& other) noexcept;
+        ~RefCounter(void);
+
+        size_t getRefCount(void) const;
+
+    };
+
+
     class LoggerGod {
 
     private:
         std::vector<ILoggingChannel*> m_channels;
         std::mutex m_mut;
-        std::atomic_bool m_enabled;
+        RefCounter m_disablingCounter;
+
+    public:
+        LoggerGod(const LoggerGod&) = delete;
+        LoggerGod(LoggerGod&&) = delete;
+        LoggerGod& operator=(const LoggerGod&) = delete;
+        LoggerGod& operator=(LoggerGod&&) = delete;
 
     public:
         LoggerGod(void);
-        static LoggerGod& getinst(void);
+        static LoggerGod& getinst(void) {
+            static LoggerGod inst;
+            return inst;
+        }
 
         void addChannel(ILoggingChannel* const ch);
         void deleteChannel(ILoggingChannel* const ch);
-        void disable(void);
-        void enable(void);
+        RefCounter disable(void);
+
+        void putVerbose(const char* const text, const int line, const char* const func, const char* const file);
+        void putDebug(const char* const text, const int line, const char* const func, const char* const file);
+        void putInfo(const char* const text, const int line, const char* const func, const char* const file);
+        void putWarn(const char* const text, const int line, const char* const func, const char* const file);
+        void putError(const char* const text, const int line, const char* const func, const char* const file);
+        void putFatal(const char* const text, const int line, const char* const func, const char* const file);
 
         void putVerbose(const std::string& text, const int line, const char* const func, const char* const file);
         void putDebug(const std::string& text, const int line, const char* const func, const char* const file);
@@ -35,6 +74,9 @@ namespace dal {
         void putWarn(const std::string& text, const int line, const char* const func, const char* const file);
         void putError(const std::string& text, const int line, const char* const func, const char* const file);
         void putFatal(const std::string& text, const int line, const char* const func, const char* const file);
+
+    private:
+        bool isEnable(void) const;
 
     };
 

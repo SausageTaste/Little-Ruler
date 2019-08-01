@@ -1,5 +1,6 @@
 #include "s_logger_god.h"
 
+#include <atomic>
 #include <algorithm>
 
 #include <fmt/format.h>
@@ -11,6 +12,8 @@
 #else
 #error "Unkown platform"
 #endif
+
+#include "u_pool.h"
 
 
 using namespace fmt::literals;
@@ -94,17 +97,73 @@ namespace {
 }
 
 
+// RefCounter
+namespace dal {
+
+    struct RefCounter::Impl {
+        std::atomic_size_t m_refCount = 0;
+    };
+
+    StaticPool<RefCounter::Impl, 10> g_refCounterPool;
+
+
+    RefCounter::RefCounter(void)
+        : pimpl(g_refCounterPool.alloc())
+    {
+        this->pimpl->m_refCount++;
+    }
+
+    RefCounter::RefCounter(const RefCounter& other)
+        : pimpl(other.pimpl)
+    {
+        this->pimpl->m_refCount++;
+    }
+
+
+    RefCounter::RefCounter(RefCounter&& other) noexcept
+        : pimpl(other.pimpl)
+    {
+        other.pimpl = nullptr;
+    }
+
+    RefCounter& RefCounter::operator=(const RefCounter& other) {
+        this->pimpl = other.pimpl;
+
+        this->pimpl->m_refCount++;
+
+        return *this;
+    }
+
+    RefCounter& RefCounter::operator=(RefCounter&& other) noexcept {
+        this->pimpl = other.pimpl;
+        other.pimpl = nullptr;
+
+        return *this;
+    }
+
+    RefCounter::~RefCounter(void) {
+        if ( nullptr != this->pimpl ) {
+            this->pimpl->m_refCount--;
+
+            if ( 0 == this->pimpl->m_refCount ) {
+                g_refCounterPool.free(this->pimpl);
+            }
+
+            this->pimpl = nullptr;
+        }
+    }
+
+    size_t RefCounter::getRefCount(void) const {
+        return this->pimpl->m_refCount;
+    }
+
+}
+
+
 // LoggerGod
 namespace dal {
 
-    LoggerGod& LoggerGod::getinst(void) {
-        static LoggerGod inst;
-        return inst;
-    }
-
-    LoggerGod::LoggerGod(void)
-        : m_enabled(true)
-    {
+    LoggerGod::LoggerGod(void) {
         this->addChannel(&g_logcatCh);
     }
 
@@ -132,67 +191,112 @@ namespace dal {
         }
     }
 
-    void LoggerGod::disable(void) {
-        this->m_enabled = false;
+    RefCounter LoggerGod::disable(void) {
+        return this->m_disablingCounter;
     }
 
-    void LoggerGod::enable(void) {
-        this->m_enabled = true;
+
+    void LoggerGod::putVerbose(const char* const text, const int line, const char* const func, const char* const file) {
+        if ( !this->isEnable() ) {
+            return;
+        }
+
+        std::unique_lock<std::mutex> lck{ this->m_mut, std::defer_lock };
+
+        for ( auto ch : this->m_channels ) {
+            ch->verbose(text, line, func, file);
+        }
+    }
+
+    void LoggerGod::putDebug(const char* const text, const int line, const char* const func, const char* const file) {
+        if ( !this->isEnable() ) {
+            return;
+        }
+
+        std::unique_lock<std::mutex> lck{ this->m_mut, std::defer_lock };
+
+        for ( auto ch : this->m_channels ) {
+            ch->debug(text, line, func, file);
+        }
+    }
+
+    void LoggerGod::putInfo(const char* const text, const int line, const char* const func, const char* const file) {
+        if ( !this->isEnable() ) {
+            return;
+        }
+
+        std::unique_lock<std::mutex> lck{ this->m_mut, std::defer_lock };
+
+        for ( auto ch : this->m_channels ) {
+            ch->info(text, line, func, file);
+        }
+    }
+
+    void LoggerGod::putWarn(const char* const text, const int line, const char* const func, const char* const file) {
+        if ( !this->isEnable() ) {
+            return;
+        }
+
+        std::unique_lock<std::mutex> lck{ this->m_mut, std::defer_lock };
+
+        for ( auto ch : this->m_channels ) {
+            ch->warn(text, line, func, file);
+        }
+    }
+
+    void LoggerGod::putError(const char* const text, const int line, const char* const func, const char* const file) {
+        if ( !this->isEnable() ) {
+            return;
+        }
+
+        std::unique_lock<std::mutex> lck{ this->m_mut, std::defer_lock };
+
+        for ( auto ch : this->m_channels ) {
+            ch->error(text, line, func, file);
+        }
+    }
+
+    void LoggerGod::putFatal(const char* const text, const int line, const char* const func, const char* const file) {
+        if ( !this->isEnable() ) {
+            return;
+        }
+
+        std::unique_lock<std::mutex> lck{ this->m_mut, std::defer_lock };
+
+        for ( auto ch : this->m_channels ) {
+            ch->fatal(text, line, func, file);
+        }
     }
 
 
     void LoggerGod::putFatal(const std::string& text, const int line, const char* const func, const char* const file) {
-        if ( !this->m_enabled ) return;
-        std::unique_lock<std::mutex> lck{ this->m_mut, std::defer_lock };
-
-        for ( auto ch : m_channels ) {
-            ch->fatal(text.c_str(), line, func, file);
-        }
+        this->putFatal(text.c_str(), line, func, file);
     }
 
     void LoggerGod::putError(const std::string& text, const int line, const char* const func, const char* const file) {
-        if ( !this->m_enabled ) return;
-        std::unique_lock<std::mutex> lck{ this->m_mut, std::defer_lock };
-
-        for ( auto ch : m_channels ) {
-            ch->error(text.c_str(), line, func, file);
-        }
+        this->putError(text.c_str(), line, func, file);
     }
 
     void LoggerGod::putWarn(const std::string& text, const int line, const char* const func, const char* const file) {
-        if ( !this->m_enabled ) return;
-        std::unique_lock<std::mutex> lck{ this->m_mut, std::defer_lock };
-
-        for ( auto ch : m_channels ) {
-            ch->warn(text.c_str(), line, func, file);
-        }
+        this->putWarn(text.c_str(), line, func, file);
     }
 
     void LoggerGod::putInfo(const std::string& text, const int line, const char* const func, const char* const file) {
-        if ( !this->m_enabled ) return;
-        std::unique_lock<std::mutex> lck{ this->m_mut, std::defer_lock };
-
-        for ( auto ch : m_channels ) {
-            ch->info(text.c_str(), line, func, file);
-        }
+        this->putInfo(text.c_str(), line, func, file);
     }
 
     void LoggerGod::putDebug(const std::string& text, const int line, const char* const func, const char* const file) {
-        if ( !this->m_enabled ) return;
-        std::unique_lock<std::mutex> lck{ this->m_mut, std::defer_lock };
-
-        for ( auto ch : m_channels ) {
-            ch->debug(text.c_str(), line, func, file);
-        }
+        this->putDebug(text.c_str(), line, func, file);
     }
 
     void LoggerGod::putVerbose(const std::string& text, const int line, const char* const func, const char* const file) {
-        if ( !this->m_enabled ) return;
-        std::unique_lock<std::mutex> lck{ this->m_mut, std::defer_lock };
+        this->putVerbose(text.c_str(), line, func, file);
+    }
 
-        for ( auto ch : m_channels ) {
-            ch->verbose(text.c_str(), line, func, file);
-        }
+    // Private
+
+    bool LoggerGod::isEnable(void) const {
+        return this->m_disablingCounter.getRefCount() <= 1;
     }
 
 }
