@@ -15,8 +15,15 @@ using namespace fmt::literals;
 
 namespace {
 
+#if 0
     constexpr unsigned int INIT_WIN_WIDTH = 1920;
     constexpr unsigned int INIT_WIN_HEIGHT = 1080;
+    constexpr bool FULLSCREEN = true;
+#else
+    constexpr unsigned int INIT_WIN_WIDTH = 1280;
+    constexpr unsigned int INIT_WIN_HEIGHT = 720;
+    constexpr bool FULLSCREEN = false;
+#endif
 
 
     dal::KeySpec mapKeySpec(uint32_t sdlKey) {
@@ -189,7 +196,7 @@ namespace {
 namespace dal {
 
     int main_windows(void) {
-        WindowSDL window{ "Little Ruler", INIT_WIN_WIDTH, INIT_WIN_HEIGHT, true };
+        WindowSDL window{ "Little Ruler", INIT_WIN_WIDTH, INIT_WIN_HEIGHT, FULLSCREEN };
         std::unique_ptr<Mainloop> engine{ new Mainloop{ INIT_WIN_WIDTH, INIT_WIN_HEIGHT } };
 
         while ( true ) {
