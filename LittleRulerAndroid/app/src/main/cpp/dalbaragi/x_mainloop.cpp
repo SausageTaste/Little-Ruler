@@ -120,7 +120,7 @@ namespace {
 }
 
 
-// FPS counter widget
+// Widgets
 namespace {
 
     class FPSCounter : public dal::Widget2 {
@@ -349,13 +349,16 @@ namespace dal {
             this->m_camera.m_pos = { 0.0f, 3.0f, 3.0f };
         }
 
-        // Regist
+        // Widgets
         {
-            mHandlerName = "dal::Mainloop";
-            EventGod::getinst().registerHandler(this, EventType::quit_game);
-
             this->m_overlayMas.giveWidgetRef(&g_fpsCounter);
             this->m_overlayMas.giveWidgetRef(&g_luaConsole);
+        }
+
+        // Regist
+        {
+            this->mHandlerName = "dal::Mainloop";
+            EventGod::getinst().registerHandler(this, EventType::quit_game);
         }
 
         // Misc
@@ -377,7 +380,9 @@ namespace dal {
     }
 
     int Mainloop::update(void) {
-        if ( m_flagQuit ) return -1;
+        if ( this->m_flagQuit ) {
+            return -1;
+        }
 
         const auto deltaTime = m_timer.checkGetElapsed();
 
