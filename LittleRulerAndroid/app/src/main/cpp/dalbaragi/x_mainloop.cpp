@@ -14,11 +14,33 @@
 using namespace fmt::literals;
 
 
-// Test codes
+// Utils
 namespace {
 
-    void test(const float deltaTime) {
+    struct Datetime {
+        int m_year, m_month, m_day, m_hour, m_min, m_sec;
+    };
 
+    Datetime getCurrentDatetime(void) {
+        Datetime info;
+
+        const auto theTime = time(nullptr);
+        struct std::tm timeInfo;
+
+#if defined(_WIN32)
+        const auto err = localtime_s(&timeInfo, &theTime);
+#elif defined(__ANDROID__)
+        const auto err = localtime_r(&theTime, &timeInfo);
+#endif
+
+        info.m_day = timeInfo.tm_mday;
+        info.m_month = timeInfo.tm_mon + 1;  // Month is 0 – 11, add 1 to get a jan-dec 1-12 concept
+        info.m_year = timeInfo.tm_year + 1900;  // Year is # years since 1900
+        info.m_hour = timeInfo.tm_hour;
+        info.m_min = timeInfo.tm_min;
+        info.m_sec = timeInfo.tm_sec;
+
+        return info;
     }
 
 }
@@ -66,36 +88,9 @@ namespace {
         static void saveToFile(const char* const logLevel, const char* const str, const int line, const char* const func, const char* const file) {
             const auto autoDeleted = dal::LoggerGod::getinst().disable();
 
-            const auto theTime = time(nullptr);
-            struct std::tm timeInfo;
-
-#if defined(_WIN32)
-            const auto err = localtime_s(&timeInfo, &theTime);
-#elif defined(__ANDROID__)
-            const auto err = localtime_r(&theTime, &timeInfo);
-#endif
-
-            const auto day = timeInfo.tm_mday;
-            const auto month = timeInfo.tm_mon + 1; // Month is 0 – 11, add 1 to get a jan-dec 1-12 concept
-            const auto year = timeInfo.tm_year + 1900; // Year is # years since 1900
-            const auto hour = timeInfo.tm_hour;
-            const auto min = timeInfo.tm_min;
-            const auto sec = timeInfo.tm_sec;
-
-            std::string buffer{ "Dalbaragi Log\n" };
-            buffer += fmt::format("{}-{:0>2}-{:0>2} {:0>2}:{:0>2}:{:0>2}\n\n", year, month, day, hour, min, sec);
-
-            buffer += fmt::format("File : {}\nLine : {}\nFunction : {}\n", file, line, func);
-            buffer += "Log level : ";
-            buffer += logLevel;
-            buffer += "\n\n";
-
-            buffer += "\"\"\"\n";
-            buffer += str;
-            buffer += "\n\"\"\"";
-            buffer += "\n\n##############\n\n";
-
-            const auto fileID = fmt::format("log::log_{}-{:0>2}-{:0>2}_{:0>2}-{:0>2}.txt", year, month, day, hour, min);
+            const auto dt = getCurrentDatetime();
+            const auto fileID = fmt::format("log::log_{}-{:0>2}-{:0>2}_{:0>2}-{:0>2}.txt", dt.m_year, dt.m_month, dt.m_day, dt.m_hour, dt.m_min);
+            const auto fileContents = makeFileContents(dt, logLevel, str, line, func, file);
 
             auto logFile = dal::resopen(fileID, dal::FileMode::append);
             if ( nullptr == logFile ) {
@@ -103,11 +98,34 @@ namespace {
                 return;
             }
 
-            const auto res = logFile->write(buffer.c_str());
+            const auto res = logFile->write(fileContents.c_str());
             if ( !res ) {
                 fmt::print("Failed to write to log file: {}\n", fileID);
                 return;
             }
+        }
+
+        static std::string makeFileContents(const Datetime& dt, const char* const logLevel, const char* const str, const int line, const char* const func, const char* const file) {
+            static const char* const formatStr =
+                "Dalbaragi Log\n"
+                "{}-{:0>2}-{:0>2} {:0>2}:{:0>2}:{:0>2}\n"
+                "\n"
+                "File : {}\n"
+                "Line : {}\n"
+                "Function : {}\n"
+                "Log level : {}\n"
+                "\n"
+                "\"\"\"\n"
+                "{}\n"
+                "\"\"\"\n"
+                "\n"
+                "##############\n"
+                "\n"
+                ;
+
+            return fmt::format(formatStr,
+                dt.m_year, dt.m_month, dt.m_day, dt.m_hour, dt.m_min, dt.m_sec, file, line, func, logLevel, str
+            );
         }
 
     } g_fileLogger;
@@ -289,6 +307,16 @@ namespace {
         };
 
     } g_luaConsole;
+
+}
+
+
+// Test codes
+namespace {
+
+    void test(const float deltaTime) {
+
+    }
 
 }
 
