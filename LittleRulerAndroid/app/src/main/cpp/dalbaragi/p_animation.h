@@ -144,6 +144,7 @@ namespace dal {
         void setSelectedAnimeIndex(const unsigned int index) {
             if ( this->m_selectedAnimIndex != index ) {
                 this->m_selectedAnimIndex = index;
+                this->m_localTimeAccumulator = 0.0f;
             }
         }
         void setTimeScale(const float scale) {
