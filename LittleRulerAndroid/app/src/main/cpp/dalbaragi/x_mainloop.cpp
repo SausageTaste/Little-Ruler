@@ -371,8 +371,7 @@ namespace dal {
             auto& renderable = this->m_enttMaster.assign<cpnt::AnimatedModel>(this->m_player);
             renderable.m_model = ptrModel;
 
-            auto& cpntState = this->m_enttMaster.assign<cpnt::CharacterState>(this->m_player);
-            cpntState.m_currentState = new CharaIdleState{ transform, renderable, this->m_camera };
+            auto& cpntState = this->m_enttMaster.assign<cpnt::CharacterState>(this->m_player, transform, renderable, this->m_camera);
         }
 
         // Camera

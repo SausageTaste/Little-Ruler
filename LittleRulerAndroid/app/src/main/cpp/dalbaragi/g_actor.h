@@ -209,35 +209,17 @@ namespace dal {
     };
 
 
-    class CharaIdleState : public ICharaState {
-
-    public:
-        CharaIdleState(cpnt::Transform& transform, cpnt::AnimatedModel& model, dal::StrangeEulerCamera& camera);
-        virtual ~CharaIdleState(void) override;
-
-        virtual ICharaState* exec(const float deltaTime, const MoveInputInfo& info) override;
-
-    };
-
-
-    class CharaWalkState : public ICharaState {
-
-    public:
-        CharaWalkState(cpnt::Transform& transform, cpnt::AnimatedModel& model, dal::StrangeEulerCamera& camera);
-        virtual ~CharaWalkState(void) override;
-
-        virtual ICharaState* exec(const float deltaTime, const MoveInputInfo& info) override;
-
-    private:
-        void applyMove(cpnt::Transform& cpntTrans, cpnt::AnimatedModel& model, const float deltaTime, const MoveInputInfo& info) const;
-
-    };
-
-
     namespace cpnt {
 
-        struct CharacterState {
-            ICharaState* m_currentState = nullptr ;
+        class CharacterState {
+
+        private:
+            ICharaState* m_currentState;
+
+        public:
+            CharacterState(cpnt::Transform& transform, cpnt::AnimatedModel& model, dal::StrangeEulerCamera& camera);
+            void update(const float deltaTime, const MoveInputInfo& info);
+
         };
 
     }

@@ -488,7 +488,7 @@ namespace dal {
     void InputApplier::apply(const float deltaTime, StrangeEulerCamera& camera, cpnt::CharacterState& state) {
         const auto winSize = GlobalStateGod::getinst().getWinSizeFloat();
         const auto info = this->m_ctrlInputWidget.getMoveInfo(deltaTime, winSize.x, winSize.y);
-        state.m_currentState = state.m_currentState->exec(deltaTime, info);
+        state.update(deltaTime, info);
     }
 
 }  // namespace dal
