@@ -2,6 +2,8 @@
 
 #include <functional>
 
+#include <glm/glm.hpp>
+
 #include "s_event.h"
 #include "p_globalfsm.h"
 

@@ -11,25 +11,6 @@ namespace dal {
 
     class InputApplier : public iEventHandler {
 
-    public:
-        struct MoveInputInfo {
-            glm::vec2 m_view, m_move;
-            float m_vertical = 0.0f;
-
-            void clear(void) {
-                this->m_view = glm::vec2{ 0.0f };
-                this->m_move = glm::vec2{ 0.0f };
-                this->m_vertical = 0.0f;
-            }
-            MoveInputInfo& operator+=(const MoveInputInfo& other) {
-                this->m_view += other.m_view;
-                this->m_move += other.m_move;
-                this->m_vertical += other.m_vertical;
-
-                return *this;
-            }
-        };
-
     private:
         class MoveDPad : public dal::Widget2 {
             /*
@@ -101,6 +82,7 @@ namespace dal {
         virtual void onEvent(const EventStatic& e) override;
 
         void apply(const float deltaTime, StrangeEulerCamera& camera, const entt::entity targetEntity, entt::registry& reg);
+        void apply(const float deltaTime, StrangeEulerCamera& camera, cpnt::CharacterState& state);
 
     };
 

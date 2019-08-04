@@ -116,7 +116,7 @@ namespace {
 
 namespace {
 
-    void apply_flyDirectional(const float deltaTime, const dal::InputApplier::MoveInputInfo& totalMoveInfo, dal::StrangeEulerCamera& camera) {
+    void apply_flyDirectional(const float deltaTime, const dal::MoveInputInfo& totalMoveInfo, dal::StrangeEulerCamera& camera) {
         camera.addViewPlane(totalMoveInfo.m_view.x, totalMoveInfo.m_view.y);
 
         // Apply move direction if target need to move.
@@ -139,7 +139,7 @@ namespace {
         camera.updateViewMat();
     }
 
-    void apply_flyPlane(const float deltaTime, const dal::InputApplier::MoveInputInfo& totalMoveInfo, dal::StrangeEulerCamera& camera) {
+    void apply_flyPlane(const float deltaTime, const dal::MoveInputInfo& totalMoveInfo, dal::StrangeEulerCamera& camera) {
         // Apply view
         camera.addViewPlane(totalMoveInfo.m_view.x, totalMoveInfo.m_view.y);
 
@@ -162,7 +162,7 @@ namespace {
         camera.updateViewMat();
     }
 
-    void apply_flyForPlatform(const float deltaTime, const dal::InputApplier::MoveInputInfo& totalMoveInfo, dal::StrangeEulerCamera& camera) {
+    void apply_flyForPlatform(const float deltaTime, const dal::MoveInputInfo& totalMoveInfo, dal::StrangeEulerCamera& camera) {
 #if defined(_WIN32)
         apply_flyPlane(deltaTime, totalMoveInfo, camera);
 #elif defined(__ANDROID__)
@@ -171,7 +171,7 @@ namespace {
     }
 
 
-    void apply_topdown(const float deltaTime, const dal::InputApplier::MoveInputInfo& totalMoveInfo,
+    void apply_topdown(const float deltaTime, const dal::MoveInputInfo& totalMoveInfo,
         dal::StrangeEulerCamera& camera, const entt::entity targetEntity, entt::registry& reg)
     {
         if ( reg.has<dal::cpnt::AnimatedModel>(targetEntity) ) {
@@ -487,7 +487,7 @@ namespace dal {
         }
     }
 
-    InputApplier::MoveInputInfo InputApplier::PlayerControlWidget::getMoveInfo(const float deltaTime, const float winWidth, const float winHeight) {
+    MoveInputInfo InputApplier::PlayerControlWidget::getMoveInfo(const float deltaTime, const float winWidth, const float winHeight) {
         MoveInputInfo info;
 
         const float widthOrHeightButShorter = winWidth < winHeight ? winWidth : winHeight;
@@ -566,6 +566,12 @@ namespace dal {
 
         apply_topdown(deltaTime, info, camera, targetEntity, reg);
         //apply_flyForPlatform(deltaTime, info, camera);
+    }
+
+    void InputApplier::apply(const float deltaTime, StrangeEulerCamera& camera, cpnt::CharacterState& state) {
+        const auto winSize = GlobalStateGod::getinst().getWinSizeFloat();
+        const auto info = this->m_ctrlInputWidget.getMoveInfo(deltaTime, winSize.x, winSize.y);
+        state.m_currentState = state.m_currentState->exec(info);
     }
 
 }  // namespace dal

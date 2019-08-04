@@ -257,3 +257,95 @@ namespace dal::cpnt {
     }
 
 }
+
+
+namespace dal {
+
+    MoveInputInfo& MoveInputInfo::operator+=(const MoveInputInfo& other) {
+        this->m_view += other.m_view;
+        this->m_move += other.m_move;
+        this->m_vertical += other.m_vertical;
+
+        return *this;
+    }
+
+    void MoveInputInfo::clear(void) {
+        this->m_view = glm::vec2{ 0.0f };
+        this->m_move = glm::vec2{ 0.0f };
+        this->m_vertical = 0.0f;
+    }
+
+    bool MoveInputInfo::hasMovement(void) const {
+        if ( 0.0f != this->m_move.x ) {
+            return true;
+        }
+        else if ( 0.0f != this->m_move.y ) {
+            return true;
+        }
+        else if ( 0.0f != this->m_vertical ) {
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+
+    bool MoveInputInfo::hasViewMove(void) const {
+        if ( 0.0f != this->m_view.x ) {
+            return true;
+        }
+        else if ( 0.0f != this->m_view.y ) {
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+
+
+    ICharaState::ICharaState(cpnt::Transform& transform, cpnt::AnimatedModel& model)
+        : m_transform(transform)
+        , m_model(model)
+    {
+
+    }
+
+}
+
+
+namespace dal {
+
+    CharaIdleState::CharaIdleState(cpnt::Transform& transform, cpnt::AnimatedModel& model)
+        : ICharaState(transform, model)
+    {
+
+    }
+
+    CharaIdleState::~CharaIdleState(void) {
+
+    }
+
+    ICharaState* CharaIdleState::exec(const MoveInputInfo& info) {
+        return this;
+    }
+
+}
+
+
+namespace dal {
+
+    CharaWalkState::CharaWalkState(cpnt::Transform& transform, cpnt::AnimatedModel& model)
+        : ICharaState(transform, model)
+    {
+
+    }
+
+    CharaWalkState::~CharaWalkState(void) {
+
+    }
+
+    ICharaState* CharaWalkState::exec(const MoveInputInfo& info) {
+        return this;
+    }
+
+}

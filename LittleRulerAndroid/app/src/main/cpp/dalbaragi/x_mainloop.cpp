@@ -365,10 +365,13 @@ namespace dal {
             auto& transform = this->m_enttMaster.assign<cpnt::Transform>(this->m_player);
             transform.m_scale = 0.2f;
 
-            auto model = this->m_resMas.orderModelAnimated("asset::Character Running.dae");
-            dalAssert(nullptr != model);
+            auto ptrModel = this->m_resMas.orderModelAnimated("asset::Character Running.dae");
+            dalAssert(nullptr != ptrModel);
             auto& renderable = this->m_enttMaster.assign<cpnt::AnimatedModel>(this->m_player);
-            renderable.m_model = model;
+            renderable.m_model = ptrModel;
+
+            auto& cpntState = this->m_enttMaster.assign<cpnt::CharacterState>(this->m_player);
+            cpntState.m_currentState = new CharaIdleState{ transform, renderable };
         }
 
         // Camera

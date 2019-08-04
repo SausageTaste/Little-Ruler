@@ -140,3 +140,75 @@ namespace dal {
     }
 
 }
+
+
+namespace dal {
+
+    struct MoveInputInfo {
+
+    public:
+        glm::vec2 m_view, m_move;
+        float m_vertical = 0.0f;
+
+    public:
+        MoveInputInfo& operator+=(const MoveInputInfo& other);
+
+        void clear(void);
+        bool hasMovement(void) const;
+        bool hasViewMove(void) const;
+
+    };
+
+
+    class ICharaState {
+        // Don't judge me. I love Undertale.
+
+    protected:
+        cpnt::Transform& m_transform;
+        cpnt::AnimatedModel& m_model;
+
+    public:
+        ICharaState(const ICharaState&) = delete;
+        ICharaState(ICharaState&&) = delete;
+        ICharaState& operator=(const ICharaState&) = delete;
+        ICharaState& operator=(ICharaState&&) = delete;
+
+    public:
+        ICharaState(cpnt::Transform& transform, cpnt::AnimatedModel& model);
+        virtual ~ICharaState(void) = default;
+        virtual ICharaState* exec(const MoveInputInfo& info) = 0;
+
+    };
+
+
+    class CharaIdleState : public ICharaState {
+
+    public:
+        CharaIdleState(cpnt::Transform& transform, cpnt::AnimatedModel& model);
+        virtual ~CharaIdleState(void) override;
+
+        virtual ICharaState* exec(const MoveInputInfo& info) override;
+
+    };
+
+
+    class CharaWalkState : public ICharaState {
+
+    public:
+        CharaWalkState(cpnt::Transform& transform, cpnt::AnimatedModel& model);
+        virtual ~CharaWalkState(void) override;
+
+        virtual ICharaState* exec(const MoveInputInfo& info) override;
+
+    };
+
+
+    namespace cpnt {
+
+        struct CharacterState {
+            ICharaState* m_currentState = nullptr ;
+        };
+
+    }
+
+}
