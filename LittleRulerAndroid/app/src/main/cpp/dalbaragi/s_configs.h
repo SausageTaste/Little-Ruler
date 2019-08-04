@@ -42,6 +42,12 @@ namespace dal {
         unsigned int getWinHeight(void) const noexcept {
             return this->m_winHeight;
         }
+        glm::vec2 getWinSizeFloat(void) const {
+            return glm::vec2{
+                this->m_winWidth,
+                this->m_winHeight
+            };
+        }
         void setWinSize(const unsigned int width, const unsigned int height) noexcept {
             this->m_winWidth = width;
             this->m_winHeight = height;
