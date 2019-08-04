@@ -11,13 +11,6 @@ using namespace fmt::literals;
 
 namespace {
 
-    const float DPAD_RADIUS_FACTOR_INV = 7.0f;
-
-}
-
-
-namespace {
-
     void toggleGameState(void) {
         dal::EventStatic e;
         e.type = dal::EventType::global_fsm_change;
@@ -40,27 +33,6 @@ namespace {
     inline constexpr dal::KeySpec index2Enum(const unsigned int index) {
         return static_cast<dal::KeySpec>(index + static_cast<unsigned int>(dal::KeySpec::unknown));
     }
-
-}  // namespace
-
-
-namespace {
-
-    struct NoclipMoveInfo {
-        float xView = 0.0f, yView = 0.0f;
-        float xMovePlane = 0.0f, zMovePlane = 0.0f;
-        float vertical = 0.0f;
-
-        NoclipMoveInfo& operator+=(const NoclipMoveInfo& other) {
-            this->xView += other.xView;
-            this->yView += other.yView;
-            this->xMovePlane += other.xMovePlane;
-            this->zMovePlane += other.zMovePlane;
-            this->vertical += other.vertical;
-
-            return *this;
-        }
-    };
 
 }  // namespace
 
@@ -121,7 +93,7 @@ namespace {
 #endif
     }
 
-
+    /*
     void apply_topdown(const float deltaTime, const dal::MoveInputInfo& totalMoveInfo,
         dal::StrangeEulerCamera& camera, const entt::entity targetEntity, entt::registry& reg)
     {
@@ -203,14 +175,7 @@ namespace {
 
         camera.updateViewMat();
     }
-
-}
-
-
-namespace {
-
-    static constexpr float CORNER_MARGIN = 40.0f;
-    static constexpr float RENDERED_POINT_EDGE_LEN_HALF = 10.0f;
+    */
 
 }
 
@@ -509,6 +474,7 @@ namespace dal {
         }
     }
 
+    /*
     void InputApplier::apply(const float deltaTime, StrangeEulerCamera& camera, const entt::entity targetEntity, entt::registry& reg) {
         const float winWidth = (float)dal::GlobalStateGod::getinst().getWinWidth();
         const float winHeight = (float)dal::GlobalStateGod::getinst().getWinHeight();
@@ -518,6 +484,7 @@ namespace dal {
         apply_topdown(deltaTime, info, camera, targetEntity, reg);
         //apply_flyForPlatform(deltaTime, info, camera);
     }
+    */
 
     void InputApplier::apply(const float deltaTime, StrangeEulerCamera& camera, cpnt::CharacterState& state) {
         const auto winSize = GlobalStateGod::getinst().getWinSizeFloat();

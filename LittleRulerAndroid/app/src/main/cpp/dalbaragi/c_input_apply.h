@@ -18,6 +18,10 @@ namespace dal {
              */
 
         private:
+            static constexpr float RENDERED_POINT_EDGE_LEN_HALF = 10.0f;
+            static constexpr float CORNER_MARGIN = 40.0f;
+
+        private:
             dal::ColoredTile m_fixedCenterPoint, m_touchedPoint;
 
             glm::vec2 m_touchedPos;
@@ -81,7 +85,7 @@ namespace dal {
 
         virtual void onEvent(const EventStatic& e) override;
 
-        void apply(const float deltaTime, StrangeEulerCamera& camera, const entt::entity targetEntity, entt::registry& reg);
+        //void apply(const float deltaTime, StrangeEulerCamera& camera, const entt::entity targetEntity, entt::registry& reg);
         void apply(const float deltaTime, StrangeEulerCamera& camera, cpnt::CharacterState& state);
 
     };
