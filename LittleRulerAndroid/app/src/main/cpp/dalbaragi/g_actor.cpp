@@ -400,13 +400,19 @@ namespace {
             : ICharaState(transform, model, camera)
         {
             this->m_model.m_animState.setSelectedAnimeIndex(0);
+
+            dalVerbose("IDLE");
         }
 
         virtual ~CharaIdleState(void) override {
-
+            dalVerbose("idle");
         }
 
-        virtual ICharaState* exec(const float deltaTime, const dal::MoveInputInfo& info) override;
+        virtual void process(const float deltaTime, const dal::MoveInputInfo& info) override {
+            applybindingCameraToModel(this->m_camera, deltaTime, info, this->m_transform.m_pos, this->m_transform.m_pos);
+        }
+
+        virtual dal::ICharaState* exec(const float deltaTime, const dal::MoveInputInfo& info) override;
 
     };
 
@@ -418,13 +424,21 @@ namespace {
             : ICharaState(transform, model, camera)
         {
             this->m_model.m_animState.setSelectedAnimeIndex(1);
+
+            dalVerbose("WALK");
         }
 
         virtual ~CharaWalkState(void) override {
-
+            dalVerbose("walk");
         }
 
-        virtual ICharaState* exec(const float deltaTime, const dal::MoveInputInfo& info) override;
+        virtual void process(const float deltaTime, const dal::MoveInputInfo& info) override {
+            const auto mdlLastPos = this->m_transform.m_pos;
+            this->applyMove(this->m_transform, this->m_model, deltaTime, info);
+            applybindingCameraToModel(this->m_camera, deltaTime, info, this->m_transform.m_pos, mdlLastPos);
+        }
+
+        virtual dal::ICharaState* exec(const float deltaTime, const dal::MoveInputInfo& info) override;
 
     private:
         void applyMove(dal::cpnt::Transform& cpntTrans, dal::cpnt::AnimatedModel& animModel, const float deltaTime, const dal::MoveInputInfo& totalMoveInfo) const {
@@ -461,6 +475,47 @@ namespace {
 
     };
 
+
+    class CharaJumpState : public dal::ICharaState {
+
+    private:
+        static inline const glm::vec3 INIT_SPEED{ 0.0f, 5.0f, 0.0f };
+        static inline const glm::vec3 GRAVITY{ 0.0f, -9.8f, 0.0f };
+
+        dal::Timer m_timer;
+        glm::vec3 m_initPos;
+
+    public:
+        CharaJumpState(dal::cpnt::Transform& transform, dal::cpnt::AnimatedModel& model, dal::StrangeEulerCamera& camera)
+            : ICharaState(transform, model, camera)
+            , m_initPos(transform.m_pos)
+        {
+            this->m_timer.check();
+
+            this->m_transform.m_pos.y = 0.1f;
+
+            dalVerbose("JUMP");
+        }
+
+        virtual ~CharaJumpState(void) override {
+            this->m_transform.m_pos.y = 0.0f;
+            this->m_transform.updateMat();
+
+            dalVerbose("jump");
+        }
+
+        virtual void process(const float deltaTime, const dal::MoveInputInfo& info) override {
+            const auto elapsed = this->m_timer.getElapsed();
+            this->m_transform.m_pos = this->m_initPos + INIT_SPEED * elapsed + 0.5f * GRAVITY * elapsed * elapsed;
+            this->m_transform.updateMat();
+
+            applybindingCameraToModel(this->m_camera, deltaTime, info, this->m_transform.m_pos, this->m_transform.m_pos);
+        }
+
+        virtual dal::ICharaState* exec(const float deltaTime, const dal::MoveInputInfo& info) override;
+
+    };
+
 }
 
 
@@ -469,28 +524,45 @@ namespace {
 
     dal::ICharaState* CharaIdleState::exec(const float deltaTime, const dal::MoveInputInfo& info) {
         if ( info.hasMovement() ) {
-            auto byebye = std::make_unique<CharaIdleState*>(this);
+            std::unique_ptr<CharaIdleState> byebye{ this };
             auto newState = new CharaWalkState(this->m_transform, this->m_model, this->m_camera);
-            newState->exec(deltaTime, info);
+            newState->process(deltaTime, info);
+            return newState;
+        }
+        else if ( info.m_jump ) {
+            std::unique_ptr<CharaIdleState> byebye{ this };
+            auto newState = new CharaJumpState(this->m_transform, this->m_model, this->m_camera);
+            newState->process(deltaTime, info);
             return newState;
         }
         else {
-            applybindingCameraToModel(this->m_camera, deltaTime, info, this->m_transform.m_pos, this->m_transform.m_pos);
+            this->process(deltaTime, info);
             return this;
         }
     }
 
     dal::ICharaState* CharaWalkState::exec(const float deltaTime, const dal::MoveInputInfo& info) {
         if ( !info.hasMovement() ) {
-            auto byebye = std::make_unique<CharaWalkState*>(this);
+            std::unique_ptr<CharaWalkState> byebye{ this };
             auto newState = new CharaIdleState(this->m_transform, this->m_model, this->m_camera);
-            newState->exec(deltaTime, info);
+            newState->process(deltaTime, info);
             return newState;
         }
         else {
-            const auto mdlLastPos = this->m_transform.m_pos;
-            this->applyMove(this->m_transform, this->m_model, deltaTime, info);
-            applybindingCameraToModel(this->m_camera, deltaTime, info, this->m_transform.m_pos, mdlLastPos);
+            this->process(deltaTime, info);
+            return this;
+        }
+    }
+
+    dal::ICharaState* CharaJumpState::exec(const float deltaTime, const dal::MoveInputInfo& info) {
+        if ( this->m_transform.m_pos.y <= 0.0f ) {
+            std::unique_ptr<CharaJumpState> byebye{ this };
+            auto newState = new CharaIdleState(this->m_transform, this->m_model, this->m_camera);
+            newState->process(deltaTime, info);
+            return newState;
+        }
+        else {
+            this->process(deltaTime, info);
             return this;
         }
     }
