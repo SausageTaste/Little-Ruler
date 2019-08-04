@@ -39,6 +39,7 @@ namespace {
 
 namespace {
 
+    /*
     void apply_flyDirectional(const float deltaTime, const dal::MoveInputInfo& totalMoveInfo, dal::StrangeEulerCamera& camera) {
         camera.addViewPlane(totalMoveInfo.m_view.x, totalMoveInfo.m_view.y);
 
@@ -92,6 +93,7 @@ namespace {
         apply_flyDirectional(deltaTime, totalMoveInfo, camera);
 #endif
     }
+    */
 
     /*
     void apply_topdown(const float deltaTime, const dal::MoveInputInfo& totalMoveInfo,
@@ -183,7 +185,7 @@ namespace {
 // Widgets
 namespace dal {
 
-    InputApplier::MoveDPad::MoveDPad(dal::Widget2* const parent, const float winWidth, const float winHeight)
+    InputApplier::PlayerControlWidget::MoveDPad::MoveDPad(dal::Widget2* const parent, const float winWidth, const float winHeight)
         : Widget2(parent)
         , m_fixedCenterPoint(this, 1.0f, 1.0f, 1.0f, 1.0f)
         , m_touchedPoint(this, 1.0f, 1.0f, 1.0f, 1.0f)
@@ -196,7 +198,7 @@ namespace dal {
         this->m_touchedPoint.setSize(RENDERED_POINT_EDGE_LEN_HALF * 2.0f, RENDERED_POINT_EDGE_LEN_HALF * 2.0f);
     }
 
-    void InputApplier::MoveDPad::render(const UnilocOverlay& uniloc, const float width, const float height) {
+    void InputApplier::PlayerControlWidget::MoveDPad::render(const UnilocOverlay& uniloc, const float width, const float height) {
         this->m_fixedCenterPoint.render(uniloc, width, height);
 
         if ( -1 != this->m_owning ) {
@@ -205,7 +207,7 @@ namespace dal {
         }
     }
 
-    InputCtrlFlag InputApplier::MoveDPad::onTouch(const dal::TouchEvent& e) {
+    InputCtrlFlag InputApplier::PlayerControlWidget::MoveDPad::onTouch(const dal::TouchEvent& e) {
         if ( this->isActive() ) {
             if ( e.m_id == this->m_owning ) {
                 if ( e.m_actionType == TouchActionType::move ) {
@@ -238,7 +240,7 @@ namespace dal {
         return InputCtrlFlag::ignored;
     }
 
-    void InputApplier::MoveDPad::onParentResize(const float width, const float height) {
+    void InputApplier::PlayerControlWidget::MoveDPad::onParentResize(const float width, const float height) {
         const auto shorter = width < height ? width : height;
         const auto edgeLen = shorter * 0.5f;
         this->setPos(CORNER_MARGIN, height - edgeLen - CORNER_MARGIN);
@@ -247,7 +249,7 @@ namespace dal {
         this->m_fixedCenterPoint.setPos(this->makeFixedCenterPos() - RENDERED_POINT_EDGE_LEN_HALF);
     }
 
-    glm::vec2 InputApplier::MoveDPad::getRel(void) const {
+    glm::vec2 InputApplier::PlayerControlWidget::MoveDPad::getRel(void) const {
         if ( !this->isActive() ) {
             return glm::vec2{ 0.0f };
         }
@@ -258,27 +260,27 @@ namespace dal {
         return (this->m_touchedPos - fixedCenter) / (this->getWidth() * 0.5f);
     }
 
-    bool InputApplier::MoveDPad::isActive(void) const {
+    bool InputApplier::PlayerControlWidget::MoveDPad::isActive(void) const {
         return -1 != this->m_owning;
     }
 
     // Private
 
-    void InputApplier::MoveDPad::updateTouchedPos(const float x, const float y, glm::vec2& target) const {
+    void InputApplier::PlayerControlWidget::MoveDPad::updateTouchedPos(const float x, const float y, glm::vec2& target) const {
         dalAssert(this->getWidth() == this->getHeight());
 
         const auto fixedCenter = this->makeFixedCenterPos();;
         target = clampVec(glm::vec2{ x, y } -fixedCenter, this->getWidth() * 0.5f) + fixedCenter;
     }
 
-    glm::vec2 InputApplier::MoveDPad::makeFixedCenterPos(void) const {
+    glm::vec2 InputApplier::PlayerControlWidget::MoveDPad::makeFixedCenterPos(void) const {
         return glm::vec2{
             this->getPosX() + this->getWidth() * 0.5f,
             this->getPosY() + this->getHeight() * 0.5f
         };
     }
 
-    bool InputApplier::MoveDPad::isInsideCircle(const glm::vec2& v) const {
+    bool InputApplier::PlayerControlWidget::MoveDPad::isInsideCircle(const glm::vec2& v) const {
         const float radiusSqr = this->getWidth() * this->getWidth() * 0.5f * 0.5f;
         const auto center = this->makeFixedCenterPos();
         const auto rel = v - center;
@@ -362,10 +364,7 @@ namespace dal {
             this->m_keyboardMoveInfo.m_move.x += 1;
         }
         if ( keyStates[(dal::KeySpec::space)].m_pressed ) {
-            this->m_keyboardMoveInfo.m_vertical += 0.5f;
-        }
-        if ( keyStates[(dal::KeySpec::lshfit)].m_pressed ) {
-            this->m_keyboardMoveInfo.m_vertical -= 0.5f;
+            this->m_keyboardMoveInfo.m_jump += 0.5f;
         }
 
         constexpr float viewMultiplier = 1.0f;
@@ -410,7 +409,7 @@ namespace dal {
         const float viewMultiplier = 5.0f / widthOrHeightButShorter;
 
         {
-            info += this->m_keyboardMoveInfo;
+            info.merge(this->m_keyboardMoveInfo);
             info.m_view *= deltaTime * 2.0f;
         }
 

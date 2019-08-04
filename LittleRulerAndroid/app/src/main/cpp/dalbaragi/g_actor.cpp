@@ -342,18 +342,16 @@ namespace dal::cpnt {
 // MoveInputInfo and ICharaState
 namespace dal {
 
-    MoveInputInfo& MoveInputInfo::operator+=(const MoveInputInfo& other) {
+    void MoveInputInfo::merge(const MoveInputInfo& other) {
         this->m_view += other.m_view;
         this->m_move += other.m_move;
-        this->m_vertical += other.m_vertical;
-
-        return *this;
+        this->m_jump |= other.m_jump;
     }
 
     void MoveInputInfo::clear(void) {
         this->m_view = glm::vec2{ 0.0f };
         this->m_move = glm::vec2{ 0.0f };
-        this->m_vertical = 0.0f;
+        this->m_jump = false;
     }
 
     bool MoveInputInfo::hasMovement(void) const {

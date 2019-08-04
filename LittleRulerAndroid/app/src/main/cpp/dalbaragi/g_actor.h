@@ -172,11 +172,10 @@ namespace dal {
 
     public:
         glm::vec2 m_view, m_move;
-        float m_vertical = 0.0f;
+        bool m_jump = false;
 
     public:
-        MoveInputInfo& operator+=(const MoveInputInfo& other);
-
+        void merge(const MoveInputInfo& other);
         void clear(void);
         bool hasMovement(void) const;
         bool hasViewMove(void) const;
