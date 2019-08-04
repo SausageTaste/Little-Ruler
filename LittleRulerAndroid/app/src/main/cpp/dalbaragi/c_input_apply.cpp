@@ -41,55 +41,6 @@ namespace {
         return static_cast<dal::KeySpec>(index + static_cast<unsigned int>(dal::KeySpec::unknown));
     }
 
-    /*
-    In OpenGL coordinate system, if input is (x, z), rotation follows left hand rule.
-    */
-    glm::vec2 rotateVec2(const glm::vec2& v, const float radians) {
-        const auto sinVal = sin(radians);
-        const auto cosVal = cos(radians);
-
-        return glm::vec2{
-            v.x * cosVal - v.y * sinVal,
-            v.x * sinVal + v.y * cosVal
-        };
-    }
-
-    /*
-    Normalize xz components on the plane (0, 1, 0, -v.y).
-    So if v.y is longer than length, all 3 components must be resized to make it onto sphere.
-    */
-    glm::vec3 resizeOnlyXZ(const glm::vec3& v, const float sphereRadius) {
-        const auto circleOfIntersecRadiusSqr = sphereRadius * sphereRadius - v.y * v.y;
-        if ( circleOfIntersecRadiusSqr > 0.0f ) {
-            const auto circleOfIntersecRadius = sqrt(circleOfIntersecRadiusSqr);
-            const auto resizedVecXZ = glm::normalize(glm::vec2{ v.x, v.z }) * circleOfIntersecRadius;
-            return glm::vec3{ resizedVecXZ.x, v.y, resizedVecXZ.y };
-        }
-        else {
-            return glm::normalize(v) * sphereRadius;
-        }
-    }
-
-    glm::vec2 clampVec(glm::vec2 v, const float maxLen) {
-        const auto lenSqr = glm::dot(v, v);
-        if ( lenSqr > maxLen * maxLen ) {
-            v *= glm::inversesqrt(lenSqr) * maxLen;
-        }
-        return v;
-    }
-
-    template <unsigned int MAX_LEN>
-    glm::vec2 clampVec(glm::vec2 v) {
-        constexpr auto maxLen = static_cast<float>(MAX_LEN);
-        constexpr auto maxLenSqr = static_cast<float>(MAX_LEN * MAX_LEN);
-
-        const auto lenSqr = glm::dot(v, v);
-        if ( lenSqr > maxLenSqr ) {
-            v *= glm::inversesqrt(lenSqr) * maxLen;
-        }
-        return v;
-    }
-
 }  // namespace
 
 
@@ -191,7 +142,7 @@ namespace {
 
                 const auto camViewVec = dal::strangeEuler2Vec(camera.getStrangeEuler());
                 const auto rotatorAsCamX = glm::rotate(glm::mat4{ 1.0f }, camera.getStrangeEuler().getX(), glm::vec3{ 0.0f, 1.0f, 0.0f });
-                const auto rotatedMoveVec = rotateVec2(glm::vec2{ totalMoveInfo.m_move.x, totalMoveInfo.m_move.y }, camera.getStrangeEuler().getX());
+                const auto rotatedMoveVec = dal::rotateVec2(glm::vec2{ totalMoveInfo.m_move.x, totalMoveInfo.m_move.y }, camera.getStrangeEuler().getX());
 
                 const auto deltaPos = glm::vec3{ rotatedMoveVec.x, totalMoveInfo.m_vertical, rotatedMoveVec.y } *deltaTime * 5.0f;
                 cpntTrans.m_pos += deltaPos;
@@ -244,7 +195,7 @@ namespace {
                 const auto cam2ObjSEuler = dal::vec2StrangeEuler(cam2ObjVec);
                 camera.setViewPlane(cam2ObjSEuler.getX(), cam2ObjSEuler.getY());
 
-                camera.m_pos = cpntTrans.m_pos + k_modelCamOffset - resizeOnlyXZ(cam2ObjVec, OBJ_CAM_DISTANCE);
+                camera.m_pos = cpntTrans.m_pos + k_modelCamOffset - dal::resizeOnlyXZ(cam2ObjVec, OBJ_CAM_DISTANCE);
             }
 
             cpntTrans.updateMat();
@@ -571,7 +522,7 @@ namespace dal {
     void InputApplier::apply(const float deltaTime, StrangeEulerCamera& camera, cpnt::CharacterState& state) {
         const auto winSize = GlobalStateGod::getinst().getWinSizeFloat();
         const auto info = this->m_ctrlInputWidget.getMoveInfo(deltaTime, winSize.x, winSize.y);
-        state.m_currentState = state.m_currentState->exec(info);
+        state.m_currentState = state.m_currentState->exec(deltaTime, info);
     }
 
 }  // namespace dal

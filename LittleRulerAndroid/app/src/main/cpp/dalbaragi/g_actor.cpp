@@ -1,5 +1,7 @@
 #include "g_actor.h"
 
+#include <memory>
+
 #include <fmt/format.h>
 #include <glm/gtc/matrix_transform.hpp>
 
@@ -9,6 +11,7 @@
 using namespace fmt::literals;
 
 
+// Util functions
 namespace {
 
     inline constexpr float clampStrangeEulerX(const float x) {
@@ -44,14 +47,90 @@ namespace {
         return abs(p.x*v.x + p.y*v.y + p.z*v.z + p.w) * glm::inversesqrt(p.x*p.x + p.y*p.y + p.z+p.z);
     }
 
+    void applybindingCameraToModel(dal::StrangeEulerCamera& camera, const float deltaTime, const dal::MoveInputInfo& totalMoveInfo,
+        const glm::vec3 mdlThisPos, const glm::vec3 mdlLastPos)
+    {
+        // Apply move direction
+        {
+            const glm::vec3 MODEL_ORIGIN_OFFSET{ 0.0f, 1.3f, 0.0f };
+            constexpr float MAX_Y_DEGREE = 75.0f;
+            constexpr float CAM_ROTATE_SPEED_INV = 1.0f;
+            static_assert(0.0f <= CAM_ROTATE_SPEED_INV && CAM_ROTATE_SPEED_INV <= 1.0f);
+
+            const auto camOrigin = mdlThisPos + MODEL_ORIGIN_OFFSET;
+
+            {
+                const auto deltaPos = mdlThisPos - mdlLastPos;
+                camera.m_pos += deltaPos * CAM_ROTATE_SPEED_INV;
+            }
+
+            {
+                const auto obj2CamVec = camera.m_pos - camOrigin;
+                const auto len = glm::length(obj2CamVec);
+                auto obj2CamSEuler = dal::vec2StrangeEuler(obj2CamVec);
+
+                obj2CamSEuler.addX(totalMoveInfo.m_view.x);
+                obj2CamSEuler.addY(-totalMoveInfo.m_view.y);
+
+                obj2CamSEuler.clampY(glm::radians(-MAX_Y_DEGREE), glm::radians(MAX_Y_DEGREE));
+                const auto rotatedVec = dal::strangeEuler2Vec(obj2CamSEuler);
+                camera.m_pos = camOrigin + rotatedVec * len;
+            }
+
+            {
+                constexpr float OBJ_CAM_DISTANCE = 2.0f;
+
+                const auto cam2ObjVec = camOrigin - camera.m_pos;
+                const auto cam2ObjSEuler = dal::vec2StrangeEuler(cam2ObjVec);
+                camera.setViewPlane(cam2ObjSEuler.getX(), cam2ObjSEuler.getY());
+
+                camera.m_pos = camOrigin - dal::resizeOnlyXZ(cam2ObjVec, OBJ_CAM_DISTANCE);
+            }
+        }
+
+        camera.updateViewMat();
+    }
+
 }
 
 
+// Head functions
 namespace dal {
 
     glm::quat rotateQuat(const glm::quat& q, const float radians, const glm::vec3& selector) {
         return glm::normalize(glm::angleAxis(radians, selector) * q);
     }
+
+    glm::vec2 rotateVec2(const glm::vec2& v, const float radians) {
+        const auto sinVal = sin(radians);
+        const auto cosVal = cos(radians);
+
+        return glm::vec2{
+            v.x * cosVal - v.y * sinVal,
+            v.x * sinVal + v.y * cosVal
+        };
+    }
+
+    glm::vec3 resizeOnlyXZ(const glm::vec3& v, const float sphereRadius) {
+        const auto circleOfIntersecRadiusSqr = sphereRadius * sphereRadius - v.y * v.y;
+        if ( circleOfIntersecRadiusSqr > 0.0f ) {
+            const auto circleOfIntersecRadius = sqrt(circleOfIntersecRadiusSqr);
+            const auto resizedVecXZ = glm::normalize(glm::vec2{ v.x, v.z }) * circleOfIntersecRadius;
+            return glm::vec3{ resizedVecXZ.x, v.y, resizedVecXZ.y };
+        }
+        else {
+            return glm::normalize(v) * sphereRadius;
+        }
+    }
+
+    glm::vec2 clampVec(glm::vec2 v, const float maxLen) {
+        const auto lenSqr = glm::dot(v, v);
+        if ( lenSqr > maxLen * maxLen ) {
+            v *= glm::inversesqrt(lenSqr) * maxLen;
+        }
+        return v;
+    }
+
 
     glm::vec3 strangeEuler2Vec(const StrangeEuler& se) {
         const auto x = se.getX();
@@ -79,6 +158,7 @@ namespace dal {
 }
 
 
+// StrangeEuler
 namespace dal {
 
     StrangeEuler::StrangeEuler(void)
@@ -259,6 +339,7 @@ namespace dal::cpnt {
 }
 
 
+// MoveInputInfo and ICharaState
 namespace dal {
 
     MoveInputInfo& MoveInputInfo::operator+=(const MoveInputInfo& other) {
@@ -282,9 +363,6 @@ namespace dal {
         else if ( 0.0f != this->m_move.y ) {
             return true;
         }
-        else if ( 0.0f != this->m_vertical ) {
-            return true;
-        }
         else {
             return false;
         }
@@ -303,9 +381,10 @@ namespace dal {
     }
 
 
-    ICharaState::ICharaState(cpnt::Transform& transform, cpnt::AnimatedModel& model)
+    ICharaState::ICharaState(cpnt::Transform& transform, cpnt::AnimatedModel& model, dal::StrangeEulerCamera& camera)
         : m_transform(transform)
         , m_model(model)
+        , m_camera(camera)
     {
 
     }
@@ -315,18 +394,27 @@ namespace dal {
 
 namespace dal {
 
-    CharaIdleState::CharaIdleState(cpnt::Transform& transform, cpnt::AnimatedModel& model)
-        : ICharaState(transform, model)
+    CharaIdleState::CharaIdleState(cpnt::Transform& transform, cpnt::AnimatedModel& model, dal::StrangeEulerCamera& camera)
+        : ICharaState(transform, model, camera)
     {
-
+        this->m_model.m_animState.setSelectedAnimeIndex(0);
     }
 
     CharaIdleState::~CharaIdleState(void) {
 
     }
 
-    ICharaState* CharaIdleState::exec(const MoveInputInfo& info) {
-        return this;
+    ICharaState* CharaIdleState::exec(const float deltaTime, const MoveInputInfo& info) {
+        if ( info.hasMovement() ) {
+            auto byebye = std::make_unique<CharaIdleState*>(this);
+            auto newState = new CharaWalkState(this->m_transform, this->m_model, this->m_camera);
+            newState->exec(deltaTime, info);
+            return newState;
+        }
+        else {
+            applybindingCameraToModel(this->m_camera, deltaTime, info, this->m_transform.m_pos, this->m_transform.m_pos);
+            return this;
+        }
     }
 
 }
@@ -334,18 +422,63 @@ namespace dal {
 
 namespace dal {
 
-    CharaWalkState::CharaWalkState(cpnt::Transform& transform, cpnt::AnimatedModel& model)
-        : ICharaState(transform, model)
+    CharaWalkState::CharaWalkState(cpnt::Transform& transform, cpnt::AnimatedModel& model, dal::StrangeEulerCamera& camera)
+        : ICharaState(transform, model, camera)
     {
-
+        this->m_model.m_animState.setSelectedAnimeIndex(1);
     }
 
     CharaWalkState::~CharaWalkState(void) {
 
     }
 
-    ICharaState* CharaWalkState::exec(const MoveInputInfo& info) {
-        return this;
+    ICharaState* CharaWalkState::exec(const float deltaTime, const MoveInputInfo& info) {
+        if ( !info.hasMovement() ) {
+            auto byebye = std::make_unique<CharaWalkState*>(this);
+            auto newState = new CharaIdleState(this->m_transform, this->m_model, this->m_camera);
+            newState->exec(deltaTime, info);
+            return newState;
+        }
+        else {
+            const auto mdlLastPos = this->m_transform.m_pos;
+            this->applyMove(this->m_transform, this->m_model, deltaTime, info);
+            applybindingCameraToModel(this->m_camera, deltaTime, info, this->m_transform.m_pos, mdlLastPos);
+            return this;
+        }
+    }
+
+    // Private
+
+    void CharaWalkState::applyMove(cpnt::Transform& cpntTrans, cpnt::AnimatedModel& animModel, const float deltaTime, const MoveInputInfo& totalMoveInfo) const {
+        constexpr float CAM_ROTATE_SPEED_INV = 1.0f;
+        static_assert(0.0f <= CAM_ROTATE_SPEED_INV && CAM_ROTATE_SPEED_INV <= 1.0f);
+
+        const auto camViewVec = dal::strangeEuler2Vec(this->m_camera.getStrangeEuler());
+        const auto rotatorAsCamX = glm::rotate(glm::mat4{ 1.0f }, this->m_camera.getStrangeEuler().getX(), glm::vec3{ 0.0f, 1.0f, 0.0f });
+        const auto rotatedMoveVec = dal::rotateVec2(glm::vec2{ totalMoveInfo.m_move.x, totalMoveInfo.m_move.y }, this->m_camera.getStrangeEuler().getX());
+
+        const auto deltaPos = glm::vec3{ rotatedMoveVec.x, 0.0f, rotatedMoveVec.y } *deltaTime * 5.0f;
+        cpntTrans.m_pos += deltaPos;
+        if ( rotatedMoveVec.x != 0.0f || rotatedMoveVec.y != 0.0f ) {  // If moved position
+            cpntTrans.m_quat = dal::rotateQuat(glm::quat{}, atan2(rotatedMoveVec.x, rotatedMoveVec.y), glm::vec3{ 0.0f, 1.0f, 0.0f });
+
+            animModel.m_animState.setSelectedAnimeIndex(1);
+
+            const auto moveSpeed = glm::length(rotatedMoveVec);
+            const auto animeSpeed = 1.0f / moveSpeed;
+            constexpr float epsilon = 0.0001f;
+            if ( epsilon > animeSpeed && animeSpeed > -epsilon ) {  // animeSpeed is near zero than epsion.
+                animModel.m_animState.setTimeScale(0.0f);
+            }
+            else {
+                animModel.m_animState.setTimeScale(1.0f / animeSpeed);
+            }
+
+            cpntTrans.updateMat();
+        }
+        else {
+            dalAbort("WTF is this shit?");
+        }
     }
 
 }

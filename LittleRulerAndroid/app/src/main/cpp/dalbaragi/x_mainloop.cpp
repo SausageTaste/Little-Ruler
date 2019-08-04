@@ -364,6 +364,7 @@ namespace dal {
 
             auto& transform = this->m_enttMaster.assign<cpnt::Transform>(this->m_player);
             transform.m_scale = 0.2f;
+            transform.updateMat();
 
             auto ptrModel = this->m_resMas.orderModelAnimated("asset::Character Running.dae");
             dalAssert(nullptr != ptrModel);
@@ -371,7 +372,7 @@ namespace dal {
             renderable.m_model = ptrModel;
 
             auto& cpntState = this->m_enttMaster.assign<cpnt::CharacterState>(this->m_player);
-            cpntState.m_currentState = new CharaIdleState{ transform, renderable };
+            cpntState.m_currentState = new CharaIdleState{ transform, renderable, this->m_camera };
         }
 
         // Camera
@@ -422,7 +423,9 @@ namespace dal {
         }
 
         this->m_overlayMas.updateInputs();
-        this->m_inputApply.apply(deltaTime, this->m_camera, this->m_player, this->m_enttMaster);
+        //this->m_inputApply.apply(deltaTime, this->m_camera, this->m_player, this->m_enttMaster);
+        auto& charaState = this->m_enttMaster.get<cpnt::CharacterState>(this->m_player);
+        this->m_inputApply.apply(deltaTime, this->m_camera, charaState);
         //this->m_scene.applyCollision(*this->m_player.getModel(), *this->m_player.getActor());
 
         TaskGod::getinst().update();

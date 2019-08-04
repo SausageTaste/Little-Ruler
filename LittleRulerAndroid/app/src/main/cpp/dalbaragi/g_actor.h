@@ -14,6 +14,30 @@ namespace dal {
 
     glm::quat rotateQuat(const glm::quat& q, const float radians, const glm::vec3& selector);
 
+    /*
+   In OpenGL coordinate system, if input is (x, z), rotation follows left hand rule.
+   */
+    glm::vec2 rotateVec2(const glm::vec2& v, const float radians);
+
+    /*
+    Normalize xz components on the plane (0, 1, 0, -v.y).
+    So if v.y is longer than length, all 3 components must be resized to make it onto sphere.
+    */
+    glm::vec3 resizeOnlyXZ(const glm::vec3& v, const float sphereRadius);
+
+    template <unsigned int MAX_LEN>
+    glm::vec2 clampVec(glm::vec2 v) {
+        constexpr auto maxLen = static_cast<float>(MAX_LEN);
+        constexpr auto maxLenSqr = static_cast<float>(MAX_LEN * MAX_LEN);
+
+        const auto lenSqr = glm::dot(v, v);
+        if ( lenSqr > maxLenSqr ) {
+            v *= glm::inversesqrt(lenSqr) * maxLen;
+        }
+        return v;
+    }
+    glm::vec2 clampVec(glm::vec2 v, const float maxLen);
+
 
     class ICamera {
 
@@ -166,6 +190,7 @@ namespace dal {
     protected:
         cpnt::Transform& m_transform;
         cpnt::AnimatedModel& m_model;
+        dal::StrangeEulerCamera& m_camera;
 
     public:
         ICharaState(const ICharaState&) = delete;
@@ -174,9 +199,13 @@ namespace dal {
         ICharaState& operator=(ICharaState&&) = delete;
 
     public:
-        ICharaState(cpnt::Transform& transform, cpnt::AnimatedModel& model);
+        ICharaState(cpnt::Transform& transform, cpnt::AnimatedModel& model, dal::StrangeEulerCamera& camera);
         virtual ~ICharaState(void) = default;
-        virtual ICharaState* exec(const MoveInputInfo& info) = 0;
+        virtual ICharaState* exec(const float deltaTime, const MoveInputInfo& info) = 0;
+
+        const cpnt::Transform& getTransformRef(void) const {
+            return this->m_transform;
+        }
 
     };
 
@@ -184,10 +213,10 @@ namespace dal {
     class CharaIdleState : public ICharaState {
 
     public:
-        CharaIdleState(cpnt::Transform& transform, cpnt::AnimatedModel& model);
+        CharaIdleState(cpnt::Transform& transform, cpnt::AnimatedModel& model, dal::StrangeEulerCamera& camera);
         virtual ~CharaIdleState(void) override;
 
-        virtual ICharaState* exec(const MoveInputInfo& info) override;
+        virtual ICharaState* exec(const float deltaTime, const MoveInputInfo& info) override;
 
     };
 
@@ -195,10 +224,13 @@ namespace dal {
     class CharaWalkState : public ICharaState {
 
     public:
-        CharaWalkState(cpnt::Transform& transform, cpnt::AnimatedModel& model);
+        CharaWalkState(cpnt::Transform& transform, cpnt::AnimatedModel& model, dal::StrangeEulerCamera& camera);
         virtual ~CharaWalkState(void) override;
 
-        virtual ICharaState* exec(const MoveInputInfo& info) override;
+        virtual ICharaState* exec(const float deltaTime, const MoveInputInfo& info) override;
+
+    private:
+        void applyMove(cpnt::Transform& cpntTrans, cpnt::AnimatedModel& model, const float deltaTime, const MoveInputInfo& info) const;
 
     };
 

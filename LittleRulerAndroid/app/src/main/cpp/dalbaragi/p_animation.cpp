@@ -293,6 +293,7 @@ namespace dal {
 
     void updateAnimeState(AnimationState& state, const std::vector<Animation>& anims, const SkeletonInterface& skeletonInterf, const glm::mat4& globalMatInv) {
         if ( anims.empty() ) {
+            dalError("There's no animations.");
             return;
         }
 
