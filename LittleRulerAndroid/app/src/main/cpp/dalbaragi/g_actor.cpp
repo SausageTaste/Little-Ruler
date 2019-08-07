@@ -399,12 +399,16 @@ namespace {
         CharaIdleState(dal::cpnt::Transform& transform, dal::cpnt::AnimatedModel& model, dal::StrangeEulerCamera& camera)
             : ICharaState(transform, model, camera)
         {
+
+        }
+
+        virtual void enter(void) override {
             this->m_model.m_animState.setSelectedAnimeIndex(0);
 
             dalVerbose("IDLE");
         }
 
-        virtual ~CharaIdleState(void) override {
+        virtual void exit(void) override {
             dalVerbose("idle");
         }
 
@@ -423,12 +427,16 @@ namespace {
         CharaWalkState(dal::cpnt::Transform& transform, dal::cpnt::AnimatedModel& model, dal::StrangeEulerCamera& camera)
             : ICharaState(transform, model, camera)
         {
+
+        }
+
+        virtual void enter(void) override {
             this->m_model.m_animState.setSelectedAnimeIndex(1);
 
             dalVerbose("WALK");
         }
 
-        virtual ~CharaWalkState(void) override {
+        virtual void exit(void) override {
             dalVerbose("walk");
         }
 
@@ -488,8 +496,12 @@ namespace {
     public:
         CharaJumpState(dal::cpnt::Transform& transform, dal::cpnt::AnimatedModel& model, dal::StrangeEulerCamera& camera)
             : ICharaState(transform, model, camera)
-            , m_initPos(transform.m_pos)
         {
+
+        }
+
+        virtual void enter(void) override {
+            this->m_initPos = this->m_transform.m_pos;
             this->m_timer.check();
 
             this->m_transform.m_pos.y = 0.1f;
@@ -497,7 +509,7 @@ namespace {
             dalVerbose("JUMP");
         }
 
-        virtual ~CharaJumpState(void) override {
+        virtual void exit(void) override {
             this->m_transform.m_pos.y = 0.0f;
             this->m_transform.updateMat();
 
@@ -526,13 +538,21 @@ namespace {
         if ( info.hasMovement() ) {
             std::unique_ptr<CharaIdleState> byebye{ this };
             auto newState = new CharaWalkState(this->m_transform, this->m_model, this->m_camera);
+
+            this->exit();
+            newState->enter();
             newState->process(deltaTime, info);
+
             return newState;
         }
         else if ( info.m_jump ) {
             std::unique_ptr<CharaIdleState> byebye{ this };
             auto newState = new CharaJumpState(this->m_transform, this->m_model, this->m_camera);
+
+            this->exit();
+            newState->enter();
             newState->process(deltaTime, info);
+
             return newState;
         }
         else {
@@ -545,7 +565,11 @@ namespace {
         if ( !info.hasMovement() ) {
             std::unique_ptr<CharaWalkState> byebye{ this };
             auto newState = new CharaIdleState(this->m_transform, this->m_model, this->m_camera);
+
+            this->exit();
+            newState->enter();
             newState->process(deltaTime, info);
+
             return newState;
         }
         else {
@@ -558,7 +582,11 @@ namespace {
         if ( this->m_transform.m_pos.y <= 0.0f ) {
             std::unique_ptr<CharaJumpState> byebye{ this };
             auto newState = new CharaIdleState(this->m_transform, this->m_model, this->m_camera);
+
+            this->exit();
+            newState->enter();
             newState->process(deltaTime, info);
+
             return newState;
         }
         else {

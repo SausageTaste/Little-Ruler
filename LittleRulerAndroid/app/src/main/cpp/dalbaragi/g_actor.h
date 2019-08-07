@@ -200,6 +200,9 @@ namespace dal {
     public:
         ICharaState(cpnt::Transform& transform, cpnt::AnimatedModel& model, dal::StrangeEulerCamera& camera);
         virtual ~ICharaState(void) = default;
+
+        virtual void enter(void) = 0;
+        virtual void exit(void) = 0;
         virtual void process(const float deltaTime, const MoveInputInfo& info) = 0;
         virtual ICharaState* exec(const float deltaTime, const MoveInputInfo& info) = 0;
 
