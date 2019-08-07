@@ -423,12 +423,12 @@ namespace {  // Make items
 namespace dal {
 
     bool parseMap_dlb(loadedinfo::LoadedMap& info, const uint8_t* const buf, const size_t bufSize) {
-        const auto chunkSize = bufSize * 20;
+        const auto chunkSize = makeInt4(buf) * 1.01;  // Just to ensure that buffer never lacks.
         std::unique_ptr<uint8_t[]> decomBuf{ new uint8_t[chunkSize] };
         uLongf decomBufSize = chunkSize;
 
         {
-            const auto res = uncompress(decomBuf.get(), &decomBufSize, buf, bufSize);
+            const auto res = uncompress(decomBuf.get(), &decomBufSize, buf + 4, bufSize);
             switch ( res ) {
 
             case Z_OK:

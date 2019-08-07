@@ -7,6 +7,7 @@ import level.datastruct.interface as ein
 from level.datastruct.interface import json_t
 import level.datastruct.attrib_leaf as pri
 import level.datastruct.error_reporter as ere
+import level.datastruct.bytesutils as byu
 
 
 class LevelBuilder(ein.ILevelElement):
@@ -100,7 +101,7 @@ def saveLevelBinary(level: LevelBuilder, outputFolder: str = "outputs/") -> str:
         outputFolder += "/"
     filePath: str = outputFolder + level.getLevelName() + ".dlb"
     with open(filePath, "wb") as file:
-        file.write(zipData)
+        file.write(byu.get4BytesInt(len(binData)) + zipData)
 
     return filePath
 
