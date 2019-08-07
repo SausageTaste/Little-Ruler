@@ -127,6 +127,18 @@ namespace {
         return std::make_pair(scale, offset);
     }
 
+    template <char _Criteria, typename _Iter>
+    _Iter findNextChar(_Iter beg, const _Iter end) {
+        for ( ; beg != end; ++beg ) {
+            const auto c = *beg;
+            if ( c == _Criteria ) {
+                return beg;
+            }
+        }
+
+        return end;
+    }
+
 }
 
 
@@ -193,7 +205,7 @@ namespace {
         struct CharacterUnit {
             glm::ivec2    size;
             glm::ivec2    bearing;
-            dal::Texture* tex = nullptr;
+            dal::Texture  tex;
             int32_t       advance = 0;
         };
 
@@ -265,8 +277,7 @@ namespace {
                     }
 
                     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);  // Text looks broken without this.
-                    charUnit.tex = dal::ResourceMaster::getUniqueTexture();
-                    charUnit.tex->init_maskMap(this->m_face->glyph->bitmap.buffer, this->m_face->glyph->bitmap.width, this->m_face->glyph->bitmap.rows);
+                    charUnit.tex.init_maskMap(this->m_face->glyph->bitmap.buffer, this->m_face->glyph->bitmap.width, this->m_face->glyph->bitmap.rows);
                     glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
 
                     charUnit.size = glm::vec2{ this->m_face->glyph->bitmap.width, this->m_face->glyph->bitmap.rows };
@@ -326,53 +337,87 @@ namespace {
 
         };
 
+        class CharMap {
+
+        private:
+            unsigned int m_fontSize;
+            std::string m_fontName;
+            FreetypeMaster& m_freetype;
+            std::unordered_map<uint32_t, CharacterUnit> m_unicodes;
+            std::array<CharacterUnit, 256> m_asciis;
+
+        public:
+            CharMap(const CharMap&) = delete;
+            CharMap& operator=(const CharMap&) = delete;
+
+            CharMap(CharMap&&) noexcept = default;
+            CharMap& operator=(CharMap&&) noexcept = default;
+
+        public:
+            CharMap(unsigned int fontSize, const std::string& fontName, FreetypeMaster& freetype) 
+                : m_fontSize(fontSize)
+                , m_fontName(fontName)
+                , m_freetype(freetype)
+            {
+                for ( int i = 0; i < 256; ++i ) {
+                    auto& face = freetype.getFace(this->m_fontName);
+                    face.setPixelSize(this->m_fontSize);
+                    face.loadCharData(i, this->m_asciis[i]);
+                }
+            }
+
+            const CharacterUnit& operator[](const uint32_t utf32Code) {
+                if ( utf32Code < 256 ) {
+                    return this->m_asciis[utf32Code];
+                }
+                else {
+                    return this->getUnicode(utf32Code);
+                }
+            }
+
+        private:
+            const CharacterUnit& getUnicode(const uint32_t utf32Code) {
+                const auto found = this->m_unicodes.find(utf32Code);
+                if ( this->m_unicodes.end() != found ) {
+                    return found->second;
+                }
+                else {
+                    auto [iter, success] = this->m_unicodes.emplace();
+                    dalAssert(success);
+
+                    auto& face = this->m_freetype.getFace(this->m_fontName);
+                    face.setPixelSize(this->m_fontSize);
+                    face.loadCharData(utf32Code, iter->second);
+
+                    return iter->second;
+                }
+            }
+
+        };
+
     private:
         static inline const std::string BASIC_FONT_NAME{ "asset::NanumGothic.ttf" };
-
-        using utf32ToTexMap_t = std::unordered_map<uint32_t, CharacterUnit>;
-        // This is map from font size to another map.
-        using textSizeToSubmap_t = std::unordered_map<unsigned int, utf32ToTexMap_t>;
-        textSizeToSubmap_t m_cache;
+        std::vector<std::unique_ptr<CharMap>> m_charMaps;
         FreetypeMaster m_freetypeMas;
 
     public:
         const CharacterUnit& at(const uint32_t utf32Char, unsigned int textSize) {
-            auto& submap = this->findOrCreateSubmap(textSize, this->m_cache);
-            const auto found = submap.find(utf32Char);
-
-            if ( submap.end() != found ) {
-                return found->second;
-            }
-            else {
-                auto [added, success] = submap.emplace(utf32Char, CharacterUnit{});
-                if ( false == success ) {
-                    dalAbort("Failed to add a glyph");
-                }
-
-                auto& charUnit = added->second;
-                this->fillData(charUnit, utf32Char, textSize);
-                return charUnit;
-            }
+            return this->getCharMap(textSize)[utf32Char];
         }
 
     private:
-        utf32ToTexMap_t& findOrCreateSubmap(const unsigned int textSize, textSizeToSubmap_t& cache) const {
-            auto found = cache.find(textSize);
-
-            if ( cache.end() != found ) {
-                return found->second;
+        CharMap& getCharMap(unsigned int fontSize) {
+            if ( this->m_charMaps.size() > fontSize ) {
+                if ( nullptr == this->m_charMaps[fontSize] ) {
+                    this->m_charMaps[fontSize].reset(new CharMap{ fontSize, this->BASIC_FONT_NAME, this->m_freetypeMas });
+                }
+                return *(this->m_charMaps[fontSize].get());
             }
             else {
-                auto emplaced = cache.emplace(textSize, utf32ToTexMap_t{});
-                dalAssert(emplaced.second);
-                return emplaced.first->second;
+                this->m_charMaps.resize(fontSize + 1);
+                this->m_charMaps[fontSize].reset(new CharMap{ fontSize, this->BASIC_FONT_NAME, this->m_freetypeMas });
+                return *(this->m_charMaps[fontSize].get());
             }
-        }
-
-        void fillData(CharacterUnit& charUnit, const uint32_t utf32Char, unsigned int textSize) {
-            auto& face = this->m_freetypeMas.getFace(BASIC_FONT_NAME);
-            face.setPixelSize(textSize);
-            face.loadCharData(utf32Char, charUnit);
         }
 
     } g_charCache;
@@ -535,8 +580,8 @@ namespace dal {
         float xAdvance = xInit;
         float yHeight = this->getPosY() + static_cast<float>(this->m_textSize) + this->m_offset.y;
 
-        auto header = this->m_text.begin();
-        const auto end = this->m_text.end();
+        auto header = this->m_text.c_str();
+        const auto end = header + this->m_text.size();
 
         int64_t charCount = -1;
 
@@ -547,7 +592,8 @@ namespace dal {
 
             // Fetch utf-32 char
             {
-                const auto ch = static_cast<uint8_t>(*header++);
+                const auto ch = static_cast<uint8_t>(*header);
+                ++header;
                 const auto codeSize = utf8_codepoint_size(ch);
                 dalAssert(codeSize <= MAX_UTF8_CODE_SIZE);
                 if ( codeSize > 1 ) {
@@ -565,17 +611,17 @@ namespace dal {
 
             // Process control char
             {
-                if ( '\n' == c ) {
+                if ( ' ' == c ) {
+                    xAdvance += g_charCache.at(c, this->m_textSize).advance >> 6;
+                    continue;
+                }
+                else if ( '\n' == c ) {
                     yHeight += static_cast<float>(this->m_textSize) * this->m_lineSpacingRate;
                     xAdvance = xInit;
                     continue;
                 }
                 else if ( '\t' == c ) {
                     xAdvance += TAP_CHAR_WIDTH;
-                    continue;
-                }
-                else if ( ' ' == c ) {
-                    xAdvance += g_charCache.at(c, this->m_textSize).advance >> 6;
                     continue;
                 }
             }
@@ -589,7 +635,7 @@ namespace dal {
                     xAdvance = xInit;
                 }
                 else {
-                    header = this->findNextReturnChar(header, end);
+                    header = findNextChar<'\n'>(header, end);
                     continue;
                 }
             }
@@ -610,7 +656,7 @@ namespace dal {
                 continue;
             }
             else if ( CharPassFlag::carriageReturn == flag ) {
-                header = this->findNextReturnChar(header, end);
+                header = findNextChar<'\n'>(header, end);
                 continue;
             }
 
@@ -630,7 +676,7 @@ namespace dal {
                 charQuadInfo.m_devSpcP2 = screen2device(charQuadCut.second, width, height);
 
                 charQuadInfo.m_color = this->m_textColor;
-                charQuadInfo.m_maskMap = charInfo.tex;
+                charQuadInfo.m_maskMap = &charInfo.tex;
 
                 if ( charQuadCut.first != charQuad.first || charQuadCut.second != charQuad.second ) {
                     const auto [scale, offset] = calcScaleOffset(charQuad, charQuadCut);
@@ -712,17 +758,6 @@ namespace dal {
         else {
             return CharPassFlag::okk;
         }
-    }
-
-    std::string::iterator TextRenderer::findNextReturnChar(std::string::iterator beg, const std::string::iterator& end) {
-        for ( ; beg != end; ++beg ) {
-            const auto c = *beg;
-            if ( c == '\n' ) {
-                return beg;
-            }
-        }
-
-        return end;
     }
 
     void TextRenderer::makeOffsetApproch(void) {
