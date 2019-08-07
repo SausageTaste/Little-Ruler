@@ -111,6 +111,34 @@ namespace {
         return res;
     }
 
+
+    // Returns nullptr containing unique_ptr and 0 on failure.
+    std::pair<std::unique_ptr<uint8_t[]>, size_t> uncompressMap(const uint8_t* const buf, const size_t bufSize) {
+        const auto allocatedSize = makeInt4(buf) * 1.01;  // Just to ensure that buffer never lacks.
+        std::unique_ptr<uint8_t[]> decomBuf{ new uint8_t[allocatedSize] };
+        uLongf decomBufSize = allocatedSize;
+
+        const auto res = uncompress(decomBuf.get(), &decomBufSize, buf + 4, bufSize);
+        switch ( res ) {
+
+        case Z_OK:
+            return std::make_pair(std::move(decomBuf), static_cast<size_t>(decomBufSize));
+        case Z_BUF_ERROR:
+            dalError("Zlib fail: buffer is not large enough");
+            return std::make_pair(nullptr, 0);
+        case Z_MEM_ERROR:
+            dalError("Zlib fail: Insufficient memory");
+            return std::make_pair(nullptr, 0);
+        case Z_DATA_ERROR:
+            dalError("Zlib fail: Corrupted data");
+            return std::make_pair(nullptr, 0);
+        default:
+            dalError("Zlib fail: Unknown reason ({})"_format(res));
+            return std::make_pair(nullptr, 0);
+
+        }
+    }
+
 }
 
 
@@ -423,49 +451,29 @@ namespace {  // Make items
 namespace dal {
 
     bool parseMap_dlb(loadedinfo::LoadedMap& info, const uint8_t* const buf, const size_t bufSize) {
-        const auto chunkSize = makeInt4(buf) * 1.01;  // Just to ensure that buffer never lacks.
-        std::unique_ptr<uint8_t[]> decomBuf{ new uint8_t[chunkSize] };
-        uLongf decomBufSize = chunkSize;
-
-        {
-            const auto res = uncompress(decomBuf.get(), &decomBufSize, buf + 4, bufSize);
-            switch ( res ) {
-
-            case Z_OK:
-                break;
-            case Z_BUF_ERROR:
-                dalError("Zlib fail: buffer is not large enough");
-                return false;
-            case Z_MEM_ERROR:
-                dalError("Zlib fail: Insufficient memory");
-                return false;
-            case Z_DATA_ERROR:
-                dalError("Zlib fail: Corrupted data");
-                return false;
-            default:
-                dalError("Zlib fail: Unknown reason ({})"_format(res));
-                return false;
-
-            }
+        const auto [data, dataSize] = uncompressMap(buf, bufSize);
+        if ( nullptr == data ) {
+            return false;
         }
 
-        const uint8_t* header = decomBuf.get();
-        const uint8_t* const end = header + decomBufSize;
+        const uint8_t* header = data.get();
+        const uint8_t* const end = header + dataSize;
 
-        while ( true ) {
-            const auto typeCode = makeInt2(header);
+        while ( header < end ) {
+            const auto typeCode = makeInt2(header); header += 2;
             const auto makerFunc = selectMakerFunc(typeCode);
             if ( nullptr == makerFunc ) {
                 return false;
             }
-
-            header += 2;
 
             header = makerFunc(info, header, end);
             if ( header == end ) {
                 return true;
             }
         }
+
+        // Returns here if decomBufSize is 0.
+        return false;
     }
 
 }
