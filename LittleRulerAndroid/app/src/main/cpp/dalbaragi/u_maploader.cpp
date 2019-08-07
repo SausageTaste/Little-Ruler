@@ -1,11 +1,11 @@
 #include "u_maploader.h"
 
-#include <cstring>
 #include <string>
+#include <cstring>
 
-#include <fmt/format.h>
 #define ZLIB_WINAPI
 #include <zlib.h>
+#include <fmt/format.h>
 
 #include "s_logger_god.h"
 
@@ -449,20 +449,22 @@ namespace dal {
             }
         }
 
-        const auto end = decomBuf.get() + decomBufSize;
         const uint8_t* header = decomBuf.get();
+        const uint8_t* const end = header + decomBufSize;
 
         while ( true ) {
             const auto typeCode = makeInt2(header);
-            auto makerFunc = selectMakerFunc(typeCode);
-            if ( nullptr == makerFunc )
+            const auto makerFunc = selectMakerFunc(typeCode);
+            if ( nullptr == makerFunc ) {
                 return false;
+            }
 
             header += 2;
 
             header = makerFunc(info, header, end);
-            if ( header == end )
+            if ( header == end ) {
                 return true;
+            }
         }
     }
 
