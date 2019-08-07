@@ -242,7 +242,7 @@ namespace {
             this->m_textBox.replaceBuffer(&this->m_strbuf);
             dal::LoggerGod::getinst().addChannel(&this->m_stream);
 
-            this->setPos(300.0f, 20.0f);
+            this->setPos(10.0f, 50.0f);
             this->setSize(300.0f, 300.0f);
         }
 
