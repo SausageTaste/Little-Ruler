@@ -71,6 +71,7 @@ namespace {
 
                 obj2CamSEuler.addX(totalMoveInfo.m_view.x);
                 obj2CamSEuler.addY(-totalMoveInfo.m_view.y);
+                obj2CamSEuler.clampY(glm::radians(50.0f), glm::radians(80.0f));
 
                 obj2CamSEuler.clampY(glm::radians(-MAX_Y_DEGREE), glm::radians(MAX_Y_DEGREE));
                 const auto rotatedVec = dal::strangeEuler2Vec(obj2CamSEuler);
@@ -89,6 +90,37 @@ namespace {
         }
 
         camera.updateViewMat();
+    }
+
+    void applyMove(dal::cpnt::Transform& cpntTrans, dal::cpnt::AnimatedModel& animModel, const dal::StrangeEulerCamera camera,
+        const float deltaTime, const dal::MoveInputInfo& totalMoveInfo)
+    {
+        constexpr float CAM_ROTATE_SPEED_INV = 1.0f;
+        static_assert(0.0f <= CAM_ROTATE_SPEED_INV && CAM_ROTATE_SPEED_INV <= 1.0f);
+
+        const auto camViewVec = dal::strangeEuler2Vec(camera.getStrangeEuler());
+        const auto rotatorAsCamX = glm::rotate(glm::mat4{ 1.0f }, camera.getStrangeEuler().getX(), glm::vec3{ 0.0f, 1.0f, 0.0f });
+        const auto rotatedMoveVec = dal::rotateVec2(glm::vec2{ totalMoveInfo.m_move.x, totalMoveInfo.m_move.y }, camera.getStrangeEuler().getX());
+
+        const auto deltaPos = glm::vec3{ rotatedMoveVec.x, 0.0f, rotatedMoveVec.y } *deltaTime * 5.0f;
+        cpntTrans.m_pos += deltaPos;
+        if ( rotatedMoveVec.x != 0.0f || rotatedMoveVec.y != 0.0f ) {  // If moved position
+            cpntTrans.m_quat = dal::rotateQuat(glm::quat{}, atan2(rotatedMoveVec.x, rotatedMoveVec.y), glm::vec3{ 0.0f, 1.0f, 0.0f });
+
+            animModel.m_animState.setSelectedAnimeIndex(1);
+
+            const auto moveSpeed = glm::length(rotatedMoveVec);
+            const auto animeSpeed = 1.0f / moveSpeed;
+            constexpr float epsilon = 0.0001f;
+            if ( epsilon > animeSpeed && animeSpeed > -epsilon ) {  // animeSpeed is near zero than epsion.
+                animModel.m_animState.setTimeScale(0.0f);
+            }
+            else {
+                animModel.m_animState.setTimeScale(1.0f / animeSpeed);
+            }
+
+            cpntTrans.updateMat();
+        }
     }
 
 }
@@ -442,44 +474,11 @@ namespace {
 
         virtual void process(const float deltaTime, const dal::MoveInputInfo& info) override {
             const auto mdlLastPos = this->m_transform.m_pos;
-            this->applyMove(this->m_transform, this->m_model, deltaTime, info);
+            applyMove(this->m_transform, this->m_model, this->m_camera, deltaTime, info);
             applybindingCameraToModel(this->m_camera, deltaTime, info, this->m_transform.m_pos, mdlLastPos);
         }
 
         virtual dal::ICharaState* exec(const float deltaTime, const dal::MoveInputInfo& info) override;
-
-    private:
-        void applyMove(dal::cpnt::Transform& cpntTrans, dal::cpnt::AnimatedModel& animModel, const float deltaTime, const dal::MoveInputInfo& totalMoveInfo) const {
-            constexpr float CAM_ROTATE_SPEED_INV = 1.0f;
-            static_assert(0.0f <= CAM_ROTATE_SPEED_INV && CAM_ROTATE_SPEED_INV <= 1.0f);
-
-            const auto camViewVec = dal::strangeEuler2Vec(this->m_camera.getStrangeEuler());
-            const auto rotatorAsCamX = glm::rotate(glm::mat4{ 1.0f }, this->m_camera.getStrangeEuler().getX(), glm::vec3{ 0.0f, 1.0f, 0.0f });
-            const auto rotatedMoveVec = dal::rotateVec2(glm::vec2{ totalMoveInfo.m_move.x, totalMoveInfo.m_move.y }, this->m_camera.getStrangeEuler().getX());
-
-            const auto deltaPos = glm::vec3{ rotatedMoveVec.x, 0.0f, rotatedMoveVec.y } *deltaTime * 5.0f;
-            cpntTrans.m_pos += deltaPos;
-            if ( rotatedMoveVec.x != 0.0f || rotatedMoveVec.y != 0.0f ) {  // If moved position
-                cpntTrans.m_quat = dal::rotateQuat(glm::quat{}, atan2(rotatedMoveVec.x, rotatedMoveVec.y), glm::vec3{ 0.0f, 1.0f, 0.0f });
-
-                animModel.m_animState.setSelectedAnimeIndex(1);
-
-                const auto moveSpeed = glm::length(rotatedMoveVec);
-                const auto animeSpeed = 1.0f / moveSpeed;
-                constexpr float epsilon = 0.0001f;
-                if ( epsilon > animeSpeed && animeSpeed > -epsilon ) {  // animeSpeed is near zero than epsion.
-                    animModel.m_animState.setTimeScale(0.0f);
-                }
-                else {
-                    animModel.m_animState.setTimeScale(1.0f / animeSpeed);
-                }
-
-                cpntTrans.updateMat();
-            }
-            else {
-                dalAbort("WTF is this shit?");
-            }
-        }
 
     };
 
@@ -522,6 +521,55 @@ namespace {
             this->m_transform.updateMat();
 
             applybindingCameraToModel(this->m_camera, deltaTime, info, this->m_transform.m_pos, this->m_transform.m_pos);
+        }
+
+        virtual dal::ICharaState* exec(const float deltaTime, const dal::MoveInputInfo& info) override;
+
+    };
+
+
+    class CharaJumpWalkingState : public dal::ICharaState {
+
+    private:
+        static inline const glm::vec3 INIT_SPEED{ 0.0f, 5.0f, 0.0f };
+        static inline const glm::vec3 GRAVITY{ 0.0f, -9.8f, 0.0f };
+
+        dal::Timer m_timer;
+        glm::vec3 m_initPos;
+
+    public:
+        CharaJumpWalkingState(dal::cpnt::Transform& transform, dal::cpnt::AnimatedModel& model, dal::StrangeEulerCamera& camera)
+            : ICharaState(transform, model, camera)
+        {
+
+        }
+
+        virtual void enter(void) override {
+            this->m_initPos = this->m_transform.m_pos;
+            this->m_timer.check();
+
+            this->m_transform.m_pos.y = 0.1f;
+
+            dalVerbose("JUMP WALKING");
+        }
+
+        virtual void exit(void) override {
+            this->m_transform.m_pos.y = 0.0f;
+            this->m_transform.updateMat();
+
+            dalVerbose("jump walking");
+        }
+
+        virtual void process(const float deltaTime, const dal::MoveInputInfo& info) override {
+            const auto elapsed = this->m_timer.getElapsed();
+            this->m_transform.m_pos.y = (this->m_initPos + INIT_SPEED * elapsed + 0.5f * GRAVITY * elapsed * elapsed).y;
+
+            const auto mdlLastPos = this->m_transform.m_pos;
+            applyMove(this->m_transform, this->m_model, this->m_camera, deltaTime, info);
+
+            applybindingCameraToModel(this->m_camera, deltaTime, info, this->m_transform.m_pos, this->m_transform.m_pos);
+
+            this->m_transform.updateMat();
         }
 
         virtual dal::ICharaState* exec(const float deltaTime, const dal::MoveInputInfo& info) override;
@@ -572,6 +620,16 @@ namespace {
 
             return newState;
         }
+        else if ( info.m_jump ) {
+            std::unique_ptr<CharaWalkState> byebye{ this };
+            auto newState = new CharaJumpWalkingState(this->m_transform, this->m_model, this->m_camera);
+
+            this->exit();
+            newState->enter();
+            newState->process(deltaTime, info);
+
+            return newState;
+        }
         else {
             this->process(deltaTime, info);
             return this;
@@ -582,6 +640,23 @@ namespace {
         if ( this->m_transform.m_pos.y <= 0.0f ) {
             std::unique_ptr<CharaJumpState> byebye{ this };
             auto newState = new CharaIdleState(this->m_transform, this->m_model, this->m_camera);
+
+            this->exit();
+            newState->enter();
+            newState->process(deltaTime, info);
+
+            return newState;
+        }
+        else {
+            this->process(deltaTime, info);
+            return this;
+        }
+    }
+
+    dal::ICharaState* CharaJumpWalkingState::exec(const float deltaTime, const dal::MoveInputInfo& info) {
+        if ( this->m_transform.m_pos.y <= 0.0f ) {
+            std::unique_ptr<CharaJumpWalkingState> byebye{ this };
+            auto newState = new CharaWalkState(this->m_transform, this->m_model, this->m_camera);
 
             this->exit();
             newState->enter();
