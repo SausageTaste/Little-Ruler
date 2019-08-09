@@ -32,6 +32,16 @@ def main():
 
     ########
 
+    model = bfi.BuildInfo_ModelImported()
+    actor = aco.ActorInfo()
+    actor.getPosHandle().setXYZ(0, 0, 17)
+    actor.setScale(10)
+    model.addActor(actor)
+    model.setModelID("asset::63building.obj")
+    level.add(model)
+
+    ########
+
     model = bfi.BuildInfo_ModelDefined()
     model.setModelID("floor_upper")
     model.getMeshHandle().setAABB(atl.Vec3(0, -1, 0), atl.Vec3(20, 0, 50))
