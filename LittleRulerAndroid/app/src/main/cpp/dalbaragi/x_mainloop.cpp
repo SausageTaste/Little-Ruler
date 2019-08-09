@@ -3,6 +3,7 @@
 #include <time.h>
 
 #include <fmt/format.h>
+#include <btBulletDynamicsCommon.h>
 
 #include "s_logger_god.h"
 #include "s_configs.h"
@@ -315,7 +316,21 @@ namespace {
 namespace {
 
     void test(const float deltaTime) {
+        //1
+        auto _broadphase = new btDbvtBroadphase();
 
+        //2
+        auto _collisionConfiguration = new btDefaultCollisionConfiguration();
+        auto _dispatcher = new btCollisionDispatcher(_collisionConfiguration);
+
+        //3
+        auto _solver = new btSequentialImpulseConstraintSolver();
+
+        //4
+        auto _world = new btDiscreteDynamicsWorld(_dispatcher, _broadphase, _solver, _collisionConfiguration);
+
+        //5
+        _world->setGravity(btVector3(0, -9.8, 0));
     }
 
 }
