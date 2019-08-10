@@ -54,7 +54,7 @@ namespace {
         {
             const glm::vec3 MODEL_ORIGIN_OFFSET{ 0.0f, 1.3f, 0.0f };
             constexpr float MAX_Y_DEGREE = 75.0f;
-            constexpr float CAM_ROTATE_SPEED_INV = 1.0f;
+            constexpr float CAM_ROTATE_SPEED_INV = 0.7f;
             static_assert(0.0f <= CAM_ROTATE_SPEED_INV && CAM_ROTATE_SPEED_INV <= 1.0f);
 
             const auto camOrigin = mdlThisPos + MODEL_ORIGIN_OFFSET;
@@ -79,7 +79,7 @@ namespace {
             }
 
             {
-                constexpr float OBJ_CAM_DISTANCE = 2.0f;
+                constexpr float OBJ_CAM_DISTANCE = 3.0f;
 
                 const auto cam2ObjVec = camOrigin - camera.m_pos;
                 const auto cam2ObjSEuler = dal::vec2StrangeEuler(cam2ObjVec);
