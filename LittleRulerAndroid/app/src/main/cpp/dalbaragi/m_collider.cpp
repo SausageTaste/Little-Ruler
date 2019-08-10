@@ -75,6 +75,22 @@ namespace dal {
 
 namespace dal {
 
+    Plane::Plane(void)
+        : a(0.0f)
+        , b(1.0f)
+        , c(0.0f)
+        , d(0.0f)
+    {
+
+    }
+
+    float Plane::getSignedDist(const glm::vec3 v) const 
+
+}
+
+
+namespace dal {
+
     bool checkCollision(const AxisAlignedBoundingBox& one, const AxisAlignedBoundingBox& other) {
         if ( one.m_p2.x < other.m_p1.x ) return false;
         else if ( one.m_p1.x > other.m_p2.x ) return false;
@@ -84,6 +100,21 @@ namespace dal {
         else if ( one.m_p1.z > other.m_p2.z ) return false;
         else return true;
     }
+
+    bool checkCollision(const AxisAlignedBoundingBox& aabb, const Plane& plane) {
+        const glm::vec3 p000 = aabb.getPoint000();
+        const glm::vec3 p111 = aabb.getPoint111();
+
+        const glm::vec3 p001{ p000.x, p000.y, p111.z };
+        const glm::vec3 p010{ p000.x, p111.y, p000.z };
+        const glm::vec3 p011{ p000.x, p111.y, p111.z };
+        const glm::vec3 p100{ p111.x, p000.y, p000.z };
+        const glm::vec3 p101{ p000.x, p000.y, p111.z };
+        const glm::vec3 p110{ p111.x, p111.y, p000.z };
+
+
+    }
+
 
     CollisionResolveInfo calcResolveInfo(const AxisAlignedBoundingBox& one, const AxisAlignedBoundingBox& other) {
         const auto thisWeight = 1.0f / one.m_massInv;
