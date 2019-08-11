@@ -422,10 +422,15 @@ namespace dal {
         }
 
         this->m_overlayMas.updateInputs();
-        //this->m_inputApply.apply(deltaTime, this->m_camera, this->m_player, this->m_enttMaster);
         auto& charaState = this->m_enttMaster.get<cpnt::CharacterState>(this->m_player);
         this->m_inputApply.apply(deltaTime, this->m_camera, charaState);
-        //this->m_scene.applyCollision(*this->m_player.getModel(), *this->m_player.getActor());
+
+        // Resolve collisions
+        {
+            auto& trans = this->m_enttMaster.get<cpnt::Transform>(this->m_player);
+            auto& model = this->m_enttMaster.get<cpnt::AnimatedModel>(this->m_player);
+            this->m_scene.applyCollision(model.m_model->getBoundingBox(), trans);
+        }
 
         TaskGod::getinst().update();
 

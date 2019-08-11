@@ -275,21 +275,20 @@ namespace dal {
         return startIndex + this->m_plights.size();
     }
 
-    void MapChunk::applyCollision(ModelStaticHandle& model, ActorInfo& actor) {
-        auto inputActorBBox = model.getBoundingBox();
-        inputActorBBox.add(actor.getPos());
+    void MapChunk::applyCollision(AxisAlignedBoundingBox inOriginalBox, cpnt::Transform& inTrans) {
+        inOriginalBox.scale(inTrans.m_scale);
+        inOriginalBox.add(inTrans.m_pos);
 
         for ( auto& [mdl, actors] : this->m_modelActors ) {
             for ( auto& targetActor : actors ) {
-                if ( &targetActor == &actor ) continue;
-
-                auto targetBBox = model.getBoundingBox();
+                auto targetBBox = mdl.getBoundingBox();
+                targetBBox.scale(targetActor.getScale());
                 targetBBox.add(targetActor.getPos());
 
-                if ( checkCollision(inputActorBBox, targetBBox) ) {
-                    const auto resolveInfo = calcResolveInfo(inputActorBBox, targetBBox);
-                    actor.addPos(resolveInfo.m_this);
-                    inputActorBBox.add(resolveInfo.m_this);
+                if ( checkCollision(inOriginalBox, targetBBox) ) {
+                    const auto resolveInfo = calcResolveInfo(inOriginalBox, targetBBox);
+                    inTrans.m_pos += resolveInfo.m_this;
+                    inOriginalBox.add(resolveInfo.m_this);
                     targetActor.addPos(resolveInfo.m_other);
                 }
             }
@@ -297,15 +296,13 @@ namespace dal {
 
         for ( auto& [mdl, actors, animStat] : this->m_animatedActors ) {
             for ( auto& targetActor : actors ) {
-                if ( &targetActor == &actor ) continue;
-
-                auto targetBBox = model.getBoundingBox();
+               auto targetBBox = mdl->getBoundingBox();
                 targetBBox.add(targetActor.getPos());
 
-                if ( checkCollision(inputActorBBox, targetBBox) ) {
-                    const auto resolveInfo = calcResolveInfo(inputActorBBox, targetBBox);
-                    actor.addPos(resolveInfo.m_this);
-                    inputActorBBox.add(resolveInfo.m_this);
+                if ( checkCollision(inOriginalBox, targetBBox) ) {
+                    const auto resolveInfo = calcResolveInfo(inOriginalBox, targetBBox);
+                    inTrans.m_pos += resolveInfo.m_this;
+                    inOriginalBox.add(resolveInfo.m_this);
                     targetActor.addPos(resolveInfo.m_other);
                 }
             }
@@ -441,9 +438,9 @@ namespace dal {
         return nullptr;
     }
 
-    void SceneMaster::applyCollision(ModelStaticHandle& model, ActorInfo& actor) {
+    void SceneMaster::applyCollision(const AxisAlignedBoundingBox& inOriginalBox, cpnt::Transform& inTrans) {
         for ( auto& map : this->m_mapChunks ) {
-            map.applyCollision(model, actor);
+            map.applyCollision(inOriginalBox, inTrans);
         }
     }
 

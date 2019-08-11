@@ -76,6 +76,11 @@ namespace dal {
         this->m_p2 += offset;
     }
 
+    void AxisAlignedBoundingBox::scale(const float mag) {
+        this->m_p1 *= mag;
+        this->m_p2 *= mag;
+    }
+
     // Private
 
     void AxisAlignedBoundingBox::validateOrder(void) {

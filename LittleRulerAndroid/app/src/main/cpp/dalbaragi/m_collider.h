@@ -40,6 +40,7 @@ namespace dal {
 
         void set(const glm::vec3& p1, const glm::vec3& p2);
         void add(const glm::vec3& offset);
+        void scale(const float mag);
 
         friend bool checkCollision(const AxisAlignedBoundingBox& one, const AxisAlignedBoundingBox& other);
         friend CollisionResolveInfo calcResolveInfo(const AxisAlignedBoundingBox& one, const AxisAlignedBoundingBox& other);
