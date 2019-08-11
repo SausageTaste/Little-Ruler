@@ -35,11 +35,21 @@ namespace dal {
 
         //////// Methods ////////
 
+    private:
         TaskGod(void);
         ~TaskGod(void);
 
     public:
-        static TaskGod& getinst(void);
+        TaskGod(const TaskGod&) = delete;
+        TaskGod(TaskGod&&) = delete;
+        TaskGod& operator=(const TaskGod&) = delete;
+        TaskGod& operator=(TaskGod&&) = delete;
+
+    public:
+        static TaskGod& getinst(void) {
+            static TaskGod inst;
+            return inst;
+        }
 
         void update(void);
 

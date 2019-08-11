@@ -53,6 +53,7 @@ namespace {
 
             return m_q.size();
         }
+
     };
 
     ThreadQueue<dal::ITask> g_inQ, g_outQ;
@@ -122,16 +123,13 @@ namespace dal {
 
     }
 
-    TaskGod& TaskGod::getinst(void) {
-        static TaskGod inst;
-        return inst;
-    }
-
     void TaskGod::update(void) {
 
 #if DAL_THREAD_COUNT > 0
         auto task = g_outQ.pop();
-        if ( nullptr == task ) return;
+        if ( nullptr == task ) {
+            return;
+        }
 
         auto listener = this->findNotifiReciever(task);
         if ( nullptr != listener ) {
@@ -143,7 +141,9 @@ namespace dal {
     }
 
     void TaskGod::orderTask(ITask* const task, ITaskDoneListener* const client) {
-        if ( task == nullptr ) return;
+        if ( task == nullptr ) {
+            return;
+        }
 
 #if DAL_THREAD_COUNT > 0
         g_inQ.push(task);
