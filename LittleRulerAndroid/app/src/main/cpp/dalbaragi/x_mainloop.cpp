@@ -43,6 +43,45 @@ namespace {
         return info;
     }
 
+    void bindCameraPos(dal::StrangeEulerCamera& camera, const glm::vec3 thisPos, const glm::vec3 lastPos) {
+        // Apply move direction
+        {
+            const glm::vec3 MODEL_ORIGIN_OFFSET{ 0.0f, 1.3f, 0.0f };
+            constexpr float MAX_Y_DEGREE = 75.0f;
+            constexpr float CAM_ROTATE_SPEED_INV = 0.5f;
+            static_assert(0.0f <= CAM_ROTATE_SPEED_INV && CAM_ROTATE_SPEED_INV <= 1.0f);
+
+            const auto camOrigin = thisPos + MODEL_ORIGIN_OFFSET;
+
+            {
+                const auto deltaPos = thisPos - lastPos;
+                camera.m_pos += deltaPos * CAM_ROTATE_SPEED_INV;
+            }
+
+            {
+                const auto obj2CamVec = camera.m_pos - camOrigin;
+                const auto len = glm::length(obj2CamVec);
+                auto obj2CamSEuler = dal::vec2StrangeEuler(obj2CamVec);
+
+                obj2CamSEuler.clampY(glm::radians(-MAX_Y_DEGREE), glm::radians(MAX_Y_DEGREE));
+                const auto rotatedVec = dal::strangeEuler2Vec(obj2CamSEuler);
+                camera.m_pos = camOrigin + rotatedVec * len;
+            }
+
+            {
+                constexpr float OBJ_CAM_DISTANCE = 3.0f;
+
+                const auto cam2ObjVec = camOrigin - camera.m_pos;
+                const auto cam2ObjSEuler = dal::vec2StrangeEuler(cam2ObjVec);
+                camera.setViewPlane(cam2ObjSEuler.getX(), cam2ObjSEuler.getY());
+
+                camera.m_pos = camOrigin - dal::resizeOnlyXZ(cam2ObjVec, OBJ_CAM_DISTANCE);
+            }
+        }
+
+        camera.updateViewMat();
+    }
+
 }
 
 
@@ -421,25 +460,33 @@ namespace dal {
             this->m_timerForFPSReport.check();
         }
 
-        this->m_overlayMas.updateInputs();
-        auto& charaState = this->m_enttMaster.get<cpnt::CharacterState>(this->m_player);
-        this->m_inputApply.apply(deltaTime, this->m_camera, charaState);
+        // Process input
+        {
+            this->m_overlayMas.updateInputs();
+            this->m_inputApply.apply(deltaTime, this->m_camera, this->m_enttMaster.get<cpnt::CharacterState>(this->m_player));
+        }
 
         // Resolve collisions
         {
             auto& trans = this->m_enttMaster.get<cpnt::Transform>(this->m_player);
+            const auto lastPos = trans.m_pos;
             auto& model = this->m_enttMaster.get<cpnt::AnimatedModel>(this->m_player);
             this->m_scene.applyCollision(model.m_model->getBoundingBox(), trans);
+
+            bindCameraPos(this->m_camera, trans.m_pos, lastPos);
+        }
+
+        // Updated animtions of free objects.
+        {
+            auto view = this->m_enttMaster.view<cpnt::AnimatedModel>();
+            for ( const auto entity : view ) {
+                auto& cpntModel = view.get(entity);
+                auto pModel = cpntModel.m_model;
+                updateAnimeState(cpntModel.m_animState, pModel->getAnimations(), pModel->getSkeletonInterf(), pModel->getGlobalInvMat());
+            }
         }
 
         TaskGod::getinst().update();
-
-        auto view = this->m_enttMaster.view<cpnt::AnimatedModel>();
-        for ( const auto entity : view ) {
-            auto& cpntModel = view.get(entity);
-            auto pModel = cpntModel.m_model;
-            updateAnimeState(cpntModel.m_animState, pModel->getAnimations(), pModel->getSkeletonInterf(), pModel->getGlobalInvMat());
-        }
 
         this->m_scene.update(deltaTime);
         this->m_renderMan.update(deltaTime);
