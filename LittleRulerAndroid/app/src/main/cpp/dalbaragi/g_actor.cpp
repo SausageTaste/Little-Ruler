@@ -54,7 +54,7 @@ namespace {
         {
             const glm::vec3 MODEL_ORIGIN_OFFSET{ 0.0f, 1.3f, 0.0f };
             constexpr float MAX_Y_DEGREE = 75.0f;
-            constexpr float CAM_ROTATE_SPEED_INV = 0.7f;
+            constexpr float CAM_ROTATE_SPEED_INV = 0.5f;
             static_assert(0.0f <= CAM_ROTATE_SPEED_INV && CAM_ROTATE_SPEED_INV <= 1.0f);
 
             const auto camOrigin = mdlThisPos + MODEL_ORIGIN_OFFSET;
@@ -455,6 +455,9 @@ namespace {
 
     class CharaWalkState : public dal::ICharaState {
 
+    private:
+        glm::vec3 m_lastPos;
+
     public:
         CharaWalkState(dal::cpnt::Transform& transform, dal::cpnt::AnimatedModel& model, dal::StrangeEulerCamera& camera)
             : ICharaState(transform, model, camera)
@@ -464,6 +467,7 @@ namespace {
 
         virtual void enter(void) override {
             this->m_model.m_animState.setSelectedAnimeIndex(1);
+            this->m_lastPos = this->m_transform.m_pos;
 
             dalVerbose("WALK");
         }
@@ -473,9 +477,9 @@ namespace {
         }
 
         virtual void process(const float deltaTime, const dal::MoveInputInfo& info) override {
-            const auto mdlLastPos = this->m_transform.m_pos;
             applyMove(this->m_transform, this->m_model, this->m_camera, deltaTime, info);
-            applybindingCameraToModel(this->m_camera, deltaTime, info, this->m_transform.m_pos, mdlLastPos);
+            applybindingCameraToModel(this->m_camera, deltaTime, info, this->m_transform.m_pos, this->m_lastPos);
+            this->m_lastPos = this->m_transform.m_pos;
         }
 
         virtual dal::ICharaState* exec(const float deltaTime, const dal::MoveInputInfo& info) override;
