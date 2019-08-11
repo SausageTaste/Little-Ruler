@@ -4,13 +4,20 @@
 #include <glm/gtc/quaternion.hpp>
 
 #include "p_animation.h"
+#include "m_collider.h"
 
 
+// Forward declarations
 namespace dal {
 
     class ModelStatic;
     class ModelAnimated;
 
+}
+
+
+// Header functions
+namespace dal {
 
     glm::quat rotateQuat(const glm::quat& q, const float radians, const glm::vec3& selector);
 
@@ -38,6 +45,11 @@ namespace dal {
     }
     glm::vec2 clampVec(glm::vec2 v, const float maxLen);
 
+}
+
+
+// Camera, Actor classes
+namespace dal {
 
     class ICamera {
 
@@ -135,37 +147,39 @@ namespace dal {
 
     constexpr unsigned int MAX_ID_NAME_LEN = 128;
 
+}
 
-    namespace cpnt {
 
-        struct Transform {
-            glm::mat4 m_modelMat;
-            glm::quat m_quat;
-            glm::vec3 m_pos;
-            float m_scale = 1.0f;
+// Components
+namespace dal::cpnt {
 
-            Transform(void);
-            void updateMat(void);
-        };
+    struct Transform {
+        glm::mat4 m_modelMat;
+        glm::quat m_quat;
+        glm::vec3 m_pos;
+        float m_scale = 1.0f;
 
-        struct Identifier {
-            char m_name[MAX_ID_NAME_LEN] = { 0 };
-        };
+        Transform(void);
+        void updateMat(void);
+    };
 
-        struct StaticModel {
-            ModelStatic* m_model = nullptr;
-        };
+    struct Identifier {
+        char m_name[MAX_ID_NAME_LEN] = { 0 };
+    };
 
-        struct AnimatedModel {
-            ModelAnimated* m_model = nullptr;
-            AnimationState m_animState;
-        };
+    struct StaticModel {
+        ModelStatic* m_model = nullptr;
+    };
 
-    }
+    struct AnimatedModel {
+        ModelAnimated* m_model = nullptr;
+        AnimationState m_animState;
+    };
 
 }
 
 
+// Chara states
 namespace dal {
 
     struct MoveInputInfo {
