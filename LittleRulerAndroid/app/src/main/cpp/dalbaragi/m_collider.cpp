@@ -137,13 +137,16 @@ namespace dal {
     }
 
 
-    CollisionResolveInfo calcResolveInfo(const AxisAlignedBoundingBox& one, const AxisAlignedBoundingBox& other) {
-        const auto thisWeight = 1.0f / one.m_massInv;
-        const auto otherWeight = 1.0f / other.m_massInv;
-        const auto weightSum = thisWeight + otherWeight;
-        if ( 0.0f == weightSum ) {
+    CollisionResolveInfo calcResolveInfo(const AxisAlignedBoundingBox& one, const AxisAlignedBoundingBox& other,
+        const float oneMassInv, const float otherMassInv)
+    {
+        const auto sumOfMassInv = oneMassInv + otherMassInv;
+        if ( sumOfMassInv == 0.0f ) {
             return CollisionResolveInfo{ { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } };
         }
+
+        const auto thisFactor = oneMassInv / sumOfMassInv;
+        const auto otherFactor = otherMassInv / sumOfMassInv;
 
         const auto xOne = one.m_p2.x - other.m_p1.x;
         const auto xTwo = one.m_p1.x - other.m_p2.x;
@@ -156,9 +159,6 @@ namespace dal {
         const auto zOne = one.m_p2.z - other.m_p1.z;
         const auto zTwo = one.m_p1.z - other.m_p2.z;
         const auto zDistance = abs(zOne) < abs(zTwo) ? zOne : zTwo;
-
-        const auto thisFactor = thisWeight / weightSum;
-        const auto otherFactor = otherWeight / weightSum;
 
         const auto xForThis = -xDistance * thisFactor;
         const auto yForThis = -yDistance * thisFactor;

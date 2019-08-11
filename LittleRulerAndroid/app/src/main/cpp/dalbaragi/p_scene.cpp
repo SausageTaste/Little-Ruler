@@ -286,7 +286,7 @@ namespace dal {
                 targetBBox.add(targetActor.getPos());
 
                 if ( checkCollision(inOriginalBox, targetBBox) ) {
-                    const auto resolveInfo = calcResolveInfo(inOriginalBox, targetBBox);
+                    const auto resolveInfo = calcResolveInfo(inOriginalBox, targetBBox, 1.0f, 0.0f);
                     inTrans.m_pos += resolveInfo.m_this;
                     inOriginalBox.add(resolveInfo.m_this);
                     targetActor.addPos(resolveInfo.m_other);
@@ -300,7 +300,7 @@ namespace dal {
                 targetBBox.add(targetActor.getPos());
 
                 if ( checkCollision(inOriginalBox, targetBBox) ) {
-                    const auto resolveInfo = calcResolveInfo(inOriginalBox, targetBBox);
+                    const auto resolveInfo = calcResolveInfo(inOriginalBox, targetBBox, 1.0f, 0.0f);
                     inTrans.m_pos += resolveInfo.m_this;
                     inOriginalBox.add(resolveInfo.m_this);
                     targetActor.addPos(resolveInfo.m_other);

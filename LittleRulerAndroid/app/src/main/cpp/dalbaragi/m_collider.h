@@ -43,7 +43,8 @@ namespace dal {
         void scale(const float mag);
 
         friend bool checkCollision(const AxisAlignedBoundingBox& one, const AxisAlignedBoundingBox& other);
-        friend CollisionResolveInfo calcResolveInfo(const AxisAlignedBoundingBox& one, const AxisAlignedBoundingBox& other);
+        friend CollisionResolveInfo calcResolveInfo(const AxisAlignedBoundingBox& one, const AxisAlignedBoundingBox& other,
+            const float oneMassInv, const float otherMassInv);
 
     private:
         void validateOrder(void);
@@ -90,6 +91,7 @@ namespace dal {
 
     bool checkCollision(const AxisAlignedBoundingBox& aabb, const Plane& plane);
 
-    CollisionResolveInfo calcResolveInfo(const AxisAlignedBoundingBox& one, const AxisAlignedBoundingBox& other);
+    CollisionResolveInfo calcResolveInfo(const AxisAlignedBoundingBox& one, const AxisAlignedBoundingBox& other,
+        const float oneMassInv, const float otherMassInv);
 
 }
