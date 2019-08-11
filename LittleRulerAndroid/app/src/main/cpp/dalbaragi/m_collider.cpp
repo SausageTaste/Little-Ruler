@@ -44,6 +44,26 @@ namespace dal {
         this->validateOrder();
     }
 
+    std::array<glm::vec3, 8> AxisAlignedBoundingBox::getAllPoints(void) const {
+        std::array<glm::vec3, 8> result;
+
+        {
+            const auto p000 = this->getPoint000();
+            const auto p111 = this->getPoint111();
+
+            result[0] = p000;  // 000
+            result[1] = glm::vec3{ p000.x, p000.y, p111.z };  // 001
+            result[2] = glm::vec3{ p000.x, p111.y, p000.z };  // 010
+            result[3] = glm::vec3{ p000.x, p111.y, p111.z };  // 011
+            result[4] = glm::vec3{ p111.x, p000.y, p000.z };  // 100
+            result[5] = glm::vec3{ p111.x, p000.y, p111.z };  // 101
+            result[6] = glm::vec3{ p111.x, p111.y, p000.z };  // 110
+            result[7] = p111;  // 111
+        }
+
+        return result;
+    }
+
     void AxisAlignedBoundingBox::set(const glm::vec3& p1, const glm::vec3& p2) {
         this->m_p1 = p1;
         this->m_p2 = p2;
@@ -76,15 +96,10 @@ namespace dal {
 namespace dal {
 
     Plane::Plane(void)
-        : a(0.0f)
-        , b(1.0f)
-        , c(0.0f)
-        , d(0.0f)
+        : m_coeff(0.0f, 1.0f, 0.0f, 0.0f)
     {
 
     }
-
-    float Plane::getSignedDist(const glm::vec3 v) const 
 
 }
 
@@ -102,17 +117,18 @@ namespace dal {
     }
 
     bool checkCollision(const AxisAlignedBoundingBox& aabb, const Plane& plane) {
-        const glm::vec3 p000 = aabb.getPoint000();
-        const glm::vec3 p111 = aabb.getPoint111();
+        const auto points = aabb.getAllPoints();
 
-        const glm::vec3 p001{ p000.x, p000.y, p111.z };
-        const glm::vec3 p010{ p000.x, p111.y, p000.z };
-        const glm::vec3 p011{ p000.x, p111.y, p111.z };
-        const glm::vec3 p100{ p111.x, p000.y, p000.z };
-        const glm::vec3 p101{ p000.x, p000.y, p111.z };
-        const glm::vec3 p110{ p111.x, p111.y, p000.z };
+        const auto firstOne = plane.isInFront(points[0]);
 
+        for ( size_t i = 1; i < points.size(); ++i ) {
+            const auto thisOne = plane.isInFront(points[i]);
+            if ( firstOne != thisOne ) {
+                return true;
+            }
+        }
 
+        return false;
     }
 
 

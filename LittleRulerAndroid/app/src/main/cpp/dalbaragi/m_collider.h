@@ -1,5 +1,7 @@
 #pragma once
 
+#include <array>
+
 #include <glm/glm.hpp>
 
 
@@ -30,6 +32,11 @@ namespace dal {
         glm::vec3 getPoint111(void) const {
             return this->m_p2;
         }
+
+        // The order is
+        // 000, 001, 010, 011, 100, 101, 110, 111
+        // Each digit means x, y, z, 0 means lower value on the axis, 1 means higher.
+        std::array<glm::vec3, 8> getAllPoints(void) const;
 
         void set(const glm::vec3& p1, const glm::vec3& p2);
         void add(const glm::vec3& offset);
