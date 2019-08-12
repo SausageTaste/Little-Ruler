@@ -1,16 +1,10 @@
 #pragma once
 
-//#include <string>
-//#include <vector>
 #include <unordered_map>
-//#include <utility>
 
-//#include "u_loadinfo.h"
-//#include "p_uniloc.h"
 #include "s_threader.h"
 #include "u_fileclass.h"
 #include "p_meshStatic.h"
-//#include "p_animation.h"
 
 
 namespace dal {
