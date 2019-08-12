@@ -667,41 +667,51 @@ namespace dal {
     ResourceIDString::ResourceIDString(const std::string& resourceID) {
         const auto& pathStr = resourceID;
 
-        const auto packagePos = pathStr.find("::");
         size_t excludePos = 0;
-        if ( 0 == packagePos ) {
-            this->m_package = "";
-            excludePos = 2;
-        }
-        else if ( std::string::npos == packagePos ) {
-            this->m_package = "";
-        }
-        else {
-            this->m_package = pathStr.substr(0, packagePos);
-            excludePos = packagePos + 2;
+
+        // Package name
+        {
+            const auto packagePos = pathStr.find("::");
+
+            if ( 0 == packagePos ) {
+                this->m_package = "";
+                excludePos = 2;
+            }
+            else if ( std::string::npos == packagePos ) {
+                this->m_package = "";
+            }
+            else {
+                this->m_package = pathStr.substr(0, packagePos);
+                excludePos = packagePos + 2;
+            }
         }
 
-        const auto dirPos = pathStr.rfind("/");
-        if ( std::string::npos == dirPos ) {
-            this->m_dir = "";
-        }
-        else {
-            this->m_dir = pathStr.substr(excludePos, dirPos + 1 - excludePos);
-            excludePos = dirPos + 1;
-        }
-
-        const auto extPos = pathStr.rfind(".");
-        if ( std::string::npos == extPos ) {
-            this->m_dir += pathStr.substr(excludePos, pathStr.size() - excludePos);
-            this->m_bareName = "";
-            this->m_ext = "";
-        }
-        else {
-            this->m_bareName = pathStr.substr(excludePos, extPos - excludePos);
-            this->m_ext = pathStr.substr(extPos, pathStr.size() - extPos);
+        {
+            const auto dirPos = pathStr.rfind("/");
+            if ( std::string::npos == dirPos ) {
+                this->m_dir = "";
+            }
+            else {
+                this->m_dir = pathStr.substr(excludePos, dirPos + 1 - excludePos);
+                excludePos = dirPos + 1;
+            }
         }
 
-        if ( !this->m_dir.empty() && this->m_dir.back() != '/' ) this->m_dir.push_back('/');
+        {
+            const auto extPos = pathStr.rfind(".");
+            if ( std::string::npos == extPos ) {
+                this->m_bareName = pathStr.substr(excludePos, pathStr.size() - excludePos);
+                this->m_ext = "";
+            }
+            else {
+                this->m_bareName = pathStr.substr(excludePos, extPos - excludePos);
+                this->m_ext = pathStr.substr(extPos, pathStr.size() - extPos);
+            }
+        }
+
+        if ( !this->m_dir.empty() && this->m_dir.back() != '/' ) {
+            this->m_dir.push_back('/');
+        }
     }
 
     ResourceIDString::ResourceIDString(const char* const resourceID)
