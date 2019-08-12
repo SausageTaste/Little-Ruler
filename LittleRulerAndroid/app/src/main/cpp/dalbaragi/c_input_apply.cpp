@@ -364,7 +364,7 @@ namespace dal {
             this->m_keyboardMoveInfo.m_move.x += 1;
         }
         if ( keyStates[(dal::KeySpec::space)].m_pressed ) {
-            this->m_keyboardMoveInfo.m_jump += 0.5f;
+            this->m_keyboardMoveInfo.m_jump = true;
         }
 
         constexpr float viewMultiplier = 1.0f;
