@@ -13,11 +13,11 @@ namespace dal {
     class DepthmapForLights {
 
     private:
-        GLuint mFBO = 0;
-        unsigned int width = 0, height = 0;
+        GLuint m_fbo = 0;
+        unsigned int m_width = 0, m_height = 0;
         Texture m_depthTex;
 
-    private:
+    public:
         DepthmapForLights(const DepthmapForLights&) = delete;
         DepthmapForLights& operator=(const DepthmapForLights&) = delete;
 
@@ -27,8 +27,7 @@ namespace dal {
         DepthmapForLights(DepthmapForLights&& other) noexcept;
         DepthmapForLights& operator=(DepthmapForLights&&) noexcept;
 
-        GLuint getTextureID(void);
-        const Texture* getDepthMap(void) const;
+        void sendUniform(const UniInterfLightedMesh& uniloc, int index) const;
 
         void clearBuffer(void);
         void startRender(void);
@@ -50,17 +49,19 @@ namespace dal {
 
     private:
         glm::vec3 m_direction{ -0.3f, -1.0f, -1.0f };  // This must be always normalized.
-
-    public:
-        float mHalfShadowEdgeSize;
-        DepthmapForLights mShadowMap;
+        float m_halfProjBoxEdgeLen;
+        DepthmapForLights m_shadowMap;
 
     public:
         DirectionalLight(void);
 
-        void setDirectin(const glm::vec3& direction);
-        void setDirectin(const float x, const float y, const float z);
-        const glm::vec3& getDirection(void) const;
+        void setDirectin(const glm::vec3& v);
+        void setDirectin(const float x, const float y, const float z) {
+            this->setDirectin(glm::vec3{ x, y, z });
+        }
+        const glm::vec3& getDirection(void) const {
+            return this->m_direction;
+        }
 
         void sendUniform(const UniInterfLightedMesh& uniloc, int index) const;
 
@@ -70,8 +71,6 @@ namespace dal {
 
         glm::mat4 makeProjMat(void) const;
         glm::mat4 makeViewMat(void) const;
-        GLuint getShadowMapTexture(void);
-        const Texture* getShadowMap(void) const;
 
     };
 

@@ -12,16 +12,17 @@ namespace {
 }
 
 
+// DepthmapForLights
 namespace dal {
 
     DepthmapForLights::DepthmapForLights(void)
-        : width(DEPTHMAP_RES),
-        height(DEPTHMAP_RES)
+        : m_width(DEPTHMAP_RES)
+        , m_height(DEPTHMAP_RES)
     {
-        this->m_depthTex.init_depthMap(this->width, this->height);
+        this->m_depthTex.init_depthMap(this->m_width, this->m_height);
 
-        glGenFramebuffers(1, &mFBO);
-        glBindFramebuffer(GL_FRAMEBUFFER, mFBO);
+        glGenFramebuffers(1, &m_fbo);
+        glBindFramebuffer(GL_FRAMEBUFFER, m_fbo);
         {
             const GLenum none = GL_NONE;
             glDrawBuffers(1, &none);
@@ -38,47 +39,44 @@ namespace dal {
     }
 
     DepthmapForLights::~DepthmapForLights(void) {
-        glDeleteFramebuffers(1, &this->mFBO);
+        glDeleteFramebuffers(1, &this->m_fbo);
     }
 
     DepthmapForLights::DepthmapForLights(DepthmapForLights&& other) noexcept {
-        this->mFBO = other.mFBO;
-        other.mFBO = 0;
+        this->m_fbo = other.m_fbo;
+        other.m_fbo = 0;
 
-        this->width = other.width;
-        this->height = other.height;
+        this->m_width = other.m_width;
+        this->m_height = other.m_height;
 
         this->m_depthTex = std::move(other.m_depthTex);
     }
 
     DepthmapForLights& DepthmapForLights::operator=(DepthmapForLights&& other) noexcept {
-        this->mFBO = other.mFBO;
-        other.mFBO = 0;
+        this->m_fbo = other.m_fbo;
+        other.m_fbo = 0;
 
-        this->width = other.width;
-        this->height = other.height;
+        this->m_width = other.m_width;
+        this->m_height = other.m_height;
 
         this->m_depthTex = std::move(other.m_depthTex);
 
         return *this;
     }
 
-    GLuint DepthmapForLights::getTextureID(void) {
-        return this->m_depthTex.get();
-    }
 
-    const Texture* DepthmapForLights::getDepthMap(void) const {
-        return &this->m_depthTex;
+    void DepthmapForLights::sendUniform(const UniInterfLightedMesh& uniloc, int index) const {
+        this->m_depthTex.sendUniform(uniloc.getDlightDepthMap(index));
     }
 
     void DepthmapForLights::clearBuffer(void) {
-        glBindFramebuffer(GL_FRAMEBUFFER, mFBO);
+        glBindFramebuffer(GL_FRAMEBUFFER, m_fbo);
         glClear(GL_DEPTH_BUFFER_BIT);
     }
 
     void DepthmapForLights::startRender(void) {
-        glBindFramebuffer(GL_FRAMEBUFFER, mFBO);
-        glViewport(0, 0, width, height);
+        glBindFramebuffer(GL_FRAMEBUFFER, m_fbo);
+        glViewport(0, 0, this->m_width, this->m_height);
     }
 
     void DepthmapForLights::finishRender(void) {
@@ -92,23 +90,13 @@ namespace dal {
 namespace dal {
 
     DirectionalLight::DirectionalLight(void)
-        : mHalfShadowEdgeSize(50.0f)
+        : m_halfProjBoxEdgeLen(50.0f)
     {
         this->m_direction = glm::normalize(this->m_direction);
     }
 
-    void DirectionalLight::setDirectin(const glm::vec3& direction) {
-        this->m_direction = direction;
-    }
-
-    void DirectionalLight::setDirectin(const float x, const float y, const float z) {
-        this->m_direction.x = x;
-        this->m_direction.y = y;
-        this->m_direction.z = z;
-    }
-
-    const glm::vec3& DirectionalLight::getDirection(void) const {
-        return this->m_direction;
+    void DirectionalLight::setDirectin(const glm::vec3& v) {
+        this->m_direction = glm::normalize(v);
     }
 
     void DirectionalLight::sendUniform(const UniInterfLightedMesh& uniloc, int index) const {
@@ -118,41 +106,33 @@ namespace dal {
         auto projViewMat = this->makeProjMat() * this->makeViewMat();
         uniloc.dlightProjViewMat(index, projViewMat);
 
-        this->mShadowMap.getDepthMap()->sendUniform(uniloc.getDlightDepthMap(index));
+        this->m_shadowMap.sendUniform(uniloc, index);
     }
 
     void DirectionalLight::clearDepthBuffer(void) {
-        this->mShadowMap.clearBuffer();
+        this->m_shadowMap.clearBuffer();
     }
 
     void DirectionalLight::startRenderShadowmap(const UniInterfGeometry& uniloc) {
         uniloc.projectMat(this->makeProjMat());
         uniloc.viewMat(this->makeViewMat());
-        mShadowMap.startRender();
+        this->m_shadowMap.startRender();
     }
 
     void DirectionalLight::finishRenderShadowmap(void) {
-        mShadowMap.finishRender();
+        this->m_shadowMap.finishRender();
     }
 
     glm::mat4 DirectionalLight::makeProjMat(void) const {
         return glm::ortho(
-            -mHalfShadowEdgeSize, mHalfShadowEdgeSize,
-            -mHalfShadowEdgeSize, mHalfShadowEdgeSize,
-            -mHalfShadowEdgeSize, mHalfShadowEdgeSize
+            -m_halfProjBoxEdgeLen, m_halfProjBoxEdgeLen,
+            -m_halfProjBoxEdgeLen, m_halfProjBoxEdgeLen,
+            -m_halfProjBoxEdgeLen, m_halfProjBoxEdgeLen
         );
     }
 
     glm::mat4 DirectionalLight::makeViewMat(void) const {
         return glm::lookAt(-this->m_direction, { 0, 0, 0 }, { 0,1,0 });
-    }
-
-    GLuint DirectionalLight::getShadowMapTexture(void) {
-        return mShadowMap.getTextureID();
-    }
-
-    const Texture* DirectionalLight::getShadowMap(void) const {
-        return mShadowMap.getDepthMap();
     }
 
 }
