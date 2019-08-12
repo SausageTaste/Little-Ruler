@@ -497,6 +497,33 @@ namespace dal {
 
     }
 
+    Package::Package(Package&& other) noexcept
+        : m_name(std::move(other.m_name))
+        , m_models(std::move(other.m_models))
+        , m_animatedModels(std::move(other.m_animatedModels))
+        , m_textures(std::move(other.m_textures))
+    {
+
+    }
+
+    Package& Package::operator=(Package&& other) noexcept {
+        this->m_name = std::move(other.m_name);
+        this->m_models = std::move(other.m_models);
+        this->m_animatedModels = std::move(other.m_animatedModels);
+        this->m_textures = std::move(other.m_textures);
+
+        return *this;
+    }
+
+    Package::~Package(void) {
+        for ( auto& [id, pMdl] : this->m_animatedModels ) {
+            g_animatedModelPool.free(pMdl);
+        }
+        for ( auto& [id, pTex] : this->m_textures ) {
+            g_texturePool.free(pTex);
+        }
+    }
+
 
     bool Package::hasTexture(const ResourceID& resID) {
         return this->m_textures.end() != this->m_textures.find(resID.makeFileName());

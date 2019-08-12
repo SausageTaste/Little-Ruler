@@ -160,6 +160,10 @@ namespace dal {
         Package(const std::string& pckName);
         Package(std::string&& pckName);
 
+        Package(Package&& other) noexcept;
+        Package& operator=(Package&&) noexcept;
+        ~Package(void);
+
         bool hasTexture(const ResourceID& resPath);
         bool hasModelStatic(const ResourceID& resPath);
         bool hasModelAnim(const ResourceID& resPath);
