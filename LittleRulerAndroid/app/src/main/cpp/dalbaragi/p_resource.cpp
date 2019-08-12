@@ -123,16 +123,6 @@ namespace {
 }
 
 
-// Pools
-namespace {
-
-    dal::StaticPool<dal::ModelStatic, 20> g_modelPool;
-    dal::StaticPool<dal::ModelAnimated, 20> g_animatedModelPool;
-    dal::StaticPool<dal::Texture, 200> g_texturePool;
-
-}
-
-
 // IModel
 namespace dal {
 
@@ -350,7 +340,7 @@ namespace dal {
 namespace dal {
 
     struct ModelStaticHandleImpl {
-        ModelStatic* m_model = nullptr;
+        std::unique_ptr<ModelStatic> m_model;
         unsigned int m_refCount = 1;
     };
 
@@ -366,7 +356,7 @@ namespace dal {
     ModelStaticHandle::ModelStaticHandle(dal::ModelStatic* const model)
         : m_pimpl(g_staticModelCtrlBlckPool.alloc())
     {
-        this->m_pimpl->m_model = model;
+        this->m_pimpl->m_model.reset(model);
     }
 
     ModelStaticHandle::~ModelStaticHandle(void) {
@@ -376,11 +366,6 @@ namespace dal {
 
         --this->m_pimpl->m_refCount;
         if ( 0 == this->m_pimpl->m_refCount ) {
-            if ( nullptr != this->m_pimpl->m_model ) {
-                g_modelPool.free(this->m_pimpl->m_model);
-                this->m_pimpl->m_model = nullptr;
-            }
-
             g_staticModelCtrlBlckPool.free(this->m_pimpl);
             this->m_pimpl = nullptr;
         }
@@ -517,10 +502,10 @@ namespace dal {
 
     Package::~Package(void) {
         for ( auto& [id, pMdl] : this->m_animatedModels ) {
-            g_animatedModelPool.free(pMdl);
+            delete pMdl;
         }
         for ( auto& [id, pTex] : this->m_textures ) {
-            g_texturePool.free(pTex);
+            delete pTex;
         }
     }
 
@@ -702,7 +687,7 @@ namespace dal {
             return *found;
         }
         else {
-            auto model = g_modelPool.alloc(); dalAssert(nullptr != model);
+            auto model = new ModelStatic; dalAssert(nullptr != model);
             ModelStaticHandle modelHandle{ model };
             model->setModelResID(resID);  // It might not be resolved.
             package.giveModelStatic(resID, modelHandle);
@@ -723,7 +708,7 @@ namespace dal {
             return found;
         }
         else {
-            auto model = g_animatedModelPool.alloc();
+            auto model = new ModelAnimated;
             model->setModelResID(resID);
             package.giveModelAnim(resID, model);
 
@@ -738,7 +723,7 @@ namespace dal {
     ModelStaticHandle ResourceMaster::buildModel(const loadedinfo::ModelDefined& info, const std::string& packageName) {
         auto& package = this->orderPackage(packageName);
 
-        auto model = g_modelPool.alloc();
+        auto model = new ModelStatic;
         ModelStaticHandle modelHandle{ model };
         package.giveModelStatic(info.m_modelID, modelHandle);
 
@@ -755,7 +740,7 @@ namespace dal {
             return found;
         }
         else {
-            auto texture = g_texturePool.alloc();
+            auto texture = new Texture;
             package.giveTexture(resID, texture);
 
             auto task = new LoadTask_Texture(resID, texture);
