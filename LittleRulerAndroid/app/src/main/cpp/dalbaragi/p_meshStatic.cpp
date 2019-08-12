@@ -12,6 +12,35 @@ using namespace fmt::literals;
 
 namespace dal {
 
+    MeshStatic::MeshStatic(MeshStatic&& other) noexcept
+        : mVao(other.mVao)
+        , mVertexArrayBuffer(other.mVertexArrayBuffer)
+        , mTexCoordArrayBuffer(other.mTexCoordArrayBuffer)
+        , mNormalArrayBuffe(other.mNormalArrayBuffe)
+        , mVertexSize(other.mVertexSize)
+    {
+        other.setAllToZero();
+    }
+
+    MeshStatic& MeshStatic::operator=(MeshStatic&& other) noexcept {
+        this->invalidate();
+
+        this->mVao = other.mVao;
+        this->mVertexArrayBuffer = other.mVertexArrayBuffer;
+        this->mTexCoordArrayBuffer = other.mTexCoordArrayBuffer;
+        this->mNormalArrayBuffe = other.mNormalArrayBuffe;
+        this->mVertexSize = other.mVertexSize;
+
+        other.setAllToZero();
+
+        return *this;
+    }
+
+    MeshStatic::~MeshStatic(void) {
+        this->invalidate();
+    }
+
+
     void MeshStatic::draw(void) const {
         dalAssert(this->isReady());
 
@@ -95,7 +124,11 @@ namespace dal {
         return 0;
     }
 
-    void MeshStatic::destroyData(void) {
+    void MeshStatic::invalidate(void) {
+        if ( !this->isReady() ) {
+            return;
+        }
+
         GLuint bufferIds[3] = {
             this->mVertexArrayBuffer,
             this->mTexCoordArrayBuffer,
@@ -110,9 +143,10 @@ namespace dal {
         glDeleteVertexArrays(1, &this->mVao);
         this->mVao = 0;
 
+        const auto vertSize = this->mVertexSize;
         this->mVertexSize = 0;
 
-        dalInfo("destroyed MeshStatic that has {} vertices."_format(this->mVertexSize));
+        dalInfo("destroyed MeshStatic that has {} vertices."_format(vertSize));
     }
 
     bool MeshStatic::isReady(void) const {
@@ -149,10 +183,47 @@ namespace dal {
         glBindVertexArray(0);
     }
 
+    void MeshStatic::setAllToZero(void) {
+        this->mVao = 0;
+        this->mVertexArrayBuffer = 0;
+        this->mTexCoordArrayBuffer = 0;
+        this->mNormalArrayBuffe = 0;
+        this->mVertexSize = 0;
+    }
+
 }
 
 
 namespace dal {
+
+    MeshAnimated::MeshAnimated(MeshAnimated&& other) noexcept
+        : m_vao(other.m_vao)
+        , m_numVertices(other.m_numVertices)
+    {
+        for ( unsigned int i = 0; i < 5; ++i ) {
+            this->m_buffers[i] = other.m_buffers[i];
+        }
+
+        other.setAllToZero();
+    }
+
+    MeshAnimated& MeshAnimated::operator=(MeshAnimated&& other) noexcept {
+        this->invalidate();
+
+        this->m_vao = other.m_vao;
+        this->m_numVertices = other.m_numVertices;
+        for ( unsigned int i = 0; i < 5; ++i ) {
+            this->m_buffers[i] = other.m_buffers[i];
+        }
+
+        other.setAllToZero();
+        return *this;
+    }
+
+    MeshAnimated::~MeshAnimated(void) {
+        this->invalidate();
+    }
+
 
     void MeshAnimated::draw(void) const {
 #ifdef _DEBUG
@@ -243,7 +314,11 @@ namespace dal {
         }
     }
 
-    void MeshAnimated::destroyData(void) {
+    void MeshAnimated::invalidate(void) {
+        if ( !this->isReady() ) {
+            return;
+        }
+
         glDeleteBuffers(5, this->m_buffers);
 
         for ( int i = 0; i < 5; i++ ) {
@@ -253,7 +328,10 @@ namespace dal {
         glDeleteVertexArrays(1, &this->m_vao);
         this->m_vao = 0;
 
+        const auto vertSize = this->m_numVertices;
         this->m_numVertices = 0;
+
+        dalInfo("destroyed MeshAnimated that has {} vertices."_format(vertSize));
     }
 
     bool MeshAnimated::isReady(void) const {
@@ -283,6 +361,14 @@ namespace dal {
 
     void MeshAnimated::unbindVAO(void) {
         glBindVertexArray(0);
+    }
+
+    void MeshAnimated::setAllToZero(void) {
+        this->m_vao = 0;
+        this->m_numVertices = 0;
+        for ( unsigned int i = 0; i < 5; ++i ) {
+            this->m_buffers[i] = 0;
+        }
     }
 
 }

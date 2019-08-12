@@ -257,9 +257,6 @@ namespace dal {
     }
 
     void ModelStatic::destroyModel(void) {
-        for ( auto& unit : this->m_renderUnits ) {
-            unit.m_mesh.destroyData();
-        }
         this->m_renderUnits.clear();
     }
 
@@ -325,9 +322,7 @@ namespace dal {
     }
 
     void ModelAnimated::destroyModel(void) {
-        for ( auto& unit : this->m_renderUnits ) {
-            unit.m_mesh.destroyData();
-        }
+        this->m_renderUnits.clear();
     }
 
     /*

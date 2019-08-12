@@ -25,6 +25,15 @@ namespace dal {
         //////// Functions ////////
 
     public:
+        MeshStatic(const MeshStatic&) = delete;
+        MeshStatic& operator=(const MeshStatic&) = delete;
+
+    public:
+        MeshStatic(void) = default;
+        MeshStatic(MeshStatic&& other) noexcept;
+        MeshStatic& operator=(MeshStatic&& other) noexcept;
+        ~MeshStatic(void);
+
         void draw(void) const;
 
         int buildData(
@@ -32,14 +41,15 @@ namespace dal {
             const float* const texcors, const int texcorSize,
             const float* const normals, const int norSize
         );
-        void destroyData(void);
+        void invalidate(void);
         bool isReady(void) const;
 
     private:
         void createBuffers(void);
-
         void bindVAO(void) const;
         static void unbindVAO(void);
+
+        void setAllToZero(void);
 
     };
 
@@ -48,24 +58,35 @@ namespace dal {
 
     private:
         GLuint m_vao = 0;
-        GLuint m_buffers[5];
+        GLuint m_buffers[5] = { 0 };
         // vertices, texcoords, normals, bone ids, weights
 
         unsigned int m_numVertices = 0;
+
+    public:
+        MeshAnimated(const MeshAnimated&) = delete;
+        MeshAnimated& operator=(const MeshAnimated&) = delete;
+
+    public:
+        MeshAnimated(void) = default;
+        MeshAnimated(MeshAnimated&& other) noexcept;
+        MeshAnimated& operator=(MeshAnimated&& other) noexcept;
+        ~MeshAnimated(void);
 
     public:
         void draw(void) const;
 
         void buildData(const float* const vertices, const float* const texcors, const float* const normals,
             const int32_t* const boneids, const float* const weights, const size_t numVertices);
-        void destroyData(void);
+        void invalidate(void);
         bool isReady(void) const;
 
     private:
         void createBuffers(void);
-
         void bindVAO(void) const;
         static void unbindVAO(void);
+
+        void setAllToZero(void);
 
     };
 
