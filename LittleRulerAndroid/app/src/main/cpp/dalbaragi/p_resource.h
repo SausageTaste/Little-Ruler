@@ -194,14 +194,10 @@ namespace dal {
 
         virtual void notifyTask(std::unique_ptr<ITask> task) override;
 
-        ModelStaticHandle orderModel(const ResourceID& resID);
-        ModelAnimated* orderModelAnimated(const ResourceID& resID);
-        ModelStaticHandle buildModel(const loadedinfo::ModelDefined& info, const std::string& packageName);
-
+        ModelStaticHandle orderModelStatic(const ResourceID& resID);
+        ModelAnimated* orderModelAnim(const ResourceID& resID);
         Texture* orderTexture(const ResourceID& resID);
-
-        static Texture* getUniqueTexture(void);
-        static void dumpUniqueTexture(Texture* const tex);
+        ModelStaticHandle buildModel(const loadedinfo::ModelDefined& info, const std::string& packageName);
 
     private:
         Package& orderPackage(const std::string& packName);

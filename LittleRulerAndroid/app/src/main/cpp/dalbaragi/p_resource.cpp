@@ -672,7 +672,7 @@ namespace dal {
     }
 
 
-    ModelStaticHandle ResourceMaster::orderModel(const ResourceID& resID) {
+    ModelStaticHandle ResourceMaster::orderModelStatic(const ResourceID& resID) {
         auto& package = this->orderPackage(resID.getPackage());
 
         auto found = package.getModelStatic(resID);
@@ -693,7 +693,7 @@ namespace dal {
         }
     }
 
-    ModelAnimated* ResourceMaster::orderModelAnimated(const ResourceID& resID) {
+    ModelAnimated* ResourceMaster::orderModelAnim(const ResourceID& resID) {
         auto& package = this->orderPackage(resID.getPackage());
 
         auto found = package.getModelAnim(resID);
@@ -742,16 +742,6 @@ namespace dal {
 
             return texture;
         }
-    }
-
-    // Static
-
-    Texture* ResourceMaster::getUniqueTexture(void) {
-        return g_texturePool.alloc();
-    }
-
-    void ResourceMaster::dumpUniqueTexture(Texture* const tex) {
-        g_texturePool.free(tex);
     }
 
     // Private

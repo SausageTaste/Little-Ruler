@@ -52,7 +52,7 @@ namespace dal {
                 modelResID.setPackage(info.m_packageName);
             }
 
-            auto modelHandle = resMas.orderModel(modelResID);
+            auto modelHandle = resMas.orderModelStatic(modelResID);
             auto& [model, actors] = this->m_modelActors.emplace_back(std::move(modelHandle));
             actors.assign(importedModel.m_actors.begin(), importedModel.m_actors.end());
         }
@@ -63,7 +63,7 @@ namespace dal {
             ResourceID modelResID{ animatedModel.m_modelID };
             if ( modelResID.getPackage().empty() ) modelResID.setPackage(info.m_packageName);
 
-            model = resMas.orderModelAnimated(modelResID);
+            model = resMas.orderModelAnim(modelResID);
             actors.assign(animatedModel.m_actors.begin(), animatedModel.m_actors.end());
         }
 
@@ -326,7 +326,7 @@ namespace dal {
             }
         }
 
-        this->m_modelActors.emplace_back(resMas.orderModel(model.getResID()));
+        this->m_modelActors.emplace_back(resMas.orderModelStatic(model.getResID()));
         auto& [mdl, actors] = this->m_modelActors.back();
         return &actors.emplace_back(actorName, flagStatic);
     }

@@ -405,7 +405,7 @@ namespace dal {
             transform.m_scale = 0.2f;
             transform.updateMat();
 
-            auto ptrModel = this->m_resMas.orderModelAnimated("asset::Character Running.dae");
+            auto ptrModel = this->m_resMas.orderModelAnim("asset::Character Running.dae");
             dalAssert(nullptr != ptrModel);
             auto& renderable = this->m_enttMaster.assign<cpnt::AnimatedModel>(this->m_player);
             renderable.m_model = ptrModel;

@@ -15,7 +15,7 @@ namespace dal {
     private:
         GLuint mFBO = 0;
         unsigned int width = 0, height = 0;
-        Texture* mDepthmap = nullptr;
+        Texture m_depthTex;
 
     private:
         DepthmapForLights(const DepthmapForLights&) = delete;

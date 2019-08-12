@@ -18,8 +18,7 @@ namespace dal {
         : width(DEPTHMAP_RES),
         height(DEPTHMAP_RES)
     {
-        this->mDepthmap = ResourceMaster::getUniqueTexture();
-        this->mDepthmap->init_depthMap(this->width, this->height);
+        this->m_depthTex.init_depthMap(this->width, this->height);
 
         glGenFramebuffers(1, &mFBO);
         glBindFramebuffer(GL_FRAMEBUFFER, mFBO);
@@ -27,9 +26,9 @@ namespace dal {
             const GLenum none = GL_NONE;
             glDrawBuffers(1, &none);
 
-            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, this->mDepthmap->get(), 0);
+            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, this->m_depthTex.get(), 0);
             glActiveTexture(GL_TEXTURE0);
-            glBindTexture(GL_TEXTURE_2D, this->mDepthmap->get());
+            glBindTexture(GL_TEXTURE_2D, this->m_depthTex.get());
             {
                 if ( GL_FRAMEBUFFER_COMPLETE != glCheckFramebufferStatus(GL_FRAMEBUFFER) ) dalAbort("Framebuffer is not complete.");
             } glBindTexture(GL_TEXTURE_2D, 0);
@@ -39,7 +38,6 @@ namespace dal {
     }
 
     DepthmapForLights::~DepthmapForLights(void) {
-        ResourceMaster::dumpUniqueTexture(this->mDepthmap);
         glDeleteFramebuffers(1, &this->mFBO);
     }
 
@@ -50,7 +48,7 @@ namespace dal {
         this->width = other.width;
         this->height = other.height;
 
-        this->mDepthmap = other.mDepthmap;
+        this->m_depthTex = std::move(other.m_depthTex);
     }
 
     DepthmapForLights& DepthmapForLights::operator=(DepthmapForLights&& other) noexcept {
@@ -60,17 +58,17 @@ namespace dal {
         this->width = other.width;
         this->height = other.height;
 
-        this->mDepthmap = other.mDepthmap;
+        this->m_depthTex = std::move(other.m_depthTex);
 
         return *this;
     }
 
     GLuint DepthmapForLights::getTextureID(void) {
-        return mDepthmap->get();
+        return this->m_depthTex.get();
     }
 
     const Texture* DepthmapForLights::getDepthMap(void) const {
-        return mDepthmap;
+        return &this->m_depthTex;
     }
 
     void DepthmapForLights::clearBuffer(void) {
