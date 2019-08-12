@@ -1,5 +1,6 @@
 #pragma once
 
+#include <optional>
 #include <unordered_map>
 
 #include "s_threader.h"
@@ -145,31 +146,31 @@ namespace dal {
     class Package {
 
     private:
-        template <typename T>
-        struct ManageInfo {
-            T* m_data = nullptr;
-            int64_t m_refCount = 0;
-        };
-
-    private:
         std::string m_name;
+        // All keys are stored in form of file name + ext.
         std::unordered_map<std::string, ModelStaticHandle> m_models;
-        std::unordered_map<std::string, ManageInfo<ModelAnimated>> m_animatedModels;
-        std::unordered_map<std::string, ManageInfo<Texture>> m_textures;
+        std::unordered_map<std::string, ModelAnimated*> m_animatedModels;
+        std::unordered_map<std::string, Texture*> m_textures;
 
     public:
-        void setName(const char* const packageName);
-        void setName(const std::string& packageName);
+        Package(const Package&) = delete;
+        Package& operator=(const Package&) = delete;
 
-        ModelStaticHandle orderModel(const ResourceID& resPath, ResourceMaster* const resMas);
-        ModelAnimated* orderModelAnimated(const ResourceID& resPath, ResourceMaster* const resMas);
-        ModelStaticHandle buildModel(const loadedinfo::ModelDefined& info, ResourceMaster* const resMas);
-        Texture* orderDiffuseMap(ResourceID texID, ResourceMaster* const resMas);
+    public:
+        Package(const std::string& pckName);
+        Package(std::string&& pckName);
 
-        void clear(void);
+        bool hasTexture(const ResourceID& resPath);
+        bool hasModelStatic(const ResourceID& resPath);
+        bool hasModelAnim(const ResourceID& resPath);
 
-    private:
-        Texture* buildDiffuseMap(const ResourceID& texID, const loadedinfo::ImageFileData& info);
+        std::optional<ModelStaticHandle> getModelStatic(const ResourceID& resID);
+        ModelAnimated* getModelAnim(const ResourceID& resID);
+        Texture* getTexture(const ResourceID& resID);
+
+        bool giveModelStatic(const ResourceID& resID, ModelStaticHandle mdl);
+        bool giveModelAnim(const ResourceID& resID, ModelAnimated* const mdl);
+        bool giveTexture(const ResourceID& resID, Texture* const tex);
 
     };
 
@@ -184,13 +185,18 @@ namespace dal {
         //////// Methods ////////
 
     public:
-        virtual ~ResourceMaster(void) override;
+        ResourceMaster(const ResourceMaster&) = delete;
+        ResourceMaster& operator=(const ResourceMaster&) = delete;
+
+    public:
+        ResourceMaster(void) = default;
+        virtual ~ResourceMaster(void) override = default;
 
         virtual void notifyTask(std::unique_ptr<ITask> task) override;
 
         ModelStaticHandle orderModel(const ResourceID& resID);
         ModelAnimated* orderModelAnimated(const ResourceID& resID);
-        ModelStaticHandle buildModel(const loadedinfo::ModelDefined& info, const char* const packageName);
+        ModelStaticHandle buildModel(const loadedinfo::ModelDefined& info, const std::string& packageName);
 
         Texture* orderTexture(const ResourceID& resID);
 

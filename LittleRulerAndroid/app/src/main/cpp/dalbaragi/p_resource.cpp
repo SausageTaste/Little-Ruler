@@ -356,12 +356,7 @@ namespace dal {
 
     struct ModelStaticHandleImpl {
         ModelStatic* m_model = nullptr;
-        unsigned int m_refCount = 0;
-
-        //static void* operator new(size_t) = delete;
-        static void* operator new[](size_t) = delete;
-        static void operator delete(void*) = delete;
-        static void operator delete[](void*) = delete;
+        unsigned int m_refCount = 1;
     };
 
     dal::StaticPool<dal::ModelStaticHandleImpl, 20> g_staticModelCtrlBlckPool;
@@ -378,7 +373,6 @@ namespace dal {
     {
         this->m_pimpl->m_model = model;
     }
-
 
     ModelStaticHandle::~ModelStaticHandle(void) {
         if ( nullptr == this->m_pimpl ) {
@@ -419,6 +413,7 @@ namespace dal {
         std::swap(this->m_pimpl, other.m_pimpl);
         return *this;
     }
+
 
     bool ModelStaticHandle::operator==(ModelStaticHandle& other) const {
         dalAssert(nullptr != this->m_pimpl);
@@ -485,116 +480,108 @@ namespace dal {
 }
 
 
+namespace {
+
+    const auto ERR_FORMAT_STR = "Trying to add a {} which already exists: package{{ {} }}, res id{{ {} }}";
+
+}
+
+
 // Package
 namespace dal {
 
-    void Package::setName(const char* const packageName) {
-        this->m_name = packageName;
+    Package::Package(const std::string& pckName)
+        : m_name(pckName)
+    {
+
     }
 
-    void Package::setName(const std::string& packageName) {
-        this->m_name = packageName;
+    Package::Package(std::string&& pckName)
+        : m_name(std::move(pckName))
+    {
+
     }
 
-    ModelStaticHandle Package::orderModel(const ResourceID& resPath, ResourceMaster* const resMas) {
-        std::string modelIDStr{ resPath.makeFileName() };
 
-        auto iter = this->m_models.find(modelIDStr);
-        if ( this->m_models.end() != iter ) {
-            return iter->second;
+    bool Package::hasTexture(const ResourceID& resID) {
+        return this->m_textures.end() != this->m_textures.find(resID.makeFileName());
+    }
+
+    bool Package::hasModelStatic(const ResourceID& resID) {
+        return this->m_models.end() != this->m_models.find(resID.makeFileName());
+    }
+
+    bool Package::hasModelAnim(const ResourceID& resID) {
+        return this->m_animatedModels.end() != this->m_animatedModels.find(resID.makeFileName());
+    }
+
+    std::optional<ModelStaticHandle> Package::getModelStatic(const ResourceID& resID) {
+        auto found = this->m_models.find(resID.makeFileName());
+        if ( this->m_models.end() == found ) {
+            return std::nullopt;
         }
         else {
-            auto model = g_modelPool.alloc(); dalAssert(nullptr != model);
-            ModelStaticHandle modelHandle{ model };
-            model->setModelResID(resPath);
-            this->m_models.emplace(modelIDStr, modelHandle);
-
-            ResourceID idWithPackage{ this->m_name, resPath.getOptionalDir(), resPath.getBareName(), resPath.getExt() };
-            auto task = new LoadTask_Model{ idWithPackage, *model, *this };
-            g_sentTasks_model.insert(task);
-            TaskGod::getinst().orderTask(task, resMas);
-
-            return std::move(modelHandle);
+            return found->second;
         }
     }
 
-    ModelAnimated* Package::orderModelAnimated(const ResourceID& resPath, ResourceMaster* const resMas) {
-        std::string modelIDStr{ resPath.makeFileName() };
-
-        auto iter = this->m_animatedModels.find(modelIDStr);
-        if ( this->m_animatedModels.end() != iter ) {
-            return iter->second.m_data;
+    ModelAnimated* Package::getModelAnim(const ResourceID& resID) {
+        auto found = this->m_animatedModels.find(resID.makeFileName());
+        if ( this->m_animatedModels.end() == found ) {
+            return nullptr;
         }
         else {
-            auto model = g_animatedModelPool.alloc();
-            model->setModelResID(resPath);
-            this->m_animatedModels.emplace(modelIDStr, ManageInfo<ModelAnimated>{ model, 2 });
-
-            ResourceID idWithPackage{ this->m_name, resPath.getOptionalDir(), resPath.getBareName(), resPath.getExt() };
-            auto task = new LoadTask_ModelAnimated{ idWithPackage, *model, *this };
-            g_sentTasks_modelAnimated.insert(task);
-            TaskGod::getinst().orderTask(task, resMas);
-
-            return model;
+            return found->second;
         }
     }
 
-    ModelStaticHandle Package::buildModel(const loadedinfo::ModelDefined& info, ResourceMaster* const resMas) {
-        auto model = g_modelPool.alloc();
-        ModelStaticHandle modelHandle{ model };
-        this->m_models.emplace(info.m_modelID, modelHandle);
-
-        model->init(info, *resMas);
-
-        return modelHandle;
-    }
-
-    Texture* Package::orderDiffuseMap(ResourceID texID, ResourceMaster* const resMas) {
-        auto iter = this->m_textures.find(texID.makeFileName());
-        if ( this->m_textures.end() == iter ) {
-            auto texture = g_texturePool.alloc();
-            this->m_textures.emplace(texID.makeFileName(), ManageInfo<Texture>{ texture, 2 });  // ref count is 2 because of return and task.
-
-            if ( texID.getPackage().empty() ) {
-                texID.setPackage(this->m_name);
-            }
-            auto task = new LoadTask_Texture(texID, texture);
-            g_sentTasks_texture.insert(task);
-            TaskGod::getinst().orderTask(task, resMas);
-
-            return texture;
+    Texture* Package::getTexture(const ResourceID& resID) {
+        auto found = this->m_textures.find(resID.makeFileName());
+        if ( this->m_textures.end() == found ) {
+            return nullptr;
         }
         else {
-            iter->second.m_refCount++;
-            return iter->second.m_data;
+            return found->second;
         }
     }
 
-    Texture* Package::buildDiffuseMap(const ResourceID& texID, const loadedinfo::ImageFileData& info) {
-        auto tex = g_texturePool.alloc();
+    bool Package::giveModelStatic(const ResourceID& resID, ModelStaticHandle mdl) {
+        const auto filename = resID.makeFileName();
 
-        if ( 3 == info.m_pixSize ) {
-            tex->init_diffueMap3(info.m_buf.data(), info.m_width, info.m_height);
-        }
-        else if ( 4 == info.m_pixSize ) {
-            tex->init_diffueMap(info.m_buf.data(), info.m_width, info.m_height);
+        if ( this->m_models.end() != this->m_models.find(filename) ) {
+            dalError(fmt::format(ERR_FORMAT_STR, "static model", this->m_name, resID.makeIDStr()));
+            return false;
         }
         else {
-            dalError("Not supported pixel size: {}, {}"_format(texID.makeIDStr(), info.m_pixSize));
+            this->m_models.emplace(filename, std::move(mdl));
+            return true;
         }
-
-        this->m_textures.emplace(texID.makeFileName(), ManageInfo<Texture>{ tex, 1 });
-        return tex;
     }
 
-    void Package::clear(void) {
-        this->m_models.clear();
+    bool Package::giveModelAnim(const ResourceID& resID, ModelAnimated* const mdl) {
+        const auto filename = resID.makeFileName();
 
-        for ( auto& tex : this->m_textures ) {
-            tex.second.m_data->deleteTex();
-            g_texturePool.free(tex.second.m_data);
+        if ( this->m_animatedModels.end() != this->m_animatedModels.find(filename) ) {
+            dalError(fmt::format(ERR_FORMAT_STR, "animated model", this->m_name, resID.makeIDStr()));
+            return false;
         }
-        this->m_textures.clear();
+        else {
+            this->m_animatedModels.emplace(filename, mdl);
+            return true;
+        }
+    }
+
+    bool Package::giveTexture(const ResourceID& resID, Texture* const tex) {
+        const auto filename = resID.makeFileName();
+
+        if ( this->m_textures.end() != this->m_textures.find(filename) ) {
+            dalError(fmt::format(ERR_FORMAT_STR, "texture", this->m_name, resID.makeIDStr()));
+            return false;
+        }
+        else {
+            this->m_textures.emplace(filename, tex);
+            return true;
+        }
     }
 
 }
@@ -602,13 +589,6 @@ namespace dal {
 
 // ResourceMaster
 namespace dal {
-
-    ResourceMaster::~ResourceMaster(void) {
-        for ( auto& package : this->m_packages ) {
-            package.second.clear();
-        }
-        this->m_packages.clear();
-    }
 
     void ResourceMaster::notifyTask(std::unique_ptr<ITask> task) {
         if ( nullptr == task ) {
@@ -678,7 +658,10 @@ namespace dal {
                 unit->m_material.m_specularStrength = unitInfo.m_material.m_specStrength;
 
                 if ( !unitInfo.m_material.m_diffuseMap.empty() ) {
-                    auto tex = loaded->data_package.orderDiffuseMap(unitInfo.m_material.m_diffuseMap, this);
+                    ResourceID diffuseResID{ unitInfo.m_material.m_diffuseMap };
+                    diffuseResID.setPackageIfEmpty(loaded->in_modelID.getPackage());
+
+                    auto tex = this->orderTexture(diffuseResID);
                     unit->m_material.setDiffuseMap(tex);
                 }
             }
@@ -688,25 +671,77 @@ namespace dal {
         }
     }
 
+
     ModelStaticHandle ResourceMaster::orderModel(const ResourceID& resID) {
         auto& package = this->orderPackage(resID.getPackage());
-        return package.orderModel(resID, this);
+
+        auto found = package.getModelStatic(resID);
+        if ( found ) {
+            return *found;
+        }
+        else {
+            auto model = g_modelPool.alloc(); dalAssert(nullptr != model);
+            ModelStaticHandle modelHandle{ model };
+            model->setModelResID(resID);  // It might not be resolved.
+            package.giveModelStatic(resID, modelHandle);
+
+            auto task = new LoadTask_Model{ resID, *model, package };
+            g_sentTasks_model.insert(task);
+            TaskGod::getinst().orderTask(task, this);
+
+            return modelHandle;
+        }
     }
 
     ModelAnimated* ResourceMaster::orderModelAnimated(const ResourceID& resID) {
         auto& package = this->orderPackage(resID.getPackage());
-        return package.orderModelAnimated(resID, this);
+
+        auto found = package.getModelAnim(resID);
+        if ( nullptr != found ) {
+            return found;
+        }
+        else {
+            auto model = g_animatedModelPool.alloc();
+            model->setModelResID(resID);
+            package.giveModelAnim(resID, model);
+
+            auto task = new LoadTask_ModelAnimated{ resID, *model, package };
+            g_sentTasks_modelAnimated.insert(task);
+            TaskGod::getinst().orderTask(task, this);
+
+            return model;
+        }
     }
 
-    ModelStaticHandle ResourceMaster::buildModel(const loadedinfo::ModelDefined& info, const char* const packageName) {
+    ModelStaticHandle ResourceMaster::buildModel(const loadedinfo::ModelDefined& info, const std::string& packageName) {
         auto& package = this->orderPackage(packageName);
-        return package.buildModel(info, this);
+
+        auto model = g_modelPool.alloc();
+        ModelStaticHandle modelHandle{ model };
+        package.giveModelStatic(info.m_modelID, modelHandle);
+
+        model->init(info, *this);
+
+        return modelHandle;
     }
 
     Texture* ResourceMaster::orderTexture(const ResourceID& resID) {
-        const auto& packageName = resID.getPackage();
-        auto& package = this->orderPackage(packageName);
-        return package.orderDiffuseMap(resID, this);
+        auto& package = this->orderPackage(resID.getPackage());
+
+        auto found = package.getTexture(resID);
+        if ( nullptr != found ) {
+            return found;
+        }
+        else {
+            auto texture = g_texturePool.alloc();
+            package.giveTexture(resID, texture);
+
+            auto task = new LoadTask_Texture(resID, texture);
+            g_sentTasks_texture.insert(task);
+            TaskGod::getinst().orderTask(task, this);
+
+            return texture;
+        }
     }
 
     // Static
@@ -729,9 +764,7 @@ namespace dal {
             return iter->second;
         }
         else { // If not found
-            Package package;
-            package.setName(packName);
-            auto res = this->m_packages.emplace(packName, std::move(package));
+            auto res = this->m_packages.emplace(packName, packName);
             return res.first->second;
         }
     }
