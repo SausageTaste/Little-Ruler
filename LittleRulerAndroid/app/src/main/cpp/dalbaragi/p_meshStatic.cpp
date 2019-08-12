@@ -297,12 +297,15 @@ namespace dal {
 
     }
 
-    Texture::Texture(Texture&& other) noexcept {
-        this->m_texID = other.m_texID;
+    Texture::Texture(Texture&& other) noexcept
+        : m_texID(other.m_texID)
+    {
         other.m_texID = 0;
     }
 
     Texture& Texture::operator=(Texture&& other) noexcept {
+        this->invalidate();
+
         this->m_texID = other.m_texID;
         other.m_texID = 0;
 
@@ -310,7 +313,7 @@ namespace dal {
     }
 
     Texture::~Texture(void) {
-        if ( this->isReady() ) this->deleteTex();
+        this->invalidate();
     }
 
 
@@ -391,9 +394,21 @@ namespace dal {
         //glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, texture, 0);
     }
 
-    void Texture::deleteTex(void) {
-        glDeleteTextures(1, &this->m_texID);
-        this->m_texID = 0;
+
+    void Texture::invalidate(void) {
+        if ( this->m_texID != 0 ) {
+            glDeleteTextures(1, &this->m_texID);
+            this->m_texID = 0;
+        }
+    }
+
+    void Texture::reset(const GLuint id) {
+        this->invalidate();
+        this->m_texID = id;
+    }
+
+    bool Texture::isReady(void) const {
+        return this->m_texID != 0;
     }
 
     void Texture::sendUniform(const GLint uniloc_sampler, const GLint uniloc_has, const unsigned int index) const {
@@ -420,33 +435,13 @@ namespace dal {
         }
     }
 
-    bool Texture::isReady(void) const {
-        return this->m_texID != 0;
-    }
-
-    void Texture::reset(const GLuint id) {
-        if ( this->m_texID != 0 ) {
-            this->deleteTex();
-        }
-
-        this->m_texID = id;
-    }
-
-    // Getters
-
-    GLuint Texture::get(void) {
-        return m_texID;
-    }
-
     // Private
 
     void Texture::genTexture(const char* const str4Log) {
-        if ( this->isReady() ) {
-            this->deleteTex();
-        }
+        this->invalidate();
 
-        glGenTextures(1, &m_texID);
-        if ( m_texID == 0 ) {
+        glGenTextures(1, &this->m_texID);
+        if ( this->m_texID == 0 ) {
             dalAbort("Failed to init dal::Texture::init_depthMap::{}"_format(str4Log));
         }
     }

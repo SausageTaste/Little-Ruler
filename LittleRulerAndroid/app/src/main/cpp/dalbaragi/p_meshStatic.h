@@ -79,7 +79,7 @@ namespace dal {
 
         //////// Methods ////////
 
-    private:
+    public:
         Texture(const Texture&) = delete;
         Texture& operator=(const Texture&) = delete;
 
@@ -98,20 +98,19 @@ namespace dal {
         void init_maskMap(const uint8_t* const image, const unsigned int width, const unsigned int height);
         void initAttach_colorMap(const unsigned int width, const unsigned int height);
 
+        void invalidate(void);
         void reset(const GLuint id);
+        bool isReady(void) const;
+        GLuint get(void) {
+            return m_texID;
+        }
 
-        void deleteTex(void);
         void sendUniform(const GLint uniloc_sampler, const GLint uniloc_has, const unsigned int index) const;
         void sendUniform(const SamplerInterf& uniloc) const;
 
-        bool isReady(void) const;
-
-        // Getters
-
-        GLuint get(void);
-
     private:
         void genTexture(const char* const str4Log);
+
 
     };
 
