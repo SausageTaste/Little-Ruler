@@ -123,6 +123,15 @@ namespace {
 }
 
 
+// Pools
+namespace {
+
+    dal::BlockAllocator<dal::ModelStatic, 20> g_pool_modelStatic;
+    dal::BlockAllocator<dal::ModelAnimated, 20> g_pool_modelAnim;
+
+}
+
+
 // IModel
 namespace dal {
 
@@ -152,11 +161,24 @@ namespace dal {
 // ModelStatic
 namespace dal {
 
-    ModelStatic::~ModelStatic(void) {
-        this->destroyModel();
+    void* ModelStatic::operator new(size_t size) {
+        auto allocated = g_pool_modelStatic.alloc();
+        if ( nullptr == allocated ) {
+            throw std::bad_alloc{};
+        }
+        else {
+            return allocated;
+        }
     }
 
+    void ModelStatic::operator delete(void* ptr) {
+        g_pool_modelStatic.free(reinterpret_cast<ModelStatic*>(ptr));
+    }
+
+
     void ModelStatic::init(const ResourceID& resID, const loadedinfo::ModelStatic& info, ResourceMaster& resMas) {
+        this->invalidate();
+
         this->setModelResID(std::move(resID));
         this->setBoundingBox(info.m_aabb);
 
@@ -184,6 +206,8 @@ namespace dal {
     }
 
     void ModelStatic::init(const loadedinfo::ModelDefined& info, ResourceMaster& resMas) {
+        this->invalidate();
+
         this->setBoundingBox(info.m_boundingBox);
 
         auto& unitInfo = info.m_renderUnit;
@@ -205,6 +229,11 @@ namespace dal {
             auto tex = resMas.orderTexture(unitInfo.m_material.m_diffuseMap);
             unit.m_material.setDiffuseMap(tex);
         }
+    }
+
+
+    void ModelStatic::invalidate(void) {
+        this->m_renderUnits.clear();
     }
 
     bool ModelStatic::isReady(void) const {
@@ -246,15 +275,26 @@ namespace dal {
         }
     }
 
-    void ModelStatic::destroyModel(void) {
-        this->m_renderUnits.clear();
-    }
-
 }
 
 
 // ModelAnimated
 namespace dal {
+
+    void* ModelAnimated::operator new(size_t size) {
+        auto allocated = g_pool_modelAnim.alloc();
+        if ( nullptr == allocated ) {
+            throw std::bad_alloc{};
+        }
+        else {
+            return allocated;
+        }
+    }
+
+    void ModelAnimated::operator delete(void* ptr) {
+        g_pool_modelAnim.free(reinterpret_cast<ModelAnimated*>(ptr));
+    }
+
 
     ModelAnimated::RenderUnit* ModelAnimated::addRenderUnit(void) {
         this->m_renderUnits.emplace_back();
@@ -311,7 +351,7 @@ namespace dal {
         }
     }
 
-    void ModelAnimated::destroyModel(void) {
+    void ModelAnimated::invalidate(void) {
         this->m_renderUnits.clear();
     }
 

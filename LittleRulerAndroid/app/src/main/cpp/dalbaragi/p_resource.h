@@ -48,18 +48,19 @@ namespace dal {
 
     public:
         ModelStatic(void) = default;
-        ~ModelStatic(void);
+
+        void* operator new(size_t size);
+        void operator delete(void* ptr);
 
         //RenderUnit* addRenderUnit(void);
         void init(const ResourceID& resID, const loadedinfo::ModelStatic& info, ResourceMaster& resMas);
         void init(const loadedinfo::ModelDefined& info, ResourceMaster& resMas);
 
+        void invalidate(void);
         bool isReady(void) const;
 
         void render(const UniInterfLightedMesh& unilocLighted, const SamplerInterf& samplerInterf, const glm::mat4& modelMat) const;
         void renderDepthMap(const UniInterfGeometry& unilocGeometry, const glm::mat4& modelMat) const;
-
-        void destroyModel(void);
 
     };
 
@@ -78,6 +79,9 @@ namespace dal {
         glm::mat4 m_globalInvMat;
 
     public:
+        void* operator new(size_t size);
+        void operator delete(void* ptr);
+
         RenderUnit* addRenderUnit(void);
         void setSkeletonInterface(SkeletonInterface&& joints);
         void setAnimations(std::vector<Animation>&& animations);
@@ -90,7 +94,7 @@ namespace dal {
         void renderDepthMap(const UniInterfGeometry& unilocGeometry, const UniInterfAnime& unilocAnime, const glm::mat4 modelMat,
             const JointTransformArray& transformArr) const;
 
-        void destroyModel(void);
+        void invalidate(void);
 
         //void updateAnimation0(void);
 
