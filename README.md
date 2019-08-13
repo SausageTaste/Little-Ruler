@@ -102,7 +102,7 @@
 
 ### Android
 * 안드로이드 장치를 이용해 디버깅 apk를 설치하려면 **Android Studio**로 `{repo root}/LittleRuler/LittleRulerAndroid` 프로젝트 폴더를 열어서 실행하시면 됩니다.
-* 링크를 위한 별다른 작업은 필요없습니다. 다만 '{repo root}/Library` 폴더를 구글 드라이브를 통해 확실히 받았는지만 확인해 주세요.
+* 링크를 위한 별다른 작업은 필요없습니다. 다만 `{repo root}/Library` 폴더를 구글 드라이브를 통해 확실히 받았는지만 확인해 주세요.
 
 <br>
 
