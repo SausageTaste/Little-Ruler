@@ -33,6 +33,10 @@ namespace dal {
         void startRender(void);
         void finishRender(void);
 
+		const Texture& getTexture(void) {
+			return this->m_depthTex;
+		}
+
     };
 
 
@@ -71,6 +75,10 @@ namespace dal {
 
         glm::mat4 makeProjMat(void) const;
         glm::mat4 makeViewMat(void) const;
+
+		const Texture& getDepthTex(void) {
+			return this->m_shadowMap.getTexture();
+		}
 
     };
 

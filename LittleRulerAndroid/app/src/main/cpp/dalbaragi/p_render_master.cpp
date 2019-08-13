@@ -221,12 +221,7 @@ namespace dal {
             }
 
 			{
-				auto tex = new Texture;
-				loadedinfo::ImageFileData data;
-				futil::getRes_image("asset::grass1.png", data);
-				tex->init_diffueMap(data.m_buf.data(), data.m_width, data.m_height);
-
-				auto view = new TextureView(nullptr, tex);
+				auto view = new TextureView(nullptr, &this->m_dlight1.getDepthTex());
 				view->setPosX(10.0f);
 				view->setPosY(10.0f + 130.0f * 6.0f);
 				view->setWidth(128.0f);
