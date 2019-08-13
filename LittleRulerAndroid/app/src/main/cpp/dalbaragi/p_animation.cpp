@@ -296,7 +296,7 @@ namespace dal {
     {
         const auto selectedAnimIndex = state.getSelectedAnimeIndex();
         if ( selectedAnimIndex >= anims.size() ) {
-            dalError("Selected animation index out of range");
+            //dalError("Selected animation index out of range");
             return;
         }
 
