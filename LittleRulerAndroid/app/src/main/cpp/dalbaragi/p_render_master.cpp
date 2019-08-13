@@ -8,6 +8,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 #include "s_logger_god.h"
+#include "o_widget_texview.h"
 
 
 using namespace fmt::literals;
@@ -188,56 +189,51 @@ namespace dal {
         }
 
         // View
-        /*
         {
+			auto water = this->m_scene.getWater("water_bowl", 0);
+			dalAssert(water != nullptr);
+
             {
-                auto water = this->m_scene.getWater("test_level", 0);
-                dalAssert(water != nullptr);
                 auto view = new TextureView(nullptr, water->m_fbuffer.getReflectionTexture());
                 view->setPosX(10.0f);
-                view->setPosY(30.0f);
+                view->setPosY(10.0f + 130.0f * 3.0f);
                 view->setWidth(128.0f);
                 view->setHeight(128.0f);
-                view->setPauseOnly(false);
-                overlay.addWidget(view);
+				overlay.giveWidgetOwnership(view);
             }
 
             {
-                auto tex = this->m_dlight1.getShadowMap();
-                auto view = new TextureView(nullptr, tex);
-                view->setPosX(10.0f);
-                view->setPosY(30.0f + 130.0f);
-                view->setWidth(128.0f);
-                view->setHeight(128.0f);
-                view->setPauseOnly(false);
-                overlay.addWidget(view);
-            }
-
-            {
-                auto water = this->m_scene.getWater("test_level", 0);
-                dalAssert(water != nullptr);
                 auto view = new TextureView(nullptr, water->m_fbuffer.getRefractionDepthTexture());
                 view->setPosX(10.0f);
-                view->setPosY(30.0f + 130.0f * 2.0f);
+                view->setPosY(10.0f + 130.0f * 4.0f);
                 view->setWidth(128.0f);
                 view->setHeight(128.0f);
-                view->setPauseOnly(false);
-                overlay.addWidget(view);
+				overlay.giveWidgetOwnership(view);
             }
 
             {
-                auto water = this->m_scene.getWater("test_level", 0);
-                dalAssert(water != nullptr);
                 auto view = new TextureView(nullptr, water->m_fbuffer.getRefractionTexture());
                 view->setPosX(10.0f);
-                view->setPosY(30.0f + 130.0f * 3.0f);
+                view->setPosY(10.0f + 130.0f * 5.0f);
                 view->setWidth(128.0f);
                 view->setHeight(128.0f);
-                view->setPauseOnly(false);
-                overlay.addWidget(view);
+				overlay.giveWidgetOwnership(view);
             }
+
+			{
+				auto tex = new Texture;
+				loadedinfo::ImageFileData data;
+				futil::getRes_image("asset::grass1.png", data);
+				tex->init_diffueMap(data.m_buf.data(), data.m_width, data.m_height);
+
+				auto view = new TextureView(nullptr, tex);
+				view->setPosX(10.0f);
+				view->setPosY(10.0f + 130.0f * 6.0f);
+				view->setWidth(128.0f);
+				view->setHeight(128.0f);
+				overlay.giveWidgetOwnership(view);
+			}
         }
-        */
 
         // Similar to on resize method
         {
