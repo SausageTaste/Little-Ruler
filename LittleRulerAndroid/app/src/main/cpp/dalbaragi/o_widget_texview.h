@@ -9,7 +9,7 @@ namespace dal {
     class TextureView : public Widget2 {
 
     private:
-        Texture* m_tex;
+        const Texture* m_tex;
         bool m_upsideDown;
 
     public:

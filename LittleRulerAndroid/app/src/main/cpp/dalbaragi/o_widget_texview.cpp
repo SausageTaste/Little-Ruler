@@ -5,7 +5,7 @@ namespace dal {
 
     TextureView::TextureView(Widget2* parent, const Texture* const tex)
         : Widget2(parent)
-        , m_tex(nullptr)
+        , m_tex(tex)
         , m_upsideDown(false)
     {
 

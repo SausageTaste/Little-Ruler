@@ -458,7 +458,7 @@ namespace dal {
         uniloc.point1(devSpcP1);
         uniloc.point2(devSpcP2);
         uniloc.color(color);
-        uniloc.upsideDownDiffuseMap(upsideDown_diffuseMap);
+        uniloc.upsideDownDiffuseMap(true);
         uniloc.upsideDownMaskMap(upsideDown_maskMap);
         uniloc.texOffset(texOffset);
         uniloc.texScale(texScale);
@@ -483,8 +483,8 @@ namespace dal {
     void renderQuadOverlay(const UnilocOverlay& uniloc, const glm::vec2& devSpcP1, const glm::vec2& devSpcP2, const glm::vec4& color,
         const Texture* const diffuseMap, const Texture* const maskMap, const bool upsideDown_diffuseMap, const bool upsideDown_maskMap)
     {
-        glm::vec2 nullVec2;
-        renderQuadOverlay(uniloc, devSpcP1, devSpcP2, color, diffuseMap, maskMap, upsideDown_diffuseMap, upsideDown_maskMap, nullVec2, nullVec2);
+        renderQuadOverlay(uniloc, devSpcP1, devSpcP2, color, diffuseMap, maskMap,
+			upsideDown_diffuseMap, upsideDown_maskMap, glm::vec2{ 0.f }, glm::vec2{ 1.f });
     }
 
     void renderQuadOverlay(const UnilocOverlay& uniloc, const std::pair<glm::vec2, glm::vec2>& devSpc, const glm::vec4& color,
