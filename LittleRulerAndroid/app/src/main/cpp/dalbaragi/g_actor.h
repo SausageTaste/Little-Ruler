@@ -22,8 +22,8 @@ namespace dal {
     glm::quat rotateQuat(const glm::quat& q, const float radians, const glm::vec3& selector);
 
     /*
-   In OpenGL coordinate system, if input is (x, z), rotation follows left hand rule.
-   */
+    In OpenGL coordinate system, if input is (x, z), rotation follows left hand rule.
+    */
     glm::vec2 rotateVec2(const glm::vec2& v, const float radians);
 
     /*
