@@ -147,11 +147,11 @@ namespace dal {
         return this->m_modelResID;
     }
 
-    void IModel::setBoundingBox(const AxisAlignedBoundingBox& box) {
+    void IModel::setBoundingBox(const AABB& box) {
         this->m_boundingBox = box;
     }
 
-    const AxisAlignedBoundingBox& IModel::getBoundingBox(void) const {
+    const AABB& IModel::getBoundingBox(void) const {
         return this->m_boundingBox;
     }
 
@@ -477,7 +477,7 @@ namespace dal {
         return this->m_pimpl->m_refCount;
     }
 
-    const AxisAlignedBoundingBox& ModelStaticHandle::getBoundingBox(void) const {
+    const AABB& ModelStaticHandle::getBoundingBox(void) const {
         dalAssert(nullptr != this->m_pimpl);
         if ( nullptr != this->m_pimpl->m_model ) {
             return this->m_pimpl->m_model->getBoundingBox();

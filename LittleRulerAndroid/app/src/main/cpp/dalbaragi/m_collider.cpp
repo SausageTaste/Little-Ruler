@@ -37,14 +37,14 @@ namespace {
 
 namespace dal {
 
-    AxisAlignedBoundingBox::AxisAlignedBoundingBox(const glm::vec3& p1, const glm::vec3& p2, const float massInv)
+    AABB::AABB(const glm::vec3& p1, const glm::vec3& p2, const float massInv)
         : m_p1(p1), m_p2(p2)
         , m_massInv(massInv)
     {
         this->validateOrder();
     }
 
-    std::array<glm::vec3, 8> AxisAlignedBoundingBox::getAllPoints(void) const {
+    std::array<glm::vec3, 8> AABB::getAllPoints(void) const {
         std::array<glm::vec3, 8> result;
 
         {
@@ -64,26 +64,26 @@ namespace dal {
         return result;
     }
 
-    void AxisAlignedBoundingBox::set(const glm::vec3& p1, const glm::vec3& p2) {
+    void AABB::set(const glm::vec3& p1, const glm::vec3& p2) {
         this->m_p1 = p1;
         this->m_p2 = p2;
 
         this->validateOrder();
     }
 
-    void AxisAlignedBoundingBox::add(const glm::vec3& offset) {
+    void AABB::add(const glm::vec3& offset) {
         this->m_p1 += offset;
         this->m_p2 += offset;
     }
 
-    void AxisAlignedBoundingBox::scale(const float mag) {
+    void AABB::scale(const float mag) {
         this->m_p1 *= mag;
         this->m_p2 *= mag;
     }
 
     // Private
 
-    void AxisAlignedBoundingBox::validateOrder(void) {
+    void AABB::validateOrder(void) {
         if ( this->m_p1.x > this->m_p2.x ) {
             std::swap(this->m_p1.x, this->m_p2.x);
         }
@@ -111,7 +111,7 @@ namespace dal {
 
 namespace dal {
 
-    bool checkCollision(const AxisAlignedBoundingBox& one, const AxisAlignedBoundingBox& other) {
+    bool checkCollision(const AABB& one, const AABB& other) {
         if ( one.m_p2.x < other.m_p1.x ) return false;
         else if ( one.m_p1.x > other.m_p2.x ) return false;
         else if ( one.m_p2.y < other.m_p1.y ) return false;
@@ -121,7 +121,7 @@ namespace dal {
         else return true;
     }
 
-    bool checkCollision(const AxisAlignedBoundingBox& aabb, const Plane& plane) {
+    bool checkCollision(const AABB& aabb, const Plane& plane) {
         const auto points = aabb.getAllPoints();
 
         const auto firstOne = plane.isInFront(points[0]);
@@ -137,7 +137,7 @@ namespace dal {
     }
 
 
-    CollisionResolveInfo calcResolveInfo(const AxisAlignedBoundingBox& one, const AxisAlignedBoundingBox& other,
+    CollisionResolveInfo calcResolveInfo(const AABB& one, const AABB& other,
         const float oneMassInv, const float otherMassInv)
     {
         const auto sumOfMassInv = oneMassInv + otherMassInv;

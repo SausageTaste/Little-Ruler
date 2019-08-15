@@ -56,7 +56,7 @@ namespace dal::loadedinfo {
 
     struct ModelDefined : public IMapItemModel {
         RenderUnit m_renderUnit;
-        AxisAlignedBoundingBox m_boundingBox;
+        AABB m_boundingBox;
     };
 
     struct ModelImported : public IMapItemModel {
@@ -119,7 +119,7 @@ namespace dal::loadedinfo {
 
     struct ModelStatic {
         std::list<RenderUnit> m_renderUnits;
-        AxisAlignedBoundingBox m_aabb;
+        AABB m_aabb;
     };
 
 
@@ -128,7 +128,7 @@ namespace dal::loadedinfo {
     public:
         SkeletonInterface m_joints;
         std::list<RenderUnitAnimated> m_renderUnits;
-        AxisAlignedBoundingBox m_aabb;
+        AABB m_aabb;
         glm::mat4 m_globalTrans;
 
     };

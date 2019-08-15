@@ -54,7 +54,7 @@ namespace dal {
         void renderAnimate_onWater(const UnilocAnimate& uniloc, const ICamera& cam, entt::registry& reg);
 
         // Only for objects that are outside of this chunk.
-        void applyCollision(AxisAlignedBoundingBox inOriginalBox, cpnt::Transform& inTrans);
+        void applyCollision(AABB inOriginalBox, cpnt::Transform& inTrans);
 
         WaterRenderer* getWater(const size_t index);
         ActorInfo* addActor(ModelStaticHandle const model, const std::string& actorName, bool flagStatic, ResourceMaster& resMas);
@@ -94,7 +94,7 @@ namespace dal {
         WaterRenderer* getWater(const std::string& mapName, const size_t index);
         ModelAnimated* getModelNActorAnimated(const ResourceID& resID, const std::string& mapName);
 
-        void applyCollision(const AxisAlignedBoundingBox& inOriginalBox, cpnt::Transform& inTrans);
+        void applyCollision(const AABB& inOriginalBox, cpnt::Transform& inTrans);
 
         void loadMap(const ResourceID& mapID);
 

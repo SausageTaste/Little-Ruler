@@ -17,15 +17,15 @@ namespace dal {
 
     private:
         ResourceID m_modelResID;
-        AxisAlignedBoundingBox m_boundingBox;
+        AABB m_boundingBox;
 
     public:
         void setModelResID(const ResourceID& resID);
         void setModelResID(ResourceID&& resID);
         const ResourceID& getModelResID(void) const;
 
-        void setBoundingBox(const AxisAlignedBoundingBox& box);
-        const AxisAlignedBoundingBox& getBoundingBox(void) const;
+        void setBoundingBox(const AABB& box);
+        const AABB& getBoundingBox(void) const;
 
     };
 
@@ -141,7 +141,7 @@ namespace dal {
         void renderDepthMap(const UniInterfGeometry& unilocGeometry, const glm::mat4& modelMat) const;
 
         unsigned int getRefCount(void) const;
-        const AxisAlignedBoundingBox& getBoundingBox(void) const;
+        const AABB& getBoundingBox(void) const;
         const ResourceID& getResID(void) const;
 
     };

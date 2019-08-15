@@ -16,15 +16,15 @@ namespace dal {
 
 namespace dal {
 
-    class AxisAlignedBoundingBox {
+    class AABB {
 
     private:
         glm::vec3 m_p1, m_p2;
         float m_massInv = 1.0f;
 
     public:
-        AxisAlignedBoundingBox(void) = default;
-        AxisAlignedBoundingBox(const glm::vec3& p1, const glm::vec3& p2, const float massInv);
+        AABB(void) = default;
+        AABB(const glm::vec3& p1, const glm::vec3& p2, const float massInv);
 
         glm::vec3 getPoint000(void) const {
             return this->m_p1;
@@ -42,8 +42,8 @@ namespace dal {
         void add(const glm::vec3& offset);
         void scale(const float mag);
 
-        friend bool checkCollision(const AxisAlignedBoundingBox& one, const AxisAlignedBoundingBox& other);
-        friend CollisionResolveInfo calcResolveInfo(const AxisAlignedBoundingBox& one, const AxisAlignedBoundingBox& other,
+        friend bool checkCollision(const AABB& one, const AABB& other);
+        friend CollisionResolveInfo calcResolveInfo(const AABB& one, const AABB& other,
             const float oneMassInv, const float otherMassInv);
 
     private:
@@ -82,16 +82,21 @@ namespace dal {
 
     };
 
+
+    class Ray {
+
+    };
+
 }
 
 
 namespace dal {
 
-    bool checkCollision(const AxisAlignedBoundingBox& one, const AxisAlignedBoundingBox& other);
+    bool checkCollision(const AABB& one, const AABB& other);
 
-    bool checkCollision(const AxisAlignedBoundingBox& aabb, const Plane& plane);
+    bool checkCollision(const AABB& aabb, const Plane& plane);
 
-    CollisionResolveInfo calcResolveInfo(const AxisAlignedBoundingBox& one, const AxisAlignedBoundingBox& other,
+    CollisionResolveInfo calcResolveInfo(const AABB& one, const AABB& other,
         const float oneMassInv, const float otherMassInv);
 
 }

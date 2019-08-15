@@ -275,7 +275,7 @@ namespace dal {
         return startIndex + this->m_plights.size();
     }
 
-    void MapChunk::applyCollision(AxisAlignedBoundingBox inOriginalBox, cpnt::Transform& inTrans) {
+    void MapChunk::applyCollision(AABB inOriginalBox, cpnt::Transform& inTrans) {
         inOriginalBox.scale(inTrans.m_scale);
         inOriginalBox.add(inTrans.m_pos);
 
@@ -438,7 +438,7 @@ namespace dal {
         return nullptr;
     }
 
-    void SceneMaster::applyCollision(const AxisAlignedBoundingBox& inOriginalBox, cpnt::Transform& inTrans) {
+    void SceneMaster::applyCollision(const AABB& inOriginalBox, cpnt::Transform& inTrans) {
         for ( auto& map : this->m_mapChunks ) {
             map.applyCollision(inOriginalBox, inTrans);
         }
