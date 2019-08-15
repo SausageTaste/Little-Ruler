@@ -1,0 +1,14 @@
+Common needs
+	assimp
+	freetype
+	glm
+	lodepng
+	lua
+	tga
+	fmt
+
+Android needs
+	
+Windows needs
+	glew-2.1.0
+	SDL2-2.0.9
