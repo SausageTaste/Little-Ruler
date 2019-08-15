@@ -1,6 +1,7 @@
 #pragma once
 
 #include <array>
+#include <optional>
 
 #include <glm/glm.hpp>
 
@@ -9,6 +10,11 @@ namespace dal {
 
     struct CollisionResolveInfo {
         glm::vec3 m_this, m_other;
+    };
+
+    struct RayCastingResult {
+        bool m_isFromFront;
+        float m_distance;
     };
 
 }
@@ -85,6 +91,27 @@ namespace dal {
 
     class Ray {
 
+    private:
+        glm::vec3 m_pos, m_rel;
+        float m_len;
+
+    public:
+        Ray(const glm::vec3& pos, const glm::vec3& rel);
+
+        const glm::vec3& getStartPos(void) const {
+            return this->m_pos;
+        }
+        const glm::vec3& getRel(void) const {
+            return this->m_rel;
+        }
+        float getLength(void) const {
+            return this->m_len;
+        }
+        void setStartPos(const glm::vec3& v) {
+            this->m_pos = v;
+        }
+        void setRel(const glm::vec3& v);
+
     };
 
 }
@@ -93,10 +120,12 @@ namespace dal {
 namespace dal {
 
     bool checkCollision(const AABB& one, const AABB& other);
-
     bool checkCollision(const AABB& aabb, const Plane& plane);
+    bool checkCollision(const Ray& ray, const Plane& plane);
 
     CollisionResolveInfo calcResolveInfo(const AABB& one, const AABB& other,
         const float oneMassInv, const float otherMassInv);
+
+    std::optional<RayCastingResult> calcCollisionInfo(const Ray& ray, const Plane& plane);
 
 }

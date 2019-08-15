@@ -111,6 +111,25 @@ namespace dal {
 
 namespace dal {
 
+    Ray::Ray(const glm::vec3& pos, const glm::vec3& rel)
+        : m_pos(pos)
+        , m_rel(rel)
+        , m_len(glm::length(rel))
+    {
+        dalAssert(this->m_len > 0.0f);
+    }
+
+    void Ray::setRel(const glm::vec3& v) {
+        this->m_rel = v;
+        this->m_len = glm::length(this->m_rel);
+        dalAssert(this->m_len > 0.0f);
+    }
+
+}
+
+
+namespace dal {
+
     bool checkCollision(const AABB& one, const AABB& other) {
         if ( one.m_p2.x < other.m_p1.x ) return false;
         else if ( one.m_p1.x > other.m_p2.x ) return false;
@@ -134,6 +153,16 @@ namespace dal {
         }
 
         return false;
+    }
+
+    bool checkCollision(const Ray& ray, const Plane& plane) {
+        const auto pointA = ray.getStartPos();
+        const auto pointB = pointA + ray.getRel();
+
+        const auto distA = plane.getSignedDist(pointA);
+        const auto distB = plane.getSignedDist(pointB);
+
+        return (distA * distB) <= 0.0f;
     }
 
 
@@ -182,6 +211,24 @@ namespace dal {
             dalAbort("This can't happen!");
 
         }
+    }
+
+
+    std::optional<RayCastingResult> calcCollisionInfo(const Ray& ray, const Plane& plane) {
+        const auto pointA = ray.getStartPos();
+        const auto pointB = pointA + ray.getRel();
+
+        const auto distA = plane.getSignedDist(pointA);
+        const auto distB = plane.getSignedDist(pointB);
+
+        if ( (distA * distB) > 0.0f ) {
+            return std::nullopt;
+        }
+
+        const auto absDistA = std::abs(distA);
+        const auto distance = ray.getLength() * absDistA / (absDistA + std::abs(distB));
+
+        return RayCastingResult{ distA > distB, distance };
     }
 
 }
