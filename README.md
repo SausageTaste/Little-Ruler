@@ -24,7 +24,7 @@
 ### LittleRulerAndroid 폴더
 
 * 안드로이드 apk로 빌드 하기 위한 안드로이드 스튜디오 프로젝트입니다.
-* 제가 작성한 게임 엔진 코드들은 모두 다음 경로에 들어 있습니다. `{repo root}/LittleRulerAndroid/app/src/main/cpp/`
+* 제가 작성한 게임 엔진 코드들은 모두 다음 경로에 들어 있습니다. `{repo_root}/LittleRulerAndroid/app/src/main/cpp/`
 
 ### LittleRulerWindows 폴더
 
@@ -35,7 +35,6 @@
 
 * 빌드를 위해 필요한 C/C++ 헤더, 정적/동적 라이브러리 파일들이 들어있습니다.
 * a/so는 안드로이드용이고 lib/dll은 윈도우용이며, include 헤더 파일들은 공용입니다.
-* 용량이 너무 커서 깃 저장소에 포함하기 힘들어서 따로 압축파일 형태로 제공합니다. 다운로드 링크는 이후 나오는 *빌드 방법*에서 확인하세요.
 
 
 <br>
@@ -47,14 +46,14 @@
 
 ### Windows
 
-* `Windows Built` 폴더 속에 있는 여러 버전 중 하나를 골라 다운로드하여 실행해 주시면 됩니다.
-* 실행시 DLL 파일이 없다는 에러가 뜬다면, 같은 폴더에 있는 `vc_redist.x86.exe`를 설치해 주세요. 마이크로소프트의 Redistributable입니다.
+* `{google_drive}/Windows Built/` 폴더 속에 있는 여러 버전 중 하나를 골라 다운로드하여 실행해 주시면 됩니다.
+* 실행시 DLL 파일이 없다는 에러가 뜬다면, 같은 폴더에 있는 `vc_redist.x86.exe`를 설치해 주세요. 마이크로소프트의 재배포 가능(Redistributable) 패키지입니다.
 * x86으로 빌드된 바이너리만 제공합니다. x64는 직접 빌드하셔야 하며, 64비트용 VC++ 재배포 가능 패키지 또한 직접 구하셔야 합니다.
 
 ### Android
 
-* 구글 드라이브에서 `Android Built` 폴더 안에 있는 apk 중 하나를 골라 설치하시면 됩니다.
-* 구글의 심사를 받지 않았기 때문에 Google Play Protect가 꺼져 있어야 설치 가능합니다. [참고](https://stackoverflow.com/questions/51080755/installation-app-blocked-by-play-protect)
+* 구글 드라이브의 `{google_drive}/Android Built/` 폴더 안에 있는 apk 중 하나를 골라 설치하시면 됩니다.
+* 구글의 심사를 받지 않았습니다. 따라서 Google Play Protect가 꺼져 있어야 설치 가능합니다. [참고](https://stackoverflow.com/questions/51080755/installation-app-blocked-by-play-protect)
 
 <br>
 
@@ -63,6 +62,7 @@
 ### Windows
 
 * WASD : 수평 이동
+* 방향키 : 시점 조작
 * 마우스 클릭 및 드래그 : 안드로이드의 터치 조작과 동일
 * 화면상에 루아 코드를 실행할 수 있는 창이 있습니다. 창에서 한줄 입력창처럼 생긴 것을 마우스로 클릭하면 글자 입력이 가능합니다.
 
@@ -78,31 +78,15 @@
 # 빌드 방법
 
 * 먼저 깃 저장소를 체크아웃 하거나 다운로드해 주세요.
-* 그 다음, [구글 드라이브](https://drive.google.com/open?id=1xwQg17bW5f346rpXe2RFgifUFEycAm3t)에서 *Library.zip* 파일을 다운로드하여 압축을 풀어 주세요.
-* 압축 해제한 *Library* 폴더를 깃 저장소 폴더에 넣어 주세요. 이때 폴더 구조는 다음과 같아야 합니다.
 
-> ─ LittleRuler *(깃 저장소 루트 폴더)*
-> <br>　└ **Library**
-> <br>　　└ assimp-3.3.1
-> <br>　　└ ...
-> <br>　└ LittleRulerAndroid
-> <br>　└ LittleRulerWindows
-> <br>　└ **Resource**
-> <br>　　└ asset
-> <br>　　　└ font
-> <br>　　　└ ...
-> <br>　└ README.md
-> <br>　└ ...
+### Windows의 경우
+* 윈도우용 exe를 빌드하기 위해서는 `{repo_root}/LittleRuler/LittleRulerWindows/LittleRulerWindows.sln` 파일을 **Visual Studio 2019**로 열어서 빌드 하시면 됩니다.
+* 실행 파일이 생성되는 위치는 `.../LittleRulerWindows/outputs/`입니다.
+* 실행하기 위해서는 3개의 DLL 파일이 필요합니다. ( assimp-vc140-mt.dll, glew32d.dll 또는 glew32.dll, SDL2.dll ) 해당 파일들은 `.../LittleRulerWindows/dll_files/` 폴더에 들어 있습니다. 이 폴더의 내용물을 그대로 `.../LittleRulerWindows/outputs/` 폴더로 복사하면 됩니다.
+* VS 2019 이전 버전에서는 아마 안 될 겁니다.
 
-### Windows
-* 윈도우용 exe를 빌드하기 위해서는 `{repo root}/LittleRuler/LittleRulerWindows/LittleRulerWindows.sln` 파일을 **Visual Studio 2019**로 열어서 빌드 하시면 됩니다.
-* 실행 파일이 생성되는 위치는 `{repo root}/LittleRuler/LittleRulerWindows/outputs`입니다.
-* 실행하기 위해서는 3개의 DLL 파일이 필요합니다. ( assimp-vc140-mt.dll, glew32d.dll 또는 glew32.dll, SDL2.dll ) 각 파일들은 '{repo root}/Library`에서 찾을 수 있습니다.
-* VS 2019가 아닌 이전 버전에서도 되는지는 잘 모르겠습니다.
-
-### Android
-* 안드로이드 장치를 이용해 디버깅 apk를 설치하려면 **Android Studio**로 `{repo root}/LittleRuler/LittleRulerAndroid` 프로젝트 폴더를 열어서 실행하시면 됩니다.
-* 링크를 위한 별다른 작업은 필요없습니다. 다만 `{repo root}/Library` 폴더를 구글 드라이브를 통해 확실히 받았는지만 확인해 주세요.
+### Android의 경우
+* 디버그 APK를 빌드하기 위해서는 **Android Studio**로 `{repo_root}/LittleRuler/LittleRulerAndroid/` 프로젝트 폴더를 열어서 빌드 하시면 됩니다.
 
 <br>
 
