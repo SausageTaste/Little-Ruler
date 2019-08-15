@@ -74,7 +74,9 @@ namespace dal {
 
         float getSignedDist(const glm::vec3 v) const {
             const auto numerator = glm::dot(this->m_coeff, glm::vec4{v, 1.0f});
-            const auto denominatorInv = glm::inversesqrt(this->m_coeff.x * this->m_coeff.x);
+            const auto denominatorInv = glm::inversesqrt(
+                this->m_coeff.x * this->m_coeff.x + this->m_coeff.y * this->m_coeff.y  + this->m_coeff.z * this->m_coeff.z
+            );
             return numerator * denominatorInv;
         }
         bool isInFront(const glm::vec3 v) const {

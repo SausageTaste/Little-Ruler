@@ -199,6 +199,7 @@ namespace dal {
         return (distA * distB) <= 0.0f;
     }
 
+    /*
     bool checkCollision(const Ray& ray, const AABB& aabb) {
         for ( int i = 0; i < 3; ++i ) {
             Plane plane{ AABB_NORMALS[i], aabb.getPoint000() };
@@ -214,6 +215,11 @@ namespace dal {
         }
 
         return false;
+    }
+    */
+
+    bool checkCollision(const Ray& ray, const AABB& aabb) {
+        // TODO
     }
 
 

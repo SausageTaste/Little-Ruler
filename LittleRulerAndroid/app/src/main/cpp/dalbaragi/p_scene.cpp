@@ -297,6 +297,7 @@ namespace dal {
         for ( auto& [mdl, actors, animStat] : this->m_animatedActors ) {
             for ( auto& targetActor : actors ) {
                auto targetBBox = mdl->getBoundingBox();
+               targetBBox.scale(targetActor.getScale());
                 targetBBox.add(targetActor.getPos());
 
                 if ( checkCollision(inOriginalBox, targetBBox) ) {
@@ -306,6 +307,54 @@ namespace dal {
                     targetActor.addPos(resolveInfo.m_other);
                 }
             }
+        }
+    }
+
+    std::optional<RayCastingResult> MapChunk::doRayCasting(const Ray& ray) {
+        RayCastingResult result;
+        bool found = false;
+
+        auto innerFunc = [&](const AABB& aabb) -> void {
+            const auto info = calcCollisionInfo(ray, aabb);
+            if ( info ) {
+                if ( found ) {
+                    if ( info->m_distance < result.m_distance ) {
+                        result = *info;
+                        found = true;
+                    }
+                }
+                else {
+                    result = *info;
+                    found = true;
+                }
+            }
+        };
+
+        for ( auto& [mdl, actors] : this->m_modelActors ) {
+            for ( auto& targetActor : actors ) {
+                auto targetBBox = mdl.getBoundingBox();
+                targetBBox.scale(targetActor.getScale());
+                targetBBox.add(targetActor.getPos());
+
+                innerFunc(targetBBox);
+            }
+        }
+
+        for ( auto& [mdl, actors, animStat] : this->m_animatedActors ) {
+            for ( auto& targetActor : actors ) {
+                auto targetBBox = mdl->getBoundingBox();
+                targetBBox.scale(targetActor.getScale());
+                targetBBox.add(targetActor.getPos());
+
+                innerFunc(targetBBox);
+            }
+        }
+
+        if ( found ) {
+            return result;
+        }
+        else {
+            return std::nullopt;
         }
     }
 
@@ -441,6 +490,51 @@ namespace dal {
     void SceneMaster::applyCollision(const AABB& inOriginalBox, cpnt::Transform& inTrans) {
         for ( auto& map : this->m_mapChunks ) {
             map.applyCollision(inOriginalBox, inTrans);
+        }
+    }
+
+    std::optional<RayCastingResult> SceneMaster::doRayCasting(const Ray& ray) {
+        RayCastingResult result;
+        bool found = false;
+
+        auto innerFunc = [&](const AABB& aabb) -> void {
+            const auto info = calcCollisionInfo(ray, aabb);
+            if ( info ) {
+                if ( found ) {
+                    if ( info->m_distance < result.m_distance ) {
+                        result = *info;
+                        found = true;
+                    }
+                }
+                else {
+                    result = *info;
+                    found = true;
+                }
+            }
+        };
+
+        for ( auto& map : this->m_mapChunks ) {
+            auto info = map.doRayCasting(ray);
+
+            if ( info ) {
+                if ( found ) {
+                    if ( info->m_distance < result.m_distance ) {
+                        result = *info;
+                        found = true;
+                    }
+                }
+                else {
+                    result = *info;
+                    found = true;
+                }
+            }
+        }
+
+        if ( found ) {
+            return result;
+        }
+        else {
+            return std::nullopt;
         }
     }
 

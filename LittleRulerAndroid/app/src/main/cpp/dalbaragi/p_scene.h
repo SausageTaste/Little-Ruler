@@ -55,6 +55,7 @@ namespace dal {
 
         // Only for objects that are outside of this chunk.
         void applyCollision(AABB inOriginalBox, cpnt::Transform& inTrans);
+        std::optional<RayCastingResult> doRayCasting(const Ray& ray);
 
         WaterRenderer* getWater(const size_t index);
         ActorInfo* addActor(ModelStaticHandle const model, const std::string& actorName, bool flagStatic, ResourceMaster& resMas);
@@ -95,6 +96,7 @@ namespace dal {
         ModelAnimated* getModelNActorAnimated(const ResourceID& resID, const std::string& mapName);
 
         void applyCollision(const AABB& inOriginalBox, cpnt::Transform& inTrans);
+        std::optional<RayCastingResult> doRayCasting(const Ray& ray);
 
         void loadMap(const ResourceID& mapID);
 
