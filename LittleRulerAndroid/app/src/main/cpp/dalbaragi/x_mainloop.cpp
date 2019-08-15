@@ -411,6 +411,8 @@ namespace dal {
             renderable.m_model = ptrModel;
 
             auto& cpntState = this->m_enttMaster.assign<cpnt::CharacterState>(this->m_player, transform, renderable, this->m_camera);
+
+            this->m_enttMaster.assign<cpnt::PhysicsObj>(this->m_player);
         }
 
         // Camera
@@ -471,9 +473,11 @@ namespace dal {
             auto& trans = this->m_enttMaster.get<cpnt::Transform>(this->m_player);
             const auto lastPos = trans.m_pos;
             auto& model = this->m_enttMaster.get<cpnt::AnimatedModel>(this->m_player);
-            this->m_scene.applyCollision(model.m_model->getBoundingBox(), trans);
-
+            {
+                this->m_scene.applyCollision(model.m_model->getBoundingBox(), trans);
+            }
             bindCameraPos(this->m_camera, trans.m_pos, lastPos);
+            trans.updateMat();
         }
 
         // Updated animtions of free objects.

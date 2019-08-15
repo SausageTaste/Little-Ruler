@@ -176,6 +176,10 @@ namespace dal::cpnt {
         AnimationState m_animState;
     };
 
+    struct PhysicsObj {
+        bool m_touchingGround = false;
+    };
+
 }
 
 
