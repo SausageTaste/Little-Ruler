@@ -16,8 +16,7 @@ using namespace fmt::literals;
 
 namespace {
 
-    constexpr unsigned int MAX_SCREEN_RES   = 720;
-    constexpr float        MAX_SCREEN_RES_F = 720.0f;
+	constexpr unsigned int MAX_SCREEN_RES = 720;
 
 #ifdef _WIN32
     void GLAPIENTRY glDebugCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam) {
@@ -189,6 +188,7 @@ namespace dal {
         }
 
         // View
+		/*
         {
 			auto water = this->m_scene.getWater("water_bowl", 0);
 			dalAssert(water != nullptr);
@@ -229,6 +229,7 @@ namespace dal {
 				overlay.giveWidgetOwnership(view);
             }
         }
+		*/
 
         // Similar to on resize method
         {
@@ -237,7 +238,7 @@ namespace dal {
 
             const auto shorter = this->m_winWidth < this->m_winHeight ? this->m_winWidth : this->m_winHeight;
             if ( shorter > MAX_SCREEN_RES ) {
-                auto renderScale = MAX_SCREEN_RES_F / static_cast<float>(shorter);
+                auto renderScale = static_cast<float>(MAX_SCREEN_RES) / static_cast<float>(shorter);
                 this->resizeRenderScale(renderScale);
             }
         }
@@ -441,7 +442,7 @@ namespace dal {
 
         const auto shorter = this->m_winWidth < this->m_winHeight ? this->m_winWidth : this->m_winHeight;
         if ( shorter > MAX_SCREEN_RES ) {
-            auto renderScale = MAX_SCREEN_RES_F / static_cast<float>(shorter);
+            auto renderScale = static_cast<float>(MAX_SCREEN_RES) / static_cast<float>(shorter);
             this->m_fbuffer.setRenderScale(renderScale);
         }
 
