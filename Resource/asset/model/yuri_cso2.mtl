@@ -1,0 +1,69 @@
+# Blender MTL File: 'yuri_cso2.blend'
+# Material Count: 6
+
+newmtl None
+Ns 500
+Ka 0.8 0.8 0.8
+Kd 0.8 0.8 0.8
+Ks 0.8 0.8 0.8
+d 1
+illum 2
+
+newmtl tr_yuri.tga
+Ns 225.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.599885 0.661765 0.968242
+Ks 0.500000 0.500000 0.500000
+Ke 0.0 0.0 0.0
+Ni 1.450000
+d 1.000000
+illum 2
+map_Bump tr_yuri_normal.png
+map_Kd tr_yuri.png
+map_d tr_yuri.png
+
+newmtl tr_yuri_eyeball_l.tga
+Ns 225.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.525755 0.670108 0.511828
+Ks 0.500000 0.500000 0.500000
+Ke 0.0 0.0 0.0
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd tr_yuri_eyeball_l.png
+
+newmtl tr_yuri_eyeball_r.tga
+Ns 225.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.403510 0.800000 0.404435
+Ks 0.500000 0.500000 0.500000
+Ke 0.0 0.0 0.0
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd tr_yuri_eyeball_r.png
+
+newmtl tr_yuri_face_eyelashes.tga
+Ns 225.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.895530 0.512672 0.680384
+Ks 0.500000 0.500000 0.500000
+Ke 0.0 0.0 0.0
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd tr_yuri_face_eyelashes.png
+map_d tr_yuri_face_eyelashes.png
+
+newmtl tr_yuri_hair.tga
+Ns 225.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.531382 0.593547 0.811587
+Ks 0.500000 0.500000 0.500000
+Ke 0.0 0.0 0.0
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd tr_yuri_hair.png
+map_d tr_yuri_hair.png

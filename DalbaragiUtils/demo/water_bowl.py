@@ -25,7 +25,6 @@ def main():
     model = bfi.BuildInfo_ModelImported()
     actor = aco.ActorInfo()
     actor.getPosHandle().setZ(5)
-    actor.getQuatHandle().rotate(-90, (0, 1, 0))
     model.addActor(actor)
     model.setModelID("asset::yuri.obj")
     level.add(model)
@@ -34,8 +33,18 @@ def main():
 
     model = bfi.BuildInfo_ModelImported()
     actor = aco.ActorInfo()
+    actor.getPosHandle().setX(-2)
+    actor.getPosHandle().setZ(5)
+    model.addActor(actor)
+    model.setModelID("asset::yuri_cso2.obj")
+    level.add(model)
+
+    ########
+
+    model = bfi.BuildInfo_ModelImported()
+    actor = aco.ActorInfo()
     actor.getPosHandle().setXYZ(0, 0, 17)
-    actor.setScale(10)
+    actor.setScale(3)
     model.addActor(actor)
     model.setModelID("asset::63building.obj")
     level.add(model)

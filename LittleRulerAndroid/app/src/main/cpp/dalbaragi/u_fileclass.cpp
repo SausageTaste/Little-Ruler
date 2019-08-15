@@ -56,6 +56,7 @@ namespace {
             { "model", {}},
             { "texture", {
                     {"dva", {}},
+                    {"yuri2", {}},
                     {"mess", {}}
                 }
             }
