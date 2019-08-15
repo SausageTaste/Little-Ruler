@@ -10,6 +10,20 @@ using namespace fmt::literals;
 
 namespace {
 
+    const glm::vec3 AABB_NORMALS[6] = {
+        { -1.f,  0.f,  0.f },
+        {  0.f, -1.f,  0.f },
+        {  0.f,  0.f, -1.f },
+        {  1.f,  0.f,  0.f },
+        {  0.f,  1.f,  0.f },
+        {  0.f,  0.f,  1.f }
+    };
+
+}
+
+
+namespace {
+
     size_t minValueIndex(const float* const arr, const size_t arrSize) {
         if ( 0 == arrSize ) {
             dalAbort("Are you mad?");
@@ -106,10 +120,30 @@ namespace dal {
 
     }
 
+    Plane::Plane(const glm::vec3& normal, const glm::vec3& point)
+        : m_coeff(normal.x, normal.y, normal.z, -glm::dot(normal, point))
+    {
+
+    }
+
+    Plane::Plane(const float a, const float b, const float c, const float d)
+        : m_coeff(a, b, c, d)
+    {
+
+    }
+
 }
 
 
 namespace dal {
+
+    Ray::Ray(void)
+        : m_pos(0.f, 0.f, 0.f)
+        , m_rel(0.f, 1.f, 0.f)
+        , m_len(1.f)
+    {
+
+    }
 
     Ray::Ray(const glm::vec3& pos, const glm::vec3& rel)
         : m_pos(pos)
@@ -163,6 +197,23 @@ namespace dal {
         const auto distB = plane.getSignedDist(pointB);
 
         return (distA * distB) <= 0.0f;
+    }
+
+    bool checkCollision(const Ray& ray, const AABB& aabb) {
+        for ( int i = 0; i < 3; ++i ) {
+            Plane plane{ AABB_NORMALS[i], aabb.getPoint000() };
+            if ( checkCollision(ray, plane) ) {
+                return true;
+            }
+        }
+        for ( int i = 3; i < 6; ++i ) {
+            Plane plane{ AABB_NORMALS[i], aabb.getPoint111() };
+            if ( checkCollision(ray, plane) ) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
 
@@ -229,6 +280,43 @@ namespace dal {
         const auto distance = ray.getLength() * absDistA / (absDistA + std::abs(distB));
 
         return RayCastingResult{ distA > distB, distance };
+    }
+
+    std::optional<RayCastingResult> calcCollisionInfo(const Ray& ray, const AABB& aabb) {
+        RayCastingResult result;
+        bool found = false;
+
+        auto innerFunc = [&](const Plane& plane) -> void {
+            const auto info = calcCollisionInfo(ray, plane);
+            if ( info ) {
+                if ( found ) {
+                    if ( info->m_distance < result.m_distance ) {
+                        result = *info;
+                        found = true;
+                    }
+                }
+                else {
+                    result = *info;
+                    found = true;
+                }
+            }
+        };
+
+        for ( int i = 0; i < 3; ++i ) {
+            Plane plane{ AABB_NORMALS[i], aabb.getPoint000() };
+            innerFunc(plane);
+        }
+        for ( int i = 3; i < 6; ++i ) {
+            Plane plane{ AABB_NORMALS[i], aabb.getPoint111() };
+            innerFunc(plane);
+        }
+
+        if ( found ) {
+            return result;
+        }
+        else {
+            return std::nullopt;
+        }
     }
 
 }

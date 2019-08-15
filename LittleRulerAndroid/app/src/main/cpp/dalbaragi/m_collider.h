@@ -65,13 +65,8 @@ namespace dal {
 
     public:
         Plane(void);
-
-        void set(const float a, const float b, const float c, const float d) {
-            this->m_coeff.x = a;
-            this->m_coeff.y = b;
-            this->m_coeff.z = c;
-            this->m_coeff.w = d;
-        }
+        Plane(const glm::vec3& normal, const glm::vec3& point);
+        Plane(const float a, const float b, const float c, const float d);
 
         glm::vec3 getNormal(void) const {
             return glm::vec3{ this->m_coeff.x, this->m_coeff.y, this->m_coeff.z };
@@ -96,6 +91,7 @@ namespace dal {
         float m_len;
 
     public:
+        Ray(void);
         Ray(const glm::vec3& pos, const glm::vec3& rel);
 
         const glm::vec3& getStartPos(void) const {
@@ -122,10 +118,12 @@ namespace dal {
     bool checkCollision(const AABB& one, const AABB& other);
     bool checkCollision(const AABB& aabb, const Plane& plane);
     bool checkCollision(const Ray& ray, const Plane& plane);
+    bool checkCollision(const Ray& ray, const AABB& aabb);
 
     CollisionResolveInfo calcResolveInfo(const AABB& one, const AABB& other,
         const float oneMassInv, const float otherMassInv);
 
     std::optional<RayCastingResult> calcCollisionInfo(const Ray& ray, const Plane& plane);
+    std::optional<RayCastingResult> calcCollisionInfo(const Ray& ray, const AABB& aabb);
 
 }
