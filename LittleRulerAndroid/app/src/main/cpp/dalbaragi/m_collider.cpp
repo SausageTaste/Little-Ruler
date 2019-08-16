@@ -219,8 +219,42 @@ namespace dal {
     */
 
     bool checkCollision(const Ray& ray, const AABB& aabb) {
-        // TODO
-        return false;
+        // From https://www.scratchapixel.com/lessons/3d-basic-rendering/minimal-ray-tracer-rendering-simple-shapes/ray-box-intersection
+
+        const glm::vec3 bounds[2] = { aabb.getPoint000(), aabb.getPoint111() };
+        const auto orig = ray.getStartPos();
+        const auto invdir = 1.f / ray.getRel();
+        const int sign[3] = {
+            invdir.x < 0,
+            invdir.y < 0,
+            invdir.z < 0
+        };
+
+        float tmin, tmax, tymin, tymax, tzmin, tzmax;
+
+        tmin = (bounds[sign[0]].x - orig.x) * invdir.x;
+        tmax = (bounds[1 - sign[0]].x - orig.x) * invdir.x;
+        tymin = (bounds[sign[1]].y - orig.y) * invdir.y;
+        tymax = (bounds[1 - sign[1]].y - orig.y) * invdir.y;
+
+        if ( (tmin > tymax) || (tymin > tmax) )
+            return false;
+        if ( tymin > tmin )
+            tmin = tymin;
+        if ( tymax < tmax )
+            tmax = tymax;
+
+        tzmin = (bounds[sign[2]].z - orig.z) * invdir.z;
+        tzmax = (bounds[1 - sign[2]].z - orig.z) * invdir.z;
+
+        if ( (tmin > tzmax) || (tzmin > tmax) )
+            return false;
+        if ( tzmin > tmin )
+            tmin = tzmin;
+        if ( tzmax < tmax )
+            tmax = tzmax;
+
+        return true;
     }
 
 

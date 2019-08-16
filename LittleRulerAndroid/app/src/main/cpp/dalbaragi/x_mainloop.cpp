@@ -479,7 +479,7 @@ namespace dal {
             bindCameraPos(this->m_camera, trans.m_pos, lastPos);
             trans.updateMat();
 
-#if false
+#if true
             Ray ray{ trans.m_pos, glm::vec3{0.f, -100.f, 0.f} };
             auto raycasted = this->m_scene.doRayCasting(ray);
             if ( raycasted ) {
