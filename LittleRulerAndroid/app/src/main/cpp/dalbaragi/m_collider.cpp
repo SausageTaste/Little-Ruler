@@ -68,6 +68,11 @@ namespace {
         return result;
     }
 
+    // Param p must be on the plane.
+    bool isPointInsideTriangle(const glm::vec3& p, const dal::Triangle& tri) {
+        return false;
+    }
+
 }
 
 
@@ -309,21 +314,8 @@ namespace dal {
             return false;
         }
         else {
-            const auto collisionPoint = ray.getStartPos() + ray.getRel() * planeCollision->m_distance;
-            
-            const auto edge1 = tri.getPoint2() - tri.getPoint1();
-            const auto angle1 = glm::dot(edge1, collisionPoint);
-
-            const glm::vec3 points[4] = { tri.getPoint1(), tri.getPoint2(), tri.getPoint3(), tri.getPoint1() };
-            for ( int i = 1; i < 3; ++i ) {
-                const auto edge = points[i + 1] - points[i];
-                const auto angle = glm::dot(edge, collisionPoint);
-                if ( edge1 != edge ) {
-                    return false;
-                }
-            }
-
-            return true;
+            const auto collisionPoint = ray.getStartPos() + glm::normalize(ray.getRel()) * planeCollision->m_distance;
+            return isPointInsideTriangle(collisionPoint, tri);
         }
     }
 

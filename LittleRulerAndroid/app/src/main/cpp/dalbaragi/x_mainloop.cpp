@@ -354,7 +354,16 @@ namespace {
 namespace {
 
     void test(const float deltaTime) {
+        dal::Triangle tri{
+            glm::vec3{0.f, 0.f, -20.f},
+            glm::vec3{0.f, 0.f, 30.f},
+            glm::vec3{20.f, 0.f, 30.f}
+        };
+        dal::Ray ray{ glm::vec3{ 30.2862377, 0.00406546425, 8.83519936 }, glm::vec3{ 0.f, -100.f, 0.f } };
 
+        const auto result = dal::checkCollision(ray, tri);
+
+        return;
     }
 
 }
