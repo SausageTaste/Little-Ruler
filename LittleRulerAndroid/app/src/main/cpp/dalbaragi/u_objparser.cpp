@@ -44,10 +44,14 @@ namespace {
     }
 
     bool isSceneComplete(const aiScene* const scene) {
-        if ( nullptr == scene ) return false;
-        else if ( nullptr == scene->mRootNode ) return false;
-        else if ( scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE ) return false;
-        else return true;
+        if ( nullptr == scene )
+            return false;
+        else if ( nullptr == scene->mRootNode )
+            return false;
+        else if ( scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE )
+            return false;
+        else
+            return true;
     }
 
     inline glm::mat4 convertAssimpMat(const aiMatrix4x4& from) {
@@ -65,7 +69,7 @@ namespace {
         glm::vec3 p1, p2;
     };
 
-}  // namespace
+}
 
 
 // Assimp filesystem
@@ -167,7 +171,6 @@ namespace {
                 delete file;
                 return nullptr;
             }
-
         }
 
     };
@@ -180,46 +183,43 @@ namespace {
 
     std::vector<dal::loadedinfo::Material> parseMaterials(const aiScene* const scene) {
         std::vector<dal::loadedinfo::Material> materials;
+        materials.resize(scene->mNumMaterials);
 
         for ( unsigned int i = 0; i < scene->mNumMaterials; i++ ) {
-            const auto iMaterial = scene->mMaterials[i];
-            materials.emplace_back();
-            auto& iMatInfo = materials.back();
+            const auto assMaterial = scene->mMaterials[i];
+            auto& matInfo = materials[i];
 
             {
                 float floatBuf;
 
-                if ( aiReturn_SUCCESS == aiGetMaterialFloat(iMaterial, AI_MATKEY_SHININESS, &floatBuf) ) {
-                    iMatInfo.m_shininess = floatBuf;
+                if ( aiReturn_SUCCESS == aiGetMaterialFloat(assMaterial, AI_MATKEY_SHININESS, &floatBuf) ) {
+                    matInfo.m_shininess = floatBuf;
                 }
 
-                if ( aiReturn_SUCCESS == aiGetMaterialFloat(iMaterial, AI_MATKEY_SHININESS_STRENGTH, &floatBuf) ) {
-                    iMatInfo.m_specStrength = floatBuf;
+                if ( aiReturn_SUCCESS == aiGetMaterialFloat(assMaterial, AI_MATKEY_SHININESS_STRENGTH, &floatBuf) ) {
+                    matInfo.m_specStrength = floatBuf;
                 }
 
                 aiColor4D vec4Buf;
-                if ( aiReturn_SUCCESS == aiGetMaterialColor(iMaterial, AI_MATKEY_COLOR_DIFFUSE, &vec4Buf) ) {
-                    iMatInfo.m_diffuseColor.r = vec4Buf.r;
-                    iMatInfo.m_diffuseColor.g = vec4Buf.g;
-                    iMatInfo.m_diffuseColor.b = vec4Buf.b;
+                if ( aiReturn_SUCCESS == aiGetMaterialColor(assMaterial, AI_MATKEY_COLOR_DIFFUSE, &vec4Buf) ) {
+                    matInfo.m_diffuseColor.r = vec4Buf.r;
+                    matInfo.m_diffuseColor.g = vec4Buf.g;
+                    matInfo.m_diffuseColor.b = vec4Buf.b;
                 }
             }
 
             aiString str;
-            for ( unsigned int j = 0; j < iMaterial->GetTextureCount(aiTextureType_DIFFUSE); j++ ) {
-                if ( iMaterial->GetTexture(aiTextureType_DIFFUSE, j, &str) == aiReturn_SUCCESS ) {
-                    iMatInfo.m_diffuseMap = str.C_Str();
-                }
 
-                break;  // Because it supports only one diffuse map atm.
+            if ( assMaterial->GetTextureCount(aiTextureType_DIFFUSE) > 0 ) {
+                if ( assMaterial->GetTexture(aiTextureType_DIFFUSE, 0, &str) == aiReturn_SUCCESS ) {
+                    matInfo.m_diffuseMap = str.C_Str();
+                }
             }
 
-            for ( unsigned int j = 0; j < iMaterial->GetTextureCount(aiTextureType_SPECULAR); j++ ) {
-                if ( iMaterial->GetTexture(aiTextureType_SPECULAR, j, &str) == aiReturn_SUCCESS ) {
-                    iMatInfo.m_specularMap = str.C_Str();
+            if ( assMaterial->GetTextureCount(aiTextureType_SPECULAR) > 0 ) {
+                if ( assMaterial->GetTexture(aiTextureType_SPECULAR, 0, &str) == aiReturn_SUCCESS ) {
+                    matInfo.m_diffuseMap = str.C_Str();
                 }
-
-                break;  // Because it supports only one specular map atm.
             }
         }
 
@@ -277,7 +277,7 @@ namespace {
         info.clear();
 
         {
-            info.emplace_back( "nullpose", 0.0f, 0.0f,
+            info.emplace_back("nullpose", 0.0f, 0.0f,
                 makeJointHierarchy(scene->mRootNode, JointRegistry{})
             );
         }
@@ -312,7 +312,7 @@ namespace {
             }
 
             // Fill parent info
-            
+
             info.emplace_back(
                 anim->mName.C_Str(),
                 static_cast<float>(anim->mTicksPerSecond),
@@ -322,7 +322,7 @@ namespace {
         }
     }
 
-}  // namespace
+}
 
 
 // Process mesh
@@ -331,7 +331,7 @@ namespace {
     void copy3BasicVertexInfo(std::vector<float>& vertices, std::vector<float>& texcoords, std::vector<float>& normals,
         AABBBuildInfo& aabbInfo, const aiMesh* const mesh)
     {
-        dalAssert(sizeof(aiVector3D) == sizeof(float)*3);
+        dalAssert(sizeof(aiVector3D) == sizeof(float) * 3);
 
         vertices.resize(mesh->mNumVertices * 3);
         texcoords.resize(mesh->mNumVertices * 2);
@@ -390,7 +390,7 @@ namespace {
         renUnit.m_mesh.m_boneIndex.resize(numVert * 3U);
 
         copy3BasicVertexInfo(renUnit.m_mesh.m_vertices, renUnit.m_mesh.m_texcoords, renUnit.m_mesh.m_normals, aabbInfo, mesh);
-       
+
         for ( unsigned int i = 0; i < mesh->mNumBones; i++ ) {
             const auto bone = mesh->mBones[i];
             const auto jointIndex = jointInfo.getOrMakeIndexOf(bone->mName.C_Str());
@@ -422,14 +422,14 @@ namespace {
 
             weightBuffer = glm::normalize(weightBuffer);
 
-            std::memcpy(&renUnit.m_mesh.m_boneWeights[3*i], &weightBuffer[0], 3*sizeof(float));
-            std::memcpy(&renUnit.m_mesh.m_boneIndex[3*i], &indexBuf[0], 3*sizeof(int32_t));
+            std::memcpy(&renUnit.m_mesh.m_boneWeights[3 * i], &weightBuffer[0], 3 * sizeof(float));
+            std::memcpy(&renUnit.m_mesh.m_boneIndex[3 * i], &indexBuf[0], 3 * sizeof(int32_t));
         }
 
         return true;
     }
 
-}  // namespace
+}
 
 
 // Process nodes
@@ -482,7 +482,7 @@ namespace {
         return true;
     }
 
-}  // namespace
+}
 
 
 namespace dal {
@@ -526,4 +526,4 @@ namespace dal {
         return true;
     }
 
-}  // namespace dal
+}
