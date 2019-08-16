@@ -764,6 +764,11 @@ namespace dal {
         auto& package = this->orderPackage(packageName);
 
         auto model = new ModelStatic;
+
+        ResourceID resID{ info.m_modelID };
+        resID.setPackage(packageName);
+        model->setModelResID(resID);
+
         ModelStaticHandle modelHandle{ model };
         package.giveModelStatic(info.m_modelID, modelHandle);
 
