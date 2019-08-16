@@ -52,9 +52,11 @@ namespace dal {
         friend CollisionResolveInfo calcResolveInfo(const AABB& one, const AABB& other,
             const float oneMassInv, const float otherMassInv);
 
+        float calcArea(void) const;
+
     private:
         void validateOrder(void);
-
+        
     };
 
 
@@ -66,6 +68,7 @@ namespace dal {
     public:
         Plane(void);
         Plane(const glm::vec3& normal, const glm::vec3& point);
+        Plane(const glm::vec3& p1, const glm::vec3& p2, const glm::vec3& p3);
         Plane(const float a, const float b, const float c, const float d);
 
         glm::vec3 getNormal(void) const {
@@ -112,6 +115,31 @@ namespace dal {
 
     };
 
+
+    class Triangle {
+
+    private:
+        glm::vec3 m_points[3];
+
+    public:
+        Triangle(void) = default;
+        Triangle(const glm::vec3& p1, const glm::vec3& p2, const glm::vec3& p3);
+
+        const glm::vec3& getPoint1(void) const {
+            return this->m_points[0];
+        }
+        const glm::vec3& getPoint2(void) const {
+            return this->m_points[1];
+        }
+        const glm::vec3& getPoint3(void) const {
+            return this->m_points[2];
+        }
+
+    private:
+        float calcArea(void) const;
+
+    };
+
 }
 
 
@@ -121,6 +149,7 @@ namespace dal {
     bool checkCollision(const AABB& aabb, const Plane& plane);
     bool checkCollision(const Ray& ray, const Plane& plane);
     bool checkCollision(const Ray& ray, const AABB& aabb);
+    bool checkCollision(const Ray& ray, const Triangle& tri);
 
     CollisionResolveInfo calcResolveInfo(const AABB& one, const AABB& other,
         const float oneMassInv, const float otherMassInv);

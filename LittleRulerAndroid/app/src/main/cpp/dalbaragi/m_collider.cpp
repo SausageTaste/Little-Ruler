@@ -46,6 +46,28 @@ namespace {
         }
     }
 
+    inline void makeTrianglesFromRect(const glm::vec3& p1, const glm::vec3 & p2,
+        const glm::vec3 & p3, const glm::vec3 & p4, dal::Triangle& tri1, dal::Triangle& tri2)
+    {
+        tri1 = dal::Triangle{ p1, p2, p3 };
+        tri2 = dal::Triangle{ p1, p3, p4 };
+    }
+
+    std::array<dal::Triangle, 12> makeTriangles(const dal::AABB& aabb) {
+        std::array<dal::Triangle, 12> result;
+
+        const auto ps = aabb.getAllPoints();
+
+        makeTrianglesFromRect(ps[3], ps[1], ps[5], ps[7], result[0], result[1]);
+        makeTrianglesFromRect(ps[7], ps[5], ps[4], ps[6], result[2], result[3]);
+        makeTrianglesFromRect(ps[6], ps[4], ps[0], ps[2], result[4], result[5]);
+        makeTrianglesFromRect(ps[2], ps[0], ps[1], ps[3], result[6], result[7]);
+        makeTrianglesFromRect(ps[2], ps[3], ps[7], ps[6], result[8], result[9]);
+        makeTrianglesFromRect(ps[4], ps[5], ps[1], ps[0], result[10], result[11]);
+
+        return result;
+    }
+
 }
 
 
@@ -95,6 +117,10 @@ namespace dal {
         this->m_p2 *= mag;
     }
 
+    float AABB::calcArea(void) const {
+        return (this->m_p2.x - this->m_p1.x) * (this->m_p2.y - this->m_p1.y) * (this->m_p2.z - this->m_p1.z);
+    }
+
     // Private
 
     void AABB::validateOrder(void) {
@@ -122,6 +148,12 @@ namespace dal {
 
     Plane::Plane(const glm::vec3& normal, const glm::vec3& point)
         : m_coeff(normal.x, normal.y, normal.z, -glm::dot(normal, point))
+    {
+
+    }
+
+    Plane::Plane(const glm::vec3& p1, const glm::vec3& p2, const glm::vec3& p3)
+        : Plane(glm::cross(p2 - p1, p3 - p1), p1)
     {
 
     }
@@ -164,6 +196,32 @@ namespace dal {
 
 namespace dal {
 
+    Triangle::Triangle(const glm::vec3& p1, const glm::vec3& p2, const glm::vec3& p3) {
+        this->m_points[0] = p1;
+        this->m_points[1] = p2;
+        this->m_points[2] = p3;
+
+        if ( this->calcArea() == 0.0f ) {
+            dalAbort("Triangle area is zero!");
+        }
+    }
+
+    // Private
+
+    float Triangle::calcArea(void) const {
+        const auto a = glm::length(this->getPoint2() - this->getPoint1());
+        const auto b = glm::length(this->getPoint3() - this->getPoint2());
+        const auto c = glm::length(this->getPoint1() - this->getPoint3());
+
+        const auto s = (a + b + c) * 0.5f;
+        return std::sqrt(s * (s - a) * (s - b) * (s - c));
+    }
+
+}
+
+
+namespace dal {
+
     bool checkCollision(const AABB& one, const AABB& other) {
         if ( one.m_p2.x < other.m_p1.x ) return false;
         else if ( one.m_p1.x > other.m_p2.x ) return false;
@@ -198,25 +256,6 @@ namespace dal {
 
         return (distA * distB) <= 0.0f;
     }
-
-    /*
-    bool checkCollision(const Ray& ray, const AABB& aabb) {
-        for ( int i = 0; i < 3; ++i ) {
-            Plane plane{ AABB_NORMALS[i], aabb.getPoint000() };
-            if ( checkCollision(ray, plane) ) {
-                return true;
-            }
-        }
-        for ( int i = 3; i < 6; ++i ) {
-            Plane plane{ AABB_NORMALS[i], aabb.getPoint111() };
-            if ( checkCollision(ray, plane) ) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-    */
 
     bool checkCollision(const Ray& ray, const AABB& aabb) {
         // From https://www.scratchapixel.com/lessons/3d-basic-rendering/minimal-ray-tracer-rendering-simple-shapes/ray-box-intersection
@@ -260,6 +299,32 @@ namespace dal {
         }
 
         return true;
+    }
+
+    bool checkCollision(const Ray& ray, const Triangle& tri) {
+        const Plane plane{ tri.getPoint1(), tri.getPoint2(), tri.getPoint3() };
+        const auto planeCollision = calcCollisionInfo(ray, plane);
+
+        if ( !planeCollision ) {
+            return false;
+        }
+        else {
+            const auto collisionPoint = ray.getStartPos() + ray.getRel() * planeCollision->m_distance;
+            
+            const auto edge1 = tri.getPoint2() - tri.getPoint1();
+            const auto angle1 = glm::dot(edge1, collisionPoint);
+
+            const glm::vec3 points[4] = { tri.getPoint1(), tri.getPoint2(), tri.getPoint3(), tri.getPoint1() };
+            for ( int i = 1; i < 3; ++i ) {
+                const auto edge = points[i + 1] - points[i];
+                const auto angle = glm::dot(edge, collisionPoint);
+                if ( edge1 != edge ) {
+                    return false;
+                }
+            }
+
+            return true;
+        }
     }
 
 
@@ -328,6 +393,22 @@ namespace dal {
         return RayCastingResult{ distA > distB, distance };
     }
 
+    std::optional<RayCastingResult> calcCollisionInfo(const Ray& ray, const Triangle& tri) {
+        Plane plane{ tri.getPoint1(), tri.getPoint2(), tri.getPoint3() };
+        const auto planeCol = calcCollisionInfo(ray, plane);
+        if ( !planeCol ) {
+            return std::nullopt;
+        }
+
+        if ( checkCollision(ray, tri) ) {
+            return planeCol;
+        }
+        else {
+            return std::nullopt;
+        }
+    }
+
+    /*
     std::optional<RayCastingResult> calcCollisionInfo(const Ray& ray, const AABB& aabb) {
         RayCastingResult result;
         bool found = false;
@@ -363,6 +444,25 @@ namespace dal {
         else {
             return std::nullopt;
         }
+    }
+    */
+
+    std::optional<RayCastingResult> calcCollisionInfo(const Ray& ray, const AABB& aabb) {
+        if ( aabb.calcArea() == 0.0f ) {
+            return std::nullopt;
+        }
+
+        RayCastingResult result;
+
+        const auto triangles = makeTriangles(aabb);
+        for ( auto& tri : triangles ) {
+            const auto triCol = calcCollisionInfo(ray, tri);
+            if ( triCol ) {
+                return triCol;
+            }
+        }
+
+        return std::nullopt;
     }
 
 }
