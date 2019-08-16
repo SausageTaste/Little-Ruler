@@ -178,53 +178,6 @@ namespace {
 // Processing functions
 namespace {
 
-    unsigned int processMaterial(const aiScene* const scene, std::vector<dal::loadedinfo::Material>& materials) {
-        for ( unsigned int i = 0; i < scene->mNumMaterials; i++ ) {
-            const auto iMaterial = scene->mMaterials[i];
-            materials.emplace_back();
-            auto& iMatInfo = materials.back();
-
-            {
-                float floatBuf;
-
-                if ( aiReturn_SUCCESS == aiGetMaterialFloat(iMaterial, AI_MATKEY_SHININESS, &floatBuf) ) {
-                    iMatInfo.m_shininess = floatBuf;
-                }
-
-                if ( aiReturn_SUCCESS == aiGetMaterialFloat(iMaterial, AI_MATKEY_SHININESS_STRENGTH, &floatBuf) ) {
-                    iMatInfo.m_specStrength = floatBuf;
-                }
-
-                aiColor4D vec4Buf;
-                if ( aiReturn_SUCCESS == aiGetMaterialColor(iMaterial, AI_MATKEY_COLOR_DIFFUSE, &vec4Buf) ) {
-                    iMatInfo.m_diffuseColor.r = vec4Buf.r;
-                    iMatInfo.m_diffuseColor.g = vec4Buf.g;
-                    iMatInfo.m_diffuseColor.b = vec4Buf.b;
-                }
-            }
-
-            for ( unsigned int j = 0; j < iMaterial->GetTextureCount(aiTextureType_DIFFUSE); j++ ) {
-                aiString str;
-                if ( iMaterial->GetTexture(aiTextureType_DIFFUSE, j, &str) == aiReturn_SUCCESS ) {
-                    iMatInfo.m_diffuseMap = str.C_Str();
-                }
-
-                break;  // Because it supports only one diffuse map atm.
-            }
-
-            for ( unsigned int j = 0; j < iMaterial->GetTextureCount(aiTextureType_SPECULAR); j++ ) {
-                aiString str;
-                if ( iMaterial->GetTexture(aiTextureType_SPECULAR, j, &str) == aiReturn_SUCCESS ) {
-                    iMatInfo.m_specularMap = str.C_Str();
-                }
-
-                break;  // Because it supports only one specular map atm.
-            }
-        }
-
-        return scene->mNumMaterials;
-    }
-
     std::vector<dal::loadedinfo::Material> parseMaterials(const aiScene* const scene) {
         std::vector<dal::loadedinfo::Material> materials;
 
@@ -543,8 +496,7 @@ namespace dal {
             return false;
         }
 
-        std::vector<loadedinfo::Material> materials;
-        processMaterial(scene, materials);
+        const auto materials = parseMaterials(scene);
 
         AABBBuildInfo aabbInfo;
         info.m_renderUnits.clear();
