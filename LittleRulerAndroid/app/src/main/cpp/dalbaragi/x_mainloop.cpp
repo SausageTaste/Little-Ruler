@@ -479,11 +479,13 @@ namespace dal {
             bindCameraPos(this->m_camera, trans.m_pos, lastPos);
             trans.updateMat();
 
+#if false
             Ray ray{ trans.m_pos, glm::vec3{0.f, -100.f, 0.f} };
             auto raycasted = this->m_scene.doRayCasting(ray);
             if ( raycasted ) {
                 dalVerbose("Ray cast : {}"_format(raycasted->m_distance));
             }
+#endif
         }
 
         // Updated animtions of free objects.

@@ -220,6 +220,7 @@ namespace dal {
 
     bool checkCollision(const Ray& ray, const AABB& aabb) {
         // TODO
+        return false;
     }
 
 
