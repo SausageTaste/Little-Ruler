@@ -230,29 +230,34 @@ namespace dal {
             invdir.z < 0
         };
 
-        float tmin, tmax, tymin, tymax, tzmin, tzmax;
+        auto tmin = (bounds[sign[0]].x - orig.x) * invdir.x;
+        auto tmax = (bounds[1 - sign[0]].x - orig.x) * invdir.x;
 
-        tmin = (bounds[sign[0]].x - orig.x) * invdir.x;
-        tmax = (bounds[1 - sign[0]].x - orig.x) * invdir.x;
-        tymin = (bounds[sign[1]].y - orig.y) * invdir.y;
-        tymax = (bounds[1 - sign[1]].y - orig.y) * invdir.y;
+        const auto tymin = (bounds[sign[1]].y - orig.y) * invdir.y;
+        const auto tymax = (bounds[1 - sign[1]].y - orig.y) * invdir.y;
 
-        if ( (tmin > tymax) || (tymin > tmax) )
+        if ( (tmin > tymax) || (tymin > tmax) ) {
             return false;
-        if ( tymin > tmin )
+        }
+        if ( tymin > tmin ) {
             tmin = tymin;
-        if ( tymax < tmax )
+        }
+        if ( tymax < tmax ) {
             tmax = tymax;
+        }
 
-        tzmin = (bounds[sign[2]].z - orig.z) * invdir.z;
-        tzmax = (bounds[1 - sign[2]].z - orig.z) * invdir.z;
+        const auto tzmin = (bounds[sign[2]].z - orig.z) * invdir.z;
+        const auto tzmax = (bounds[1 - sign[2]].z - orig.z) * invdir.z;
 
-        if ( (tmin > tzmax) || (tzmin > tmax) )
+        if ( (tmin > tzmax) || (tzmin > tmax) ) {
             return false;
-        if ( tzmin > tmin )
+        }
+        if ( tzmin > tmin ) {
             tmin = tzmin;
-        if ( tzmax < tmax )
+        }
+        if ( tzmax < tmax ) {
             tmax = tzmax;
+        }
 
         return true;
     }
