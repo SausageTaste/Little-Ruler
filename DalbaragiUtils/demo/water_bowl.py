@@ -26,7 +26,7 @@ def main():
     actor = aco.ActorInfo()
     actor.getPosHandle().setZ(5)
     model.addActor(actor)
-    model.setModelID("asset::yuri.obj")
+    model.setModelID("asset::yuri_cso1.obj")
     level.add(model)
 
     ########
