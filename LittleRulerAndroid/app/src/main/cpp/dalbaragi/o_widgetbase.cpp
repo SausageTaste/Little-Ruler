@@ -319,6 +319,7 @@ namespace {
             }
 
             ~FreetypeMaster(void) {
+                this->m_faces.clear();
                 FT_Done_FreeType(this->m_library);
             }
 
