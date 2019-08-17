@@ -21,6 +21,12 @@ class Vec3(ein.ILevelAttribLeaf):
     def __str__(self):
         return "< Vec3 {{ {}, {}, {} }} >".format(self.__x, self.__y, self.__z)
 
+    def __add__(self, other: "Vec3"):
+        return Vec3(self.__x + other.__x, self.__y + other.__y, self.__z + other.__z)
+
+    def __sub__(self, other: "Vec3"):
+        return Vec3(self.__x - other.__x, self.__y - other.__y, self.__z - other.__z)
+
     def getLength(self) -> float:
         return math.sqrt(self.getLengthSquare())
 
@@ -418,9 +424,7 @@ class UniformList(ein.ILevelAttribLeaf):
 
     def pushBack(self, item):
         if not isinstance(item, self.__type):
-            errMsg = "Value '{}' is not a proper value for UniformList< {} >.".format(
-                type(item), str(self.__type)[1:-1]
-            )
+            errMsg = "Value '{}' is not a proper value for UniformList< {} >.".format(type(item), str(self.__type)[1:-1] )
             raise ValueError(errMsg)
 
         self.__list.append(item)
@@ -461,3 +465,38 @@ class BoolValue(ein.ILevelAttribLeaf):
 
     def set(self, v: bool):
         self.__v = bool(v)
+
+
+class IntValue(ein.ILevelAttribLeaf):
+    def __init__(self, v: int = 0):
+        self.__value = int(v)
+
+    def __str__(self):
+        return "< IntValue {{ {} }} >".format(self.__value)
+
+    def setDefault(self) -> None:
+        self.__value = 0
+
+    def setJson(self, data: json_t) -> None:
+        self.__value = int(data)
+
+    def getJson(self) -> json_t:
+        return self.__value
+
+    # int4 : Value
+    def getBinary(self) -> bytearray:
+        data = bytearray(but.get4BytesInt(self.__value))
+        return data
+
+    def getIntegrityReport(self, usageName: str = "") -> ere.IntegrityReport:
+        return ere.IntegrityReport(type(self).__name__, usageName)
+
+    def getDataReport(self, usageName: str = "") -> ere.DataReport:
+        report = ere.DataReport(type(self).__name__, usageName, self.getBinary())
+
+        report.addData("value", str(self.getJson()))
+
+        return report
+
+    def set(self, v: int):
+        self.__value = int(v)

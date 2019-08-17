@@ -130,11 +130,15 @@ class TypeCodeInspector:
     __data: Dict[int, type] = {}
 
     @classmethod
-    def reportUsage(cls, typeCode: int, user: type) -> None:
+    def reportUsage(cls, typeCode: int, user: type) -> int:
+        typeCode = int(typeCode)
+
         if typeCode in cls.__data.keys():
             if cls.__data[typeCode] != user:
                 raise RuntimeError("Two different types are using same type code: {} VS {} for '{}'".format(
                     cls.__data[typeCode], user, typeCode))
-            else: return
+            else:
+                return typeCode
         else:
             cls.__data[typeCode] = user
+            return typeCode

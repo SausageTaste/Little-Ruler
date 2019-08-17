@@ -6,6 +6,61 @@ import level.datastruct.interface as eim
 import level.datastruct.attrib_leaf as pri
 import level.datastruct.bytesutils as but
 import level.datastruct.error_reporter as ere
+import level.datastruct.collider as col
+
+
+class StaticMesh(eim.ILevelItem):
+    __s_field_model_id: str = "model_name"
+    __s_field_actors = "actors"
+    __s_field_render_units = "render_units"
+    __s_field_bounding_type = "bounding_type"
+
+    def __init__(self):
+        # Field that become binary directly.
+        self.__model_id = pri.IdentifierStr()
+        self.__actors = pri.UniformList(bas.ActorInfo)
+        self.__renderUnits = pri.UniformList(bas.RenderUnit)
+        self.__boundingType = pri.IntValue(0)
+
+        # Datas to build binary, but not used directly.
+
+        super().__init__({
+            self.__s_field_model_id      : self.__model_id,
+            self.__s_field_actors        : self.__actors,
+            self.__s_field_render_units  : self.__renderUnits,
+            self.__s_field_bounding_type : self.__boundingType,
+        })
+
+    def getBinary(self) -> bytearray:
+        data = self.__model_id.getBinary()
+        data += self.__actors.getBinary()
+        data += self.__renderUnits.getBinary()
+        return data
+
+    @classmethod
+    @abc.abstractmethod
+    def getTypeCode(cls) -> bytearray:
+        ere.TypeCodeInspector.reportUsage(6, cls)
+        return bytearray(but.get2BytesInt(6))
+
+    @staticmethod
+    def getFieldTypeOfSelf() -> str:
+        return "static_mesh"
+
+    def addRenderUnit(self, mesh: bas.VertexArray, material: bas.Material):
+        unit = bas.RenderUnit()
+        unit.setMesh(mesh)
+        unit.setMaterial(material)
+        self.__renderUnits.pushBack(unit)
+
+    def addActor(self, actor: bas.ActorInfo):
+        self.__actors.pushBack(actor)
+
+    def setModelID(self, v: str) -> None:
+        self.__model_id.setStr(v)
+
+    def setBoundingVolumeType(self, i: col.BoundingVolume):
+        self.__boundingType.set(i.value)
 
 
 class ILevelItemModel(eim.ILevelItem):
@@ -29,7 +84,8 @@ class ILevelItemModel(eim.ILevelItem):
 
     @classmethod
     @abc.abstractmethod
-    def getTypeCode(cls) -> bytearray: pass
+    def getTypeCode(cls) -> bytearray:
+        raise NotImplemented()
 
     def addActor(self, actor: bas.ActorInfo):
         self.__actors.pushBack(actor)

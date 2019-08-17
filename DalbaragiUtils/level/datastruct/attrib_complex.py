@@ -313,3 +313,44 @@ class VertexArray(ein.ILevelAttrib):
             0, -1, 0,
             0, -1, 0,
         ], np.float32))
+
+
+class RenderUnit(ein.ILevelAttrib):
+    __s_field_material = "material"
+    __s_field_mesh = "mesh"
+
+    def __init__(self):
+        self.__material = Material()
+        self.__mesh = VertexArray()
+
+        super().__init__({
+            self.__s_field_material : self.__material,
+            self.__s_field_mesh     : self.__mesh,
+        })
+
+    def getBinary(self) -> bytearray:
+        data = bytearray()
+
+        data += self.__material.getBinary()
+        data += self.__mesh.getBinary()
+
+        return data
+
+    @classmethod
+    def getTypeCode(cls) -> bytearray:
+        ere.TypeCodeInspector.reportUsage(6, cls)
+        return bytearray(but.get2BytesInt(6))
+
+    def getIntegrityReport(self, usageName: str = "") -> ere.IntegrityReport:
+        report = ein.ILevelAttrib.getIntegrityReport(self, usageName)
+        return report
+
+    def setMaterial(self, mat: Material):
+        if not isinstance(mat, Material):
+            raise ValueError()
+        self.__material = mat
+
+    def setMesh(self, mesh: VertexArray):
+        if not isinstance(mesh, VertexArray):
+            raise ValueError()
+        self.__mesh = mesh
