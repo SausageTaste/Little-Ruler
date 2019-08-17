@@ -70,7 +70,30 @@ namespace {
 
     // Param p must be on the plane.
     bool isPointInsideTriangle(const glm::vec3& p, const dal::Triangle& tri) {
-        return false;
+        const auto edge1 = tri.getPoint2() - tri.getPoint1();
+        const auto edge2 = tri.getPoint3() - tri.getPoint2();
+        const auto edge3 = tri.getPoint1() - tri.getPoint3();
+
+        const auto toPoint1 = p - tri.getPoint1();
+        const auto toPoint2 = p - tri.getPoint2();
+        const auto toPoint3 = p - tri.getPoint3();
+
+        const auto crossed1 = glm::cross(edge1, toPoint1);
+        const auto crossed2 = glm::cross(edge2, toPoint2);
+        const auto crossed3 = glm::cross(edge3, toPoint3);
+
+        const auto dotted1 = glm::dot(crossed1, crossed2);
+        const auto dotted2 = glm::dot(crossed1, crossed3);
+
+        if ( dotted1 < 0.0f ) {
+            return false;
+        }
+
+        if ( dotted2 < 0.0f ) {
+            return false;
+        }
+
+        return true;
     }
 
 }
