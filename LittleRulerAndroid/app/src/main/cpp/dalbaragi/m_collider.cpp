@@ -100,6 +100,7 @@ namespace {
 }
 
 
+// AABB
 namespace dal {
 
     AABB::AABB(const glm::vec3& p1, const glm::vec3& p2, const float massInv)
@@ -167,6 +168,7 @@ namespace dal {
 }
 
 
+// Plane
 namespace dal {
 
     Plane::Plane(void)
@@ -196,6 +198,7 @@ namespace dal {
 }
 
 
+// Ray
 namespace dal {
 
     Ray::Ray(void)
@@ -223,6 +226,7 @@ namespace dal {
 }
 
 
+// Triangle
 namespace dal {
 
     Triangle::Triangle(const glm::vec3& p1, const glm::vec3& p2, const glm::vec3& p3) {
@@ -249,6 +253,7 @@ namespace dal {
 }
 
 
+// Primitive functions
 namespace dal {
 
     bool checkCollision(const AABB& one, const AABB& other) {
@@ -409,10 +414,13 @@ namespace dal {
         return RayCastingResult{ distA > distB, distance };
     }
 
-    std::optional<RayCastingResult> calcCollisionInfo(const Ray& ray, const Triangle& tri) {
+    std::optional<RayCastingResult> calcCollisionInfo(const Ray& ray, const Triangle& tri, const bool ignoreFromBack) {
         Plane plane{ tri.getPoint1(), tri.getPoint2(), tri.getPoint3() };
         const auto planeCol = calcCollisionInfo(ray, plane);
         if ( !planeCol ) {
+            return std::nullopt;
+        }
+        else if ( ignoreFromBack && !planeCol->m_isFromFront ) {
             return std::nullopt;
         }
 
@@ -423,45 +431,6 @@ namespace dal {
             return std::nullopt;
         }
     }
-
-    /*
-    std::optional<RayCastingResult> calcCollisionInfo(const Ray& ray, const AABB& aabb) {
-        RayCastingResult result;
-        bool found = false;
-
-        auto innerFunc = [&](const Plane& plane) -> void {
-            const auto info = calcCollisionInfo(ray, plane);
-            if ( info ) {
-                if ( found ) {
-                    if ( info->m_distance < result.m_distance ) {
-                        result = *info;
-                        found = true;
-                    }
-                }
-                else {
-                    result = *info;
-                    found = true;
-                }
-            }
-        };
-
-        for ( int i = 0; i < 3; ++i ) {
-            Plane plane{ AABB_NORMALS[i], aabb.getPoint000() };
-            innerFunc(plane);
-        }
-        for ( int i = 3; i < 6; ++i ) {
-            Plane plane{ AABB_NORMALS[i], aabb.getPoint111() };
-            innerFunc(plane);
-        }
-
-        if ( found ) {
-            return result;
-        }
-        else {
-            return std::nullopt;
-        }
-    }
-    */
 
     std::optional<RayCastingResult> calcCollisionInfo(const Ray& ray, const AABB& aabb) {
         if ( aabb.calcArea() == 0.0f ) {
@@ -479,6 +448,100 @@ namespace dal {
         }
 
         return std::nullopt;
+    }
+
+}
+
+
+// TriangleSoup
+namespace dal {
+
+    std::optional<RayCastingResult> TriangleSoup::calcCollisionInfo(const Ray& ray) const {
+        RayCastingResult result;
+        bool found = false;
+
+        for ( const auto& tri : this->m_triangles ) {
+            const auto info = dal::calcCollisionInfo(ray, tri, this->m_faceCull);
+            if ( info ) {
+                if ( found ) {
+                    if ( info->m_distance < result.m_distance ) {
+                        result = *info;
+                    }
+                }
+                else {
+                    result = *info;
+                    found = true;
+                }
+            }
+        }
+
+        if ( found ) {
+            return result;
+        }
+        else {
+            return std::nullopt;
+        }
+    }
+
+}
+
+
+// ColliderGroup
+namespace dal {
+
+    ColliderGroup::ColliderGroup(const AABB& aabb)
+        : m_bounding(aabb)
+    {
+
+    }
+
+    std::optional<RayCastingResult> ColliderGroup::calcCollisionInfo(const Ray& ray) {
+        if ( this->m_children.empty() ) {
+            const auto variantIndex = this->m_bounding.index();
+            switch ( variantIndex ) {
+            case 0:
+                return dal::calcCollisionInfo(ray, std::get<0>(this->m_bounding));
+            default:
+                dalAbort("WTF??");
+            }
+        }
+        else {
+            RayCastingResult result;
+            bool found = false;
+
+            for ( const auto& child : this->m_children ) {
+                switch ( child.index() ) {
+
+                case 0:
+                    return dal::calcCollisionInfo(ray, std::get<0>(child));
+                case 1:
+                {
+                    const auto colInfo = std::get<1>(child).calcCollisionInfo(ray);
+                    if ( colInfo ) {
+                        if ( found ) {
+                            if ( colInfo->m_distance < result.m_distance ) {
+                                result = *colInfo;
+                            }
+                        }
+                        else {
+                            result = *colInfo;
+                            found = true;
+                        }
+                    }
+                }
+                default:
+                    dalAbort("WTF??");
+
+                }
+            }
+
+            if ( found ) {
+                return result;
+            }
+            else {
+                return std::nullopt;
+            }
+        }
     }
 
 }

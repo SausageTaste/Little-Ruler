@@ -1,6 +1,8 @@
 #pragma once
 
 #include <array>
+#include <vector>
+#include <variant>
 #include <optional>
 
 #include <glm/glm.hpp>
@@ -13,13 +15,14 @@ namespace dal {
     };
 
     struct RayCastingResult {
-        bool m_isFromFront;
-        float m_distance;
+        bool m_isFromFront = false;
+        float m_distance = 0.0f;
     };
 
 }
 
 
+// Collider primitives
 namespace dal {
 
     class AABB {
@@ -143,6 +146,7 @@ namespace dal {
 }
 
 
+// Primitive functions
 namespace dal {
 
     bool checkCollision(const AABB& one, const AABB& other);
@@ -155,6 +159,46 @@ namespace dal {
         const float oneMassInv, const float otherMassInv);
 
     std::optional<RayCastingResult> calcCollisionInfo(const Ray& ray, const Plane& plane);
+    std::optional<RayCastingResult> calcCollisionInfo(const Ray& ray, const Triangle& tri, const bool ignoreFromBack = false);
     std::optional<RayCastingResult> calcCollisionInfo(const Ray& ray, const AABB& aabb);
+
+}
+
+
+// Complex colliders
+namespace dal {
+
+    class TriangleSoup {
+
+    private:
+        std::vector<Triangle> m_triangles;
+        bool m_faceCull = true;
+
+    public:
+        void addTriangle(const Triangle& tri) {
+            this->m_triangles.push_back(tri);
+        }
+
+        std::optional<RayCastingResult> calcCollisionInfo(const Ray& ray) const;
+
+    };
+
+
+    class ColliderGroup {
+
+    public:
+        using boundingVolume_t = std::variant<AABB>;
+        using collider_t = std::variant<AABB, TriangleSoup>;
+
+    private:
+        boundingVolume_t m_bounding;
+        std::vector<collider_t> m_children;
+
+    public:
+        ColliderGroup(const AABB& aabb);
+
+        std::optional<RayCastingResult> calcCollisionInfo(const Ray& ray);
+
+    };
 
 }
