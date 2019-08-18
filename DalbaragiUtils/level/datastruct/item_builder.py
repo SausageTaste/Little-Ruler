@@ -6,7 +6,7 @@ import level.datastruct.interface as eim
 import level.datastruct.attrib_leaf as pri
 import level.datastruct.bytesutils as but
 import level.datastruct.error_reporter as ere
-import level.datastruct.collider as col
+import level.datastruct.attrib_collider as col
 
 
 class StaticMesh(eim.ILevelItem):
