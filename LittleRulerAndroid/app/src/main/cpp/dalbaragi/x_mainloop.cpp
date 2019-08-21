@@ -9,6 +9,7 @@
 #include "o_widget_textbox.h"
 #include "o_widgetmanager.h"
 #include "u_luascript.h"
+#include "u_vecutil.h"
 
 
 using namespace fmt::literals;

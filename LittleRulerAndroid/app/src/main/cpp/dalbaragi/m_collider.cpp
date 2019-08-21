@@ -4,6 +4,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 #include "s_logger_god.h"
+#include "u_vecutil.h"
 
 
 using namespace fmt::literals;
@@ -126,7 +127,7 @@ namespace dal {
     }
 
     void Transform::rotate(const float v, const glm::vec3& selector) {
-        this->m_quat = glm::normalize(glm::angleAxis(v, selector) * this->m_quat);
+        this->m_quat = rotateQuat(this->m_quat, v, selector);
         this->setNeedUpdate();
     }
 
