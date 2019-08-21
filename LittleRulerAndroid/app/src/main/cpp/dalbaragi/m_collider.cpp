@@ -437,6 +437,34 @@ namespace dal {
 }
 
 
+// Sphere
+namespace dal {
+
+    Sphere::Sphere(void)
+        : m_radius(1.f)
+    {
+
+    }
+
+    Sphere::Sphere(const glm::vec3& center, const float radius)
+        : m_center(center)
+        , m_radius(radius)
+    {
+
+    }
+
+    float Sphere::getDistance(const glm::vec3& p) const {
+        return glm::distance(this->m_center, p) - this->m_radius;
+    }
+
+    bool Sphere::isInside(const glm::vec3& p) const {
+        const auto rel = p - this->m_center;
+        return glm::dot(rel, rel) <= (this->m_radius * this->m_radius);
+    }
+
+}
+
+
 // checkCollision funcs
 namespace dal {
 

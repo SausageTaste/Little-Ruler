@@ -195,6 +195,29 @@ namespace dal {
     };
 
 
+    class Sphere {
+
+    private:
+        glm::vec3 m_center;
+        float m_radius;
+
+    public:
+        Sphere(void);
+        Sphere(const glm::vec3& center, const float radius);
+
+        const glm::vec3& getCenter(void) const noexcept {
+            return this->m_center;
+        }
+        float getRadius(void) const noexcept {
+            return this->m_radius;
+        }
+
+        float getDistance(const glm::vec3& p) const;
+        bool isInside(const glm::vec3& p) const;
+
+    };
+
+
     class AABB {
 
     private:
