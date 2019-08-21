@@ -21,6 +21,7 @@ namespace dal {
         float m_distance = 0.0f;
     };
 
+
     class Transform {
 
     private:
@@ -78,6 +79,32 @@ namespace dal {
         bool needUpdate(void) const {
             return this->m_mat.m_needUpdate;
         }
+
+    };
+
+}
+
+
+namespace dal {
+
+    enum class ColliderRegistry {
+        plane, ray, triangle, aabb, triangle_soup
+    };
+
+
+    class ICollider {
+
+    public:
+        virtual ~ICollider(void) = default;
+        virtual ColliderRegistry getColType(void) = 0;
+
+    };
+
+
+    class ColliderResolver {
+
+    public:
+
 
     };
 
@@ -167,11 +194,6 @@ namespace dal {
 
     };
 
-}
-
-
-// Transformed colliders
-namespace dal {
 
     class AABB {
 
@@ -205,6 +227,21 @@ namespace dal {
 
     private:
         void validateOrder(void);
+
+    };
+
+}
+
+
+// Polymorphic colliders
+namespace dal {
+
+    class ColAABB : public AABB, ICollider {
+
+    public:
+        virtual ColliderRegistry getColType(void) override {
+            return ColliderRegistry::aabb;
+        }
 
     };
 
@@ -252,36 +289,22 @@ namespace dal {
 // Complex colliders
 namespace dal {
 
-    class TriangleSoup {
+    class ColTriangleSoup : public ICollider {
 
     private:
         std::vector<Triangle> m_triangles;
         bool m_faceCull = true;
 
     public:
+        virtual ColliderRegistry getColType(void) override {
+            return ColliderRegistry::triangle_soup;
+        }
+
         void addTriangle(const Triangle& tri) {
             this->m_triangles.push_back(tri);
         }
 
         std::optional<RayCastingResult> calcCollisionInfo(const Ray& ray) const;
-
-    };
-
-
-    class ColliderGroup {
-
-    public:
-        using boundingVolume_t = std::variant<AABB>;
-        using collider_t = std::variant<AABB, TriangleSoup>;
-
-    private:
-        boundingVolume_t m_bounding;
-        std::vector<collider_t> m_children;
-
-    public:
-        ColliderGroup(const AABB& aabb);
-
-        std::optional<RayCastingResult> calcCollisionInfo(const Ray& ray);
 
     };
 
