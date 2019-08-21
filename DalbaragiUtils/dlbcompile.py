@@ -6,7 +6,7 @@ from typing import List, Optional
 import level.datastruct.level_builder as lvb
 
 
-class CompileWorkReciepe:
+class CompileWorkRecipe:
     def __init__(self):
         self.m_fileNames: List[str] = []
 
@@ -14,8 +14,8 @@ class CompileWorkReciepe:
 def getOnlyFileName(path: str) -> str:
     return os.path.split(os.path.splitext(path)[0])[1]
 
-def getWorkProperties(args: list) -> Optional[CompileWorkReciepe]:
-    work = CompileWorkReciepe()
+def getWorkProperties(args: list) -> Optional[CompileWorkRecipe]:
+    work = CompileWorkRecipe()
     errOnce = False
 
     for arg in args[1:]:
