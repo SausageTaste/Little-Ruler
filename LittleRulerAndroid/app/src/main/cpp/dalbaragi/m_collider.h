@@ -236,7 +236,7 @@ namespace dal {
 // Polymorphic colliders
 namespace dal {
 
-    class ColAABB : public AABB, ICollider {
+    class ColAABB : public AABB, public ICollider {
 
     public:
         virtual ColliderRegistry getColType(void) override {
