@@ -271,85 +271,6 @@ namespace dal {
 }
 
 
-// AABB
-namespace dal {
-
-    AABB::AABB(const glm::vec3& p1, const glm::vec3& p2, const float massInv)
-        : m_p1(p1), m_p2(p2)
-        , m_massInv(massInv)
-    {
-        this->validateOrder();
-    }
-
-    std::array<glm::vec3, 8> AABB::getAllPoints(void) const {
-        return this->getAllPoints([](auto vec) { return vec; });
-    }
-
-    std::array<glm::vec3, 8> AABB::getAllPoints(const Transform& trans) const {
-        return this->getAllPoints([&trans](auto vec) { return trans.getScale() * vec + trans.getPos(); });
-    }
-
-    std::array<glm::vec3, 8> AABB::getAllPoints(std::function<glm::vec3(const glm::vec3&)> modifier) const {
-        std::array<glm::vec3, 8> result;
-
-        {
-            const auto p000 = this->getPoint000();
-            const auto p111 = this->getPoint111();
-
-            result[0] = modifier(p000);  // 000
-            result[1] = modifier(glm::vec3{ p000.x, p000.y, p111.z });  // 001
-            result[2] = modifier(glm::vec3{ p000.x, p111.y, p000.z });  // 010
-            result[3] = modifier(glm::vec3{ p000.x, p111.y, p111.z });  // 011
-            result[4] = modifier(glm::vec3{ p111.x, p000.y, p000.z });  // 100
-            result[5] = modifier(glm::vec3{ p111.x, p000.y, p111.z });  // 101
-            result[6] = modifier(glm::vec3{ p111.x, p111.y, p000.z });  // 110
-            result[7] = modifier(p111);  // 111
-        }
-
-        return result;
-    }
-
-
-    void AABB::set(const glm::vec3& p1, const glm::vec3& p2) {
-        this->m_p1 = p1;
-        this->m_p2 = p2;
-
-        this->validateOrder();
-    }
-
-    /*
-    void AABB::add(const glm::vec3& offset) {
-        this->m_p1 += offset;
-        this->m_p2 += offset;
-    }
-
-    void AABB::scale(const float mag) {
-        this->m_p1 *= mag;
-        this->m_p2 *= mag;
-    }
-    */
-
-    float AABB::calcArea(void) const {
-        return (this->m_p2.x - this->m_p1.x) * (this->m_p2.y - this->m_p1.y) * (this->m_p2.z - this->m_p1.z);
-    }
-
-    // Private
-
-    void AABB::validateOrder(void) {
-        if ( this->m_p1.x > this->m_p2.x ) {
-            std::swap(this->m_p1.x, this->m_p2.x);
-        }
-        if ( this->m_p1.y > this->m_p2.y ) {
-            std::swap(this->m_p1.y, this->m_p2.y);
-        }
-        if ( this->m_p1.z > this->m_p2.z ) {
-            std::swap(this->m_p1.z, this->m_p2.z);
-        }
-    }
-
-}
-
-
 // Plane
 namespace dal {
 
@@ -430,6 +351,85 @@ namespace dal {
 
         const auto s = (a + b + c) * 0.5f;
         return std::sqrt(s * (s - a) * (s - b) * (s - c));
+    }
+
+}
+
+
+// AABB
+namespace dal {
+
+    AABB::AABB(const glm::vec3& p1, const glm::vec3& p2, const float massInv)
+        : m_p1(p1), m_p2(p2)
+        , m_massInv(massInv)
+    {
+        this->validateOrder();
+    }
+
+    std::array<glm::vec3, 8> AABB::getAllPoints(void) const {
+        return this->getAllPoints([](auto vec) { return vec; });
+    }
+
+    std::array<glm::vec3, 8> AABB::getAllPoints(const Transform & trans) const {
+        return this->getAllPoints([&trans](auto vec) { return trans.getScale() * vec + trans.getPos(); });
+    }
+
+    std::array<glm::vec3, 8> AABB::getAllPoints(std::function<glm::vec3(const glm::vec3&)> modifier) const {
+        std::array<glm::vec3, 8> result;
+
+        {
+            const auto p000 = this->getPoint000();
+            const auto p111 = this->getPoint111();
+
+            result[0] = modifier(p000);  // 000
+            result[1] = modifier(glm::vec3{ p000.x, p000.y, p111.z });  // 001
+            result[2] = modifier(glm::vec3{ p000.x, p111.y, p000.z });  // 010
+            result[3] = modifier(glm::vec3{ p000.x, p111.y, p111.z });  // 011
+            result[4] = modifier(glm::vec3{ p111.x, p000.y, p000.z });  // 100
+            result[5] = modifier(glm::vec3{ p111.x, p000.y, p111.z });  // 101
+            result[6] = modifier(glm::vec3{ p111.x, p111.y, p000.z });  // 110
+            result[7] = modifier(p111);  // 111
+        }
+
+        return result;
+    }
+
+
+    void AABB::set(const glm::vec3& p1, const glm::vec3& p2) {
+        this->m_p1 = p1;
+        this->m_p2 = p2;
+
+        this->validateOrder();
+    }
+
+    /*
+    void AABB::add(const glm::vec3& offset) {
+        this->m_p1 += offset;
+        this->m_p2 += offset;
+    }
+
+    void AABB::scale(const float mag) {
+        this->m_p1 *= mag;
+        this->m_p2 *= mag;
+    }
+    */
+
+    float AABB::calcArea(void) const {
+        return (this->m_p2.x - this->m_p1.x) * (this->m_p2.y - this->m_p1.y) * (this->m_p2.z - this->m_p1.z);
+    }
+
+    // Private
+
+    void AABB::validateOrder(void) {
+        if ( this->m_p1.x > this->m_p2.x ) {
+            std::swap(this->m_p1.x, this->m_p2.x);
+        }
+        if ( this->m_p1.y > this->m_p2.y ) {
+            std::swap(this->m_p1.y, this->m_p2.y);
+        }
+        if ( this->m_p1.z > this->m_p2.z ) {
+            std::swap(this->m_p1.z, this->m_p2.z);
+        }
     }
 
 }
