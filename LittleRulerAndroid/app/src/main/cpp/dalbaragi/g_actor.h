@@ -1,7 +1,5 @@
 #pragma once
 
-#include <glm/glm.hpp>
-#include <glm/gtc/quaternion.hpp>
 
 #include "p_animation.h"
 #include "m_collider.h"
@@ -117,30 +115,15 @@ namespace dal {
 
     class ActorInfo {
 
+    public:
+        Transform m_transform;
+
     private:
-        glm::mat4 m_modelMat;
         std::string m_name;
-        glm::quat m_quat;
-        glm::vec3 m_pos;
-        float m_scale = 1.0f;
-        bool m_matNeedUpdate = true;
-        bool m_static = true;
 
     public:
         ActorInfo(void) = default;
-        ActorInfo(const std::string& actorName, const bool flagStatic);
-
-        const glm::mat4& getModelMat(void);
-
-        void setQuat(const glm::quat& q);
-        void rotate(const float v, const glm::vec3& selector);
-
-        const glm::vec3& getPos(void) const;
-        void setPos(const glm::vec3& v);
-        void addPos(const glm::vec3& v);
-
-        float getScale(void) const;
-        void setScale(const float v);
+        ActorInfo(const std::string& actorName);
 
     };
 
@@ -153,15 +136,7 @@ namespace dal {
 // Components
 namespace dal::cpnt {
 
-    struct Transform {
-        glm::mat4 m_modelMat;
-        glm::quat m_quat;
-        glm::vec3 m_pos;
-        float m_scale = 1.0f;
-
-        Transform(void);
-        void updateMat(void);
-    };
+    using Transform = dal::Transform;
 
     struct Identifier {
         char m_name[MAX_ID_NAME_LEN] = { 0 };

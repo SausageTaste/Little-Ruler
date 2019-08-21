@@ -280,7 +280,7 @@ namespace dal {
 
                 viewStatic.each(
                     [&uniloc](const cpnt::Transform& trans, const cpnt::StaticModel& model) {
-                        model.m_model->renderDepthMap(uniloc.m_geometry, trans.m_modelMat);
+                        model.m_model->renderDepthMap(uniloc.m_geometry, trans.getMat());
                     }
                 );
             }
@@ -294,7 +294,7 @@ namespace dal {
                     auto& cpntTrans = viewAnimated.get<cpnt::Transform>(entity);
                     auto& cpntModel = viewAnimated.get<cpnt::AnimatedModel>(entity);
 
-                    cpntModel.m_model->renderDepthMap(uniloc.m_geometry, uniloc.m_anime, cpntTrans.m_modelMat, cpntModel.m_animState.getTransformArray());
+                    cpntModel.m_model->renderDepthMap(uniloc.m_geometry, uniloc.m_anime, cpntTrans.getMat(), cpntModel.m_animState.getTransformArray());
                 }
             }
 
@@ -368,7 +368,7 @@ namespace dal {
 
             viewStatic.each(
                 [&uniloc](const cpnt::Transform& trans, const cpnt::StaticModel& model) {
-                    model.m_model->render(uniloc.m_lightedMesh, uniloc.getDiffuseMapLoc(), trans.m_modelMat);
+                    model.m_model->render(uniloc.m_lightedMesh, uniloc.getDiffuseMapLoc(), trans.getMat());
                 }
             );
         }
@@ -391,7 +391,7 @@ namespace dal {
                 auto& cpntTrans = viewAnimated.get<cpnt::Transform>(entity);
                 auto& cpntModel = viewAnimated.get<cpnt::AnimatedModel>(entity);
 
-                cpntModel.m_model->render(uniloc.m_lightedMesh, uniloc.getDiffuseMapLoc(), uniloc.m_anime, cpntTrans.m_modelMat,
+                cpntModel.m_model->render(uniloc.m_lightedMesh, uniloc.getDiffuseMapLoc(), uniloc.m_anime, cpntTrans.getMat(),
                     cpntModel.m_animState.getTransformArray());
             }
         }

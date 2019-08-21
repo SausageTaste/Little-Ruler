@@ -6,6 +6,7 @@
 #include <optional>
 
 #include <glm/glm.hpp>
+#include <glm/gtc/quaternion.hpp>
 
 
 namespace dal {
@@ -17,6 +18,66 @@ namespace dal {
     struct RayCastingResult {
         bool m_isFromFront = false;
         float m_distance = 0.0f;
+    };
+
+    class Transform {
+
+    private:
+        struct MatCache {
+            bool m_needUpdate = true;
+            glm::mat4 m_mat;
+        };
+
+    private:
+        mutable MatCache m_mat;
+        glm::quat m_quat;
+        glm::vec3 m_pos;
+        float m_scale;
+        
+    public:
+        Transform(void);
+        Transform(const glm::vec3& pos, const glm::quat& quat, const float scale);
+
+        const glm::mat4& getMat(void) const;
+        const glm::vec3& getPos(void) const noexcept {
+            return this->m_pos;
+        }
+        float getScale(void) const noexcept {
+            return this->m_scale;
+        }
+
+        void setPos(const glm::vec3& v) noexcept {
+            this->m_pos = v;
+            this->setNeedUpdate();
+        }
+        void addPos(const glm::vec3& v) {
+            this->m_pos += v;
+            this->setNeedUpdate();
+        }
+        void addPos(const float v) {
+            this->m_pos += v;
+            this->setNeedUpdate();
+        }
+
+        void setQuat(const glm::quat& q) {
+            this->m_quat = q;
+            this->setNeedUpdate();
+        }
+        void rotate(const float v, const glm::vec3& selector);
+        void setScale(const float v) {
+            this->m_scale = v;
+            this->setNeedUpdate();
+        }
+
+    private:
+        void updateMat(void) const;
+        void setNeedUpdate(void) {
+            this->m_mat.m_needUpdate = true;
+        }
+        bool needUpdate(void) const {
+            return this->m_mat.m_needUpdate;
+        }
+
     };
 
 }

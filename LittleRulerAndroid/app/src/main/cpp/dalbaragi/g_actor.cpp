@@ -103,9 +103,9 @@ namespace {
         const auto rotatedMoveVec = dal::rotateVec2(glm::vec2{ totalMoveInfo.m_move.x, totalMoveInfo.m_move.y }, camera.getStrangeEuler().getX());
 
         const auto deltaPos = glm::vec3{ rotatedMoveVec.x, 0.0f, rotatedMoveVec.y } *deltaTime * 5.0f;
-        cpntTrans.m_pos += deltaPos;
+        cpntTrans.addPos(deltaPos);
         if ( rotatedMoveVec.x != 0.0f || rotatedMoveVec.y != 0.0f ) {  // If moved position
-            cpntTrans.m_quat = dal::rotateQuat(glm::quat{}, atan2(rotatedMoveVec.x, rotatedMoveVec.y), glm::vec3{ 0.0f, 1.0f, 0.0f });
+            cpntTrans.setQuat(dal::rotateQuat(glm::quat{}, atan2(rotatedMoveVec.x, rotatedMoveVec.y), glm::vec3{ 0.0f, 1.0f, 0.0f }));
 
             animModel.m_animState.setSelectedAnimeIndex(1);
 
@@ -118,8 +118,6 @@ namespace {
             else {
                 animModel.m_animState.setTimeScale(1.0f / animeSpeed);
             }
-
-            cpntTrans.updateMat();
         }
     }
 
@@ -299,73 +297,10 @@ namespace dal {
 // ActorInfo
 namespace dal {
 
-    ActorInfo::ActorInfo(const std::string& actorName, const bool flagStatic)
-        : m_name(actorName),
-        m_static(flagStatic)
+    ActorInfo::ActorInfo(const std::string& actorName)
+        : m_name(actorName)
     {
 
-    }
-
-    const glm::mat4& ActorInfo::getModelMat(void) {
-        if ( this->m_matNeedUpdate ) {
-            const auto identity = glm::mat4{ 1.0f };
-            const auto scaleMat = glm::scale(identity, glm::vec3{ this->m_scale, this->m_scale , this->m_scale });
-            const auto translateMat = glm::translate(identity, this->m_pos);
-            this->m_modelMat = translateMat * glm::mat4_cast(this->m_quat) * scaleMat;
-            this->m_matNeedUpdate = false;
-        }
-
-        return this->m_modelMat;
-    }
-
-
-    void ActorInfo::setQuat(const glm::quat& q) {
-        this->m_matNeedUpdate = true;
-        this->m_quat = q;
-    }
-
-    void ActorInfo::rotate(const float v, const glm::vec3& selector) {
-        this->m_matNeedUpdate = true;
-        this->m_quat = glm::normalize(glm::angleAxis(v, selector) * this->m_quat);
-    }
-
-
-    const glm::vec3& ActorInfo::getPos(void) const {
-        return this->m_pos;
-    }
-
-    void ActorInfo::setPos(const glm::vec3& v) {
-        this->m_matNeedUpdate = true;
-        this->m_pos = v;
-    }
-
-    void ActorInfo::addPos(const glm::vec3& v) {
-        this->m_matNeedUpdate = true;
-        this->m_pos += v;
-    }
-
-    float ActorInfo::getScale(void) const {
-        return this->m_scale;
-    }
-
-    void ActorInfo::setScale(const float v) {
-        this->m_scale = v;
-    }
-
-}
-
-
-namespace dal::cpnt {
-
-    Transform::Transform(void) {
-        this->updateMat();
-    }
-
-    void Transform::updateMat(void) {
-        const auto identity = glm::mat4{ 1.0f };
-        const auto scaleMat = glm::scale(identity, glm::vec3{ this->m_scale, this->m_scale , this->m_scale });
-        const auto translateMat = glm::translate(identity, this->m_pos);
-        this->m_modelMat = translateMat * glm::mat4_cast(this->m_quat) * scaleMat;
     }
 
 }
@@ -445,7 +380,7 @@ namespace {
         }
 
         virtual void process(const float deltaTime, const dal::MoveInputInfo& info) override {
-            applybindingCameraToModel(this->m_camera, deltaTime, info, this->m_transform.m_pos, this->m_transform.m_pos);
+            applybindingCameraToModel(this->m_camera, deltaTime, info, this->m_transform.getPos(), this->m_transform.getPos());
         }
 
         virtual dal::ICharaState* exec(const float deltaTime, const dal::MoveInputInfo& info) override;
@@ -467,7 +402,7 @@ namespace {
 
         virtual void enter(void) override {
             this->m_model.m_animState.setSelectedAnimeIndex(1);
-            this->m_lastPos = this->m_transform.m_pos;
+            this->m_lastPos = this->m_transform.getPos();
 
             dalVerbose("WALK");
         }
@@ -478,8 +413,8 @@ namespace {
 
         virtual void process(const float deltaTime, const dal::MoveInputInfo& info) override {
             applyMove(this->m_transform, this->m_model, this->m_camera, deltaTime, info);
-            applybindingCameraToModel(this->m_camera, deltaTime, info, this->m_transform.m_pos, this->m_lastPos);
-            this->m_lastPos = this->m_transform.m_pos;
+            applybindingCameraToModel(this->m_camera, deltaTime, info, this->m_transform.getPos(), this->m_lastPos);
+            this->m_lastPos = this->m_transform.getPos();
         }
 
         virtual dal::ICharaState* exec(const float deltaTime, const dal::MoveInputInfo& info) override;

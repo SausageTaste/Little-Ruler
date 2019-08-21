@@ -112,17 +112,17 @@ namespace dal {
     void MapChunk::renderGeneral(const UnilocGeneral& uniloc) {
         this->sendUniforms_lights(uniloc.m_lightedMesh, 0);
 
-        for ( auto& [model, actors] :this->m_modelActors ) {
-            for ( auto& actor : actors ) {
-                model.render(uniloc.m_lightedMesh, uniloc.getDiffuseMapLoc(), actor.getModelMat());
+        for ( const auto& [model, actors] :this->m_modelActors ) {
+            for ( const auto& actor : actors ) {
+                model.render(uniloc.m_lightedMesh, uniloc.getDiffuseMapLoc(), actor.m_transform.getMat());
             }
         }
     }
 
     void MapChunk::renderDepthMp(const UnilocDepthmp& uniloc) {
-        for ( auto& [mdl, actors] : this->m_modelActors ) {
-            for ( auto& actor : actors ) {
-                mdl.renderDepthMap(uniloc.m_geometry, actor.getModelMat());
+        for ( const auto& [mdl, actors] : this->m_modelActors ) {
+            for ( const auto& actor : actors ) {
+                mdl.renderDepthMap(uniloc.m_geometry, actor.m_transform.getMat());
             }
         }
     }
@@ -130,7 +130,7 @@ namespace dal {
     void MapChunk::renderDepthAnimated(const UnilocDepthAnime& uniloc) {
         for ( auto& [mdl, actors, animStat] : this->m_animatedActors ) {
             for ( auto& actor : actors ) {
-                mdl->renderDepthMap(uniloc.m_geometry, uniloc.m_anime, actor.getModelMat(), animStat.getTransformArray());
+                mdl->renderDepthMap(uniloc.m_geometry, uniloc.m_anime, actor.m_transform.getMat(), animStat.getTransformArray());
             }
         }
     }
@@ -148,7 +148,7 @@ namespace dal {
 
         for ( auto& [mdl, actors, animStat] : this->m_animatedActors ) {
             for ( auto& actor : actors ) {
-                mdl->render(uniloc.m_lightedMesh, uniloc.getDiffuseMapLoc(), uniloc.m_anime, actor.getModelMat(), animStat.getTransformArray());
+                mdl->render(uniloc.m_lightedMesh, uniloc.getDiffuseMapLoc(), uniloc.m_anime, actor.m_transform.getMat(), animStat.getTransformArray());
             }
         }
     }
@@ -176,7 +176,7 @@ namespace dal {
 
                 view.each(
                     [&uniloc](const cpnt::Transform& trans, const cpnt::StaticModel& model) {
-                        model.m_model->render(uniloc.m_lightedMesh, uniloc.getDiffuseMapLoc(), trans.m_modelMat);
+                        model.m_model->render(uniloc.m_lightedMesh, uniloc.getDiffuseMapLoc(), trans.getMat());
                     }
                 );
             }
@@ -198,7 +198,7 @@ namespace dal {
 
                 view.each(
                     [&uniloc](const cpnt::Transform& trans, const cpnt::StaticModel& model) {
-                        model.m_model->render(uniloc.m_lightedMesh, uniloc.getDiffuseMapLoc(), trans.m_modelMat);
+                        model.m_model->render(uniloc.m_lightedMesh, uniloc.getDiffuseMapLoc(), trans.getMat());
                     }
                 );
             }
@@ -230,7 +230,7 @@ namespace dal {
                     auto& cpntTransform = view.get<cpnt::Transform>(entity);
                     auto& cpntModel = view.get<cpnt::AnimatedModel>(entity);
 
-                    cpntModel.m_model->render(uniloc.m_lightedMesh, uniloc.getDiffuseMapLoc(), uniloc.m_anime, cpntTransform.m_modelMat,
+                    cpntModel.m_model->render(uniloc.m_lightedMesh, uniloc.getDiffuseMapLoc(), uniloc.m_anime, cpntTransform.getMat(),
                         cpntModel.m_animState.getTransformArray());
                 }
             }
@@ -254,7 +254,7 @@ namespace dal {
                     auto& cpntTransform = view.get<cpnt::Transform>(entity);
                     auto& cpntModel = view.get<cpnt::AnimatedModel>(entity);
 
-                    cpntModel.m_model->render(uniloc.m_lightedMesh, uniloc.getDiffuseMapLoc(), uniloc.m_anime, cpntTransform.m_modelMat,
+                    cpntModel.m_model->render(uniloc.m_lightedMesh, uniloc.getDiffuseMapLoc(), uniloc.m_anime, cpntTransform.getMat(),
                         cpntModel.m_animState.getTransformArray());
                 }
             }
@@ -276,20 +276,20 @@ namespace dal {
     }
 
     void MapChunk::applyCollision(AABB inOriginalBox, cpnt::Transform& inTrans) {
-        inOriginalBox.scale(inTrans.m_scale);
-        inOriginalBox.add(inTrans.m_pos);
+        inOriginalBox.scale(inTrans.getScale());
+        inOriginalBox.add(inTrans.getPos());
 
         for ( auto& [mdl, actors] : this->m_modelActors ) {
             for ( auto& targetActor : actors ) {
                 auto targetBBox = mdl.getBoundingBox();
-                targetBBox.scale(targetActor.getScale());
-                targetBBox.add(targetActor.getPos());
+                targetBBox.scale(targetActor.m_transform.getScale());
+                targetBBox.add(targetActor.m_transform.getPos());
 
                 if ( checkCollision(inOriginalBox, targetBBox) ) {
                     const auto resolveInfo = calcResolveInfo(inOriginalBox, targetBBox, 1.0f, 0.0f);
-                    inTrans.m_pos += resolveInfo.m_this;
+                    inTrans.addPos(resolveInfo.m_this);
                     inOriginalBox.add(resolveInfo.m_this);
-                    targetActor.addPos(resolveInfo.m_other);
+                    targetActor.m_transform.addPos(resolveInfo.m_other);
                 }
             }
         }
@@ -297,14 +297,14 @@ namespace dal {
         for ( auto& [mdl, actors, animStat] : this->m_animatedActors ) {
             for ( auto& targetActor : actors ) {
                auto targetBBox = mdl->getBoundingBox();
-               targetBBox.scale(targetActor.getScale());
-                targetBBox.add(targetActor.getPos());
+               targetBBox.scale(targetActor.m_transform.getScale());
+                targetBBox.add(targetActor.m_transform.getPos());
 
                 if ( checkCollision(inOriginalBox, targetBBox) ) {
                     const auto resolveInfo = calcResolveInfo(inOriginalBox, targetBBox, 1.0f, 0.0f);
-                    inTrans.m_pos += resolveInfo.m_this;
+                    inTrans.addPos(resolveInfo.m_this);
                     inOriginalBox.add(resolveInfo.m_this);
-                    targetActor.addPos(resolveInfo.m_other);
+                    targetActor.m_transform.addPos(resolveInfo.m_other);
                 }
             }
         }
@@ -333,8 +333,8 @@ namespace dal {
         for ( auto& [mdl, actors] : this->m_modelActors ) {
             for ( auto& targetActor : actors ) {
                 auto targetBBox = mdl.getBoundingBox();
-                targetBBox.scale(targetActor.getScale());
-                targetBBox.add(targetActor.getPos());
+                targetBBox.scale(targetActor.m_transform.getScale());
+                targetBBox.add(targetActor.m_transform.getPos());
 
                 innerFunc(targetBBox);
             }
@@ -343,8 +343,8 @@ namespace dal {
         for ( auto& [mdl, actors, animStat] : this->m_animatedActors ) {
             for ( auto& targetActor : actors ) {
                 auto targetBBox = mdl->getBoundingBox();
-                targetBBox.scale(targetActor.getScale());
-                targetBBox.add(targetActor.getPos());
+                targetBBox.scale(targetActor.m_transform.getScale());
+                targetBBox.add(targetActor.m_transform.getPos());
 
                 innerFunc(targetBBox);
             }
@@ -371,13 +371,13 @@ namespace dal {
     ActorInfo* MapChunk::addActor(ModelStaticHandle const model, const std::string& actorName, bool flagStatic, ResourceMaster& resMas) {
         for ( auto& [mdl, actors] : this->m_modelActors ) {
             if ( model == mdl ) {
-                return &(actors.emplace_back(actorName, flagStatic));
+                return &(actors.emplace_back(actorName));
             }
         }
 
         this->m_modelActors.emplace_back(resMas.orderModelStatic(model.getResID()));
         auto& [mdl, actors] = this->m_modelActors.back();
-        return &actors.emplace_back(actorName, flagStatic);
+        return &actors.emplace_back(actorName);
     }
 
     ModelAnimated* MapChunk::getModelNActorAnimated(const ResourceID& resID) {

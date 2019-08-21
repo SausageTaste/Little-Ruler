@@ -159,7 +159,7 @@ namespace {  // Make attribs
 
             //
 
-            actorVec.emplace_back(charPtr, flagStatic);
+            actorVec.emplace_back(charPtr);
         }
 
         auto& actor = actorVec.back();
@@ -180,9 +180,11 @@ namespace {  // Make attribs
                 header += 4;
             }
 
-            actor.setPos(glm::vec3{ numBuf[0], numBuf[1], numBuf[2] });
-            actor.setQuat(glm::quat{ numBuf[6], numBuf[3], numBuf[4], numBuf[5] });
-            actor.setScale(numBuf[7]);
+            actor.m_transform = dal::Transform{
+                glm::vec3{ numBuf[0], numBuf[1], numBuf[2] },
+                glm::quat{ numBuf[6], numBuf[3], numBuf[4], numBuf[5] },
+                numBuf[7]
+            };
         }
 
         return header;

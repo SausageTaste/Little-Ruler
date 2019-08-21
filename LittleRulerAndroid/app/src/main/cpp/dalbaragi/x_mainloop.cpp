@@ -402,8 +402,7 @@ namespace dal {
             this->m_player = this->m_enttMaster.create();
 
             auto& transform = this->m_enttMaster.assign<cpnt::Transform>(this->m_player);
-            transform.m_scale = 0.2f;
-            transform.updateMat();
+            transform.setScale(0.2f);
 
             auto ptrModel = this->m_resMas.orderModelAnim("asset::Character Running.dae");
             dalAssert(nullptr != ptrModel);
@@ -471,16 +470,15 @@ namespace dal {
         // Resolve collisions
         {
             auto& trans = this->m_enttMaster.get<cpnt::Transform>(this->m_player);
-            const auto lastPos = trans.m_pos;
+            const auto lastPos = trans.getPos();
             auto& model = this->m_enttMaster.get<cpnt::AnimatedModel>(this->m_player);
             {
                 this->m_scene.applyCollision(model.m_model->getBoundingBox(), trans);
             }
-            bindCameraPos(this->m_camera, trans.m_pos, lastPos);
-            trans.updateMat();
+            bindCameraPos(this->m_camera, trans.getPos(), lastPos);
 
 #if true
-            Ray ray{ trans.m_pos, glm::vec3{0.f, -100.f, 0.f} };
+            Ray ray{ trans.getPos(), glm::vec3{0.f, -100.f, 0.f} };
             auto raycasted = this->m_scene.doRayCasting(ray);
             if ( raycasted ) {
                 dalVerbose("Ray cast : {}"_format(raycasted->m_distance));
