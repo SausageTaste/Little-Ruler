@@ -112,10 +112,6 @@ namespace dal {
         void add(const glm::vec3& offset);
         void scale(const float mag);
 
-        friend bool checkCollision(const AABB& one, const AABB& other);
-        friend CollisionResolveInfo calcResolveInfo(const AABB& one, const AABB& other,
-            const float oneMassInv, const float otherMassInv);
-
         float calcArea(void) const;
 
     private:

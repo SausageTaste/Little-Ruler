@@ -301,12 +301,17 @@ namespace dal {
 namespace dal {
 
     bool checkCollision(const AABB& one, const AABB& other) {
-        if ( one.m_p2.x < other.m_p1.x ) return false;
-        else if ( one.m_p1.x > other.m_p2.x ) return false;
-        else if ( one.m_p2.y < other.m_p1.y ) return false;
-        else if ( one.m_p1.y > other.m_p2.y ) return false;
-        else if ( one.m_p2.z < other.m_p1.z ) return false;
-        else if ( one.m_p1.z > other.m_p2.z ) return false;
+        const auto one1 = one.getPoint000();
+        const auto one2 = one.getPoint111();
+        const auto other1 = other.getPoint000();
+        const auto other2 = other.getPoint111();
+
+        if ( one2.x < other1.x ) return false;
+        else if ( one1.x > other2.x ) return false;
+        else if ( one2.y < other1.y ) return false;
+        else if ( one1.y > other2.y ) return false;
+        else if ( one2.z < other1.z ) return false;
+        else if ( one1.z > other2.z ) return false;
         else return true;
     }
 
@@ -404,16 +409,21 @@ namespace dal {
         const auto thisFactor = oneMassInv / sumOfMassInv;
         const auto otherFactor = otherMassInv / sumOfMassInv;
 
-        const auto xOne = one.m_p2.x - other.m_p1.x;
-        const auto xTwo = one.m_p1.x - other.m_p2.x;
+        const auto one1 = one.getPoint000();
+        const auto one2 = one.getPoint111();
+        const auto other1 = other.getPoint000();
+        const auto other2 = other.getPoint111();
+
+        const auto xOne = one2.x - other1.x;
+        const auto xTwo = one1.x - other2.x;
         const auto xDistance = abs(xOne) < abs(xTwo) ? xOne : xTwo;
 
-        const auto yOne = one.m_p2.y - other.m_p1.y;
-        const auto yTwo = one.m_p1.y - other.m_p2.y;
+        const auto yOne = one2.y - other1.y;
+        const auto yTwo = one1.y - other2.y;
         const auto yDistance = abs(yOne) < abs(yTwo) ? yOne : yTwo;
 
-        const auto zOne = one.m_p2.z - other.m_p1.z;
-        const auto zTwo = one.m_p1.z - other.m_p2.z;
+        const auto zOne = one2.z - other1.z;
+        const auto zTwo = one1.z - other2.z;
         const auto zDistance = abs(zOne) < abs(zTwo) ? zOne : zTwo;
 
         const auto xForThis = -xDistance * thisFactor;
