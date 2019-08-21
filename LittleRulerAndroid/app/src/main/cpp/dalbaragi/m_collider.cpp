@@ -55,10 +55,23 @@ namespace {
         tri2 = dal::Triangle{ p1, p3, p4 };
     }
 
-    std::array<dal::Triangle, 12> makeTriangles(const dal::AABB& aabb) {
+    std::array<dal::Triangle, 12> makeTriangles(std::array<glm::vec3, 8> ps) {
         std::array<dal::Triangle, 12> result;
 
-        const auto ps = aabb.getAllPoints();
+        makeTrianglesFromRect(ps[3], ps[1], ps[5], ps[7], result[0], result[1]);
+        makeTrianglesFromRect(ps[7], ps[5], ps[4], ps[6], result[2], result[3]);
+        makeTrianglesFromRect(ps[6], ps[4], ps[0], ps[2], result[4], result[5]);
+        makeTrianglesFromRect(ps[2], ps[0], ps[1], ps[3], result[6], result[7]);
+        makeTrianglesFromRect(ps[2], ps[3], ps[7], ps[6], result[8], result[9]);
+        makeTrianglesFromRect(ps[4], ps[5], ps[1], ps[0], result[10], result[11]);
+
+        return result;
+    }
+
+    std::array<dal::Triangle, 12> makeTriangles(const dal::AABB& aabb, const dal::Transform & transAABB) {
+        std::array<dal::Triangle, 12> result;
+
+        const auto ps = aabb.getAllPoints(transAABB);
 
         makeTrianglesFromRect(ps[3], ps[1], ps[5], ps[7], result[0], result[1]);
         makeTrianglesFromRect(ps[7], ps[5], ps[4], ps[6], result[2], result[3]);
@@ -97,6 +110,120 @@ namespace {
         }
 
         return true;
+    }
+
+}
+
+
+// Collision fucntions
+namespace {
+
+    bool checkCollisionWithMinMax(const glm::vec3& one1, const glm::vec3& one2, const glm::vec3& other1, const glm::vec3& other2) {
+        if ( one2.x < other1.x ) return false;
+        else if ( one1.x > other2.x ) return false;
+        else if ( one2.y < other1.y ) return false;
+        else if ( one1.y > other2.y ) return false;
+        else if ( one2.z < other1.z ) return false;
+        else if ( one1.z > other2.z ) return false;
+        else return true;
+    }
+
+    bool checkCollision_withAllPoints(const std::array<glm::vec3, 8>& points, const dal::Plane& plane) {
+        const auto firstOne = plane.isInFront(points[0]);
+
+        for ( size_t i = 1; i < points.size(); ++i ) {
+            const auto thisOne = plane.isInFront(points[i]);
+            if ( firstOne != thisOne ) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    bool checkCollision_rayVsMinMax(const dal::Ray& ray, const glm::vec3& aabbMin, const glm::vec3& aabbMax) {
+        // From https://www.scratchapixel.com/lessons/3d-basic-rendering/minimal-ray-tracer-rendering-simple-shapes/ray-box-intersection
+
+        const glm::vec3 bounds[2] = { aabbMin, aabbMax };
+        const auto orig = ray.getStartPos();
+        const auto invdir = 1.f / ray.getRel();
+        const int sign[3] = {
+            invdir.x < 0,
+            invdir.y < 0,
+            invdir.z < 0
+        };
+
+        auto tmin = (bounds[sign[0]].x - orig.x) * invdir.x;
+        auto tmax = (bounds[1 - sign[0]].x - orig.x) * invdir.x;
+
+        const auto tymin = (bounds[sign[1]].y - orig.y) * invdir.y;
+        const auto tymax = (bounds[1 - sign[1]].y - orig.y) * invdir.y;
+
+        if ( (tmin > tymax) || (tymin > tmax) ) {
+            return false;
+        }
+        if ( tymin > tmin ) {
+            tmin = tymin;
+        }
+        if ( tymax < tmax ) {
+            tmax = tymax;
+        }
+
+        const auto tzmin = (bounds[sign[2]].z - orig.z) * invdir.z;
+        const auto tzmax = (bounds[1 - sign[2]].z - orig.z) * invdir.z;
+
+        if ( (tmin > tzmax) || (tzmin > tmax) ) {
+            return false;
+        }
+        if ( tzmin > tmin ) {
+            tmin = tzmin;
+        }
+        if ( tzmax < tmax ) {
+            tmax = tzmax;
+        }
+
+        return true;
+    }
+
+
+    dal::CollisionResolveInfo calcResolveInfo_withMinMax(
+        const glm::vec3& one1, const glm::vec3& one2,
+        const glm::vec3& other1, const glm::vec3& other2,
+        const float thisFactor, const float otherFactor
+    ) {
+        const auto xOne = one2.x - other1.x;
+        const auto xTwo = one1.x - other2.x;
+        const auto xDistance = abs(xOne) < abs(xTwo) ? xOne : xTwo;
+
+        const auto yOne = one2.y - other1.y;
+        const auto yTwo = one1.y - other2.y;
+        const auto yDistance = abs(yOne) < abs(yTwo) ? yOne : yTwo;
+
+        const auto zOne = one2.z - other1.z;
+        const auto zTwo = one1.z - other2.z;
+        const auto zDistance = abs(zOne) < abs(zTwo) ? zOne : zTwo;
+
+        const auto xForThis = -xDistance * thisFactor;
+        const auto yForThis = -yDistance * thisFactor;
+        const auto zForThis = -zDistance * thisFactor;
+
+        const auto xForOther = xDistance * otherFactor;
+        const auto yForOther = yDistance * otherFactor;
+        const auto zForOther = zDistance * otherFactor;
+
+        const float selector[3] = { std::abs(xForThis), std::abs(yForThis), std::abs(zForThis) };
+        switch ( minValueIndex(selector, 3) ) {
+
+        case 0:
+            return dal::CollisionResolveInfo{ { xForThis, 0.0f, 0.0f }, { xForOther, 0.0f, 0.0f } };
+        case 1:
+            return dal::CollisionResolveInfo{ { 0.0f, yForThis, 0.0f }, { 0.0f, yForOther, 0.0f } };
+        case 2:
+            return dal::CollisionResolveInfo{ { 0.0f, 0.0f, zForThis }, { 0.0f, 0.0f, zForOther } };
+        default:
+            dalAbort("This can't happen!");
+
+        }
     }
 
 }
@@ -155,24 +282,33 @@ namespace dal {
     }
 
     std::array<glm::vec3, 8> AABB::getAllPoints(void) const {
+        return this->getAllPoints([](auto vec) { return vec; });
+    }
+
+    std::array<glm::vec3, 8> AABB::getAllPoints(const Transform& trans) const {
+        return this->getAllPoints([&trans](auto vec) { return trans.getScale() * vec + trans.getPos(); });
+    }
+
+    std::array<glm::vec3, 8> AABB::getAllPoints(std::function<glm::vec3(const glm::vec3&)> modifier) const {
         std::array<glm::vec3, 8> result;
 
         {
             const auto p000 = this->getPoint000();
             const auto p111 = this->getPoint111();
 
-            result[0] = p000;  // 000
-            result[1] = glm::vec3{ p000.x, p000.y, p111.z };  // 001
-            result[2] = glm::vec3{ p000.x, p111.y, p000.z };  // 010
-            result[3] = glm::vec3{ p000.x, p111.y, p111.z };  // 011
-            result[4] = glm::vec3{ p111.x, p000.y, p000.z };  // 100
-            result[5] = glm::vec3{ p111.x, p000.y, p111.z };  // 101
-            result[6] = glm::vec3{ p111.x, p111.y, p000.z };  // 110
-            result[7] = p111;  // 111
+            result[0] = modifier(p000);  // 000
+            result[1] = modifier(glm::vec3{ p000.x, p000.y, p111.z });  // 001
+            result[2] = modifier(glm::vec3{ p000.x, p111.y, p000.z });  // 010
+            result[3] = modifier(glm::vec3{ p000.x, p111.y, p111.z });  // 011
+            result[4] = modifier(glm::vec3{ p111.x, p000.y, p000.z });  // 100
+            result[5] = modifier(glm::vec3{ p111.x, p000.y, p111.z });  // 101
+            result[6] = modifier(glm::vec3{ p111.x, p111.y, p000.z });  // 110
+            result[7] = modifier(p111);  // 111
         }
 
         return result;
     }
+
 
     void AABB::set(const glm::vec3& p1, const glm::vec3& p2) {
         this->m_p1 = p1;
@@ -181,6 +317,7 @@ namespace dal {
         this->validateOrder();
     }
 
+    /*
     void AABB::add(const glm::vec3& offset) {
         this->m_p1 += offset;
         this->m_p2 += offset;
@@ -190,6 +327,7 @@ namespace dal {
         this->m_p1 *= mag;
         this->m_p2 *= mag;
     }
+    */
 
     float AABB::calcArea(void) const {
         return (this->m_p2.x - this->m_p1.x) * (this->m_p2.y - this->m_p1.y) * (this->m_p2.z - this->m_p1.z);
@@ -306,29 +444,39 @@ namespace dal {
         const auto other1 = other.getPoint000();
         const auto other2 = other.getPoint111();
 
-        if ( one2.x < other1.x ) return false;
-        else if ( one1.x > other2.x ) return false;
-        else if ( one2.y < other1.y ) return false;
-        else if ( one1.y > other2.y ) return false;
-        else if ( one2.z < other1.z ) return false;
-        else if ( one1.z > other2.z ) return false;
-        else return true;
+        return checkCollisionWithMinMax(one1, one2, other1, other2);
+    }
+
+    bool checkCollision(const AABB& one, const AABB& two, const Transform& transOne, const Transform& transTwo) {
+        const auto one1 = transOne.getScale() * one.getPoint000() + transOne.getPos();
+        const auto one2 = transOne.getScale() * one.getPoint111() + transOne.getPos();
+        const auto two1 = transTwo.getScale() * two.getPoint000() + transTwo.getPos();
+        const auto two2 = transTwo.getScale() * two.getPoint111() + transTwo.getPos();
+
+        return checkCollisionWithMinMax(one1, one2, two1, two2);
     }
 
     bool checkCollision(const AABB& aabb, const Plane& plane) {
         const auto points = aabb.getAllPoints();
-
-        const auto firstOne = plane.isInFront(points[0]);
-
-        for ( size_t i = 1; i < points.size(); ++i ) {
-            const auto thisOne = plane.isInFront(points[i]);
-            if ( firstOne != thisOne ) {
-                return true;
-            }
-        }
-
-        return false;
+        return checkCollision_withAllPoints(points, plane);
     }
+
+    bool checkCollision(const AABB& aabb, const Plane& plane, const Transform& transAABB) {
+        const auto points = aabb.getAllPoints(transAABB);
+        return checkCollision_withAllPoints(points, plane);
+    }
+
+    bool checkCollision(const Ray& ray, const AABB& aabb) {
+        return checkCollision_rayVsMinMax(ray, aabb.getPoint000(), aabb.getPoint111());
+    }
+
+    bool checkCollision(const Ray& ray, const AABB& aabb, const Transform& transAABB) {
+        return checkCollision_rayVsMinMax(ray,
+            transAABB.getScale() * aabb.getPoint000() + transAABB.getPos(),
+            transAABB.getScale() * aabb.getPoint111() + transAABB.getPos()
+        );
+    }
+
 
     bool checkCollision(const Ray& ray, const Plane& plane) {
         const auto pointA = ray.getStartPos();
@@ -338,50 +486,6 @@ namespace dal {
         const auto distB = plane.getSignedDist(pointB);
 
         return (distA * distB) <= 0.0f;
-    }
-
-    bool checkCollision(const Ray& ray, const AABB& aabb) {
-        // From https://www.scratchapixel.com/lessons/3d-basic-rendering/minimal-ray-tracer-rendering-simple-shapes/ray-box-intersection
-
-        const glm::vec3 bounds[2] = { aabb.getPoint000(), aabb.getPoint111() };
-        const auto orig = ray.getStartPos();
-        const auto invdir = 1.f / ray.getRel();
-        const int sign[3] = {
-            invdir.x < 0,
-            invdir.y < 0,
-            invdir.z < 0
-        };
-
-        auto tmin = (bounds[sign[0]].x - orig.x) * invdir.x;
-        auto tmax = (bounds[1 - sign[0]].x - orig.x) * invdir.x;
-
-        const auto tymin = (bounds[sign[1]].y - orig.y) * invdir.y;
-        const auto tymax = (bounds[1 - sign[1]].y - orig.y) * invdir.y;
-
-        if ( (tmin > tymax) || (tymin > tmax) ) {
-            return false;
-        }
-        if ( tymin > tmin ) {
-            tmin = tymin;
-        }
-        if ( tymax < tmax ) {
-            tmax = tymax;
-        }
-
-        const auto tzmin = (bounds[sign[2]].z - orig.z) * invdir.z;
-        const auto tzmax = (bounds[1 - sign[2]].z - orig.z) * invdir.z;
-
-        if ( (tmin > tzmax) || (tzmin > tmax) ) {
-            return false;
-        }
-        if ( tzmin > tmin ) {
-            tmin = tzmin;
-        }
-        if ( tzmax < tmax ) {
-            tmax = tzmax;
-        }
-
-        return true;
     }
 
     bool checkCollision(const Ray& ray, const Triangle& tri) {
@@ -414,42 +518,65 @@ namespace dal {
         const auto other1 = other.getPoint000();
         const auto other2 = other.getPoint111();
 
-        const auto xOne = one2.x - other1.x;
-        const auto xTwo = one1.x - other2.x;
-        const auto xDistance = abs(xOne) < abs(xTwo) ? xOne : xTwo;
-
-        const auto yOne = one2.y - other1.y;
-        const auto yTwo = one1.y - other2.y;
-        const auto yDistance = abs(yOne) < abs(yTwo) ? yOne : yTwo;
-
-        const auto zOne = one2.z - other1.z;
-        const auto zTwo = one1.z - other2.z;
-        const auto zDistance = abs(zOne) < abs(zTwo) ? zOne : zTwo;
-
-        const auto xForThis = -xDistance * thisFactor;
-        const auto yForThis = -yDistance * thisFactor;
-        const auto zForThis = -zDistance * thisFactor;
-
-        const auto xForOther = xDistance * otherFactor;
-        const auto yForOther = yDistance * otherFactor;
-        const auto zForOther = zDistance * otherFactor;
-
-        const float selector[3] = { std::abs(xForThis), std::abs(yForThis), std::abs(zForThis) };
-        const auto index = minValueIndex(selector, 3);
-        switch ( index ) {
-
-        case 0:
-            return CollisionResolveInfo{ { xForThis, 0.0f, 0.0f }, { xForOther, 0.0f, 0.0f } };
-        case 1:
-            return CollisionResolveInfo{ { 0.0f, yForThis, 0.0f }, { 0.0f, yForOther, 0.0f } };
-        case 2:
-            return CollisionResolveInfo{ { 0.0f, 0.0f, zForThis }, { 0.0f, 0.0f, zForOther } };
-        default:
-            dalAbort("This can't happen!");
-
-        }
+        return calcResolveInfo_withMinMax(one1, one2, other1, other2, thisFactor, otherFactor);
     }
 
+    CollisionResolveInfo calcResolveInfo(const AABB& one, const AABB& other,
+        const float oneMassInv, const float otherMassInv,
+        const Transform& transOne, const Transform& transTwo)
+    {
+        const auto sumOfMassInv = oneMassInv + otherMassInv;
+        if ( sumOfMassInv == 0.0f ) {
+            return CollisionResolveInfo{ { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } };
+        }
+
+        const auto thisFactor = oneMassInv / sumOfMassInv;
+        const auto otherFactor = otherMassInv / sumOfMassInv;
+
+        const auto one1 = transOne.getScale() * one.getPoint000() + transOne.getPos();
+        const auto one2 = transOne.getScale() * one.getPoint111() + transOne.getPos();
+        const auto other1 = transTwo.getScale() * other.getPoint000() + transTwo.getPos();
+        const auto other2 = transTwo.getScale() * other.getPoint111() + transTwo.getPos();
+
+        return calcResolveInfo_withMinMax(one1, one2, other1, other2, thisFactor, otherFactor);
+    }
+
+
+    std::optional<RayCastingResult> calcCollisionInfo(const Ray& ray, const AABB& aabb) {
+        if ( aabb.calcArea() == 0.0f ) {
+            return std::nullopt;
+        }
+
+        RayCastingResult result;
+
+        const auto triangles = makeTriangles(aabb.getAllPoints());
+        for ( auto& tri : triangles ) {
+            const auto triCol = calcCollisionInfo(ray, tri);
+            if ( triCol ) {
+                return triCol;
+            }
+        }
+
+        return std::nullopt;
+    }
+
+    std::optional<RayCastingResult> calcCollisionInfo(const Ray& ray, const AABB& aabb, const Transform& transAABB) {
+        if ( aabb.calcArea() == 0.0f ) {
+            return std::nullopt;
+        }
+
+        RayCastingResult result;
+
+        const auto triangles = makeTriangles(aabb.getAllPoints(transAABB));
+        for ( auto& tri : triangles ) {
+            const auto triCol = calcCollisionInfo(ray, tri);
+            if ( triCol ) {
+                return triCol;
+            }
+        }
+
+        return std::nullopt;
+    }
 
     std::optional<RayCastingResult> calcCollisionInfo(const Ray& ray, const Plane& plane) {
         const auto pointA = ray.getStartPos();
@@ -484,24 +611,6 @@ namespace dal {
         else {
             return std::nullopt;
         }
-    }
-
-    std::optional<RayCastingResult> calcCollisionInfo(const Ray& ray, const AABB& aabb) {
-        if ( aabb.calcArea() == 0.0f ) {
-            return std::nullopt;
-        }
-
-        RayCastingResult result;
-
-        const auto triangles = makeTriangles(aabb);
-        for ( auto& tri : triangles ) {
-            const auto triCol = calcCollisionInfo(ray, tri);
-            if ( triCol ) {
-                return triCol;
-            }
-        }
-
-        return std::nullopt;
     }
 
 }

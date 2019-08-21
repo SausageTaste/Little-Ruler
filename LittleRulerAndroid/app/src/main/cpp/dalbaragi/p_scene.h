@@ -54,7 +54,7 @@ namespace dal {
         void renderAnimate_onWater(const UnilocAnimate& uniloc, const ICamera& cam, entt::registry& reg);
 
         // Only for objects that are outside of this chunk.
-        void applyCollision(AABB inOriginalBox, cpnt::Transform& inTrans);
+        void applyCollision(const AABB& inOriginalBox, cpnt::Transform& inTrans);
         std::optional<RayCastingResult> doRayCasting(const Ray& ray);
 
         WaterRenderer* getWater(const size_t index);

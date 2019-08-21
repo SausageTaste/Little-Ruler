@@ -4,6 +4,7 @@
 #include <vector>
 #include <variant>
 #include <optional>
+#include <functional>
 
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
@@ -107,10 +108,12 @@ namespace dal {
         // 000, 001, 010, 011, 100, 101, 110, 111
         // Each digit means x, y, z, 0 means lower value on the axis, 1 means higher.
         std::array<glm::vec3, 8> getAllPoints(void) const;
+        std::array<glm::vec3, 8> getAllPoints(const Transform& trans) const;
+        std::array<glm::vec3, 8> getAllPoints(std::function<glm::vec3(const glm::vec3&)> modifier) const;
 
         void set(const glm::vec3& p1, const glm::vec3& p2);
-        void add(const glm::vec3& offset);
-        void scale(const float mag);
+        //void add(const glm::vec3& offset);
+        //void scale(const float mag);
 
         float calcArea(void) const;
 
@@ -203,22 +206,41 @@ namespace dal {
 }
 
 
-// Primitive functions
+// checkCollision funcs
 namespace dal {
 
     bool checkCollision(const AABB& one, const AABB& other);
+    bool checkCollision(const AABB& one, const AABB& two, const Transform& transOne, const Transform& transTwo);
     bool checkCollision(const AABB& aabb, const Plane& plane);
-    bool checkCollision(const Ray& ray, const Plane& plane);
+    bool checkCollision(const AABB& aabb, const Plane& plane, const Transform& transAABB);
     bool checkCollision(const Ray& ray, const AABB& aabb);
+    bool checkCollision(const Ray& ray, const AABB& aabb, const Transform& transAABB);
+
+    bool checkCollision(const Ray& ray, const Plane& plane);
     bool checkCollision(const Ray& ray, const Triangle& tri);
 
-    CollisionResolveInfo calcResolveInfo(const AABB& one, const AABB& other,
-        const float oneMassInv, const float otherMassInv);
+}
+
+
+// calcResolveInfo funcs
+namespace dal {
+
+    CollisionResolveInfo calcResolveInfo(const AABB& one, const AABB& other, const float oneMassInv, const float otherMassInv);
+    CollisionResolveInfo calcResolveInfo(const AABB& one, const AABB& other, const float oneMassInv, const float otherMassInv,
+        const Transform& transOne, const Transform& transTwo);
+
+}
+
+
+// calcCollisionInfo funcs
+namespace dal {
+
+    std::optional<RayCastingResult> calcCollisionInfo(const Ray& ray, const AABB& aabb);
+    std::optional<RayCastingResult> calcCollisionInfo(const Ray& ray, const AABB& aabb, const Transform& transAABB);
 
     std::optional<RayCastingResult> calcCollisionInfo(const Ray& ray, const Plane& plane);
     std::optional<RayCastingResult> calcCollisionInfo(const Ray& ray, const Triangle& tri, const bool ignoreFromBack = false);
-    std::optional<RayCastingResult> calcCollisionInfo(const Ray& ray, const AABB& aabb);
-
+    
 }
 
 

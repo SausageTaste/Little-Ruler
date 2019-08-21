@@ -275,20 +275,12 @@ namespace dal {
         return startIndex + this->m_plights.size();
     }
 
-    void MapChunk::applyCollision(AABB inOriginalBox, cpnt::Transform& inTrans) {
-        inOriginalBox.scale(inTrans.getScale());
-        inOriginalBox.add(inTrans.getPos());
-
+    void MapChunk::applyCollision(const AABB& inOriginalBox, cpnt::Transform& inTrans) {
         for ( auto& [mdl, actors] : this->m_modelActors ) {
             for ( auto& targetActor : actors ) {
-                auto targetBBox = mdl.getBoundingBox();
-                targetBBox.scale(targetActor.m_transform.getScale());
-                targetBBox.add(targetActor.m_transform.getPos());
-
-                if ( checkCollision(inOriginalBox, targetBBox) ) {
-                    const auto resolveInfo = calcResolveInfo(inOriginalBox, targetBBox, 1.0f, 0.0f);
+                if ( checkCollision(inOriginalBox, mdl.getBoundingBox(), inTrans, targetActor.m_transform) ) {
+                    const auto resolveInfo = calcResolveInfo(inOriginalBox, mdl.getBoundingBox(), 1.0f, 0.0f, inTrans, targetActor.m_transform);
                     inTrans.addPos(resolveInfo.m_this);
-                    inOriginalBox.add(resolveInfo.m_this);
                     targetActor.m_transform.addPos(resolveInfo.m_other);
                 }
             }
@@ -296,14 +288,9 @@ namespace dal {
 
         for ( auto& [mdl, actors, animStat] : this->m_animatedActors ) {
             for ( auto& targetActor : actors ) {
-               auto targetBBox = mdl->getBoundingBox();
-               targetBBox.scale(targetActor.m_transform.getScale());
-                targetBBox.add(targetActor.m_transform.getPos());
-
-                if ( checkCollision(inOriginalBox, targetBBox) ) {
-                    const auto resolveInfo = calcResolveInfo(inOriginalBox, targetBBox, 1.0f, 0.0f);
+                if ( checkCollision(inOriginalBox, mdl->getBoundingBox(), inTrans, targetActor.m_transform) ) {
+                    const auto resolveInfo = calcResolveInfo(inOriginalBox, mdl->getBoundingBox(), 1.0f, 0.0f, inTrans, targetActor.m_transform);
                     inTrans.addPos(resolveInfo.m_this);
-                    inOriginalBox.add(resolveInfo.m_this);
                     targetActor.m_transform.addPos(resolveInfo.m_other);
                 }
             }
@@ -314,8 +301,8 @@ namespace dal {
         RayCastingResult result;
         bool found = false;
 
-        auto innerFunc = [&](const AABB& aabb) -> void {
-            const auto info = calcCollisionInfo(ray, aabb);
+        auto innerFunc = [&](const AABB& aabb, const Transform& aabbTrans) -> void {
+            const auto info = calcCollisionInfo(ray, aabb, aabbTrans);
             if ( info ) {
                 if ( found ) {
                     if ( info->m_distance < result.m_distance ) {
@@ -332,21 +319,13 @@ namespace dal {
 
         for ( auto& [mdl, actors] : this->m_modelActors ) {
             for ( auto& targetActor : actors ) {
-                auto targetBBox = mdl.getBoundingBox();
-                targetBBox.scale(targetActor.m_transform.getScale());
-                targetBBox.add(targetActor.m_transform.getPos());
-
-                innerFunc(targetBBox);
+                innerFunc(mdl.getBoundingBox(), targetActor.m_transform);
             }
         }
 
         for ( auto& [mdl, actors, animStat] : this->m_animatedActors ) {
             for ( auto& targetActor : actors ) {
-                auto targetBBox = mdl->getBoundingBox();
-                targetBBox.scale(targetActor.m_transform.getScale());
-                targetBBox.add(targetActor.m_transform.getPos());
-
-                innerFunc(targetBBox);
+                innerFunc(mdl->getBoundingBox(), targetActor.m_transform);
             }
         }
 
@@ -497,22 +476,6 @@ namespace dal {
         RayCastingResult result;
         bool found = false;
 
-        auto innerFunc = [&](const AABB& aabb) -> void {
-            const auto info = calcCollisionInfo(ray, aabb);
-            if ( info ) {
-                if ( found ) {
-                    if ( info->m_distance < result.m_distance ) {
-                        result = *info;
-                        found = true;
-                    }
-                }
-                else {
-                    result = *info;
-                    found = true;
-                }
-            }
-        };
-
         for ( auto& map : this->m_mapChunks ) {
             auto info = map.doRayCasting(ray);
 
@@ -520,7 +483,6 @@ namespace dal {
                 if ( found ) {
                     if ( info->m_distance < result.m_distance ) {
                         result = *info;
-                        found = true;
                     }
                 }
                 else {
