@@ -117,6 +117,69 @@ namespace {
 }
 
 
+// Collider resolver
+namespace {
+
+    class ColliderResolver {
+
+    private:
+        using colfunc_t = bool (*)(const dal::ICollider& one, const dal::ICollider& two, const dal::Transform& transOne, const dal::Transform& transTwo);
+
+    private:
+        static constexpr unsigned int k_numColliders = static_cast<unsigned int>(dal::ColliderType::eoe);
+        colfunc_t m_funcTable[k_numColliders][k_numColliders];
+
+    public:
+        ColliderResolver(void) {
+            this->getItem(dal::ColliderType::sphere, dal::ColliderType::sphere) = nullptr;
+            this->getItem(dal::ColliderType::sphere, dal::ColliderType::aabb) = nullptr;
+            this->getItem(dal::ColliderType::sphere, dal::ColliderType::triangle_soup) = nullptr;
+
+            this->getItem(dal::ColliderType::aabb, dal::ColliderType::sphere) = nullptr;
+            this->getItem(dal::ColliderType::aabb, dal::ColliderType::aabb) = checkCol_aabb_aabb;
+            this->getItem(dal::ColliderType::aabb, dal::ColliderType::triangle_soup) = nullptr;
+
+            this->getItem(dal::ColliderType::triangle_soup, dal::ColliderType::sphere) = nullptr;
+            this->getItem(dal::ColliderType::triangle_soup, dal::ColliderType::aabb) = nullptr;
+            this->getItem(dal::ColliderType::triangle_soup, dal::ColliderType::triangle_soup) = nullptr;
+        }
+
+        bool checkCollision(const dal::ICollider& one, const dal::ICollider& two, const dal::Transform& transOne, const dal::Transform& transTwo) const {
+            const auto pFunc = this->getItem(one.getColType(), two.getColType());
+            if ( nullptr == pFunc ) {
+                dalWarn("No function registered for those colliders: {}, {}"_format(this->getIndexOf(one.getColType()), this->getIndexOf(two.getColType())));
+                return false;
+            }
+            else {
+                return pFunc(one, two, transOne, transTwo);
+            }
+        }
+
+    private:
+        static unsigned int getIndexOf(const dal::ColliderType e) {
+            return static_cast<unsigned int>(e);
+        }
+
+        colfunc_t& getItem(const dal::ColliderType one, const dal::ColliderType two) {
+            return this->m_funcTable[this->getIndexOf(one)][this->getIndexOf(two)];
+        }
+
+        const colfunc_t& getItem(const dal::ColliderType one, const dal::ColliderType two) const {
+            return this->m_funcTable[this->getIndexOf(one)][this->getIndexOf(two)];
+        }
+
+    private:
+        static bool checkCol_aabb_aabb(const dal::ICollider& one, const dal::ICollider& two, const dal::Transform& transOne, const dal::Transform& transTwo) {
+            const auto& oneAABB = reinterpret_cast<const dal::AABB&>(one);
+            const auto& twoAABB = reinterpret_cast<const dal::AABB&>(two);
+            return dal::checkCollision(oneAABB, twoAABB, transOne, transTwo);
+        }
+
+    } g_colResolver;
+
+}
+
+
 // Collision fucntions
 namespace {
 
@@ -467,6 +530,11 @@ namespace dal {
 
 // checkCollision funcs
 namespace dal {
+
+    bool checkCollision(const ICollider& one, const ICollider& two, const Transform& transOne, const Transform& transTwo) {
+        return g_colResolver.checkCollision(one, two, transOne, transTwo);
+    }
+
 
     bool checkCollision(const AABB& one, const AABB& other) {
         const auto one1 = one.getPoint000();

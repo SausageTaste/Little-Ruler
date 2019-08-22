@@ -87,8 +87,9 @@ namespace dal {
 
 namespace dal {
 
-    enum class ColliderRegistry {
-        sphere, aabb, triangle_soup
+    enum class ColliderType {
+        sphere = 0, aabb, triangle_soup,
+        eoe
     };
 
 
@@ -96,15 +97,7 @@ namespace dal {
 
     public:
         virtual ~ICollider(void) = default;
-        virtual ColliderRegistry getColType(void) = 0;
-
-    };
-
-
-    class ColliderResolver {
-
-    public:
-
+        virtual ColliderType getColType(void) const noexcept = 0;
 
     };
 
@@ -262,8 +255,8 @@ namespace dal {
     class ColSphere : public Sphere, public ICollider {
 
     public:
-        virtual ColliderRegistry getColType(void) override {
-            return ColliderRegistry::sphere;
+        virtual ColliderType getColType(void) const noexcept override {
+            return ColliderType::sphere;
         }
 
     };
@@ -272,8 +265,8 @@ namespace dal {
     class ColAABB : public AABB, public ICollider {
 
     public:
-        virtual ColliderRegistry getColType(void) override {
-            return ColliderRegistry::aabb;
+        virtual ColliderType getColType(void) const noexcept override {
+            return ColliderType::aabb;
         }
 
     };
@@ -283,6 +276,8 @@ namespace dal {
 
 // checkCollision funcs
 namespace dal {
+
+    bool checkCollision(const ICollider& one, const ICollider& two, const Transform& transOne, const Transform& transTwo);
 
     bool checkCollision(const AABB& one, const AABB& other);
     bool checkCollision(const AABB& one, const AABB& two, const Transform& transOne, const Transform& transTwo);
@@ -329,8 +324,8 @@ namespace dal {
         bool m_faceCull = true;
 
     public:
-        virtual ColliderRegistry getColType(void) override {
-            return ColliderRegistry::triangle_soup;
+        virtual ColliderType getColType(void) const noexcept override {
+            return ColliderType::triangle_soup;
         }
 
         void addTriangle(const Triangle& tri) {
