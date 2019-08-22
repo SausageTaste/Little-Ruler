@@ -125,11 +125,11 @@ namespace {
     class ColliderResolver {
 
     private:
-        using colfunc_t = bool (*)(const dal::ICollider& one, const dal::ICollider& two, const dal::Transform& transOne, const dal::Transform& transTwo);
+        using checkColFunc_t = bool (*)(const dal::ICollider& one, const dal::ICollider& two, const dal::Transform& transOne, const dal::Transform& transTwo);
 
     private:
         static constexpr unsigned int k_numColliders = static_cast<unsigned int>(dal::ColliderType::eoe);
-        colfunc_t m_funcTable[k_numColliders][k_numColliders];
+        checkColFunc_t m_checkColTable[k_numColliders][k_numColliders];
 
     public:
         ColliderResolver(void) {
@@ -162,12 +162,12 @@ namespace {
             return static_cast<unsigned int>(e);
         }
 
-        colfunc_t& getItem(const dal::ColliderType one, const dal::ColliderType two) {
-            return this->m_funcTable[this->getIndexOf(one)][this->getIndexOf(two)];
+        checkColFunc_t& getItem(const dal::ColliderType one, const dal::ColliderType two) {
+            return this->m_checkColTable[this->getIndexOf(one)][this->getIndexOf(two)];
         }
 
-        const colfunc_t& getItem(const dal::ColliderType one, const dal::ColliderType two) const {
-            return this->m_funcTable[this->getIndexOf(one)][this->getIndexOf(two)];
+        const checkColFunc_t& getItem(const dal::ColliderType one, const dal::ColliderType two) const {
+            return this->m_checkColTable[this->getIndexOf(one)][this->getIndexOf(two)];
         }
 
     private:
