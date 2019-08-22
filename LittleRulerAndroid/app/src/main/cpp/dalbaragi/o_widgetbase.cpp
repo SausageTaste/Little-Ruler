@@ -39,7 +39,7 @@ namespace {
     constexpr uint32_t UTF8_FOUR_BYTES_MASK = 0xF8;
     constexpr uint32_t UTF8_FOUR_BYTES_BITS = 0xF0;
     constexpr uint32_t UTF8_CONTINUATION_MASK = 0xC0;
-    constexpr uint32_t UTF8_CONTINUATION_BITS = 0x80;
+    //constexpr uint32_t UTF8_CONTINUATION_BITS = 0x80;
     
     constexpr unsigned int MAX_UTF8_CODE_SIZE = 4;
 
@@ -260,6 +260,8 @@ namespace {
 
                     std::swap(this->m_fontData, other.m_fontData);
                     std::swap(this->m_fontName, other.m_fontName);
+
+                    return *this;
                 }
 
                 ~FreetypeFace(void) {

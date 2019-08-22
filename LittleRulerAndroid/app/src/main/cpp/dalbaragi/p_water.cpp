@@ -73,6 +73,7 @@ namespace {
         return fbuffer;
     }
 
+    /*
     GLuint genTextureAttachment(const unsigned int width, const unsigned int height) {
         GLuint texture;
 
@@ -87,6 +88,7 @@ namespace {
 
         return texture;
     }
+    */
 
     GLuint genDepthTextureAttachment(const unsigned int width, const unsigned int height) {
         GLuint texture;

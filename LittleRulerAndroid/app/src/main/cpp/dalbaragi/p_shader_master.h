@@ -27,11 +27,11 @@ namespace dal {
         ShaderProgram2 m_general;
         UnilocGeneral m_generalUniloc;
 
-        ShaderProgram2 m_depthmap;
-        UnilocDepthmp m_depthmapUniloc;
-
         ShaderProgram2 m_fscreen;
         UnilocFScreen m_fscreenUniloc;
+
+        ShaderProgram2 m_depthmap;
+        UnilocDepthmp m_depthmapUniloc;
 
         ShaderProgram2 m_overlay;
         UnilocOverlay m_overlayUniloc;

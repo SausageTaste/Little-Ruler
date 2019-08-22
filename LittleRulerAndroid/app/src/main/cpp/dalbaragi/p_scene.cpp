@@ -15,6 +15,7 @@ using namespace fmt::literals;
 
 namespace {
 
+    /*
     dal::StrangeEulerCamera makeReflectionCamera(const dal::ICamera& camera, const float waterHeight) {
         dal::StrangeEulerCamera newCam = *(reinterpret_cast<const dal::StrangeEulerCamera*>(&camera));
 
@@ -26,6 +27,7 @@ namespace {
         newCam.updateViewMat();
         return newCam;
     }
+    */
 
 }
 

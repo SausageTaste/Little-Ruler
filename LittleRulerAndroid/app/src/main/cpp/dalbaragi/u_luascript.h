@@ -16,7 +16,6 @@ namespace dal {
     private:
         lua_State* m_lua;
         StringBufferBasic* m_strbuf;
-        char m_name[10] = "fuck you";
 
     public:
         LuaState(const LuaState&) = delete;

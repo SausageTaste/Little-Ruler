@@ -33,6 +33,7 @@ namespace {
 #elif defined(__ANDROID__)
         const auto err = localtime_r(&theTime, &timeInfo);
 #endif
+        // TODO : Error handling.
 
         info.m_day = timeInfo.tm_mday;
         info.m_month = timeInfo.tm_mon + 1;  // Month is 0 – 11, add 1 to get a jan-dec 1-12 concept
@@ -190,7 +191,7 @@ namespace {
             this->setSize(50.0f, 20.0f);
         }
 
-        virtual void render(const dal::UnilocOverlay& uniloc, const float width, const float height) {
+        virtual void render(const dal::UnilocOverlay& uniloc, const float width, const float height) override {
             this->m_label.render(uniloc, width, height);
         }
 
@@ -326,7 +327,7 @@ namespace {
         }
 
     protected:
-        virtual void onScrSpaceBoxUpdate(void) {
+        virtual void onScrSpaceBoxUpdate(void) override {
             constexpr float INNER_MARGIN = 5.0f;
 
             const auto pp1 = this->getPoint00();
@@ -380,11 +381,11 @@ namespace dal {
     // Public
 
     Mainloop::Mainloop(const unsigned int winWidth, const unsigned int winHeight)
-        : m_flagQuit(false)
-        , m_scene(m_resMas, winWidth, winHeight)
+        : m_scene(m_resMas, winWidth, winHeight)
         , m_overlayMas(m_shader, winWidth, winHeight)
         , m_renderMan(m_scene, m_shader, m_overlayMas, &m_camera, winWidth, winHeight)
         , m_inputApply(m_overlayMas, winWidth, winHeight)
+        , m_flagQuit(false)
     {
         // This might be done already by SceneMaster or OverlayMaster but still...
         {
@@ -410,7 +411,7 @@ namespace dal {
             auto& renderable = this->m_enttMaster.assign<cpnt::AnimatedModel>(this->m_player);
             renderable.m_model = ptrModel;
 
-            auto& cpntState = this->m_enttMaster.assign<cpnt::CharacterState>(this->m_player, transform, renderable, this->m_camera);
+            this->m_enttMaster.assign<cpnt::CharacterState>(this->m_player, transform, renderable, this->m_camera);
 
             this->m_enttMaster.assign<cpnt::PhysicsObj>(this->m_player);
         }

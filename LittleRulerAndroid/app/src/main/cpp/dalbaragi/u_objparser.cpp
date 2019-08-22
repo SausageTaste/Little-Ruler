@@ -521,6 +521,7 @@ namespace dal {
 
         AABBBuildInfo aabbInfo;
         const auto res = processNodeAnimated(info.m_model, materials, aabbInfo, scene, scene->mRootNode);
+        // TODO : Error handling.
         info.m_model.m_aabb.set(aabbInfo.p1, aabbInfo.p2);
 
         return true;

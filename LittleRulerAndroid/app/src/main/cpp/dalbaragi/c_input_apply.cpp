@@ -12,6 +12,7 @@ using namespace fmt::literals;
 
 namespace {
 
+    /*
     void toggleGameState(void) {
         dal::EventStatic e;
         e.type = dal::EventType::global_fsm_change;
@@ -34,6 +35,7 @@ namespace {
     inline constexpr dal::KeySpec index2Enum(const unsigned int index) {
         return static_cast<dal::KeySpec>(index + static_cast<unsigned int>(dal::KeySpec::unknown));
     }
+    */
 
 }  // namespace
 

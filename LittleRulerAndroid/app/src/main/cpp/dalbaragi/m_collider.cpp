@@ -13,6 +13,7 @@ using namespace fmt::literals;
 // Global constants
 namespace {
 
+    /*
     const glm::vec3 AABB_NORMALS[6] = {
         { -1.f,  0.f,  0.f },
         {  0.f, -1.f,  0.f },
@@ -21,6 +22,7 @@ namespace {
         {  0.f,  1.f,  0.f },
         {  0.f,  0.f,  1.f }
     };
+    */
 
 }
 
@@ -655,8 +657,6 @@ namespace dal {
             return std::nullopt;
         }
 
-        RayCastingResult result;
-
         const auto triangles = makeTriangles(aabb.getAllPoints());
         for ( auto& tri : triangles ) {
             const auto triCol = calcCollisionInfo(ray, tri);
@@ -672,8 +672,6 @@ namespace dal {
         if ( aabb.calcArea() == 0.0f ) {
             return std::nullopt;
         }
-
-        RayCastingResult result;
 
         const auto triangles = makeTriangles(aabb.getAllPoints(transAABB));
         for ( auto& tri : triangles ) {
