@@ -88,7 +88,7 @@ namespace dal {
 namespace dal {
 
     enum class ColliderRegistry {
-        plane, ray, triangle, aabb, triangle_soup
+        sphere, aabb, triangle_soup
     };
 
 
@@ -258,6 +258,16 @@ namespace dal {
 
 // Polymorphic colliders
 namespace dal {
+
+    class ColSphere : public Sphere, public ICollider {
+
+    public:
+        virtual ColliderRegistry getColType(void) override {
+            return ColliderRegistry::sphere;
+        }
+
+    };
+
 
     class ColAABB : public AABB, public ICollider {
 
