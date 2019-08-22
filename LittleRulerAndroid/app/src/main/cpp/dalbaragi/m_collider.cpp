@@ -170,8 +170,8 @@ namespace {
 
     private:
         static bool checkCol_aabb_aabb(const dal::ICollider& one, const dal::ICollider& two, const dal::Transform& transOne, const dal::Transform& transTwo) {
-            const auto& oneAABB = reinterpret_cast<const dal::AABB&>(one);
-            const auto& twoAABB = reinterpret_cast<const dal::AABB&>(two);
+            const auto& oneAABB = reinterpret_cast<const dal::ColAABB&>(one);
+            const auto& twoAABB = reinterpret_cast<const dal::ColAABB&>(two);
             return dal::checkCollision(oneAABB, twoAABB, transOne, transTwo);
         }
 
@@ -531,7 +531,7 @@ namespace dal {
 // checkCollision funcs
 namespace dal {
 
-    bool checkCollision(const ICollider& one, const ICollider& two, const Transform& transOne, const Transform& transTwo) {
+    bool checkCollisionAbs(const ICollider& one, const ICollider& two, const Transform& transOne, const Transform& transTwo) {
         return g_colResolver.checkCollision(one, two, transOne, transTwo);
     }
 

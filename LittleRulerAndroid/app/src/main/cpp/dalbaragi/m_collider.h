@@ -277,7 +277,7 @@ namespace dal {
 // checkCollision funcs
 namespace dal {
 
-    bool checkCollision(const ICollider& one, const ICollider& two, const Transform& transOne, const Transform& transTwo);
+    bool checkCollisionAbs(const ICollider& one, const ICollider& two, const Transform& transOne, const Transform& transTwo);
 
     bool checkCollision(const AABB& one, const AABB& other);
     bool checkCollision(const AABB& one, const AABB& two, const Transform& transOne, const Transform& transTwo);
