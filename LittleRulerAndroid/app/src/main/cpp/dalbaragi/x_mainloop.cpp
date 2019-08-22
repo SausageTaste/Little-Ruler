@@ -480,10 +480,17 @@ namespace dal {
             bindCameraPos(this->m_camera, trans.getPos(), lastPos);
 
 #if true
-            Ray ray{ trans.getPos(), glm::vec3{0.f, -100.f, 0.f} };
-            auto raycasted = this->m_scene.doRayCasting(ray);
-            if ( raycasted ) {
-                dalVerbose("Ray cast : {}"_format(raycasted->m_distance));
+            {
+                static Timer localTimer;
+
+                if ( localTimer.getElapsed() > 0.5f ) {
+                    localTimer.check();
+                    Ray ray{ trans.getPos(), glm::vec3{0.f, -100.f, 0.f} };
+                    auto raycasted = this->m_scene.doRayCasting(ray);
+                    if ( raycasted ) {
+                        dalVerbose("Ray cast : {}"_format(raycasted->m_distance));
+                    }
+                }
             }
 #endif
         }
