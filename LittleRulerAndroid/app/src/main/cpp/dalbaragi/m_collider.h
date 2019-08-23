@@ -53,6 +53,12 @@ namespace dal {
             this->m_pos = v;
             this->setNeedUpdate();
         }
+        void setPos(const float x, const float y, const float z) noexcept {
+            this->m_pos.x = x;
+            this->m_pos.y = y;
+            this->m_pos.z = z;
+            this->setNeedUpdate();
+        }
         void addPos(const glm::vec3& v) {
             this->m_pos += v;
             this->setNeedUpdate();
