@@ -281,7 +281,10 @@ namespace dal {
         for ( auto& [mdl, actors] : this->m_modelActors ) {
             for ( auto& targetActor : actors ) {
                 if ( checkCollision(inOriginalBox, mdl.getBoundingBox(), inTrans, targetActor.m_transform) ) {
-                    const auto resolveInfo = calcResolveInfo(inOriginalBox, mdl.getBoundingBox(), 1.0f, 0.0f, inTrans, targetActor.m_transform);
+                    PhysicalProperty massInv1; massInv1.setMassInv(1.f);
+                    const auto resolveInfo = calcResolveInfo(
+                        inOriginalBox, mdl.getBoundingBox(), massInv1, PhysicalProperty{}, inTrans, targetActor.m_transform
+                    );
                     inTrans.addPos(resolveInfo.m_this);
                     targetActor.m_transform.addPos(resolveInfo.m_other);
                 }
@@ -291,7 +294,10 @@ namespace dal {
         for ( auto& [mdl, actors, animStat] : this->m_animatedActors ) {
             for ( auto& targetActor : actors ) {
                 if ( checkCollision(inOriginalBox, mdl->getBoundingBox(), inTrans, targetActor.m_transform) ) {
-                    const auto resolveInfo = calcResolveInfo(inOriginalBox, mdl->getBoundingBox(), 1.0f, 0.0f, inTrans, targetActor.m_transform);
+                    PhysicalProperty massInv1; massInv1.setMassInv(1.f);
+                    const auto resolveInfo = calcResolveInfo(
+                        inOriginalBox, mdl->getBoundingBox(), massInv1, PhysicalProperty{}, inTrans, targetActor.m_transform
+                    );
                     inTrans.addPos(resolveInfo.m_this);
                     targetActor.m_transform.addPos(resolveInfo.m_other);
                 }
