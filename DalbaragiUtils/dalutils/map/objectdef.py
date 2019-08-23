@@ -5,7 +5,7 @@ import dalutils.map.collider as col
 import dalutils.util.binutil as but
 
 
-class ModelImbeded(inf.IDataBlock):
+class ModelEmbedded(inf.IDataBlock):
     def __init__(self):
         self.__name = pri.StrData()
         self.__renderUnits = pri.UniformList(blk.RenderUnit)
