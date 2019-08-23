@@ -10,6 +10,7 @@
 #include <glm/gtc/quaternion.hpp>
 
 
+// Structs
 namespace dal {
 
     struct CollisionResolveInfo {
@@ -82,9 +83,26 @@ namespace dal {
 
     };
 
+
+    class PhysicalProperty {
+
+    private:
+        float m_massInv = 0.0f;
+
+    public:
+        void setMassInv(const float v) noexcept {
+            this->m_massInv = v;
+        }
+        float getMassInv(void) const noexcept {
+            return this->m_massInv;
+        }
+
+    };
+
 }
 
 
+// For polymorphism
 namespace dal {
 
     enum class ColliderType {
@@ -106,6 +124,33 @@ namespace dal {
 
 // Primitive colliders
 namespace dal {
+
+    class Ray {
+
+    private:
+        glm::vec3 m_pos, m_rel;
+        float m_len;
+
+    public:
+        Ray(void);
+        Ray(const glm::vec3& pos, const glm::vec3& rel);
+
+        const glm::vec3& getStartPos(void) const {
+            return this->m_pos;
+        }
+        const glm::vec3& getRel(void) const {
+            return this->m_rel;
+        }
+        float getLength(void) const {
+            return this->m_len;
+        }
+        void setStartPos(const glm::vec3& v) {
+            this->m_pos = v;
+        }
+        void setRel(const glm::vec3& v);
+
+    };
+
 
     class Plane {
 
@@ -132,33 +177,6 @@ namespace dal {
         bool isInFront(const glm::vec3 v) const {
             return 0.0f < glm::dot(this->m_coeff, glm::vec4{v, 1.0f});
         }
-
-    };
-
-
-    class Ray {
-
-    private:
-        glm::vec3 m_pos, m_rel;
-        float m_len;
-
-    public:
-        Ray(void);
-        Ray(const glm::vec3& pos, const glm::vec3& rel);
-
-        const glm::vec3& getStartPos(void) const {
-            return this->m_pos;
-        }
-        const glm::vec3& getRel(void) const {
-            return this->m_rel;
-        }
-        float getLength(void) const {
-            return this->m_len;
-        }
-        void setStartPos(const glm::vec3& v) {
-            this->m_pos = v;
-        }
-        void setRel(const glm::vec3& v);
 
     };
 
@@ -215,11 +233,10 @@ namespace dal {
 
     private:
         glm::vec3 m_p1, m_p2;
-        float m_massInv = 1.0f;
 
     public:
         AABB(void) = default;
-        AABB(const glm::vec3& p1, const glm::vec3& p2, const float massInv);
+        AABB(const glm::vec3& p1, const glm::vec3& p2);
 
         glm::vec3 getPoint000(void) const {
             return this->m_p1;
@@ -236,6 +253,7 @@ namespace dal {
         std::array<glm::vec3, 8> getAllPoints(std::function<glm::vec3(const glm::vec3&)> modifier) const;
 
         void set(const glm::vec3& p1, const glm::vec3& p2);
+        AABB transform(const Transform& trans) const;
         //void add(const glm::vec3& offset);
         //void scale(const float mag);
 
@@ -279,24 +297,24 @@ namespace dal {
 
     bool checkCollisionAbs(const ICollider& one, const ICollider& two, const Transform& transOne, const Transform& transTwo);
 
-    bool checkCollision(const AABB& one, const AABB& other);
-    bool checkCollision(const AABB& one, const AABB& two, const Transform& transOne, const Transform& transTwo);
-    bool checkCollision(const AABB& aabb, const Plane& plane);
-    bool checkCollision(const AABB& aabb, const Plane& plane, const Transform& transAABB);
+    bool checkCollision(const Ray& ray, const Triangle& tri);
+    bool checkCollision(const Ray& ray, const Plane& plane);
     bool checkCollision(const Ray& ray, const AABB& aabb);
     bool checkCollision(const Ray& ray, const AABB& aabb, const Transform& transAABB);
-
-    bool checkCollision(const Ray& ray, const Plane& plane);
-    bool checkCollision(const Ray& ray, const Triangle& tri);
-
+    
+    bool checkCollision(const AABB& aabb, const Plane& plane);
+    bool checkCollision(const AABB& aabb, const Plane& plane, const Transform& transAABB);
+    bool checkCollision(const AABB& one, const AABB& other);
+    bool checkCollision(const AABB& one, const AABB& two, const Transform& transOne, const Transform& transTwo);
+    
 }
 
 
 // calcResolveInfo funcs
 namespace dal {
 
-    CollisionResolveInfo calcResolveInfo(const AABB& one, const AABB& other, const float oneMassInv, const float otherMassInv);
-    CollisionResolveInfo calcResolveInfo(const AABB& one, const AABB& other, const float oneMassInv, const float otherMassInv,
+    CollisionResolveInfo calcResolveInfo(const AABB& one, const AABB& other, const PhysicalProperty& physicsOne, const PhysicalProperty& physicsTwo);
+    CollisionResolveInfo calcResolveInfo(const AABB& one, const AABB& other, const PhysicalProperty& physicsOne, const PhysicalProperty& physicsTwo,
         const Transform& transOne, const Transform& transTwo);
 
 }
@@ -305,12 +323,11 @@ namespace dal {
 // calcCollisionInfo funcs
 namespace dal {
 
+    std::optional<RayCastingResult> calcCollisionInfo(const Ray& ray, const Triangle& tri, const bool ignoreFromBack = false);
+    std::optional<RayCastingResult> calcCollisionInfo(const Ray& ray, const Plane& plane);
     std::optional<RayCastingResult> calcCollisionInfo(const Ray& ray, const AABB& aabb);
     std::optional<RayCastingResult> calcCollisionInfo(const Ray& ray, const AABB& aabb, const Transform& transAABB);
 
-    std::optional<RayCastingResult> calcCollisionInfo(const Ray& ray, const Plane& plane);
-    std::optional<RayCastingResult> calcCollisionInfo(const Ray& ray, const Triangle& tri, const bool ignoreFromBack = false);
-    
 }
 
 

@@ -426,9 +426,8 @@ namespace dal {
 // AABB
 namespace dal {
 
-    AABB::AABB(const glm::vec3& p1, const glm::vec3& p2, const float massInv)
+    AABB::AABB(const glm::vec3& p1, const glm::vec3& p2)
         : m_p1(p1), m_p2(p2)
-        , m_massInv(massInv)
     {
         this->validateOrder();
     }
@@ -467,6 +466,13 @@ namespace dal {
         this->m_p2 = p2;
 
         this->validateOrder();
+    }
+
+    AABB AABB::transform(const Transform& trans) const {
+        return AABB{
+            trans.getScale() * this->m_p1 + trans.getPos(),
+            trans.getScale() * this->m_p2 + trans.getPos()
+        };
     }
 
     /*
@@ -538,46 +544,6 @@ namespace dal {
     }
 
 
-    bool checkCollision(const AABB& one, const AABB& other) {
-        const auto one1 = one.getPoint000();
-        const auto one2 = one.getPoint111();
-        const auto other1 = other.getPoint000();
-        const auto other2 = other.getPoint111();
-
-        return checkCollisionWithMinMax(one1, one2, other1, other2);
-    }
-
-    bool checkCollision(const AABB& one, const AABB& two, const Transform& transOne, const Transform& transTwo) {
-        const auto one1 = transOne.getScale() * one.getPoint000() + transOne.getPos();
-        const auto one2 = transOne.getScale() * one.getPoint111() + transOne.getPos();
-        const auto two1 = transTwo.getScale() * two.getPoint000() + transTwo.getPos();
-        const auto two2 = transTwo.getScale() * two.getPoint111() + transTwo.getPos();
-
-        return checkCollisionWithMinMax(one1, one2, two1, two2);
-    }
-
-    bool checkCollision(const AABB& aabb, const Plane& plane) {
-        const auto points = aabb.getAllPoints();
-        return checkCollision_withAllPoints(points, plane);
-    }
-
-    bool checkCollision(const AABB& aabb, const Plane& plane, const Transform& transAABB) {
-        const auto points = aabb.getAllPoints(transAABB);
-        return checkCollision_withAllPoints(points, plane);
-    }
-
-    bool checkCollision(const Ray& ray, const AABB& aabb) {
-        return checkCollision_rayVsMinMax(ray, aabb.getPoint000(), aabb.getPoint111());
-    }
-
-    bool checkCollision(const Ray& ray, const AABB& aabb, const Transform& transAABB) {
-        return checkCollision_rayVsMinMax(ray,
-            transAABB.getScale() * aabb.getPoint000() + transAABB.getPos(),
-            transAABB.getScale() * aabb.getPoint111() + transAABB.getPos()
-        );
-    }
-
-
     bool checkCollision(const Ray& ray, const Plane& plane) {
         const auto pointA = ray.getStartPos();
         const auto pointB = pointA + ray.getRel();
@@ -601,22 +567,60 @@ namespace dal {
         }
     }
 
+    bool checkCollision(const Ray& ray, const AABB& aabb) {
+        return checkCollision_rayVsMinMax(ray, aabb.getPoint000(), aabb.getPoint111());
+    }
+
+    bool checkCollision(const Ray& ray, const AABB& aabb, const Transform& transAABB) {
+        return checkCollision_rayVsMinMax(ray,
+            transAABB.getScale() * aabb.getPoint000() + transAABB.getPos(),
+            transAABB.getScale() * aabb.getPoint111() + transAABB.getPos()
+        );
+    }
+
+
+    bool checkCollision(const AABB& aabb, const Plane& plane) {
+        const auto points = aabb.getAllPoints();
+        return checkCollision_withAllPoints(points, plane);
+    }
+
+    bool checkCollision(const AABB& aabb, const Plane& plane, const Transform& transAABB) {
+        const auto points = aabb.getAllPoints(transAABB);
+        return checkCollision_withAllPoints(points, plane);
+    }
+
+    bool checkCollision(const AABB& one, const AABB& other) {
+        const auto one1 = one.getPoint000();
+        const auto one2 = one.getPoint111();
+        const auto other1 = other.getPoint000();
+        const auto other2 = other.getPoint111();
+
+        return checkCollisionWithMinMax(one1, one2, other1, other2);
+    }
+
+    bool checkCollision(const AABB& one, const AABB& two, const Transform& transOne, const Transform& transTwo) {
+        const auto one1 = transOne.getScale() * one.getPoint000() + transOne.getPos();
+        const auto one2 = transOne.getScale() * one.getPoint111() + transOne.getPos();
+        const auto two1 = transTwo.getScale() * two.getPoint000() + transTwo.getPos();
+        const auto two2 = transTwo.getScale() * two.getPoint111() + transTwo.getPos();
+
+        return checkCollisionWithMinMax(one1, one2, two1, two2);
+    }
+
 }
 
 
 // calcResolveInfo funcs
 namespace dal {
 
-    CollisionResolveInfo calcResolveInfo(const AABB& one, const AABB& other,
-        const float oneMassInv, const float otherMassInv)
-    {
-        const auto sumOfMassInv = oneMassInv + otherMassInv;
+    CollisionResolveInfo calcResolveInfo(const AABB& one, const AABB& other, const PhysicalProperty& physicsOne, const PhysicalProperty& physicsTwo) {
+        const auto sumOfMassInv = physicsOne.getMassInv() + physicsTwo.getMassInv();
         if ( sumOfMassInv == 0.0f ) {
             return CollisionResolveInfo{ { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } };
         }
 
-        const auto thisFactor = oneMassInv / sumOfMassInv;
-        const auto otherFactor = otherMassInv / sumOfMassInv;
+        const auto thisFactor = physicsOne.getMassInv() / sumOfMassInv;
+        const auto otherFactor = physicsTwo.getMassInv() / sumOfMassInv;
 
         const auto one1 = one.getPoint000();
         const auto one2 = one.getPoint111();
@@ -626,17 +630,16 @@ namespace dal {
         return calcResolveInfo_withMinMax(one1, one2, other1, other2, thisFactor, otherFactor);
     }
 
-    CollisionResolveInfo calcResolveInfo(const AABB& one, const AABB& other,
-        const float oneMassInv, const float otherMassInv,
+    CollisionResolveInfo calcResolveInfo(const AABB& one, const AABB& other, const PhysicalProperty& physicsOne, const PhysicalProperty& physicsTwo,
         const Transform& transOne, const Transform& transTwo)
     {
-        const auto sumOfMassInv = oneMassInv + otherMassInv;
+        const auto sumOfMassInv = physicsOne.getMassInv() + physicsTwo.getMassInv();
         if ( sumOfMassInv == 0.0f ) {
             return CollisionResolveInfo{ { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } };
         }
 
-        const auto thisFactor = oneMassInv / sumOfMassInv;
-        const auto otherFactor = otherMassInv / sumOfMassInv;
+        const auto thisFactor = physicsOne.getMassInv() / sumOfMassInv;
+        const auto otherFactor = physicsTwo.getMassInv() / sumOfMassInv;
 
         const auto one1 = transOne.getScale() * one.getPoint000() + transOne.getPos();
         const auto one2 = transOne.getScale() * one.getPoint111() + transOne.getPos();
@@ -651,38 +654,6 @@ namespace dal {
 
 // calcCollisionInfo funcs
 namespace dal {
-
-    std::optional<RayCastingResult> calcCollisionInfo(const Ray& ray, const AABB& aabb) {
-        if ( aabb.calcArea() == 0.0f ) {
-            return std::nullopt;
-        }
-
-        const auto triangles = makeTriangles(aabb.getAllPoints());
-        for ( auto& tri : triangles ) {
-            const auto triCol = calcCollisionInfo(ray, tri);
-            if ( triCol ) {
-                return triCol;
-            }
-        }
-
-        return std::nullopt;
-    }
-
-    std::optional<RayCastingResult> calcCollisionInfo(const Ray& ray, const AABB& aabb, const Transform& transAABB) {
-        if ( aabb.calcArea() == 0.0f ) {
-            return std::nullopt;
-        }
-
-        const auto triangles = makeTriangles(aabb.getAllPoints(transAABB));
-        for ( auto& tri : triangles ) {
-            const auto triCol = calcCollisionInfo(ray, tri);
-            if ( triCol ) {
-                return triCol;
-            }
-        }
-
-        return std::nullopt;
-    }
 
     std::optional<RayCastingResult> calcCollisionInfo(const Ray& ray, const Plane& plane) {
         const auto pointA = ray.getStartPos();
@@ -717,6 +688,38 @@ namespace dal {
         else {
             return std::nullopt;
         }
+    }
+
+    std::optional<RayCastingResult> calcCollisionInfo(const Ray& ray, const AABB& aabb) {
+        if ( aabb.calcArea() == 0.0f ) {
+            return std::nullopt;
+        }
+
+        const auto triangles = makeTriangles(aabb.getAllPoints());
+        for ( auto& tri : triangles ) {
+            const auto triCol = calcCollisionInfo(ray, tri);
+            if ( triCol ) {
+                return triCol;
+            }
+        }
+
+        return std::nullopt;
+    }
+
+    std::optional<RayCastingResult> calcCollisionInfo(const Ray& ray, const AABB& aabb, const Transform& transAABB) {
+        if ( aabb.calcArea() == 0.0f ) {
+            return std::nullopt;
+        }
+
+        const auto triangles = makeTriangles(aabb.getAllPoints(transAABB));
+        for ( auto& tri : triangles ) {
+            const auto triCol = calcCollisionInfo(ray, tri);
+            if ( triCol ) {
+                return triCol;
+            }
+        }
+
+        return std::nullopt;
     }
 
 }
