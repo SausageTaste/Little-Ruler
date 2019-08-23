@@ -26,7 +26,7 @@ class CmdArgParser:
 
     @property
     def m_workList(self) -> WorkList:
-        return self.m_workList
+        return self.__result
 
     def __start(self, args: List[str]):
         currentFunc = self.__cmdType_null
@@ -54,7 +54,7 @@ class CmdArgParser:
 
 
 def main(args: list):
-    parser = CmdArgParser(args)
+    parser = CmdArgParser(args[1:])
     for x in parser.m_workList.m_toCompile:
         print(x)
 
