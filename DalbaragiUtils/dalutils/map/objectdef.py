@@ -39,6 +39,19 @@ class ModelImbeded(inf.IDataBlock):
 
         return data
 
+    @property
+    def m_name(self):
+        return self.__name
+    @property
+    def m_renderUnits(self):
+        return self.__renderUnits
+    @property
+    def m_staticActors(self):
+        return self.__staticActors
+    @property
+    def m_flagDetailedCollider(self):
+        return self.__flagDetailedCollider
+
     def __hasRotatingActor(self) -> bool:
         for sactor in self.__staticActors:
             sactor: blk.StaticActor
