@@ -5,7 +5,7 @@ import glm
 
 import dalutils.map.interface as inf
 import dalutils.map.primitives as pri
-import dalutils.map.typecode as typ
+import dalutils.util.typecode as typ
 
 
 class ICollider(inf.IDataBlock):
