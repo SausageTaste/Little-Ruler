@@ -1,6 +1,9 @@
+import sys
+import base64
 from typing import Tuple, Type, List
 
 import glm
+import numpy as np
 
 from dalutils.map.interface import json_t, IMapElement
 import dalutils.util.binutil as but
@@ -22,6 +25,9 @@ class FloatData(IMapElement):
     # float4
     def getBinary(self) -> bytearray:
         return bytearray(but.get4BytesFloat(self.__val))
+
+    def get(self) -> float:
+        return self.__val
 
     def set(self, v: float):
         self.__val = float(v)
@@ -47,6 +53,9 @@ class IntData(IMapElement):
     def getBinary(self) -> bytearray:
         return bytearray(but.get4BytesInt(self.__value))
 
+    def get(self) -> int:
+        return self.__value
+
     def set(self, v: int):
         self.__value = int(v)
 
@@ -71,6 +80,9 @@ class BoolValue(IMapElement):
     def getBinary(self) -> bytearray:
         return bytearray(b"\x01") if self.__v else bytearray(b"\x00")
 
+    def get(self) -> bool:
+        return self.__v
+
     def set(self, v: bool):
         self.__v = bool(v)
 
@@ -79,13 +91,20 @@ class Vec3(IMapElement):
     def __init__(self, x: float = 0.0, y: float = 0.0, z: float = 0.0):
         self.__vec = glm.vec3(x, y, z)
 
-    def __add__(self, other: "Vec3"):
+    def __add__(self, other: "Vec3") -> "Vec3":
         newone = Vec3()
         newone.__vec = self.__vec + other.__vec
+        return newone
 
-    def __sub__(self, other: "Vec3"):
+    def __sub__(self, other: "Vec3") -> "Vec3":
         newone = Vec3()
         newone.__vec = self.__vec - other.__vec
+        return newone
+
+    def __truediv__ (self, divider: float):
+        newone = Vec3()
+        newone.__vec = self.__vec / float(divider)
+        return newone
 
     def setDefault(self) -> None:
         self.__vec = glm.vec3(0, 0, 0)
@@ -107,8 +126,25 @@ class Vec3(IMapElement):
 
         return data
 
+    def getX(self) -> float:
+        return self.__vec.x
+
+    def getY(self) -> float:
+        return self.__vec.y
+
+    def getZ(self) -> float:
+        return self.__vec.z
+
     def getXYZ(self) -> Tuple[float, float , float]:
         return self.__vec.x, self.__vec.y, self.__vec.z
+
+    def getVec(self) -> glm.vec3:
+        return self.__vec
+
+    def set(self, other: "Vec3"):
+        self.__vec.x = other.__vec.x
+        self.__vec.y = other.__vec.y
+        self.__vec.z = other.__vec.z
 
     def setX(self, v: float):
         self.__vec.x = float(v)
@@ -171,6 +207,18 @@ class Quat(IMapElement):
         self.__quat = glm.quat(what.z, what.y, -what.x, -what.w)
         self.__quat = glm.normalize(self.__quat)
 
+    def isDefaultValue(self) -> bool:
+        if self.__quat.x != 0.0:
+            return False
+        elif self.__quat.y != 0.0:
+            return False
+        elif self.__quat.z != 0.0:
+            return False
+        elif self.__quat.w != 1.0:
+            return False
+        else:
+            return True
+
 
 class StrData(IMapElement):
     def __init__(self, t: str = ""):
@@ -212,6 +260,14 @@ class UniformList(IMapElement):
     def __iter__(self):
         return iter(self.__list)
 
+    def __iadd__(self, other: "UniformList"):
+        if not isinstance(other, UniformList):
+            raise ValueError()
+        if self.__type is not other.__type:
+            raise ValueError("Only UniformList with same elements type can be merged: {} vs {}".format(self.__type, other.__type))
+
+        self.__list += other.__list
+
     def setDefault(self) -> None:
         self.__list = []
 
@@ -235,8 +291,58 @@ class UniformList(IMapElement):
         return data
 
     def pushBack(self, item):
-        if not isinstance(item, self.__type):
+        if not self.__isObjectValid(item):
             errMsg = "Value '{}' is not a proper value for UniformList< {} >.".format(type(item), str(self.__type)[1:-1] )
             raise ValueError(errMsg)
 
         self.__list.append(item)
+
+    def __isObjectValid(self, obj):
+        return isinstance(obj, self.__type)
+
+
+class FloatArray(IMapElement):
+    def __init__(self):
+        self.__arr = np.array([], dtype=np.float32)
+
+    def __str__(self):
+        if self.__arr.size > 5:
+            numStr = str([x for x in self.__arr[0:5]])[1:-1]
+            return "< FloatArray size={} {{ {}, ... }} >".format(self.__arr.size, numStr)
+        else:
+            numStr = str(list(self.__arr))[1:-1]
+            return "< FloatArray size={} {{ {} }} >".format(self.__arr.size, numStr)
+
+    def __getitem__(self, index: int) -> float:
+        return self.__arr[int(index)]
+
+    def setDefault(self) -> None:
+        self.__arr = np.array([], dtype=np.float32)
+
+    def getJson(self) -> json_t:
+        if sys.byteorder != "little":
+            raise RuntimeError("Big endian system is not supported yet.")
+        return base64.encodebytes(self.__arr.tobytes()).decode("utf8")
+
+    def setJson(self, data: json_t) -> None:
+        self.__arr = np.frombuffer(base64.decodebytes(data.encode("utf8")), dtype=np.float32)
+
+    # int4                    : Number of float values
+    # Vector of finite float4 : Finite float array
+    def getBinary(self) -> bytearray:
+        if sys.byteorder != "little":
+            raise RuntimeError("Big endian system is not supported yet.")
+
+        data = bytearray()
+        data += but.get4BytesInt(self.__arr.size)
+        data += self.__arr.tobytes()
+
+        return data
+
+    def getSize(self) -> int:
+        return int(self.__arr.size)
+
+    def setArray(self, arr: np.ndarray) -> None:
+        if not isinstance(arr, np.ndarray):
+            raise ValueError()
+        self.__arr = arr
