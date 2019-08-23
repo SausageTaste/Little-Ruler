@@ -150,10 +150,22 @@ namespace dal {
         float getLength(void) const {
             return this->m_len;
         }
+
+        void setStartPos(const float x, const float y, const float z) {
+            this->m_pos.x = x;
+            this->m_pos.y = y;
+            this->m_pos.z = z;
+        }
         void setStartPos(const glm::vec3& v) {
             this->m_pos = v;
         }
+        void setRel(const float x, const float y, const float z) {
+            this->setRel(glm::vec3{ x, y, z });
+        }
         void setRel(const glm::vec3& v);
+
+        glm::vec3 projectPointOn(const glm::vec3& p) const;
+        float calcDistance(const glm::vec3& p) const;
 
     };
 
@@ -310,11 +322,13 @@ namespace dal {
 
     bool checkCollisionAbs(const ICollider& one, const ICollider& two, const Transform& transOne, const Transform& transTwo);
 
-    bool checkCollision(const Ray& ray, const Triangle& tri);
     bool checkCollision(const Ray& ray, const Plane& plane);
+    bool checkCollision(const Ray& ray, const Sphere& sphere);
+    bool checkCollision(const Ray& ray, const Triangle& tri);
     bool checkCollision(const Ray& ray, const AABB& aabb);
     bool checkCollision(const Ray& ray, const AABB& aabb, const Transform& transAABB);
     
+    bool checkCollision(const Plane& plane, const Sphere& sphere);
     bool checkCollision(const Plane& plane, const AABB& aabb);
     bool checkCollision(const Plane& plane, const AABB& aabb, const Transform& transAABB);
 

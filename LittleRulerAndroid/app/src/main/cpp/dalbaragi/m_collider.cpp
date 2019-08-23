@@ -393,6 +393,25 @@ namespace dal {
         dalAssert(this->m_len > 0.0f);
     }
 
+    glm::vec3 Ray::projectPointOn(const glm::vec3& p) const {
+        // From https://answers.unity.com/questions/62644/distance-between-a-ray-and-a-point.html
+
+        const auto rhs = p - this->m_pos;
+        const float magnitude = this->getLength();
+
+        auto lhs = this->m_rel;
+        if ( magnitude > 1E-06f ) {
+            lhs /= magnitude;
+        }
+        float num2 = std::clamp(glm::dot(lhs, rhs), 0.f, magnitude);
+        return this->m_pos + (lhs * num2);
+    }
+
+    float Ray::calcDistance(const glm::vec3& p) const {
+        const auto projected = this->projectPointOn(p);
+        return glm::length(projected - p);
+    }
+
 }
 
 
@@ -554,6 +573,18 @@ namespace dal {
         return (distA * distB) <= 0.0f;
     }
 
+    bool checkCollision(const Ray& ray, const Sphere& sphere) {
+        if ( sphere.isInside(ray.getStartPos()) ) {
+            return true;
+        }
+        else if ( sphere.isInside(ray.getStartPos() + ray.getRel()) ) {
+            return true;
+        }
+        else {
+            return ray.calcDistance(sphere.getCenter()) <= sphere.getRadius();
+        }
+    }
+
     bool checkCollision(const Ray& ray, const Triangle& tri) {
         const Plane plane{ tri.getPoint1(), tri.getPoint2(), tri.getPoint3() };
         const auto planeCollision = calcCollisionInfo(ray, plane);
@@ -578,6 +609,11 @@ namespace dal {
         );
     }
 
+
+    bool checkCollision(const Plane& plane, const Sphere& sphere) {
+        const auto distOfCenter = std::abs(plane.getSignedDist(sphere.getCenter()));
+        return distOfCenter <= sphere.getRadius();
+    }
 
     bool checkCollision(const Plane& plane, const AABB& aabb) {
         const auto points = aabb.getAllPoints();
