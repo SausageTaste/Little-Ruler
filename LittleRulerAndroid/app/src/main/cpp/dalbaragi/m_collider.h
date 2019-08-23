@@ -289,6 +289,13 @@ namespace dal {
     class ColAABB : public AABB, public ICollider {
 
     public:
+        ColAABB(void) = default;
+        ColAABB(const glm::vec3& p1, const glm::vec3& p2)
+            : AABB(p1, p2)
+        {
+
+        }
+
         virtual ColliderType getColType(void) const noexcept override {
             return ColliderType::aabb;
         }
