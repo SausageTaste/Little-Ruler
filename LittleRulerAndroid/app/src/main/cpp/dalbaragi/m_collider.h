@@ -315,8 +315,9 @@ namespace dal {
     bool checkCollision(const Ray& ray, const AABB& aabb);
     bool checkCollision(const Ray& ray, const AABB& aabb, const Transform& transAABB);
     
-    bool checkCollision(const AABB& aabb, const Plane& plane);
-    bool checkCollision(const AABB& aabb, const Plane& plane, const Transform& transAABB);
+    bool checkCollision(const Plane& plane, const AABB& aabb);
+    bool checkCollision(const Plane& plane, const AABB& aabb, const Transform& transAABB);
+
     bool checkCollision(const AABB& one, const AABB& other);
     bool checkCollision(const AABB& one, const AABB& two, const Transform& transOne, const Transform& transTwo);
     

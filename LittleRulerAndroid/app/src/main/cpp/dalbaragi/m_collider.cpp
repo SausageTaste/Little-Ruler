@@ -579,15 +579,16 @@ namespace dal {
     }
 
 
-    bool checkCollision(const AABB& aabb, const Plane& plane) {
+    bool checkCollision(const Plane& plane, const AABB& aabb) {
         const auto points = aabb.getAllPoints();
         return checkCollision_withAllPoints(points, plane);
     }
 
-    bool checkCollision(const AABB& aabb, const Plane& plane, const Transform& transAABB) {
+    bool checkCollision(const Plane& plane, const AABB& aabb, const Transform& transAABB) {
         const auto points = aabb.getAllPoints(transAABB);
         return checkCollision_withAllPoints(points, plane);
     }
+
 
     bool checkCollision(const AABB& one, const AABB& other) {
         const auto one1 = one.getPoint000();
