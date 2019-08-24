@@ -1,6 +1,9 @@
 import math
 from typing import Generator
 
+import glm
+import numpy as np
+
 import dalutils.map.interface as inf
 import dalutils.map.primitives as pri
 import dalutils.map.collider as col
@@ -143,15 +146,50 @@ class Mesh(inf.IDataBlock):
         if self.__normals.getSize() != self.__vertices.getSize():
             raise ValueError("Vertices and normals have different num of floats.")
 
-    @property
-    def m_vertices(self):
-        return self.__vertices
-    @property
-    def m_texcoords(self):
-        return self.__texcoords
-    @property
-    def m_normals(self):
-        return self.__normals
+    # Point coordinates follow OpenGL's texture coordinate system.
+    # From upper left corner, rotate counter clock wise.
+    # Also the faces are winded in ccw.
+    def buildIn_rect(self, p01: pri.Vec3, p00: pri.Vec3, p10: pri.Vec3, p11: pri.Vec3):
+        vertices: np.ndarray = np.array((
+            *p01.getXYZ(),
+            *p00.getXYZ(),
+            *p10.getXYZ(),
+            *p01.getXYZ(),
+            *p10.getXYZ(),
+            *p11.getXYZ(),
+        ), dtype=np.float32)
+        assert len(vertices) == 18
+
+        texcoords: np.ndarray = np.array((
+            0.0, 1.0,
+            0.0, 0.0,
+            1.0, 0.0,
+            0.0, 1.0,
+            1.0, 0.0,
+            1.0, 1.0,
+        ), dtype=np.float32)
+        assert len(texcoords) == 12
+
+        a = p00 - p01
+        b = p10 - p01
+        c = p11 - p01
+
+        normal1 = glm.cross(a.getVec(), b.getVec())
+        normal2 = glm.cross(b.getVec(), c.getVec())
+
+        normals: np.ndarray = np.array((
+            normal1.x, normal1.y, normal1.z,
+            normal1.x, normal1.y, normal1.z,
+            normal1.x, normal1.y, normal1.z,
+            normal2.x, normal2.y, normal2.z,
+            normal2.x, normal2.y, normal2.z,
+            normal2.x, normal2.y, normal2.z,
+        ), dtype=np.float32)
+        assert len(normals) == 18
+
+        self.__vertices.append(vertices)
+        self.__texcoords.append(texcoords)
+        self.__normals.append(normals)
 
     def __genVertices(self) -> Generator[pri.Vec3, None, None]:
         for i in range(int(self.__vertices.getSize() / 3)):
