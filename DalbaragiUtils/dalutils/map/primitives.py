@@ -267,6 +267,7 @@ class UniformList(IMapElement):
             raise ValueError("Only UniformList with same elements type can be merged: {} vs {}".format(self.__type, other.__type))
 
         self.__list += other.__list
+        return self
 
     def setDefault(self) -> None:
         self.__list = []

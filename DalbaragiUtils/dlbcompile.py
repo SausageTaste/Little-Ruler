@@ -1,9 +1,10 @@
 import os
 import sys
 import json
-from typing import List, Optional
+from typing import List
 
 import dalutils.map.mapbuilder as mbu
+import dalutils.util.exportfile as exf
 
 
 class WorkList:
@@ -53,10 +54,24 @@ class CmdArgParser:
         self.__result.m_toCompile.append(arg)
 
 
+def workCompile(path: str):
+    with open(str(path), "r", encoding="utf8") as file:
+        data = json.load(file)
+
+    mapData = mbu.MapChunkBuilder()
+    mapData.setJson(data)
+
+    folderFileName, fileExt = os.path.splitext(path)
+    binData = mapData.getBinary()
+    zippedData = exf.compressWithSizeInt32(binData)
+    with open(folderFileName + ".dlb", "wb") as file:
+        file.write(zippedData)
+
+
 def main(args: list):
     parser = CmdArgParser(args[1:])
     for x in parser.m_workList.m_toCompile:
-        print(x)
+        workCompile(x)
 
 
 if __name__ == '__main__':

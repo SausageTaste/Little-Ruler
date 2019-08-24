@@ -180,6 +180,7 @@ class TriangleSoup(ICollider):
 
     def __iadd__(self, other: "TriangleSoup"):
         self.__triangles += other.__triangles
+        return self
 
     def getBinary(self) -> bytearray:
         return self.__triangles.getBinary()
