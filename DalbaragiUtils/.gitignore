@@ -1,6 +1,5 @@
 /.idea
-/intermediates
-/outputs
 
 *.json
 *.pyc
+*.dlb
