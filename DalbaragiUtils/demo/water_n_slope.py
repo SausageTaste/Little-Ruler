@@ -8,7 +8,7 @@ import dalutils.map.mapbuilder as mbu
 
 def exportJson(mapData: mbu.MapChunkBuilder, outputPath: str) -> None:
     with open(outputPath, "w") as file:
-        json.dump(mapData.getJson(), file, indent=4, sort_keys=True)
+        json.dump(mapData.getJson(), file, indent=4, sort_keys=False)
 
 
 def main():
