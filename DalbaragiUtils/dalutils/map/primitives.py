@@ -351,4 +351,4 @@ class FloatArray(IMapElement):
     def append(self, arr: np.ndarray) -> None:
         if not isinstance(arr, np.ndarray):
             raise ValueError("Requires numpy::ndarray, got {} instead.".format(type(arr)))
-        np.append(self.__arr, arr)
+        self.__arr = np.append(self.__arr, arr)
