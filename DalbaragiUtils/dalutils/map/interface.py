@@ -22,9 +22,17 @@ class IMapElement(abc.ABC):
 class IDataBlock(IMapElement):
     def __init__(self, attribDict: Dict[str, IMapElement] = None):
         if attribDict is None:
-            raise RuntimeError("ILevelAttrib.__init__ hadn't got any paremeters, which is not a proper usage.")
+            raise ValueError("ILevelAttrib.__init__ hadn't got any paremeters, which is not a proper usage.")
+        elif type(attribDict) is not dict:
+            raise ValueError("dict type expected but got {} instead.".format(type(attribDict)))
         else:
             self.__attribs: Dict[str, IMapElement] = attribDict
+
+        for k, v in attribDict.items():
+            if not isinstance(k, str):
+                raise ValueError("Type of key must be str, not {}.\nNote the pair: {}, {}".format(type(k), k, v))
+            if not isinstance(v, IMapElement):
+                raise ValueError("Type of value must be derived from IMapElement.\nNote class definition of {}.\nNote the pair: {}, {}".format(type(v), k, v))
 
     def getJson(self) -> json_t:
         data = {}
