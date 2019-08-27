@@ -1,18 +1,7 @@
-import os
-import json
-
 import dalutils.map.primitives as pri
 import dalutils.map.datablock as blk
 import dalutils.map.objectdef as ode
 import dalutils.map.mapbuilder as mbu
-import dalutils.util.path as pth
-
-
-def exportJson(mapData: mbu.MapChunkBuilder, outputPath: str) -> None:
-    pth.createFolderAlong(os.path.split(outputPath)[0])
-
-    with open(outputPath, "w") as file:
-        json.dump(mapData.getJson(), file, indent=4, sort_keys=False)
 
 
 def main():
@@ -41,7 +30,7 @@ def main():
 
     ################
 
-    exportJson(build, "intermediates/water_n_slope.json")
+    mbu.exportJson(build, "intermediates/water_n_slope.json")
 
 
 if __name__ == '__main__':
