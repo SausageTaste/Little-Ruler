@@ -42,10 +42,5 @@ class IDataBlock(IMapElement):
                 element.setJson(data[field])
 
     @abc.abstractmethod
-    def getBinary(self) -> bytearray:
-        pass
-
-    @abc.abstractmethod
     def setDefault(self) -> None:
         pass
-
