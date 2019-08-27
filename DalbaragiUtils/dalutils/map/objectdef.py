@@ -10,7 +10,9 @@ class ModelEmbedded(inf.IDataBlock):
         self.__name = pri.StrData()
         self.__renderUnits = pri.UniformList(blk.RenderUnit)
         self.__staticActors = pri.UniformList(blk.StaticActor)
-        self.__flagDetailedCollider = pri.BoolValue(False)
+        self.__flagDetailedCollider = pri.BoolValue()
+
+        self.setDefault()
 
         super().__init__({
             "name": self.__name,
@@ -38,6 +40,12 @@ class ModelEmbedded(inf.IDataBlock):
             data += soup.getBinary()
 
         return data
+
+    def setDefault(self) -> None:
+        self.__name.set("")
+        self.__renderUnits.clear()
+        self.__staticActors.clear()
+        self.__flagDetailedCollider.set(False)
 
     @property
     def m_name(self):

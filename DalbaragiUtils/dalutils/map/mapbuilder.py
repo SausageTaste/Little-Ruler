@@ -9,7 +9,9 @@ import dalutils.util.path as pth
 
 class MapMetadata(inf.IDataBlock):
     def __init__(self):
-        self.__binVersion = pri.IntData(1)
+        self.__binVersion = pri.IntData()
+
+        self.setDefault()
 
         super().__init__({
             "bin_version": self.__binVersion,
@@ -20,11 +22,16 @@ class MapMetadata(inf.IDataBlock):
         data += self.__binVersion.getBinary()
         return data
 
+    def setDefault(self) -> None:
+        self.__binVersion.set(1)
+
 
 class MapChunkBuilder(inf.IDataBlock):
     def __init__(self):
         self.__metadata = MapMetadata()
         self.__modelEmbedded = pri.UniformList(ode.ModelEmbedded)
+
+        self.setDefault()
 
         super().__init__({
             "metadata": self.__metadata,
@@ -38,6 +45,10 @@ class MapChunkBuilder(inf.IDataBlock):
         data += self.__modelEmbedded.getBinary()
 
         return data
+
+    def setDefault(self) -> None:
+        self.__metadata.setDefault()
+        self.__modelEmbedded.clear()
 
     @property
     def m_modelEmbedded(self):

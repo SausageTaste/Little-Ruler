@@ -15,10 +15,6 @@ class ICollider(inf.IDataBlock):
         self._typeReg = typ.TypeCodeRegistry()
 
     @abc.abstractmethod
-    def getBinary(self) -> bytearray:
-        pass
-
-    @abc.abstractmethod
     def getTypeCode(self) -> int:
         pass
 
@@ -38,6 +34,10 @@ class Sphere(ICollider):
         data += self.__center.getBinary()
         data += self.__radius.getBinary()
         return data
+
+    def setDefault(self) -> None:
+        self.__center.setXYZ(0, 0, 0)
+        self.__radius.set(1)
 
     def getTypeCode(self) -> int:
         return self._typeReg.confirm(type(self), 1)
@@ -82,6 +82,10 @@ class AABB(ICollider):
         data += self.__min.getBinary()
         data += self.__max.getBinary()
         return data
+
+    def setDefault(self) -> None:
+        self.__min.setXYZ(0, 0, 0)
+        self.__max.setXYZ(0, 0, 0)
 
     def getTypeCode(self) -> int:
         return self._typeReg.confirm(type(self), 2)
@@ -156,6 +160,11 @@ class Triangle(ICollider):
         data += self.__p3.getBinary()
         return data
 
+    def setDefault(self) -> None:
+        self.__p1.setXYZ(0, 0, 0)
+        self.__p2.setXYZ(0, 0, 0)
+        self.__p3.setXYZ(0, 0, 0)
+
     def getTypeCode(self) -> int:
         return self._typeReg.confirm(type(self), 3)
 
@@ -184,6 +193,9 @@ class TriangleSoup(ICollider):
 
     def getBinary(self) -> bytearray:
         return self.__triangles.getBinary()
+
+    def setDefault(self) -> None:
+        self.__triangles.clear()
 
     def getTypeCode(self) -> int:
         return self._typeReg.confirm(type(self), 4)

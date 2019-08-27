@@ -11,14 +11,16 @@ import dalutils.map.collider as col
 
 class Material(inf.IDataBlock):
     def __init__(self):
-        self.__diffuseColor = pri.Vec3(1, 1, 1)
-        self.__shininess = pri.FloatData(32)
-        self.__specStreng = pri.FloatData(1)
-        self.__texScaleX = pri.FloatData(1)
-        self.__texScaleY = pri.FloatData(1)
+        self.__diffuseColor = pri.Vec3()
+        self.__shininess = pri.FloatData()
+        self.__specStreng = pri.FloatData()
+        self.__texScaleX = pri.FloatData()
+        self.__texScaleY = pri.FloatData()
         self.__diffuseMap = pri.StrData()
         self.__specularMap = pri.StrData()
-        self.__flagAlphaBlend = pri.BoolValue(False)
+        self.__flagAlphaBlend = pri.BoolValue()
+
+        self.setDefault()
 
         super().__init__({
             "base_color": self.__diffuseColor,
@@ -30,6 +32,16 @@ class Material(inf.IDataBlock):
             "specular_map": self.__specularMap,
             "alpha_blend": self.__flagAlphaBlend,
         })
+
+    def setDefault(self) -> None:
+        self.__diffuseColor.setXYZ(1, 1, 1)
+        self.__shininess.set(32)
+        self.__specStreng.set(1)
+        self.__texScaleX.set(1)
+        self.__texScaleY.set(1)
+        self.__diffuseMap.set("")
+        self.__specularMap.set("")
+        self.__flagAlphaBlend.set(False)
 
     def getBinary(self) -> bytearray:
         data = bytearray()
@@ -72,6 +84,8 @@ class Mesh(inf.IDataBlock):
         self.__texcoords = pri.FloatArray()
         self.__normals = pri.FloatArray()
 
+        self.setDefault()
+
         super().__init__({
             "vertices": self.__vertices,
             "texcoords": self.__texcoords,
@@ -86,6 +100,11 @@ class Mesh(inf.IDataBlock):
         data += self.__normals.getBinary()
 
         return data
+
+    def setDefault(self) -> None:
+        self.__vertices.clear()
+        self.__texcoords.clear()
+        self.__normals.clear()
 
     def makeAABB(self) -> col.AABB:
         self.assertValidity()
@@ -204,6 +223,8 @@ class RenderUnit(inf.IDataBlock):
         self.__mesh = Mesh()
         self.__material = Material()
 
+        self.setDefault()
+
         super().__init__({
             "mesh": self.__mesh,
             "material": self.__material,
@@ -214,6 +235,10 @@ class RenderUnit(inf.IDataBlock):
         data += self.__mesh.getBinary()
         data += self.__material.getBinary()
         return data
+
+    def setDefault(self) -> None:
+        self.__mesh.setDefault()
+        self.__material.setDefault()
 
     @property
     def m_mesh(self):
@@ -227,7 +252,9 @@ class Transform(inf.IDataBlock):
     def __init__(self):
         self.__pos = pri.Vec3()
         self.__quat = pri.Quat()
-        self.__scale = pri.FloatData(1.0)
+        self.__scale = pri.FloatData()
+
+        self.setDefault()
 
         super().__init__({
             "pos": self.__pos,
@@ -241,6 +268,11 @@ class Transform(inf.IDataBlock):
         data += self.__quat.getBinary()
         data += self.__scale.getBinary()
         return data
+
+    def setDefault(self) -> None:
+        self.__pos.setXYZ(0, 0, 0)
+        self.__quat.setDefault()
+        self.__scale.set(1)
 
     @property
     def m_pos(self):
@@ -258,6 +290,8 @@ class StaticActor(inf.IDataBlock):
         self.__actorName = pri.StrData()
         self.__transform = Transform()
 
+        self.setDefault()
+
         super().__init__({
             "name": self.__actorName,
             "transform": self.__transform,
@@ -268,6 +302,10 @@ class StaticActor(inf.IDataBlock):
         data += self.__actorName.getBinary()
         data += self.__transform.getBinary()
         return data
+
+    def setDefault(self) -> None:
+        self.__actorName.set("")
+        self.__transform.setDefault()
 
     @property
     def m_name(self):

@@ -13,9 +13,6 @@ class FloatData(IMapElement):
     def __init__(self, v: float = 0.0):
         self.__val = float(v)
 
-    def setDefault(self) -> None:
-        self.__val = 0.0
-
     def getJson(self) -> json_t:
         return self.__val
 
@@ -39,9 +36,6 @@ class IntData(IMapElement):
 
     def __str__(self):
         return "<IntValue {{ {} }}>".format(self.__value)
-
-    def setDefault(self) -> None:
-        self.__value = 0
 
     def getJson(self) -> json_t:
         return self.__value
@@ -67,9 +61,6 @@ class BoolValue(IMapElement):
     def __str__(self):
         return "< BoolValue {{ {} }} >".format(self.__v)
 
-    def setDefault(self) -> None:
-        self.__v = False
-
     def getJson(self) -> json_t:
         return self.__v
 
@@ -89,7 +80,7 @@ class BoolValue(IMapElement):
 
 class Vec3(IMapElement):
     def __init__(self, x: float = 0.0, y: float = 0.0, z: float = 0.0):
-        self.__vec = glm.vec3(x, y, z)
+        self.__vec = glm.vec3(float(x), float(y), float(z))
 
     def __add__(self, other: "Vec3") -> "Vec3":
         newone = Vec3()
@@ -105,9 +96,6 @@ class Vec3(IMapElement):
         newone = Vec3()
         newone.__vec = self.__vec / float(divider)
         return newone
-
-    def setDefault(self) -> None:
-        self.__vec = glm.vec3(0, 0, 0)
 
     def getJson(self) -> json_t:
         return [self.__vec.x, self.__vec.y, self.__vec.z]
@@ -227,9 +215,6 @@ class StrData(IMapElement):
     def __str__(self):
         return "< IdentifierStr {} >".format(repr(self.__text))
 
-    def setDefault(self) -> None:
-        self.__text = ""
-
     def getJson(self) -> json_t:
         return self.__text
 
@@ -269,9 +254,6 @@ class UniformList(IMapElement):
         self.__list += other.__list
         return self
 
-    def setDefault(self) -> None:
-        self.__list = []
-
     def getJson(self) -> json_t:
         data = []
         for x in self.__list:
@@ -298,6 +280,9 @@ class UniformList(IMapElement):
 
         self.__list.append(item)
 
+    def clear(self) -> None:
+        self.__list = []
+
     def __isObjectValid(self, obj):
         return isinstance(obj, self.__type)
 
@@ -316,9 +301,6 @@ class FloatArray(IMapElement):
 
     def __getitem__(self, index: int) -> float:
         return self.__arr[int(index)]
-
-    def setDefault(self) -> None:
-        self.__arr = np.array([], dtype=np.float32)
 
     def getJson(self) -> json_t:
         if sys.byteorder != "little":
@@ -352,3 +334,6 @@ class FloatArray(IMapElement):
         if not isinstance(arr, np.ndarray):
             raise ValueError("Requires numpy::ndarray, got {} instead.".format(type(arr)))
         self.__arr = np.append(self.__arr, arr)
+
+    def clear(self) -> None:
+        self.__arr = np.array([], dtype=np.float32)

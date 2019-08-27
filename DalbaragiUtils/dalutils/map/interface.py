@@ -7,10 +7,6 @@ json_t = Union[list, dict, str, int, float, bool]
 
 class IMapElement(abc.ABC):
     @abc.abstractmethod
-    def setDefault(self) -> None:
-        pass
-
-    @abc.abstractmethod
     def getJson(self) -> json_t:
         pass
 
@@ -30,10 +26,6 @@ class IDataBlock(IMapElement):
         else:
             self.__attribs: Dict[str, IMapElement] = attribDict
 
-    def setDefault(self) -> None:
-        for element in self.__attribs.values():
-            element.setDefault()
-
     def getJson(self) -> json_t:
         data = {}
 
@@ -43,13 +35,17 @@ class IDataBlock(IMapElement):
 
         return data
 
+    # All members must be set to default before calling this.
     def setJson(self, data: json_t) -> None:
         for field, element in self.__attribs.items():
             if field in data.keys():
                 element.setJson(data[field])
-            else:
-                element.setDefault()
 
     @abc.abstractmethod
     def getBinary(self) -> bytearray:
         pass
+
+    @abc.abstractmethod
+    def setDefault(self) -> None:
+        pass
+
