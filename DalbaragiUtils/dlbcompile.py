@@ -7,6 +7,17 @@ import dalutils.map.mapbuilder as mbu
 import dalutils.util.exportfile as exf
 
 
+def printHelp():
+    text = """
+Usage : dlbcompile.py <options> <json source files>
+Options are
+  --compile, --c
+    compile json files into dlb files.
+    ex) dlbcompile.py --compile "my_map.json" "subfolder/my_second.json"
+"""
+    print(text)
+
+
 class WorkList:
     def __init__(self):
         self.__toCompile: List[str] = []
@@ -17,19 +28,22 @@ class WorkList:
 
 
 class CmdArgParser:
-    def __init__(self, args: List[str]):
+    def __init__(self):
         self.__cmdFuncMap = {
-            "compile": self.__cmdType_compile
+            "compile" : self.__cmdType_compile,
+            "c"       : self.__cmdType_compile,
         }
         self.__result = WorkList()
-
-        self.__start(args)
 
     @property
     def m_workList(self) -> WorkList:
         return self.__result
 
-    def __start(self, args: List[str]):
+    def start(self, args: List[str]) -> bool:
+        if not len(args):
+            printHelp()
+            return False
+
         currentFunc = self.__cmdType_null
 
         for arg in args:
@@ -37,6 +51,8 @@ class CmdArgParser:
                 currentFunc = self.__dispatchCmdType(arg)
             else:
                 currentFunc(arg)
+
+        return True
 
     def __dispatchCmdType(self, cmd: str):
         cmd = cmd.strip("--")
@@ -69,7 +85,12 @@ def workCompile(path: str):
 
 
 def main(args: list):
-    parser = CmdArgParser(args[1:])
+    print("dlbcompile started with: {}".format(args))
+
+    parser = CmdArgParser()
+    if not parser.start(args[1:]):
+        return
+
     for x in parser.m_workList.m_toCompile:
         workCompile(x)
 
