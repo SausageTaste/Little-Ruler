@@ -7,6 +7,7 @@ import numpy as np
 import dalutils.map.interface as inf
 import dalutils.map.primitives as pri
 import dalutils.map.collider as col
+import dalutils.util.reporter as rep
 
 
 class Material(inf.IDataBlock):
@@ -33,16 +34,6 @@ class Material(inf.IDataBlock):
             "alpha_blend": self.__flagAlphaBlend,
         })
 
-    def setDefault(self) -> None:
-        self.__diffuseColor.setXYZ(1, 1, 1)
-        self.__shininess.set(32)
-        self.__specStreng.set(1)
-        self.__texScaleX.set(1)
-        self.__texScaleY.set(1)
-        self.__diffuseMap.set("")
-        self.__specularMap.set("")
-        self.__flagAlphaBlend.set(False)
-
     def getBinary(self) -> bytearray:
         data = bytearray()
         data += self.__diffuseColor.getBinary()
@@ -54,6 +45,27 @@ class Material(inf.IDataBlock):
         data += self.__specularMap.getBinary()
         data += self.__flagAlphaBlend.getBinary()
         return data
+
+    def setDefault(self) -> None:
+        self.__diffuseColor.setXYZ(1, 1, 1)
+        self.__shininess.set(32)
+        self.__specStreng.set(1)
+        self.__texScaleX.set(1)
+        self.__texScaleY.set(1)
+        self.__diffuseMap.set("")
+        self.__specularMap.set("")
+        self.__flagAlphaBlend.set(False)
+
+    def fillErrReport(self, journal: rep.ErrorJournal) -> None:
+        if self.__texScaleX.get() == 0.0:
+            note = rep.ErrorNote("tex_scale_x -> It mustn't be zero.", rep.ErrorLevel.ERRO)
+            journal.addNote(note)
+        if self.__texScaleY.get() == 0.0:
+            note = rep.ErrorNote("tex_scale_y -> It mustn't be zero.", rep.ErrorLevel.ERRO)
+            journal.addNote(note)
+
+        if self.__diffuseMap.get() == "":
+            journal.addNote(rep.ErrorNote("diffuse_map -> It must be defined.", rep.ErrorLevel.ERRO))
 
     @property
     def m_diffuseColor(self):
@@ -106,6 +118,17 @@ class Mesh(inf.IDataBlock):
         self.__texcoords.clear()
         self.__normals.clear()
 
+    def fillErrReport(self, journal: rep.ErrorJournal) -> None:
+        if (self.__vertices.getSize() % 3) != 0:
+            journal.addNote(rep.ErrorNote("vertices -> Size is not multiple of 3.", rep.ErrorLevel.ERRO))
+
+        numVert = int(self.__vertices.getSize() / 3)
+        if self.__texcoords.getSize() != (2 * numVert):
+            journal.addNote(rep.ErrorNote("texcoords -> Size of texcoords does not match that of vertices.", rep.ErrorLevel.ERRO))
+
+        if self.__normals.getSize() != self.__vertices.getSize():
+            journal.addNote(rep.ErrorNote("normals -> Sizes of Normals and vertices are different.", rep.ErrorLevel.ERRO))
+
     def makeAABB(self) -> col.AABB:
         self.assertValidity()
 
@@ -155,15 +178,10 @@ class Mesh(inf.IDataBlock):
                 soup.m_triangles.pushBack(tri)
 
     def assertValidity(self) -> None:
-        if (self.__vertices.getSize() % 3) != 0:
-            raise ValueError("Size of Mesh::m_vertices is not multiple of 3.")
-
-        numVert = int(self.__vertices.getSize() / 3)
-        if self.__texcoords.getSize() != (2 * numVert):
-            raise ValueError("Numbers of vertices and texcoords are invalid.")
-
-        if self.__normals.getSize() != self.__vertices.getSize():
-            raise ValueError("Vertices and normals have different num of floats.")
+        journal = rep.ErrorJournal("tmp")
+        self.fillErrReport(journal)
+        if journal.hasError():
+            raise ValueError("\n" + journal.makeReportText()[0])
 
     # Point coordinates follow OpenGL's texture coordinate system.
     # From upper left corner, rotate counter clock wise.
@@ -240,6 +258,10 @@ class RenderUnit(inf.IDataBlock):
         self.__mesh.setDefault()
         self.__material.setDefault()
 
+    def fillErrReport(self, journal: rep.ErrorJournal) -> None:
+        self.__mesh.fillErrReport(journal)
+        self.__material.fillErrReport(journal)
+
     @property
     def m_mesh(self):
         return self.__mesh
@@ -274,6 +296,10 @@ class Transform(inf.IDataBlock):
         self.__quat.setDefault()
         self.__scale.set(1)
 
+    def fillErrReport(self, journal: rep.ErrorJournal) -> None:
+        if self.__scale.get() == 0.0:
+            journal.addNote(rep.ErrorNote("scale -> Scale factor is zero."))
+
     @property
     def m_pos(self):
         return self.__pos
@@ -306,6 +332,9 @@ class StaticActor(inf.IDataBlock):
     def setDefault(self) -> None:
         self.__actorName.set("")
         self.__transform.setDefault()
+
+    def fillErrReport(self, journal: rep.ErrorJournal) -> None:
+        self.__transform.fillErrReport(journal)
 
     @property
     def m_name(self):

@@ -1,6 +1,8 @@
 import abc, json
 from typing import Union, Dict
 
+import dalutils.util.reporter as rep
+
 
 json_t = Union[list, dict, str, int, float, bool]
 
@@ -51,4 +53,8 @@ class IDataBlock(IMapElement):
 
     @abc.abstractmethod
     def setDefault(self) -> None:
+        pass
+
+    @abc.abstractmethod
+    def fillErrReport(self, journal: rep.ErrorJournal) -> None:
         pass

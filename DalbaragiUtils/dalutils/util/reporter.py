@@ -21,9 +21,9 @@ class ReportFlags:
 
 
 class ErrorNote:
-    def __init__(self):
-        self.__errLevel = ErrorLevel.ERRO
-        self.__msg = ""
+    def __init__(self, msg: str = "", level = ErrorLevel.ERRO):
+        self.__errLevel = ErrorLevel(level)
+        self.__msg = str(msg)
 
     @property
     def m_errorLevel(self):
