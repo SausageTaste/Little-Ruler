@@ -7,15 +7,13 @@ import dalutils.map.mapbuilder as mbu
 import dalutils.util.exportfile as exf
 
 
-def printHelp():
-    text = """
+HELP_TEXT = """
 Usage : dlbcompile.py <options> <json source files>
 Options are
   --compile, --c
     compile json files into dlb files.
     ex) dlbcompile.py --compile "my_map.json" "subfolder/my_second.json"
 """
-    print(text)
 
 
 class WorkList:
@@ -41,7 +39,7 @@ class CmdArgParser:
 
     def start(self, args: List[str]) -> bool:
         if not len(args):
-            printHelp()
+            print(HELP_TEXT)
             return False
 
         currentFunc = self.__cmdType_null
