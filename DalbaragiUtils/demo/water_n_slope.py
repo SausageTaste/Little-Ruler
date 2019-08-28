@@ -20,6 +20,7 @@ def main():
         pri.Vec3(10, -3, 10),
         pri.Vec3(10, -2, -10),
     )
+    unit.m_material.m_diffuseMap.set("asset::0021di.png")
     model.m_renderUnits.pushBack(unit)
 
     actor = blk.StaticActor()
