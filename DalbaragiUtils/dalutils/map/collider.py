@@ -1,4 +1,5 @@
 import abc
+import math
 from typing import Dict, Tuple
 
 import glm
@@ -6,6 +7,7 @@ import glm
 import dalutils.map.interface as inf
 import dalutils.map.primitives as pri
 import dalutils.util.typecode as typ
+import dalutils.util.reporter as rep
 
 
 class ICollider(inf.IDataBlock):
@@ -38,6 +40,10 @@ class Sphere(ICollider):
     def setDefault(self) -> None:
         self.__center.setXYZ(0, 0, 0)
         self.__radius.set(1)
+
+    def fillErrReport(self, journal: rep.ErrorJournal) -> None:
+        if self.__radius == 0.0:
+            journal.addNote(rep.ErrorNote("radius -> 0 radius means zero volume, which is invalid."))
 
     def getTypeCode(self) -> int:
         return self._typeReg.confirm(type(self), 1)
@@ -86,6 +92,12 @@ class AABB(ICollider):
     def setDefault(self) -> None:
         self.__min.setXYZ(0, 0, 0)
         self.__max.setXYZ(0, 0, 0)
+
+    def fillErrReport(self, journal: rep.ErrorJournal) -> None:
+        if self.calcVolume() == 0.0:
+            journal.addNote(rep.ErrorNote("min, max -> Box's volume is 0, which is invalid."))
+        if not self.__isOrderValid():
+            journal.addNote(rep.ErrorNote("min, max -> Min has a value that is higher than it's counterpart of max. This is bug."))
 
     def getTypeCode(self) -> int:
         return self._typeReg.confirm(type(self), 2)
@@ -140,6 +152,16 @@ class AABB(ICollider):
             self.__min.setZ(self.__max.getZ())
             self.__max.setZ(tmp)
 
+    def __isOrderValid(self) -> bool:
+        if self.__min.getX() > self.__max.getX():
+            return False
+        elif self.__min.getY() > self.__max.getY():
+            return False
+        elif self.__min.getZ() > self.__max.getZ():
+            return False
+        else:
+            return True
+
 
 class Triangle(ICollider):
     def __init__(self):
@@ -165,6 +187,10 @@ class Triangle(ICollider):
         self.__p2.setXYZ(0, 0, 0)
         self.__p3.setXYZ(0, 0, 0)
 
+    def fillErrReport(self, journal: rep.ErrorJournal) -> None:
+        if self.__calcArea() == 0.0:
+            journal.addNote(rep.ErrorNote("all points -> Points form zero area triangle, which is invalid."))
+
     def getTypeCode(self) -> int:
         return self._typeReg.confirm(type(self), 3)
 
@@ -177,6 +203,14 @@ class Triangle(ICollider):
     @property
     def m_p3(self):
         return self.__p3
+
+    def __calcArea(self) -> float:
+        a = glm.length(self.__p2.getVec() - self.__p1.getVec())
+        b = glm.length(self.__p3.getVec() - self.__p2.getVec())
+        c = glm.length(self.__p1.getVec() - self.__p3.getVec())
+
+        s = (a + b + c) * 0.5
+        return math.sqrt(s * (s - a) * (s - b) * (s - c))
 
 
 class TriangleSoup(ICollider):
@@ -196,6 +230,10 @@ class TriangleSoup(ICollider):
 
     def setDefault(self) -> None:
         self.__triangles.clear()
+
+    def fillErrReport(self, journal: rep.ErrorJournal) -> None:
+        if not len(self.__triangles):
+            journal.addNote(rep.ErrorNote("triangles -> The list is empty.", rep.ErrorLevel.WARN))
 
     def getTypeCode(self) -> int:
         return self._typeReg.confirm(type(self), 4)

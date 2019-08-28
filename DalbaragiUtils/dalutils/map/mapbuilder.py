@@ -5,6 +5,7 @@ import dalutils.map.interface as inf
 import dalutils.map.primitives as pri
 import dalutils.map.objectdef as ode
 import dalutils.util.path as pth
+import dalutils.util.reporter as rep
 
 
 class MapMetadata(inf.IDataBlock):
@@ -24,6 +25,9 @@ class MapMetadata(inf.IDataBlock):
 
     def setDefault(self) -> None:
         self.__binVersion.set(1)
+
+    def fillErrReport(self, journal: rep.ErrorJournal) -> None:
+        pass
 
 
 class MapChunkBuilder(inf.IDataBlock):
@@ -50,12 +54,26 @@ class MapChunkBuilder(inf.IDataBlock):
         self.__metadata.setDefault()
         self.__modelEmbedded.clear()
 
+    def fillErrReport(self, journal: rep.ErrorJournal) -> None:
+        child = rep.ErrorJournal("metadata")
+        self.__metadata.fillErrReport(child)
+        journal.addChildren(child)
+
+        for i, modelEmbed in enumerate(self.__modelEmbedded):
+            child = rep.ErrorJournal("model embeded [{}]".format(i))
+            modelEmbed.fillErrReport(child)
+            journal.addChildren(child)
+
     @property
     def m_modelEmbedded(self):
         return self.__modelEmbedded
 
 
 def exportJson(mapData: MapChunkBuilder, outputPath: str) -> None:
+    journal = rep.ErrorJournal(outputPath)
+    mapData.fillErrReport(journal)
+    journal.assertNoErr()
+
     pth.createFolderAlong(os.path.split(outputPath)[0])
 
     with open(outputPath, "w") as file:

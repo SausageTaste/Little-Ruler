@@ -3,6 +3,7 @@ import dalutils.map.primitives as pri
 import dalutils.map.datablock as blk
 import dalutils.map.collider as col
 import dalutils.util.binutil as but
+import dalutils.util.reporter as rep
 
 
 class ModelEmbedded(inf.IDataBlock):
@@ -46,6 +47,17 @@ class ModelEmbedded(inf.IDataBlock):
         self.__renderUnits.clear()
         self.__staticActors.clear()
         self.__flagDetailedCollider.set(False)
+
+    def fillErrReport(self, journal: rep.ErrorJournal) -> None:
+        for i, unit in enumerate(self.__renderUnits):
+            child = rep.ErrorJournal("render unit [{}]".format(i))
+            unit.fillErrReport(child)
+            journal.addChildren(child)
+
+        for i, actor in enumerate(self.__staticActors):
+            child = rep.ErrorJournal("static actor [{}]".format(i))
+            actor.fillErrReport(child)
+            journal.addChildren(child)
 
     @property
     def m_name(self):

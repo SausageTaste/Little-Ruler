@@ -133,12 +133,12 @@ class Mesh(inf.IDataBlock):
         self.assertValidity()
 
         aabb = col.AABB()
-
         for vertex in self.__genVertices():
             aabb.makeItCover(*vertex.getXYZ())
 
-        if aabb.calcVolume() <= 0.0:
-            ValueError("AABB volume is 0.")
+        journal = rep.ErrorJournal("tmp")
+        aabb.fillErrReport(journal)
+        journal.assertNoErr()
 
         return aabb
 
@@ -158,7 +158,12 @@ class Mesh(inf.IDataBlock):
             if distanceSqr > mostDistanceSqr:
                 mostDistanceSqr = distanceSqr
 
-        return col.Sphere(avrgVert.getX(), avrgVert.getY(), avrgVert.getZ(), math.sqrt(mostDistanceSqr))
+        sphere = col.Sphere(avrgVert.getX(), avrgVert.getY(), avrgVert.getZ(), math.sqrt(mostDistanceSqr))
+        journal = rep.ErrorJournal("tmp")
+        sphere.fillErrReport(journal)
+        journal.assertNoErr()
+
+        return sphere
 
     def makeTriangleSoup(self) -> col.TriangleSoup:
         self.assertValidity()
@@ -175,6 +180,11 @@ class Mesh(inf.IDataBlock):
             else:
                 tri.m_p2.set(next(it))
                 tri.m_p3.set(next(it))
+
+                journal = rep.ErrorJournal("tmp")
+                tri.fillErrReport(journal)
+                journal.assertNoErr()
+
                 soup.m_triangles.pushBack(tri)
 
     def assertValidity(self) -> None:
@@ -259,8 +269,13 @@ class RenderUnit(inf.IDataBlock):
         self.__material.setDefault()
 
     def fillErrReport(self, journal: rep.ErrorJournal) -> None:
-        self.__mesh.fillErrReport(journal)
-        self.__material.fillErrReport(journal)
+        child = rep.ErrorJournal("mesh")
+        self.__mesh.fillErrReport(child)
+        journal.addChildren(child)
+
+        child = rep.ErrorJournal("material")
+        self.__material.fillErrReport(child)
+        journal.addChildren(child)
 
     @property
     def m_mesh(self):
@@ -334,7 +349,9 @@ class StaticActor(inf.IDataBlock):
         self.__transform.setDefault()
 
     def fillErrReport(self, journal: rep.ErrorJournal) -> None:
-        self.__transform.fillErrReport(journal)
+        child = rep.ErrorJournal("transform")
+        self.__transform.fillErrReport(child)
+        journal.addChildren(child)
 
     @property
     def m_name(self):

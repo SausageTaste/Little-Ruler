@@ -105,6 +105,10 @@ class ErrorJournal:
 
         return False
 
+    def assertNoErr(self) -> None:
+        if self.hasError():
+            raise ValueError('\n' + self.makeReportText()[0])
+
 
 def test():
     parent = ErrorJournal("parent")

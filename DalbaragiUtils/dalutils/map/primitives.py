@@ -245,6 +245,9 @@ class UniformList(IMapElement):
     def __iter__(self):
         return iter(self.__list)
 
+    def __len__(self):
+        return len(self.__list)
+
     def __iadd__(self, other: "UniformList"):
         if not isinstance(other, UniformList):
             raise ValueError()
