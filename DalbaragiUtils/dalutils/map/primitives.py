@@ -13,6 +13,10 @@ class FloatValue(IMapElement):
     def __init__(self, v: float = 0.0):
         self.__val = float(v)
 
+    def __str__(self):
+        typeof = type(self)
+        return "{}{{ {} }}".format(typeof.__name__, self.__val)
+
     def getJson(self) -> json_t:
         return self.__val
 
@@ -35,7 +39,7 @@ class IntValue(IMapElement):
         self.__value = int(v)
 
     def __str__(self):
-        return "<IntValue {{ {} }}>".format(self.__value)
+        return "{}{{ {} }}".format(type(self).__name__, self.__value)
 
     def getJson(self) -> json_t:
         return self.__value
@@ -59,7 +63,7 @@ class BoolValue(IMapElement):
         self.__v = bool(v)
 
     def __str__(self):
-        return "< BoolValue {{ {} }} >".format(self.__v)
+        return "{}{{ {} }} ".format(type(self).__name__, self.__v)
 
     def getJson(self) -> json_t:
         return self.__v
@@ -81,6 +85,9 @@ class BoolValue(IMapElement):
 class Vec3(IMapElement):
     def __init__(self, x: float = 0.0, y: float = 0.0, z: float = 0.0):
         self.__vec = glm.vec3(float(x), float(y), float(z))
+
+    def __str__(self):
+        return "{}{{ {}, {}, {} }}".format(type(self).__name__, self.__vec.x, self.__vec.y, self.__vec.z)
 
     def __add__(self, other: "Vec3") -> "Vec3":
         newone = Vec3()
@@ -163,7 +170,7 @@ class Quat(IMapElement):
         self.__quat = glm.quat(1, 0, 0, 0)
 
     def __str__(self):
-        return "< Quat {{ {}, {}, {}, {} }} >".format(self.__quat.x, self.__quat.y, self.__quat.z, self.__quat.w)
+        return "{}{{ x={}, y={}, z={}, w={} }}".format(type(self).__name__, self.__quat.x, self.__quat.y, self.__quat.z, self.__quat.w)
 
     def setDefault(self) -> None:
         self.__quat = glm.quat(1, 0, 0, 0)
@@ -213,7 +220,7 @@ class StringValue(IMapElement):
         self.__text = str(t)
 
     def __str__(self):
-        return "< IdentifierStr {} >".format(repr(self.__text))
+        return "{}{{ {} }}".format(type(self).__name__, repr(self.__text))
 
     def getJson(self) -> json_t:
         return self.__text
@@ -240,7 +247,7 @@ class UniformList(IMapElement):
         self.__list: List[IMapElement] = []
 
     def __str__(self):
-        return "< UniformList<{}}> >".format(self.__type.__name__, len(self.__list))
+        return "{}<{}>{ size={}, list={} }".format(type(self).__name__, self.__type.__name__, len(self.__list), self.__list)
 
     def __iter__(self):
         return iter(self.__list)
@@ -264,6 +271,8 @@ class UniformList(IMapElement):
         return data
 
     def setJson(self, data: json_t) -> None:
+        self.clear()
+
         for x in data:
             elem = self.__type()
             elem.setJson(x)
@@ -296,11 +305,11 @@ class FloatList(IMapElement):
 
     def __str__(self):
         if self.__arr.size > 5:
-            numStr = str([x for x in self.__arr[0:5]])[1:-1]
-            return "< FloatArray size={} {{ {}, ... }} >".format(self.__arr.size, numStr)
+            numStr = str([x for x in self.__arr[0:5]])[1:-1] + ", ..."
         else:
             numStr = str(list(self.__arr))[1:-1]
-            return "< FloatArray size={} {{ {} }} >".format(self.__arr.size, numStr)
+
+        return "{}{{ size={}, list=[{}] }}".format(type(self).__name__, self.__arr.size, numStr)
 
     def __getitem__(self, index: int) -> float:
         return self.__arr[int(index)]
@@ -372,7 +381,7 @@ class Variant(IMapElement):
 
     def __str__(self):
         typeNames = [x.__name__ for x in self.__types]
-        return "< Variant<{}> >".format(", ".join(typeNames))
+        return "{}<{}>{{ {} }}".format(type(self).__name__, ", ".join(typeNames), self.__data)
 
     def getJson(self) -> json_t:
         dataJson = None if self.__typeIndex < 0 else self.__data.getJson()
@@ -382,14 +391,15 @@ class Variant(IMapElement):
         }
 
     def setJson(self, data: json_t) -> None:
+        typeIndex = int(data["type"])
         try:
-            tmpObj: IMapElement = self.__types[self.__typeIndex]()
+            tmpObj: IMapElement = self.__types[typeIndex]()
         except TypeError:
-            raise TypeError("{} cannot be used in Variant.".format(self.__types[self.__typeIndex]))
+            raise TypeError("{} cannot be used in Variant.".format(self.__types[typeIndex]))
         else:
+            self.__typeIndex = typeIndex
             self.__data: IMapElement = tmpObj
 
-        self.__typeIndex = int(data["type"])
         self.__data.setJson(data["data"])
 
     def getBinary(self) -> bytearray:
@@ -431,7 +441,7 @@ class VariantList(IMapElement):
 
     def __str__(self):
         elemStr = ", ".join(str(i.get()) for i in self.__list)
-        return "VariantList{{ {} }}".format(elemStr)
+        return "{}{{ size={} }}".format(type(self).__name__, len(self.__list))
 
     def __len__(self):
         return len(self.__list)
@@ -446,6 +456,8 @@ class VariantList(IMapElement):
         return data
 
     def setJson(self, data: json_t) -> None:
+        self.clear()
+
         for x in data:
             tmp = Variant(*self.__types)
             tmp.setJson(x)
@@ -463,15 +475,25 @@ class VariantList(IMapElement):
         tmp.set(obj)
         self.__list.append(tmp)
 
+    def clear(self) -> None:
+        self.__list = []
+
 
 def test():
-    varlist = VariantList(FloatList, BoolValue)
+    varlist = VariantList(FloatList, BoolValue, FloatValue)
     varlist.pushBack(BoolValue(False))
-    varlist.pushBack(FloatList(1, 2, 3, 4, 5))
-    print(varlist)
+    varlist.pushBack(FloatList(1, 2, 3, 4, 5, 6))
+    varlist.pushBack(FloatValue(1))
+
+    jsonData = varlist.getJson()
+    print(jsonData)
+    varlist.setJson(jsonData)
 
     for x in varlist:
-        print(x.get())
+        print(x)
+
+    print()
+    print(varlist)
 
 
 if __name__ == '__main__':
