@@ -1,6 +1,6 @@
 import sys
 import base64
-from typing import Tuple, Type, List
+from typing import Tuple, Type, List, Optional, Union, Iterable
 
 import glm
 import numpy as np
@@ -233,14 +233,14 @@ class StrData(IMapElement):
 
 class UniformList(IMapElement):
     def __init__(self, templateType: Type[IMapElement]):
-        if not isinstance(templateType(), IMapElement):
+        if (templateType is not None) and (not isinstance(templateType(), IMapElement)):
             ValueError("Type '{}' is not derived from {}.".format(templateType, IMapElement))
 
         self.__type: Type[IMapElement] = templateType
         self.__list: List[IMapElement] = []
 
     def __str__(self):
-        return "< UniformList<{}> size={} >".format(str(self.__type)[8:-2], len(self.__list))
+        return "< UniformList<{}}> >".format(self.__type.__name__, len(self.__list))
 
     def __iter__(self):
         return iter(self.__list)
@@ -333,10 +333,109 @@ class FloatArray(IMapElement):
             raise ValueError()
         self.__arr = arr
 
-    def append(self, arr: np.ndarray) -> None:
-        if not isinstance(arr, np.ndarray):
-            raise ValueError("Requires numpy::ndarray, got {} instead.".format(type(arr)))
-        self.__arr = np.append(self.__arr, arr)
+    def append(self, arr: Union[np.ndarray, Iterable[float]]) -> None:
+        if isinstance(arr, np.ndarray):
+            self.__arr = np.append(self.__arr, arr)
+        elif isinstance(arr, Iterable):
+            arr: Iterable
+            nparr = np.array(arr, dtype=np.float32)
+            self.__arr = np.append(self.__arr, nparr)
+        else:
+            raise ValueError("Input value's type {} cannot be converted to ndarray.".format(type(arr)))
 
     def clear(self) -> None:
         self.__arr = np.array([], dtype=np.float32)
+
+
+class Variant(IMapElement):
+    def __init__(self, *args: Type[IMapElement]):
+        if not len(args):
+            raise TypeError("Variant needs to be initialized with types.")
+
+        typesList: List[Type[IMapElement]] = []
+        for i in args:
+            if not isinstance(i, type):
+                raise ValueError()
+
+            try:
+                obj = i()
+            except TypeError:
+                raise TypeError("{} cannot be used in Variant.".format(i))
+            else:
+                if not isinstance(obj, IMapElement):
+                    raise TypeError("{} is not derived from IMapElement, so cannot used in Variant.".format(i))
+            typesList.append(i)
+
+        self.__types: Tuple[Type[IMapElement], ...] = tuple(typesList)
+        self.__data: Optional[IMapElement] = None
+        self.__typeIndex = -1
+
+    def __str__(self):
+        typeNames = [x.__name__ for x in self.__types]
+        return "< Variant<{}> >".format(", ".join(typeNames))
+
+    def getJson(self) -> json_t:
+        dataJson = None if self.__typeIndex < 0 else self.__data.getJson()
+        return {
+            "type": self.__typeIndex,
+            "data": dataJson,
+        }
+
+    def setJson(self, data: json_t) -> None:
+        try:
+            tmpObj: IMapElement = self.__types[self.__typeIndex]()
+        except TypeError:
+            raise TypeError("{} cannot be used in Variant.".format(self.__types[self.__typeIndex]))
+        else:
+            self.__data: IMapElement = tmpObj
+
+        self.__typeIndex = int(data["type"])
+        self.__data.setJson(data["data"])
+
+    def getBinary(self) -> bytearray:
+        if not self.__isValid():
+            raise ValueError("Variant need to have value set.")
+
+        data = bytearray()
+        data += bytearray(but.get2BytesInt(self.__typeIndex))
+        data += self.__data.getBinary()
+        return data
+
+    def set(self, data) -> None:
+        for i, typ in enumerate(self.__types):
+            if isinstance(data, typ):
+                self.__data = data
+                self.__typeIndex = i + 0
+                return
+        else:
+            typesStr = [str(x) for x in self.__types]
+            raise ValueError("Input value's type is {} but it must be one of among {}.".format(type(data), ", ".join(typesStr)))
+
+    def __isValid(self) -> bool:
+        if self.__data is None:
+            return False
+        else:
+            return True
+
+
+def test():
+    var = Variant(IntValue, FloatValue, FloatArray)
+    var.set(IntValue(5))
+
+    ulist = FloatArray()
+    ulist.append((1,2,3,4,5))
+    var.set(ulist)
+
+    jsonData = var.getJson()
+
+    print(var)
+    print(var.getJson())
+    print(list(var.getBinary()))
+
+    var.setJson(jsonData)
+
+    print(var.getJson())
+
+
+if __name__ == '__main__':
+    test()
