@@ -72,6 +72,13 @@ namespace dal {
             this->m_quat = q;
             this->setNeedUpdate();
         }
+        void setQuat(const float x, const float y, const float z, const float w) {
+            this->m_quat.x = x;
+            this->m_quat.y = y;
+            this->m_quat.z = z;
+            this->m_quat.w = w;
+            this->setNeedUpdate();
+        }
         void rotate(const float v, const glm::vec3& selector);
         void setScale(const float v) {
             this->m_scale = v;
