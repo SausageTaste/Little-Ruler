@@ -499,6 +499,11 @@ namespace dal {
         }
     }
 
+    const ICollider* ModelStaticHandle::getBounding(void) const {
+        dalAssert(nullptr != this->m_pimpl);
+        return this->m_pimpl->m_model->m_bounding.get();
+    }
+
 }
 
 
@@ -511,6 +516,17 @@ namespace {
 
 // Map chunk 2
 namespace dal {
+
+    void MapChunk2::applyCollision(const ICollider& inCol, cpnt::Transform& inTrans) {
+        for ( auto& mdl : this->m_staticActors ) {
+            for ( auto& actor : mdl.m_actors ) {
+                const auto colliding = checkCollisionAbs(inCol, *mdl.m_model.getBounding(), inTrans, actor.m_transform);
+                if ( colliding ) {
+                    dalVerbose("Yeah!");
+                }
+            }
+        }
+    }
 
     void MapChunk2::renderGeneral(const UnilocGeneral& uniloc) {
         for ( const auto& [model, actors] : this->m_staticActors ) {

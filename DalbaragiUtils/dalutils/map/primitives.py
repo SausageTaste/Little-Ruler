@@ -25,6 +25,10 @@ class FloatValue(IMapElement):
         typeof = type(self)
         return "{}{{ {} }}".format(typeof.__name__, self.__val)
 
+    def __iadd__(self, other: float):
+        self.__val += float(other)
+        return self
+
     def getJson(self) -> json_t:
         return self.__val
 

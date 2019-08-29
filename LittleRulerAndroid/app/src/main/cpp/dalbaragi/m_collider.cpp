@@ -134,12 +134,12 @@ namespace {
     public:
         ColliderResolver(void) {
             this->getItem(dal::ColliderType::sphere, dal::ColliderType::sphere) = nullptr;
-            this->getItem(dal::ColliderType::sphere, dal::ColliderType::aabb) = nullptr;
+            this->getItem(dal::ColliderType::sphere, dal::ColliderType::aabb) = checkCol_sphere_aabb;
             this->getItem(dal::ColliderType::sphere, dal::ColliderType::triangle_soup) = nullptr;
 
-            this->getItem(dal::ColliderType::aabb, dal::ColliderType::sphere) = nullptr;
+            this->getItem(dal::ColliderType::aabb, dal::ColliderType::sphere) = checkCol_aabb_sphere;
             this->getItem(dal::ColliderType::aabb, dal::ColliderType::aabb) = checkCol_aabb_aabb;
-            this->getItem(dal::ColliderType::aabb, dal::ColliderType::triangle_soup) = nullptr;
+            this->getItem(dal::ColliderType::aabb, dal::ColliderType::triangle_soup) = checkCol_aabb_trisoup;
 
             this->getItem(dal::ColliderType::triangle_soup, dal::ColliderType::sphere) = nullptr;
             this->getItem(dal::ColliderType::triangle_soup, dal::ColliderType::aabb) = nullptr;
@@ -171,10 +171,28 @@ namespace {
         }
 
     private:
+        static bool checkCol_sphere_aabb(const dal::ICollider& one, const dal::ICollider& two, const dal::Transform& transOne, const dal::Transform& transTwo) {
+            const auto& sphere = reinterpret_cast<const dal::ColSphere&>(one);
+            const auto& aabb = reinterpret_cast<const dal::ColAABB&>(two);
+            return dal::checkCollision(sphere, aabb, transOne, transTwo);
+        }
+
+        static bool checkCol_aabb_sphere(const dal::ICollider& one, const dal::ICollider& two, const dal::Transform& transOne, const dal::Transform& transTwo) {
+            const auto& aabb = reinterpret_cast<const dal::ColAABB&>(one);
+            const auto& sphere = reinterpret_cast<const dal::ColSphere&>(two);
+            return dal::checkCollision(sphere, aabb, transTwo, transOne);
+        }
+
         static bool checkCol_aabb_aabb(const dal::ICollider& one, const dal::ICollider& two, const dal::Transform& transOne, const dal::Transform& transTwo) {
             const auto& oneAABB = reinterpret_cast<const dal::ColAABB&>(one);
             const auto& twoAABB = reinterpret_cast<const dal::ColAABB&>(two);
             return dal::checkCollision(oneAABB, twoAABB, transOne, transTwo);
+        }
+
+        static bool checkCol_aabb_trisoup(const dal::ICollider& one, const dal::ICollider& two, const dal::Transform& transOne, const dal::Transform& transTwo) {
+            const auto& aabb = reinterpret_cast<const dal::ColAABB&>(one);
+            const auto& soup = reinterpret_cast<const dal::ColTriangleSoup&>(two);
+            return soup.checkCollision(aabb, transTwo, transOne);
         }
 
     } g_colResolver;
@@ -291,6 +309,24 @@ namespace {
             dalAbort("This can't happen!");
 
         }
+    }
+
+
+    // From https://stackoverflow.com/questions/4578967/cube-sphere-intersection-test
+    inline float squared(float v) {
+        return v * v;
+    }
+
+    bool doesCubeIntersectSphere(const glm::vec3 C1, const glm::vec3 C2, const glm::vec3 S, const float R) {
+        float dist_squared = R * R;
+        /* assume C1 and C2 are element-wise sorted, if not, do that now */
+        if ( S.x < C1.x ) dist_squared -= squared(S.x - C1.x);
+        else if ( S.x > C2.x ) dist_squared -= squared(S.x - C2.x);
+        if ( S.y < C1.y ) dist_squared -= squared(S.y - C1.y);
+        else if ( S.y > C2.y ) dist_squared -= squared(S.y - C2.y);
+        if ( S.z < C1.z ) dist_squared -= squared(S.z - C1.z);
+        else if ( S.z > C2.z ) dist_squared -= squared(S.z - C2.z);
+        return dist_squared > 0;
     }
 
 }
@@ -426,6 +462,16 @@ namespace dal {
         if ( this->calcArea() == 0.0f ) {
             dalAbort("Triangle area is zero!");
         }
+    }
+
+    Triangle Triangle::transform(const Transform& trans) const {
+        const auto& mat = trans.getMat();
+
+        const auto pp1 = mat * glm::vec4(this->getPoint1(), 1.0f);
+        const auto pp2 = mat * glm::vec4(this->getPoint2(), 1.0f);
+        const auto pp3 = mat * glm::vec4(this->getPoint3(), 1.0f);
+
+        return Triangle{ pp1, pp2, pp3 };
     }
 
     // Private
@@ -626,6 +672,34 @@ namespace dal {
     }
 
 
+    bool checkCollision(const Triangle& tri, const AABB& aabb, const Transform& transTri, const Transform& transAABB) {
+        // TODO : More precise algorithm needed.
+        const auto triangle = tri.transform(transTri);
+
+        const Ray rays[3] = {
+            Ray{triangle.getPoint1(), triangle.getPoint2() - triangle.getPoint1()},
+            Ray{triangle.getPoint2(), triangle.getPoint3() - triangle.getPoint2()},
+            Ray{triangle.getPoint3(), triangle.getPoint1() - triangle.getPoint3()}
+        };
+
+        for ( int i = 0; i < 3; ++i ) {
+            if ( checkCollision(rays[i], aabb, transAABB) ) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+
+    bool checkCollision(const Sphere& sphere, const AABB& aabb, const Transform& transSphere, const Transform& transAABB) {
+        // TODO : Sphere's transform is not correct atm.
+
+        const auto newAABB = aabb.transform(transAABB);
+
+        return doesCubeIntersectSphere(newAABB.getPoint000(), newAABB.getPoint111(), sphere.getCenter() + transSphere.getPos(), sphere.getRadius());
+    }
+
+
     bool checkCollision(const AABB& one, const AABB& other) {
         const auto one1 = one.getPoint000();
         const auto one2 = one.getPoint111();
@@ -764,6 +838,15 @@ namespace dal {
 
 // ColTriangleSoup
 namespace dal {
+
+    bool ColTriangleSoup::checkCollision(const AABB& aabb, const Transform& transThis, const Transform& transAABB) const {
+        for ( auto& tri : this->m_triangles ) {
+            if ( dal::checkCollision(tri, aabb, transThis, transAABB) ) {
+                return true;
+            }
+        }
+        return false;
+    }
 
     std::optional<RayCastingResult> ColTriangleSoup::calcCollisionInfo(const Ray& ray) const {
         RayCastingResult result;

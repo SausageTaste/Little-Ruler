@@ -485,6 +485,11 @@ namespace dal {
         for ( auto& map : this->m_mapChunks ) {
             map.applyCollision(inOriginalBox, inTrans);
         }
+
+        const ColAABB absAABB{ inOriginalBox };
+        for ( auto& map : this->m_mapChunks2 ) {
+            map.applyCollision(absAABB, inTrans);
+        }
     }
 
     std::optional<RayCastingResult> SceneMaster::doRayCasting(const Ray& ray) {

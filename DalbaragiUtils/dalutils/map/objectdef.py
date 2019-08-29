@@ -81,6 +81,7 @@ class ModelEmbedded(inf.IDataBlock):
             for unit in self.__renderUnits:
                 unit: blk.RenderUnit
                 bounding = bounding.makeContaining(unit.m_mesh.makeSphere())
+            bounding.setCenterOrigin()
             return bounding
         else:
             bounding = col.AABB()

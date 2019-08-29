@@ -225,6 +225,8 @@ namespace dal {
             return this->m_points[2];
         }
 
+        Triangle transform(const Transform& trans) const;
+
     private:
         float calcArea(void) const;
 
@@ -323,6 +325,11 @@ namespace dal {
         {
 
         }
+        ColAABB(const AABB& aabb)
+            : AABB(aabb)
+        {
+
+        }
 
         virtual ColliderType getColType(void) const noexcept override {
             return ColliderType::aabb;
@@ -347,6 +354,10 @@ namespace dal {
     bool checkCollision(const Plane& plane, const Sphere& sphere);
     bool checkCollision(const Plane& plane, const AABB& aabb);
     bool checkCollision(const Plane& plane, const AABB& aabb, const Transform& transAABB);
+
+    bool checkCollision(const Triangle& tri, const AABB& aabb, const Transform& transTri, const Transform& transAABB);
+
+    bool checkCollision(const Sphere& sphere, const AABB& aabb, const Transform& transSphere, const Transform& transAABB);
 
     bool checkCollision(const AABB& one, const AABB& other);
     bool checkCollision(const AABB& one, const AABB& two, const Transform& transOne, const Transform& transTwo);
@@ -396,6 +407,8 @@ namespace dal {
         void reserve(const size_t size) {
             this->m_triangles.reserve(size);
         }
+
+        bool checkCollision(const AABB& aabb, const Transform& transThis, const Transform& transAABB) const;
 
         std::optional<RayCastingResult> calcCollisionInfo(const Ray& ray) const;
 

@@ -153,6 +153,8 @@ namespace dal {
         const AABB& getBoundingBox(void) const;
         const ResourceID& getResID(void) const;
 
+        const ICollider* getBounding(void) const;
+
     };
 
 
@@ -178,6 +180,8 @@ namespace dal {
         void addStaticActorModel(ModelStaticHandle&& model, std::vector<ActorInfo>&& actors) {
             this->m_staticActors.emplace_back(std::move(model), std::move(actors));
         }
+
+        void applyCollision(const ICollider& inCol, cpnt::Transform& inTrans);
 
         void renderGeneral(const UnilocGeneral& uniloc);
         void renderDepthMp(const UnilocDepthmp& uniloc);

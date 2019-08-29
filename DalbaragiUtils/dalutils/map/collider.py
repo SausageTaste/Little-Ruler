@@ -63,6 +63,11 @@ class Sphere(ICollider):
 
         return Sphere(newCenter.x, newCenter.y, newCenter.z, newRadius)
 
+    def setCenterOrigin(self) -> None:
+        distToOri = glm.distance(self.__center.getVec(), glm.vec3(0, 0, 0))
+        self.__center.setXYZ(0, 0, 0)
+        self.__radius += distToOri
+
     @property
     def m_center(self):
         return self.__center

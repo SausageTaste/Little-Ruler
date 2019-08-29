@@ -346,7 +346,6 @@ namespace {
 
                 const auto numTriangles = vertices.size() / 9;
                 dalAssert((vertices.size() - 9 * numTriangles) == 0);
-                soup->reserve(numTriangles);
 
                 for ( int i = 0; i < numTriangles; ++i ) {
                     const auto triIndex = 9 * i;
