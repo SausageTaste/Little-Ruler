@@ -9,18 +9,7 @@ int main(int argc, char* args[]) {
 
 #else
 
-#include <set>
-#include <string>
-#include <iostream>
-
 int main(int argc, char* args[]) {
-    std::set<std::string> s{ "fuck", "shit", "jackass", "ass", "damn" };
-
-    for ( auto& e : s ) {
-        std::cout << e << ", ";
-    }
-    std::cout << std::endl;
-    
     return 0;
 }
 
