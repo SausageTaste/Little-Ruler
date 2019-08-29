@@ -12,7 +12,7 @@ import dalutils.util.reporter as rep
 
 class Material(inf.IDataBlock):
     def __init__(self):
-        self.__diffuseColor = pri.Vec3()
+        self.__baseColor = pri.Vec3()
         self.__shininess = pri.FloatValue()
         self.__specStreng = pri.FloatValue()
         self.__texScaleX = pri.FloatValue()
@@ -24,7 +24,7 @@ class Material(inf.IDataBlock):
         self.setDefault()
 
         super().__init__({
-            "base_color": self.__diffuseColor,
+            "base_color": self.__baseColor,
             "shininess": self.__shininess,
             "spec_strength": self.__specStreng,
             "tex_scale_x": self.__texScaleX,
@@ -36,7 +36,7 @@ class Material(inf.IDataBlock):
 
     def getBinary(self) -> bytearray:
         data = bytearray()
-        data += self.__diffuseColor.getBinary()
+        data += self.__baseColor.getBinary()
         data += self.__shininess.getBinary()
         data += self.__specStreng.getBinary()
         data += self.__texScaleX.getBinary()
@@ -47,7 +47,7 @@ class Material(inf.IDataBlock):
         return data
 
     def setDefault(self) -> None:
-        self.__diffuseColor.setXYZ(1, 1, 1)
+        self.__baseColor.setXYZ(1, 1, 1)
         self.__shininess.set(32)
         self.__specStreng.set(1)
         self.__texScaleX.set(1)
@@ -68,8 +68,8 @@ class Material(inf.IDataBlock):
             journal.addNote(rep.ErrorNote("diffuse_map -> It must be defined.", rep.ErrorLevel.ERRO))
 
     @property
-    def m_diffuseColor(self):
-        return self.__diffuseColor
+    def m_baeColor(self):
+        return self.__baseColor
     @property
     def m_shininess(self):
         return self.__shininess
