@@ -9,6 +9,14 @@ from dalutils.map.interface import json_t, IMapElement
 import dalutils.util.binutil as but
 
 
+class JsonDataMismatch(Exception):
+    def __init__(self, jsonData: json_t):
+        self.__jsonData = jsonData
+
+    def __str__(self):
+        return str(self.__jsonData)
+
+
 class FloatValue(IMapElement):
     def __init__(self, v: float = 0.0):
         self.__val = float(v)
@@ -21,6 +29,8 @@ class FloatValue(IMapElement):
         return self.__val
 
     def setJson(self, data: json_t) -> None:
+        if not isinstance(data, float):
+            raise JsonDataMismatch(data)
         self.__val = float(data)
 
     # float4
@@ -45,6 +55,8 @@ class IntValue(IMapElement):
         return self.__value
 
     def setJson(self, data: json_t) -> None:
+        if not isinstance(data, int):
+            raise JsonDataMismatch(data)
         self.__value = int(data)
 
     # int4
@@ -69,6 +81,8 @@ class BoolValue(IMapElement):
         return self.__v
 
     def setJson(self, data: json_t) -> None:
+        if not isinstance(data, bool):
+            raise JsonDataMismatch(data)
         self.__v = bool(data)
 
     # bool1
@@ -108,6 +122,9 @@ class Vec3(IMapElement):
         return [self.__vec.x, self.__vec.y, self.__vec.z]
 
     def setJson(self, data: json_t) -> None:
+        if 3 != len(data):
+            raise JsonDataMismatch(data)
+
         self.__vec.x = data[0]
         self.__vec.y = data[1]
         self.__vec.z = data[2]
@@ -179,6 +196,9 @@ class Quat(IMapElement):
         return [self.__quat.x, self.__quat.y, self.__quat.z, self.__quat.w]
 
     def setJson(self, data: json_t) -> None:
+        if 4 != len(data):
+            raise JsonDataMismatch(data)
+
         self.__quat.x = data[0]
         self.__quat.y = data[1]
         self.__quat.z = data[2]
@@ -226,6 +246,8 @@ class StringValue(IMapElement):
         return self.__text
 
     def setJson(self, data: json_t) -> None:
+        if not isinstance(data, str):
+            raise JsonDataMismatch(data)
         self.__text = str(data)
 
     def getBinary(self) -> bytearray:
@@ -271,12 +293,14 @@ class UniformList(IMapElement):
         return data
 
     def setJson(self, data: json_t) -> None:
-        self.clear()
+        newList = []
 
         for x in data:
             elem = self.__type()
             elem.setJson(x)
-            self.__list.append(elem)
+            newList.append(elem)
+
+        self.__list = newList
 
     def getBinary(self) -> bytearray:
         data = bytearray()
@@ -320,6 +344,8 @@ class FloatList(IMapElement):
         return base64.encodebytes(self.__arr.tobytes()).decode("utf8")
 
     def setJson(self, data: json_t) -> None:
+        if not isinstance(data, str):
+            raise JsonDataMismatch(data)
         self.__arr = np.frombuffer(base64.decodebytes(data.encode("utf8")), dtype=np.float32)
 
     # int4                    : Number of float values
@@ -392,15 +418,11 @@ class Variant(IMapElement):
 
     def setJson(self, data: json_t) -> None:
         typeIndex = int(data["type"])
-        try:
-            tmpObj: IMapElement = self.__types[typeIndex]()
-        except TypeError:
-            raise TypeError("{} cannot be used in Variant.".format(self.__types[typeIndex]))
-        else:
-            self.__typeIndex = typeIndex
-            self.__data: IMapElement = tmpObj
+        tmpObj: IMapElement = self.__types[typeIndex]()
+        tmpObj.setJson(data["data"])
 
-        self.__data.setJson(data["data"])
+        self.__typeIndex = typeIndex
+        self.__data = tmpObj
 
     def getBinary(self) -> bytearray:
         if not self.__isValid():
@@ -456,12 +478,14 @@ class VariantList(IMapElement):
         return data
 
     def setJson(self, data: json_t) -> None:
-        self.clear()
+        newList = []
 
         for x in data:
             tmp = Variant(*self.__types)
             tmp.setJson(x)
-            self.__list.append(tmp)
+            newList.append(tmp)
+
+        self.__list = newList
 
     def getBinary(self) -> bytearray:
         data = bytearray()
@@ -480,10 +504,11 @@ class VariantList(IMapElement):
 
 
 def test():
-    varlist = VariantList(FloatList, BoolValue, FloatValue)
+    varlist = VariantList(FloatList, BoolValue, FloatValue, IntValue)
     varlist.pushBack(BoolValue(False))
     varlist.pushBack(FloatList(1, 2, 3, 4, 5, 6))
     varlist.pushBack(FloatValue(1))
+    varlist.pushBack(IntValue(1))
 
     jsonData = varlist.getJson()
     print(jsonData)
