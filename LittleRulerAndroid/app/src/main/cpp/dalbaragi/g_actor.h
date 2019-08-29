@@ -84,8 +84,6 @@ namespace dal {
 
     public:
         Transform m_transform;
-
-    private:
         std::string m_name;
 
     public:
