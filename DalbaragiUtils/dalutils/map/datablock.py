@@ -17,8 +17,8 @@ class Material(inf.IDataBlock):
         self.__specStreng = pri.FloatValue()
         self.__texScaleX = pri.FloatValue()
         self.__texScaleY = pri.FloatValue()
-        self.__diffuseMap = pri.StrData()
-        self.__specularMap = pri.StrData()
+        self.__diffuseMap = pri.StringValue()
+        self.__specularMap = pri.StringValue()
         self.__flagAlphaBlend = pri.BoolValue()
 
         self.setDefault()
@@ -92,9 +92,9 @@ class Material(inf.IDataBlock):
 
 class Mesh(inf.IDataBlock):
     def __init__(self):
-        self.__vertices = pri.FloatArray()
-        self.__texcoords = pri.FloatArray()
-        self.__normals = pri.FloatArray()
+        self.__vertices = pri.FloatList()
+        self.__texcoords = pri.FloatList()
+        self.__normals = pri.FloatList()
 
         self.setDefault()
 
@@ -328,7 +328,7 @@ class Transform(inf.IDataBlock):
 
 class StaticActor(inf.IDataBlock):
     def __init__(self):
-        self.__actorName = pri.StrData()
+        self.__actorName = pri.StringValue()
         self.__transform = Transform()
 
         self.setDefault()

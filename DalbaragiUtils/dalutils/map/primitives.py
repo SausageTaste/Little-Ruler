@@ -208,7 +208,7 @@ class Quat(IMapElement):
             return True
 
 
-class StrData(IMapElement):
+class StringValue(IMapElement):
     def __init__(self, t: str = ""):
         self.__text = str(t)
 
@@ -290,7 +290,7 @@ class UniformList(IMapElement):
         return isinstance(obj, self.__type)
 
 
-class FloatArray(IMapElement):
+class FloatList(IMapElement):
     def __init__(self):
         self.__arr = np.array([], dtype=np.float32)
 
@@ -419,10 +419,10 @@ class Variant(IMapElement):
 
 
 def test():
-    var = Variant(IntValue, FloatValue, FloatArray)
+    var = Variant(IntValue, FloatValue, FloatList)
     var.set(IntValue(5))
 
-    ulist = FloatArray()
+    ulist = FloatList()
     ulist.append((1,2,3,4,5))
     var.set(ulist)
 

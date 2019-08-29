@@ -8,7 +8,7 @@ import dalutils.util.reporter as rep
 
 class ModelEmbedded(inf.IDataBlock):
     def __init__(self):
-        self.__name = pri.StrData()
+        self.__name = pri.StringValue()
         self.__renderUnits = pri.UniformList(blk.RenderUnit)
         self.__staticActors = pri.UniformList(blk.StaticActor)
         self.__flagDetailedCollider = pri.BoolValue()
