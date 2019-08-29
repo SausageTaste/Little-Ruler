@@ -24,7 +24,7 @@ class ICollider(inf.IDataBlock):
 class Sphere(ICollider):
     def __init__(self, xCenter: float = 0.0, yCenter: float = 0.0, zCenter: float = 0.0, radius: float = 1.0):
         self.__center = pri.Vec3(xCenter, yCenter, zCenter)
-        self.__radius = pri.FloatData(radius)
+        self.__radius = pri.FloatValue(radius)
 
         super().__init__({
             "center": self.__center,

@@ -13,10 +13,10 @@ import dalutils.util.reporter as rep
 class Material(inf.IDataBlock):
     def __init__(self):
         self.__diffuseColor = pri.Vec3()
-        self.__shininess = pri.FloatData()
-        self.__specStreng = pri.FloatData()
-        self.__texScaleX = pri.FloatData()
-        self.__texScaleY = pri.FloatData()
+        self.__shininess = pri.FloatValue()
+        self.__specStreng = pri.FloatValue()
+        self.__texScaleX = pri.FloatValue()
+        self.__texScaleY = pri.FloatValue()
         self.__diffuseMap = pri.StrData()
         self.__specularMap = pri.StrData()
         self.__flagAlphaBlend = pri.BoolValue()
@@ -289,7 +289,7 @@ class Transform(inf.IDataBlock):
     def __init__(self):
         self.__pos = pri.Vec3()
         self.__quat = pri.Quat()
-        self.__scale = pri.FloatData()
+        self.__scale = pri.FloatValue()
 
         self.setDefault()
 

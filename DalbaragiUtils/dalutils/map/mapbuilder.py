@@ -10,7 +10,7 @@ import dalutils.util.reporter as rep
 
 class MapMetadata(inf.IDataBlock):
     def __init__(self):
-        self.__binVersion = pri.IntData()
+        self.__binVersion = pri.IntValue()
 
         self.setDefault()
 

@@ -9,7 +9,7 @@ from dalutils.map.interface import json_t, IMapElement
 import dalutils.util.binutil as but
 
 
-class FloatData(IMapElement):
+class FloatValue(IMapElement):
     def __init__(self, v: float = 0.0):
         self.__val = float(v)
 
@@ -30,7 +30,7 @@ class FloatData(IMapElement):
         self.__val = float(v)
 
 
-class IntData(IMapElement):
+class IntValue(IMapElement):
     def __init__(self, v: int = 0):
         self.__value = int(v)
 
