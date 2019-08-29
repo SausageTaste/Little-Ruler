@@ -119,8 +119,8 @@ class Mesh(inf.IDataBlock):
         self.__normals.clear()
 
     def fillErrReport(self, journal: rep.ErrorJournal) -> None:
-        if (self.__vertices.getSize() % 3) != 0:
-            journal.addNote(rep.ErrorNote("vertices -> Size is not multiple of 3.", rep.ErrorLevel.ERRO))
+        if (self.__vertices.getSize() % 9) != 0:
+            journal.addNote(rep.ErrorNote("vertices -> Size is not multiple of 9.", rep.ErrorLevel.ERRO))
 
         numVert = int(self.__vertices.getSize() / 3)
         if self.__texcoords.getSize() != (2 * numVert):
