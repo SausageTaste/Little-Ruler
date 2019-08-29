@@ -1,6 +1,6 @@
 import sys
 import base64
-from typing import Tuple, Type, List, Optional, Union, Iterable
+from typing import Tuple, Type, List, Optional, Union, Iterable, Any
 
 import glm
 import numpy as np
@@ -411,6 +411,9 @@ class Variant(IMapElement):
             typesStr = [str(x) for x in self.__types]
             raise ValueError("Input value's type is {} but it must be one of among {}.".format(type(data), ", ".join(typesStr)))
 
+    def get(self) -> Any:
+        return self.__data
+
     def __isValid(self) -> bool:
         if self.__data is None:
             return False
@@ -418,23 +421,57 @@ class Variant(IMapElement):
             return True
 
 
+class VariantList(IMapElement):
+    def __init__(self, *args: Type[IMapElement]):
+        # To check if arg types are vaild.
+        Variant(*args)
+
+        self.__types = args
+        self.__list: List[Variant] = []
+
+    def __str__(self):
+        elemStr = ", ".join(str(i.get()) for i in self.__list)
+        return "VariantList{{ {} }}".format(elemStr)
+
+    def __len__(self):
+        return len(self.__list)
+
+    def __iter__(self):
+        return iter(self.__list)
+
+    def getJson(self) -> json_t:
+        data = []
+        for x in self.__list:
+            data.append(x.getJson())
+        return data
+
+    def setJson(self, data: json_t) -> None:
+        for x in data:
+            tmp = Variant(*self.__types)
+            tmp.setJson(x)
+            self.__list.append(tmp)
+
+    def getBinary(self) -> bytearray:
+        data = bytearray()
+        data += but.get4BytesInt(len(self.__list))
+        for item in self.__list:
+            data += item.getBinary()
+        return data
+
+    def pushBack(self, obj) -> None:
+        tmp = Variant(*self.__types)
+        tmp.set(obj)
+        self.__list.append(tmp)
+
+
 def test():
-    var = Variant(IntValue, FloatValue, FloatList)
-    var.set(IntValue(5))
+    varlist = VariantList(FloatList, BoolValue)
+    varlist.pushBack(BoolValue(False))
+    varlist.pushBack(FloatList())
+    print(varlist)
 
-    ulist = FloatList()
-    ulist.append((1,2,3,4,5))
-    var.set(ulist)
-
-    jsonData = var.getJson()
-
-    print(var)
-    print(var.getJson())
-    print(list(var.getBinary()))
-
-    var.setJson(jsonData)
-
-    print(var.getJson())
+    for x in varlist:
+        print(x.get())
 
 
 if __name__ == '__main__':
