@@ -391,6 +391,9 @@ namespace dal {
         }
 
         this->loadMap("asset::map/water_bowl.dlb");
+
+        auto map = this->m_resMas.loadMap("asset::map/water_n_slope.dlb");
+        this->m_mapChunks2.push_back(std::move(map));
     }
 
     SceneMaster::~SceneMaster(void) {
@@ -406,6 +409,10 @@ namespace dal {
 
     void SceneMaster::renderGeneral(const UnilocGeneral& uniloc) {
         for ( auto& map : m_mapChunks ) {
+            map.renderGeneral(uniloc);
+        }
+
+        for ( auto& map : this->m_mapChunks2 ) {
             map.renderGeneral(uniloc);
         }
     }

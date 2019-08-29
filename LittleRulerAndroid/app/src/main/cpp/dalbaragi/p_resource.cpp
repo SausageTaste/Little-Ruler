@@ -509,6 +509,28 @@ namespace {
 }
 
 
+// Map chunk 2
+namespace dal {
+
+    void MapChunk2::renderGeneral(const UnilocGeneral& uniloc) {
+        for ( const auto& [model, actors] : this->m_staticActors ) {
+            for ( const auto& actor : actors ) {
+                model.render(uniloc.m_lightedMesh, uniloc.getDiffuseMapLoc(), actor.m_transform.getMat());
+            }
+        }
+    }
+
+    void MapChunk2::renderDepthMp(const UnilocDepthmp& uniloc) {
+        for ( const auto& [mdl, actors] : this->m_staticActors ) {
+            for ( const auto& actor : actors ) {
+                mdl.renderDepthMap(uniloc.m_geometry, actor.m_transform.getMat());
+            }
+        }
+    }
+
+}
+
+
 // Package
 namespace dal {
 
@@ -796,6 +818,59 @@ namespace dal {
 
             return texture;
         }
+    }
+
+    MapChunk2 ResourceMaster::loadMap(const ResourceID& resID) {
+        std::vector<uint8_t> buffer;
+        futil::getRes_buffer(resID, buffer);
+        auto mapInfo = parseDLB(buffer.data(), buffer.size());
+        if ( !mapInfo ) {
+            dalAbort("Shit!");
+        }
+
+        MapChunk2 map;
+
+        for ( auto& mdlEmbed : mapInfo->m_embeddedModels ) {
+            auto model = new ModelStatic;
+            ModelStaticHandle modelHandle{ model };
+
+            // Name
+            {
+                ResourceID mdlResName{ mdlEmbed.m_name };
+                mdlResName.setPackage(resID.getPackage());
+                model->setModelResID(mdlResName);
+            }
+
+            // Render units
+            for ( const auto& unitInfo : mdlEmbed.m_renderUnits ) {
+                auto& unit = model->addRenderUnit();
+                unit.m_mesh.buildData(
+                    unitInfo.m_mesh.m_vertices.data(), unitInfo.m_mesh.m_vertices.size(),
+                    unitInfo.m_mesh.m_texcoords.data(), unitInfo.m_mesh.m_texcoords.size(),
+                    unitInfo.m_mesh.m_normals.data(), unitInfo.m_mesh.m_normals.size()
+                );
+
+                unit.m_material.m_diffuseColor = unitInfo.m_material.m_baseColor;
+                unit.m_material.m_shininess = unitInfo.m_material.m_shininess;
+                unit.m_material.m_specularStrength = unitInfo.m_material.m_specStreng;
+                unit.m_material.setTexScale(unitInfo.m_material.m_texScale);
+
+                if ( !unitInfo.m_material.m_diffuseMap.empty() ) {
+                    auto tex = this->orderTexture(unitInfo.m_material.m_diffuseMap);
+                    unit.m_material.setDiffuseMap(tex);
+                }
+            }
+
+            // Colliders
+            {
+                model->m_bounding = std::move(mdlEmbed.m_bounding);
+                model->m_detailed = std::move(mdlEmbed.m_detailed);
+            }
+
+            map.addStaticActorModel(std::move(modelHandle), std::move(mdlEmbed.m_staticActors));
+        }
+
+        return map;
     }
 
     // Private

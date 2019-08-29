@@ -152,6 +152,9 @@ namespace dal {
 
         // If paremeter value is 0, old value remains.
         void setTexScale(float x, float y);
+        void setTexScale(const glm::vec2 v) {
+            this->m_texScale = v;
+        }
         void setDiffuseMap(const Texture* const tex);
 
         void sendUniform(const UniInterfLightedMesh& unilocLight) const;

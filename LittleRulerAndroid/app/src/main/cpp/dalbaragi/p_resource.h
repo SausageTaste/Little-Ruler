@@ -6,6 +6,7 @@
 #include "s_threader.h"
 #include "u_fileclass.h"
 #include "p_meshStatic.h"
+#include "u_dlbparser.h"
 
 
 namespace dal {
@@ -31,14 +32,18 @@ namespace dal {
 
     class ModelStatic : public IModel {
 
-    private:
+    public:
         struct RenderUnit {
             std::string m_meshName;
             dal::MeshStatic m_mesh;
             dal::Material m_material;
         };
 
+    private:
         std::vector<RenderUnit> m_renderUnits;
+
+    public:
+        std::unique_ptr<ICollider> m_bounding, m_detailed;
 
     public:
         ModelStatic(const ModelStatic&) = delete;
@@ -55,6 +60,10 @@ namespace dal {
         //RenderUnit* addRenderUnit(void);
         void init(const ResourceID& resID, const loadedinfo::ModelStatic& info, ResourceMaster& resMas);
         void init(const loadedinfo::ModelDefined& info, ResourceMaster& resMas);
+        
+        RenderUnit& addRenderUnit(void) {
+            return this->m_renderUnits.emplace_back();
+        }
 
         void invalidate(void);
         bool isReady(void) const;
@@ -147,6 +156,35 @@ namespace dal {
     };
 
 
+    class MapChunk2 {
+
+    private:
+        struct StaticModelActor {
+            ModelStaticHandle m_model;
+            std::vector<ActorInfo> m_actors;
+
+            StaticModelActor(ModelStaticHandle&& model, std::vector<ActorInfo>&& actors)
+                : m_model(std::move(model))
+                , m_actors(std::move(actors))
+            {
+
+            }
+        };
+
+    private:
+        std::vector<StaticModelActor> m_staticActors;
+
+    public:
+        void addStaticActorModel(ModelStaticHandle&& model, std::vector<ActorInfo>&& actors) {
+            this->m_staticActors.emplace_back(std::move(model), std::move(actors));
+        }
+
+        void renderGeneral(const UnilocGeneral& uniloc);
+        void renderDepthMp(const UnilocDepthmp& uniloc);
+
+    };
+
+
     class Package {
 
     private:
@@ -205,6 +243,8 @@ namespace dal {
         ModelStaticHandle orderModelStatic(const ResourceID& resID);
         ModelAnimated* orderModelAnim(const ResourceID& resID);
         Texture* orderTexture(const ResourceID& resID);
+        MapChunk2 loadMap(const ResourceID& resID);
+
         ModelStaticHandle buildModel(const loadedinfo::ModelDefined& info, const std::string& packageName);
 
     private:

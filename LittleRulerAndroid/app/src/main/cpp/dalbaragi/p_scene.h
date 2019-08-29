@@ -74,6 +74,7 @@ namespace dal {
     private:
         ResourceMaster& m_resMas;
         std::list<MapChunk> m_mapChunks;
+        std::list<MapChunk2> m_mapChunks2;
 
         //////// Methods ////////
 
