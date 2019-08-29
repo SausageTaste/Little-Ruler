@@ -28,17 +28,12 @@ class ModelEmbedded(inf.IDataBlock):
         data += self.__name.getBinary()
         data += self.__renderUnits.getBinary()
         data += self.__staticActors.getBinary()
+        data += self.__flagDetailedCollider.getBinary()
+        data += pri.BoolValue(self.__hasRotatingActor()).getBinary()
 
         bounding = self.__buildBoundingBox()
         data += but.get2BytesInt(bounding.getTypeCode())
         data += bounding.getBinary()
-
-        if not self.__flagDetailedCollider.get():
-            data += but.get2BytesInt(0)
-        else:
-            soup = self.__buildDetailedCol()
-            data += but.get2BytesInt(soup.getTypeCode())
-            data += soup.getBinary()
 
         return data
 
