@@ -251,6 +251,15 @@ namespace dal {
         float getDistance(const glm::vec3& p) const;
         bool isInside(const glm::vec3& p) const;
 
+        void setCenter(const float x, const float y, const float z) noexcept {
+            this->m_center.x = x;
+            this->m_center.y = y;
+            this->m_center.z = z;
+        }
+        void setRadius(const float v) noexcept {
+            this->m_radius = v;
+        }
+
     };
 
 
@@ -382,6 +391,10 @@ namespace dal {
 
         void addTriangle(const Triangle& tri) {
             this->m_triangles.push_back(tri);
+        }
+
+        void reserve(const size_t size) {
+            this->m_triangles.reserve(size);
         }
 
         std::optional<RayCastingResult> calcCollisionInfo(const Ray& ray) const;
