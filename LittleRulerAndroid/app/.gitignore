@@ -1,5 +1,6 @@
 /build
 /.externalNativeBuild
+/.cxx
 /libs
 app.iml
 /release
