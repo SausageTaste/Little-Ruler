@@ -291,8 +291,8 @@ class UniformList(IMapElement):
 
 
 class FloatList(IMapElement):
-    def __init__(self):
-        self.__arr = np.array([], dtype=np.float32)
+    def __init__(self, *args: float):
+        self.__arr = np.array(args, dtype=np.float32)
 
     def __str__(self):
         if self.__arr.size > 5:
@@ -467,7 +467,7 @@ class VariantList(IMapElement):
 def test():
     varlist = VariantList(FloatList, BoolValue)
     varlist.pushBack(BoolValue(False))
-    varlist.pushBack(FloatList())
+    varlist.pushBack(FloatList(1, 2, 3, 4, 5))
     print(varlist)
 
     for x in varlist:
