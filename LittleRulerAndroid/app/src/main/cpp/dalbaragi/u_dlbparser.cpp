@@ -165,7 +165,7 @@ namespace {
     };
 
     inline void assertHeaderPtr(const uint8_t* const begin, const uint8_t* const end) {
-        if ( begin >= end ) {
+        if ( begin > end ) {
             throw CorruptedBinary{};
         }
     }
@@ -345,7 +345,7 @@ namespace {
                 auto& vertices = unit.m_mesh.m_vertices;
 
                 const auto numTriangles = vertices.size() / 9;
-                dalAssert((vertices.size() - numTriangles) == 0);
+                dalAssert((vertices.size() - 9 * numTriangles) == 0);
                 soup->reserve(numTriangles);
 
                 for ( int i = 0; i < numTriangles; ++i ) {
@@ -359,6 +359,11 @@ namespace {
             }
         }
 
+        // Has rotating actor
+        {
+            const auto flag = makeBool1(begin); begin += 1;
+        }
+
         // Bounding volume
         {
             const auto colCode = makeInt2(begin); begin += 2;
@@ -369,15 +374,17 @@ namespace {
                 auto sphere = new dal::ColSphere;
                 info.m_bounding.reset(sphere);
                 begin = parseSphere(*sphere, begin, end);
+                break;
             }
             case COLLIDER_AABB:
             {
                 auto aabb = new dal::ColAABB;
                 info.m_bounding.reset(aabb);
                 begin = parseAABB(*aabb, begin, end);
+                break;
             }
             default:
-                dalAbort("Shit");
+                dalAbort("Unkown collider type code: {}"_format(colCode));
 
             }
         }
@@ -421,6 +428,8 @@ namespace dal {
             dalError("Failed to parse map, maybe it is corrupted.");
             return std::nullopt;
         }
+
+        dalAssert(header == end);
 
         return info;
     }
