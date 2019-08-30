@@ -71,9 +71,9 @@ class ModelEmbedded(inf.IDataBlock):
         for sactor in self.__staticActors:
             sactor: blk.StaticActor
             if not sactor.m_transform.m_quat.isDefaultValue():
-                return False
+                return True
 
-        return True
+        return False
 
     def __buildBoundingBox(self) -> col.ICollider:
         if self.__hasRotatingActor():
