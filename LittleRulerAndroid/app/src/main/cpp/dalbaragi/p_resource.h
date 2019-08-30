@@ -154,6 +154,7 @@ namespace dal {
         const ResourceID& getResID(void) const;
 
         const ICollider* getBounding(void) const;
+        const ICollider* getDetailed(void) const;
 
     };
 
@@ -182,6 +183,7 @@ namespace dal {
         }
 
         void applyCollision(const ICollider& inCol, cpnt::Transform& inTrans);
+        std::optional<RayCastingResult> castRayToClosest(const Ray& ray);
 
         void renderGeneral(const UnilocGeneral& uniloc);
         void renderDepthMp(const UnilocDepthmp& uniloc);

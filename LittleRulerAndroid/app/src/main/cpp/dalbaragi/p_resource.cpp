@@ -1,5 +1,7 @@
 #include "p_resource.h"
 
+#include <limits>
+
 #include <fmt/format.h>
 #include <glm/gtc/matrix_transform.hpp>
 #include <assimp/matrix4x4.h>
@@ -504,6 +506,16 @@ namespace dal {
         return this->m_pimpl->m_model->m_bounding.get();
     }
 
+    const ICollider* ModelStaticHandle::getDetailed(void) const {
+        dalAssert(nullptr != this->m_pimpl);
+        if ( this->m_pimpl->m_model->m_detailed ) {
+            return this->m_pimpl->m_model->m_detailed.get();
+        }
+        else {
+            return nullptr;
+        }
+    }
+
 }
 
 
@@ -520,13 +532,62 @@ namespace dal {
     void MapChunk2::applyCollision(const ICollider& inCol, cpnt::Transform& inTrans) {
         for ( auto& mdl : this->m_staticActors ) {
             for ( auto& actor : mdl.m_actors ) {
-                const auto colliding = checkCollisionAbs(inCol, *mdl.m_model.getBounding(), inTrans, actor.m_transform);
-                if ( colliding ) {
-                    dalVerbose("Yeah!");
+                const auto withBounding = checkCollisionAbs(inCol, *mdl.m_model.getBounding(), inTrans, actor.m_transform);
+                if ( !withBounding ) {
+                    continue;
+                }
+
+                const auto detailedCol = mdl.m_model.getDetailed();
+                if ( nullptr != detailedCol ) {
+                    const auto withDetailed = checkCollisionAbs(inCol, *detailedCol, inTrans, actor.m_transform);
+                    if ( withDetailed ) {
+                        dalVerbose("Yeah!");
+                    }
                 }
             }
         }
     }
+
+    std::optional<RayCastingResult> MapChunk2::castRayToClosest(const Ray& ray) {
+        float closestDistance = std::numeric_limits<float>::max();
+        std::optional<RayCastingResult> result{ std::nullopt };
+
+        for ( auto& modelActor : this->m_staticActors ) {
+            const auto mdlBounding = modelActor.m_model.getBounding();
+            const auto mdlDetailed = modelActor.m_model.getDetailed();
+
+            if ( nullptr != mdlDetailed ) {
+                for ( auto& actor : modelActor.m_actors ) {
+                    if ( !checkCollisionAbs(ray, *mdlBounding, actor.m_transform) ) {
+                        continue;
+                    }
+                    const auto res = calcCollisionInfoAbs(ray, *mdlDetailed, actor.m_transform);
+                    if ( !res ) {
+                        continue;
+                    }
+                    if ( res->m_distance < closestDistance ) {
+                        closestDistance = res->m_distance;
+                        result = *res;
+                    }
+                }
+            }
+            else {
+                for ( auto& actor : modelActor.m_actors ) {
+                    const auto res = calcCollisionInfoAbs(ray, *mdlBounding, actor.m_transform);
+                    if ( !res ) {
+                        continue;
+                    }
+                    if ( res->m_distance < closestDistance ) {
+                        closestDistance = res->m_distance;
+                        result = *res;
+                    }
+                }
+            }
+        }
+
+        return result;
+    }
+
 
     void MapChunk2::renderGeneral(const UnilocGeneral& uniloc) {
         for ( const auto& [model, actors] : this->m_staticActors ) {

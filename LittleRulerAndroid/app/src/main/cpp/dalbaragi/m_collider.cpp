@@ -598,6 +598,15 @@ namespace dal {
         return glm::dot(rel, rel) <= (this->m_radius * this->m_radius);
     }
 
+    Sphere Sphere::transform(const Transform& trans) const {
+        Sphere result;
+
+        result.setCenter(this->m_center + trans.getPos());
+        result.setRadius(this->m_radius * trans.getScale());
+
+        return result;
+    }
+
 }
 
 
@@ -606,6 +615,30 @@ namespace dal {
 
     bool checkCollisionAbs(const ICollider& one, const ICollider& two, const Transform& transOne, const Transform& transTwo) {
         return g_colResolver.checkCollision(one, two, transOne, transTwo);
+    }
+
+    bool checkCollisionAbs(const Ray& ray, const ICollider& col, const Transform& transCol) {
+        const auto colType = col.getColType();
+        switch ( colType ) {
+
+        case dal::ColliderType::sphere:
+        {
+            auto newSphere = reinterpret_cast<const ColSphere&>(col).transform(transCol);
+            return checkCollision(ray, newSphere);
+        }
+        case dal::ColliderType::aabb:
+        {
+            auto newAABB = reinterpret_cast<const ColAABB&>(col);
+            return checkCollision(ray, newAABB, transCol);
+        }
+        case dal::ColliderType::triangle_soup:
+        {
+            dalAbort("Not implemented.");
+        }
+        default:
+            dalAbort("Unkown collider type code: {}"_format(static_cast<int>(colType)));
+
+        }
     }
 
 
@@ -766,6 +799,31 @@ namespace dal {
 // calcCollisionInfo funcs
 namespace dal {
 
+    std::optional<RayCastingResult> calcCollisionInfoAbs(const Ray& ray, const ICollider& col, const Transform& transCol) {
+        const auto colType = col.getColType();
+        switch ( colType ) {
+
+        case dal::ColliderType::sphere:
+        {
+            auto newSphere = reinterpret_cast<const ColSphere&>(col);
+            return calcCollisionInfo(ray, newSphere, transCol);
+        }
+        case dal::ColliderType::aabb:
+        {
+            auto newAABB = reinterpret_cast<const ColAABB&>(col);
+            return calcCollisionInfo(ray, newAABB, transCol);
+        }
+        case dal::ColliderType::triangle_soup:
+        {
+            dalAbort("Not implemented.");
+        }
+        default:
+            dalAbort("Unkown collider type code: {}"_format(static_cast<int>(colType)));
+
+        }
+    }
+
+
     std::optional<RayCastingResult> calcCollisionInfo(const Ray& ray, const Plane& plane) {
         const auto pointA = ray.getStartPos();
         const auto pointB = pointA + ray.getRel();
@@ -799,6 +857,10 @@ namespace dal {
         else {
             return std::nullopt;
         }
+    }
+
+    std::optional<RayCastingResult> calcCollisionInfo(const Ray& ray, const Sphere& sphere, const Transform& transSphere) {
+        dalAbort("Not implemented.");
     }
 
     std::optional<RayCastingResult> calcCollisionInfo(const Ray& ray, const AABB& aabb) {

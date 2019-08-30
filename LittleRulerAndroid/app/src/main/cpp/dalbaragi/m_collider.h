@@ -258,9 +258,14 @@ namespace dal {
             this->m_center.y = y;
             this->m_center.z = z;
         }
+        void setCenter(const glm::vec3& v) {
+            this->m_center = v;
+        }
         void setRadius(const float v) noexcept {
             this->m_radius = v;
         }
+
+        Sphere transform(const Transform& trans) const;
 
     };
 
@@ -344,6 +349,7 @@ namespace dal {
 namespace dal {
 
     bool checkCollisionAbs(const ICollider& one, const ICollider& two, const Transform& transOne, const Transform& transTwo);
+    bool checkCollisionAbs(const Ray& ray, const ICollider& col, const Transform& transCol);
 
     bool checkCollision(const Ray& ray, const Plane& plane);
     bool checkCollision(const Ray& ray, const Sphere& sphere);
@@ -378,7 +384,10 @@ namespace dal {
 // calcCollisionInfo funcs
 namespace dal {
 
+    std::optional<RayCastingResult> calcCollisionInfoAbs(const Ray& ray, const ICollider& col, const Transform& transCol);
+
     std::optional<RayCastingResult> calcCollisionInfo(const Ray& ray, const Triangle& tri, const bool ignoreFromBack = false);
+    std::optional<RayCastingResult> calcCollisionInfo(const Ray& ray, const Sphere& sphere, const Transform& transSphere);
     std::optional<RayCastingResult> calcCollisionInfo(const Ray& ray, const Plane& plane);
     std::optional<RayCastingResult> calcCollisionInfo(const Ray& ray, const AABB& aabb);
     std::optional<RayCastingResult> calcCollisionInfo(const Ray& ray, const AABB& aabb, const Transform& transAABB);
