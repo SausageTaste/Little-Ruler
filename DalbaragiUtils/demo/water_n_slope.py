@@ -25,8 +25,9 @@ def main():
 
     actor = blk.StaticActor()
     actor.m_name.set("slope1")
-    actor.m_transform.m_pos.setY(3)
-    actor.m_transform.m_pos.setZ(-10)
+    actor.m_transform.m_pos.setX(0)
+    actor.m_transform.m_pos.setY(-5)
+    actor.m_transform.m_pos.setZ(0)
     model.m_staticActors.pushBack(actor)
 
     build.m_modelEmbedded.pushBack(model)
