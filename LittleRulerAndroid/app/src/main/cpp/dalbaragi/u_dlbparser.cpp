@@ -160,9 +160,7 @@ namespace {
     }
 
     
-    class CorruptedBinary {
-
-    };
+    class CorruptedBinary {  };
 
     inline void assertHeaderPtr(const uint8_t* const begin, const uint8_t* const end) {
         if ( begin > end ) {
@@ -335,9 +333,7 @@ namespace {
         }
 
         // Flag detailed collider
-        {
-            const auto flag = makeBool1(begin); begin += 1;
-
+        if ( makeBool1(begin) ) {
             auto soup = new dal::ColTriangleSoup;
             info.m_detailed.reset(soup);
 
@@ -356,7 +352,7 @@ namespace {
                         });
                 }
             }
-        }
+        } begin += 1;
 
         // Has rotating actor
         {
