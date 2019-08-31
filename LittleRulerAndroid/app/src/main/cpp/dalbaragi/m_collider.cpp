@@ -422,16 +422,20 @@ namespace {
                 const auto p0 = a * v0.y - b * v0.z;
                 const auto p2 = a * v2.y - b * v2.z;
                 if ( p0 < p2 ) {
-                    min = p0; max = p2;
+                    min = p0;
+                    max = p2;
                 }
                 else {
-                    min = p2; max = p0;
+                    min = p2;
+                    max = p0;
                 }
 
                 const auto rad = fa * boxhalfsize.y + fb * boxhalfsize.z;
 
                 if ( min > rad || max < -rad )
                     return 0;
+                else
+                    return 1;
             };
 
             auto AXISTEST_X2 = [&](const float a, const float b, const float fa, const float fb) {
@@ -441,6 +445,7 @@ namespace {
                 else { min = p1; max = p0; }
                 const auto rad = fa * boxhalfsize[Y] + fb * boxhalfsize[Z];
                 if ( min > rad || max < -rad ) return 0;
+                else return 1;
             };
 
             auto AXISTEST_Y1 = [&](const float a, const float b, const float fa, const float fb) {
@@ -450,6 +455,7 @@ namespace {
                 else { min = p1; max = p0; }
                 const auto rad = fa * boxhalfsize[X] + fb * boxhalfsize[Z];
                 if ( min > rad || max < -rad ) return 0;
+                else return 1;
             };
 
             auto AXISTEST_Y02 = [&](const float a, const float b, const float fa, const float fb) {
@@ -459,6 +465,7 @@ namespace {
                 else { min = p2; max = p0; }
                 const auto rad = fa * boxhalfsize[X] + fb * boxhalfsize[Z];
                 if ( min > rad || max < -rad ) return 0;
+                else return 1;
             };
 
             auto AXISTEST_Z12 = [&](const float a, const float b, const float fa, const float fb) {
@@ -468,6 +475,7 @@ namespace {
                 else { min = p1; max = p2; }
                 const auto rad = fa * boxhalfsize[X] + fb * boxhalfsize[Y];
                 if ( min > rad || max < -rad ) return 0;
+                else return 1;
             };
 
             auto AXISTEST_Z0 = [&](const float a, const float b, const float fa, const float fb) {
@@ -477,6 +485,7 @@ namespace {
                 else { min = p1; max = p0; }
                 const auto rad = fa * boxhalfsize[X] + fb * boxhalfsize[Y];
                 if ( min > rad || max < -rad ) return 0;
+                else return 1;
             };
 
             AXISTEST_X01(e0.z, e0.y, fez, fey);
