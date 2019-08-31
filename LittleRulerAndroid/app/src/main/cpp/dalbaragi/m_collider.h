@@ -131,9 +131,15 @@ namespace dal {
 
     class ICollider {
 
+    private:
+        ColliderType m_type;
+
+    protected:
+        ICollider(const ColliderType type) noexcept;
+
     public:
         virtual ~ICollider(void) = default;
-        virtual ColliderType getColType(void) const noexcept = 0;
+        ColliderType getColType(void) const noexcept;
 
     };
 
@@ -321,8 +327,22 @@ namespace dal {
     class ColSphere : public Sphere, public ICollider {
 
     public:
-        virtual ColliderType getColType(void) const noexcept override {
-            return ColliderType::sphere;
+        ColSphere(void)
+            : ICollider(ColliderType::sphere)
+        {
+
+        }
+        ColSphere(const glm::vec3& center, const float radius)
+            : Sphere(center, radius)
+            , ICollider(ColliderType::sphere)
+        {
+
+        }
+        ColSphere(const Sphere& sphere)
+            : Sphere(sphere)
+            , ICollider(ColliderType::sphere)
+        {
+
         }
 
     };
@@ -331,20 +351,22 @@ namespace dal {
     class ColAABB : public AABB, public ICollider {
 
     public:
-        ColAABB(void) = default;
+        ColAABB(void)
+            : ICollider(ColliderType::aabb)
+        {
+
+        }
         ColAABB(const glm::vec3& p1, const glm::vec3& p2)
             : AABB(p1, p2)
+            , ICollider(ColliderType::aabb)
         {
 
         }
         ColAABB(const AABB& aabb)
             : AABB(aabb)
+            , ICollider(ColliderType::aabb)
         {
 
-        }
-
-        virtual ColliderType getColType(void) const noexcept override {
-            return ColliderType::aabb;
         }
 
     };
@@ -362,8 +384,10 @@ namespace dal {
         bool m_faceCull = true;
 
     public:
-        virtual ColliderType getColType(void) const noexcept override {
-            return ColliderType::triangle_soup;
+        ColTriangleSoup(void)
+            : ICollider(ColliderType::triangle_soup)
+        {
+
         }
 
         const Triangle& operator[](const size_t index) const {
