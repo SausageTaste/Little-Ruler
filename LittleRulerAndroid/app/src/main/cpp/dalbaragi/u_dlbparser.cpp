@@ -350,7 +350,7 @@ namespace {
                 for ( int i = 0; i < numTriangles; ++i ) {
                     const auto triIndex = 9 * i;
                     soup->addTriangle(dal::Triangle{
-                        glm::vec3{ vertices[triIndex + 0], vertices[triIndex + 0], vertices[triIndex + 0] },
+                        glm::vec3{ vertices[triIndex + 0], vertices[triIndex + 1], vertices[triIndex + 2] },
                         glm::vec3{ vertices[triIndex + 3], vertices[triIndex + 4], vertices[triIndex + 5] },
                         glm::vec3{ vertices[triIndex + 6], vertices[triIndex + 7], vertices[triIndex + 8] }
                         });
