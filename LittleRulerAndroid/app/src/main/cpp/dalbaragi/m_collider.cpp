@@ -862,12 +862,12 @@ namespace dal {
 
         case dal::ColliderType::sphere:
         {
-            auto newSphere = reinterpret_cast<const ColSphere&>(col).transform(transCol);
+            const auto newSphere = reinterpret_cast<const ColSphere&>(col).transform(transCol);
             return checkCollision(ray, newSphere);
         }
         case dal::ColliderType::aabb:
         {
-            auto newAABB = reinterpret_cast<const ColAABB&>(col);
+            const auto newAABB = reinterpret_cast<const ColAABB&>(col).transform(transCol);
             return checkCollision(ray, newAABB, transCol);
         }
         case dal::ColliderType::triangle_soup:

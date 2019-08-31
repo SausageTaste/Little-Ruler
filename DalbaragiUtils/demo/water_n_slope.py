@@ -21,13 +21,41 @@ def main():
         pri.Vec3(10, -3, -10),
     )
     unit.m_material.m_diffuseMap.set("asset::0021di.png")
+    unit.m_material.m_texScaleX.set(20)
+    unit.m_material.m_texScaleY.set(20)
     model.m_renderUnits.pushBack(unit)
 
     actor = blk.StaticActor()
-    actor.m_name.set("slope1")
-    actor.m_transform.m_pos.setX(0)
+    actor.m_name.set("slope_actor")
     actor.m_transform.m_pos.setY(-5)
-    actor.m_transform.m_pos.setZ(0)
+    model.m_staticActors.pushBack(actor)
+
+    build.m_modelEmbedded.pushBack(model)
+
+    ################
+
+    model = ode.ModelEmbedded()
+    model.m_flagDetailedCollider.set(True)
+    model.m_name.set("Slope2")
+
+    xOffset = 0
+
+    unit = blk.RenderUnit()
+    unit.m_mesh.buildIn_rect(
+        pri.Vec3(10 - xOffset, -3, -10),
+        pri.Vec3(10 - xOffset, -4, 10),
+        pri.Vec3(15 - xOffset, -3, 10),
+        pri.Vec3(15 - xOffset, -3, -10),
+    )
+    unit.m_material.m_diffuseMap.set("asset::0021di.png")
+    unit.m_material.m_texScaleX.set(5)
+    unit.m_material.m_texScaleY.set(20)
+    model.m_renderUnits.pushBack(unit)
+
+    actor = blk.StaticActor()
+    actor.m_name.set("slope_actor")
+    actor.m_transform.m_pos.setX(xOffset)
+    actor.m_transform.m_pos.setY(-5)
     model.m_staticActors.pushBack(actor)
 
     build.m_modelEmbedded.pushBack(model)
