@@ -36,6 +36,7 @@ namespace dal {
         glm::quat m_quat;
         glm::vec3 m_pos;
         float m_scale;
+        bool m_isDefault;
         
     public:
         Transform(void);
@@ -48,47 +49,51 @@ namespace dal {
         float getScale(void) const noexcept {
             return this->m_scale;
         }
+        bool isDefault(void) const {
+            return this->m_isDefault;
+        }
 
         void setPos(const glm::vec3& v) noexcept {
             this->m_pos = v;
-            this->setNeedUpdate();
+            this->onValueSet();
         }
         void setPos(const float x, const float y, const float z) noexcept {
             this->m_pos.x = x;
             this->m_pos.y = y;
             this->m_pos.z = z;
-            this->setNeedUpdate();
+            this->onValueSet();
         }
         void addPos(const glm::vec3& v) {
             this->m_pos += v;
-            this->setNeedUpdate();
+            this->onValueSet();
         }
         void addPos(const float v) {
             this->m_pos += v;
-            this->setNeedUpdate();
+            this->onValueSet();
         }
 
         void setQuat(const glm::quat& q) {
             this->m_quat = q;
-            this->setNeedUpdate();
+            this->onValueSet();
         }
         void setQuat(const float x, const float y, const float z, const float w) {
             this->m_quat.x = x;
             this->m_quat.y = y;
             this->m_quat.z = z;
             this->m_quat.w = w;
-            this->setNeedUpdate();
+            this->onValueSet();
         }
         void rotate(const float v, const glm::vec3& selector);
         void setScale(const float v) {
             this->m_scale = v;
-            this->setNeedUpdate();
+            this->onValueSet();
         }
 
     private:
         void updateMat(void) const;
-        void setNeedUpdate(void) {
+        void onValueSet(void) {
             this->m_mat.m_needUpdate = true;
+            this->m_isDefault = false;
         }
         bool needUpdate(void) const {
             return this->m_mat.m_needUpdate;
@@ -169,10 +174,10 @@ namespace dal {
         void setRel(const float x, const float y, const float z) {
             this->setRel(glm::vec3{ x, y, z });
         }
-        void setRel(const glm::vec3& v);
+        void setRel(const glm::vec3 v);
 
-        glm::vec3 projectPointOn(const glm::vec3& p) const;
-        float calcDistance(const glm::vec3& p) const;
+        glm::vec3 projectPointOn(const glm::vec3 p) const;
+        float calcDistance(const glm::vec3 p) const;
 
     };
 
@@ -292,7 +297,7 @@ namespace dal {
         // 000, 001, 010, 011, 100, 101, 110, 111
         // Each digit means x, y, z, 0 means lower value on the axis, 1 means higher.
         std::array<glm::vec3, 8> getAllPoints(void) const;
-        std::array<glm::vec3, 8> getAllPoints(const Transform & trans) const;
+        std::array<glm::vec3, 8> getAllPoints(const Transform& trans) const;
         std::array<glm::vec3, 8> getAllPoints(std::function<glm::vec3(const glm::vec3&)> modifier) const;
 
         void set(const glm::vec3& p1, const glm::vec3& p2);
@@ -347,6 +352,52 @@ namespace dal {
 }
 
 
+// Complex colliders
+namespace dal {
+
+    class ColTriangleSoup : public ICollider {
+
+    private:
+        std::vector<Triangle> m_triangles;
+        bool m_faceCull = true;
+
+    public:
+        virtual ColliderType getColType(void) const noexcept override {
+            return ColliderType::triangle_soup;
+        }
+
+        const Triangle& operator[](const size_t index) const {
+            return this->m_triangles[index];
+        }
+        const Triangle& at(const size_t index) const {
+            return this->m_triangles.at(index);
+        }
+        size_t getSize(void) const {
+            return this->m_triangles.size();
+        }
+        bool isFaceCullSet(void) const {
+            return this->m_faceCull;
+        }
+
+        auto begin(void) const {
+            return this->m_triangles.begin();
+        }
+        auto end(void) const {
+            return this->m_triangles.end();
+        }
+
+        void addTriangle(const Triangle& tri) {
+            this->m_triangles.push_back(tri);
+        }
+        void reserve(const size_t size) {
+            this->m_triangles.reserve(size);
+        }
+
+    };
+
+}
+
+
 // checkCollision funcs
 namespace dal {
 
@@ -355,11 +406,13 @@ namespace dal {
 
     bool checkCollision(const Ray& ray, const Plane& plane);
     bool checkCollision(const Ray& ray, const Sphere& sphere);
+    bool checkCollision(const Ray& ray, const Sphere& sphere, const Transform& transSphere);
     bool checkCollision(const Ray& ray, const Triangle& tri);
     bool checkCollision(const Ray& ray, const AABB& aabb);
     bool checkCollision(const Ray& ray, const AABB& aabb, const Transform& transAABB);
     
     bool checkCollision(const Plane& plane, const Sphere& sphere);
+    bool checkCollision(const Plane& plane, const Sphere& sphere, const Transform& transSphere);
     bool checkCollision(const Plane& plane, const AABB& aabb);
     bool checkCollision(const Plane& plane, const AABB& aabb, const Transform& transAABB);
 
@@ -369,6 +422,7 @@ namespace dal {
 
     bool checkCollision(const AABB& one, const AABB& other);
     bool checkCollision(const AABB& one, const AABB& two, const Transform& transOne, const Transform& transTwo);
+    bool checkCollision(const AABB& aabb, const ColTriangleSoup triSoup, const Transform& transAABB, const Transform& transTriSoup);
     
 }
 
@@ -393,36 +447,9 @@ namespace dal {
     std::optional<RayCastingResult> calcCollisionInfo(const Ray& ray, const Plane& plane);
     std::optional<RayCastingResult> calcCollisionInfo(const Ray& ray, const AABB& aabb);
     std::optional<RayCastingResult> calcCollisionInfo(const Ray& ray, const AABB& aabb, const Transform& transAABB);
+    std::optional<RayCastingResult> calcCollisionInfo(const Ray& ray, const ColTriangleSoup triSoup, const Transform& transTriSoup);
 
 }
 
 
-// Complex colliders
-namespace dal {
 
-    class ColTriangleSoup : public ICollider {
-
-    private:
-        std::vector<Triangle> m_triangles;
-        bool m_faceCull = true;
-
-    public:
-        virtual ColliderType getColType(void) const noexcept override {
-            return ColliderType::triangle_soup;
-        }
-
-        void addTriangle(const Triangle& tri) {
-            this->m_triangles.push_back(tri);
-        }
-
-        void reserve(const size_t size) {
-            this->m_triangles.reserve(size);
-        }
-
-        bool checkCollision(const AABB& aabb, const Transform& transThis, const Transform& transAABB) const;
-
-        std::optional<RayCastingResult> calcCollisionInfo(const Ray& ray) const;
-
-    };
-
-}

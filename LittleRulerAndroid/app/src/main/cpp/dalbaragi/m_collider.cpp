@@ -192,7 +192,7 @@ namespace {
         static bool checkCol_aabb_trisoup(const dal::ICollider& one, const dal::ICollider& two, const dal::Transform& transOne, const dal::Transform& transTwo) {
             const auto& aabb = reinterpret_cast<const dal::ColAABB&>(one);
             const auto& soup = reinterpret_cast<const dal::ColTriangleSoup&>(two);
-            return soup.checkCollision(aabb, transTwo, transOne);
+            return dal::checkCollision(aabb, soup, transOne, transTwo);
         }
 
     } g_colResolver;
@@ -337,7 +337,7 @@ namespace {
             dist_squared -= squared(S.z - C1.z);
         else if ( S.z > C2.z )
             dist_squared -= squared(S.z - C2.z);
-        return dist_squared > 0;
+        return dist_squared > 0.f;
     }
 
 
@@ -358,7 +358,7 @@ namespace {
         }
 
 
-        bool planeBoxOverlap(glm::vec3 normal, glm::vec3 vert, glm::vec3 maxbox) {
+        bool planeBoxOverlap(const glm::vec3 normal, const glm::vec3 vert, const glm::vec3 maxbox) {
             glm::vec3 vmin, vmax;
 
             for ( int i = 0; i < 3; i++ ) {
@@ -536,6 +536,7 @@ namespace dal {
 
     Transform::Transform(void)
         : m_scale(1.f)
+        , m_isDefault(true)
     {
         this->updateMat();
     }
@@ -544,6 +545,7 @@ namespace dal {
         : m_quat(quat)
         , m_pos(pos)
         , m_scale(scale)
+        , m_isDefault(false)
     {
         this->updateMat();
     }
@@ -557,7 +559,7 @@ namespace dal {
 
     void Transform::rotate(const float v, const glm::vec3& selector) {
         this->m_quat = rotateQuat(this->m_quat, v, selector);
-        this->setNeedUpdate();
+        this->onValueSet();
     }
 
     // Private
@@ -622,13 +624,13 @@ namespace dal {
         dalAssert(this->m_len > 0.0f);
     }
 
-    void Ray::setRel(const glm::vec3& v) {
+    void Ray::setRel(const glm::vec3 v) {
         this->m_rel = v;
         this->m_len = glm::length(this->m_rel);
         dalAssert(this->m_len > 0.0f);
     }
 
-    glm::vec3 Ray::projectPointOn(const glm::vec3& p) const {
+    glm::vec3 Ray::projectPointOn(const glm::vec3 p) const {
         // From https://answers.unity.com/questions/62644/distance-between-a-ray-and-a-point.html
 
         const auto rhs = p - this->m_pos;
@@ -642,7 +644,7 @@ namespace dal {
         return this->m_pos + (lhs * num2);
     }
 
-    float Ray::calcDistance(const glm::vec3& p) const {
+    float Ray::calcDistance(const glm::vec3 p) const {
         const auto projected = this->projectPointOn(p);
         return glm::length(projected - p);
     }
@@ -706,7 +708,7 @@ namespace dal {
         return this->getAllPoints([](auto vec) { return vec; });
     }
 
-    std::array<glm::vec3, 8> AABB::getAllPoints(const Transform & trans) const {
+    std::array<glm::vec3, 8> AABB::getAllPoints(const Transform& trans) const {
         return this->getAllPoints([&trans](auto vec) { return trans.getScale() * vec + trans.getPos(); });
     }
 
@@ -873,6 +875,10 @@ namespace dal {
         }
     }
 
+    bool checkCollision(const Ray& ray, const Sphere& sphere, const Transform& transSphere) {
+        return checkCollision(ray, sphere.transform(transSphere));
+    }
+
     bool checkCollision(const Ray& ray, const Triangle& tri) {
         const Plane plane{ tri.getPoint1(), tri.getPoint2(), tri.getPoint3() };
         const auto planeCollision = calcCollisionInfo(ray, plane);
@@ -901,6 +907,10 @@ namespace dal {
     bool checkCollision(const Plane& plane, const Sphere& sphere) {
         const auto distOfCenter = std::abs(plane.getSignedDist(sphere.getCenter()));
         return distOfCenter <= sphere.getRadius();
+    }
+
+    bool checkCollision(const Plane& plane, const Sphere& sphere, const Transform& transSphere) {
+        return checkCollision(plane, sphere.transform(transSphere));
     }
 
     bool checkCollision(const Plane& plane, const AABB& aabb) {
@@ -955,6 +965,15 @@ namespace dal {
         const auto two2 = transTwo.getScale() * two.getPoint111() + transTwo.getPos();
 
         return checkCollisionWithMinMax(one1, one2, two1, two2);
+    }
+
+    bool checkCollision(const AABB& aabb, const ColTriangleSoup triSoup, const Transform& transAABB, const Transform& transTriSoup) {
+        for ( auto& tri : triSoup ) {
+            if ( dal::checkCollision(tri, aabb, transTriSoup, transAABB) ) {
+                return true;
+            }
+        }
+        return false;
     }
 
 }
@@ -1101,32 +1120,12 @@ namespace dal {
         return std::nullopt;
     }
 
-}
-
-
-// ColTriangleSoup
-namespace dal {
-
-    bool ColTriangleSoup::checkCollision(const AABB& aabb, const Transform& transThis, const Transform& transAABB) const {
-        int index = 0;
-        for ( auto& tri : this->m_triangles ) {
-            if ( dal::checkCollision(tri, aabb, transThis, transAABB) ) {
-                dalVerbose("Collided with triangle {}"_format(index));
-                return true;
-            }
-            else {
-                ++index;
-            }
-        }
-        return false;
-    }
-
-    std::optional<RayCastingResult> ColTriangleSoup::calcCollisionInfo(const Ray& ray) const {
+    std::optional<RayCastingResult> calcCollisionInfo(const Ray& ray, const ColTriangleSoup triSoup, const Transform& transTriSoup) {
         RayCastingResult result;
         bool found = false;
 
-        for ( const auto& tri : this->m_triangles ) {
-            const auto info = dal::calcCollisionInfo(ray, tri, this->m_faceCull);
+        for ( const auto& tri : triSoup ) {
+            const auto info = dal::calcCollisionInfo(ray, tri, triSoup.isFaceCullSet());
             if ( info ) {
                 if ( found ) {
                     if ( info->m_distance < result.m_distance ) {
