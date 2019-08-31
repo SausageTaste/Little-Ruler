@@ -541,7 +541,7 @@ namespace dal {
                 if ( nullptr != detailedCol ) {
                     const auto withDetailed = checkCollisionAbs(inCol, *detailedCol, inTrans, actor.m_transform);
                     if ( withDetailed ) {
-                        dalVerbose("Yeah!");
+
                     }
                 }
             }

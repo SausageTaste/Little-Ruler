@@ -225,6 +225,8 @@ namespace dal {
             return this->m_points[2];
         }
 
+        glm::vec3 calcNormal(void) const;
+
         Triangle transform(const Transform& trans) const;
 
     private:
