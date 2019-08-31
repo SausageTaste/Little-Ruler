@@ -308,10 +308,11 @@ namespace dal {
     }
 
 
-    ICharaState::ICharaState(cpnt::Transform& transform, cpnt::AnimatedModel& model, dal::StrangeEulerCamera& camera)
+    ICharaState::ICharaState(cpnt::Transform& transform, cpnt::AnimatedModel& model, dal::StrangeEulerCamera& camera, SceneMaster& scene)
         : m_transform(transform)
         , m_model(model)
         , m_camera(camera)
+        , m_scene(scene)
     {
 
     }
@@ -325,8 +326,8 @@ namespace {
     class CharaIdleState : public dal::ICharaState {
 
     public:
-        CharaIdleState(dal::cpnt::Transform& transform, dal::cpnt::AnimatedModel& model, dal::StrangeEulerCamera& camera)
-            : ICharaState(transform, model, camera)
+        CharaIdleState(dal::cpnt::Transform& transform, dal::cpnt::AnimatedModel& model, dal::StrangeEulerCamera& camera, dal::SceneMaster& scene)
+            : ICharaState(transform, model, camera, scene)
         {
 
         }
@@ -356,8 +357,8 @@ namespace {
         glm::vec3 m_lastPos;
 
     public:
-        CharaWalkState(dal::cpnt::Transform& transform, dal::cpnt::AnimatedModel& model, dal::StrangeEulerCamera& camera)
-            : ICharaState(transform, model, camera)
+        CharaWalkState(dal::cpnt::Transform& transform, dal::cpnt::AnimatedModel& model, dal::StrangeEulerCamera& camera, dal::SceneMaster& scene)
+            : ICharaState(transform, model, camera, scene)
         {
 
         }
@@ -392,7 +393,7 @@ namespace {
     dal::ICharaState* CharaIdleState::exec(const float deltaTime, const dal::MoveInputInfo& info) {
         if ( info.hasMovement() ) {
             std::unique_ptr<CharaIdleState> byebye{ this };
-            auto newState = new CharaWalkState(this->m_transform, this->m_model, this->m_camera);
+            auto newState = new CharaWalkState(this->m_transform, this->m_model, this->m_camera, this->m_scene);
 
             this->exit();
             newState->enter();
@@ -409,7 +410,7 @@ namespace {
     dal::ICharaState* CharaWalkState::exec(const float deltaTime, const dal::MoveInputInfo& info) {
         if ( !info.hasMovement() ) {
             std::unique_ptr<CharaWalkState> byebye{ this };
-            auto newState = new CharaIdleState(this->m_transform, this->m_model, this->m_camera);
+            auto newState = new CharaIdleState(this->m_transform, this->m_model, this->m_camera, this->m_scene);
 
             this->exit();
             newState->enter();
@@ -428,8 +429,8 @@ namespace {
 
 namespace dal::cpnt {
 
-    CharacterState::CharacterState(cpnt::Transform& transform, cpnt::AnimatedModel& model, dal::StrangeEulerCamera& camera) 
-        : m_currentState(new CharaIdleState{ transform, model, camera })
+    CharacterState::CharacterState(cpnt::Transform& transform, cpnt::AnimatedModel& model, dal::StrangeEulerCamera& camera, SceneMaster& scene)
+        : m_currentState(new CharaIdleState{ transform, model, camera, scene })
     {
 
     }

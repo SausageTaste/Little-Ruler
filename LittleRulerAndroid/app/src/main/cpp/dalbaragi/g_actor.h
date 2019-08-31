@@ -9,6 +9,7 @@ namespace dal {
 
     class ModelStatic;
     class ModelAnimated;
+    class SceneMaster;
 
 }
 
@@ -147,7 +148,8 @@ namespace dal {
     protected:
         cpnt::Transform& m_transform;
         cpnt::AnimatedModel& m_model;
-        dal::StrangeEulerCamera& m_camera;
+        StrangeEulerCamera& m_camera;
+        SceneMaster& m_scene;
 
     public:
         ICharaState(const ICharaState&) = delete;
@@ -156,7 +158,7 @@ namespace dal {
         ICharaState& operator=(ICharaState&&) = delete;
 
     public:
-        ICharaState(cpnt::Transform& transform, cpnt::AnimatedModel& model, dal::StrangeEulerCamera& camera);
+        ICharaState(cpnt::Transform& transform, cpnt::AnimatedModel& model, StrangeEulerCamera& camera, SceneMaster& scene);
         virtual ~ICharaState(void) = default;
 
         virtual void enter(void) = 0;
@@ -179,7 +181,7 @@ namespace dal {
             ICharaState* m_currentState;
 
         public:
-            CharacterState(cpnt::Transform& transform, cpnt::AnimatedModel& model, dal::StrangeEulerCamera& camera);
+            CharacterState(cpnt::Transform& transform, cpnt::AnimatedModel& model, dal::StrangeEulerCamera& camera, SceneMaster& scene);
             void update(const float deltaTime, const MoveInputInfo& info);
 
         };

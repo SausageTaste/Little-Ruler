@@ -411,7 +411,7 @@ namespace dal {
             auto& renderable = this->m_enttMaster.assign<cpnt::AnimatedModel>(this->m_player);
             renderable.m_model = ptrModel;
 
-            this->m_enttMaster.assign<cpnt::CharacterState>(this->m_player, transform, renderable, this->m_camera);
+            this->m_enttMaster.assign<cpnt::CharacterState>(this->m_player, transform, renderable, this->m_camera, this->m_scene);
 
             this->m_enttMaster.assign<cpnt::PhysicsObj>(this->m_player);
         }
