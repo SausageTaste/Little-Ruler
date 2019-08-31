@@ -496,8 +496,8 @@ namespace dal {
         RayCastingResult result;
         bool found = false;
 
-        for ( auto& map : this->m_mapChunks ) {
-            auto info = map.doRayCasting(ray);
+        for ( auto& map : this->m_mapChunks2 ) {
+            auto info = map.castRayToClosest(ray);
 
             if ( info ) {
                 if ( found ) {

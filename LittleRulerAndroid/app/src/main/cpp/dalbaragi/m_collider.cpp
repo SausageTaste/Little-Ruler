@@ -1154,7 +1154,8 @@ namespace dal {
         float leastDistance = std::numeric_limits<float>::max();
 
         for ( const auto& tri : triSoup ) {
-            const auto info = dal::calcCollisionInfo(ray, tri, triSoup.isFaceCullSet());
+            const auto newTri = tri.transform(transTriSoup);
+            const auto info = dal::calcCollisionInfo(ray, newTri, triSoup.isFaceCullSet());
             if ( info ) {
                 if ( info->m_distance < leastDistance ) {
                     leastDistance = info->m_distance;

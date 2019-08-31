@@ -7,6 +7,7 @@
 
 #include "s_logger_god.h"
 #include "u_vecutil.h"
+#include "p_scene.h"
 
 
 using namespace fmt::literals;
@@ -51,7 +52,7 @@ namespace {
         {
             const glm::vec3 MODEL_ORIGIN_OFFSET{ 0.0f, 1.3f, 0.0f };
             constexpr float MAX_Y_DEGREE = 75.0f;
-            constexpr float CAM_ROTATE_SPEED_INV = 0.5f;
+            constexpr float CAM_ROTATE_SPEED_INV = 1.f;
             static_assert(0.0f <= CAM_ROTATE_SPEED_INV && CAM_ROTATE_SPEED_INV <= 1.0f);
 
             const auto camOrigin = mdlThisPos + MODEL_ORIGIN_OFFSET;
@@ -343,6 +344,18 @@ namespace {
         }
 
         virtual void process(const float deltaTime, const dal::MoveInputInfo& info) override {
+            {
+                const auto startPoint = this->m_transform.getPos() + glm::vec3{ 0.f, 2.f, 0.f };
+                const auto direction = glm::vec3{ 0.f, -100.f, 0.f };
+                const auto ray = dal::Ray{ startPoint, direction };
+
+                const auto result = this->m_scene.doRayCasting(ray);
+                if ( result ) {
+                    const auto floorDist = result->m_distance - 2.f;
+                    this->m_transform.addPos(-floorDist + 0.f);
+                }
+            }
+
             applybindingCameraToModel(this->m_camera, deltaTime, info, this->m_transform.getPos(), this->m_transform.getPos());
         }
 
@@ -375,7 +388,21 @@ namespace {
         }
 
         virtual void process(const float deltaTime, const dal::MoveInputInfo& info) override {
+           
+
             applyMove(this->m_transform, this->m_model, this->m_camera, deltaTime, info);
+            {
+                const auto startPoint = this->m_transform.getPos() + glm::vec3{ 0.f, 2.f, 0.f };
+                const auto direction = glm::vec3{ 0.f, -100.f, 0.f };
+                const auto ray = dal::Ray{ startPoint, direction };
+
+                const auto result = this->m_scene.doRayCasting(ray);
+                if ( result ) {
+                    const auto floorDist = result->m_distance - 2.f;
+                    this->m_transform.addPos(-floorDist + 0.0f);
+                }
+            }
+
             applybindingCameraToModel(this->m_camera, deltaTime, info, this->m_transform.getPos(), this->m_lastPos);
             this->m_lastPos = this->m_transform.getPos();
         }
