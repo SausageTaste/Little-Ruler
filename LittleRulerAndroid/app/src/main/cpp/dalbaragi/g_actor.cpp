@@ -345,14 +345,16 @@ namespace {
 
         virtual void process(const float deltaTime, const dal::MoveInputInfo& info) override {
             {
-                const auto startPoint = this->m_transform.getPos() + glm::vec3{ 0.f, 2.f, 0.f };
+                constexpr float RAY_Y_OFFSET = 2.0f;
+
+                const auto startPoint = this->m_transform.getPos() + glm::vec3{ 0.f, RAY_Y_OFFSET, 0.f };
                 const auto direction = glm::vec3{ 0.f, -100.f, 0.f };
                 const auto ray = dal::Ray{ startPoint, direction };
 
                 const auto result = this->m_scene.doRayCasting(ray);
                 if ( result ) {
-                    const auto floorDist = result->m_distance - 2.f;
-                    this->m_transform.addPos(-floorDist + 0.f);
+                    const auto floorDist = result->m_distance - RAY_Y_OFFSET;
+                    this->m_transform.addPos(0.f, -floorDist + 0.f, 0.f);
                 }
             }
 
@@ -388,18 +390,19 @@ namespace {
         }
 
         virtual void process(const float deltaTime, const dal::MoveInputInfo& info) override {
-           
-
             applyMove(this->m_transform, this->m_model, this->m_camera, deltaTime, info);
+
             {
-                const auto startPoint = this->m_transform.getPos() + glm::vec3{ 0.f, 2.f, 0.f };
+                constexpr float RAY_Y_OFFSET = 2.0f;
+
+                const auto startPoint = this->m_transform.getPos() + glm::vec3{ 0.f, RAY_Y_OFFSET, 0.f };
                 const auto direction = glm::vec3{ 0.f, -100.f, 0.f };
                 const auto ray = dal::Ray{ startPoint, direction };
 
                 const auto result = this->m_scene.doRayCasting(ray);
                 if ( result ) {
-                    const auto floorDist = result->m_distance - 2.f;
-                    this->m_transform.addPos(-floorDist + 0.0f);
+                    const auto floorDist = result->m_distance - RAY_Y_OFFSET;
+                    this->m_transform.addPos(0.f, -floorDist + 0.f, 0.f);
                 }
             }
 

@@ -67,6 +67,12 @@ namespace dal {
             this->m_pos += v;
             this->onValueSet();
         }
+        void addPos(const float x, const float y, const float z) noexcept {
+            this->m_pos.x += x;
+            this->m_pos.y += y;
+            this->m_pos.z += z;
+            this->onValueSet();
+        }
         void addPos(const float v) {
             this->m_pos += v;
             this->onValueSet();
