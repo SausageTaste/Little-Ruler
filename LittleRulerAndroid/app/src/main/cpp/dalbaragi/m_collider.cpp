@@ -1,5 +1,7 @@
 #include "m_collider.h"
 
+#include <tuple>
+
 #include <fmt/format.h>
 #include <glm/gtc/matrix_transform.hpp>
 
@@ -1057,7 +1059,8 @@ namespace dal {
         }
         case dal::ColliderType::triangle_soup:
         {
-            dalAbort("Not implemented.");
+            auto newSoup = reinterpret_cast<const ColTriangleSoup&>(col);
+            return calcCollisionInfo(ray, newSoup, transCol);
         }
         default:
             dalAbort("Unkown collider type code: {}"_format(static_cast<int>(colType)));
@@ -1138,30 +1141,20 @@ namespace dal {
     }
 
     std::optional<RayCastingResult> calcCollisionInfo(const Ray& ray, const ColTriangleSoup triSoup, const Transform& transTriSoup) {
-        RayCastingResult result;
-        bool found = false;
+        std::optional<RayCastingResult> result{ std::nullopt };
+        float leastDistance = std::numeric_limits<float>::max();
 
         for ( const auto& tri : triSoup ) {
             const auto info = dal::calcCollisionInfo(ray, tri, triSoup.isFaceCullSet());
             if ( info ) {
-                if ( found ) {
-                    if ( info->m_distance < result.m_distance ) {
-                        result = *info;
-                    }
-                }
-                else {
-                    result = *info;
-                    found = true;
+                if ( info->m_distance < leastDistance ) {
+                    leastDistance = info->m_distance;
+                    result = info;
                 }
             }
         }
 
-        if ( found ) {
-            return result;
-        }
-        else {
-            return std::nullopt;
-        }
+        return result;
     }
 
 }
