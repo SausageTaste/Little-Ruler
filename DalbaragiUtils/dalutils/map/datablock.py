@@ -239,10 +239,13 @@ class Mesh(inf.IDataBlock):
         self.__normals.append(normals)
 
     def __genVertices(self) -> Generator[pri.Vec3, None, None]:
-        for i in range(int(self.__vertices.getSize() / 3)):
-            x = self.__vertices[i]
-            y = self.__vertices[i + 1]
-            z = self.__vertices[i + 2]
+        assert (self.__vertices.getSize() % 3) == 0
+
+        numVertices = self.__vertices.getSize() // 3
+        for i in range(numVertices):
+            x = self.__vertices[3 * i]
+            y = self.__vertices[3 * i + 1]
+            z = self.__vertices[3 * i + 2]
             yield pri.Vec3(x, y, z)
 
 
