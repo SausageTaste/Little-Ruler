@@ -221,15 +221,16 @@ class Mesh(inf.IDataBlock):
         b = p10 - p01
         c = p11 - p01
 
-        normal1 = glm.cross(a.getVec(), b.getVec())
-        normal2 = glm.cross(b.getVec(), c.getVec())
+        normal1 = glm.normalize(glm.cross(a.getVec(), b.getVec()))
+        normal2 = glm.normalize(glm.cross(b.getVec(), c.getVec()))
+        normalAvrg = (normal1 + normal2) * 0.5
 
         normals: np.ndarray = np.array((
+            normalAvrg.x, normalAvrg.y, normalAvrg.z,
             normal1.x, normal1.y, normal1.z,
-            normal1.x, normal1.y, normal1.z,
-            normal1.x, normal1.y, normal1.z,
-            normal2.x, normal2.y, normal2.z,
-            normal2.x, normal2.y, normal2.z,
+            normalAvrg.x, normalAvrg.y, normalAvrg.z,
+            normalAvrg.x, normalAvrg.y, normalAvrg.z,
+            normalAvrg.x, normalAvrg.y, normalAvrg.z,
             normal2.x, normal2.y, normal2.z,
         ), dtype=np.float32)
         assert len(normals) == 18
