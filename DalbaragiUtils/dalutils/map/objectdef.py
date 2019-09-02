@@ -22,6 +22,9 @@ class ModelEmbedded(inf.IDataBlock):
             "detailed_collider": self.__flagDetailedCollider,
         })
 
+    def __str__(self):
+        return "{}{{ name={}, size={} }}".format(type(self).__name__, self.__name.get(), self.__renderUnits.__len__())
+
     def getBinary(self) -> bytearray:
         data = bytearray()
 

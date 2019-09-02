@@ -16,10 +16,10 @@ def main():
 
     unit = blk.RenderUnit()
     unit.m_mesh.buildIn_rect(
-        pri.Vec3(-10, 4, -10),
+        pri.Vec3(-10, 6, -10),
         pri.Vec3(-10, 3, 10),
         pri.Vec3(10, -4, 10),
-        pri.Vec3(10, -3, -10),
+        pri.Vec3(10, -4, -10),
     )
     unit.m_material.m_diffuseMap.set("asset::0021di.png")
     unit.m_material.m_texScaleX.set(20)
@@ -40,12 +40,12 @@ def main():
     model.m_name.set("Slope2")
 
     unit = blk.RenderUnit()
-    builder = mes.HeightGrid(10, 10, 3, 3)
+    builder = mes.HeightGrid(10, 20, 3, 3)
     builder.setHeightAt(1, 1, 1)
     unit.m_mesh.buildIn(builder)
 
     unit.m_material.m_diffuseMap.set("asset::0021di.png")
-    unit.m_material.m_texScaleX.set(5)
+    unit.m_material.m_texScaleX.set(10)
     unit.m_material.m_texScaleY.set(20)
     model.m_renderUnits.pushBack(unit)
 
