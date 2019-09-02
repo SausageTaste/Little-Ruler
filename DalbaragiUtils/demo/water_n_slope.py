@@ -18,18 +18,19 @@ def main():
 
     unit = blk.RenderUnit()
     unit.m_mesh.buildIn_rect(
-        pri.Vec3(-10, 6, -10),
-        pri.Vec3(-10, 3, 10),
-        pri.Vec3(10, -4, 10),
-        pri.Vec3(10, -4, -10),
+        pri.Vec3(-15, 70, -10),
+        pri.Vec3(-15, 70, 10),
+        pri.Vec3(15, -15, 10),
+        pri.Vec3(15, -15, -10),
     )
     unit.m_material.m_diffuseMap.set("asset::0021di.png")
-    unit.m_material.m_texScaleX.set(10)
+    unit.m_material.m_texScaleX.set(45)
     unit.m_material.m_texScaleY.set(10)
     model.m_renderUnits.pushBack(unit)
 
     actor = blk.StaticActor()
     actor.m_name.set("slope_actor")
+    actor.m_transform.m_pos.setX(-20)
     actor.m_transform.m_pos.setY(-5)
     model.m_staticActors.pushBack(actor)
 
@@ -67,7 +68,7 @@ def main():
 
     actor = blk.StaticActor()
     actor.m_name.set("slope_actor")
-    actor.m_transform.m_pos.setX(60)
+    actor.m_transform.m_pos.setX(0)
     actor.m_transform.m_pos.setY(-9)
     model.m_staticActors.pushBack(actor)
 
