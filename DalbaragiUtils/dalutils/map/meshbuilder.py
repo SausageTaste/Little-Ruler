@@ -3,6 +3,8 @@ from typing import List, Tuple, Any
 
 import glm
 
+import dalutils.util.containers as dcn
+
 
 # Input and output both must be counter clock wise.
 def _triangulateRect(p1: Any, p2: Any, p3: Any, p4: Any) -> Tuple[Any, Any, Any, Any, Any, Any]:
@@ -24,51 +26,6 @@ def assertMeshDataListSizeValidity(vertices: List[float], texcoords: List[float]
         ))
 
 
-class Array2D:
-    def __init__(self, valType: type, xSize: int, ySize: int):
-        if xSize < 1 or ySize < 1:
-            ValueError("Invalid dimension for float array 2d: {} x {}".format(xSize, ySize))
-        if not isinstance(valType, type):
-            raise ValueError()
-
-        self.__valType = valType
-        self.__array = []
-        for x in range(xSize):
-            column = [valType() for _ in range(ySize)]
-            self.__array.append(column)
-
-    def __str__(self):
-        buffer = "[\n"
-
-        for y in range(self.getSizeY()):
-            buffer += "\t[ "
-            lineBuffer = []
-            for x in range(self.getSizeX()):
-                lineBuffer.append(str(self.__array[x][y]))
-            buffer += ", ".join(lineBuffer)
-            buffer += " ]\n"
-
-        buffer += "]"
-
-        return buffer
-
-    def getAt(self, x: int, y: int):
-        if x < 0 or y < 0:
-            raise IndexError()
-        return self.__array[x][y]
-
-    def setAt(self, value, x: int, y: int) -> None:
-        if not isinstance(value, self.__valType):
-            raise TypeError("Expected {}, instead got {}".format(self.__valType, type(value)))
-        self.__array[x][y] = value
-
-    def getSizeX(self) -> int:
-        return len(self.__array)
-
-    def getSizeY(self) -> int:
-        return len(self.__array[0])
-
-
 class IMeshBuilder(abc.ABC):
     @abc.abstractmethod
     def makeMeshData(self) -> Tuple[List[float], List[float], List[float]]:
@@ -79,25 +36,25 @@ class HeightGrid(IMeshBuilder):
     def __init__(self, xSize: float, zSize: float, xGridCount: int, zGridCount: int):
         self.__xSize = float(xSize)
         self.__zSize = float(zSize)
-        self.__heightMap = Array2D(float, xGridCount, zGridCount)
+        self.__heightMap = dcn.Array2D(float, xGridCount, zGridCount)
 
     def makeMeshData(self) -> Tuple[List[float], List[float], List[float]]:
         xGridSize = self.__heightMap.getSizeX()
         zGridSize = self.__heightMap.getSizeY()
 
-        pointsMap = Array2D(glm.vec3, xGridSize, zGridSize)
+        pointsMap = dcn.Array2D(glm.vec3, xGridSize, zGridSize)
         for x in range(xGridSize):
             for z in range(zGridSize):
                 p = self.__makePointAt(x, z)
                 pointsMap.setAt(p, x, z)
 
-        texcoordsMap = Array2D(glm.vec2, xGridSize, zGridSize)
+        texcoordsMap = dcn.Array2D(glm.vec2, xGridSize, zGridSize)
         for x in range(xGridSize):
             for z in range(zGridSize):
                 p = self.__makeTexcoordsAt(x, z)
                 texcoordsMap.setAt(p, x, z)
 
-        normalsMap = Array2D(glm.vec3, xGridSize, zGridSize)
+        normalsMap = dcn.Array2D(glm.vec3, xGridSize, zGridSize)
         for x in range(xGridSize):
             for z in range(zGridSize):
                 p = self.__makePointNormalFor(x, z)
@@ -141,6 +98,16 @@ class HeightGrid(IMeshBuilder):
 
     def getHeightAt(self, x: int, y: int) -> float:
         return self.__heightMap.getAt(x, y)
+
+    @property
+    def m_heightMap(self):
+        return self.__heightMap
+    @property
+    def m_xSize(self):
+        return self.__xSize
+    @property
+    def m_ySize(self):
+        return self.m_ySize
 
     def __checkValidity(self) -> bool:
         if self.__heightMap.getSizeX() < 2 or self.__heightMap.getSizeY() < 2:

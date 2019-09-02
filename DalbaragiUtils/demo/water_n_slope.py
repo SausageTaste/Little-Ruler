@@ -40,18 +40,22 @@ def main():
     model.m_name.set("Slope2")
 
     unit = blk.RenderUnit()
-    builder = mes.HeightGrid(10, 20, 3, 3)
-    builder.setHeightAt(1, 1, 1)
+    builder = mes.HeightGrid(40, 20, 8, 3)
+    builder.m_heightMap.setList([
+        [0.0, 1.0, 6.0, 7.0, 6.0, 5.0, 7.0, 6.0],
+        [0.0, 2.0, 5.0, 7.0, 6.0, 5.0, 7.0, 6.0],
+        [0.0, 3.0, 4.0, 7.0, 6.0, 5.0, 7.0, 6.0],
+    ])
     unit.m_mesh.buildIn(builder)
 
     unit.m_material.m_diffuseMap.set("asset::0021di.png")
-    unit.m_material.m_texScaleX.set(10)
+    unit.m_material.m_texScaleX.set(40)
     unit.m_material.m_texScaleY.set(20)
     model.m_renderUnits.pushBack(unit)
 
     actor = blk.StaticActor()
     actor.m_name.set("slope_actor")
-    actor.m_transform.m_pos.setX(15)
+    actor.m_transform.m_pos.setX(30)
     actor.m_transform.m_pos.setY(-9)
     model.m_staticActors.pushBack(actor)
 
