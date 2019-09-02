@@ -4,6 +4,7 @@ from typing import List, Tuple, Any
 import glm
 
 import dalutils.util.containers as dcn
+import dalutils.util.math as dmt
 
 
 # Input and output both must be counter clock wise.
@@ -33,10 +34,11 @@ class IMeshBuilder(abc.ABC):
 
 
 class HeightGrid(IMeshBuilder):
-    def __init__(self, xSize: float, zSize: float, xGridCount: int, zGridCount: int):
+    def __init__(self, xSize: float, zSize: float, xGridCount: int, zGridCount: int, smoothShading: bool = True):
         self.__xSize = float(xSize)
         self.__zSize = float(zSize)
         self.__heightMap = dcn.Array2D(float, xGridCount, zGridCount)
+        self.__smoothShading = bool(smoothShading)
 
     def makeMeshData(self) -> Tuple[List[float], List[float], List[float]]:
         xGridSize = self.__heightMap.getSizeX()
@@ -73,19 +75,31 @@ class HeightGrid(IMeshBuilder):
                     (x + 1, z    ),
                 )
 
+                vertexCache: List[glm.vec3] = []
                 for xIndex, zIndex in triangulatedIndices:
-                    thisVertex: glm.vec3 = pointsMap.getAt(xIndex, zIndex)
+                    vertexCache.append(pointsMap.getAt(xIndex, zIndex))
+
+                triNormal1 = dmt.calcTriangleNormal(vertexCache[0], vertexCache[1], vertexCache[2])
+                triNormal2 = dmt.calcTriangleNormal(vertexCache[3], vertexCache[4], vertexCache[5])
+
+                for i, indices in enumerate(triangulatedIndices):
+                    xIndex, zIndex = indices
+
+                    thisVertex: glm.vec3 = vertexCache[i]
                     vertices.append(thisVertex.x)
                     vertices.append(thisVertex.y)
                     vertices.append(thisVertex.z)
                     del thisVertex
 
-                    thisTexcoords: glm.vec2 = texcoordsMap.getAt(xIndex, zIndex)
+                    thisTexcoords = texcoordsMap.getAt(xIndex, zIndex)
                     texcoords.append(thisTexcoords.x)
                     texcoords.append(thisTexcoords.y)
                     del thisTexcoords
 
-                    thisNormal: glm.vec3 = normalsMap.getAt(xIndex, zIndex)
+                    if self.__smoothShading:
+                        thisNormal: glm.vec3 = normalsMap.getAt(xIndex, zIndex)
+                    else:
+                        thisNormal: glm.vec3 = triNormal1 if i < 3 else triNormal2
                     normals.append(thisNormal.x)
                     normals.append(thisNormal.y)
                     normals.append(thisNormal.z)
