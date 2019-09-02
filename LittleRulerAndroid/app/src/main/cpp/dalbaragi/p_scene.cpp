@@ -421,6 +421,10 @@ namespace dal {
         for ( auto& map : m_mapChunks ) {
             map.renderDepthMp(uniloc);
         }
+
+        for ( auto& map : this->m_mapChunks2 ) {
+            map.renderDepthMp(uniloc);
+        }
     }
 
     void SceneMaster::renderDepthAnimated(const UnilocDepthAnime& uniloc) {
