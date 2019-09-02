@@ -137,7 +137,7 @@ class HeightGrid(IMeshBuilder):
         return vertices, texcoords, normals
 
     def setHeightAt(self, value: float, x: int, z: int) -> None:
-        self.__heightMap.setAt(value, x, z)
+        self.__heightMap.setAt(float(value), x, z)
 
     def getHeightAt(self, x: int, y: int) -> float:
         return self.__heightMap.getAt(x, y)

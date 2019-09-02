@@ -7,6 +7,7 @@ import numpy as np
 import dalutils.map.interface as inf
 import dalutils.map.primitives as pri
 import dalutils.map.collider as col
+import dalutils.map.meshbuilder as mes
 import dalutils.util.reporter as rep
 
 
@@ -234,6 +235,13 @@ class Mesh(inf.IDataBlock):
             normal2.x, normal2.y, normal2.z,
         ), dtype=np.float32)
         assert len(normals) == 18
+
+        self.__vertices.append(vertices)
+        self.__texcoords.append(texcoords)
+        self.__normals.append(normals)
+
+    def buildIn(self, builder: mes.IMeshBuilder):
+        vertices, texcoords, normals = builder.makeMeshData()
 
         self.__vertices.append(vertices)
         self.__texcoords.append(texcoords)
