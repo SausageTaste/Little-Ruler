@@ -61,6 +61,11 @@ class Array2D:
             for x, value in enumerate(inner):
                 self.__array[x][y] = value
 
+    def applyFunc(self, func):
+        for x in range(self.getSizeX()):
+            for y in range(self.getSizeY()):
+                self.__array[x][y] = func(self.__array[x][y])
+
 
 def test():
     arr = Array2D(int, 5, 3)

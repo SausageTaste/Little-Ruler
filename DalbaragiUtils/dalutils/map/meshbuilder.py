@@ -122,6 +122,12 @@ class HeightGrid(IMeshBuilder):
     @property
     def m_ySize(self):
         return self.m_ySize
+    @property
+    def m_smoothShading(self):
+        return self.__smoothShading
+    @m_smoothShading.setter
+    def m_smoothShading(self, v: bool):
+        self.__smoothShading = bool(v)
 
     def __checkValidity(self) -> bool:
         if self.__heightMap.getSizeX() < 2 or self.__heightMap.getSizeY() < 2:
