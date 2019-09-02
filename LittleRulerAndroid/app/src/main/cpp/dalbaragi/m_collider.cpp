@@ -867,7 +867,7 @@ namespace dal {
         }
         case dal::ColliderType::aabb:
         {
-            const auto newAABB = reinterpret_cast<const ColAABB&>(col).transform(transCol);
+            const auto newAABB = reinterpret_cast<const ColAABB&>(col);
             return checkCollision(ray, newAABB, transCol);
         }
         case dal::ColliderType::triangle_soup:
