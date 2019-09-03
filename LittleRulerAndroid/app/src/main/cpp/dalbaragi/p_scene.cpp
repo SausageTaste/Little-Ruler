@@ -13,25 +13,6 @@
 using namespace fmt::literals;
 
 
-namespace {
-
-    /*
-    dal::StrangeEulerCamera makeReflectionCamera(const dal::ICamera& camera, const float waterHeight) {
-        dal::StrangeEulerCamera newCam = *(reinterpret_cast<const dal::StrangeEulerCamera*>(&camera));
-
-        newCam.m_pos.y = 2.0f * waterHeight - newCam.m_pos.y;
-
-        const auto camViewPlane = newCam.getViewPlane();
-        newCam.setViewPlane(camViewPlane.x, -camViewPlane.y);
-
-        newCam.updateViewMat();
-        return newCam;
-    }
-    */
-
-}
-
-
 namespace dal {
 
     MapChunk::MapChunk(const std::string& name)
