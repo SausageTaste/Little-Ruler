@@ -160,20 +160,8 @@ namespace dal {
 
         for ( auto& water : this->m_waters ) {
             {
-                // Uniform values
-
-                uniloc.m_planeClip.flagDoClip(true);
-                uniloc.m_planeClip.clipPlane(0.0f, 1.0f, 0.0f, -water.getHeight() + 0.1f);
-
-                auto [reflectedPos, reflectedMat] = cam.makeReflected(water.getHeight());
-
-                uniloc.m_lightedMesh.viewMat(reflectedMat);
-                uniloc.m_lightedMesh.viewPos(reflectedPos);
-
-                water.m_fbuffer.bindReflectionFrameBuffer();
+                water.startRenderOnReflec(uniloc, cam);
                 glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
-
-                // Render map general
                 this->renderGeneral(uniloc);
 
                 view.each(
@@ -184,18 +172,8 @@ namespace dal {
             }
 
             {
-                // Uniform values
-
-                uniloc.m_planeClip.flagDoClip(true);
-                uniloc.m_planeClip.clipPlane(0.0, -1.0, 0.0, water.getHeight());
-
-                uniloc.m_lightedMesh.viewMat(cam.getViewMat());
-                uniloc.m_lightedMesh.viewPos(cam.m_pos);
-
-                water.m_fbuffer.bindRefractionFrameBuffer();
+                water.startRenderOnRefrac(uniloc, cam);
                 glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
-
-                // Render map general
                 this->renderGeneral(uniloc);
 
                 view.each(
@@ -212,20 +190,7 @@ namespace dal {
 
         for ( auto& water : this->m_waters ) {
             {
-                // Uniform values
-
-                uniloc.m_planeClip.flagDoClip(true);
-                uniloc.m_planeClip.clipPlane(0.0f, 1.0f, 0.0f, -water.getHeight());
-
-                auto [reflectedPos, reflectedMat] = cam.makeReflected(water.getHeight());
-
-                uniloc.m_lightedMesh.viewMat(reflectedMat);
-                uniloc.m_lightedMesh.viewPos(reflectedPos);
-
-                water.m_fbuffer.bindReflectionFrameBuffer();
-                //glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
-
-                // Render map general
+                water.startRenderOnReflec(uniloc, cam);
                 this->renderAnimate(uniloc);
 
                 for ( const auto entity : view ) {
@@ -238,18 +203,7 @@ namespace dal {
             }
 
             {
-                // Uniform values
-
-                uniloc.m_planeClip.flagDoClip(true);
-                uniloc.m_planeClip.clipPlane(0.0f, -1.0f, 0.0f, water.getHeight());
-
-                uniloc.m_lightedMesh.viewMat(cam.getViewMat());
-                uniloc.m_lightedMesh.viewPos(cam.m_pos);
-
-                water.m_fbuffer.bindRefractionFrameBuffer();
-                //glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
-
-                // Render map general
+                water.startRenderOnRefrac(uniloc, cam);
                 this->renderAnimate(uniloc);
 
                 for ( const auto entity : view ) {
@@ -390,10 +344,10 @@ namespace dal {
             GlobalStateGod::getinst().setWinSize(winWidth, winHeight);
         }
 
-        //this->loadMap("asset::map/water_bowl.dlb");
+        this->loadMap("asset::map/water_bowl.dlb");
 
-        auto map = this->m_resMas.loadMap("asset::map/water_n_slope.dlb");
-        this->m_mapChunks2.push_back(std::move(map));
+        //auto map = this->m_resMas.loadMap("asset::map/water_n_slope.dlb");
+        //this->m_mapChunks2.push_back(std::move(map));
     }
 
     SceneMaster::~SceneMaster(void) {

@@ -52,7 +52,7 @@ namespace dal {
             this->m_fbo = fbo;
         }
 
-        GLuint get(void) {
+        GLuint get(void) const {
             assert(this->isReady());
             return this->m_fbo;
         }
@@ -88,8 +88,8 @@ namespace dal {
     public:
         WaterFramebuffer(const unsigned int winWidth, const unsigned int winHeight);
 
-        void bindReflectionFrameBuffer(void);
-        void bindRefractionFrameBuffer(void);
+        void bindReflectionFrameBuffer(void) const;
+        void bindRefractionFrameBuffer(void) const;
 
         Texture* getReflectionTexture(void);
         Texture* getRefractionTexture(void);
@@ -126,8 +126,10 @@ namespace dal {
 
     public:
         WaterRenderer(const loadedinfo::WaterPlane& info, const unsigned int winWidth, const unsigned int winHeight);
+
         void renderWaterry(const UnilocWaterry& uniloc);
-        float getHeight(void) const;
+        void startRenderOnReflec(const UnilocGeneral& uniloc, const ICamera& cam) const;
+        void startRenderOnRefrac(const UnilocGeneral& uniloc, const ICamera& cam) const;
 
     private:
         void initMesh(const glm::vec3& pos, const glm::vec2& size);

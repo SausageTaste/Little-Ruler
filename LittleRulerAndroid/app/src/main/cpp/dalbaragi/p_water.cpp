@@ -189,7 +189,7 @@ namespace dal {
         this->recreateFbuffer(REFLECTION_WIDTH, REFLECTION_HEIGHT, REFRACTION_WIDTH, REFRACTION_HEIGHT);
     }
 
-    void WaterFramebuffer::bindReflectionFrameBuffer(void) {  //call before rendering to this FBO
+    void WaterFramebuffer::bindReflectionFrameBuffer(void) const {  //call before rendering to this FBO
         bindFrameBuffer(
             this->m_reflectionFrameBuffer.get(),
             static_cast<int>(this->m_winWidth  * this->m_reflecScale),
@@ -197,7 +197,7 @@ namespace dal {
         );
     }
 
-    void WaterFramebuffer::bindRefractionFrameBuffer(void) {  //call before rendering to this FBO
+    void WaterFramebuffer::bindRefractionFrameBuffer(void) const {  //call before rendering to this FBO
         bindFrameBuffer(this->m_refractionFrameBuffer.get(),
             static_cast<int>(this->m_winWidth * this->m_refracScale),
             static_cast<int>(this->m_winHeight * this->m_refracScale)
@@ -324,8 +324,26 @@ namespace dal {
         this->m_mesh.draw();
     }
 
-    float WaterRenderer::getHeight(void) const {
-        return this->m_height;
+    void WaterRenderer::startRenderOnReflec(const UnilocGeneral& uniloc, const ICamera& cam) const {
+        uniloc.m_planeClip.flagDoClip(true);
+        uniloc.m_planeClip.clipPlane(0.f, 1.f, 0.f, -this->m_height + 0.1f);
+
+        auto [reflectedPos, reflectedMat] = cam.makeReflected(this->m_height);
+
+        uniloc.m_lightedMesh.viewMat(reflectedMat);
+        uniloc.m_lightedMesh.viewPos(reflectedPos);
+
+        this->m_fbuffer.bindReflectionFrameBuffer();
+    }
+
+    void WaterRenderer::startRenderOnRefrac(const UnilocGeneral& uniloc, const ICamera& cam) const {
+        uniloc.m_planeClip.flagDoClip(true);
+        uniloc.m_planeClip.clipPlane(0.f, -1.f, 0.f, this->m_height);
+
+        uniloc.m_lightedMesh.viewMat(cam.getViewMat());
+        uniloc.m_lightedMesh.viewPos(cam.m_pos);
+
+        this->m_fbuffer.bindRefractionFrameBuffer();
     }
 
     // Private
