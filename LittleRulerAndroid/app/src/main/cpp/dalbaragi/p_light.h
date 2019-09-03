@@ -52,6 +52,7 @@ namespace dal {
     class DirectionalLight : public ILight {
 
     private:
+        glm::vec3 m_pos;
         glm::vec3 m_direction{ -0.3f, -1.0f, -1.0f };  // This must be always normalized.
         float m_halfProjBoxEdgeLen;
         DepthmapForLights m_shadowMap;
@@ -62,6 +63,9 @@ namespace dal {
         void setDirectin(const glm::vec3& v);
         void setDirectin(const float x, const float y, const float z) {
             this->setDirectin(glm::vec3{ x, y, z });
+        }
+        void setPos(const glm::vec3& v) {
+            this->m_pos = v;
         }
         const glm::vec3& getDirection(void) const {
             return this->m_direction;

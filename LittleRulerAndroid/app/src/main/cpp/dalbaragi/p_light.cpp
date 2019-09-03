@@ -7,7 +7,7 @@
 
 namespace {
 
-    constexpr unsigned int DEPTHMAP_RES = 1024 * 2;
+    constexpr unsigned int DEPTHMAP_RES = 1024 * 1;
 
 }
 
@@ -90,7 +90,7 @@ namespace dal {
 namespace dal {
 
     DirectionalLight::DirectionalLight(void)
-        : m_halfProjBoxEdgeLen(50.0f)
+        : m_halfProjBoxEdgeLen(10.0f)
     {
         this->m_direction = glm::normalize(this->m_direction);
     }
@@ -132,7 +132,7 @@ namespace dal {
     }
 
     glm::mat4 DirectionalLight::makeViewMat(void) const {
-        return glm::lookAt(-this->m_direction, { 0, 0, 0 }, { 0,1,0 });
+        return glm::lookAt(-this->m_direction + this->m_pos, this->m_pos, { 0.f, 1.f, 0.f });
     }
 
 }

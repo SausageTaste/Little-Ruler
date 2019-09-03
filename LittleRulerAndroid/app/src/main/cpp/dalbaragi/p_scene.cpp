@@ -344,10 +344,10 @@ namespace dal {
             GlobalStateGod::getinst().setWinSize(winWidth, winHeight);
         }
 
-        this->loadMap("asset::map/water_bowl.dlb");
+        //this->loadMap("asset::map/water_bowl.dlb");
 
-        //auto map = this->m_resMas.loadMap("asset::map/water_n_slope.dlb");
-        //this->m_mapChunks2.push_back(std::move(map));
+        auto map = this->m_resMas.loadMap("asset::map/water_n_slope.dlb");
+        this->m_mapChunks2.push_back(std::move(map));
     }
 
     SceneMaster::~SceneMaster(void) {

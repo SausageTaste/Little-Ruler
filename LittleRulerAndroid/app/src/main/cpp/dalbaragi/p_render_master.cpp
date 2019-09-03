@@ -251,6 +251,8 @@ namespace dal {
     }
 
     void RenderMaster::update(const float deltaTime) {
+        this->m_dlight1.setPos(this->m_mainCamera->m_pos);
+
         /*
         const auto mat = glm::rotate(glm::mat4{ 1.0f }, deltaTime * 0.3f, glm::vec3{ 1.0f, 0.5f, 0.0f });
         const glm::vec4 direcBefore{ this->m_dlight1.getDirection(), 0.0f };
