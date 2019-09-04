@@ -218,7 +218,7 @@ namespace {
 
             if ( assMaterial->GetTextureCount(aiTextureType_SPECULAR) > 0 ) {
                 if ( assMaterial->GetTexture(aiTextureType_SPECULAR, 0, &str) == aiReturn_SUCCESS ) {
-                    matInfo.m_diffuseMap = str.C_Str();
+
                 }
             }
         }
