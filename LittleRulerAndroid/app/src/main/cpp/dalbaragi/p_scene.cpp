@@ -317,7 +317,7 @@ namespace dal {
 
 namespace dal {
 
-    SceneMaster::SceneMaster(ResourceMaster& resMas, const unsigned int winWidth, const unsigned int winHeight)
+    SceneGraph::SceneGraph(ResourceMaster& resMas, const unsigned int winWidth, const unsigned int winHeight)
         : m_resMas(resMas)
     {
         // This is needed by Water objects
@@ -331,18 +331,18 @@ namespace dal {
         this->m_mapChunks2.push_back(std::move(map));
     }
 
-    SceneMaster::~SceneMaster(void) {
+    SceneGraph::~SceneGraph(void) {
 
     }
 
 
-    void SceneMaster::update(const float deltaTime) {
+    void SceneGraph::update(const float deltaTime) {
         for ( auto& map : this->m_mapChunks ) {
             map.update(deltaTime);
         }
     }
 
-    void SceneMaster::renderGeneral(const UnilocGeneral& uniloc) {
+    void SceneGraph::renderGeneral(const UnilocGeneral& uniloc) {
         for ( auto& map : m_mapChunks ) {
             map.renderGeneral(uniloc);
         }
@@ -352,7 +352,7 @@ namespace dal {
         }
     }
 
-    void SceneMaster::renderDepthMp(const UnilocDepthmp& uniloc) {
+    void SceneGraph::renderDepthMp(const UnilocDepthmp& uniloc) {
         for ( auto& map : m_mapChunks ) {
             map.renderDepthMp(uniloc);
         }
@@ -362,65 +362,37 @@ namespace dal {
         }
     }
 
-    void SceneMaster::renderDepthAnimated(const UnilocDepthAnime& uniloc) {
+    void SceneGraph::renderDepthAnimated(const UnilocDepthAnime& uniloc) {
         for ( auto& map : m_mapChunks ) {
             map.renderDepthAnimated(uniloc);
         }
     }
 
-    void SceneMaster::renderWaterry(const UnilocWaterry& uniloc) {
+    void SceneGraph::renderWaterry(const UnilocWaterry& uniloc) {
         for ( auto& map : m_mapChunks ) {
             map.renderWaterry(uniloc);
         }
     }
 
-    void SceneMaster::renderAnimate(const UnilocAnimate& uniloc) {
+    void SceneGraph::renderAnimate(const UnilocAnimate& uniloc) {
         for ( auto& map : m_mapChunks ) {
             map.renderAnimate(uniloc);
         }
     }
 
-    void SceneMaster::renderGeneral_onWater(const UnilocGeneral& uniloc, const ICamera& cam, entt::registry& reg) {
+    void SceneGraph::renderGeneral_onWater(const UnilocGeneral& uniloc, const ICamera& cam, entt::registry& reg) {
         for ( auto& map : this->m_mapChunks ) {
             map.renderGeneral_onWater(uniloc, cam, reg);
         }
     }
 
-    void SceneMaster::renderAnimate_onWater(const UnilocAnimate& uniloc, const ICamera& cam, entt::registry& reg) {
+    void SceneGraph::renderAnimate_onWater(const UnilocAnimate& uniloc, const ICamera& cam, entt::registry& reg) {
         for (auto& map : this->m_mapChunks ) {
             map.renderAnimate_onWater(uniloc, cam, reg);
         }
     }
 
-
-    ActorInfo* SceneMaster::addActor(ModelStaticHandle model, const std::string& mapName, const std::string& actorName, bool flagStatic) {
-        auto map = this->findMap(mapName);
-        if ( nullptr == map ) {
-            return nullptr;
-        }
-        return map->addActor(model, actorName, flagStatic, this->m_resMas);
-    }
-
-    WaterRenderer* SceneMaster::getWater(const std::string& mapName, const size_t index) {
-        for ( auto& map : this->m_mapChunks ) {
-            if ( mapName == map.getName() ) {
-                return map.getWater(index);
-            }
-        }
-
-        return nullptr;
-    }
-
-    ModelAnimated* SceneMaster::getModelNActorAnimated(const ResourceID& resID, const std::string& mapName) {
-        for ( auto& map : this->m_mapChunks ) {
-            if ( mapName == map.getName() ) {
-                return map.getModelNActorAnimated(resID);
-            }
-        }
-        return nullptr;
-    }
-
-    void SceneMaster::applyCollision(const AABB& inOriginalBox, cpnt::Transform& inTrans) {
+    void SceneGraph::applyCollision(const AABB& inOriginalBox, cpnt::Transform& inTrans) {
         for ( auto& map : this->m_mapChunks ) {
             map.applyCollision(inOriginalBox, inTrans);
         }
@@ -431,7 +403,7 @@ namespace dal {
         }
     }
 
-    std::optional<RayCastingResult> SceneMaster::doRayCasting(const Ray& ray) {
+    std::optional<RayCastingResult> SceneGraph::doRayCasting(const Ray& ray) {
         RayCastingResult result;
         bool found = false;
 
@@ -460,7 +432,7 @@ namespace dal {
     }
 
 
-    void SceneMaster::loadMap(const ResourceID& mapID) {
+    void SceneGraph::loadMap(const ResourceID& mapID) {
         std::vector<uint8_t> buffer;
         auto res = futil::getRes_buffer(mapID, buffer);
         if ( !res ) {
@@ -481,7 +453,7 @@ namespace dal {
         this->addMap(info);
     }
 
-    void SceneMaster::onResize(const unsigned int width, const unsigned int height) {
+    void SceneGraph::onResize(const unsigned int width, const unsigned int height) {
         for ( auto& map : this->m_mapChunks ) {
             map.onScreanResize(width, height);
         }
@@ -489,12 +461,12 @@ namespace dal {
 
     // Private
 
-    void SceneMaster::addMap(const loadedinfo::LoadedMap& map) {
+    void SceneGraph::addMap(const loadedinfo::LoadedMap& map) {
         this->m_mapChunks.emplace_back(map, this->m_resMas);
         dalInfo("Map added: {}"_format(this->m_mapChunks.back().getName()));
     }
 
-    MapChunk* SceneMaster::findMap(const std::string& name) {
+    MapChunk* SceneGraph::findMap(const std::string& name) {
         if ( name.empty() ) {
             dalError("Failed to find map because map name was not given.");
             return nullptr;
@@ -506,7 +478,7 @@ namespace dal {
             }
         }
 
-        dalError("Failed to find map in SceneMaster: {}"_format(name));
+        dalError("Failed to find map in SceneGraph: {}"_format(name));
         return nullptr;
     }
 

@@ -42,7 +42,7 @@ namespace dal {
         };
 
     private:
-        SceneMaster& m_scene;
+        SceneGraph& m_scene;
         ShaderMaster& m_shader;
 
         MainFramebuffer m_fbuffer;
@@ -60,7 +60,7 @@ namespace dal {
         glm::vec3 m_baseAmbientColor;
 
     public:
-        RenderMaster(SceneMaster& scene, ShaderMaster& shader, OverlayMaster& overlay, ICamera* const camera, const unsigned int winWidth, const unsigned int winHeight);
+        RenderMaster(SceneGraph& scene, ShaderMaster& shader, OverlayMaster& overlay, ICamera* const camera, const unsigned int winWidth, const unsigned int winHeight);
 
         void update(const float deltaTime);
         void render(entt::registry& reg);

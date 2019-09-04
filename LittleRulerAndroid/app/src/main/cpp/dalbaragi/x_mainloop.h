@@ -20,7 +20,7 @@ namespace dal {
     private:
         ShaderMaster m_shader;
         ResourceMaster m_resMas;
-        SceneMaster m_scene;
+        SceneGraph m_scene;
         OverlayMaster m_overlayMas;
         RenderMaster m_renderMan;
         InputApplier m_inputApply;

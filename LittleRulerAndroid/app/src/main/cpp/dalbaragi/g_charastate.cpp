@@ -50,7 +50,7 @@ namespace dal {
     }
 
 
-    ICharaState::ICharaState(cpnt::Transform& transform, cpnt::AnimatedModel& model, dal::StrangeEulerCamera& camera, SceneMaster& scene)
+    ICharaState::ICharaState(cpnt::Transform& transform, cpnt::AnimatedModel& model, dal::StrangeEulerCamera& camera, SceneGraph& scene)
         : m_transform(transform)
         , m_model(model)
         , m_camera(camera)
@@ -139,7 +139,7 @@ namespace {
         }
     }
 
-    void processCharaHeight(dal::cpnt::Transform& transform, dal::SceneMaster& scene) {
+    void processCharaHeight(dal::cpnt::Transform& transform, dal::SceneGraph& scene) {
         constexpr float RAY_Y_OFFSET = 2.0f;
         const auto ray = dal::Ray{ transform.getPos() + glm::vec3{ 0.f, RAY_Y_OFFSET, 0.f }, glm::vec3{ 0.f, -100.f, 0.f } };
 
@@ -167,7 +167,7 @@ namespace {
     class CharaIdleState : public dal::ICharaState {
 
     public:
-        CharaIdleState(dal::cpnt::Transform& transform, dal::cpnt::AnimatedModel& model, dal::StrangeEulerCamera& camera, dal::SceneMaster& scene)
+        CharaIdleState(dal::cpnt::Transform& transform, dal::cpnt::AnimatedModel& model, dal::StrangeEulerCamera& camera, dal::SceneGraph& scene)
             : ICharaState(transform, model, camera, scene)
         {
 
@@ -199,7 +199,7 @@ namespace {
         glm::vec3 m_lastPos;
 
     public:
-        CharaWalkState(dal::cpnt::Transform& transform, dal::cpnt::AnimatedModel& model, dal::StrangeEulerCamera& camera, dal::SceneMaster& scene)
+        CharaWalkState(dal::cpnt::Transform& transform, dal::cpnt::AnimatedModel& model, dal::StrangeEulerCamera& camera, dal::SceneGraph& scene)
             : ICharaState(transform, model, camera, scene)
         {
 
@@ -272,7 +272,7 @@ namespace {
 
 namespace dal::cpnt {
 
-    CharacterState::CharacterState(cpnt::Transform& transform, cpnt::AnimatedModel& model, dal::StrangeEulerCamera& camera, SceneMaster& scene)
+    CharacterState::CharacterState(cpnt::Transform& transform, cpnt::AnimatedModel& model, dal::StrangeEulerCamera& camera, SceneGraph& scene)
         : m_currentState(new CharaIdleState{ transform, model, camera, scene })
     {
 

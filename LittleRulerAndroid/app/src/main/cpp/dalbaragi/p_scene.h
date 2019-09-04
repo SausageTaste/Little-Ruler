@@ -67,7 +67,7 @@ namespace dal {
     };
 
 
-    class SceneMaster {
+    class SceneGraph {
 
         //////// Attribs ////////
 
@@ -79,8 +79,8 @@ namespace dal {
         //////// Methods ////////
 
     public:
-        SceneMaster(ResourceMaster& resMas, const unsigned int winWidth, const unsigned int winHeight);
-        ~SceneMaster(void);
+        SceneGraph(ResourceMaster& resMas, const unsigned int winWidth, const unsigned int winHeight);
+        ~SceneGraph(void);
 
         void update(const float deltaTime);
 
@@ -91,10 +91,6 @@ namespace dal {
         void renderAnimate(const UnilocAnimate& uniloc);
         void renderGeneral_onWater(const UnilocGeneral& uniloc, const ICamera& cam, entt::registry& reg);
         void renderAnimate_onWater(const UnilocAnimate& uniloc, const ICamera& cam, entt::registry& reg);
-
-        ActorInfo* addActor(ModelStaticHandle const model, const std::string& mapName, const std::string& actorName, bool flagStatic);
-        WaterRenderer* getWater(const std::string& mapName, const size_t index);
-        ModelAnimated* getModelNActorAnimated(const ResourceID& resID, const std::string& mapName);
 
         void applyCollision(const AABB& inOriginalBox, cpnt::Transform& inTrans);
         std::optional<RayCastingResult> doRayCasting(const Ray& ray);

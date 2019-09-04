@@ -388,7 +388,7 @@ namespace dal {
         , m_inputApply(m_overlayMas, winWidth, winHeight)
         , m_flagQuit(false)
     {
-        // This might be done already by SceneMaster or OverlayMaster but still...
+        // This might be done already by SceneGraph or OverlayMaster but still...
         {
             GlobalStateGod::getinst().setWinSize(winWidth, winHeight);
         }

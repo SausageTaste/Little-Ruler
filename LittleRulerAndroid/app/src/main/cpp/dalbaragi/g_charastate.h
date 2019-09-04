@@ -5,7 +5,7 @@
 
 namespace dal {
 
-    class SceneMaster;
+    class SceneGraph;
 
 
     struct MoveInputInfo {
@@ -30,7 +30,7 @@ namespace dal {
         cpnt::Transform& m_transform;
         cpnt::AnimatedModel& m_model;
         StrangeEulerCamera& m_camera;
-        SceneMaster& m_scene;
+        SceneGraph& m_scene;
 
     public:
         ICharaState(const ICharaState&) = delete;
@@ -39,7 +39,7 @@ namespace dal {
         ICharaState& operator=(ICharaState&&) = delete;
 
     public:
-        ICharaState(cpnt::Transform& transform, cpnt::AnimatedModel& model, StrangeEulerCamera& camera, SceneMaster& scene);
+        ICharaState(cpnt::Transform& transform, cpnt::AnimatedModel& model, StrangeEulerCamera& camera, SceneGraph& scene);
         virtual ~ICharaState(void) = default;
 
         virtual void enter(void) = 0;
@@ -62,7 +62,7 @@ namespace dal {
             ICharaState* m_currentState;
 
         public:
-            CharacterState(cpnt::Transform& transform, cpnt::AnimatedModel& model, dal::StrangeEulerCamera& camera, SceneMaster& scene);
+            CharacterState(cpnt::Transform& transform, cpnt::AnimatedModel& model, dal::StrangeEulerCamera& camera, SceneGraph& scene);
             void update(const float deltaTime, const MoveInputInfo& info);
 
         };

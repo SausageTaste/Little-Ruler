@@ -92,14 +92,14 @@ namespace dal {
 
     };
 
-
-    constexpr unsigned int MAX_ID_NAME_LEN = 128;
-
 }
 
 
 // Components
 namespace dal::cpnt {
+
+    constexpr unsigned int MAX_ID_NAME_LEN = 128;
+
 
     using Transform = dal::Transform;
 
