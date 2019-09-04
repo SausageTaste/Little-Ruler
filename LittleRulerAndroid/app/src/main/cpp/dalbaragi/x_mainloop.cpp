@@ -10,6 +10,7 @@
 #include "o_widgetmanager.h"
 #include "u_luascript.h"
 #include "u_vecutil.h"
+#include "g_charastate.h"
 
 
 using namespace fmt::literals;
