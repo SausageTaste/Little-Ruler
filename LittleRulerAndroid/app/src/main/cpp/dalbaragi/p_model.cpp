@@ -1,10 +1,7 @@
 #include "p_resource.h"
 
-#include <limits>
-
 #include <fmt/format.h>
 #include <glm/gtc/matrix_transform.hpp>
-#include <assimp/matrix4x4.h>
 
 #include "s_logger_god.h"
 #include "u_objparser.h"

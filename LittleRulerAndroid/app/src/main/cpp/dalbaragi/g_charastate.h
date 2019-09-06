@@ -1,6 +1,7 @@
 #pragma once
 
 #include "g_actor.h"
+#include "p_model.h"
 
 
 namespace dal {

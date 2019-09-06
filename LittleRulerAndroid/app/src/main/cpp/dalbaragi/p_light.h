@@ -5,7 +5,7 @@
 #include <glm/glm.hpp>
 
 #include "p_uniloc.h"
-#include "p_resource.h"
+#include "p_meshStatic.h"
 
 
 namespace dal {

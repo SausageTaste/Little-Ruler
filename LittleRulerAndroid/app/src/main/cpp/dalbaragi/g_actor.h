@@ -4,15 +4,6 @@
 #include "m_collider.h"
 
 
-// Forward declarations
-namespace dal {
-
-    class ModelStatic;
-    class ModelAnimated;
-
-}
-
-
 // Camera, Actor classes
 namespace dal {
 
@@ -105,15 +96,6 @@ namespace dal::cpnt {
 
     struct Identifier {
         char m_name[MAX_ID_NAME_LEN] = { 0 };
-    };
-
-    struct StaticModel {
-        ModelStatic* m_model = nullptr;
-    };
-
-    struct AnimatedModel {
-        ModelAnimated* m_model = nullptr;
-        AnimationState m_animState;
     };
 
     struct PhysicsObj {

@@ -7,7 +7,6 @@
 
 #include "u_fileclass.h"
 #include "p_meshStatic.h"
-#include "p_water.h"
 
 
 namespace dal {
@@ -261,5 +260,19 @@ namespace dal {
             const JointTransformArray& transformArr) const;
 
     };
+
+
+    namespace cpnt {
+
+        struct StaticModel {
+            ModelStatic* m_model = nullptr;
+        };
+
+        struct AnimatedModel {
+            ModelAnimated* m_model = nullptr;
+            AnimationState m_animState;
+        };
+
+    }
 
 }

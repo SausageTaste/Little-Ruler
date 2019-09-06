@@ -10,8 +10,6 @@
 #include <glm/gtc/quaternion.hpp>
 
 #include "g_actor.h"
-#include "m_collider.h"
-#include "p_uniloc.h"
 #include "p_animation.h"
 
 
