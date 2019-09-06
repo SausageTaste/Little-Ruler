@@ -308,7 +308,7 @@ namespace dal {
 
     ModelAnimated* MapChunk::getModelNActorAnimated(const ResourceID& resID) {
         for ( auto& [mdl, actors, animStat] : this->m_animatedActors ) {
-            const auto name = mdl->getModelResID().makeFileName();
+            const auto name = mdl->m_resID.makeFileName();
             if ( name == resID.makeFileName() ) {
                 return mdl;
             }

@@ -18,121 +18,11 @@
 using namespace fmt::literals;
 
 
-// Tasks
-namespace {
-
-    class LoadTask_Texture : public dal::ITask {
-
-    public:
-        const dal::ResourceID in_texID;
-
-        dal::loadedinfo::ImageFileData out_img;
-
-        bool out_success = false;
-
-        dal::Texture* data_handle;
-
-    public:
-        LoadTask_Texture(const dal::ResourceID& texID, dal::Texture* const handle)
-            : in_texID(texID)
-            , data_handle(handle)
-        {
-
-        }
-
-        virtual void start(void) override {
-            out_success = dal::futil::getRes_image(in_texID, out_img);
-        }
-
-    };
-
-
-    class LoadTask_Model : public dal::ITask {
-
-    public:
-        const dal::ResourceID in_modelID;
-
-        bool out_success;
-        dal::loadedinfo::ModelStatic out_info;
-
-        dal::ModelStatic& data_coresponding;
-        dal::Package& data_package;
-
-    public:
-        LoadTask_Model(const dal::ResourceID& modelID, dal::ModelStatic& coresponding, dal::Package& package)
-            : in_modelID(modelID),
-            out_success(false),
-            data_coresponding(coresponding),
-            data_package(package)
-        {
-
-        }
-
-        virtual void start(void) override {
-            out_success = dal::loadAssimp_staticModel(out_info, this->in_modelID);
-        }
-
-    };
-
-
-    class LoadTask_ModelAnimated : public dal::ITask {
-
-    public:
-        const dal::ResourceID in_modelID;
-
-        bool out_success;
-        dal::AssimpModelInfo out_info;
-
-        dal::ModelAnimated& data_coresponding;
-        dal::Package& data_package;
-
-    public:
-        LoadTask_ModelAnimated(const dal::ResourceID& modelID, dal::ModelAnimated& coresponding, dal::Package& package)
-            : in_modelID(modelID),
-            out_success(false),
-            data_coresponding(coresponding),
-            data_package(package)
-        {
-
-        }
-
-        virtual void start(void) override {
-            this->out_success = dal::loadAssimpModel(this->in_modelID, this->out_info);
-        }
-
-    };
-
-
-    std::unordered_set<void*> g_sentTasks_texture;
-    std::unordered_set<void*> g_sentTasks_model;
-    std::unordered_set<void*> g_sentTasks_modelAnimated;
-
-}
-
-
 // Pools
 namespace {
 
     dal::BlockAllocator<dal::ModelStatic, 20> g_pool_modelStatic;
     dal::BlockAllocator<dal::ModelAnimated, 20> g_pool_modelAnim;
-
-}
-
-
-// IModel
-namespace dal {
-
-    void IModel::setModelResID(const ResourceID& resID) {
-        this->m_modelResID = resID;
-    }
-
-    void IModel::setModelResID(ResourceID&& resID) {
-        this->m_modelResID = std::move(resID);
-    }
-
-    const ResourceID& IModel::getModelResID(void) const {
-        return this->m_modelResID;
-    }
 
 }
 
@@ -461,7 +351,7 @@ namespace dal {
     const ResourceID& ModelStaticHandle::getResID(void) const {
         dalAssert(nullptr != this->m_pimpl);
         if ( nullptr != this->m_pimpl->m_model ) {
-            return this->m_pimpl->m_model->getModelResID();
+            return this->m_pimpl->m_model->m_resID;
         }
         else {
             dalAbort("Not implemented.");

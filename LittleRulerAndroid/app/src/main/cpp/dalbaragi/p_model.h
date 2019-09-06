@@ -14,13 +14,9 @@ namespace dal {
 
     class IModel {
 
-    private:
-        ResourceID m_modelResID;
-
     public:
-        void setModelResID(const ResourceID& resID);
-        void setModelResID(ResourceID&& resID);
-        const ResourceID& getModelResID(void) const;
+        ResourceID m_resID;
+        std::unique_ptr<ICollider> m_bounding, m_detailed;
 
     };
 
@@ -33,11 +29,8 @@ namespace dal {
             dal::Material m_material;
         };
 
-    private:
-        std::vector<RenderUnit> m_renderUnits;
-
     public:
-        std::unique_ptr<ICollider> m_bounding, m_detailed;
+        std::vector<RenderUnit> m_renderUnits;
 
     public:
         ModelStatic(const ModelStatic&) = delete;

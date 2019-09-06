@@ -432,7 +432,7 @@ namespace dal {
             {
                 loaded->data_coresponding.invalidate();
 
-                loaded->data_coresponding.setModelResID(std::move(loaded->in_modelID));
+                loaded->data_coresponding.m_resID = std::move(loaded->in_modelID);
 
                 for ( auto& unitInfo : loaded->out_info.m_renderUnits ) {
                     auto& unit = loaded->data_coresponding.newRenderUnit();
@@ -534,7 +534,7 @@ namespace dal {
         else {
             auto model = new ModelStatic; dalAssert(nullptr != model);
             ModelStaticHandle modelHandle{ model };
-            model->setModelResID(resID);  // It might not be resolved.
+            model->m_resID = resID;  // It might not be resolved.
             package.giveModelStatic(resID, modelHandle);
 
             auto task = new LoadTask_Model{ resID, *model, package };
@@ -554,7 +554,7 @@ namespace dal {
         }
         else {
             auto model = new ModelAnimated;
-            model->setModelResID(resID);
+            model->m_resID = resID;
             package.giveModelAnim(resID, model);
 
             auto task = new LoadTask_ModelAnimated{ resID, *model, package };
@@ -572,7 +572,7 @@ namespace dal {
 
         ResourceID resID{ info.m_modelID };
         resID.setPackage(packageName);
-        model->setModelResID(resID);
+        model->m_resID = resID;
 
         ModelStaticHandle modelHandle{ model };
         package.giveModelStatic(info.m_modelID, modelHandle);
@@ -641,7 +641,7 @@ namespace dal {
             {
                 ResourceID mdlResName{ mdlEmbed.m_name };
                 mdlResName.setPackage(resID.getPackage());
-                model->setModelResID(mdlResName);
+                model->m_resID = mdlResName;
             }
 
             // Render units
