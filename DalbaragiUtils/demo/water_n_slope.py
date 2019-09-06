@@ -86,13 +86,13 @@ def main():
 
     actor = model.newStaticActor()
     actor.m_name.set("yuri1")
-    actor.m_transform.m_pos.setY(-8)
+    actor.m_transform.m_pos.setY(-6)
 
     ################
 
     light = mapbuild.newPointLight()
     light.m_maxDistance.set(2)
-    light.m_color.setXYZ(1, 1, 1)
+    light.m_color.setXYZ(0.5, 0.5, 0.5)
 
     ################
 
