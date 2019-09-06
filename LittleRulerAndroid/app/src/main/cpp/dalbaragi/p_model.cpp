@@ -247,6 +247,7 @@ namespace dal {
 }
 
 
+/*
 // ModelStaticHandle
 namespace dal {
 
@@ -371,6 +372,36 @@ namespace dal {
         else {
             return nullptr;
         }
+    }
+
+}
+*/
+
+
+namespace dal {
+
+    ModelStaticHandle::ModelStaticHandle(ModelStatic* const model) {
+        this->getPimpl()->m_model.reset(model);
+    }
+
+    void ModelStaticHandle::render(const UniInterfLightedMesh& unilocLighted, const SamplerInterf& samplerInterf, const glm::mat4& modelMat) const {
+        this->getPimpl()->m_model->render(unilocLighted, samplerInterf, modelMat);
+    }
+
+    void ModelStaticHandle::renderDepthMap(const UniInterfGeometry& unilocGeometry, const glm::mat4& modelMat) const {
+        this->getPimpl()->m_model->renderDepthMap(unilocGeometry, modelMat);
+    }
+
+    const ResourceID& ModelStaticHandle::getResID(void) const {
+        return this->getPimpl()->m_model->m_resID;
+    }
+
+    const ICollider* ModelStaticHandle::getBounding(void) const {
+        return this->getPimpl()->m_model->m_bounding.get();
+    }
+
+    const ICollider* ModelStaticHandle::getDetailed(void) const {
+        return this->getPimpl()->m_model->m_detailed.get();
     }
 
 }
