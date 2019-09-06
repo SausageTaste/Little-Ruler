@@ -475,7 +475,7 @@ namespace dal {
             auto& trans = this->m_enttMaster.get<cpnt::Transform>(this->m_player);
             const auto lastPos = trans.getPos();
             auto& model = this->m_enttMaster.get<cpnt::AnimatedModel>(this->m_player);
-            this->m_scene.applyCollision(model.m_model->getBoundingBox(), trans);
+            //this->m_scene.applyCollision(model.m_model->get(), trans);
             bindCameraPos(this->m_camera, trans.getPos(), lastPos);
         }
 

@@ -213,9 +213,10 @@ namespace dal {
     }
 
     void MapChunk::applyCollision(const AABB& inOriginalBox, cpnt::Transform& inTrans) {
+        /*
         for ( auto& [mdl, actors] : this->m_modelActors ) {
             for ( auto& targetActor : actors ) {
-                if ( checkCollision(inOriginalBox, mdl.getBoundingBox(), inTrans, targetActor.m_transform) ) {
+                if ( checkCollision(inOriginalBox, mdl.getBounding(), inTrans, targetActor.m_transform) ) {
                     PhysicalProperty massInv1; massInv1.setMassInv(1.f);
                     const auto resolveInfo = calcResolveInfo(
                         inOriginalBox, mdl.getBoundingBox(), massInv1, PhysicalProperty{}, inTrans, targetActor.m_transform
@@ -238,12 +239,14 @@ namespace dal {
                 }
             }
         }
+        */
     }
 
     std::optional<RayCastingResult> MapChunk::doRayCasting(const Ray& ray) {
         RayCastingResult result;
         bool found = false;
 
+        /*
         auto innerFunc = [&](const AABB& aabb, const Transform& aabbTrans) -> void {
             const auto info = calcCollisionInfo(ray, aabb, aabbTrans);
             if ( info ) {
@@ -271,6 +274,7 @@ namespace dal {
                 innerFunc(mdl->getBoundingBox(), targetActor.m_transform);
             }
         }
+        */
 
         if ( found ) {
             return result;
