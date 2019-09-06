@@ -9,6 +9,7 @@
 #include "s_logger_god.h"
 #include "u_objparser.h"
 #include "u_pool.h"
+#include "s_configs.h"
 
 
 #define BLOCKY_TEXTURE 0
@@ -511,6 +512,14 @@ namespace {
 // Map chunk 2
 namespace dal {
 
+    void MapChunk2::addWaterPlane(const dlb::WaterPlane& waterInfo) {
+        const auto width = GlobalStateGod::getinst().getWinWidth();
+        const auto height = GlobalStateGod::getinst().getWinHeight();
+
+        this->m_waters.emplace_back(waterInfo, width, height);
+    }
+
+
     void MapChunk2::applyCollision(const ICollider& inCol, cpnt::Transform& inTrans) {
         for ( auto& mdl : this->m_staticActors ) {
             for ( auto& actor : mdl.m_actors ) {
@@ -927,6 +936,10 @@ namespace dal {
             }
 
             map.addStaticActorModel(std::move(modelHandle), std::move(mdlEmbed.m_staticActors));
+        }
+
+        for ( auto& water : mapInfo->m_waterPlanes ) {
+            map.addWaterPlane(water);
         }
 
         return map;

@@ -388,6 +388,31 @@ namespace {
         return begin;
     }
 
+    const uint8_t* parseWaterPlane(dal::dlb::WaterPlane& info, const uint8_t* begin, const uint8_t* const end) {
+        float fbuf[14];
+        begin = make32ValueArr<float>(begin, fbuf, 14);
+
+        info.m_centerPos.x = fbuf[0];
+        info.m_centerPos.y = fbuf[1];
+        info.m_centerPos.z = fbuf[2];
+
+        info.m_width = fbuf[3];
+        info.m_height = fbuf[4];
+        info.m_shininess = fbuf[5];
+        info.m_specStreng = fbuf[6];
+        info.m_flowSpeed = fbuf[7];
+        info.m_waveStreng = fbuf[8];
+        info.m_darkestDepth = fbuf[9];
+
+        info.m_deepColor.x = fbuf[10];
+        info.m_deepColor.y = fbuf[11];
+        info.m_deepColor.z = fbuf[12];
+
+        info.m_reflectivity = fbuf[13];
+
+        return begin;
+    }
+
 }
 
 
@@ -416,6 +441,15 @@ namespace dal {
 
                 for ( auto& mdl : info.m_embeddedModels ) {
                     header = parseModelEmbedded(mdl, header, end);
+                }
+            }
+
+            {
+                const auto numWaterPlanes = makeInt4(header); header += 4;
+                info.m_waterPlanes.resize(numWaterPlanes);
+
+                for ( auto& water : info.m_waterPlanes ) {
+                    header = parseWaterPlane(water, header, end);
                 }
             }
         }

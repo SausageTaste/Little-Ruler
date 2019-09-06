@@ -2,17 +2,16 @@ import random
 
 import dalutils.map.primitives as pri
 import dalutils.map.datablock as blk
-import dalutils.map.objectdef as ode
 import dalutils.map.mapbuilder as mbu
 import dalutils.map.meshbuilder as mes
 
 
 def main():
-    build = mbu.MapChunkBuilder()
+    mapbuild = mbu.MapChunkBuilder()
 
     ################
 
-    model = ode.ModelEmbedded()
+    model = mapbuild.newEmbeddedModel()
     model.m_flagDetailedCollider.set(True)
     model.m_name.set("Slope")
 
@@ -34,11 +33,9 @@ def main():
     actor.m_transform.m_pos.setY(-5)
     model.m_staticActors.pushBack(actor)
 
-    build.m_modelEmbedded.pushBack(model)
-
     ################
 
-    model = ode.ModelEmbedded()
+    model = mapbuild.newEmbeddedModel()
     model.m_flagDetailedCollider.set(True)
     model.m_name.set("Slope2")
 
@@ -72,11 +69,16 @@ def main():
     actor.m_transform.m_pos.setY(-9)
     model.m_staticActors.pushBack(actor)
 
-    build.m_modelEmbedded.pushBack(model)
+    ################
+
+    water = mapbuild.newWaterPlane()
+
+    water.m_width.set(10)
+    water.m_height.set(10)
 
     ################
 
-    mbu.exportJson(build, "demo/intermediates/water_n_slope.json")
+    mbu.exportJson(mapbuild, "demo/intermediates/water_n_slope.json")
 
 
 if __name__ == '__main__':

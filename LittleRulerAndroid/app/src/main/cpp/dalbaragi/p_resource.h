@@ -7,6 +7,7 @@
 #include "u_fileclass.h"
 #include "p_meshStatic.h"
 #include "u_dlbparser.h"
+#include "p_water.h"
 
 
 namespace dal {
@@ -176,11 +177,13 @@ namespace dal {
 
     private:
         std::vector<StaticModelActor> m_staticActors;
+        std::vector<WaterRenderer> m_waters;
 
     public:
         void addStaticActorModel(ModelStaticHandle&& model, std::vector<ActorInfo>&& actors) {
             this->m_staticActors.emplace_back(std::move(model), std::move(actors));
         }
+        void addWaterPlane(const dlb::WaterPlane& waterInfo);
 
         void applyCollision(const ICollider& inCol, cpnt::Transform& inTrans);
         std::optional<RayCastingResult> castRayToClosest(const Ray& ray) const;

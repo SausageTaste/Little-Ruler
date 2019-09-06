@@ -101,3 +101,95 @@ class ModelEmbedded(inf.IDataBlock):
             soup += unit.m_mesh.makeTriangleSoup()
 
         return soup
+
+
+class WaterPlane(inf.IDataBlock):
+    def __init__(self):
+        self.__centerPos = pri.Vec3()
+        self.__width = pri.FloatValue()
+        self.__height = pri.FloatValue()
+        self.__shininess = pri.FloatValue()
+        self.__sepcularStrength = pri.FloatValue()
+        self.__flowSpeed = pri.FloatValue()
+        self.__waveStrength = pri.FloatValue()
+        self.__darkestDepth = pri.FloatValue()
+        self.__deepColor = pri.Vec3()
+        self.__reflectivity = pri.FloatValue()
+
+        self.setDefault()
+
+        super().__init__({
+            "center_pos" : self.__centerPos,
+            "width" : self.__width,
+            "height" : self.__height,
+            "shininess" : self.__shininess,
+            "spec_strength" : self.__sepcularStrength,
+            "flow_speed" : self.__flowSpeed,
+            "wave_strength" : self.__waveStrength,
+            "darkest_depth" : self.__darkestDepth,
+            "deep_color" : self.__deepColor,
+            "reflectivity" : self.__reflectivity,
+        })
+
+    def getBinary(self) -> bytearray:
+        data = bytearray()
+        data += self.__centerPos.getBinary()
+        data += self.__width.getBinary()
+        data += self.__height.getBinary()
+        data += self.__shininess.getBinary()
+        data += self.__sepcularStrength.getBinary()
+        data += self.__flowSpeed.getBinary()
+        data += self.__waveStrength.getBinary()
+        data += self.__darkestDepth.getBinary()
+        data += self.__deepColor.getBinary()
+        data += self.__reflectivity.getBinary()
+        return data
+
+    def setDefault(self) -> None:
+        self.__centerPos.setXYZ(0, 0, 0)
+        self.__width.set(1)
+        self.__height.set(1)
+        self.__shininess.set(128)
+        self.__sepcularStrength.set(10)
+        self.__flowSpeed.set(0.03)
+        self.__waveStrength.set(0.02)
+        self.__darkestDepth.set(5)
+        self.__deepColor.setXYZ(0.07, 0.07, 0.15)
+        self.__reflectivity.set(0.05)
+
+    def fillErrReport(self, journal: rep.ErrorJournal) -> None:
+        if self.__width.get() == 0.0:
+            journal.addNote(rep.ErrorNote("width -> It must not be 0."))
+        if self.__height.get() == 0.0:
+            journal.addNote(rep.ErrorNote("height -> It must not be 0."))
+
+    @property
+    def m_centerPos(self):
+        return self.__centerPos
+    @property
+    def m_width(self):
+        return self.__width
+    @property
+    def m_height(self):
+        return self.__height
+    @property
+    def m_sepcularStrength(self):
+        return self.__sepcularStrength
+    @property
+    def m_shininess(self):
+        return self.__shininess
+    @property
+    def m_flowSpeed(self):
+        return self.__flowSpeed
+    @property
+    def m_waveStrength(self):
+        return self.__waveStrength
+    @property
+    def m_darkestDepth(self):
+        return self.__darkestDepth
+    @property
+    def m_deepColor(self):
+        return self.__deepColor
+    @property
+    def m_reflectivity(self):
+        return self.__reflectivity
