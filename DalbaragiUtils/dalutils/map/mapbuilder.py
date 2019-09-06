@@ -34,6 +34,7 @@ class MapChunkBuilder(inf.IDataBlock):
     def __init__(self):
         self.__metadata = MapMetadata()
         self.__embeddedModels = pri.UniformList(ode.ModelEmbedded)
+        self.__importedModels = pri.UniformList(ode.ModelImported)
         self.__waterPlanes = pri.UniformList(ode.WaterPlane)
 
         self.setDefault()
@@ -41,6 +42,7 @@ class MapChunkBuilder(inf.IDataBlock):
         super().__init__({
             "metadata": self.__metadata,
             "embedded_models": self.__embeddedModels,
+            "imported_models": self.__importedModels,
             "water_planes": self.__waterPlanes,
         })
 
@@ -49,6 +51,7 @@ class MapChunkBuilder(inf.IDataBlock):
 
         data += self.__metadata.getBinary()
         data += self.__embeddedModels.getBinary()
+        data += self.__importedModels.getBinary()
         data += self.__waterPlanes.getBinary()
 
         return data
@@ -56,6 +59,7 @@ class MapChunkBuilder(inf.IDataBlock):
     def setDefault(self) -> None:
         self.__metadata.setDefault()
         self.__embeddedModels.clear()
+        self.__importedModels.clear()
         self.__waterPlanes.clear()
 
     def fillErrReport(self, journal: rep.ErrorJournal) -> None:
@@ -68,6 +72,11 @@ class MapChunkBuilder(inf.IDataBlock):
             modelEmbed.fillErrReport(child)
             journal.addChildren(child)
 
+        for i, modelEmbed in enumerate(self.__importedModels):
+            child = rep.ErrorJournal("model imported [{}]".format(i))
+            modelEmbed.fillErrReport(child)
+            journal.addChildren(child)
+
         for i, water in enumerate(self.__waterPlanes):
             child = rep.ErrorJournal("water plane [{}]".format(i))
             water.fillErrReport(child)
@@ -76,6 +85,11 @@ class MapChunkBuilder(inf.IDataBlock):
     def newEmbeddedModel(self) -> ode.ModelEmbedded:
         obj = ode.ModelEmbedded()
         self.__embeddedModels.pushBack(obj)
+        return obj
+
+    def newImportedModel(self) -> ode.ModelImported:
+        obj = ode.ModelImported()
+        self.__importedModels.pushBack(obj)
         return obj
 
     def newWaterPlane(self) -> ode.WaterPlane:

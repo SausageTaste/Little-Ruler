@@ -81,6 +81,14 @@ def main():
 
     ################
 
+    model = mapbuild.newImportedModel()
+    model.m_resourceID.set("asset::yuri_cso2.obj")
+
+    actor = model.newStaticActor()
+    actor.m_name.set("yuri1")
+
+    ################
+
     mbu.exportJson(mapbuild, "demo/intermediates/water_n_slope.json")
 
 

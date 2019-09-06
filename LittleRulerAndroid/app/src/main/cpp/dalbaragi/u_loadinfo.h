@@ -162,6 +162,13 @@ namespace dal::dlb {
     };
 
 
+    struct ModelImported {
+        std::string m_resourceID;
+        std::vector<ActorInfo> m_staticActors;
+        bool m_detailedCollider;
+    };
+
+
     struct WaterPlane {
         glm::vec3 m_centerPos, m_deepColor;
         float m_width, m_height, m_shininess, m_specStreng;
@@ -171,6 +178,7 @@ namespace dal::dlb {
 
     struct MapChunkInfo {
         std::vector<ModelEmbedded> m_embeddedModels;
+        std::vector<ModelImported> m_importedModels;
         std::vector<WaterPlane> m_waterPlanes;
     };
 

@@ -103,6 +103,50 @@ class ModelEmbedded(inf.IDataBlock):
         return soup
 
 
+class ModelImported(inf.IDataBlock):
+    def __init__(self):
+        self.__resourceID = pri.StringValue()
+        self.__staticActors = pri.UniformList(blk.StaticActor)
+        self.__flagDetailedCollider = pri.BoolValue()
+
+        self.setDefault()
+
+        super().__init__({
+            "resource_id": self.__resourceID,
+            "static_actors": self.__staticActors,
+            "detailed_collider": self.__flagDetailedCollider,
+        })
+
+    def getBinary(self) -> bytearray:
+        data = bytearray()
+
+        data += self.__resourceID.getBinary()
+        data += self.__staticActors.getBinary()
+        data += self.__flagDetailedCollider.getBinary()
+
+        return data
+
+    def setDefault(self) -> None:
+        self.__resourceID.set("")
+        self.__staticActors.clear()
+        self.__flagDetailedCollider.set(False)
+
+    def fillErrReport(self, journal: rep.ErrorJournal) -> None:
+        pass
+    
+    def newStaticActor(self) -> blk.StaticActor:
+        actor = blk.StaticActor()
+        self.__staticActors.pushBack(actor)
+        return actor
+
+    @property
+    def m_resourceID(self):
+        return self.__resourceID
+    @property
+    def m_flagDetailedCollider(self):
+        return self.__flagDetailedCollider
+
+
 class WaterPlane(inf.IDataBlock):
     def __init__(self):
         self.__centerPos = pri.Vec3()

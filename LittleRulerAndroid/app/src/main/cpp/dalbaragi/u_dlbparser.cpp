@@ -388,6 +388,28 @@ namespace {
         return begin;
     }
 
+    const uint8_t* parseModelImported(dal::dlb::ModelImported& info, const uint8_t* begin, const uint8_t* const end) {
+        begin = parseStr(info.m_resourceID, begin, end);
+
+        // Static actors
+        {
+            const auto numActors = makeInt4(begin); begin += 4;
+            info.m_staticActors.resize(numActors);
+
+            for ( auto& actor : info.m_staticActors ) {
+                begin = parseStaticActor(actor, begin, end);
+            }
+        }
+
+        // Flag detailed collider
+        {
+            info.m_detailedCollider = makeBool1(begin); begin += 1;
+        }
+
+        assertHeaderPtr(begin, end);
+        return begin;
+    }
+
     const uint8_t* parseWaterPlane(dal::dlb::WaterPlane& info, const uint8_t* begin, const uint8_t* const end) {
         float fbuf[14];
         begin = make32ValueArr<float>(begin, fbuf, 14);
@@ -441,6 +463,15 @@ namespace dal {
 
                 for ( auto& mdl : info.m_embeddedModels ) {
                     header = parseModelEmbedded(mdl, header, end);
+                }
+            }
+
+            {
+                const auto numModelImported = makeInt4(header); header += 4;
+                info.m_importedModels.resize(numModelImported);
+
+                for ( auto& mdl : info.m_importedModels ) {
+                    header = parseModelImported(mdl, header, end);
                 }
             }
 
