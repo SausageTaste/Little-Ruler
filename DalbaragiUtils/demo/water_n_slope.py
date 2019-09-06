@@ -52,7 +52,7 @@ def main():
     builder.m_heightMap.setList(
         heightmap
     )
-    builder.m_heightMap.applyFunc(lambda x: 3 * x)
+    builder.m_heightMap.applyFunc(lambda h: 3 * h)
     builder.m_smoothShading = True
     unit.m_mesh.buildIn(builder)
 
@@ -86,6 +86,7 @@ def main():
 
     actor = model.newStaticActor()
     actor.m_name.set("yuri1")
+    actor.m_transform.m_pos.setY(-8)
 
     ################
 
