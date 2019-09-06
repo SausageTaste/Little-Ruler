@@ -180,6 +180,15 @@ namespace dal {
         unsigned int getRefCount(void) const {
             return this->m_pimpl->m_refCount;
         }
+        const ResourceID& getResID(void) const {
+            return this->getPimpl()->m_model->m_resID;
+        }
+        const ICollider* getBounding(void) const {
+            return this->getPimpl()->m_model->m_bounding.get();
+        }
+        const ICollider* getDetailed(void) const {
+            return this->getPimpl()->m_model->m_detailed.get();
+        }
 
     protected:
         ModelHandleImpl<_Model>* getPimpl(void) {
@@ -190,6 +199,7 @@ namespace dal {
         }
 
     };
+
 
     /*
     struct ModelStaticHandleImpl;
@@ -238,10 +248,17 @@ namespace dal {
         void render(const UniInterfLightedMesh& unilocLighted, const SamplerInterf& samplerInterf, const glm::mat4& modelMat) const;
         void renderDepthMap(const UniInterfGeometry& unilocGeometry, const glm::mat4& modelMat) const;
 
-        const ResourceID& getResID(void) const;
+    };
 
-        const ICollider* getBounding(void) const;
-        const ICollider* getDetailed(void) const;
+    class ModelAnimatedHandle : public IModelHandle<ModelAnimated> {
+
+    public:
+        explicit ModelAnimatedHandle(ModelAnimated* const model);
+
+        void render(const UniInterfLightedMesh& unilocLighted, const SamplerInterf& samplerInterf, const UniInterfAnime& unilocAnime,
+            const glm::mat4 modelMat, const JointTransformArray& transformArr);
+        void renderDepthMap(const UniInterfGeometry& unilocGeometry, const UniInterfAnime& unilocAnime, const glm::mat4 modelMat,
+            const JointTransformArray& transformArr) const;
 
     };
 

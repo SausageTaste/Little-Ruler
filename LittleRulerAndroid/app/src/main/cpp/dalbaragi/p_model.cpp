@@ -392,16 +392,25 @@ namespace dal {
         this->getPimpl()->m_model->renderDepthMap(unilocGeometry, modelMat);
     }
 
-    const ResourceID& ModelStaticHandle::getResID(void) const {
-        return this->getPimpl()->m_model->m_resID;
+}
+
+
+namespace dal {
+
+    ModelAnimatedHandle::ModelAnimatedHandle(ModelAnimated* const model) {
+        this->getPimpl()->m_model.reset(model);
     }
 
-    const ICollider* ModelStaticHandle::getBounding(void) const {
-        return this->getPimpl()->m_model->m_bounding.get();
+    void ModelAnimatedHandle::render(const UniInterfLightedMesh& unilocLighted, const SamplerInterf& samplerInterf, const UniInterfAnime& unilocAnime,
+        const glm::mat4 modelMat, const JointTransformArray& transformArr)
+    {
+        this->getPimpl()->m_model->render(unilocLighted, samplerInterf, unilocAnime, modelMat, transformArr);
     }
 
-    const ICollider* ModelStaticHandle::getDetailed(void) const {
-        return this->getPimpl()->m_model->m_detailed.get();
+    void ModelAnimatedHandle::renderDepthMap(const UniInterfGeometry& unilocGeometry, const UniInterfAnime& unilocAnime, const glm::mat4 modelMat,
+        const JointTransformArray& transformArr) const
+    {
+        this->getPimpl()->m_model->renderDepthMap(unilocGeometry, unilocAnime, modelMat, transformArr);
     }
 
 }
