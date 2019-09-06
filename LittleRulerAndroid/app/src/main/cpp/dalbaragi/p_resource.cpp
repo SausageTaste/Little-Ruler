@@ -190,6 +190,8 @@ namespace dal {
                 unit.m_material.setDiffuseMap(tex);
             }
         }
+
+        this->m_bounding.reset(new ColAABB{ info.m_aabb });
     }
 
     void ModelStatic::init(const loadedinfo::ModelDefined& info, ResourceMaster& resMas) {
@@ -522,8 +524,13 @@ namespace dal {
 
     void MapChunk2::applyCollision(const ICollider& inCol, cpnt::Transform& inTrans) {
         for ( auto& mdl : this->m_staticActors ) {
+            const auto mdlBounding = mdl.m_model.getBounding();
+            if ( nullptr == mdlBounding ) {
+                continue;
+            }
+
             for ( auto& actor : mdl.m_actors ) {
-                const auto withBounding = checkCollisionAbs(inCol, *mdl.m_model.getBounding(), inTrans, actor.m_transform);
+                const auto withBounding = checkCollisionAbs(inCol, *mdlBounding, inTrans, actor.m_transform);
                 if ( !withBounding ) {
                     continue;
                 }
@@ -545,6 +552,10 @@ namespace dal {
 
         for ( auto& modelActor : this->m_staticActors ) {
             const auto mdlBounding = modelActor.m_model.getBounding();
+            if ( nullptr == mdlBounding ) {
+                continue;
+            }
+
             const auto mdlDetailed = modelActor.m_model.getDetailed();
 
             if ( nullptr != mdlDetailed ) {
@@ -1004,6 +1015,11 @@ namespace dal {
             }
 
             map.addStaticActorModel(std::move(modelHandle), std::move(mdlEmbed.m_staticActors));
+        }
+
+        for ( auto& mdlImport : mapInfo->m_importedModels ) {
+            auto model = this->orderModelStatic(mdlImport.m_resourceID);
+            map.addStaticActorModel(std::move(model), std::move(mdlImport.m_staticActors));
         }
 
         for ( auto& water : mapInfo->m_waterPlanes ) {
