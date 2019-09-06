@@ -14,7 +14,42 @@ set(library_dir ${CMAKE_CURRENT_SOURCE_DIR}/../../../../../Library)
 
 # Make main JNI library
 file(GLOB dalbaragiSrcFiles ./dalbaragi/*.cpp)
-add_library( interface4jni SHARED interface4jni.cpp javautil.cpp ${dalbaragiSrcFiles})
+add_library( interface4jni SHARED interface4jni.cpp javautil.cpp
+        dalbaragi/c_input_apply.cpp
+        dalbaragi/g_actor.cpp
+        dalbaragi/g_charastate.cpp
+        dalbaragi/m_collider.cpp
+        dalbaragi/o_overlay_master.cpp
+        dalbaragi/o_widget_textbox.cpp
+        dalbaragi/o_widget_texview.cpp
+        dalbaragi/o_widgetbase.cpp
+        dalbaragi/o_widgetmanager.cpp
+        dalbaragi/p_animation.cpp
+        dalbaragi/p_dalopengl.cpp
+        dalbaragi/p_light.cpp
+        dalbaragi/p_meshStatic.cpp
+        dalbaragi/p_render_master.cpp
+        dalbaragi/p_resource.cpp
+        dalbaragi/p_scene.cpp
+        dalbaragi/p_shader_master.cpp
+        dalbaragi/p_uniloc.cpp
+        dalbaragi/p_water.cpp
+        dalbaragi/s_configs.cpp
+        dalbaragi/s_event.cpp
+        dalbaragi/s_input_queue.cpp
+        dalbaragi/s_logger_god.cpp
+        dalbaragi/s_threader.cpp
+        dalbaragi/u_dlbparser.cpp
+        dalbaragi/u_fileclass.cpp
+        dalbaragi/u_loadinfo.cpp
+        dalbaragi/u_luascript.cpp
+        dalbaragi/u_maploader.cpp
+        dalbaragi/u_objparser.cpp
+        dalbaragi/u_timer.cpp
+        dalbaragi/u_vecutil.cpp
+        dalbaragi/x_init_windows.cpp
+        dalbaragi/x_mainloop.cpp
+)
 target_include_directories(interface4jni PRIVATE ./dalbaragi)
 
 
