@@ -174,10 +174,17 @@ namespace dal::dlb {
     };
 
 
+    struct Plight {
+        glm::vec3 m_pos, m_color;
+        float m_maxDist;
+    };
+
+
     struct MapChunkInfo {
         std::vector<ModelEmbedded> m_embeddedModels;
         std::vector<ModelImported> m_importedModels;
         std::vector<WaterPlane> m_waterPlanes;
+        std::vector<Plight> m_plights;
     };
 
 }

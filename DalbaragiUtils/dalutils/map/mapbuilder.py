@@ -36,6 +36,7 @@ class MapChunkBuilder(inf.IDataBlock):
         self.__embeddedModels = pri.UniformList(ode.ModelEmbedded)
         self.__importedModels = pri.UniformList(ode.ModelImported)
         self.__waterPlanes = pri.UniformList(ode.WaterPlane)
+        self.__plights = pri.UniformList(ode.LightPoint)
 
         self.setDefault()
 
@@ -44,6 +45,7 @@ class MapChunkBuilder(inf.IDataBlock):
             "embedded_models": self.__embeddedModels,
             "imported_models": self.__importedModels,
             "water_planes": self.__waterPlanes,
+            "point_lights": self.__plights,
         })
 
     def getBinary(self) -> bytearray:
@@ -53,6 +55,7 @@ class MapChunkBuilder(inf.IDataBlock):
         data += self.__embeddedModels.getBinary()
         data += self.__importedModels.getBinary()
         data += self.__waterPlanes.getBinary()
+        data += self.__plights.getBinary()
 
         return data
 
@@ -61,6 +64,7 @@ class MapChunkBuilder(inf.IDataBlock):
         self.__embeddedModels.clear()
         self.__importedModels.clear()
         self.__waterPlanes.clear()
+        self.__plights.clear()
 
     def fillErrReport(self, journal: rep.ErrorJournal) -> None:
         child = rep.ErrorJournal("metadata")
@@ -82,6 +86,11 @@ class MapChunkBuilder(inf.IDataBlock):
             water.fillErrReport(child)
             journal.addChildren(child)
 
+        for i, light in enumerate(self.__plights):
+            child = rep.ErrorJournal("point light [{}]".format(i))
+            light.fillErrReport(child)
+            journal.addChildren(child)
+
     def newEmbeddedModel(self) -> ode.ModelEmbedded:
         obj = ode.ModelEmbedded()
         self.__embeddedModels.pushBack(obj)
@@ -95,6 +104,11 @@ class MapChunkBuilder(inf.IDataBlock):
     def newWaterPlane(self) -> ode.WaterPlane:
         obj = ode.WaterPlane()
         self.__waterPlanes.pushBack(obj)
+        return obj
+
+    def newPointLight(self) -> ode.LightPoint:
+        obj = ode.LightPoint()
+        self.__plights.pushBack(obj)
         return obj
 
 

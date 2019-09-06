@@ -10,6 +10,7 @@
 #include "p_meshStatic.h"
 #include "p_water.h"
 #include "p_model.h"
+#include "p_light.h"
 
 
 namespace dal {
@@ -32,12 +33,16 @@ namespace dal {
     private:
         std::vector<StaticModelActor> m_staticActors;
         std::vector<WaterRenderer> m_waters;
+        std::vector<PointLight> m_plights;
 
     public:
         void addStaticActorModel(ModelStaticHandle&& model, std::vector<ActorInfo>&& actors) {
             this->m_staticActors.emplace_back(std::move(model), std::move(actors));
         }
         void addWaterPlane(const dlb::WaterPlane& waterInfo);
+        PointLight& newPlight(void) {
+            return this->m_plights.emplace_back();
+        }
 
         void applyCollision(const ICollider& inCol, cpnt::Transform& inTrans);
         std::optional<RayCastingResult> castRayToClosest(const Ray& ray) const;
@@ -47,6 +52,9 @@ namespace dal {
         void renderWater(const UnilocWaterry& uniloc);
         void renderOnWaterGeneral(const UnilocGeneral& uniloc, const ICamera& cam, entt::registry& reg);
         void renderOnWaterAnimated(const UnilocAnimate& uniloc, const ICamera& cam, entt::registry& reg);
+
+    private:
+        int sendLightUniforms(const UniInterfLightedMesh& uniloc, int startIndex) const;
 
     };
 

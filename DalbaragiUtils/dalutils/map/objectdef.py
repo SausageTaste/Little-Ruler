@@ -133,7 +133,7 @@ class ModelImported(inf.IDataBlock):
 
     def fillErrReport(self, journal: rep.ErrorJournal) -> None:
         pass
-    
+
     def newStaticActor(self) -> blk.StaticActor:
         actor = blk.StaticActor()
         self.__staticActors.pushBack(actor)
@@ -237,3 +237,45 @@ class WaterPlane(inf.IDataBlock):
     @property
     def m_reflectivity(self):
         return self.__reflectivity
+
+
+class LightPoint(inf.IDataBlock):
+    def __init__(self):
+        self.__color = pri.Vec3()
+        self.__pos = pri.Vec3()
+        self.__maxDistance = pri.FloatValue()
+
+        self.setDefault()
+
+        super().__init__({
+            "color" : self.__color,
+            "pos" : self.__pos,
+            "max_distance" : self.__maxDistance,
+        })
+
+    def getBinary(self) -> bytearray:
+        data = bytearray()
+
+        data += self.__color.getBinary()
+        data += self.__pos.getBinary()
+        data += self.__maxDistance.getBinary()
+
+        return data
+
+    def setDefault(self) -> None:
+        self.__color.setXYZ(1, 1, 1)
+        self.__pos.setXYZ(0, 0, 0)
+        self.__maxDistance.set(5)
+
+    def fillErrReport(self, journal: rep.ErrorJournal) -> None:
+        pass
+
+    @property
+    def m_color(self):
+        return self.__color
+    @property
+    def m_pos(self):
+        return self.__pos
+    @property
+    def m_maxDistance(self):
+        return self.__maxDistance

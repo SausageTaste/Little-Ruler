@@ -40,7 +40,7 @@ def main():
     model.m_name.set("Slope2")
 
     unit = blk.RenderUnit()
-    builder = mes.HeightGrid(100, 100, 15, 15)
+    builder = mes.HeightGrid(200, 200, 15, 15)
 
     heightmap = []
     for y in range(builder.m_heightMap.getSizeY()):
@@ -52,7 +52,7 @@ def main():
     builder.m_heightMap.setList(
         heightmap
     )
-    builder.m_heightMap.applyFunc(lambda h: 3 * h)
+    builder.m_heightMap.applyFunc(lambda h: 5 * h)
     builder.m_smoothShading = True
     unit.m_mesh.buildIn(builder)
 
@@ -73,9 +73,9 @@ def main():
 
     water = mapbuild.newWaterPlane()
 
-    water.m_centerPos.setXYZ(0, -7.5, 0)
-    water.m_width.set(100)
-    water.m_height.set(100)
+    water.m_centerPos.setXYZ(0, -6.2, 0)
+    water.m_width.set(200)
+    water.m_height.set(200)
     water.m_darkestDepth.set(10)
     water.m_reflectivity.set(0.1)
 
@@ -87,6 +87,12 @@ def main():
     actor = model.newStaticActor()
     actor.m_name.set("yuri1")
     actor.m_transform.m_pos.setY(-8)
+
+    ################
+
+    light = mapbuild.newPointLight()
+    light.m_maxDistance.set(2)
+    light.m_color.setXYZ(1, 1, 1)
 
     ################
 

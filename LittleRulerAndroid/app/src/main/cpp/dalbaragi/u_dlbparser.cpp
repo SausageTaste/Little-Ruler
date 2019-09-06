@@ -435,6 +435,23 @@ namespace {
         return begin;
     }
 
+    const uint8_t* parsePlight(dal::dlb::Plight& info, const uint8_t* begin, const uint8_t* const end) {
+        float fbuf[7];
+        begin = make32ValueArr<float>(begin, fbuf, 7);
+
+        info.m_color.x = fbuf[0];
+        info.m_color.y = fbuf[1];
+        info.m_color.z = fbuf[2];
+
+        info.m_pos.x = fbuf[3];
+        info.m_pos.y = fbuf[4];
+        info.m_pos.z = fbuf[5];
+
+        info.m_maxDist = fbuf[6];
+
+        return begin;
+    }
+
 }
 
 
@@ -481,6 +498,15 @@ namespace dal {
 
                 for ( auto& water : info.m_waterPlanes ) {
                     header = parseWaterPlane(water, header, end);
+                }
+            }
+
+            {
+                const auto numPlights = makeInt4(header); header += 4;
+                info.m_plights.resize(numPlights);
+
+                for ( auto& light : info.m_plights ) {
+                    header = parsePlight(light, header, end);
                 }
             }
         }

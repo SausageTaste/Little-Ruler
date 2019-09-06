@@ -198,6 +198,8 @@ namespace dal {
 
 
     void MapChunk2::renderGeneral(const UnilocGeneral& uniloc) {
+        this->sendLightUniforms(uniloc.m_lightedMesh, 0);
+
         for ( const auto& [model, actors] : this->m_staticActors ) {
             for ( const auto& actor : actors ) {
                 model.render(uniloc.m_lightedMesh, uniloc.getDiffuseMapLoc(), actor.m_transform.getMat());
@@ -214,6 +216,8 @@ namespace dal {
     }
 
     void MapChunk2::renderWater(const UnilocWaterry& uniloc) {
+        this->sendLightUniforms(uniloc.m_lightedMesh, 0);
+
         for ( auto& water : this->m_waters ) {
             water.renderWaterry(uniloc);
         }
@@ -279,6 +283,23 @@ namespace dal {
                 }
             }
         }
+    }
+
+    // Private
+
+    int MapChunk2::sendLightUniforms(const UniInterfLightedMesh& uniloc, int startIndex) const {
+        if ( startIndex >= 3 )
+            dalAbort("Too many point lights.");
+        if ( startIndex + this->m_plights.size() > 3 )
+            dalAbort("Too many point lights.");
+
+        uniloc.plightCount(startIndex + this->m_plights.size());
+        for ( size_t i = 0; i < this->m_plights.size(); i++ ) {
+            if ( i >= 3 ) break;
+            this->m_plights.at(i).sendUniform(uniloc, startIndex + i);
+        }
+
+        return startIndex + this->m_plights.size();
     }
 
 }
@@ -680,6 +701,13 @@ namespace dal {
 
         for ( auto& water : mapInfo->m_waterPlanes ) {
             map.addWaterPlane(water);
+        }
+
+        for ( auto& light : mapInfo->m_plights ) {
+            auto& mapLight = map.newPlight();
+            mapLight.mPos = light.m_pos;
+            mapLight.m_color = light.m_color;
+            mapLight.mMaxDistance = light.m_maxDist;
         }
 
         return map;
