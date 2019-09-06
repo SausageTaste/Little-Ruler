@@ -149,13 +149,7 @@ namespace {
         }
 
         const auto floorDist = result->m_distance - RAY_Y_OFFSET;
-        fmt::print("floor distance: {}\n", floorDist);
-        if ( floorDist > 0.f ) {
-            transform.addPos(0.f, -0.1f, 0.f);
-        }
-        else {
-            transform.addPos(0.f, -floorDist, 0.f);
-        }
+        transform.addPos(0.f, -floorDist, 0.f);
     }
 
 }
