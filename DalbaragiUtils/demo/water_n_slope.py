@@ -52,7 +52,7 @@ def main():
     builder.m_heightMap.setList(
         heightmap
     )
-    builder.m_heightMap.applyFunc(lambda h: 5 * h)
+    builder.m_heightMap.applyFunc(lambda h: 10 * h)
     builder.m_smoothShading = True
     unit.m_mesh.buildIn(builder)
 
@@ -73,7 +73,7 @@ def main():
 
     water = mapbuild.newWaterPlane()
 
-    water.m_centerPos.setXYZ(0, -6.2, 0)
+    water.m_centerPos.setXYZ(0, -4, 0)
     water.m_width.set(200)
     water.m_height.set(200)
     water.m_darkestDepth.set(10)
@@ -86,7 +86,7 @@ def main():
 
     actor = model.newStaticActor()
     actor.m_name.set("yuri1")
-    actor.m_transform.m_pos.setY(-6)
+    actor.m_transform.m_pos.setY(-4)
 
     ################
 

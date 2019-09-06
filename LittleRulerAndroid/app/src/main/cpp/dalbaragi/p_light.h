@@ -67,6 +67,11 @@ namespace dal {
         void setPos(const glm::vec3& v) {
             this->m_pos = v;
         }
+        void setPos(const float x, const float y, const float z) {
+            this->m_pos.x = x;
+            this->m_pos.y = y;
+            this->m_pos.z = z;
+        }
         const glm::vec3& getDirection(void) const {
             return this->m_direction;
         }

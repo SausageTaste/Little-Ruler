@@ -170,7 +170,7 @@ namespace dal {
         , m_flagDrawDlight1(true)
         , m_skyColor(0.6f, 0.6f, 0.9f)
         , m_mainCamera(camera)
-        , m_farPlaneDistance(100.0f)
+        , m_farPlaneDistance(150.0f)
         , m_baseAmbientColor(0.3f, 0.3f, 0.3f)
     {
         // Lights
@@ -251,7 +251,8 @@ namespace dal {
     }
 
     void RenderMaster::update(const float deltaTime) {
-        this->m_dlight1.setPos(this->m_mainCamera->m_pos);
+        const glm::ivec3 intPos{ this->m_mainCamera->m_pos };
+        this->m_dlight1.setPos(intPos);
 
         /*
         const auto mat = glm::rotate(glm::mat4{ 1.0f }, deltaTime * 0.3f, glm::vec3{ 1.0f, 0.5f, 0.0f });
