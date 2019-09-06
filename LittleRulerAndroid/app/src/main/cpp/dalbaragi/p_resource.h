@@ -3,6 +3,8 @@
 #include <optional>
 #include <unordered_map>
 
+#include <entt/entity/registry.hpp>
+
 #include "s_threader.h"
 #include "u_fileclass.h"
 #include "p_meshStatic.h"
@@ -190,6 +192,9 @@ namespace dal {
 
         void renderGeneral(const UnilocGeneral& uniloc);
         void renderDepthMp(const UnilocDepthmp& uniloc);
+        void renderWater(const UnilocWaterry& uniloc);
+        void renderOnWaterGeneral(const UnilocGeneral& uniloc, const ICamera& cam, entt::registry& reg);
+        void renderOnWaterAnimated(const UnilocAnimate& uniloc, const ICamera& cam, entt::registry& reg);
 
     };
 

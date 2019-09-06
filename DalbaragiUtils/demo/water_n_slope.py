@@ -73,8 +73,11 @@ def main():
 
     water = mapbuild.newWaterPlane()
 
-    water.m_width.set(10)
-    water.m_height.set(10)
+    water.m_centerPos.setXYZ(0, -7.5, 0)
+    water.m_width.set(100)
+    water.m_height.set(100)
+    water.m_darkestDepth.set(10)
+    water.m_reflectivity.set(0.1)
 
     ################
 

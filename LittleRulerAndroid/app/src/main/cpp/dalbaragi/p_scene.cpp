@@ -372,6 +372,10 @@ namespace dal {
         for ( auto& map : m_mapChunks ) {
             map.renderWaterry(uniloc);
         }
+
+        for ( auto& map : m_mapChunks2 ) {
+            map.renderWater(uniloc);
+        }
     }
 
     void SceneGraph::renderAnimate(const UnilocAnimate& uniloc) {
@@ -384,11 +388,18 @@ namespace dal {
         for ( auto& map : this->m_mapChunks ) {
             map.renderGeneral_onWater(uniloc, cam, reg);
         }
+
+        for ( auto& map : this->m_mapChunks2 ) {
+            map.renderOnWaterGeneral(uniloc, cam, reg);
+        }
     }
 
     void SceneGraph::renderAnimate_onWater(const UnilocAnimate& uniloc, const ICamera& cam, entt::registry& reg) {
         for (auto& map : this->m_mapChunks ) {
             map.renderAnimate_onWater(uniloc, cam, reg);
+        }
+        for ( auto& map : this->m_mapChunks2 ) {
+            map.renderOnWaterAnimated(uniloc, cam, reg);
         }
     }
 

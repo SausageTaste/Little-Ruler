@@ -368,13 +368,15 @@ namespace dal {
     // Private
 
     void WaterRenderer::initMesh(const glm::vec3& pos, const glm::vec2& size) {
+        const auto halfSize = size * 0.5f;
+
         std::array<float, 18> vertices{
-            pos.x,          pos.y, pos.z,
-            pos.x,          pos.y, pos.z + size.y,
-            pos.x + size.x, pos.y, pos.z + size.y,
-            pos.x,          pos.y, pos.z,
-            pos.x + size.x, pos.y, pos.z + size.y,
-            pos.x + size.x, pos.y, pos.z
+            pos.x - halfSize.x, pos.y, pos.z - halfSize.y,
+            pos.x - halfSize.x, pos.y, pos.z + halfSize.y,
+            pos.x + halfSize.x, pos.y, pos.z + halfSize.y,
+            pos.x - halfSize.x, pos.y, pos.z - halfSize.y,
+            pos.x + halfSize.x, pos.y, pos.z + halfSize.y,
+            pos.x + halfSize.x, pos.y, pos.z - halfSize.y
         };
         std::array<float, 12> texcoords{
             0, 1,
