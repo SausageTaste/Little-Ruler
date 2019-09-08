@@ -121,7 +121,7 @@ class IMeshBuilder(inf.IDataBlock):
 
 
 class Rect(IMeshBuilder):
-    def __init__(self, p00: Optional[pri.Vec3] = None, p01: Optional[pri.Vec3] = None, p10: Optional[pri.Vec3] = None, p11: Optional[pri.Vec3] = None):
+    def __init__(self, p01: Optional[pri.Vec3] = None, p00: Optional[pri.Vec3] = None, p10: Optional[pri.Vec3] = None, p11: Optional[pri.Vec3] = None):
         self.__p00 = pri.Vec3()
         self.__p01 = pri.Vec3()
         self.__p10 = pri.Vec3()
