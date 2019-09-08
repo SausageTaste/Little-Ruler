@@ -69,23 +69,28 @@ class FloatArray2D(inf.IDataBlock):
         return data
 
     def setDefault(self) -> None:
-        self.__array.setArray(0.0 for _ in range(self.__rows.get() * self.__columns.get()))
+        self.__remakeArray()
 
     def fillErrReport(self, journal: rep.ErrorJournal) -> None:
         pass
-
-    def getAt(self, row: int, column: int) -> float:
-        return float(self.__array[self.__calcTotalIndex(row, column)])
-
-    def setAt(self, value: float, row: int, column: int) -> None:
-        index = self.__calcTotalIndex(row, column)
-        self.__array[index] = value
 
     def getRowSize(self) -> int:
         return self.__rows.get()
 
     def getColumnSize(self) -> int:
         return self.__columns.get()
+
+    def getAt(self, row: int, column: int) -> float:
+        return float(self.__array[self.__calcTotalIndex(row, column)])
+
+    def resetDimension(self, row: int, column: int) -> None:
+        self.__rows.set(row)
+        self.__columns.set(column)
+        self.setDefault()
+
+    def setAt(self, value: float, row: int, column: int) -> None:
+        index = self.__calcTotalIndex(row, column)
+        self.__array[index] = value
 
     def forEach(self, func: Callable[[float], float]):
         for i, val in enumerate(self.__array):
@@ -96,6 +101,9 @@ class FloatArray2D(inf.IDataBlock):
         if sizeof != len(self.__array):
             raise ValueError("Array size mismatch : input {} vs data {}".format(sizeof, len(self.__array)))
         self.__array.setArray(array)
+
+    def __remakeArray(self) -> None:
+        self.__array.setArray(0.0 for _ in range(self.__rows.get() * self.__columns.get()))
 
     def __calcTotalIndex(self, row: int, column: int) -> int:
         return int(row) * self.__columns.get() + int(column)
@@ -113,7 +121,7 @@ class IMeshBuilder(inf.IDataBlock):
 
 
 class HeightGrid(IMeshBuilder):
-    def __init__(self, xSize: float, zSize: float, xGridCount: int, zGridCount: int, smoothShading: bool = True):
+    def __init__(self, xSize: float = 10.0, zSize: float = 10.0, xGridCount: int = 5, zGridCount: int = 5, smoothShading: bool = True):
         self.__xLen = pri.FloatValue(xSize)
         self.__zLen = pri.FloatValue(zSize)
         self.__heightMap = FloatArray2D(zGridCount, xGridCount)
@@ -133,6 +141,9 @@ class HeightGrid(IMeshBuilder):
         return self._makeBinaryAsListed()
 
     def setDefault(self) -> None:
+        self.__xLen.set(10)
+        self.__zLen.set(10)
+        self.__heightMap.resetDimension(5, 5)
         self.__heightMap.setDefault()
         self.__smoothShading.set(True)
 
@@ -212,9 +223,15 @@ class HeightGrid(IMeshBuilder):
     @property
     def m_xLen(self):
         return self.__xLen
+    @m_xLen.setter
+    def m_xLen(self, l: float):
+        self.__xLen.set(l)
     @property
     def m_zLen(self):
         return self.__zLen
+    @m_zLen.setter
+    def m_zLen(self, l: float):
+        self.__zLen.set(l)
     @property
     def m_smoothShading(self):
         return self.__smoothShading
