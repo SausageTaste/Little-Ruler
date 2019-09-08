@@ -168,6 +168,73 @@ namespace {
         }
     }
 
+    inline void pushBackVec3(std::vector<float>& c, const glm::vec3 v) {
+        c.push_back(v.x);
+        c.push_back(v.y);
+        c.push_back(v.z);
+    }
+
+    inline void pushBackVec2(std::vector<float>& c, const glm::vec2 v) {
+        c.push_back(v.x);
+        c.push_back(v.y);
+    }
+
+    template <typename T>
+    std::array<T, 6> triangulateRect(const T& p1, const T& p2, const T& p3, const T& p4) {
+        return { p1, p2, p3, p1, p3, p4 };
+    }
+
+    glm::vec3 calcTriangleNormal(const glm::vec3 p1, const glm::vec3 p2, const glm::vec3 p3) {
+        const auto edge1 = p3 - p2;
+        const auto edge2 = p1 - p2;
+        return glm::normalize(glm::cross(edge1, edge2));
+    }
+
+}
+
+
+// Util classes
+namespace {
+
+    template <typename _Type>
+    class Array2D {
+
+    private:
+        size_t m_rows, m_columns;
+        std::vector<_Type> m_array;
+
+    public:
+        Array2D(const size_t rows, const size_t columns)
+            : m_rows(rows)
+            , m_columns(columns)
+        {
+            this->m_array.resize(this->m_rows * this->m_columns);
+        }
+
+        _Type& at(const size_t row, const size_t column) {
+            dalAssert(this->isCoordInside(row, column))
+            return this->m_array[this->calcTotalIndex(row, column)];
+        }
+
+        bool isCoordInside(const size_t row, const size_t column) const {
+            if ( this->m_rows <= row ) {
+                return false;
+            }
+            else if ( this->m_columns <= column ) {
+                return false;
+            }
+            else {
+                return true;
+            }
+        }
+
+    private:
+        size_t calcTotalIndex(const size_t row, const size_t column) const {
+            return row * this->m_columns + column;
+        }
+
+    };
+
 }
 
 
@@ -238,6 +305,309 @@ namespace {
 }
 
 
+// Mesh builders
+namespace {
+    namespace mesh {
+
+        class FloatArray2D {
+
+        private:
+            std::vector<float> m_array;
+            size_t m_rows, m_columns;
+
+        public:
+            const uint8_t* parse(const uint8_t* begin, const uint8_t* const end) {
+                this->m_rows = makeInt4(begin); begin += 4;
+                this->m_columns = makeInt4(begin); begin += 4;
+                begin = parseFloatList(this->m_array, begin, end);
+                return begin;
+            }
+
+            float getAt(const size_t row, const size_t column) const {
+                dalAssert(this->isCoordInside(row, column));
+                return this->m_array[this->calcTotalIndex(row, column)];
+            }
+
+            size_t getColumnSize(void) const {
+                return this->m_columns;
+            }
+
+            size_t getRowSize(void) const {
+                return this->m_rows;
+            }
+
+            bool isCoordInside(const size_t row, const size_t column) const {
+                if ( this->m_rows <= row ) {
+                    return false;
+                }
+                else if ( this->m_columns <= column ) {
+                    return false;
+                }
+                else {
+                    return true;
+                }
+            }
+
+        private:
+            size_t calcTotalIndex(const size_t row, const size_t column) const {
+                return row * this->m_columns + column;
+            }
+
+        };
+
+
+        struct Rect {
+
+            glm::vec3 m_p00, m_p01, m_p10, m_p11;
+            bool m_smoothShading = false;
+
+            const uint8_t* parse(const uint8_t* begin, const uint8_t* const end) {
+                // 4 vectors
+                {
+                    float fbuf[12];
+                    begin = make32ValueArr<float>(begin, fbuf, 12);
+
+                    this->m_p00.x = fbuf[0];
+                    this->m_p00.y = fbuf[1];
+                    this->m_p00.z = fbuf[2];
+
+                    this->m_p01.x = fbuf[3];
+                    this->m_p01.y = fbuf[4];
+                    this->m_p01.z = fbuf[5];
+
+                    this->m_p10.x = fbuf[6];
+                    this->m_p10.y = fbuf[7];
+                    this->m_p10.z = fbuf[8];
+
+                    this->m_p11.x = fbuf[9];
+                    this->m_p11.y = fbuf[10];
+                    this->m_p11.z = fbuf[11];
+                }
+
+                // Smooth shading
+                {
+                    this->m_smoothShading = makeBool1(begin); begin += 1;
+                }
+
+                return begin;
+            }
+
+            void makeVertexArray(std::vector<float>& vertices, std::vector<float>& texcoords, std::vector<float>& normals) const {
+                vertices.clear(); vertices.reserve(18);
+                pushBackVec3(vertices, this->m_p01);
+                pushBackVec3(vertices, this->m_p00);
+                pushBackVec3(vertices, this->m_p10);
+                pushBackVec3(vertices, this->m_p01);
+                pushBackVec3(vertices, this->m_p10);
+                pushBackVec3(vertices, this->m_p11);
+
+                texcoords = {
+                    0.f, 1.f,
+                    0.f, 0.f,
+                    1.f, 0.f,
+                    0.f, 1.f,
+                    1.f, 0.f,
+                    1.f, 1.f
+                };
+
+                const auto a = this->m_p00 - this->m_p01;
+                const auto b = this->m_p10 - this->m_p01;
+                const auto c = this->m_p11 - this->m_p01;
+
+                const auto normal1 = glm::normalize(glm::cross(a, b));
+                const auto normal2 = glm::normalize(glm::cross(b, c));
+
+                normals.clear(); normals.reserve(18);
+                if ( this->m_smoothShading ) {
+                    const auto normalAvrg = (normal1 + normal2) * 0.5f;
+                    pushBackVec3(normals, normalAvrg);
+                    pushBackVec3(normals, normal1);
+                    pushBackVec3(normals, normalAvrg);
+                    pushBackVec3(normals, normalAvrg);
+                    pushBackVec3(normals, normalAvrg);
+                    pushBackVec3(normals, normal2);
+                }
+                else {
+                    pushBackVec3(normals, normal1);
+                    pushBackVec3(normals, normal1);
+                    pushBackVec3(normals, normal1);
+                    pushBackVec3(normals, normal2);
+                    pushBackVec3(normals, normal2);
+                    pushBackVec3(normals, normal2);
+                }
+            }
+
+        };
+
+
+        class HeightGrid {
+
+        private:
+            float m_xLen = 0.0f, m_zLen = 0.0f;
+            FloatArray2D m_heightMap;
+            bool m_smoothShading = false;
+
+        public:
+            const uint8_t* parse(const uint8_t* begin, const uint8_t* const end) {
+                // xLen, zLen
+                {
+                    float fbuf[2];
+                    begin = make32ValueArr<float>(begin, fbuf, 2);
+
+                    this->m_xLen = fbuf[0];
+                    this->m_zLen = fbuf[1];
+                }
+
+                // Height map
+                {
+                    begin = this->m_heightMap.parse(begin, end);
+                }
+
+                // Smooth shading
+                {
+                    this->m_smoothShading = makeBool1(begin); begin += 1;
+                }
+
+                return begin;
+            }
+
+            void makeVertexArray(std::vector<float>& vertices, std::vector<float>& texcoords, std::vector<float>& normals) const {
+                const auto xGridSize = this->m_heightMap.getColumnSize();
+                const auto zGridSize = this->m_heightMap.getRowSize();
+
+                Array2D<glm::vec3> pointsMap{ xGridSize, zGridSize };
+                for ( size_t x = 0; x < xGridSize; ++x ) {
+                    for ( size_t z = 0; z < zGridSize; ++z ) {
+                        const auto point = this->makePointAt(x, z);
+                        pointsMap.at(x, z) = point;
+                    }
+                }
+
+                Array2D<glm::vec2> texcoordsMap{ xGridSize, zGridSize };
+                for ( size_t x = 0; x < xGridSize; ++x ) {
+                    for ( size_t z = 0; z < zGridSize; ++z ) {
+                        texcoordsMap.at(x, z) = this->makeTexcoordsAt(x, z);
+                    }
+                }
+
+                Array2D<glm::vec3> normalsMap{ xGridSize, zGridSize };
+                for ( size_t x = 0; x < xGridSize; ++x ) {
+                    for ( size_t z = 0; z < zGridSize; ++z ) {
+                        normalsMap.at(x, z) = this->makePointNormalFor(x, z);
+                    }
+                }
+
+                vertices.clear();
+                texcoords.clear();
+                normals.clear();
+
+                for ( size_t x = 0; x < xGridSize - 1; ++x ) {
+                    for ( size_t z = 0; z < zGridSize - 1; ++z ) {
+                        const auto triangulatedIndices = triangulateRect(
+                            std::pair{ x, z },
+                            std::pair{ x, z + 1 },
+                            std::pair{ x + 1, z + 1 },
+                            std::pair{ x + 1, z }
+                        );
+
+                        std::vector<glm::vec3> vertexCache;
+                        for ( const auto [xIndex, zIndex] : triangulatedIndices ) {
+                            vertexCache.push_back(pointsMap.at(xIndex, zIndex));
+                        }
+
+                        const auto triNormal1 = calcTriangleNormal(vertexCache[0], vertexCache[1], vertexCache[2]);
+                        const auto triNormal2 = calcTriangleNormal(vertexCache[3], vertexCache[4], vertexCache[5]);
+
+                        for ( size_t i = 0; i < triangulatedIndices.size(); ++i ) {
+                            const auto [xIndex, zIndex] = triangulatedIndices[i];
+
+                            pushBackVec3(vertices, vertexCache[i]);
+                            pushBackVec2(texcoords, texcoordsMap.at(xIndex, zIndex));
+
+                            if ( this->m_smoothShading ) {
+                                pushBackVec3(normals, normalsMap.at(xIndex, zIndex));
+                            }
+                            else {
+                                const auto thisNormal = i < 3 ? triNormal1 : triNormal2;
+                                pushBackVec3(normals, thisNormal);
+                            }
+                        }
+                    }
+                }
+            }
+
+        private:
+            glm::vec3 makePointAt(const size_t xGrid, const size_t zGrid) const {
+                const auto xGridCount = this->m_heightMap.getColumnSize();
+                const auto zGridCount = this->m_heightMap.getRowSize();
+
+                const auto xLeftInGlobal = -(this->m_xLen * 0.5f);
+                const auto zFarInGlobal = -(this->m_zLen * 0.5f);
+
+                const glm::vec3 result{
+                    xLeftInGlobal + (this->m_xLen / float(xGridCount - 1)) * float(xGrid),
+                    this->m_heightMap.getAt(zGrid, xGrid),
+                    zFarInGlobal + (this->m_zLen / float(zGridCount - 1)) * float(zGrid)
+                };
+
+                return result;
+            }
+
+            glm::vec2 makeTexcoordsAt(const size_t xGrid, const size_t zGrid) const {
+                const auto xGridCount = this->m_heightMap.getColumnSize();
+                const auto zGridCount = this->m_heightMap.getRowSize();
+                return glm::vec2(float(xGrid) / float(xGridCount - 1), float(zGrid) / float(zGridCount - 1));
+            }
+
+            glm::vec3 makePointNormalFor(const size_t xGrid, const size_t zGrid) const {
+                const auto inputPoint = this->makePointAt(xGrid, zGrid);
+
+                std::array<glm::vec2, 4> adjacentOffsets = {
+                    glm::vec2{0, -1},
+                    glm::vec2{-1, 0},
+                    glm::vec2{0, 1},
+                    glm::vec2{1, 0}
+                };
+                std::array<std::optional<glm::vec3>, 4> adjacentPoints;
+
+                for ( int i = 0; i < adjacentOffsets.size(); ++i ) {
+                    const auto offset = adjacentOffsets[i];
+                    if ( this->m_heightMap.isCoordInside(xGrid + offset[0], zGrid + offset[1]) ) {
+                        adjacentPoints[i] = this->makePointAt(xGrid + offset[0], zGrid + offset[1]);
+                    }
+                    else {
+                        adjacentPoints[i] = std::nullopt;
+                    }
+                }
+
+                glm::vec3 normalAccum;
+                size_t addedCount = 0;
+
+                for ( int i = 0; i < 4; ++i ) {
+                    const auto toEdge1 = i;
+                    const auto toEdge2 = (i + 1) % 4;
+
+                    if ( (!adjacentPoints[toEdge1]) || (!adjacentPoints[toEdge2]) ) {
+                        continue;
+                    }
+
+                    const auto edge1 = *adjacentPoints[toEdge1] - inputPoint;
+                    const auto edge2 = *adjacentPoints[toEdge2] - inputPoint;
+
+                    normalAccum += glm::normalize(glm::cross(edge1, edge2));
+                    addedCount += 1;
+                }
+
+                dalAssert(0 != addedCount);
+                return glm::normalize(normalAccum / static_cast<float>(addedCount));
+            }
+
+        };
+
+    }
+}
+
+
 // Data blocks
 namespace {
 
@@ -270,7 +640,32 @@ namespace {
     }
 
     const uint8_t* parseRenderUnit(dal::dlb::RenderUnit& info, const uint8_t* begin, const uint8_t* const end) {
-        begin = parseMesh(info.m_mesh, begin, end);
+        // Mesh variant
+        {
+            const auto typeCode = makeInt2(begin); begin += 2;
+            switch ( typeCode ) {
+
+            case 0:
+            {
+                mesh::Rect meshb;
+                begin = meshb.parse(begin, end);
+                meshb.makeVertexArray(info.m_mesh.m_vertices, info.m_mesh.m_texcoords, info.m_mesh.m_normals);
+                break;
+            }
+            case 1:
+            {
+                mesh::HeightGrid meshb;
+                begin = meshb.parse(begin, end);
+                meshb.makeVertexArray(info.m_mesh.m_vertices, info.m_mesh.m_texcoords, info.m_mesh.m_normals);
+                break;
+            }
+            default:
+                dalAbort("Unknown type code for mesh builder: {}"_format(typeCode));
+
+            }
+        }
+
+        
         begin = parseMaterial(info.m_material, begin, end);
 
         return begin;
@@ -310,7 +705,10 @@ namespace {
     }
 
     const uint8_t* parseModelEmbedded(dal::dlb::ModelEmbedded& info, const uint8_t* begin, const uint8_t* const end) {
-        begin = parseStr(info.m_name, begin, end);
+        // Name
+        {
+            begin = parseStr(info.m_name, begin, end);
+        }
 
         // Render units
         {
@@ -360,7 +758,7 @@ namespace {
         }
 
         // Bounding volume
-        {
+        {/*
             const auto colCode = makeInt2(begin); begin += 2;
             switch ( colCode ) {
 
@@ -381,7 +779,7 @@ namespace {
             default:
                 dalAbort("Unkown collider type code: {}"_format(colCode));
 
-            }
+            }*/
         }
 
         assertHeaderPtr(begin, end);

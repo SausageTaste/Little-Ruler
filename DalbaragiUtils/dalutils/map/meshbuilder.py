@@ -404,7 +404,7 @@ class HeightGrid(IMeshBuilder):
                 edge2 = adjacentPoints[toEdge2] - inputPoint
             except TypeError:
                 continue
-            normalAccum += glm.cross(edge1, edge2)
+            normalAccum += glm.normalize(glm.cross(edge1, edge2))
             addedCount += 1
 
         if 0 == addedCount:
