@@ -51,56 +51,8 @@ namespace {
         return res;
     }
 
-    int32_t makeInt4(const uint8_t* begin) {
-        static_assert(1 == sizeof(uint8_t), "Size of uint8 is not 1 byte. WTF???");
-        static_assert(4 == sizeof(float), "Size of float is not 4 bytes.");
-
-        uint8_t buf[4];
-
-        if ( isBigEndian() ) {
-            buf[0] = begin[3];
-            buf[1] = begin[2];
-            buf[2] = begin[1];
-            buf[3] = begin[0];
-        }
-        else {
-            buf[0] = begin[0];
-            buf[1] = begin[1];
-            buf[2] = begin[2];
-            buf[3] = begin[3];
-        }
-
-        int32_t res;
-        memcpy(&res, buf, 4);
-        return res;
-    }
-
-    float makeFloat4(const uint8_t* begin) {
-        static_assert(1 == sizeof(uint8_t), "Size of uint8 is not 1 byte. WTF???");
-        static_assert(4 == sizeof(float), "Size of float is not 4 bytes.");
-
-        uint8_t buf[4];
-
-        if ( isBigEndian() ) {
-            buf[0] = begin[3];
-            buf[1] = begin[2];
-            buf[2] = begin[1];
-            buf[3] = begin[0];
-        }
-        else {
-            buf[0] = begin[0];
-            buf[1] = begin[1];
-            buf[2] = begin[2];
-            buf[3] = begin[3];
-        }
-
-        float res;
-        memcpy(&res, buf, 4);
-        return res;
-    }
-
     template <typename T>
-    T make32Value(const uint8_t* const begin) {
+    T assemble4Bytes(const uint8_t* const begin) {
         static_assert(1 == sizeof(uint8_t));
         static_assert(4 == sizeof(T));
 
@@ -124,10 +76,14 @@ namespace {
         return res;
     }
 
+    int32_t makeInt4(const uint8_t* begin) {
+        return assemble4Bytes<int32_t>(begin);
+    }
+
     template <typename T>
-    const uint8_t* make32ValueArr(const uint8_t* src, T* const dst, const size_t size) {
+    const uint8_t* assemble4BytesArray(const uint8_t* src, T* const dst, const size_t size) {
         for ( int i = 0; i < size; ++i ) {
-            dst[i] = make32Value<T>(src); src += 4;
+            dst[i] = assemble4Bytes<T>(src); src += 4;
         }
         return src;
     }
@@ -243,7 +199,7 @@ namespace {
 
     const uint8_t* parseVec3(glm::vec3& info, const uint8_t* begin, const uint8_t* const end) {
         float fbuf[3];
-        begin = make32ValueArr(begin, fbuf, 3);
+        begin = assemble4BytesArray<float>(begin, fbuf, 3);
         info.x = fbuf[0];
         info.y = fbuf[1];
         info.z = fbuf[2];
@@ -263,7 +219,7 @@ namespace {
     const uint8_t* parseFloatList(std::vector<float>& info, const uint8_t* begin, const uint8_t* const end) {
         const auto arrSize = makeInt4(begin); begin += 4;
         info.resize(arrSize);
-        begin = make32ValueArr<float>(begin, info.data(), arrSize);
+        begin = assemble4BytesArray<float>(begin, info.data(), arrSize);
 
         assertHeaderPtr(begin, end);
         return begin;
@@ -283,7 +239,7 @@ namespace {
 
     const uint8_t* parseSphere(dal::Sphere& info, const uint8_t* begin, const uint8_t* const end) {
         float fbuf[4];
-        begin = make32ValueArr(begin, fbuf, 4);
+        begin = assemble4BytesArray<float>(begin, fbuf, 4);
 
         info.setCenter(fbuf[0], fbuf[1], fbuf[2]);
         info.setRadius(fbuf[3]);
@@ -365,7 +321,7 @@ namespace {
                 // 4 vectors
                 {
                     float fbuf[12];
-                    begin = make32ValueArr<float>(begin, fbuf, 12);
+                    begin = assemble4BytesArray<float>(begin, fbuf, 12);
 
                     this->m_p00.x = fbuf[0];
                     this->m_p00.y = fbuf[1];
@@ -452,7 +408,7 @@ namespace {
                 // xLen, zLen
                 {
                     float fbuf[2];
-                    begin = make32ValueArr<float>(begin, fbuf, 2);
+                    begin = assemble4BytesArray<float>(begin, fbuf, 2);
 
                     this->m_xLen = fbuf[0];
                     this->m_zLen = fbuf[1];
@@ -621,7 +577,7 @@ namespace {
     const uint8_t* parseMaterial(dal::dlb::RenderUnit::Material& info, const uint8_t* begin, const uint8_t* const end) {
         {
             float floatBuf[7];
-            begin = make32ValueArr<float>(begin, floatBuf, 7);
+            begin = assemble4BytesArray<float>(begin, floatBuf, 7);
 
             info.m_baseColor.x = floatBuf[0];
             info.m_baseColor.y = floatBuf[1];
@@ -673,7 +629,7 @@ namespace {
 
     const uint8_t* parseTransform(dal::Transform& info, const uint8_t* begin, const uint8_t* const end) {
         float floatBuf[8];
-        begin = make32ValueArr(begin, floatBuf, 8);
+        begin = assemble4BytesArray<float>(begin, floatBuf, 8);
 
         info.setPos(floatBuf[0], floatBuf[1], floatBuf[2]);
         info.setQuat(floatBuf[3], floatBuf[4], floatBuf[5], floatBuf[6]);
@@ -810,7 +766,7 @@ namespace {
 
     const uint8_t* parseWaterPlane(dal::dlb::WaterPlane& info, const uint8_t* begin, const uint8_t* const end) {
         float fbuf[14];
-        begin = make32ValueArr<float>(begin, fbuf, 14);
+        begin = assemble4BytesArray<float>(begin, fbuf, 14);
 
         info.m_centerPos.x = fbuf[0];
         info.m_centerPos.y = fbuf[1];
@@ -835,7 +791,7 @@ namespace {
 
     const uint8_t* parsePlight(dal::dlb::Plight& info, const uint8_t* begin, const uint8_t* const end) {
         float fbuf[7];
-        begin = make32ValueArr<float>(begin, fbuf, 7);
+        begin = assemble4BytesArray<float>(begin, fbuf, 7);
 
         info.m_color.x = fbuf[0];
         info.m_color.y = fbuf[1];
