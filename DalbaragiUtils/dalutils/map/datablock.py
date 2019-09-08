@@ -1,5 +1,5 @@
 import math
-from typing import Generator
+from typing import Generator, Optional
 
 import glm
 import numpy as np
@@ -260,7 +260,7 @@ class Mesh(inf.IDataBlock):
 
 class RenderUnit(inf.IDataBlock):
     def __init__(self):
-        self.__mesh = Mesh()
+        self.__mesh = pri.Variant(mes.Rect, mes.HeightGrid)
         self.__material = Material()
 
         self.setDefault()
@@ -271,19 +271,23 @@ class RenderUnit(inf.IDataBlock):
         })
 
     def getBinary(self) -> bytearray:
-        data = bytearray()
-        data += self.__mesh.getBinary()
-        data += self.__material.getBinary()
-        return data
+        return self._makeBinaryAsListed()
 
     def setDefault(self) -> None:
-        self.__mesh.setDefault()
+        self.__mesh.clear()
         self.__material.setDefault()
 
     def fillErrReport(self, journal: rep.ErrorJournal) -> None:
-        child = rep.ErrorJournal("mesh")
-        self.__mesh.fillErrReport(child)
-        journal.addChildren(child)
+        if not self.__mesh.isValid():
+            journal.addNote(rep.ErrorNote("Mesh hasn't been defined."))
+
+        try:
+            child = rep.ErrorJournal("mesh")
+            self.__mesh.get().fillErrReport(child)
+        except AttributeError:
+            pass
+        else:
+            journal.addChildren(child)
 
         child = rep.ErrorJournal("material")
         self.__material.fillErrReport(child)
@@ -292,6 +296,9 @@ class RenderUnit(inf.IDataBlock):
     @property
     def m_mesh(self):
         return self.__mesh
+    @m_mesh.setter
+    def m_mesh(self, meshBuilder: mes.IMeshBuilder):
+        self.__mesh.set(meshBuilder)
     @property
     def m_material(self):
         return self.__material

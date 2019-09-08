@@ -158,6 +158,9 @@ class Vec3(IMapElement):
         return self.__vec
 
     def set(self, other: "Vec3"):
+        if not isinstance(other, Vec3):
+            raise TypeError()
+
         self.__vec.x = other.__vec.x
         self.__vec.y = other.__vec.y
         self.__vec.z = other.__vec.z
@@ -463,7 +466,7 @@ class Variant(IMapElement):
     def clear(self) -> None:
         self.__data = None
 
-    def get(self) -> IMapElement:
+    def get(self) -> Any:
         if not self.isValid():
             raise RuntimeError(self.__s_errMsgOnNone)
         return self.__data

@@ -15,23 +15,21 @@ def main():
     model.m_flagDetailedCollider.set(True)
     model.m_name.set("Slope")
 
-    unit = blk.RenderUnit()
-    unit.m_mesh.buildIn_rect(
+    unit = model.newRenderUnit()
+    unit.m_mesh = mes.Rect(
         pri.Vec3(-15, 70, -10),
         pri.Vec3(-15, 70, 10),
         pri.Vec3(15, -15, 10),
-        pri.Vec3(15, -15, -10),
+        pri.Vec3(15, -15, -10)
     )
     unit.m_material.m_diffuseMap.set("asset::0021di.png")
     unit.m_material.m_texScaleX.set(45)
     unit.m_material.m_texScaleY.set(10)
-    model.m_renderUnits.pushBack(unit)
 
-    actor = blk.StaticActor()
+    actor = model.newStaticActor()
     actor.m_name.set("slope_actor")
     actor.m_transform.m_pos.setX(-20)
     actor.m_transform.m_pos.setY(-5)
-    model.m_staticActors.pushBack(actor)
 
     ################
 
@@ -39,7 +37,7 @@ def main():
     model.m_flagDetailedCollider.set(True)
     model.m_name.set("Slope2")
 
-    unit = blk.RenderUnit()
+    unit = model.newRenderUnit()
     builder = mes.HeightGrid(200, 200, 15, 15)
 
     heightmap = []
@@ -52,20 +50,18 @@ def main():
     )
     builder.m_heightMap.forEach(lambda h: 10 * h)
     builder.m_smoothShading = True
-    unit.m_mesh.buildIn(builder)
+    unit.m_mesh = builder
 
     unit.m_material.m_diffuseMap.set("asset::grass1.png")
     unit.m_material.m_texScaleX.set(50)
     unit.m_material.m_texScaleY.set(50)
     unit.m_material.m_shininess.set(8)
     unit.m_material.m_specStreng.set(0.5)
-    model.m_renderUnits.pushBack(unit)
 
-    actor = blk.StaticActor()
+    actor = model.newStaticActor()
     actor.m_name.set("slope_actor")
     actor.m_transform.m_pos.setX(0)
     actor.m_transform.m_pos.setY(-9)
-    model.m_staticActors.pushBack(actor)
 
     ################
 

@@ -1,5 +1,5 @@
 import abc
-from typing import List, Tuple, Any, Callable, Iterable
+from typing import List, Tuple, Any, Callable, Iterable, Optional
 
 import glm
 
@@ -118,6 +118,113 @@ class IMeshBuilder(inf.IDataBlock):
     @abc.abstractmethod
     def makeMeshData(self) -> Tuple[List[float], List[float], List[float]]:
         pass
+
+
+class Rect(IMeshBuilder):
+    def __init__(self, p00: Optional[pri.Vec3] = None, p01: Optional[pri.Vec3] = None, p10: Optional[pri.Vec3] = None, p11: Optional[pri.Vec3] = None):
+        self.__p00 = pri.Vec3()
+        self.__p01 = pri.Vec3()
+        self.__p10 = pri.Vec3()
+        self.__p11 = pri.Vec3()
+        self.__smoothShading = pri.BoolValue()
+
+        self.setDefault()
+
+        if p00 is not None:
+            self.__p00.set(p00)
+        if p01 is not None:
+            self.__p01.set(p01)
+        if p10 is not None:
+            self.__p10.set(p10)
+        if p11 is not None:
+            self.__p11.set(p11)
+
+        super().__init__({
+            "p00" : self.__p00,
+            "p01" : self.__p01,
+            "p10" : self.__p10,
+            "p11" : self.__p11,
+            "smooth_shading" : self.__smoothShading,
+        })
+
+    def getBinary(self) -> bytearray:
+        return self._makeBinaryAsListed()
+
+    def setDefault(self) -> None:
+        self.__p00.setXYZ(0, 0, 0)
+        self.__p01.setXYZ(0, 0, 0)
+        self.__p10.setXYZ(0, 0, 0)
+        self.__p11.setXYZ(0, 0, 0)
+        self.__smoothShading.set(False)
+
+    def fillErrReport(self, journal: rep.ErrorJournal) -> None:
+        pass
+
+    def makeMeshData(self) -> Tuple[List[float], List[float], List[float]]:
+        vertices: List[float] = [
+            *self.__p01.getXYZ(),
+            *self.__p00.getXYZ(),
+            *self.__p10.getXYZ(),
+            *self.__p01.getXYZ(),
+            *self.__p10.getXYZ(),
+            *self.__p11.getXYZ(),
+        ]
+        assert len(vertices) == 18
+
+        texcoords: List[float] = [
+            0.0, 1.0,
+            0.0, 0.0,
+            1.0, 0.0,
+            0.0, 1.0,
+            1.0, 0.0,
+            1.0, 1.0,
+        ]
+        assert len(texcoords) == 12
+
+        a = self.__p00 - self.__p01
+        b = self.__p10 - self.__p01
+        c = self.__p11 - self.__p01
+
+        normal1 = glm.normalize(glm.cross(a.getVec(), b.getVec()))
+        normal2 = glm.normalize(glm.cross(b.getVec(), c.getVec()))
+
+        if self.__smoothShading.get():
+            normalAvrg = (normal1 + normal2) * 0.5
+
+            normals: List[float] = [
+                normalAvrg.x, normalAvrg.y, normalAvrg.z,
+                normal1.x, normal1.y, normal1.z,
+                normalAvrg.x, normalAvrg.y, normalAvrg.z,
+                normalAvrg.x, normalAvrg.y, normalAvrg.z,
+                normalAvrg.x, normalAvrg.y, normalAvrg.z,
+                normal2.x, normal2.y, normal2.z,
+            ]
+        else:
+            normals: List[float] = [
+                normal1.x, normal1.y, normal1.z,
+                normal1.x, normal1.y, normal1.z,
+                normal1.x, normal1.y, normal1.z,
+                normal2.x, normal2.y, normal2.z,
+                normal2.x, normal2.y, normal2.z,
+                normal2.x, normal2.y, normal2.z,
+            ]
+
+        assert len(normals) == 18
+
+        return vertices, texcoords, normals
+
+    @property
+    def m_p00(self):
+        return self.__p00
+    @property
+    def m_p01(self):
+        return self.__p01
+    @property
+    def m_p10(self):
+        return self.__p10
+    @property
+    def m_p11(self):
+        return self.__p11
 
 
 class HeightGrid(IMeshBuilder):

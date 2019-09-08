@@ -34,10 +34,6 @@ class ModelEmbedded(inf.IDataBlock):
         data += self.__flagDetailedCollider.getBinary()
         data += pri.BoolValue(self.__hasRotatingActor()).getBinary()
 
-        bounding = self.__buildBoundingBox()
-        data += but.get2BytesInt(bounding.getTypeCode())
-        data += bounding.getBinary()
-
         return data
 
     def setDefault(self) -> None:
@@ -57,15 +53,19 @@ class ModelEmbedded(inf.IDataBlock):
             actor.fillErrReport(child)
             journal.addChildren(child)
 
+    def newRenderUnit(self) -> blk.RenderUnit:
+        unit = blk.RenderUnit()
+        self.__renderUnits.pushBack(unit)
+        return unit
+
+    def newStaticActor(self) -> blk.StaticActor:
+        actor = blk.StaticActor()
+        self.__staticActors.pushBack(actor)
+        return actor
+
     @property
     def m_name(self):
         return self.__name
-    @property
-    def m_renderUnits(self):
-        return self.__renderUnits
-    @property
-    def m_staticActors(self):
-        return self.__staticActors
     @property
     def m_flagDetailedCollider(self):
         return self.__flagDetailedCollider
