@@ -17,11 +17,10 @@ using namespace fmt::literals;
 namespace {
 
     bool isBigEndian() {
-        short int number = 0x1;
-        char* numPtr = (char*)&number;
+        constexpr short int number = 0x1;
+        const char* const numPtr = reinterpret_cast<const char*>(&number);
         return numPtr[0] != 1;
     }
-
 
     bool makeBool1(const uint8_t* begin) {
         return (*begin) != static_cast<uint8_t>(0);
@@ -56,23 +55,20 @@ namespace {
         static_assert(1 == sizeof(uint8_t));
         static_assert(4 == sizeof(T));
 
-        uint8_t buf[4];
+        T res;
 
         if ( isBigEndian() ) {
+            uint8_t buf[4];
             buf[0] = begin[3];
             buf[1] = begin[2];
             buf[2] = begin[1];
             buf[3] = begin[0];
+            memcpy(&res, buf, 4);
         }
         else {
-            buf[0] = begin[0];
-            buf[1] = begin[1];
-            buf[2] = begin[2];
-            buf[3] = begin[3];
+            memcpy(&res, begin, 4);
         }
 
-        T res;
-        memcpy(&res, buf, 4);
         return res;
     }
 
@@ -115,7 +111,6 @@ namespace {
         }
     }
 
-    
     class CorruptedBinary {  };
 
     inline void assertHeaderPtr(const uint8_t* const begin, const uint8_t* const end) {
@@ -168,7 +163,7 @@ namespace {
         }
 
         _Type& at(const size_t row, const size_t column) {
-            dalAssert(this->isCoordInside(row, column))
+            dalAssert(this->isCoordInside(row, column));
             return this->m_array[this->calcTotalIndex(row, column)];
         }
 
@@ -587,7 +582,7 @@ namespace {
             info.m_texScale.x = floatBuf[5];
             info.m_texScale.y = floatBuf[6];
         }
-        
+
         begin = parseStr(info.m_diffuseMap, begin, end);
         begin = parseStr(info.m_specularMap, begin, end);
         info.m_flagAlphaBlend = makeBool1(begin); begin += 1;
@@ -621,7 +616,6 @@ namespace {
             }
         }
 
-        
         begin = parseMaterial(info.m_material, begin, end);
 
         return begin;
