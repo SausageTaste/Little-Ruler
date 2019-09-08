@@ -397,6 +397,8 @@ class FloatList(IMapElement):
 
 
 class Variant(IMapElement):
+    __s_errMsgOnNone = "Variant needs to have value set."
+
     def __init__(self, *args: Type[IMapElement]):
         if not len(args):
             raise TypeError("Variant needs to be initialized with types.")
@@ -407,7 +409,7 @@ class Variant(IMapElement):
                 raise ValueError()
 
             try:
-                obj = i()
+                obj = i()  # This means the type must have a default ctor.
             except TypeError:
                 raise TypeError("{} cannot be used in Variant.".format(i))
             else:
@@ -417,17 +419,18 @@ class Variant(IMapElement):
 
         self.__types: Tuple[Type[IMapElement], ...] = tuple(typesList)
         self.__data: Optional[IMapElement] = None
-        self.__typeIndex = -1
 
     def __str__(self):
         typeNames = [x.__name__ for x in self.__types]
         return "{}<{}>{{ {} }}".format(type(self).__name__, ", ".join(typeNames), self.__data)
 
     def getJson(self) -> json_t:
-        dataJson = None if self.__typeIndex < 0 else self.__data.getJson()
+        if not self.isValid():
+            raise RuntimeError(self.__s_errMsgOnNone)
+
         return {
-            "type": self.__typeIndex,
-            "data": dataJson,
+            "type": self.__findTypeIndex(type(self.__data)),
+            "data": self.__data.getJson(),
         }
 
     def setJson(self, data: json_t) -> None:
@@ -435,36 +438,48 @@ class Variant(IMapElement):
         tmpObj: IMapElement = self.__types[typeIndex]()
         tmpObj.setJson(data["data"])
 
-        self.__typeIndex = typeIndex
         self.__data = tmpObj
 
     def getBinary(self) -> bytearray:
-        if not self.__isValid():
-            raise ValueError("Variant need to have value set.")
+        if not self.isValid():
+            raise RuntimeError(self.__s_errMsgOnNone)
 
         data = bytearray()
-        data += bytearray(but.get2BytesInt(self.__typeIndex))
+
+        data += bytearray(but.get2BytesInt(self.__findTypeIndex(type(self.__data))))
         data += self.__data.getBinary()
+
         return data
 
     def set(self, data) -> None:
-        for i, typ in enumerate(self.__types):
-            if isinstance(data, typ):
-                self.__data = data
-                self.__typeIndex = i + 0
-                return
+        try:
+            self.__findTypeIndex(type(data))
+        except TypeError:
+            typesStr = ", ".join(str(x) for x in self.__types)
+            raise ValueError("Input value's type is {} but it must be one of among {}.".format(type(data), typesStr))
         else:
-            typesStr = [str(x) for x in self.__types]
-            raise ValueError("Input value's type is {} but it must be one of among {}.".format(type(data), ", ".join(typesStr)))
+            self.__data = data
 
-    def get(self) -> Any:
+    def clear(self) -> None:
+        self.__data = None
+
+    def get(self) -> IMapElement:
+        if not self.isValid():
+            raise RuntimeError(self.__s_errMsgOnNone)
         return self.__data
 
-    def __isValid(self) -> bool:
+    def isValid(self) -> bool:
         if self.__data is None:
             return False
         else:
             return True
+
+    def __findTypeIndex(self, t: type) -> int:
+        for i, typ in enumerate(self.__types):
+            if t is typ:
+                return i
+        else:
+            raise TypeError()
 
 
 class VariantList(IMapElement):
