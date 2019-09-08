@@ -43,16 +43,14 @@ def main():
     builder = mes.HeightGrid(200, 200, 15, 15)
 
     heightmap = []
-    for y in range(builder.m_heightMap.getSizeY()):
-        row = [0.0]
-        for x in range(builder.m_heightMap.getSizeX() - 1):
-            row.append(random.random())
-        heightmap.append(row)
+    for y in range(builder.m_heightMap.getRowSize()):
+        for x in range(builder.m_heightMap.getColumnSize()):
+            heightmap.append(random.random())
 
-    builder.m_heightMap.setList(
+    builder.m_heightMap.setRowMajor(
         heightmap
     )
-    builder.m_heightMap.applyFunc(lambda h: 10 * h)
+    builder.m_heightMap.forEach(lambda h: 10 * h)
     builder.m_smoothShading = True
     unit.m_mesh.buildIn(builder)
 

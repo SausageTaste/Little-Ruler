@@ -339,8 +339,14 @@ class FloatList(IMapElement):
 
         return "{}{{ size={}, list=[{}] }}".format(type(self).__name__, self.__arr.size, numStr)
 
+    def __len__(self):
+        return self.getSize()
+
     def __getitem__(self, index: int) -> float:
         return self.__arr[int(index)]
+
+    def __setitem__(self, key: int, value: float):
+        self.__arr[int(key)] = float(value)
 
     def getJson(self) -> json_t:
         if sys.byteorder != "little":
@@ -367,10 +373,14 @@ class FloatList(IMapElement):
     def getSize(self) -> int:
         return int(self.__arr.size)
 
-    def setArray(self, arr: np.ndarray) -> None:
-        if not isinstance(arr, np.ndarray):
-            raise ValueError()
-        self.__arr = arr
+    def setArray(self, arr: Union[np.ndarray, Iterable[float]]) -> None:
+        if isinstance(arr, np.ndarray):
+            self.__arr = arr
+        elif isinstance(arr, Iterable):
+            arr: Iterable
+            self.__arr = np.array(list(arr), dtype=np.float32)
+        else:
+            raise ValueError("Input value's type {} cannot be converted to ndarray.".format(type(arr)))
 
     def append(self, arr: Union[np.ndarray, Iterable[float]]) -> None:
         if isinstance(arr, np.ndarray):

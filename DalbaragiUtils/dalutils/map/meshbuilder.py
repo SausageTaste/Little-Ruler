@@ -1,10 +1,13 @@
 import abc
-from typing import List, Tuple, Any
+from typing import List, Tuple, Any, Callable, Iterable
 
 import glm
 
+import dalutils.map.interface as inf
+import dalutils.map.primitives as pri
 import dalutils.util.containers as dcn
 import dalutils.util.math as dmt
+import dalutils.util.reporter as rep
 
 
 # Input and output both must be counter clock wise.
@@ -27,7 +30,83 @@ def assertMeshDataListSizeValidity(vertices: List[float], texcoords: List[float]
         ))
 
 
-class IMeshBuilder(abc.ABC):
+class FloatArray2D(inf.IDataBlock):
+    def __init__(self, rows: int, columns: int):
+        self.__rows = pri.IntValue(rows)
+        self.__columns = pri.IntValue(columns)
+        self.__array = pri.FloatList()
+
+        self.setDefault()
+
+        super().__init__({
+            "rows" : self.__rows,
+            "columns" : self.__columns,
+            "array" : self.__array,
+        })
+
+    def __str__(self):
+        buffer = "[\n"
+
+        for row in range(self.getRowSize()):
+            buffer += "\t[ "
+            lineBuffer = []
+            for column in range(self.getColumnSize()):
+                lineBuffer.append(str(self.getAt(row, column)))
+            buffer += ", ".join(lineBuffer)
+            buffer += " ]\n"
+
+        buffer += "]"
+
+        return buffer
+
+    def getBinary(self) -> bytearray:
+        data = bytearray()
+
+        data += self.__rows.getBinary()
+        data += self.__columns.getBinary()
+        data += self.__array.getBinary()
+
+        return data
+
+    def setDefault(self) -> None:
+        self.__array.setArray(0.0 for _ in range(self.__rows.get() * self.__columns.get()))
+
+    def fillErrReport(self, journal: rep.ErrorJournal) -> None:
+        pass
+
+    def getAt(self, row: int, column: int) -> float:
+        return float(self.__array[self.__calcTotalIndex(row, column)])
+
+    def setAt(self, value: float, row: int, column: int) -> None:
+        index = self.__calcTotalIndex(row, column)
+        self.__array[index] = value
+
+    def getRowSize(self) -> int:
+        return self.__rows.get()
+
+    def getColumnSize(self) -> int:
+        return self.__columns.get()
+
+    def forEach(self, func: Callable[[float], float]):
+        for i, val in enumerate(self.__array):
+            self.__array[i] = func(val)
+
+    def setRowMajor(self, array: Iterable[float]):
+        sizeof = len(list(array))
+        if sizeof != len(self.__array):
+            raise ValueError("Array size mismatch : input {} vs data {}".format(sizeof, len(self.__array)))
+        self.__array.setArray(array)
+
+    def __calcTotalIndex(self, row: int, column: int) -> int:
+        return int(row) * self.__columns.get() + int(column)
+
+    def __calcRowColumnPair(self, index: int) -> Tuple[int, int]:
+        row = index // self.__columns.get()
+        column = index % self.__columns.get()
+        return row, column
+
+
+class IMeshBuilder(inf.IDataBlock):
     @abc.abstractmethod
     def makeMeshData(self) -> Tuple[List[float], List[float], List[float]]:
         pass
@@ -35,14 +114,34 @@ class IMeshBuilder(abc.ABC):
 
 class HeightGrid(IMeshBuilder):
     def __init__(self, xSize: float, zSize: float, xGridCount: int, zGridCount: int, smoothShading: bool = True):
-        self.__xSize = float(xSize)
-        self.__zSize = float(zSize)
-        self.__heightMap = dcn.Array2D(float, xGridCount, zGridCount)
-        self.__smoothShading = bool(smoothShading)
+        self.__xLen = pri.FloatValue(xSize)
+        self.__zLen = pri.FloatValue(zSize)
+        self.__heightMap = FloatArray2D(zGridCount, xGridCount)
+        self.__smoothShading = pri.BoolValue(smoothShading)
+
+        super().__init__({
+            "len_x" : self.__xLen,
+            "len_z" : self.__zLen,
+            "height_map" : self.__heightMap,
+            "smooth_shading" : self.__smoothShading,
+        })
+
+    def __str__(self):
+        return self.__heightMap.__str__()
+
+    def getBinary(self) -> bytearray:
+        return self._makeBinaryAsListed()
+
+    def setDefault(self) -> None:
+        self.__heightMap.setDefault()
+        self.__smoothShading.set(True)
+
+    def fillErrReport(self, journal: rep.ErrorJournal) -> None:
+        pass
 
     def makeMeshData(self) -> Tuple[List[float], List[float], List[float]]:
-        xGridSize = self.__heightMap.getSizeX()
-        zGridSize = self.__heightMap.getSizeY()
+        xGridSize = self.__heightMap.getColumnSize()
+        zGridSize = self.__heightMap.getRowSize()
 
         pointsMap = dcn.Array2D(glm.vec3, xGridSize, zGridSize)
         for x in range(xGridSize):
@@ -107,21 +206,15 @@ class HeightGrid(IMeshBuilder):
 
         return vertices, texcoords, normals
 
-    def setHeightAt(self, value: float, x: int, z: int) -> None:
-        self.__heightMap.setAt(float(value), x, z)
-
-    def getHeightAt(self, x: int, y: int) -> float:
-        return self.__heightMap.getAt(x, y)
-
     @property
     def m_heightMap(self):
         return self.__heightMap
     @property
-    def m_xSize(self):
-        return self.__xSize
+    def m_xLen(self):
+        return self.__xLen
     @property
-    def m_ySize(self):
-        return self.m_ySize
+    def m_zLen(self):
+        return self.__zLen
     @property
     def m_smoothShading(self):
         return self.__smoothShading
@@ -130,27 +223,27 @@ class HeightGrid(IMeshBuilder):
         self.__smoothShading = bool(v)
 
     def __checkValidity(self) -> bool:
-        if self.__heightMap.getSizeX() < 2 or self.__heightMap.getSizeY() < 2:
+        if self.__heightMap.getRowSize() < 2 or self.__heightMap.getColumnSize() < 2:
             return False
 
     def __makePointAt(self, xGrid: int , zGrid: int) -> glm.vec3:
         xGrid = int(xGrid); zGrid = int(zGrid)
 
-        xGridCount = self.__heightMap.getSizeX()
-        zGridCount = self.__heightMap.getSizeY()
+        xGridCount = self.__heightMap.getColumnSize()
+        zGridCount = self.__heightMap.getRowSize()
 
-        xLeftInGlobal = -(self.__xSize * 0.5)
-        zFarInGlobal = -(self.__zSize * 0.5)
+        xLeftInGlobal = -(self.__xLen.get() * 0.5)
+        zFarInGlobal = -(self.__zLen.get() * 0.5)
 
-        xPos = xLeftInGlobal + (self.__xSize / (xGridCount - 1)) * xGrid
-        zPos = zFarInGlobal + (self.__zSize / (zGridCount - 1)) * zGrid
-        yPos = self.getHeightAt(xGrid, zGrid)
+        xPos = xLeftInGlobal + (self.__xLen.get() / (xGridCount - 1)) * xGrid
+        zPos = zFarInGlobal + (self.__zLen.get() / (zGridCount - 1)) * zGrid
+        yPos = self.__heightMap.getAt(zGrid, xGrid)
 
         return glm.vec3(xPos, yPos, zPos)
 
     def __makeTexcoordsAt(self, xGrid: int, zGrid: int) -> glm.vec2:
-        xGridCount = self.__heightMap.getSizeX()
-        zGridCount = self.__heightMap.getSizeY()
+        xGridCount = self.__heightMap.getColumnSize()
+        zGridCount = self.__heightMap.getRowSize()
         return glm.vec2(xGrid / (xGridCount - 1), zGrid / (zGridCount - 1))
 
     def __makePointNormalFor(self, xGrid: int , zGrid: int) -> glm.vec3:
@@ -197,12 +290,7 @@ class HeightGrid(IMeshBuilder):
 
 
 def test():
-    grid = HeightGrid(5, 5, 3, 3)
-    grid.setHeightAt(1.0, 0, 0)
-    #grid.setHeightAt(2.0, 1, 1)
-    grid.setHeightAt(3.0, 2, 2)
-
-    print(grid.makeMeshData())
+    pass
 
 
 if __name__ == '__main__':
