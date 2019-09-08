@@ -264,7 +264,7 @@ namespace {
 
         private:
             std::vector<float> m_array;
-            size_t m_rows, m_columns;
+            size_t m_rows = 0, m_columns = 0;
 
         public:
             const uint8_t* parse(const uint8_t* begin, const uint8_t* const end) {
@@ -345,12 +345,9 @@ namespace {
 
             void makeVertexArray(std::vector<float>& vertices, std::vector<float>& texcoords, std::vector<float>& normals) const {
                 vertices.clear(); vertices.reserve(18);
-                pushBackVec3(vertices, this->m_p01);
-                pushBackVec3(vertices, this->m_p00);
-                pushBackVec3(vertices, this->m_p10);
-                pushBackVec3(vertices, this->m_p01);
-                pushBackVec3(vertices, this->m_p10);
-                pushBackVec3(vertices, this->m_p11);
+                for ( const auto v : triangulateRect(this->m_p01, this->m_p00, this->m_p10, this->m_p11) ) {
+                    pushBackVec3(vertices, v);
+                }
 
                 texcoords = {
                     0.f, 1.f,
