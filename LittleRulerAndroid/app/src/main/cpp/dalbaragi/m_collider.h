@@ -285,6 +285,10 @@ namespace dal {
         }
 
         Sphere transform(const Transform& trans) const;
+        void resizeToInclude(const float x, const float y, const float z) {
+            this->resizeToInclude(glm::vec3{ x, y, z });
+        }
+        void resizeToInclude(const glm::vec3 p);
 
     };
 
@@ -314,6 +318,10 @@ namespace dal {
 
         void set(const glm::vec3& p1, const glm::vec3& p2);
         AABB transform(const Transform& trans) const;
+        void resizeToInclude(const float x, const float y, const float z);
+        void resizeToInclude(const glm::vec3 p) {
+            this->resizeToInclude(p.x, p.y, p.z);
+        }
         //void add(const glm::vec3& offset);
         //void scale(const float mag);
 

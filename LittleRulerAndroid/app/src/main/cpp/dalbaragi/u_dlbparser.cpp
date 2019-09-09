@@ -141,6 +141,54 @@ namespace {
         return glm::normalize(glm::cross(edge1, edge2));
     }
 
+    std::unique_ptr<dal::ICollider> buildAABB(const std::vector<float>& vertices) {
+        dal::AABB aabb;
+
+        const auto numVert = vertices.size() / 3;
+        for ( size_t i = 0; i < numVert; ++i ) {
+            const auto x = vertices[3 * i + 0];
+            const auto y = vertices[3 * i + 1];
+            const auto z = vertices[3 * i + 2];
+
+            aabb.resizeToInclude(x, y, z);
+        }
+
+        return std::unique_ptr<dal::ICollider>{ new dal::ColAABB{aabb} };
+    }
+
+    std::unique_ptr<dal::ICollider> buildSphere(const std::vector<float>& vertices) {
+        dal::Sphere sphere;
+
+        const auto numVert = vertices.size() / 3;
+        for ( size_t i = 0; i < numVert; ++i ) {
+            const auto x = vertices[3 * i + 0];
+            const auto y = vertices[3 * i + 1];
+            const auto z = vertices[3 * i + 2];
+
+            sphere.resizeToInclude(x, y, z);
+        }
+
+        return std::unique_ptr<dal::ICollider>{ new dal::ColSphere{ sphere } };
+    }
+
+    std::unique_ptr<dal::ICollider> buildTriSoup(const std::vector<float>& vertices) {
+        std::unique_ptr<dal::ColTriangleSoup> soup{ new dal::ColTriangleSoup };
+
+        const auto numTriangles = vertices.size() / 9;
+        dalAssert((vertices.size() - 9 * numTriangles) == 0);
+
+        for ( int i = 0; i < numTriangles; ++i ) {
+            const auto triIndex = 9 * i;
+            soup->addTriangle(dal::Triangle{
+                glm::vec3{ vertices[triIndex + 0], vertices[triIndex + 1], vertices[triIndex + 2] },
+                glm::vec3{ vertices[triIndex + 3], vertices[triIndex + 4], vertices[triIndex + 5] },
+                glm::vec3{ vertices[triIndex + 6], vertices[triIndex + 7], vertices[triIndex + 8] }
+                });
+        }
+
+        return soup;
+    }
+
 }
 
 
@@ -307,12 +355,14 @@ namespace {
         };
 
 
-        struct Rect {
+        class Rect : public dal::dlb::IMeshBuilder {
 
+        private:
             glm::vec3 m_p00, m_p01, m_p10, m_p11;
             bool m_smoothShading = false;
 
-            const uint8_t* parse(const uint8_t* begin, const uint8_t* const end) {
+        public:
+            virtual const uint8_t* parse(const uint8_t* begin, const uint8_t* const end) override {
                 // 4 vectors
                 {
                     float fbuf[12];
@@ -343,7 +393,7 @@ namespace {
                 return begin;
             }
 
-            void makeVertexArray(std::vector<float>& vertices, std::vector<float>& texcoords, std::vector<float>& normals) const {
+            virtual void makeVertexArray(std::vector<float>& vertices, std::vector<float>& texcoords, std::vector<float>& normals) const override {
                 vertices.clear(); vertices.reserve(18);
                 for ( const auto v : triangulateRect(this->m_p01, this->m_p00, this->m_p10, this->m_p11) ) {
                     pushBackVec3(vertices, v);
@@ -388,7 +438,7 @@ namespace {
         };
 
 
-        class HeightGrid {
+        class HeightGrid : public dal::dlb::IMeshBuilder {
 
         private:
             float m_xLen = 0.0f, m_zLen = 0.0f;
@@ -396,7 +446,7 @@ namespace {
             bool m_smoothShading = false;
 
         public:
-            const uint8_t* parse(const uint8_t* begin, const uint8_t* const end) {
+            virtual const uint8_t* parse(const uint8_t* begin, const uint8_t* const end) override {
                 // xLen, zLen
                 {
                     float fbuf[2];
@@ -419,7 +469,7 @@ namespace {
                 return begin;
             }
 
-            void makeVertexArray(std::vector<float>& vertices, std::vector<float>& texcoords, std::vector<float>& normals) const {
+            virtual void makeVertexArray(std::vector<float>& vertices, std::vector<float>& texcoords, std::vector<float>& normals) const override {
                 const auto xGridSize = this->m_heightMap.getColumnSize();
                 const auto zGridSize = this->m_heightMap.getRowSize();
 
@@ -594,19 +644,13 @@ namespace {
             switch ( typeCode ) {
 
             case 0:
-            {
-                mesh::Rect meshb;
-                begin = meshb.parse(begin, end);
-                meshb.makeVertexArray(info.m_mesh.m_vertices, info.m_mesh.m_texcoords, info.m_mesh.m_normals);
+                info.m_meshBuilder.reset(new mesh::Rect);
+                begin = info.m_meshBuilder->parse(begin, end);
                 break;
-            }
             case 1:
-            {
-                mesh::HeightGrid meshb;
-                begin = meshb.parse(begin, end);
-                meshb.makeVertexArray(info.m_mesh.m_vertices, info.m_mesh.m_texcoords, info.m_mesh.m_normals);
+                info.m_meshBuilder.reset(new mesh::HeightGrid);
+                begin = info.m_meshBuilder->parse(begin, end);
                 break;
-            }
             default:
                 dalAbort("Unknown type code for mesh builder: {}"_format(typeCode));
 
@@ -678,55 +722,35 @@ namespace {
         }
 
         // Flag detailed collider
-        if ( makeBool1(begin) ) {
-            auto soup = new dal::ColTriangleSoup;
-            info.m_detailed.reset(soup);
-
-            for ( const auto& unit : info.m_renderUnits ) {
-                auto& vertices = unit.m_mesh.m_vertices;
-
-                const auto numTriangles = vertices.size() / 9;
-                dalAssert((vertices.size() - 9 * numTriangles) == 0);
-
-                for ( int i = 0; i < numTriangles; ++i ) {
-                    const auto triIndex = 9 * i;
-                    soup->addTriangle(dal::Triangle{
-                        glm::vec3{ vertices[triIndex + 0], vertices[triIndex + 1], vertices[triIndex + 2] },
-                        glm::vec3{ vertices[triIndex + 3], vertices[triIndex + 4], vertices[triIndex + 5] },
-                        glm::vec3{ vertices[triIndex + 6], vertices[triIndex + 7], vertices[triIndex + 8] }
-                        });
-                }
-            }
-        } begin += 1;
+        const auto flagDetailedCol = makeBool1(begin); begin += 1;
 
         // Has rotating actor
+        const auto hasRotatingActor = makeBool1(begin); begin += 1;
+
+        // Build mesh data
         {
-            const auto flag = makeBool1(begin); begin += 1;
+            for ( auto& unit : info.m_renderUnits ) {
+                unit.m_meshBuilder->makeVertexArray(unit.m_mesh.m_vertices, unit.m_mesh.m_texcoords, unit.m_mesh.m_normals);
+            }
         }
 
         // Bounding volume
-        {/*
-            const auto colCode = makeInt2(begin); begin += 2;
-            switch ( colCode ) {
-
-            case COLLIDER_SPHERE:
-            {
-                auto sphere = new dal::ColSphere;
-                info.m_bounding.reset(sphere);
-                begin = parseSphere(*sphere, begin, end);
-                break;
+        {
+            if ( 1 == info.m_renderUnits.size() ) {
+                info.m_bounding = hasRotatingActor ? buildSphere(info.m_renderUnits[0].m_mesh.m_vertices) : buildAABB(info.m_renderUnits[0].m_mesh.m_vertices);
             }
-            case COLLIDER_AABB:
-            {
-                auto aabb = new dal::ColAABB;
-                info.m_bounding.reset(aabb);
-                begin = parseAABB(*aabb, begin, end);
-                break;
+            else {
+                dalAbort("Not implemented")
             }
-            default:
-                dalAbort("Unkown collider type code: {}"_format(colCode));
+        }
 
-            }*/
+        if ( flagDetailedCol ) {
+            if ( 1 == info.m_renderUnits.size() ) {
+                info.m_detailed = buildTriSoup(info.m_renderUnits[0].m_mesh.m_vertices);
+            }
+            else {
+                dalAbort("Not implemented")
+            }
         }
 
         assertHeaderPtr(begin, end);

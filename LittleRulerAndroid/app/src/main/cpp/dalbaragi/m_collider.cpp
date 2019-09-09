@@ -775,6 +775,29 @@ namespace dal {
         };
     }
 
+    void AABB::resizeToInclude(const float x, const float y, const float z) {
+        if ( this->m_p1.x > x ) {
+            this->m_p1.x = x;
+        }
+        else if ( this->m_p2.x < x ) {
+            this->m_p2.x = x;
+        }
+
+        if ( this->m_p1.y > y ) {
+            this->m_p1.y = y;
+        }
+        else if ( this->m_p2.y < y ) {
+            this->m_p2.y = y;
+        }
+
+        if ( this->m_p1.z > z ) {
+            this->m_p1.z = z;
+        }
+        else if ( this->m_p2.z < z ) {
+            this->m_p2.z = z;
+        }
+    }
+
     /*
     void AABB::add(const glm::vec3& offset) {
         this->m_p1 += offset;
@@ -844,6 +867,13 @@ namespace dal {
         result.setRadius(this->m_radius * trans.getScale());
 
         return result;
+    }
+
+    void Sphere::resizeToInclude(const glm::vec3 p) {
+        const auto dist = this->getDistance(p);
+        if ( dist > this->m_radius ) {
+            this->m_radius = dist;
+        }
     }
 
 }

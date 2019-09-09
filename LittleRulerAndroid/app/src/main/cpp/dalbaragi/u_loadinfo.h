@@ -136,7 +136,49 @@ namespace dal::loadedinfo {
 
 namespace dal::dlb {
 
+    class IMeshBuilder {
+
+    private:
+        template <typename T>
+        class Cache {
+
+        private:
+            T m_data;
+            bool m_ready = false;
+
+        public:
+            void set(const T& d) {
+                this->m_data = d;
+            }
+            void set(T&& d) {
+                this->m_data = std::move(d);
+            }
+            T& get(void) {
+                dalAssert(this->m_ready);
+                return this->m_data;
+            }
+            const T& get(void) const {
+                dalAssert(this->m_ready);
+                return this->m_data;
+            }
+            bool isReady(void) const {
+                return this->m_ready;
+            }
+
+        };
+
+    public:
+        virtual ~IMeshBuilder(void) = default;
+
+        virtual const uint8_t* parse(const uint8_t* begin, const uint8_t* const end) = 0;
+        virtual void makeVertexArray(std::vector<float>& vertices, std::vector<float>& texcoords, std::vector<float>& normals) const = 0;
+
+    };
+
+
     struct RenderUnit {
+        std::unique_ptr<IMeshBuilder> m_meshBuilder;
+
         struct Mesh {
             std::vector<float> m_vertices, m_texcoords, m_normals;
         } m_mesh;
