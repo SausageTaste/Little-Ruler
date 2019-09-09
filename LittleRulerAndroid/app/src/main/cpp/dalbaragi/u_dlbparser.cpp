@@ -192,51 +192,6 @@ namespace {
 }
 
 
-// Util classes
-namespace {
-
-    template <typename _Type>
-    class Array2D {
-
-    private:
-        size_t m_rows, m_columns;
-        std::vector<_Type> m_array;
-
-    public:
-        Array2D(const size_t rows, const size_t columns)
-            : m_rows(rows)
-            , m_columns(columns)
-        {
-            this->m_array.resize(this->m_rows * this->m_columns);
-        }
-
-        _Type& at(const size_t row, const size_t column) {
-            dalAssert(this->isCoordInside(row, column));
-            return this->m_array[this->calcTotalIndex(row, column)];
-        }
-
-        bool isCoordInside(const size_t row, const size_t column) const {
-            if ( this->m_rows <= row ) {
-                return false;
-            }
-            else if ( this->m_columns <= column ) {
-                return false;
-            }
-            else {
-                return true;
-            }
-        }
-
-    private:
-        size_t calcTotalIndex(const size_t row, const size_t column) const {
-            return row * this->m_columns + column;
-        }
-
-    };
-
-}
-
-
 // Primitives
 namespace {
 
@@ -473,7 +428,7 @@ namespace {
                 const auto xGridSize = this->m_heightMap.getColumnSize();
                 const auto zGridSize = this->m_heightMap.getRowSize();
 
-                Array2D<glm::vec3> pointsMap{ xGridSize, zGridSize };
+                dal::Array2D<glm::vec3> pointsMap{ xGridSize, zGridSize };
                 for ( size_t x = 0; x < xGridSize; ++x ) {
                     for ( size_t z = 0; z < zGridSize; ++z ) {
                         const auto point = this->makePointAt(x, z);
@@ -481,14 +436,14 @@ namespace {
                     }
                 }
 
-                Array2D<glm::vec2> texcoordsMap{ xGridSize, zGridSize };
+                dal::Array2D<glm::vec2> texcoordsMap{ xGridSize, zGridSize };
                 for ( size_t x = 0; x < xGridSize; ++x ) {
                     for ( size_t z = 0; z < zGridSize; ++z ) {
                         texcoordsMap.at(x, z) = this->makeTexcoordsAt(x, z);
                     }
                 }
 
-                Array2D<glm::vec3> normalsMap{ xGridSize, zGridSize };
+                dal::Array2D<glm::vec3> normalsMap{ xGridSize, zGridSize };
                 for ( size_t x = 0; x < xGridSize; ++x ) {
                     for ( size_t z = 0; z < zGridSize; ++z ) {
                         normalsMap.at(x, z) = this->makePointNormalFor(x, z);

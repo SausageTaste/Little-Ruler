@@ -23,6 +23,48 @@ namespace dal {
     };
 
 
+    template <typename _Type>
+    class Array2D {
+
+    private:
+        size_t m_rows, m_columns;
+        std::vector<_Type> m_array;
+
+    public:
+        Array2D(const size_t rows, const size_t columns)
+            : m_rows(rows)
+            , m_columns(columns)
+        {
+            this->m_array.resize(this->m_rows * this->m_columns);
+        }
+
+        _Type& at(const size_t row, const size_t column) {
+            if ( !this->isCoordInside(row, column) ) {
+                throw std::out_of_range{ "" };
+            }
+            return this->m_array[this->calcTotalIndex(row, column)];
+        }
+
+        bool isCoordInside(const size_t row, const size_t column) const {
+            if ( this->m_rows <= row ) {
+                return false;
+            }
+            else if ( this->m_columns <= column ) {
+                return false;
+            }
+            else {
+                return true;
+            }
+        }
+
+    private:
+        size_t calcTotalIndex(const size_t row, const size_t column) const {
+            return row * this->m_columns + column;
+        }
+
+    };
+
+
     class Transform {
 
     private:
