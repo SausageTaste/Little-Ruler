@@ -323,7 +323,8 @@ namespace dal {
         this->m_material.setTexScale(info.m_width * TEX_SCALE_FACTOR, info.m_height * TEX_SCALE_FACTOR);
     }
 
-    void WaterRenderer::renderWaterry(const UnilocWaterry& uniloc) {
+
+    void WaterRenderer::render(const UnilocWaterry& uniloc) {
         const auto deltaTime = this->m_localTimer.checkGetElapsed();
         this->m_moveFactor += this->m_moveSpeed * deltaTime;
         this->m_moveFactor = fmod(this->m_moveFactor, 1.0f);
@@ -345,6 +346,7 @@ namespace dal {
         uniloc.m_lightedMesh.modelMat(glm::mat4{ 1.0f });
         this->m_mesh.draw();
     }
+
 
     void WaterRenderer::startRenderOnReflec(const UnilocGeneral& uniloc, const ICamera& cam) const {
         uniloc.m_planeClip.flagDoClip(true);

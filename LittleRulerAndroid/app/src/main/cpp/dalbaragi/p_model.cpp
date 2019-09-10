@@ -128,7 +128,7 @@ namespace dal {
         }
     }
 
-    void ModelStatic::renderDepthMap(const UniInterfGeometry& unilocGeometry, const glm::mat4& modelMat) const {
+    void ModelStatic::renderDepth(const UniInterfGeometry& unilocGeometry, const glm::mat4& modelMat) const {
         if ( !this->isReady() ) {
             return;
         }
@@ -205,7 +205,7 @@ namespace dal {
         }
     }
 
-    void ModelAnimated::renderDepthMap(const UniInterfGeometry& unilocGeometry, const UniInterfAnime& unilocAnime, const glm::mat4 modelMat,
+    void ModelAnimated::renderDepth(const UniInterfGeometry& unilocGeometry, const UniInterfAnime& unilocAnime, const glm::mat4 modelMat,
         const JointTransformArray& transformArr) const {
         if ( !this->isReady() ) return;
 
@@ -223,156 +223,7 @@ namespace dal {
         this->m_renderUnits.clear();
     }
 
-    /*
-    void ModelAnimated::updateAnimation0(void) {
-        if ( this->m_animations.empty() ) {
-            return;
-        }
-
-        const auto& anim = this->m_animations.back();
-        const auto elapsed = this->m_animLocalTimer.getElapsed();
-        const auto animDuration = anim.getDurationInTick();
-        const auto animTickPerSec = anim.getTickPerSec();
-
-        float TimeInTicks = elapsed * animTickPerSec;
-        const auto animTick = fmod(TimeInTicks, animDuration);
-
-        anim.sample(animTick, this->m_jointInterface, this->m_globalInvMat);
-    }
-    */
-
 }
-
-
-/*
-// ModelStaticHandle
-namespace dal {
-
-    struct ModelStaticHandleImpl {
-        std::unique_ptr<ModelStatic> m_model;
-        unsigned int m_refCount = 1;
-    };
-
-    dal::StaticPool<dal::ModelStaticHandleImpl, 20> g_staticModelCtrlBlckPool;
-
-
-    ModelStaticHandle::ModelStaticHandle(void)
-        : m_pimpl(g_staticModelCtrlBlckPool.alloc())
-    {
-
-    }
-
-    ModelStaticHandle::ModelStaticHandle(dal::ModelStatic* const model)
-        : m_pimpl(g_staticModelCtrlBlckPool.alloc())
-    {
-        this->m_pimpl->m_model.reset(model);
-    }
-
-    ModelStaticHandle::~ModelStaticHandle(void) {
-        if ( nullptr == this->m_pimpl ) {
-            return;
-        }
-
-        --this->m_pimpl->m_refCount;
-        if ( 0 == this->m_pimpl->m_refCount ) {
-            g_staticModelCtrlBlckPool.free(this->m_pimpl);
-            this->m_pimpl = nullptr;
-        }
-    }
-
-    ModelStaticHandle::ModelStaticHandle(ModelStaticHandle&& other) noexcept
-        : m_pimpl(nullptr)
-    {
-        std::swap(this->m_pimpl, other.m_pimpl);
-    }
-
-    ModelStaticHandle::ModelStaticHandle(const ModelStaticHandle& other)
-        : m_pimpl(other.m_pimpl)
-    {
-        ++this->m_pimpl->m_refCount;
-    }
-
-    ModelStaticHandle& ModelStaticHandle::operator=(const ModelStaticHandle& other) {
-        this->m_pimpl = other.m_pimpl;
-        ++this->m_pimpl->m_refCount;
-        return *this;
-    }
-
-    ModelStaticHandle& ModelStaticHandle::operator=(ModelStaticHandle&& other) noexcept {
-        std::swap(this->m_pimpl, other.m_pimpl);
-        return *this;
-    }
-
-
-    bool ModelStaticHandle::operator==(ModelStaticHandle& other) const {
-        dalAssert(nullptr != this->m_pimpl);
-        dalAssert(nullptr != other.m_pimpl);
-
-        if ( nullptr == this->m_pimpl->m_model ) {
-            return false;
-        }
-        else if ( nullptr == other.m_pimpl->m_model ) {
-            return false;
-        }
-        else if ( this->m_pimpl->m_model != other.m_pimpl->m_model ) {
-            return false;
-        }
-        else {
-            return true;
-        }
-    }
-
-    void ModelStaticHandle::render(const UniInterfLightedMesh& unilocLighted, const SamplerInterf& samplerInterf, const glm::mat4& modelMat) const {
-        dalAssert(nullptr != this->m_pimpl);
-        if ( nullptr != this->m_pimpl->m_model ) {
-            this->m_pimpl->m_model->render(unilocLighted, samplerInterf, modelMat);
-        }
-        else {
-            dalAbort("Not implemented.");
-        }
-    }
-
-    void ModelStaticHandle::renderDepthMap(const UniInterfGeometry& unilocGeometry, const glm::mat4& modelMat) const {
-        dalAssert(nullptr != this->m_pimpl);
-        if ( nullptr != this->m_pimpl->m_model ) {
-            this->m_pimpl->m_model->renderDepthMap(unilocGeometry, modelMat);
-        }
-        else {
-            dalAbort("Not implemented.");
-        }
-    }
-
-    unsigned int ModelStaticHandle::getRefCount(void) const {
-        return this->m_pimpl->m_refCount;
-    }
-
-    const ResourceID& ModelStaticHandle::getResID(void) const {
-        dalAssert(nullptr != this->m_pimpl);
-        if ( nullptr != this->m_pimpl->m_model ) {
-            return this->m_pimpl->m_model->m_resID;
-        }
-        else {
-            dalAbort("Not implemented.");
-        }
-    }
-
-    const ICollider* ModelStaticHandle::getBounding(void) const {
-        dalAssert(nullptr != this->m_pimpl);
-        return this->m_pimpl->m_model->m_bounding.get();
-    }
-
-    const ICollider* ModelStaticHandle::getDetailed(void) const {
-        dalAssert(nullptr != this->m_pimpl);
-        if ( this->m_pimpl->m_model->m_detailed ) {
-            return this->m_pimpl->m_model->m_detailed.get();
-        }
-        else {
-            return nullptr;
-        }
-    }
-
-}
-*/
 
 
 namespace dal {
@@ -381,8 +232,8 @@ namespace dal {
         this->getPimpl()->m_model->render(unilocLighted, samplerInterf, modelMat);
     }
 
-    void ModelStaticHandle::renderDepthMap(const UniInterfGeometry& unilocGeometry, const glm::mat4& modelMat) const {
-        this->getPimpl()->m_model->renderDepthMap(unilocGeometry, modelMat);
+    void ModelStaticHandle::renderDepth(const UniInterfGeometry& unilocGeometry, const glm::mat4& modelMat) const {
+        this->getPimpl()->m_model->renderDepth(unilocGeometry, modelMat);
     }
 
 }
@@ -408,10 +259,10 @@ namespace dal {
         this->getPimpl()->m_model->render(unilocLighted, samplerInterf, unilocAnime, modelMat, transformArr);
     }
 
-    void ModelAnimatedHandle::renderDepthMap(const UniInterfGeometry& unilocGeometry, const UniInterfAnime& unilocAnime, const glm::mat4 modelMat,
+    void ModelAnimatedHandle::renderDepth(const UniInterfGeometry& unilocGeometry, const UniInterfAnime& unilocAnime, const glm::mat4 modelMat,
         const JointTransformArray& transformArr) const
     {
-        this->getPimpl()->m_model->renderDepthMap(unilocGeometry, unilocAnime, modelMat, transformArr);
+        this->getPimpl()->m_model->renderDepth(unilocGeometry, unilocAnime, modelMat, transformArr);
     }
 
 }

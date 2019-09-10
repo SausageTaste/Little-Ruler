@@ -56,7 +56,7 @@ namespace dal {
         bool isReady(void) const;
 
         void render(const UniInterfLightedMesh& unilocLighted, const SamplerInterf& samplerInterf, const glm::mat4& modelMat) const;
-        void renderDepthMap(const UniInterfGeometry& unilocGeometry, const glm::mat4& modelMat) const;
+        void renderDepth(const UniInterfGeometry& unilocGeometry, const glm::mat4& modelMat) const;
 
     };
 
@@ -87,7 +87,7 @@ namespace dal {
 
         void render(const UniInterfLightedMesh& unilocLighted, const SamplerInterf& samplerInterf, const UniInterfAnime& unilocAnime,
             const glm::mat4 modelMat, const JointTransformArray& transformArr);
-        void renderDepthMap(const UniInterfGeometry& unilocGeometry, const UniInterfAnime& unilocAnime, const glm::mat4 modelMat,
+        void renderDepth(const UniInterfGeometry& unilocGeometry, const UniInterfAnime& unilocAnime, const glm::mat4 modelMat,
             const JointTransformArray& transformArr) const;
 
         void invalidate(void);
@@ -261,7 +261,7 @@ namespace dal {
 
     public:
         void render(const UniInterfLightedMesh& unilocLighted, const SamplerInterf& samplerInterf, const glm::mat4& modelMat) const;
-        void renderDepthMap(const UniInterfGeometry& unilocGeometry, const glm::mat4& modelMat) const;
+        void renderDepth(const UniInterfGeometry& unilocGeometry, const glm::mat4& modelMat) const;
 
     };
 
@@ -274,7 +274,7 @@ namespace dal {
 
         void render(const UniInterfLightedMesh& unilocLighted, const SamplerInterf& samplerInterf, const UniInterfAnime& unilocAnime,
             const glm::mat4 modelMat, const JointTransformArray& transformArr);
-        void renderDepthMap(const UniInterfGeometry& unilocGeometry, const UniInterfAnime& unilocAnime, const glm::mat4 modelMat,
+        void renderDepth(const UniInterfGeometry& unilocGeometry, const UniInterfAnime& unilocAnime, const glm::mat4 modelMat,
             const JointTransformArray& transformArr) const;
 
     };

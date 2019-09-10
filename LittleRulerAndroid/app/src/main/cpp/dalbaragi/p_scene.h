@@ -74,7 +74,6 @@ namespace dal {
 
     private:
         ResourceMaster& m_resMas;
-        //std::list<MapChunk> m_mapChunks;
         std::list<MapChunk2> m_mapChunks2;
 
     public:
@@ -90,10 +89,11 @@ namespace dal {
         void update(const float deltaTime);
 
         void renderGeneral(const UnilocGeneral& uniloc);
-        void renderDepthMp(const UnilocDepthmp& uniloc);
-        void renderDepthAnimated(const UnilocDepthAnime& uniloc);
-        void renderWaterry(const UnilocWaterry& uniloc);
         void renderAnimate(const UnilocAnimate& uniloc);
+        void renderDepthGeneral(const UnilocDepthmp& uniloc);
+        void renderDepthAnimated(const UnilocDepthAnime& uniloc);
+        void renderWater(const UnilocWaterry& uniloc);
+
         void renderOnWaterGeneral(const UnilocGeneral& uniloc, const ICamera& cam, entt::registry& reg);
         void renderOnWaterAnimated(const UnilocAnimate& uniloc, const ICamera& cam, entt::registry& reg);
 

@@ -128,7 +128,8 @@ namespace dal {
         WaterRenderer(const loadedinfo::WaterPlane& info, const unsigned int winWidth, const unsigned int winHeight);
         WaterRenderer(const dlb::WaterPlane& info, const unsigned int winWidth, const unsigned int winHeight);
 
-        void renderWaterry(const UnilocWaterry& uniloc);
+        void render(const UnilocWaterry& uniloc);
+
         void startRenderOnReflec(const UnilocGeneral& uniloc, const ICamera& cam) const;
         void startRenderOnRefrac(const UnilocGeneral& uniloc, const ICamera& cam) const;
 

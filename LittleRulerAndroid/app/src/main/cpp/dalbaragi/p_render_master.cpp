@@ -276,7 +276,7 @@ namespace dal {
             {
                 auto& uniloc = this->m_shader.useDepthMp();
                 this->m_dlight1.startRenderShadowmap(uniloc.m_geometry);
-                this->m_scene.renderDepthMp(uniloc);
+                this->m_scene.renderDepthGeneral(uniloc);
             }
 
             {
@@ -388,7 +388,7 @@ namespace dal {
                 uniloc.m_lightedMesh.dlightCount(0);
             }
 
-            this->m_scene.renderWaterry(uniloc);
+            this->m_scene.renderWater(uniloc);
         }
 
         // Render framebuffer to quad 

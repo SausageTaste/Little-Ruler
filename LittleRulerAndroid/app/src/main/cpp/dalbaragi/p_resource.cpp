@@ -207,10 +207,10 @@ namespace dal {
         }
     }
 
-    void MapChunk2::renderDepthMp(const UnilocDepthmp& uniloc) {
+    void MapChunk2::renderDepthGeneral(const UnilocDepthmp& uniloc) {
         for ( const auto& [mdl, actors] : this->m_staticActors ) {
             for ( const auto& actor : actors ) {
-                mdl.renderDepthMap(uniloc.m_geometry, actor.m_transform.getMat());
+                mdl.renderDepth(uniloc.m_geometry, actor.m_transform.getMat());
             }
         }
     }
@@ -219,7 +219,7 @@ namespace dal {
         this->sendLightUniforms(uniloc.m_lightedMesh, 0);
 
         for ( auto& water : this->m_waters ) {
-            water.renderWaterry(uniloc);
+            water.render(uniloc);
         }
     }
 

@@ -48,7 +48,7 @@ namespace dal {
         std::optional<RayCastingResult> castRayToClosest(const Ray& ray) const;
 
         void renderGeneral(const UnilocGeneral& uniloc);
-        void renderDepthMp(const UnilocDepthmp& uniloc);
+        void renderDepthGeneral(const UnilocDepthmp& uniloc);
         void renderWater(const UnilocWaterry& uniloc);
         void renderOnWaterGeneral(const UnilocGeneral& uniloc, const ICamera& cam, entt::registry& reg);
         void renderOnWaterAnimated(const UnilocAnimate& uniloc, const ICamera& cam, entt::registry& reg);
