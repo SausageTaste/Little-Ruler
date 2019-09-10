@@ -88,14 +88,11 @@ namespace dal {
     public:
         WaterFramebuffer(const unsigned int winWidth, const unsigned int winHeight);
 
+        void sendUniform(const UnilocWaterry& uniloc) const;
         void bindReflectionFrameBuffer(void) const;
         void bindRefractionFrameBuffer(void) const;
 
-        Texture* getReflectionTexture(void);
-        Texture* getRefractionTexture(void);
-        Texture* getRefractionDepthTexture(void);
-
-        void resizeFbuffer(const unsigned int winWidth, const unsigned int winHeight);
+        void onWinResize(const unsigned int winWidth, const unsigned int winHeight);
 
     private:
         void resizeOnlyTextures(const unsigned int reflecWidth, const unsigned int reflecHeight, const unsigned int refracWidth, const unsigned int refracHeight);
@@ -107,8 +104,9 @@ namespace dal {
     class WaterRenderer {
 
     private:
-        MeshStatic m_mesh;
         Material m_material;
+        MeshStatic m_mesh;
+        WaterFramebuffer m_fbuffer;
         Timer m_localTimer;
         glm::vec3 m_depthColor;
 
@@ -122,16 +120,16 @@ namespace dal {
         dal::Texture *m_dudvMap, *m_normalMap;
 
     public:
-        WaterFramebuffer m_fbuffer;
-
-    public:
         WaterRenderer(const loadedinfo::WaterPlane& info, const unsigned int winWidth, const unsigned int winHeight);
         WaterRenderer(const dlb::WaterPlane& info, const unsigned int winWidth, const unsigned int winHeight);
 
         void render(const UnilocWaterry& uniloc);
-
         void startRenderOnReflec(const UnilocGeneral& uniloc, const ICamera& cam) const;
         void startRenderOnRefrac(const UnilocGeneral& uniloc, const ICamera& cam) const;
+
+        void onWinResize(const unsigned int winWidth, const unsigned int winHeight) {
+            this->m_fbuffer.onWinResize(winWidth, winHeight);
+        }
 
     private:
         void initMesh(const glm::vec3& pos, const glm::vec2& size);

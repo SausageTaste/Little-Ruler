@@ -36,6 +36,8 @@ namespace dal {
         std::vector<PointLight> m_plights;
 
     public:
+        void onWinResize(const unsigned int winWidth, const unsigned int winHeight);
+
         void addStaticActorModel(ModelStaticHandle&& model, std::vector<ActorInfo>&& actors) {
             this->m_staticActors.emplace_back(std::move(model), std::move(actors));
         }

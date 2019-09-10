@@ -519,7 +519,9 @@ namespace dal {
     }
 
     void SceneGraph::onResize(const unsigned int width, const unsigned int height) {
-
+        for ( auto& map : m_mapChunks2 ) {
+            map.onWinResize(width, height);
+        }
     }
 
 }

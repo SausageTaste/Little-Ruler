@@ -120,6 +120,13 @@ namespace {
 // Map chunk 2
 namespace dal {
 
+    void MapChunk2::onWinResize(const unsigned int winWidth, const unsigned int winHeight) {
+        for ( auto& water : this->m_waters ) {
+            water.onWinResize(winWidth, winHeight);
+        }
+    }
+
+
     void MapChunk2::addWaterPlane(const dlb::WaterPlane& waterInfo) {
         const auto width = GlobalStateGod::getinst().getWinWidth();
         const auto height = GlobalStateGod::getinst().getWinHeight();

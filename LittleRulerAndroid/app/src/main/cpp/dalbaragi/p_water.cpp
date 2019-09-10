@@ -178,8 +178,10 @@ namespace dal {
 namespace dal {
 
     WaterFramebuffer::WaterFramebuffer(const unsigned int winWidth, const unsigned int winHeight)
-        : m_winWidth(static_cast<float>(winWidth)), m_winHeight(static_cast<float>(winHeight)),
-        m_reflecScale(0.8f), m_refracScale(0.8f)
+        : m_winWidth(static_cast<float>(winWidth))
+        , m_winHeight(static_cast<float>(winHeight))
+        , m_reflecScale(0.5f)
+        , m_refracScale(0.5f)
     {
         const auto REFLECTION_WIDTH = static_cast<GLsizei>(this->m_winWidth  * this->m_reflecScale);
         const auto REFLECTION_HEIGHT = static_cast<GLsizei>(this->m_winHeight * this->m_reflecScale);
@@ -187,6 +189,13 @@ namespace dal {
         const auto REFRACTION_HEIGHT = static_cast<GLsizei>(this->m_winHeight * this->m_refracScale);
 
         this->recreateFbuffer(REFLECTION_WIDTH, REFLECTION_HEIGHT, REFRACTION_WIDTH, REFRACTION_HEIGHT);
+    }
+
+
+    void WaterFramebuffer::sendUniform(const UnilocWaterry& uniloc) const {
+        this->m_reflectionTexture.sendUniform(uniloc.getReflectionTex());
+        this->m_refractionTexture.sendUniform(uniloc.getRefractionTex());
+        this->m_refractionDepthTexture.sendUniform(uniloc.getDepthMap());
     }
 
     void WaterFramebuffer::bindReflectionFrameBuffer(void) const {  //call before rendering to this FBO
@@ -204,19 +213,8 @@ namespace dal {
         );
     }
 
-    Texture* WaterFramebuffer::getReflectionTexture(void) {  //get the resulting texture
-        return &this->m_reflectionTexture;
-    }
 
-    Texture* WaterFramebuffer::getRefractionTexture(void) {  //get the resulting texture
-        return &this->m_refractionTexture;
-    }
-
-    Texture* WaterFramebuffer::getRefractionDepthTexture(void) {  //get the resulting depth texture
-        return &this->m_refractionDepthTexture;
-    }
-
-    void WaterFramebuffer::resizeFbuffer(const unsigned int winWidth, const unsigned int winHeight) {
+    void WaterFramebuffer::onWinResize(const unsigned int winWidth, const unsigned int winHeight) {
         this->m_winWidth = static_cast<float>(winWidth);
         this->m_winHeight = static_cast<float>(winHeight);
 
@@ -337,9 +335,7 @@ namespace dal {
 
         this->m_material.sendUniform(uniloc.m_lightedMesh);
 
-        this->m_fbuffer.getReflectionTexture()->sendUniform(uniloc.getReflectionTex());
-        this->m_fbuffer.getRefractionTexture()->sendUniform(uniloc.getRefractionTex());
-        this->m_fbuffer.getRefractionDepthTexture()->sendUniform(uniloc.getDepthMap());
+        this->m_fbuffer.sendUniform(uniloc);
         this->m_dudvMap->sendUniform(uniloc.getDUDVMap());
         this->m_normalMap->sendUniform(uniloc.getNormalMap());
 
