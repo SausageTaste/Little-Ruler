@@ -65,8 +65,25 @@ namespace dal {
         }
 
     protected:
-        GLuint getBuf(unsigned int index) const {
-            return this->m_buffers[index];
+        template <unsigned int _Index>
+        GLuint getBuf(void) const {
+            static_assert(_Index < _NumBuffs);
+            return this->m_buffers[_Index];
+        }
+
+        template <unsigned int _Index, decltype(GL_FLOAT) _GLType>
+        void fillBufferData(const void* const arr, const size_t arraySize, const size_t tupleSize) {
+            static_assert(GL_FLOAT == _GLType || GL_INT == _GLType);
+
+            glBindBuffer(GL_ARRAY_BUFFER, this->getBuf<_Index>());
+            glBufferData(GL_ARRAY_BUFFER, arraySize, arr, GL_STATIC_DRAW);
+
+            glVertexAttribPointer(_Index, tupleSize, _GLType, GL_FALSE, 0, nullptr);
+            glEnableVertexAttribArray(_Index);
+        }
+
+        void setNumVert(unsigned int v) {
+            this->m_numVertices = v;
         }
 
         void createBuffers(void) {
@@ -115,83 +132,19 @@ namespace dal {
     };
 
 
-    class MeshStatic {
-        //////// Variables ////////
-
-    private:
-        GLuint mVao = 0;
-
-        GLuint mVertexArrayBuffer = 0;
-        GLuint mTexCoordArrayBuffer = 0;
-        GLuint mNormalArrayBuffe = 0;
-
-        unsigned int mVertexSize = 0;
-
-        //////// Functions ////////
+    class MeshStatic : public IMesh<3> {
 
     public:
-        MeshStatic(const MeshStatic&) = delete;
-        MeshStatic& operator=(const MeshStatic&) = delete;
-
-    public:
-        MeshStatic(void) = default;
-        MeshStatic(MeshStatic&& other) noexcept;
-        MeshStatic& operator=(MeshStatic&& other) noexcept;
-        ~MeshStatic(void);
-
-        void draw(void) const;
-
-        int buildData(
-            const float* const vertices, const int vertSize,
-            const float* const texcors, const int texcorSize,
-            const float* const normals, const int norSize
-        );
-        void invalidate(void);
-        bool isReady(void) const;
-
-    private:
-        void createBuffers(void);
-        void bindVAO(void) const;
-        static void unbindVAO(void);
-
-        void setAllToZero(void);
+        int buildData(const float* const vertices, const float* const texcoords, const float* const normals, const int numVertices);
 
     };
 
 
-    class MeshAnimated {
-
-    private:
-        GLuint m_vao = 0;
-        GLuint m_buffers[5] = { 0 };
-        // vertices, texcoords, normals, bone ids, weights
-
-        unsigned int m_numVertices = 0;
+    class MeshAnimated : public IMesh<5> {
 
     public:
-        MeshAnimated(const MeshAnimated&) = delete;
-        MeshAnimated& operator=(const MeshAnimated&) = delete;
-
-    public:
-        MeshAnimated(void) = default;
-        MeshAnimated(MeshAnimated&& other) noexcept;
-        MeshAnimated& operator=(MeshAnimated&& other) noexcept;
-        ~MeshAnimated(void);
-
-    public:
-        void draw(void) const;
-
         void buildData(const float* const vertices, const float* const texcors, const float* const normals,
             const int32_t* const boneids, const float* const weights, const size_t numVertices);
-        void invalidate(void);
-        bool isReady(void) const;
-
-    private:
-        void createBuffers(void);
-        void bindVAO(void) const;
-        static void unbindVAO(void);
-
-        void setAllToZero(void);
 
     };
 

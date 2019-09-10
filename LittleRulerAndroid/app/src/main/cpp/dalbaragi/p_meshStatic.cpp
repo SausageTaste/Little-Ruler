@@ -12,228 +12,61 @@ using namespace fmt::literals;
 
 namespace dal {
 
-    MeshStatic::MeshStatic(MeshStatic&& other) noexcept
-        : mVao(other.mVao)
-        , mVertexArrayBuffer(other.mVertexArrayBuffer)
-        , mTexCoordArrayBuffer(other.mTexCoordArrayBuffer)
-        , mNormalArrayBuffe(other.mNormalArrayBuffe)
-        , mVertexSize(other.mVertexSize)
-    {
-        other.setAllToZero();
-    }
-
-    MeshStatic& MeshStatic::operator=(MeshStatic&& other) noexcept {
-        this->invalidate();
-
-        this->mVao = other.mVao;
-        this->mVertexArrayBuffer = other.mVertexArrayBuffer;
-        this->mTexCoordArrayBuffer = other.mTexCoordArrayBuffer;
-        this->mNormalArrayBuffe = other.mNormalArrayBuffe;
-        this->mVertexSize = other.mVertexSize;
-
-        other.setAllToZero();
-
-        return *this;
-    }
-
-    MeshStatic::~MeshStatic(void) {
-        this->invalidate();
-    }
-
-
-    void MeshStatic::draw(void) const {
-        dalAssert(this->isReady());
-
-        this->bindVAO();
-        glDrawArrays(GL_TRIANGLES, 0, this->mVertexSize);
-        this->unbindVAO();
-    }
-
-    int MeshStatic::buildData(
-        const float* const vertices, const int vertSize,
-        const float* const texcors, const int texcorSize,
-        const float* const normals, const int norSize
-    ) {
+    int MeshStatic::buildData(const float* const vertices, const float* const texcoords, const float* const normals, const int numVertices) {
         /* Check if data is wrong. */
         {
             if ( this->isReady() ) {
                 dalError("MeshStatic's data already built.");
                 return -1;
             }
-
-            const auto numOfVertex = vertSize / 3;
-
-            if ( numOfVertex != (texcorSize / 2) ) {
-                dalError("\'texCoords\' have different number of vertices -> vertSize : {}, texcorSize : {}"_format(vertSize, texcorSize));
-                return -1;
-            }
-
-            if ( numOfVertex != (norSize / 3) ) {
-                dalError("\'normals\' have different number of vertices -> vertSize : {}, norSize : {}"_format(vertSize, norSize));
-                return -1;
-            }
         }
 
         this->createBuffers();
         this->bindVAO();
-        size_t  vramUsage = 0;
+        size_t vramUsage = 0;
 
         /* Vertices */
         {
-            auto size = vertSize * sizeof(float);
+            const auto arraySize = numVertices * sizeof(float) * 3;
+            vramUsage += arraySize;
 
-            vramUsage += size;
-
-            glBindBuffer(GL_ARRAY_BUFFER, this->mVertexArrayBuffer);
-            glBufferData(GL_ARRAY_BUFFER, size, vertices, GL_STATIC_DRAW);
+            glBindBuffer(GL_ARRAY_BUFFER, this->getBuf<0>());
+            glBufferData(GL_ARRAY_BUFFER, arraySize, vertices, GL_STATIC_DRAW);
 
             glEnableVertexAttribArray(0);
-            glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+            glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
         }
 
         /* TexCoords */
         {
-            auto size = texcorSize * sizeof(float);
-            vramUsage += size;
+            const auto arraySize = numVertices * sizeof(float) * 2;
+            vramUsage += arraySize;
 
-            glBindBuffer(GL_ARRAY_BUFFER, this->mTexCoordArrayBuffer);
-            glBufferData(GL_ARRAY_BUFFER, size, texcors, GL_STATIC_DRAW);
+            glBindBuffer(GL_ARRAY_BUFFER, this->getBuf<1>());
+            glBufferData(GL_ARRAY_BUFFER, arraySize, texcoords, GL_STATIC_DRAW);
 
             glEnableVertexAttribArray(1);
-            glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, NULL);
+            glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, nullptr);
         }
 
         /* Normals */
         {
-            auto size = norSize * sizeof(float);
-            vramUsage += size;
+            const auto arraySize = numVertices * sizeof(float) * 3;
+            vramUsage += arraySize;
 
-            glBindBuffer(GL_ARRAY_BUFFER, this->mNormalArrayBuffe);
-            glBufferData(GL_ARRAY_BUFFER, size, normals, GL_STATIC_DRAW);
+            glBindBuffer(GL_ARRAY_BUFFER, this->getBuf<2>());
+            glBufferData(GL_ARRAY_BUFFER, arraySize, normals, GL_STATIC_DRAW);
 
-            glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+            glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
             glEnableVertexAttribArray(2);
         }
 
         /* Finish */
         {
-            this->unbindVAO();
-            this->mVertexSize = vertSize / 3;
+            this->setNumVert(numVertices);
         }
 
         return 0;
-    }
-
-    void MeshStatic::invalidate(void) {
-        if ( !this->isReady() ) {
-            return;
-        }
-
-        GLuint bufferIds[3] = {
-            this->mVertexArrayBuffer,
-            this->mTexCoordArrayBuffer,
-            this->mNormalArrayBuffe,
-        };
-        glDeleteBuffers(3, bufferIds);
-
-        this->mVertexArrayBuffer = 0;
-        this->mTexCoordArrayBuffer = 0;
-        this->mNormalArrayBuffe = 0;
-
-        glDeleteVertexArrays(1, &this->mVao);
-        this->mVao = 0;
-
-        const auto vertSize = this->mVertexSize;
-        this->mVertexSize = 0;
-
-        dalInfo("destroyed MeshStatic that has {} vertices."_format(vertSize));
-    }
-
-    bool MeshStatic::isReady(void) const {
-        return mVertexSize != 0;
-    }
-
-    //// Private ////
-
-    void MeshStatic::createBuffers(void) {
-        glGenVertexArrays(1, &this->mVao);
-        if ( this->mVao <= 0 ) {
-            dalAbort("Failed to generate vertex array.")
-        }
-
-        GLuint bufferIds[3];
-        glGenBuffers(3, bufferIds);
-
-        for ( int i = 0; i < 3; i++ ) {
-            if ( bufferIds[i] == 0 ) {
-                dalAbort("Failed to generate beffer.");
-            }
-        }
-
-        this->mVertexArrayBuffer = bufferIds[0];
-        this->mTexCoordArrayBuffer = bufferIds[1];
-        this->mNormalArrayBuffe = bufferIds[2];
-    }
-
-    void MeshStatic::bindVAO(void) const {
-        glBindVertexArray(this->mVao);
-    }
-
-    void MeshStatic::unbindVAO(void) {
-        glBindVertexArray(0);
-    }
-
-    void MeshStatic::setAllToZero(void) {
-        this->mVao = 0;
-        this->mVertexArrayBuffer = 0;
-        this->mTexCoordArrayBuffer = 0;
-        this->mNormalArrayBuffe = 0;
-        this->mVertexSize = 0;
-    }
-
-}
-
-
-namespace dal {
-
-    MeshAnimated::MeshAnimated(MeshAnimated&& other) noexcept
-        : m_vao(other.m_vao)
-        , m_numVertices(other.m_numVertices)
-    {
-        for ( unsigned int i = 0; i < 5; ++i ) {
-            this->m_buffers[i] = other.m_buffers[i];
-        }
-
-        other.setAllToZero();
-    }
-
-    MeshAnimated& MeshAnimated::operator=(MeshAnimated&& other) noexcept {
-        this->invalidate();
-
-        this->m_vao = other.m_vao;
-        this->m_numVertices = other.m_numVertices;
-        for ( unsigned int i = 0; i < 5; ++i ) {
-            this->m_buffers[i] = other.m_buffers[i];
-        }
-
-        other.setAllToZero();
-        return *this;
-    }
-
-    MeshAnimated::~MeshAnimated(void) {
-        this->invalidate();
-    }
-
-
-    void MeshAnimated::draw(void) const {
-#ifdef _DEBUG
-        if ( !this->isReady() )
-            dalError("MeshStatic::renderDepthmap called without being built.");
-#endif
-
-        this->bindVAO();
-        glDrawArrays(GL_TRIANGLES, 0, this->m_numVertices);
-        this->unbindVAO();
     }
 
     void MeshAnimated::buildData(const float* const vertices, const float* const texcors, const float* const normals,
@@ -249,11 +82,11 @@ namespace dal {
 
         // Vertices
         {
-            const auto size = numVertices * sizeof(float) * 3;
-            vramUsage += size;
+            const auto arraySize = numVertices * sizeof(float) * 3;
+            vramUsage += arraySize;
 
-            glBindBuffer(GL_ARRAY_BUFFER, this->m_buffers[0]);
-            glBufferData(GL_ARRAY_BUFFER, size, vertices, GL_STATIC_DRAW);
+            glBindBuffer(GL_ARRAY_BUFFER, this->getBuf<0>());
+            glBufferData(GL_ARRAY_BUFFER, arraySize, vertices, GL_STATIC_DRAW);
 
             glEnableVertexAttribArray(0);
             glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
@@ -261,11 +94,11 @@ namespace dal {
 
         // TexCoords
         {
-            const auto size = numVertices * sizeof(float) * 2;
-            vramUsage += size;
+            const auto arraySize = numVertices * sizeof(float) * 2;
+            vramUsage += arraySize;
 
-            glBindBuffer(GL_ARRAY_BUFFER, this->m_buffers[1]);
-            glBufferData(GL_ARRAY_BUFFER, size, texcors, GL_STATIC_DRAW);
+            glBindBuffer(GL_ARRAY_BUFFER, this->getBuf<1>());
+            glBufferData(GL_ARRAY_BUFFER, arraySize, texcors, GL_STATIC_DRAW);
 
             glEnableVertexAttribArray(1);
             glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, nullptr);
@@ -273,11 +106,11 @@ namespace dal {
 
         // Normals
         {
-            const auto size = numVertices * sizeof(float) * 3;
-            vramUsage += size;
+            const auto arraySize = numVertices * sizeof(float) * 3;
+            vramUsage += arraySize;
 
-            glBindBuffer(GL_ARRAY_BUFFER, this->m_buffers[2]);
-            glBufferData(GL_ARRAY_BUFFER, size, normals, GL_STATIC_DRAW);
+            glBindBuffer(GL_ARRAY_BUFFER, this->getBuf<2>());
+            glBufferData(GL_ARRAY_BUFFER, arraySize, normals, GL_STATIC_DRAW);
 
             glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
             glEnableVertexAttribArray(2);
@@ -285,11 +118,11 @@ namespace dal {
 
         // bone ids
         {
-            const auto size = numVertices * sizeof(float) * 3;
-            vramUsage += size;
+            const auto arraySize = numVertices * sizeof(float) * 3;
+            vramUsage += arraySize;
 
-            glBindBuffer(GL_ARRAY_BUFFER, this->m_buffers[3]);
-            glBufferData(GL_ARRAY_BUFFER, size, boneids, GL_STATIC_DRAW);
+            glBindBuffer(GL_ARRAY_BUFFER, this->getBuf<3>());
+            glBufferData(GL_ARRAY_BUFFER, arraySize, boneids, GL_STATIC_DRAW);
 
             glVertexAttribIPointer(3, 3, GL_INT, 0, nullptr);
             glEnableVertexAttribArray(3);
@@ -297,11 +130,11 @@ namespace dal {
 
         // weights
         {
-            const auto size = numVertices * sizeof(float) * 3;
-            vramUsage += size;
+            const auto arraySize = numVertices * sizeof(float) * 3;
+            vramUsage += arraySize;
 
-            glBindBuffer(GL_ARRAY_BUFFER, this->m_buffers[4]);
-            glBufferData(GL_ARRAY_BUFFER, size, weights, GL_STATIC_DRAW);
+            glBindBuffer(GL_ARRAY_BUFFER, this->getBuf<4>());
+            glBufferData(GL_ARRAY_BUFFER, arraySize, weights, GL_STATIC_DRAW);
 
             glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
             glEnableVertexAttribArray(4);
@@ -310,64 +143,7 @@ namespace dal {
         /* Finish */
         {
             this->unbindVAO();
-            this->m_numVertices = numVertices;
-        }
-    }
-
-    void MeshAnimated::invalidate(void) {
-        if ( !this->isReady() ) {
-            return;
-        }
-
-        glDeleteBuffers(5, this->m_buffers);
-
-        for ( int i = 0; i < 5; i++ ) {
-            this->m_buffers[i] = 0;
-        }
-
-        glDeleteVertexArrays(1, &this->m_vao);
-        this->m_vao = 0;
-
-        const auto vertSize = this->m_numVertices;
-        this->m_numVertices = 0;
-
-        dalInfo("destroyed MeshAnimated that has {} vertices."_format(vertSize));
-    }
-
-    bool MeshAnimated::isReady(void) const {
-        return this->m_numVertices != 0;
-    }
-
-    //// Private ////
-
-    void MeshAnimated::createBuffers(void) {
-        glGenVertexArrays(1, &this->m_vao);
-        if ( this->m_vao <= 0 ) {
-            dalAbort("Failed to generate vertex array.")
-        }
-
-        glGenBuffers(5, this->m_buffers);
-
-        for ( int i = 0; i < 5; i++ ) {
-            if ( 0 == this->m_buffers[i] ) {
-                dalAbort("Failed to generate beffer.");
-            }
-        }
-    }
-
-    void MeshAnimated::bindVAO(void) const {
-        glBindVertexArray(this->m_vao);
-    }
-
-    void MeshAnimated::unbindVAO(void) {
-        glBindVertexArray(0);
-    }
-
-    void MeshAnimated::setAllToZero(void) {
-        this->m_vao = 0;
-        this->m_numVertices = 0;
-        for ( unsigned int i = 0; i < 5; ++i ) {
-            this->m_buffers[i] = 0;
+            this->setNumVert(numVertices);
         }
     }
 
@@ -444,7 +220,7 @@ namespace dal {
 
         glBindTexture(GL_TEXTURE_2D, m_texID);
         {
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT16, width, height, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_SHORT, nullptr);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT16, width, height, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_SHORT, nullptr);
 
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);

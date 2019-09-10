@@ -397,9 +397,10 @@ namespace dal {
         };
 
         this->m_mesh.buildData(
-            vertices.data(), vertices.size(),
-            texcoords.data(), texcoords.size(),
-            normals.data(), normals.size()
+            vertices.data(),
+            texcoords.data(),
+            normals.data(),
+            vertices.size() / 3
         );
     }
 

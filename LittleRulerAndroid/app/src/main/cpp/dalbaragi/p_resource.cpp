@@ -463,9 +463,10 @@ namespace dal {
                     auto& unit = loaded->data_coresponding.newRenderUnit();
 
                     unit.m_mesh.buildData(
-                        unitInfo.m_mesh.m_vertices.data(), unitInfo.m_mesh.m_vertices.size(),
-                        unitInfo.m_mesh.m_texcoords.data(), unitInfo.m_mesh.m_texcoords.size(),
-                        unitInfo.m_mesh.m_normals.data(), unitInfo.m_mesh.m_normals.size()
+                        unitInfo.m_mesh.m_vertices.data(),
+                        unitInfo.m_mesh.m_texcoords.data(),
+                        unitInfo.m_mesh.m_normals.data(),
+                        unitInfo.m_mesh.m_vertices.size() / 3
                     );
                     unit.m_meshName = unitInfo.m_name;
 
@@ -610,9 +611,10 @@ namespace dal {
             auto& unit = model->newRenderUnit();
 
             unit.m_mesh.buildData(
-                unitInfo.m_mesh.m_vertices.data(), unitInfo.m_mesh.m_vertices.size(),
-                unitInfo.m_mesh.m_texcoords.data(), unitInfo.m_mesh.m_texcoords.size(),
-                unitInfo.m_mesh.m_normals.data(), unitInfo.m_mesh.m_normals.size()
+                unitInfo.m_mesh.m_vertices.data(),
+                unitInfo.m_mesh.m_texcoords.data(),
+                unitInfo.m_mesh.m_normals.data(),
+                unitInfo.m_mesh.m_vertices.size() / 3
             );
             unit.m_meshName = unitInfo.m_name;
 
@@ -674,9 +676,10 @@ namespace dal {
             for ( const auto& unitInfo : mdlEmbed.m_renderUnits ) {
                 auto& unit = model->newRenderUnit();
                 unit.m_mesh.buildData(
-                    unitInfo.m_mesh.m_vertices.data(), unitInfo.m_mesh.m_vertices.size(),
-                    unitInfo.m_mesh.m_texcoords.data(), unitInfo.m_mesh.m_texcoords.size(),
-                    unitInfo.m_mesh.m_normals.data(), unitInfo.m_mesh.m_normals.size()
+                    unitInfo.m_mesh.m_vertices.data(),
+                    unitInfo.m_mesh.m_texcoords.data(),
+                    unitInfo.m_mesh.m_normals.data(),
+                    unitInfo.m_mesh.m_vertices.size() / 3
                 );
 
                 unit.m_material.m_diffuseColor = unitInfo.m_material.m_baseColor;
