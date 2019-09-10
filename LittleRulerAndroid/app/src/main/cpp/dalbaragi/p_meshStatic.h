@@ -10,6 +10,111 @@
 
 namespace dal {
 
+    template <unsigned int _NumBuffs>
+    class IMesh {
+
+    private:
+        GLuint m_vao = 0;
+        GLuint m_buffers[_NumBuffs] = { 0 };  // vertices, texcoords, normals, bone ids, weights
+        unsigned int m_numVertices = 0;
+
+    public:
+        IMesh(const IMesh&) = delete;
+        IMesh& operator=(const IMesh&) = delete;
+
+    public:
+        IMesh(void) = default;
+        IMesh(IMesh&& other) noexcept
+            : m_vao(other.m_vao)
+            , m_numVertices(other.m_numVertices)
+        {
+            for ( unsigned int i = 0; i < _NumBuffs; ++i ) {
+                this->m_buffers[i] = other.m_buffers[i];
+            }
+
+            other.setAllToZero();
+        }
+        IMesh& operator=(IMesh&& other) noexcept {
+            this->invalidate();
+
+            this->m_vao = other.m_vao;
+            this->m_numVertices = other.m_numVertices;
+            for ( unsigned int i = 0; i < _NumBuffs; ++i ) {
+                this->m_buffers[i] = other.m_buffers[i];
+            }
+
+            other.setAllToZero();
+            return *this;
+        }
+        ~IMesh(void) {
+            this->invalidate();
+        }
+
+        void draw(void) const {
+#ifdef _DEBUG
+            if ( !this->isReady() ) {
+                throw std::runtime_error{ "MeshStatic::renderDepthmap called without being built." };
+            }
+#endif
+            this->bindVAO();
+            glDrawArrays(GL_TRIANGLES, 0, this->m_numVertices);
+            this->unbindVAO();
+        }
+        bool isReady(void) const {
+            return this->m_numVertices != 0;
+        }
+
+    protected:
+        GLuint getBuf(unsigned int index) const {
+            return this->m_buffers[index];
+        }
+
+        void createBuffers(void) {
+            glGenVertexArrays(1, &this->m_vao);
+            if ( this->m_vao <= 0 ) {
+                throw std::runtime_error{ "Failed to generate vertex array." };
+            }
+
+            glGenBuffers(_NumBuffs, this->m_buffers);
+            for ( int i = 0; i < _NumBuffs; i++ ) {
+                if ( 0 == this->m_buffers[i] ) {
+                    throw std::runtime_error{ "Failed to generate beffer." };
+                }
+            }
+        }
+        void invalidate(void) {
+            if ( !this->isReady() ) {
+                return;
+            }
+
+            glDeleteBuffers(_NumBuffs, this->m_buffers);
+            for ( int i = 0; i < _NumBuffs; i++ ) {
+                this->m_buffers[i] = 0;
+            }
+
+            glDeleteVertexArrays(1, &this->m_vao);
+            this->m_vao = 0;
+
+            this->m_numVertices = 0;
+        }
+        void setAllToZero(void) {
+            this->m_vao = 0;
+            this->m_numVertices = 0;
+            for ( unsigned int i = 0; i < _NumBuffs; ++i ) {
+                this->m_buffers[i] = 0;
+            }
+        }
+
+        void bindVAO(void) const {
+            glBindVertexArray(this->m_vao);
+        }
+        static void unbindVAO(void) {
+            glBindVertexArray(0);
+        }
+
+    };
+
+
     class MeshStatic {
         //////// Variables ////////
 
