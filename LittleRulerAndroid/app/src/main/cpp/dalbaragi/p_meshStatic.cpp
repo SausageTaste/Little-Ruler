@@ -25,40 +25,22 @@ namespace dal {
         this->bindVAO();
         size_t vramUsage = 0;
 
-        /* Vertices */
+        // Vertices
         {
             const auto arraySize = numVertices * sizeof(float) * 3;
-            vramUsage += arraySize;
-
-            glBindBuffer(GL_ARRAY_BUFFER, this->getBuf<0>());
-            glBufferData(GL_ARRAY_BUFFER, arraySize, vertices, GL_STATIC_DRAW);
-
-            glEnableVertexAttribArray(0);
-            glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
+            this->fillBufferData<0, GL_FLOAT>(vertices, arraySize, 3);
         }
 
-        /* TexCoords */
+        // Tex coords
         {
             const auto arraySize = numVertices * sizeof(float) * 2;
-            vramUsage += arraySize;
-
-            glBindBuffer(GL_ARRAY_BUFFER, this->getBuf<1>());
-            glBufferData(GL_ARRAY_BUFFER, arraySize, texcoords, GL_STATIC_DRAW);
-
-            glEnableVertexAttribArray(1);
-            glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, nullptr);
+            this->fillBufferData<1, GL_FLOAT>(texcoords, arraySize, 2);
         }
 
-        /* Normals */
+        // Normals
         {
             const auto arraySize = numVertices * sizeof(float) * 3;
-            vramUsage += arraySize;
-
-            glBindBuffer(GL_ARRAY_BUFFER, this->getBuf<2>());
-            glBufferData(GL_ARRAY_BUFFER, arraySize, normals, GL_STATIC_DRAW);
-
-            glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
-            glEnableVertexAttribArray(2);
+            this->fillBufferData<2, GL_FLOAT>(normals, arraySize, 3);
         }
 
         /* Finish */
@@ -69,7 +51,7 @@ namespace dal {
         return 0;
     }
 
-    void MeshAnimated::buildData(const float* const vertices, const float* const texcors, const float* const normals,
+    void MeshAnimated::buildData(const float* const vertices, const float* const texcoords, const float* const normals,
         const int32_t* const boneids, const float* const weights, const size_t numVertices)
     {
         if ( this->isReady() ) {
@@ -78,66 +60,35 @@ namespace dal {
 
         this->createBuffers();
         this->bindVAO();
-        size_t vramUsage = 0;
 
         // Vertices
         {
             const auto arraySize = numVertices * sizeof(float) * 3;
-            vramUsage += arraySize;
-
-            glBindBuffer(GL_ARRAY_BUFFER, this->getBuf<0>());
-            glBufferData(GL_ARRAY_BUFFER, arraySize, vertices, GL_STATIC_DRAW);
-
-            glEnableVertexAttribArray(0);
-            glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
+            this->fillBufferData<0, GL_FLOAT>(vertices, arraySize, 3);
         }
 
-        // TexCoords
+        // Tex coords
         {
             const auto arraySize = numVertices * sizeof(float) * 2;
-            vramUsage += arraySize;
-
-            glBindBuffer(GL_ARRAY_BUFFER, this->getBuf<1>());
-            glBufferData(GL_ARRAY_BUFFER, arraySize, texcors, GL_STATIC_DRAW);
-
-            glEnableVertexAttribArray(1);
-            glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, nullptr);
+            this->fillBufferData<1, GL_FLOAT>(texcoords, arraySize, 2);
         }
 
         // Normals
         {
             const auto arraySize = numVertices * sizeof(float) * 3;
-            vramUsage += arraySize;
-
-            glBindBuffer(GL_ARRAY_BUFFER, this->getBuf<2>());
-            glBufferData(GL_ARRAY_BUFFER, arraySize, normals, GL_STATIC_DRAW);
-
-            glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
-            glEnableVertexAttribArray(2);
+            this->fillBufferData<2, GL_FLOAT>(normals, arraySize, 3);
         }
 
         // bone ids
         {
-            const auto arraySize = numVertices * sizeof(float) * 3;
-            vramUsage += arraySize;
-
-            glBindBuffer(GL_ARRAY_BUFFER, this->getBuf<3>());
-            glBufferData(GL_ARRAY_BUFFER, arraySize, boneids, GL_STATIC_DRAW);
-
-            glVertexAttribIPointer(3, 3, GL_INT, 0, nullptr);
-            glEnableVertexAttribArray(3);
+            const auto arraySize = numVertices * sizeof(int32_t) * 3;
+            this->fillBufferData<3, GL_INT>(boneids, arraySize, 3);
         }
 
         // weights
         {
             const auto arraySize = numVertices * sizeof(float) * 3;
-            vramUsage += arraySize;
-
-            glBindBuffer(GL_ARRAY_BUFFER, this->getBuf<4>());
-            glBufferData(GL_ARRAY_BUFFER, arraySize, weights, GL_STATIC_DRAW);
-
-            glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
-            glEnableVertexAttribArray(4);
+            this->fillBufferData<4, GL_FLOAT>(weights, arraySize, 3);
         }
 
         /* Finish */

@@ -65,20 +65,21 @@ namespace dal {
         }
 
     protected:
-        template <unsigned int _Index>
-        GLuint getBuf(void) const {
-            static_assert(_Index < _NumBuffs);
-            return this->m_buffers[_Index];
-        }
-
         template <unsigned int _Index, decltype(GL_FLOAT) _GLType>
         void fillBufferData(const void* const arr, const size_t arraySize, const size_t tupleSize) {
+            static_assert(_Index < _NumBuffs);
             static_assert(GL_FLOAT == _GLType || GL_INT == _GLType);
 
-            glBindBuffer(GL_ARRAY_BUFFER, this->getBuf<_Index>());
+            glBindBuffer(GL_ARRAY_BUFFER, this->m_buffers[_Index]);
             glBufferData(GL_ARRAY_BUFFER, arraySize, arr, GL_STATIC_DRAW);
 
-            glVertexAttribPointer(_Index, tupleSize, _GLType, GL_FALSE, 0, nullptr);
+            if ( GL_FLOAT == _GLType ) {
+                glVertexAttribPointer(_Index, tupleSize, GL_FLOAT, GL_FALSE, 0, nullptr);
+            }
+            else if ( GL_INT == _GLType ) {
+                glVertexAttribIPointer(_Index, tupleSize, GL_INT, 0, nullptr);
+            }
+
             glEnableVertexAttribArray(_Index);
         }
 
@@ -143,7 +144,7 @@ namespace dal {
     class MeshAnimated : public IMesh<5> {
 
     public:
-        void buildData(const float* const vertices, const float* const texcors, const float* const normals,
+        void buildData(const float* const vertices, const float* const texcoords, const float* const normals,
             const int32_t* const boneids, const float* const weights, const size_t numVertices);
 
     };
