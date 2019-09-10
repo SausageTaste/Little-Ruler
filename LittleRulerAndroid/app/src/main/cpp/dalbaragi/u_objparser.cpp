@@ -197,14 +197,14 @@ namespace {
                 }
 
                 if ( aiReturn_SUCCESS == aiGetMaterialFloat(assMaterial, AI_MATKEY_SHININESS_STRENGTH, &floatBuf) ) {
-                    matInfo.m_specStrength = floatBuf;
+                    matInfo.m_specStreng = floatBuf;
                 }
 
                 aiColor4D vec4Buf;
                 if ( aiReturn_SUCCESS == aiGetMaterialColor(assMaterial, AI_MATKEY_COLOR_DIFFUSE, &vec4Buf) ) {
-                    matInfo.m_diffuseColor.r = vec4Buf.r;
-                    matInfo.m_diffuseColor.g = vec4Buf.g;
-                    matInfo.m_diffuseColor.b = vec4Buf.b;
+                    matInfo.m_baseColor.r = vec4Buf.r;
+                    matInfo.m_baseColor.g = vec4Buf.g;
+                    matInfo.m_baseColor.b = vec4Buf.b;
                 }
             }
 

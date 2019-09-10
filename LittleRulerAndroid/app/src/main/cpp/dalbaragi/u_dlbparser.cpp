@@ -564,14 +564,14 @@ namespace {
 // Data blocks
 namespace {
 
-    const uint8_t* parseMesh(dal::dlb::RenderUnit::Mesh& info, const uint8_t* begin, const uint8_t* const end) {
+    const uint8_t* parseMesh(dal::binfo::Mesh& info, const uint8_t* begin, const uint8_t* const end) {
         begin = parseFloatList(info.m_vertices, begin, end); dalAssert(begin < end);
         begin = parseFloatList(info.m_texcoords, begin, end); dalAssert(begin < end);
         begin = parseFloatList(info.m_normals, begin, end); dalAssert(begin < end);
         return begin;
     }
 
-    const uint8_t* parseMaterial(dal::dlb::RenderUnit::Material& info, const uint8_t* begin, const uint8_t* const end) {
+    const uint8_t* parseMaterial(dal::binfo::Material& info, const uint8_t* begin, const uint8_t* const end) {
         {
             float floatBuf[7];
             begin = assemble4BytesArray<float>(begin, floatBuf, 7);

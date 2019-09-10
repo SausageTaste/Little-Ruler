@@ -1,10 +1,7 @@
 #pragma once
 
-#include <map>
-#include <list>
 #include <vector>
 #include <string>
-#include <unordered_map>
 
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
@@ -21,10 +18,11 @@ namespace dal::binfo {
     };
 
     struct Material {
-        glm::vec3 m_diffuseColor;
         std::string m_diffuseMap, m_specularMap;
-        float m_shininess = 32.0f, m_specStrength = 1.0f;
-        glm::vec2 m_texSize;
+        glm::vec3 m_baseColor;
+        glm::vec2 m_texScale;
+        float m_shininess, m_specStreng;
+        bool m_flagAlphaBlend;
     };
 
     struct RenderUnit {
@@ -95,21 +93,9 @@ namespace dal::dlb {
 
     struct RenderUnit {
         std::unique_ptr<IMeshBuilder> m_meshBuilder;
-
-        struct Mesh {
-            std::vector<float> m_vertices, m_texcoords, m_normals;
-        } m_mesh;
-
-        struct Material {
-            std::string m_diffuseMap, m_specularMap;
-            glm::vec3 m_baseColor;
-            glm::vec2 m_texScale;
-            float m_shininess;
-            float m_specStreng;
-            bool m_flagAlphaBlend;
-        } m_material;
+        binfo::Mesh m_mesh;
+        binfo::Material m_material;
     };
-
 
     struct ModelEmbedded {
         std::string m_name;
@@ -118,13 +104,11 @@ namespace dal::dlb {
         std::unique_ptr<ICollider> m_bounding, m_detailed;
     };
 
-
     struct ModelImported {
         std::string m_resourceID;
         std::vector<ActorInfo> m_staticActors;
         bool m_detailedCollider;
     };
-
 
     struct WaterPlane {
         glm::vec3 m_centerPos, m_deepColor;
@@ -132,12 +116,10 @@ namespace dal::dlb {
         float m_flowSpeed, m_waveStreng, m_darkestDepth, m_reflectivity;
     };
 
-
     struct Plight {
         glm::vec3 m_pos, m_color;
         float m_maxDist;
     };
-
 
     struct MapChunkInfo {
         std::vector<ModelEmbedded> m_embeddedModels;

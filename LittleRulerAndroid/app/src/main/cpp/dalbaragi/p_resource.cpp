@@ -473,9 +473,9 @@ namespace dal {
                     );
                     unit.m_meshName = unitInfo.m_name;
 
-                    unit.m_material.m_diffuseColor = unitInfo.m_material.m_diffuseColor;
+                    unit.m_material.m_diffuseColor = unitInfo.m_material.m_baseColor;
                     unit.m_material.m_shininess = unitInfo.m_material.m_shininess;
-                    unit.m_material.m_specularStrength = unitInfo.m_material.m_specStrength;
+                    unit.m_material.m_specularStrength = unitInfo.m_material.m_specStreng;
 
                     if ( !unitInfo.m_material.m_diffuseMap.empty() ) {
                         ResourceID texResID{ unitInfo.m_material.m_diffuseMap };
@@ -534,9 +534,9 @@ namespace dal {
                 );
                 unit->m_meshName = unitInfo.m_name;
 
-                unit->m_material.m_diffuseColor = unitInfo.m_material.m_diffuseColor;
+                unit->m_material.m_diffuseColor = unitInfo.m_material.m_baseColor;
                 unit->m_material.m_shininess = unitInfo.m_material.m_shininess;
-                unit->m_material.m_specularStrength = unitInfo.m_material.m_specStrength;
+                unit->m_material.m_specularStrength = unitInfo.m_material.m_specStreng;
 
                 if ( !unitInfo.m_material.m_diffuseMap.empty() ) {
                     ResourceID diffuseResID{ unitInfo.m_material.m_diffuseMap };
