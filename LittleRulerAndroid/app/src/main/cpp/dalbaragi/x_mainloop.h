@@ -1,6 +1,5 @@
 #pragma once
 
-#include <entt/entity/registry.hpp>
 
 #include "p_render_master.h"
 #include "s_event.h"
@@ -24,13 +23,10 @@ namespace dal {
         OverlayMaster m_overlayMas;
         RenderMaster m_renderMan;
         InputApplier m_inputApply;
-        entt::registry m_enttMaster;
 
-        StrangeEulerCamera m_camera;
         TimerThatCaps m_timer;
         Timer m_timerForFPSReport;
         bool m_flagQuit;
-        entt::entity m_player;
 
         //// Funcs ////
 

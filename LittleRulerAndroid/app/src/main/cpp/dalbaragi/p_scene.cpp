@@ -8,9 +8,55 @@
 #include "s_logger_god.h"
 #include "u_maploader.h"
 #include "s_configs.h"
+#include "g_charastate.h"
+#include "u_vecutil.h"
 
 
 using namespace fmt::literals;
+
+
+namespace {
+
+    void bindCameraPos(dal::StrangeEulerCamera& camera, const glm::vec3 thisPos, const glm::vec3 lastPos) {
+        // Apply move direction
+        {
+            const glm::vec3 MODEL_ORIGIN_OFFSET{ 0.0f, 1.3f, 0.0f };
+            constexpr float MAX_Y_DEGREE = 75.0f;
+            constexpr float CAM_ROTATE_SPEED_INV = 0.5f;
+            static_assert(0.0f <= CAM_ROTATE_SPEED_INV && CAM_ROTATE_SPEED_INV <= 1.0f);
+
+            const auto camOrigin = thisPos + MODEL_ORIGIN_OFFSET;
+
+            {
+                const auto deltaPos = thisPos - lastPos;
+                camera.m_pos += deltaPos * CAM_ROTATE_SPEED_INV;
+            }
+
+            {
+                const auto obj2CamVec = camera.m_pos - camOrigin;
+                const auto len = glm::length(obj2CamVec);
+                auto obj2CamSEuler = dal::vec2StrangeEuler(obj2CamVec);
+
+                obj2CamSEuler.clampY(glm::radians(-MAX_Y_DEGREE), glm::radians(MAX_Y_DEGREE));
+                const auto rotatedVec = dal::strangeEuler2Vec(obj2CamSEuler);
+                camera.m_pos = camOrigin + rotatedVec * len;
+            }
+
+            {
+                constexpr float OBJ_CAM_DISTANCE = 3.0f;
+
+                const auto cam2ObjVec = camOrigin - camera.m_pos;
+                const auto cam2ObjSEuler = dal::vec2StrangeEuler(cam2ObjVec);
+                camera.setViewPlane(cam2ObjSEuler.getX(), cam2ObjSEuler.getY());
+
+                camera.m_pos = camOrigin - dal::resizeOnlyXZ(cam2ObjVec, OBJ_CAM_DISTANCE);
+            }
+        }
+
+        camera.updateViewMat();
+    }
+
+}
 
 
 namespace dal {
@@ -331,11 +377,44 @@ namespace dal {
 
         auto map = this->m_resMas.loadMap("asset::map/water_n_slope.dlb");
         this->m_mapChunks2.push_back(std::move(map));
+
+        // Player
+        {
+            this->m_player = this->m_entities.create();
+
+            auto& transform = this->m_entities.assign<cpnt::Transform>(this->m_player);
+            transform.setScale(0.2f);
+
+            auto ptrModel = this->m_resMas.orderModelAnim("asset::Character Running.dae");
+            auto& renderable = this->m_entities.assign<cpnt::AnimatedModel>(this->m_player);
+            renderable.m_model = ptrModel;
+
+            this->m_entities.assign<cpnt::CharacterState>(this->m_player, transform, renderable, this->m_playerCam, *this);
+
+            this->m_entities.assign<cpnt::PhysicsObj>(this->m_player);
+        }
     }
 
 
     void SceneGraph::update(const float deltaTime) {
+        // Resolve collisions
+        {
+            auto& trans = this->m_entities.get<cpnt::Transform>(this->m_player);
+            const auto lastPos = trans.getPos();
+            auto& model = this->m_entities.get<cpnt::AnimatedModel>(this->m_player);
+            //this->m_scene.applyCollision(model.m_model->get(), trans);
+            bindCameraPos(this->m_playerCam, trans.getPos(), lastPos);
+        }
 
+        // Update animtions of dynamic objects.
+        {
+            auto view = this->m_entities.view<cpnt::AnimatedModel>();
+            for ( const auto entity : view ) {
+                auto& cpntModel = view.get(entity);
+                auto pModel = cpntModel.m_model;
+                updateAnimeState(cpntModel.m_animState, pModel.getAnimations(), pModel.getSkeletonInterf(), pModel.getGlobalInvMat());
+            }
+        }
     }
 
     void SceneGraph::renderGeneral(const UnilocGeneral& uniloc) {

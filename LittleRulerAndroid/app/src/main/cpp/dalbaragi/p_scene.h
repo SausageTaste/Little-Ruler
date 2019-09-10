@@ -77,6 +77,11 @@ namespace dal {
         //std::list<MapChunk> m_mapChunks;
         std::list<MapChunk2> m_mapChunks2;
 
+    public:
+        entt::registry m_entities;
+        entt::entity m_player;
+        StrangeEulerCamera m_playerCam;
+
         //////// Methods ////////
 
     public:
