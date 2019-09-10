@@ -17,13 +17,9 @@ namespace dal::loadedinfo {
 
     // Primitives
 
-    struct MeshStatic {
-        std::vector<float> m_vertices, m_texcoords, m_normals;
-    };
-
-    struct MeshAnimated : public MeshStatic {
-        std::vector<float> m_boneWeights;  // vec3 each
-        std::vector<int32_t> m_boneIndex;  // ivec3 each
+    struct Mesh {
+        std::vector<float> m_vertices, m_texcoords, m_normals, m_boneWeights;
+        std::vector<int32_t> m_boneIndex;
     };
 
     struct Material {
@@ -35,13 +31,7 @@ namespace dal::loadedinfo {
 
     struct RenderUnit {
         std::string m_name;
-        MeshStatic m_mesh;
-        Material m_material;
-    };
-
-    struct RenderUnitAnimated {
-        std::string m_name;
-        MeshAnimated m_mesh;
+        Mesh m_mesh;
         Material m_material;
     };
 
@@ -115,17 +105,11 @@ namespace dal::loadedinfo {
 
     // Loaded model infos
 
-    struct ModelStatic {
-        std::list<RenderUnit> m_renderUnits;
-        AABB m_aabb;
-    };
-
-
-    struct ModelAnimated {
+    struct Model {
 
     public:
         SkeletonInterface m_joints;
-        std::list<RenderUnitAnimated> m_renderUnits;
+        std::list<RenderUnit> m_renderUnits;
         AABB m_aabb;
         glm::mat4 m_globalTrans;
 

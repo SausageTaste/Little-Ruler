@@ -6,11 +6,8 @@
 
 namespace dal {
 
-    bool loadAssimp_staticModel(loadedinfo::ModelStatic& info, const ResourceID& assetPath);
-
-
     struct AssimpModelInfo {
-        loadedinfo::ModelAnimated m_model;
+        loadedinfo::Model m_model;
         std::vector<Animation> m_animations;
     };
 

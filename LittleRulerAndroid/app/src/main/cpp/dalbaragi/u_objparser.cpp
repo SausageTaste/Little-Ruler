@@ -368,14 +368,7 @@ namespace {
         }
     }
 
-
-    bool processMesh(dal::loadedinfo::RenderUnit& renUnit, AABBBuildInfo& aabbInfo, aiMesh* const mesh) {
-        renUnit.m_name = reinterpret_cast<char*>(&mesh->mName);
-        copy3BasicVertexInfo(renUnit.m_mesh.m_vertices, renUnit.m_mesh.m_texcoords, renUnit.m_mesh.m_normals, aabbInfo, mesh);
-        return true;
-    }
-
-    bool processMeshAnimated(dal::loadedinfo::RenderUnitAnimated& renUnit, dal::SkeletonInterface& jointInfo,
+    bool processMeshAnimated(dal::loadedinfo::RenderUnit& renUnit, dal::SkeletonInterface& jointInfo,
         AABBBuildInfo& aabbInfo, aiMesh* const mesh)
     {
         renUnit.m_name = reinterpret_cast<char*>(&mesh->mName);
@@ -434,30 +427,7 @@ namespace {
 // Process nodes
 namespace {
 
-    bool processNode(dal::loadedinfo::ModelStatic& info, const std::vector<dal::loadedinfo::Material>& materials,
-        AABBBuildInfo& aabbInfo, const aiScene* const scene, const aiNode* const node)
-    {
-        for ( unsigned int i = 0; i < node->mNumMeshes; i++ ) {
-            aiMesh* ai_mesh = scene->mMeshes[node->mMeshes[i]];
-            info.m_renderUnits.emplace_front();
-            auto& renUnit = info.m_renderUnits.front();
-            if ( !processMesh(renUnit, aabbInfo, ai_mesh) ) {
-                return false;
-            }
-
-            renUnit.m_material = materials.at(ai_mesh->mMaterialIndex);
-        }
-
-        for ( unsigned int i = 0; i < node->mNumChildren; i++ ) {
-            if ( !processNode(info, materials, aabbInfo, scene, node->mChildren[i]) ) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    bool processNodeAnimated(dal::loadedinfo::ModelAnimated& info, const std::vector<dal::loadedinfo::Material>& materials,
+    bool processNodeAnimated(dal::loadedinfo::Model& info, const std::vector<dal::loadedinfo::Material>& materials,
         AABBBuildInfo& aabbInfo, const aiScene* const scene, const aiNode* const node)
     {
         for ( unsigned int i = 0; i < node->mNumMeshes; i++ ) {
@@ -485,45 +455,6 @@ namespace {
 
 
 namespace dal {
-
-    bool loadAssimp_staticModel(loadedinfo::ModelStatic& info, const ResourceID& assetPath) {
-        Assimp::Importer importer;
-        importer.SetIOHandler(new AssResourceIOSystem);
-        const auto scene = importer.ReadFile(makeAssimpResID(assetPath).c_str(), aiProcess_Triangulate);
-        if ( !isSceneComplete(scene) ) {
-            dalError("Assimp read fail: {}"_format(importer.GetErrorString()));
-            return false;
-        }
-
-        const auto materials = parseMaterials(scene);
-
-        AABBBuildInfo aabbInfo;
-        info.m_renderUnits.clear();
-
-        const auto res = processNode(info, materials, aabbInfo, scene, scene->mRootNode);
-        info.m_aabb.set(aabbInfo.p1, aabbInfo.p2);
-        return res;
-    }
-
-    bool loadAssimpModelStatic(const ResourceID& resID, AssimpModelInfo& info) {
-        Assimp::Importer importer;
-        importer.SetIOHandler(new AssResourceIOSystem);
-        const auto scene = importer.ReadFile(makeAssimpResID(resID).c_str(), aiProcess_Triangulate);
-        if ( !isSceneComplete(scene) ) {
-            dalError("Assimp read fail: {}"_format(importer.GetErrorString()));
-            return false;
-        }
-
-        const auto materials = parseMaterials(scene);
-        info.m_model.m_globalTrans = convertAssimpMat(scene->mRootNode->mTransformation);
-
-        AABBBuildInfo aabbInfo;
-        const auto res = processNodeAnimated(info.m_model, materials, aabbInfo, scene, scene->mRootNode);
-        // TODO : Error handling.
-        info.m_model.m_aabb.set(aabbInfo.p1, aabbInfo.p2);
-
-        return true;
-    }
 
     bool loadAssimpModel(const ResourceID& resID, AssimpModelInfo& info) {
         Assimp::Importer importer;
