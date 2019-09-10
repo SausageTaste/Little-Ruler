@@ -67,7 +67,7 @@ namespace dal {
 
     }
 
-    MapChunk::MapChunk(const loadedinfo::LoadedMap& info, ResourceMaster& resMas)
+    MapChunk::MapChunk(const binfo::LoadedMap& info, ResourceMaster& resMas)
         : m_name(info.m_mapName)
     {
         for ( auto& definedModel : info.m_definedModels ) {

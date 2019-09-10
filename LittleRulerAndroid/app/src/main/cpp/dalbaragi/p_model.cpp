@@ -42,7 +42,7 @@ namespace dal {
     }
 
     /*
-    void ModelStatic::init(const ResourceID& resID, const loadedinfo::ModelStatic& info, ResourceMaster& resMas) {
+    void ModelStatic::init(const ResourceID& resID, const binfo::ModelStatic& info, ResourceMaster& resMas) {
         this->invalidate();
 
         this->setModelResID(std::move(resID));
@@ -73,7 +73,7 @@ namespace dal {
         this->m_bounding.reset(new ColAABB{ info.m_aabb });
     }
 
-    void ModelStatic::init(const loadedinfo::ModelDefined& info, ResourceMaster& resMas) {
+    void ModelStatic::init(const binfo::ModelDefined& info, ResourceMaster& resMas) {
         this->invalidate();
 
         this->setBoundingBox(info.m_boundingBox);

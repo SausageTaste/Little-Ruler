@@ -13,7 +13,7 @@
 #include "p_animation.h"
 
 
-namespace dal::loadedinfo {
+namespace dal::binfo {
 
     struct Mesh {
         std::vector<float> m_vertices, m_texcoords, m_normals, m_boneWeights;

@@ -45,8 +45,8 @@ namespace dal {
         void operator delete(void* ptr);
 
         //RenderUnit* addRenderUnit(void);
-        //void init(const ResourceID& resID, const loadedinfo::ModelStatic& info, ResourceMaster& resMas);
-        //void init(const loadedinfo::ModelDefined& info, ResourceMaster& resMas);
+        //void init(const ResourceID& resID, const binfo::ModelStatic& info, ResourceMaster& resMas);
+        //void init(const binfo::ModelDefined& info, ResourceMaster& resMas);
         
         RenderUnit& newRenderUnit(void) {
             return this->m_renderUnits.emplace_back();

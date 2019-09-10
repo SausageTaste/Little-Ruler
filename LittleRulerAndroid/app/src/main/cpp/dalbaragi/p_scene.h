@@ -38,7 +38,7 @@ namespace dal {
 
     public:
         MapChunk(const std::string& name);
-        MapChunk(const loadedinfo::LoadedMap& info, ResourceMaster& resMan);
+        MapChunk(const binfo::LoadedMap& info, ResourceMaster& resMan);
 
         const std::string& getName(void) const;
 

@@ -7,7 +7,7 @@
 namespace dal {
 
     struct AssimpModelInfo {
-        loadedinfo::Model m_model;
+        binfo::Model m_model;
         std::vector<Animation> m_animations;
     };
 

@@ -26,7 +26,7 @@ namespace {
     public:
         const dal::ResourceID in_texID;
 
-        dal::loadedinfo::ImageFileData out_img;
+        dal::binfo::ImageFileData out_img;
 
         bool out_success = false;
 

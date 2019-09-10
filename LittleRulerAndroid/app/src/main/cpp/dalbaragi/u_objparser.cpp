@@ -181,8 +181,8 @@ namespace {
 // Processing functions
 namespace {
 
-    std::vector<dal::loadedinfo::Material> parseMaterials(const aiScene* const scene) {
-        std::vector<dal::loadedinfo::Material> materials;
+    std::vector<dal::binfo::Material> parseMaterials(const aiScene* const scene) {
+        std::vector<dal::binfo::Material> materials;
         materials.resize(scene->mNumMaterials);
 
         for ( unsigned int i = 0; i < scene->mNumMaterials; i++ ) {
@@ -368,7 +368,7 @@ namespace {
         }
     }
 
-    bool processMeshAnimated(dal::loadedinfo::RenderUnit& renUnit, dal::SkeletonInterface& jointInfo,
+    bool processMeshAnimated(dal::binfo::RenderUnit& renUnit, dal::SkeletonInterface& jointInfo,
         AABBBuildInfo& aabbInfo, aiMesh* const mesh)
     {
         renUnit.m_name = reinterpret_cast<char*>(&mesh->mName);
@@ -427,7 +427,7 @@ namespace {
 // Process nodes
 namespace {
 
-    bool processNodeAnimated(dal::loadedinfo::Model& info, const std::vector<dal::loadedinfo::Material>& materials,
+    bool processNodeAnimated(dal::binfo::Model& info, const std::vector<dal::binfo::Material>& materials,
         AABBBuildInfo& aabbInfo, const aiScene* const scene, const aiNode* const node)
     {
         for ( unsigned int i = 0; i < node->mNumMeshes; i++ ) {

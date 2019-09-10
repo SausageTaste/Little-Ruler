@@ -614,7 +614,7 @@ namespace {
 // Image reader functions
 namespace {
 
-    bool parseImagePNG(dal::loadedinfo::ImageFileData& output, std::vector<uint8_t>& dataBuffer) {
+    bool parseImagePNG(dal::binfo::ImageFileData& output, std::vector<uint8_t>& dataBuffer) {
         unsigned int w, h;
         auto error = lodepng::decode(output.m_buf, w, h, dataBuffer);
         if ( error ) {
@@ -632,7 +632,7 @@ namespace {
         return true;
     }
 
-    bool parseImageTGA(dal::loadedinfo::ImageFileData& output, std::vector<uint8_t>& dataBuffer) {
+    bool parseImageTGA(dal::binfo::ImageFileData& output, std::vector<uint8_t>& dataBuffer) {
         int w, h, p;
         std::unique_ptr<uint8_t, decltype(free)*> result{
             tga_load_memory(dataBuffer.data(), static_cast<int>(dataBuffer.size()), &w, &h, &p), free
@@ -794,7 +794,7 @@ namespace dal::futil {
         return file->readText(buffer);
     }
 
-    bool getRes_image(const ResourceID& resID, loadedinfo::ImageFileData& data) {
+    bool getRes_image(const ResourceID& resID, binfo::ImageFileData& data) {
         const auto found = IMAGE_PARSER_MAP.find(resID.getExt());
         if ( IMAGE_PARSER_MAP.end() == found ) {
             dalError("Not supported image file format: {}"_format(resID.makeIDStr()));

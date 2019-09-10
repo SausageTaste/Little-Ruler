@@ -12,7 +12,7 @@ namespace {
         static dal::Texture* tex = nullptr;
 
         if ( nullptr == tex ) {
-            dal::loadedinfo::ImageFileData image;
+            dal::binfo::ImageFileData image;
             if ( !dal::futil::getRes_image("asset::waterDUDV.png", image) ) {
                 dalAbort("Failed to load dudv map.");
             }
@@ -37,7 +37,7 @@ namespace {
         static dal::Texture* tex = nullptr;
 
         if ( nullptr == tex ) {
-            dal::loadedinfo::ImageFileData image;
+            dal::binfo::ImageFileData image;
             if ( !dal::futil::getRes_image("asset::matchingNormalMap.png", image) ) {
                 dalAbort("Failed to load water normal map.");
             }

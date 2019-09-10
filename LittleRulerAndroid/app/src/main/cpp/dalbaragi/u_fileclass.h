@@ -49,7 +49,7 @@ namespace dal {
 namespace dal::futil {
 
     bool getRes_text(const ResourceID& resID, std::string& buffer);
-    bool getRes_image(const ResourceID& resID, loadedinfo::ImageFileData& data);
+    bool getRes_image(const ResourceID& resID, binfo::ImageFileData& data);
     bool getRes_buffer(const ResourceID& resID, std::vector<uint8_t>& buffer);
 
 }
