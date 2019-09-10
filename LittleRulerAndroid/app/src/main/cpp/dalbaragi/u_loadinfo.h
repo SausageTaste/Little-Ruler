@@ -21,8 +21,8 @@ namespace dal::binfo {
         std::string m_diffuseMap, m_specularMap;
         glm::vec3 m_baseColor;
         glm::vec2 m_texScale;
-        float m_shininess, m_specStreng;
-        bool m_flagAlphaBlend;
+        float m_shininess = 32.f, m_specStreng = 1.f;
+        bool m_flagAlphaBlend = false;
     };
 
     struct RenderUnit {
@@ -40,7 +40,7 @@ namespace dal::binfo {
 
     public:
         SkeletonInterface m_joints;
-        std::list<RenderUnit> m_renderUnits;
+        std::vector<RenderUnit> m_renderUnits;
         AABB m_aabb;
         glm::mat4 m_globalTrans;
 
@@ -52,35 +52,6 @@ namespace dal::binfo {
 namespace dal::dlb {
 
     class IMeshBuilder {
-
-    private:
-        template <typename T>
-        class Cache {
-
-        private:
-            T m_data;
-            bool m_ready = false;
-
-        public:
-            void set(const T& d) {
-                this->m_data = d;
-            }
-            void set(T&& d) {
-                this->m_data = std::move(d);
-            }
-            T& get(void) {
-                dalAssert(this->m_ready);
-                return this->m_data;
-            }
-            const T& get(void) const {
-                dalAssert(this->m_ready);
-                return this->m_data;
-            }
-            bool isReady(void) const {
-                return this->m_ready;
-            }
-
-        };
 
     public:
         virtual ~IMeshBuilder(void) = default;

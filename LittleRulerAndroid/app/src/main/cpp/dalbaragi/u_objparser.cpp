@@ -1,15 +1,8 @@
 #include "u_objparser.h"
 
-#include <set>
-#include <map>
-#include <array>
-#include <string>
-#include <vector>
-#include <cstring>
-#include <iostream>
+//#include <array>
 #include <unordered_map>
 
-#include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <fmt/format.h>
 #include <assimp/scene.h>
@@ -64,10 +57,6 @@ namespace {
 
         return to;
     }
-
-    struct AABBBuildInfo {
-        glm::vec3 p1, p2;
-    };
 
 }
 
@@ -335,6 +324,7 @@ namespace {
         }
     }
 
+    // I don't know if big endian systems cannot use this algorithm.
     void copy3BasicVertexInfo(std::vector<float>& vertices, std::vector<float>& texcoords, std::vector<float>& normals, const aiMesh* const mesh) {
         dalAssert(sizeof(aiVector3D) == sizeof(float) * 3);
 
@@ -416,15 +406,13 @@ namespace {
     bool processNodeAnimated(dal::binfo::Model& info, const std::vector<dal::binfo::Material>& materials,
         dal::AABB& aabbInfo, const aiScene* const scene, const aiNode* const node)
     {
+        info.m_renderUnits.reserve(node->mNumMeshes);
         for ( unsigned int i = 0; i < node->mNumMeshes; i++ ) {
             aiMesh* ai_mesh = scene->mMeshes[node->mMeshes[i]];
-
-            info.m_renderUnits.emplace_front();
-            auto& renUnit = info.m_renderUnits.front();
+            auto& renUnit = info.m_renderUnits.emplace_back();
             if ( !processMeshAnimated(renUnit, info.m_joints, aabbInfo, ai_mesh) ) {
                 return false;
             }
-
             renUnit.m_material = materials.at(ai_mesh->mMaterialIndex);
         }
 
