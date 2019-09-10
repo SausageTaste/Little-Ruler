@@ -328,9 +328,14 @@ namespace {
 // Process mesh
 namespace {
 
-    void copy3BasicVertexInfo(std::vector<float>& vertices, std::vector<float>& texcoords, std::vector<float>& normals,
-        AABBBuildInfo& aabbInfo, const aiMesh* const mesh)
-    {
+    void updateAABB(const aiMesh* const mesh, dal::AABB& aabb) {
+        for ( unsigned int i = 0; i < mesh->mNumVertices; i++ ) {
+            const auto& v = mesh->mVertices[i];
+            aabb.resizeToInclude(v.x, v.y, v.z);
+        }
+    }
+
+    void copy3BasicVertexInfo(std::vector<float>& vertices, std::vector<float>& texcoords, std::vector<float>& normals, const aiMesh* const mesh) {
         dalAssert(sizeof(aiVector3D) == sizeof(float) * 3);
 
         vertices.resize(mesh->mNumVertices * 3);
@@ -346,33 +351,14 @@ namespace {
             texcoords[2 * i + 0] = tex.x;
             texcoords[2 * i + 1] = tex.y;
         }
-
-        // For aabb
-        for ( unsigned int i = 0; i < mesh->mNumVertices; i++ ) {
-            const auto& vertex = mesh->mVertices[i];
-
-            if ( aabbInfo.p1.x > vertex.x )
-                aabbInfo.p1.x = vertex.x;
-            else if ( aabbInfo.p2.x < vertex.x )
-                aabbInfo.p2.x = vertex.x;
-
-            if ( aabbInfo.p1.y > vertex.y )
-                aabbInfo.p1.y = vertex.y;
-            else if ( aabbInfo.p2.y < vertex.y )
-                aabbInfo.p2.y = vertex.y;
-
-            if ( aabbInfo.p1.z > vertex.z )
-                aabbInfo.p1.z = vertex.z;
-            else if ( aabbInfo.p2.z < vertex.z )
-                aabbInfo.p2.z = vertex.z;
-        }
     }
 
     bool processMeshAnimated(dal::binfo::RenderUnit& renUnit, dal::SkeletonInterface& jointInfo,
-        AABBBuildInfo& aabbInfo, aiMesh* const mesh)
+        dal::AABB& aabb, aiMesh* const mesh)
     {
         renUnit.m_name = reinterpret_cast<char*>(&mesh->mName);
-        copy3BasicVertexInfo(renUnit.m_mesh.m_vertices, renUnit.m_mesh.m_texcoords, renUnit.m_mesh.m_normals, aabbInfo, mesh);
+        copy3BasicVertexInfo(renUnit.m_mesh.m_vertices, renUnit.m_mesh.m_texcoords, renUnit.m_mesh.m_normals, mesh);
+        updateAABB(mesh, aabb);
 
         if ( mesh->mNumBones > 0 ) {
             size_t numVert = static_cast<size_t>(mesh->mNumVertices);
@@ -428,7 +414,7 @@ namespace {
 namespace {
 
     bool processNodeAnimated(dal::binfo::Model& info, const std::vector<dal::binfo::Material>& materials,
-        AABBBuildInfo& aabbInfo, const aiScene* const scene, const aiNode* const node)
+        dal::AABB& aabbInfo, const aiScene* const scene, const aiNode* const node)
     {
         for ( unsigned int i = 0; i < node->mNumMeshes; i++ ) {
             aiMesh* ai_mesh = scene->mMeshes[node->mMeshes[i]];
@@ -468,15 +454,13 @@ namespace dal {
         const auto materials = parseMaterials(scene);
         info.m_model.m_globalTrans = convertAssimpMat(scene->mRootNode->mTransformation);
 
-        AABBBuildInfo aabbInfo;
-        const auto res = processNodeAnimated(info.m_model, materials, aabbInfo, scene, scene->mRootNode);
+        dal::AABB aabbInfo;
+        const auto res = processNodeAnimated(info.m_model, materials, info.m_model.m_aabb, scene, scene->mRootNode);
         //TODO : Error handling.
 
         if ( info.m_model.m_joints.getSize() > 0 ) {
             processAnimation(scene, info.m_animations);
         }
-
-        info.m_model.m_aabb.set(aabbInfo.p1, aabbInfo.p2);
 
         return true;
     }
