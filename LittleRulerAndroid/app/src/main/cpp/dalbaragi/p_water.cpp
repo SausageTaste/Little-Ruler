@@ -313,11 +313,14 @@ namespace dal {
         , m_normalMap(getWaterNormalMap())
         , m_fbuffer(winWidth, winHeight)
     {
+        constexpr float TEX_SCALE_FACTOR = 0.05f;
+
         glm::vec2 size{ info.m_width, info.m_height };
         this->initMesh(info.m_centerPos, size);
 
         this->m_material.m_shininess = info.m_shininess;
         this->m_material.m_specularStrength = info.m_specStreng;
+        this->m_material.setTexScale(info.m_width * TEX_SCALE_FACTOR, info.m_height * TEX_SCALE_FACTOR);
     }
 
     void WaterRenderer::renderWaterry(const UnilocWaterry& uniloc) {
