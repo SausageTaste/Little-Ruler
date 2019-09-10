@@ -280,25 +280,6 @@ namespace dal {
 
 namespace dal {
 
-    WaterRenderer::WaterRenderer(const loadedinfo::WaterPlane& info, const unsigned int winWidth, const unsigned int winHeight)
-        : m_depthColor(info.m_depthColor)
-        , m_height(info.m_pos.y)
-        , m_moveSpeed(info.m_moveSpeed)
-        , m_waveStreng(info.m_waveStreng)
-        , m_darkestDepthPoint(info.m_darkestDepthPoint)
-        , m_reflectivity(info.m_reflectivity)
-        , m_moveFactor(0.0f)
-        , m_dudvMap(getDUDVMap())
-        , m_normalMap(getWaterNormalMap())
-        , m_fbuffer(winWidth, winHeight)
-    {
-        glm::vec2 size{ info.m_width, info.m_height };
-        this->initMesh(info.m_pos, size);
-
-        this->m_material.m_shininess = info.m_shineness;
-        this->m_material.m_specularStrength = info.m_specStreng;
-    }
-
     WaterRenderer::WaterRenderer(const dlb::WaterPlane& info, const unsigned int winWidth, const unsigned int winHeight)
         : m_depthColor(info.m_deepColor)
         , m_height(info.m_centerPos.y)

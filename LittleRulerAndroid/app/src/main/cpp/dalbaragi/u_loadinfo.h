@@ -15,8 +15,6 @@
 
 namespace dal::loadedinfo {
 
-    // Primitives
-
     struct Mesh {
         std::vector<float> m_vertices, m_texcoords, m_normals, m_boneWeights;
         std::vector<int32_t> m_boneIndex;
@@ -35,75 +33,10 @@ namespace dal::loadedinfo {
         Material m_material;
     };
 
-    // Model infos in maps
-
-    struct IMapItemModel {
-        std::string m_modelID;
-        std::vector<ActorInfo> m_actors;
-    };
-
-    struct ModelDefined : public IMapItemModel {
-        RenderUnit m_renderUnit;
-        AABB m_boundingBox;
-    };
-
-    struct ModelImported : public IMapItemModel {
-
-    };
-
-    struct ModelImportedAnimated : public IMapItemModel {
-
-    };
-
-
-    // Light infos in maps
-
-    struct ILightItem {
-        std::string m_name;
-        glm::vec3 m_color;
-        bool m_static = true;
-    };
-
-    struct LightDirectional : public ILightItem {
-        glm::vec3 m_direction;
-        float m_halfShadowEdgeSize = 15.0f;
-    };
-
-    struct LightPoint : public ILightItem {
-        glm::vec3 m_pos;
-        float m_maxDist = 0.0f;
-    };
-
-
-    // Misc for maps
-
-    struct WaterPlane {
-        glm::vec3 m_pos, m_depthColor;
-        float m_width, m_height, m_shineness, m_specStreng;
-        float m_moveSpeed, m_waveStreng, m_darkestDepthPoint, m_reflectivity;
-    };
-
     struct ImageFileData {
         std::vector<uint8_t> m_buf;
         size_t m_width = 0, m_height = 0, m_pixSize = 0;
     };
-
-
-    struct LoadedMap {
-        std::string m_mapName, m_packageName;
-
-        std::list<loadedinfo::ModelDefined> m_definedModels;
-        std::list<loadedinfo::ModelImported> m_importedModels;
-        std::list<loadedinfo::ModelImportedAnimated> m_animatedModels;
-
-        std::list<loadedinfo::LightDirectional> m_direcLights;
-        std::list<loadedinfo::LightPoint> m_pointLights;
-
-        std::list<loadedinfo::WaterPlane> m_waterPlanes;
-    };
-
-
-    // Loaded model infos
 
     struct Model {
 

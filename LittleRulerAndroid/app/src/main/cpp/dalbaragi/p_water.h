@@ -120,7 +120,6 @@ namespace dal {
         dal::Texture *m_dudvMap, *m_normalMap;
 
     public:
-        WaterRenderer(const loadedinfo::WaterPlane& info, const unsigned int winWidth, const unsigned int winHeight);
         WaterRenderer(const dlb::WaterPlane& info, const unsigned int winWidth, const unsigned int winHeight);
 
         void render(const UnilocWaterry& uniloc);
