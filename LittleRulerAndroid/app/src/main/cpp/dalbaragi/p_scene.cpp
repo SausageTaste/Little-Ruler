@@ -487,31 +487,19 @@ namespace dal {
     }
 
     std::optional<RayCastingResult> SceneGraph::doRayCasting(const Ray& ray) {
-        RayCastingResult result;
-        bool found = false;
+        std::optional<RayCastingResult> result{ std::nullopt };
+        float closestDist = std::numeric_limits<float>::max();
 
         for ( auto& map : this->m_mapChunks2 ) {
             auto info = map.castRayToClosest(ray);
-
             if ( info ) {
-                if ( found ) {
-                    if ( info->m_distance < result.m_distance ) {
-                        result = *info;
-                    }
-                }
-                else {
-                    result = *info;
-                    found = true;
+                if ( info->m_distance < closestDist ) {
+                    result = info;
                 }
             }
         }
 
-        if ( found ) {
-            return result;
-        }
-        else {
-            return std::nullopt;
-        }
+        return result;
     }
 
     void SceneGraph::onResize(const unsigned int width, const unsigned int height) {

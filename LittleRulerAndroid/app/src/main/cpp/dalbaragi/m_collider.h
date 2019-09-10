@@ -183,7 +183,7 @@ namespace dal {
         ColliderType m_type;
 
     protected:
-        ICollider(const ColliderType type) noexcept;
+        ICollider(const ColliderType type);
 
     public:
         virtual ~ICollider(void) = default;

@@ -12,7 +12,7 @@ namespace dal {
     private:
         // +1 for null terminator.
         // Interface shouldn't expose the fact that it uses null terminator.
-        char m_buf[CAPACITY + 1];
+        char m_buf[CAPACITY + 1] = { 0 };
         size_t m_pos = 0;
 
     public:

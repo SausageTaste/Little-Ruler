@@ -78,7 +78,7 @@ namespace {
 
     template <typename T>
     const uint8_t* assemble4BytesArray(const uint8_t* src, T* const dst, const size_t size) {
-        for ( int i = 0; i < size; ++i ) {
+        for ( size_t i = 0; i < size; ++i ) {
             dst[i] = assemble4Bytes<T>(src); src += 4;
         }
         return src;
@@ -86,7 +86,7 @@ namespace {
 
     // Returns nullptr containing unique_ptr and 0 on failure.
     std::pair<std::unique_ptr<uint8_t[]>, size_t> uncompressMap(const uint8_t* const buf, const size_t bufSize) {
-        const auto allocatedSize = makeInt4(buf) * 1.01;  // Just to ensure that buffer never lacks.
+        const auto allocatedSize = static_cast<size_t>(1.01 * makeInt4(buf));  // Just to ensure that buffer never lacks.
         std::unique_ptr<uint8_t[]> decomBuf{ new uint8_t[allocatedSize] };
         uLongf decomBufSize = allocatedSize;
 
@@ -177,7 +177,7 @@ namespace {
         const auto numTriangles = vertices.size() / 9;
         dalAssert((vertices.size() - 9 * numTriangles) == 0);
 
-        for ( int i = 0; i < numTriangles; ++i ) {
+        for ( size_t i = 0; i < numTriangles; ++i ) {
             const auto triIndex = 9 * i;
             soup->addTriangle(dal::Triangle{
                 glm::vec3{ vertices[triIndex + 0], vertices[triIndex + 1], vertices[triIndex + 2] },
@@ -523,7 +523,7 @@ namespace {
                 };
                 std::array<std::optional<glm::vec3>, 4> adjacentPoints;
 
-                for ( int i = 0; i < adjacentOffsets.size(); ++i ) {
+                for ( size_t i = 0; i < adjacentOffsets.size(); ++i ) {
                     const auto offset = adjacentOffsets[i];
                     if ( this->m_heightMap.isCoordInside(xGrid + offset[0], zGrid + offset[1]) ) {
                         adjacentPoints[i] = this->makePointAt(xGrid + offset[0], zGrid + offset[1]);

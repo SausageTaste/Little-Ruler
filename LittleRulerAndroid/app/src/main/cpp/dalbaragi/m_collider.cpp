@@ -589,14 +589,13 @@ namespace dal {
 // ICollider
 namespace dal {
 
-    ICollider::ICollider(const ColliderType type) noexcept
+    ICollider::ICollider(const ColliderType type)
         : m_type(type)
     {
         dalAssert(ColliderType::eoe != this->m_type);
     }
 
     ColliderType ICollider::getColType(void) const noexcept {
-        dalAssert(ColliderType::eoe != this->m_type);
         return this->m_type;
     }
 

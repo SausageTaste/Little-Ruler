@@ -16,7 +16,7 @@ namespace dal {
     private:
         GLuint m_vao = 0;
         GLuint m_buffers[_NumBuffs] = { 0 };  // vertices, texcoords, normals, bone ids, weights
-        unsigned int m_numVertices = 0;
+        size_t m_numVertices = 0;
 
     public:
         IMesh(const IMesh&) = delete;
@@ -83,7 +83,7 @@ namespace dal {
             glEnableVertexAttribArray(_Index);
         }
 
-        void setNumVert(unsigned int v) {
+        void setNumVert(const size_t v) {
             this->m_numVertices = v;
         }
 
