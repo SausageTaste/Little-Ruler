@@ -515,11 +515,11 @@ namespace {
             glm::vec3 makePointNormalFor(const size_t xGrid, const size_t zGrid) const {
                 const auto inputPoint = this->makePointAt(xGrid, zGrid);
 
-                std::array<glm::vec2, 4> adjacentOffsets = {
-                    glm::vec2{0, -1},
-                    glm::vec2{-1, 0},
-                    glm::vec2{0, 1},
-                    glm::vec2{1, 0}
+                std::array<glm::ivec2, 4> adjacentOffsets = {
+                    glm::ivec2{0, -1},
+                    glm::ivec2{-1, 0},
+                    glm::ivec2{0, 1},
+                    glm::ivec2{1, 0}
                 };
                 std::array<std::optional<glm::vec3>, 4> adjacentPoints;
 
