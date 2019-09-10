@@ -595,46 +595,6 @@ namespace dal {
         }
     }
 
-    ModelStaticHandle ResourceMaster::buildModel(const loadedinfo::ModelDefined& info, const std::string& packageName) {
-        auto& package = this->orderPackage(packageName);
-
-        auto model = new ModelStatic;
-
-        ResourceID resID{ info.m_modelID };
-        resID.setPackage(packageName);
-        model->m_resID = resID;
-
-        ModelStaticHandle modelHandle{ model };
-        package.giveModelStatic(info.m_modelID, modelHandle);
-
-        {
-            model->invalidate();
-
-            auto& unitInfo = info.m_renderUnit;
-            auto& unit = model->newRenderUnit();
-
-            unit.m_mesh.buildData(
-                unitInfo.m_mesh.m_vertices.data(),
-                unitInfo.m_mesh.m_texcoords.data(),
-                unitInfo.m_mesh.m_normals.data(),
-                unitInfo.m_mesh.m_vertices.size() / 3
-            );
-            unit.m_meshName = unitInfo.m_name;
-
-            unit.m_material.m_diffuseColor = unitInfo.m_material.m_diffuseColor;
-            unit.m_material.m_shininess = unitInfo.m_material.m_shininess;
-            unit.m_material.m_specularStrength = unitInfo.m_material.m_specStrength;
-            unit.m_material.setTexScale(info.m_renderUnit.m_material.m_texSize.x, info.m_renderUnit.m_material.m_texSize.y);
-
-            if ( !unitInfo.m_material.m_diffuseMap.empty() ) {
-                auto tex = this->orderTexture(unitInfo.m_material.m_diffuseMap);
-                unit.m_material.setDiffuseMap(tex);
-            }
-        }
-
-        return modelHandle;
-    }
-
     Texture* ResourceMaster::orderTexture(const ResourceID& resID) {
         auto& package = this->orderPackage(resID.getPackage());
 

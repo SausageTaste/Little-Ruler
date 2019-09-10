@@ -121,8 +121,6 @@ namespace dal {
         Texture* orderTexture(const ResourceID& resID);
         MapChunk2 loadMap(const ResourceID& resID);
 
-        ModelStaticHandle buildModel(const loadedinfo::ModelDefined& info, const std::string& packageName);
-
     private:
         Package& orderPackage(const std::string& packName);
 
