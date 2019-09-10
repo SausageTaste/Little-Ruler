@@ -484,7 +484,7 @@ namespace dal {
             auto view = this->m_enttMaster.view<cpnt::AnimatedModel>();
             for ( const auto entity : view ) {
                 auto& cpntModel = view.get(entity);
-                auto& pModel = cpntModel.m_model;  // Bug if it is not reference type.
+                auto pModel = cpntModel.m_model;
                 updateAnimeState(cpntModel.m_animState, pModel.getAnimations(), pModel.getSkeletonInterf(), pModel.getGlobalInvMat());
             }
         }

@@ -129,7 +129,7 @@ namespace dal {
         IModelHandle(void)
             : m_pimpl(new ModelHandleImpl<_Model>)
         {
-            std::cout << 1 << std::endl;
+
         }
         IModelHandle(_Model* const pModel)
             : m_pimpl(new ModelHandleImpl<_Model>)
@@ -140,10 +140,8 @@ namespace dal {
             if ( nullptr == this->m_pimpl ) {
                 return;
             }
-
-            --this->m_pimpl->m_refCount;
-            if ( 0 == this->m_pimpl->m_refCount ) {
-                delete this->m_pimpl;
+            else {
+                this->removeOneRef(this->m_pimpl);
                 this->m_pimpl = nullptr;
             }
         }
@@ -151,7 +149,7 @@ namespace dal {
         IModelHandle(const IModelHandle& other)
             : m_pimpl(other.m_pimpl)
         {
-            ++this->m_pimpl;
+            ++this->m_pimpl->m_refCount;
         }
         IModelHandle(IModelHandle&& other) noexcept
             : m_pimpl(nullptr) 
@@ -159,6 +157,7 @@ namespace dal {
             std::swap(this->m_pimpl, other.m_pimpl);
         }
         IModelHandle& operator=(const IModelHandle& other) {
+            this->removeOneRef(this->m_pimpl);
             this->m_pimpl = other.m_pimpl;
             ++this->m_pimpl->m_refCount;
             return *this;
@@ -206,6 +205,14 @@ namespace dal {
         }
         const ModelHandleImpl<_Model>* getPimpl(void) const {
             return this->m_pimpl;
+        }
+
+    private:
+        void removeOneRef(ModelHandleImpl<_Model>* const pimpl) const {
+            --pimpl->m_refCount;
+            if ( 0 == pimpl->m_refCount ) {
+                delete pimpl;
+            }
         }
 
     };
