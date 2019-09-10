@@ -310,7 +310,7 @@ namespace dal {
                 uniloc.m_lightedMesh.dlightCount(0);
             }
 
-            this->m_scene.renderGeneral_onWater(uniloc, *this->m_mainCamera, reg);
+            this->m_scene.renderOnWaterGeneral(uniloc, *this->m_mainCamera, reg);
         }
 
         // Render animated to water framebuffer
@@ -331,7 +331,7 @@ namespace dal {
                 uniloc.m_lightedMesh.dlightCount(0);
             }
 
-            this->m_scene.renderAnimate_onWater(uniloc, *this->m_mainCamera, reg);
+            this->m_scene.renderOnWaterAnimated(uniloc, *this->m_mainCamera, reg);
         }
 
         this->m_fbuffer.clearAndstartRenderOn();

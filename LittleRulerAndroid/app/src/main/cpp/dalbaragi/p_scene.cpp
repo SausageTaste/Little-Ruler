@@ -183,7 +183,7 @@ namespace dal {
         }
     }
 
-    void MapChunk::renderGeneral_onWater(const UnilocGeneral& uniloc, const ICamera& cam, entt::registry& reg) {
+    void MapChunk::renderOnWaterGeneral(const UnilocGeneral& uniloc, const ICamera& cam, entt::registry& reg) {
         const auto view = reg.view<cpnt::Transform, cpnt::StaticModel>();
 
         for ( auto& water : this->m_waters ) {
@@ -213,7 +213,7 @@ namespace dal {
         }
     }
 
-    void MapChunk::renderAnimate_onWater(const UnilocAnimate& uniloc, const ICamera& cam, entt::registry& reg) {
+    void MapChunk::renderOnWaterAnimated(const UnilocAnimate& uniloc, const ICamera& cam, entt::registry& reg) {
         const auto view = reg.view<cpnt::Transform, cpnt::AnimatedModel>();
 
         for ( auto& water : this->m_waters ) {
@@ -468,13 +468,13 @@ namespace dal {
         }
     }
 
-    void SceneGraph::renderGeneral_onWater(const UnilocGeneral& uniloc, const ICamera& cam, entt::registry& reg) {
+    void SceneGraph::renderOnWaterGeneral(const UnilocGeneral& uniloc, const ICamera& cam, entt::registry& reg) {
         for ( auto& map : this->m_mapChunks2 ) {
             map.renderOnWaterGeneral(uniloc, cam, reg);
         }
     }
 
-    void SceneGraph::renderAnimate_onWater(const UnilocAnimate& uniloc, const ICamera& cam, entt::registry& reg) {
+    void SceneGraph::renderOnWaterAnimated(const UnilocAnimate& uniloc, const ICamera& cam, entt::registry& reg) {
         for ( auto& map : this->m_mapChunks2 ) {
             map.renderOnWaterAnimated(uniloc, cam, reg);
         }

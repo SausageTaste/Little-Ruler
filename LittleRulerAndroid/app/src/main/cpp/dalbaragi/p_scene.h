@@ -50,8 +50,8 @@ namespace dal {
         void renderDepthAnimated(const UnilocDepthAnime& uniloc);
         void renderWaterry(const UnilocWaterry& uniloc);
         void renderAnimate(const UnilocAnimate& uniloc);
-        void renderGeneral_onWater(const UnilocGeneral& uniloc, const ICamera& cam, entt::registry& reg);
-        void renderAnimate_onWater(const UnilocAnimate& uniloc, const ICamera& cam, entt::registry& reg);
+        void renderOnWaterGeneral(const UnilocGeneral& uniloc, const ICamera& cam, entt::registry& reg);
+        void renderOnWaterAnimated(const UnilocAnimate& uniloc, const ICamera& cam, entt::registry& reg);
 
         // Only for objects that are outside of this chunk.
         void applyCollision(const AABB& inOriginalBox, cpnt::Transform& inTrans);
@@ -94,8 +94,8 @@ namespace dal {
         void renderDepthAnimated(const UnilocDepthAnime& uniloc);
         void renderWaterry(const UnilocWaterry& uniloc);
         void renderAnimate(const UnilocAnimate& uniloc);
-        void renderGeneral_onWater(const UnilocGeneral& uniloc, const ICamera& cam, entt::registry& reg);
-        void renderAnimate_onWater(const UnilocAnimate& uniloc, const ICamera& cam, entt::registry& reg);
+        void renderOnWaterGeneral(const UnilocGeneral& uniloc, const ICamera& cam, entt::registry& reg);
+        void renderOnWaterAnimated(const UnilocAnimate& uniloc, const ICamera& cam, entt::registry& reg);
 
         void applyCollision(const AABB& inOriginalBox, cpnt::Transform& inTrans);
         std::optional<RayCastingResult> doRayCasting(const Ray& ray);
