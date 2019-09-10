@@ -421,16 +421,34 @@ namespace dal {
         for ( auto& map : this->m_mapChunks2 ) {
             map.renderGeneral(uniloc);
         }
+
+        this->m_entities.view<cpnt::Transform, cpnt::StaticModel>().each(
+            [&uniloc](const cpnt::Transform& trans, const cpnt::StaticModel& model) {
+                model.m_model.render(uniloc.m_lightedMesh, uniloc.getDiffuseMapLoc(), trans.getMat());
+            }
+        );
     }
 
     void SceneGraph::renderDepthMp(const UnilocDepthmp& uniloc) {
         for ( auto& map : this->m_mapChunks2 ) {
             map.renderDepthMp(uniloc);
         }
+
+        this->m_entities.view<cpnt::Transform, cpnt::StaticModel>().each(
+            [&uniloc](const cpnt::Transform& trans, const cpnt::StaticModel& model) {
+                model.m_model.renderDepthMap(uniloc.m_geometry, trans.getMat());
+            }
+        );
     }
 
     void SceneGraph::renderDepthAnimated(const UnilocDepthAnime& uniloc) {
+        const auto viewAnimated = this->m_entities.view<cpnt::Transform, cpnt::AnimatedModel>();
+        for ( const auto entity : viewAnimated ) {
+            auto& cpntTrans = viewAnimated.get<cpnt::Transform>(entity);
+            auto& cpntModel = viewAnimated.get<cpnt::AnimatedModel>(entity);
 
+            cpntModel.m_model.renderDepthMap(uniloc.m_geometry, uniloc.m_anime, cpntTrans.getMat(), cpntModel.m_animState.getTransformArray());
+        }
     }
 
     void SceneGraph::renderWaterry(const UnilocWaterry& uniloc) {
@@ -440,7 +458,14 @@ namespace dal {
     }
 
     void SceneGraph::renderAnimate(const UnilocAnimate& uniloc) {
+        const auto viewAnimated = this->m_entities.view<cpnt::Transform, cpnt::AnimatedModel>();
+        for ( const auto entity : viewAnimated ) {
+            auto& cpntTrans = viewAnimated.get<cpnt::Transform>(entity);
+            auto& cpntModel = viewAnimated.get<cpnt::AnimatedModel>(entity);
 
+            cpntModel.m_model.render(uniloc.m_lightedMesh, uniloc.getDiffuseMapLoc(), uniloc.m_anime, cpntTrans.getMat(),
+                cpntModel.m_animState.getTransformArray());
+        }
     }
 
     void SceneGraph::renderGeneral_onWater(const UnilocGeneral& uniloc, const ICamera& cam, entt::registry& reg) {

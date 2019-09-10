@@ -269,36 +269,20 @@ namespace dal {
     }
 
     void RenderMaster::render(entt::registry& reg) {
-        const auto viewStatic = reg.view<cpnt::Transform, cpnt::StaticModel>();
-        const auto viewAnimated = reg.view<cpnt::Transform, cpnt::AnimatedModel>();
-
         // Shadow map
         {
             this->m_dlight1.clearDepthBuffer();
 
             {
                 auto& uniloc = this->m_shader.useDepthMp();
-                m_dlight1.startRenderShadowmap(uniloc.m_geometry);
-                m_scene.renderDepthMp(uniloc);
-
-                viewStatic.each(
-                    [&uniloc](const cpnt::Transform& trans, const cpnt::StaticModel& model) {
-                        model.m_model.renderDepthMap(uniloc.m_geometry, trans.getMat());
-                    }
-                );
+                this->m_dlight1.startRenderShadowmap(uniloc.m_geometry);
+                this->m_scene.renderDepthMp(uniloc);
             }
 
             {
                 auto& uniloc = this->m_shader.useDepthAnime();
                 this->m_dlight1.startRenderShadowmap(uniloc.m_geometry);
                 this->m_scene.renderDepthAnimated(uniloc);
-
-                for ( const auto entity : viewAnimated ) {
-                    auto& cpntTrans = viewAnimated.get<cpnt::Transform>(entity);
-                    auto& cpntModel = viewAnimated.get<cpnt::AnimatedModel>(entity);
-
-                    cpntModel.m_model.renderDepthMap(uniloc.m_geometry, uniloc.m_anime, cpntTrans.getMat(), cpntModel.m_animState.getTransformArray());
-                }
             }
 
             m_dlight1.finishRenderShadowmap();
@@ -368,12 +352,6 @@ namespace dal {
             uniloc.m_lightedMesh.fogColor(this->m_skyColor);
 
             this->m_scene.renderGeneral(uniloc);
-
-            viewStatic.each(
-                [&uniloc](const cpnt::Transform& trans, const cpnt::StaticModel& model) {
-                    model.m_model.render(uniloc.m_lightedMesh, uniloc.getDiffuseMapLoc(), trans.getMat());
-                }
-            );
         }
 
         // Render to framebuffer animated
@@ -389,14 +367,6 @@ namespace dal {
             uniloc.m_lightedMesh.fogColor(this->m_skyColor);
 
             this->m_scene.renderAnimate(uniloc);
-
-            for ( const auto entity : viewAnimated ) {
-                auto& cpntTrans = viewAnimated.get<cpnt::Transform>(entity);
-                auto& cpntModel = viewAnimated.get<cpnt::AnimatedModel>(entity);
-
-                cpntModel.m_model.render(uniloc.m_lightedMesh, uniloc.getDiffuseMapLoc(), uniloc.m_anime, cpntTrans.getMat(),
-                    cpntModel.m_animState.getTransformArray());
-            }
         }
 
         // Render water to framebuffer
