@@ -1,6 +1,7 @@
 #pragma once
 
 #include <optional>
+#include <iostream>
 #include <unordered_map>
 
 #include <entt/entity/registry.hpp>
@@ -109,7 +110,7 @@ namespace dal {
     template <typename _Model>
     struct ModelHandleImpl {
         std::unique_ptr<_Model> m_model;
-        unsigned int m_refCount = 1;
+        size_t m_refCount = 1;
     };
 
     template <typename _Model>
@@ -128,17 +129,12 @@ namespace dal {
         IModelHandle(void)
             : m_pimpl(new ModelHandleImpl<_Model>)
         {
-
+            std::cout << 1 << std::endl;
         }
-        IModelHandle(const IModelHandle& other)
-            : m_pimpl(other.m_pimpl)
+        IModelHandle(_Model* const pModel)
+            : m_pimpl(new ModelHandleImpl<_Model>)
         {
-            ++this->m_pimpl;
-        }
-        IModelHandle(IModelHandle&& other) noexcept
-            : m_pimpl(nullptr) 
-        {
-            std::swap(this->m_pimpl, other.m_pimpl);
+            this->m_pimpl->m_model.reset(pModel);
         }
         ~IModelHandle(void) {
             if ( nullptr == this->m_pimpl ) {
@@ -152,6 +148,16 @@ namespace dal {
             }
         }
 
+        IModelHandle(const IModelHandle& other)
+            : m_pimpl(other.m_pimpl)
+        {
+            ++this->m_pimpl;
+        }
+        IModelHandle(IModelHandle&& other) noexcept
+            : m_pimpl(nullptr) 
+        {
+            std::swap(this->m_pimpl, other.m_pimpl);
+        }
         IModelHandle& operator=(const IModelHandle& other) {
             this->m_pimpl = other.m_pimpl;
             ++this->m_pimpl->m_refCount;
@@ -161,6 +167,7 @@ namespace dal {
             std::swap(this->m_pimpl, other.m_pimpl);
             return *this;
         }
+
         bool operator==(const IModelHandle<_Model>& other) const {
             if ( nullptr == this->m_pimpl->m_model ) {
                 return false;
@@ -176,7 +183,7 @@ namespace dal {
             }
         }
 
-        unsigned int getRefCount(void) const {
+        size_t getRefCount(void) const {
             return this->m_pimpl->m_refCount;
         }
         const ResourceID& getResID(void) const {
@@ -187,6 +194,10 @@ namespace dal {
         }
         const ICollider* getDetailed(void) const {
             return this->getPimpl()->m_model->m_detailed.get();
+        }
+
+        void reset(_Model* const model) {
+            this->m_pimpl->m_model.reset(model);
         }
 
     protected:
@@ -242,8 +253,6 @@ namespace dal {
     class ModelStaticHandle : public IModelHandle<ModelStatic> {
 
     public:
-        explicit ModelStaticHandle(ModelStatic* const model);
-
         void render(const UniInterfLightedMesh& unilocLighted, const SamplerInterf& samplerInterf, const glm::mat4& modelMat) const;
         void renderDepthMap(const UniInterfGeometry& unilocGeometry, const glm::mat4& modelMat) const;
 
@@ -252,7 +261,9 @@ namespace dal {
     class ModelAnimatedHandle : public IModelHandle<ModelAnimated> {
 
     public:
-        explicit ModelAnimatedHandle(ModelAnimated* const model);
+        const SkeletonInterface& getSkeletonInterf(void) const;
+        const std::vector<Animation>& getAnimations(void) const;
+        const glm::mat4& getGlobalInvMat(void) const;
 
         void render(const UniInterfLightedMesh& unilocLighted, const SamplerInterf& samplerInterf, const UniInterfAnime& unilocAnime,
             const glm::mat4 modelMat, const JointTransformArray& transformArr);
@@ -265,11 +276,11 @@ namespace dal {
     namespace cpnt {
 
         struct StaticModel {
-            ModelStatic* m_model = nullptr;
+            ModelStaticHandle m_model;
         };
 
         struct AnimatedModel {
-            ModelAnimated* m_model = nullptr;
+            ModelAnimatedHandle m_model;
             AnimationState m_animState;
         };
 

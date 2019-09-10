@@ -377,10 +377,6 @@ namespace dal {
 
 namespace dal {
 
-    ModelStaticHandle::ModelStaticHandle(ModelStatic* const model) {
-        this->getPimpl()->m_model.reset(model);
-    }
-
     void ModelStaticHandle::render(const UniInterfLightedMesh& unilocLighted, const SamplerInterf& samplerInterf, const glm::mat4& modelMat) const {
         this->getPimpl()->m_model->render(unilocLighted, samplerInterf, modelMat);
     }
@@ -394,8 +390,16 @@ namespace dal {
 
 namespace dal {
 
-    ModelAnimatedHandle::ModelAnimatedHandle(ModelAnimated* const model) {
-        this->getPimpl()->m_model.reset(model);
+    const SkeletonInterface& ModelAnimatedHandle::getSkeletonInterf(void) const {
+        return this->getPimpl()->m_model->getSkeletonInterf();
+    }
+
+    const std::vector<Animation>& ModelAnimatedHandle::getAnimations(void) const {
+        return this->getPimpl()->m_model->getAnimations();
+    }
+
+    const glm::mat4& ModelAnimatedHandle::getGlobalInvMat(void) const {
+        return this->getPimpl()->m_model->getGlobalInvMat();
     }
 
     void ModelAnimatedHandle::render(const UniInterfLightedMesh& unilocLighted, const SamplerInterf& samplerInterf, const UniInterfAnime& unilocAnime,

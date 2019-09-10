@@ -11,6 +11,7 @@
 #include "u_luascript.h"
 #include "u_vecutil.h"
 #include "g_charastate.h"
+#include "p_model.h"
 
 
 using namespace fmt::literals;
@@ -408,7 +409,6 @@ namespace dal {
             transform.setScale(0.2f);
 
             auto ptrModel = this->m_resMas.orderModelAnim("asset::Character Running.dae");
-            dalAssert(nullptr != ptrModel);
             auto& renderable = this->m_enttMaster.assign<cpnt::AnimatedModel>(this->m_player);
             renderable.m_model = ptrModel;
 
@@ -484,8 +484,8 @@ namespace dal {
             auto view = this->m_enttMaster.view<cpnt::AnimatedModel>();
             for ( const auto entity : view ) {
                 auto& cpntModel = view.get(entity);
-                auto pModel = cpntModel.m_model;
-                updateAnimeState(cpntModel.m_animState, pModel->getAnimations(), pModel->getSkeletonInterf(), pModel->getGlobalInvMat());
+                auto& pModel = cpntModel.m_model;  // Bug if it is not reference type.
+                updateAnimeState(cpntModel.m_animState, pModel.getAnimations(), pModel.getSkeletonInterf(), pModel.getGlobalInvMat());
             }
         }
 

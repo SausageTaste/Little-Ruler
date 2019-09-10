@@ -65,7 +65,7 @@ namespace dal {
         std::string m_name;
         // All keys are stored in form of file name + ext.
         std::unordered_map<std::string, ModelStaticHandle> m_models;
-        std::unordered_map<std::string, ModelAnimated*> m_animatedModels;
+        std::unordered_map<std::string, ModelAnimatedHandle> m_animatedModels;
         std::unordered_map<std::string, Texture*> m_textures;
 
     public:
@@ -75,21 +75,21 @@ namespace dal {
     public:
         Package(const std::string& pckName);
         Package(std::string&& pckName);
+        ~Package(void);
 
         Package(Package&& other) noexcept;
         Package& operator=(Package&&) noexcept;
-        ~Package(void);
 
         bool hasTexture(const ResourceID& resPath);
         bool hasModelStatic(const ResourceID& resPath);
         bool hasModelAnim(const ResourceID& resPath);
 
         std::optional<ModelStaticHandle> getModelStatic(const ResourceID& resID);
-        ModelAnimated* getModelAnim(const ResourceID& resID);
+        std::optional<ModelAnimatedHandle> getModelAnim(const ResourceID& resID);
         Texture* getTexture(const ResourceID& resID);
 
-        bool giveModelStatic(const ResourceID& resID, ModelStaticHandle mdl);
-        bool giveModelAnim(const ResourceID& resID, ModelAnimated* const mdl);
+        bool giveModelStatic(const ResourceID& resID, const ModelStaticHandle& mdl);
+        bool giveModelAnim(const ResourceID& resID, const ModelAnimatedHandle& mdl);
         bool giveTexture(const ResourceID& resID, Texture* const tex);
 
     };
@@ -115,7 +115,7 @@ namespace dal {
         virtual void notifyTask(std::unique_ptr<ITask> task) override;
 
         ModelStaticHandle orderModelStatic(const ResourceID& resID);
-        ModelAnimated* orderModelAnim(const ResourceID& resID);
+        ModelAnimatedHandle orderModelAnim(const ResourceID& resID);
         Texture* orderTexture(const ResourceID& resID);
         MapChunk2 loadMap(const ResourceID& resID);
 

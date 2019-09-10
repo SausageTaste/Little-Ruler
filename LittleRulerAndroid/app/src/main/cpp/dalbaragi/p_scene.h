@@ -14,6 +14,7 @@
 
 namespace dal {
 
+    /*
     class MapChunk {
 
     private:
@@ -64,6 +65,7 @@ namespace dal {
         int sendUniforms_lights(const UniInterfLightedMesh& uniloc, int startIndex) const;
 
     };
+    */
 
 
     class SceneGraph {
@@ -72,14 +74,13 @@ namespace dal {
 
     private:
         ResourceMaster& m_resMas;
-        std::list<MapChunk> m_mapChunks;
+        //std::list<MapChunk> m_mapChunks;
         std::list<MapChunk2> m_mapChunks2;
 
         //////// Methods ////////
 
     public:
         SceneGraph(ResourceMaster& resMas, const unsigned int winWidth, const unsigned int winHeight);
-        ~SceneGraph(void);
 
         void update(const float deltaTime);
 
@@ -94,13 +95,7 @@ namespace dal {
         void applyCollision(const AABB& inOriginalBox, cpnt::Transform& inTrans);
         std::optional<RayCastingResult> doRayCasting(const Ray& ray);
 
-        void loadMap(const ResourceID& mapID);
-
         void onResize(const unsigned int width, const unsigned int height);
-
-    private:
-        void addMap(const loadedinfo::LoadedMap& map);
-        MapChunk* findMap(const std::string& name);
 
     };
 

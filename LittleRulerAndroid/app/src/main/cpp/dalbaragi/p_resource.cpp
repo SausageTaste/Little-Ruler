@@ -234,7 +234,7 @@ namespace dal {
 
                 view.each(
                     [&uniloc](const cpnt::Transform& trans, const cpnt::StaticModel& model) {
-                        model.m_model->render(uniloc.m_lightedMesh, uniloc.getDiffuseMapLoc(), trans.getMat());
+                        model.m_model.render(uniloc.m_lightedMesh, uniloc.getDiffuseMapLoc(), trans.getMat());
                     }
                 );
             }
@@ -246,7 +246,7 @@ namespace dal {
 
                 view.each(
                     [&uniloc](const cpnt::Transform& trans, const cpnt::StaticModel& model) {
-                        model.m_model->render(uniloc.m_lightedMesh, uniloc.getDiffuseMapLoc(), trans.getMat());
+                        model.m_model.render(uniloc.m_lightedMesh, uniloc.getDiffuseMapLoc(), trans.getMat());
                     }
                 );
             }
@@ -265,7 +265,7 @@ namespace dal {
                     auto& cpntTransform = view.get<cpnt::Transform>(entity);
                     auto& cpntModel = view.get<cpnt::AnimatedModel>(entity);
 
-                    cpntModel.m_model->render(uniloc.m_lightedMesh, uniloc.getDiffuseMapLoc(), uniloc.m_anime, cpntTransform.getMat(),
+                    cpntModel.m_model.render(uniloc.m_lightedMesh, uniloc.getDiffuseMapLoc(), uniloc.m_anime, cpntTransform.getMat(),
                         cpntModel.m_animState.getTransformArray());
                 }
             }
@@ -278,7 +278,7 @@ namespace dal {
                     auto& cpntTransform = view.get<cpnt::Transform>(entity);
                     auto& cpntModel = view.get<cpnt::AnimatedModel>(entity);
 
-                    cpntModel.m_model->render(uniloc.m_lightedMesh, uniloc.getDiffuseMapLoc(), uniloc.m_anime, cpntTransform.getMat(),
+                    cpntModel.m_model.render(uniloc.m_lightedMesh, uniloc.getDiffuseMapLoc(), uniloc.m_anime, cpntTransform.getMat(),
                         cpntModel.m_animState.getTransformArray());
                 }
             }
@@ -339,9 +339,6 @@ namespace dal {
     }
 
     Package::~Package(void) {
-        for ( auto& [id, pMdl] : this->m_animatedModels ) {
-            delete pMdl;
-        }
         for ( auto& [id, pTex] : this->m_textures ) {
             delete pTex;
         }
@@ -370,10 +367,10 @@ namespace dal {
         }
     }
 
-    ModelAnimated* Package::getModelAnim(const ResourceID& resID) {
+    std::optional<ModelAnimatedHandle> Package::getModelAnim(const ResourceID& resID) {
         auto found = this->m_animatedModels.find(resID.makeFileName());
         if ( this->m_animatedModels.end() == found ) {
-            return nullptr;
+            return std::nullopt;
         }
         else {
             return found->second;
@@ -390,7 +387,7 @@ namespace dal {
         }
     }
 
-    bool Package::giveModelStatic(const ResourceID& resID, ModelStaticHandle mdl) {
+    bool Package::giveModelStatic(const ResourceID& resID, const ModelStaticHandle& mdl) {
         const auto filename = resID.makeFileName();
 
         if ( this->m_models.end() != this->m_models.find(filename) ) {
@@ -398,12 +395,12 @@ namespace dal {
             return false;
         }
         else {
-            this->m_models.emplace(filename, std::move(mdl));
+            this->m_models.emplace(filename, mdl);
             return true;
         }
     }
 
-    bool Package::giveModelAnim(const ResourceID& resID, ModelAnimated* const mdl) {
+    bool Package::giveModelAnim(const ResourceID& resID, const ModelAnimatedHandle& mdl) {
         const auto filename = resID.makeFileName();
 
         if ( this->m_animatedModels.end() != this->m_animatedModels.find(filename) ) {
@@ -566,23 +563,24 @@ namespace dal {
         }
     }
 
-    ModelAnimated* ResourceMaster::orderModelAnim(const ResourceID& resID) {
+    ModelAnimatedHandle ResourceMaster::orderModelAnim(const ResourceID& resID) {
         auto& package = this->orderPackage(resID.getPackage());
 
         auto found = package.getModelAnim(resID);
-        if ( nullptr != found ) {
-            return found;
+        if ( found ) {
+            return *found;
         }
         else {
-            auto model = new ModelAnimated;
+            auto model = new ModelAnimated; dalAssert(nullptr != model);
+            ModelAnimatedHandle modelHandle{ model };
             model->m_resID = resID;
-            package.giveModelAnim(resID, model);
+            package.giveModelAnim(resID, modelHandle);
 
             auto task = new LoadTask_ModelAnimated{ resID, *model, package };
             g_sentTasks_modelAnimated.insert(task);
             TaskGod::getinst().orderTask(task, this);
 
-            return model;
+            return modelHandle;
         }
     }
 

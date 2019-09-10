@@ -15,6 +15,7 @@ using namespace fmt::literals;
 
 namespace dal {
 
+    /*
     MapChunk::MapChunk(const std::string& name)
         : m_name(name)
     {
@@ -147,7 +148,7 @@ namespace dal {
 
                 view.each(
                     [&uniloc](const cpnt::Transform& trans, const cpnt::StaticModel& model) {
-                        model.m_model->render(uniloc.m_lightedMesh, uniloc.getDiffuseMapLoc(), trans.getMat());
+                        model.m_model.render(uniloc.m_lightedMesh, uniloc.getDiffuseMapLoc(), trans.getMat());
                     }
                 );
             }
@@ -159,7 +160,7 @@ namespace dal {
 
                 view.each(
                     [&uniloc](const cpnt::Transform& trans, const cpnt::StaticModel& model) {
-                        model.m_model->render(uniloc.m_lightedMesh, uniloc.getDiffuseMapLoc(), trans.getMat());
+                        model.m_model.render(uniloc.m_lightedMesh, uniloc.getDiffuseMapLoc(), trans.getMat());
                     }
                 );
             }
@@ -178,7 +179,7 @@ namespace dal {
                     auto& cpntTransform = view.get<cpnt::Transform>(entity);
                     auto& cpntModel = view.get<cpnt::AnimatedModel>(entity);
 
-                    cpntModel.m_model->render(uniloc.m_lightedMesh, uniloc.getDiffuseMapLoc(), uniloc.m_anime, cpntTransform.getMat(),
+                    cpntModel.m_model.render(uniloc.m_lightedMesh, uniloc.getDiffuseMapLoc(), uniloc.m_anime, cpntTransform.getMat(),
                         cpntModel.m_animState.getTransformArray());
                 }
             }
@@ -191,7 +192,7 @@ namespace dal {
                     auto& cpntTransform = view.get<cpnt::Transform>(entity);
                     auto& cpntModel = view.get<cpnt::AnimatedModel>(entity);
 
-                    cpntModel.m_model->render(uniloc.m_lightedMesh, uniloc.getDiffuseMapLoc(), uniloc.m_anime, cpntTransform.getMat(),
+                    cpntModel.m_model.render(uniloc.m_lightedMesh, uniloc.getDiffuseMapLoc(), uniloc.m_anime, cpntTransform.getMat(),
                         cpntModel.m_animState.getTransformArray());
                 }
             }
@@ -213,7 +214,6 @@ namespace dal {
     }
 
     void MapChunk::applyCollision(const AABB& inOriginalBox, cpnt::Transform& inTrans) {
-        /*
         for ( auto& [mdl, actors] : this->m_modelActors ) {
             for ( auto& targetActor : actors ) {
                 if ( checkCollision(inOriginalBox, mdl.getBounding(), inTrans, targetActor.m_transform) ) {
@@ -239,14 +239,12 @@ namespace dal {
                 }
             }
         }
-        */
     }
 
     std::optional<RayCastingResult> MapChunk::doRayCasting(const Ray& ray) {
         RayCastingResult result;
         bool found = false;
 
-        /*
         auto innerFunc = [&](const AABB& aabb, const Transform& aabbTrans) -> void {
             const auto info = calcCollisionInfo(ray, aabb, aabbTrans);
             if ( info ) {
@@ -274,7 +272,6 @@ namespace dal {
                 innerFunc(mdl->getBoundingBox(), targetActor.m_transform);
             }
         }
-        */
 
         if ( found ) {
             return result;
@@ -315,6 +312,7 @@ namespace dal {
         }
         return nullptr;
     }
+    */
 
 }
 
@@ -335,83 +333,50 @@ namespace dal {
         this->m_mapChunks2.push_back(std::move(map));
     }
 
-    SceneGraph::~SceneGraph(void) {
-
-    }
-
 
     void SceneGraph::update(const float deltaTime) {
-        for ( auto& map : this->m_mapChunks ) {
-            map.update(deltaTime);
-        }
+
     }
 
     void SceneGraph::renderGeneral(const UnilocGeneral& uniloc) {
-        for ( auto& map : m_mapChunks ) {
-            map.renderGeneral(uniloc);
-        }
-
         for ( auto& map : this->m_mapChunks2 ) {
             map.renderGeneral(uniloc);
         }
     }
 
     void SceneGraph::renderDepthMp(const UnilocDepthmp& uniloc) {
-        for ( auto& map : m_mapChunks ) {
-            map.renderDepthMp(uniloc);
-        }
-
         for ( auto& map : this->m_mapChunks2 ) {
             map.renderDepthMp(uniloc);
         }
     }
 
     void SceneGraph::renderDepthAnimated(const UnilocDepthAnime& uniloc) {
-        for ( auto& map : m_mapChunks ) {
-            map.renderDepthAnimated(uniloc);
-        }
+
     }
 
     void SceneGraph::renderWaterry(const UnilocWaterry& uniloc) {
-        for ( auto& map : m_mapChunks ) {
-            map.renderWaterry(uniloc);
-        }
-
         for ( auto& map : m_mapChunks2 ) {
             map.renderWater(uniloc);
         }
     }
 
     void SceneGraph::renderAnimate(const UnilocAnimate& uniloc) {
-        for ( auto& map : m_mapChunks ) {
-            map.renderAnimate(uniloc);
-        }
+
     }
 
     void SceneGraph::renderGeneral_onWater(const UnilocGeneral& uniloc, const ICamera& cam, entt::registry& reg) {
-        for ( auto& map : this->m_mapChunks ) {
-            map.renderGeneral_onWater(uniloc, cam, reg);
-        }
-
         for ( auto& map : this->m_mapChunks2 ) {
             map.renderOnWaterGeneral(uniloc, cam, reg);
         }
     }
 
     void SceneGraph::renderAnimate_onWater(const UnilocAnimate& uniloc, const ICamera& cam, entt::registry& reg) {
-        for (auto& map : this->m_mapChunks ) {
-            map.renderAnimate_onWater(uniloc, cam, reg);
-        }
         for ( auto& map : this->m_mapChunks2 ) {
             map.renderOnWaterAnimated(uniloc, cam, reg);
         }
     }
 
     void SceneGraph::applyCollision(const AABB& inOriginalBox, cpnt::Transform& inTrans) {
-        for ( auto& map : this->m_mapChunks ) {
-            map.applyCollision(inOriginalBox, inTrans);
-        }
-
         const ColAABB absAABB{ inOriginalBox };
         for ( auto& map : this->m_mapChunks2 ) {
             map.applyCollision(absAABB, inTrans);
@@ -446,55 +411,8 @@ namespace dal {
         }
     }
 
-
-    void SceneGraph::loadMap(const ResourceID& mapID) {
-        std::vector<uint8_t> buffer;
-        auto res = futil::getRes_buffer(mapID, buffer);
-        if ( !res ) {
-            dalError("Failed to load map file: {}"_format(mapID.makeIDStr()));
-            return;
-        }
-
-        loadedinfo::LoadedMap info;
-        info.m_mapName = mapID.getBareName();
-        info.m_packageName = mapID.getPackage();
-
-        res = parseMap_dlb(info, buffer.data(), buffer.size());
-        if ( !res ) {
-            dalError("Failed to parse level: {}"_format(mapID.makeIDStr()));
-            return;
-        }
-
-        this->addMap(info);
-    }
-
     void SceneGraph::onResize(const unsigned int width, const unsigned int height) {
-        for ( auto& map : this->m_mapChunks ) {
-            map.onScreanResize(width, height);
-        }
-    }
 
-    // Private
-
-    void SceneGraph::addMap(const loadedinfo::LoadedMap& map) {
-        this->m_mapChunks.emplace_back(map, this->m_resMas);
-        dalInfo("Map added: {}"_format(this->m_mapChunks.back().getName()));
-    }
-
-    MapChunk* SceneGraph::findMap(const std::string& name) {
-        if ( name.empty() ) {
-            dalError("Failed to find map because map name was not given.");
-            return nullptr;
-        }
-
-        for ( auto& map : this->m_mapChunks ) {
-            if ( name == map.getName() ) {
-                return &map;
-            }
-        }
-
-        dalError("Failed to find map in SceneGraph: {}"_format(name));
-        return nullptr;
     }
 
 }
