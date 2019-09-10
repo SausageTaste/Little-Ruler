@@ -53,7 +53,7 @@ namespace {
         const dal::ResourceID in_modelID;
 
         bool out_success;
-        dal::loadedinfo::ModelStatic out_info;
+        dal::AssimpModelInfo out_info;
 
         dal::ModelStatic& data_coresponding;
         dal::Package& data_package;
@@ -69,7 +69,7 @@ namespace {
         }
 
         virtual void start(void) override {
-            out_success = dal::loadAssimp_staticModel(out_info, this->in_modelID);
+            this->out_success = dal::loadAssimpModel(this->in_modelID, this->out_info);
         }
 
     };
@@ -98,6 +98,9 @@ namespace {
 
         virtual void start(void) override {
             this->out_success = dal::loadAssimpModel(this->in_modelID, this->out_info);
+            if ( 0 == this->out_info.m_model.m_joints.getSize() ) {
+                this->out_success = false;
+            }
         }
 
     };
@@ -459,7 +462,7 @@ namespace dal {
 
                 loaded->data_coresponding.m_resID = std::move(loaded->in_modelID);
 
-                for ( auto& unitInfo : loaded->out_info.m_renderUnits ) {
+                for ( auto& unitInfo : loaded->out_info.m_model.m_renderUnits ) {
                     auto& unit = loaded->data_coresponding.newRenderUnit();
 
                     unit.m_mesh.buildData(
@@ -482,7 +485,7 @@ namespace dal {
                     }
                 }
 
-                loaded->data_coresponding.m_bounding.reset(new ColAABB{ loaded->out_info.m_aabb });
+                loaded->data_coresponding.m_bounding.reset(new ColAABB{ loaded->out_info.m_model.m_aabb });
             }
         }
         else if ( g_sentTasks_texture.find(task.get()) != g_sentTasks_texture.end() ) {

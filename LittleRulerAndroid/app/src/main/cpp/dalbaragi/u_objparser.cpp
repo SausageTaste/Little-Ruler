@@ -371,9 +371,7 @@ namespace {
 
     bool processMesh(dal::loadedinfo::RenderUnit& renUnit, AABBBuildInfo& aabbInfo, aiMesh* const mesh) {
         renUnit.m_name = reinterpret_cast<char*>(&mesh->mName);
-
         copy3BasicVertexInfo(renUnit.m_mesh.m_vertices, renUnit.m_mesh.m_texcoords, renUnit.m_mesh.m_normals, aabbInfo, mesh);
-
         return true;
     }
 
@@ -381,49 +379,50 @@ namespace {
         AABBBuildInfo& aabbInfo, aiMesh* const mesh)
     {
         renUnit.m_name = reinterpret_cast<char*>(&mesh->mName);
-
-        std::vector<std::multimap<float, unsigned int>> count;
-        count.resize(mesh->mNumVertices);
-
-        size_t numVert = static_cast<size_t>(mesh->mNumVertices);
-        renUnit.m_mesh.m_boneWeights.resize(numVert * 3U);
-        renUnit.m_mesh.m_boneIndex.resize(numVert * 3U);
-
         copy3BasicVertexInfo(renUnit.m_mesh.m_vertices, renUnit.m_mesh.m_texcoords, renUnit.m_mesh.m_normals, aabbInfo, mesh);
 
-        for ( unsigned int i = 0; i < mesh->mNumBones; i++ ) {
-            const auto bone = mesh->mBones[i];
-            const auto jointIndex = jointInfo.getOrMakeIndexOf(bone->mName.C_Str());
+        if ( mesh->mNumBones > 0 ) {
+            size_t numVert = static_cast<size_t>(mesh->mNumVertices);
+            renUnit.m_mesh.m_boneWeights.resize(numVert * 3U);
+            renUnit.m_mesh.m_boneIndex.resize(numVert * 3U);
 
-            jointInfo.setOffsetMat(jointIndex, convertAssimpMat(bone->mOffsetMatrix));
+            std::vector<std::multimap<float, unsigned int>> count;
+            count.resize(mesh->mNumVertices);
 
-            for ( unsigned int j = 0; j < bone->mNumWeights; j++ ) {
-                const auto& weight = bone->mWeights[j];
-                count.at(weight.mVertexId).emplace(weight.mWeight, jointIndex);
+            for ( unsigned int i = 0; i < mesh->mNumBones; i++ ) {
+                const auto bone = mesh->mBones[i];
+                const auto jointIndex = jointInfo.getOrMakeIndexOf(bone->mName.C_Str());
+
+                jointInfo.setOffsetMat(jointIndex, convertAssimpMat(bone->mOffsetMatrix));
+
+                for ( unsigned int j = 0; j < bone->mNumWeights; j++ ) {
+                    const auto& weight = bone->mWeights[j];
+                    count.at(weight.mVertexId).emplace(weight.mWeight, jointIndex);
+                }
             }
-        }
 
-        for ( size_t i = 0; i < count.size(); i++ ) {
-            auto& vmap = count.at(i);
+            for ( size_t i = 0; i < count.size(); i++ ) {
+                auto& vmap = count.at(i);
 
-            auto iter = vmap.rbegin();
-            glm::vec3 weightBuffer;
-            int32_t indexBuf[3] = { -1, -1, -1 };
-            for ( unsigned int j = 0; j < 3; j++ ) {
-                if ( vmap.rend() == iter ) {
-                    break;
+                auto iter = vmap.rbegin();
+                glm::vec3 weightBuffer;
+                int32_t indexBuf[3] = { -1, -1, -1 };
+                for ( unsigned int j = 0; j < 3; j++ ) {
+                    if ( vmap.rend() == iter ) {
+                        break;
+                    }
+
+                    weightBuffer[j] = iter->first;
+                    indexBuf[j] = iter->second;
+
+                    ++iter;
                 }
 
-                weightBuffer[j] = iter->first;
-                indexBuf[j] = iter->second;
+                weightBuffer = glm::normalize(weightBuffer);
 
-                ++iter;
+                std::memcpy(&renUnit.m_mesh.m_boneWeights[3 * i], &weightBuffer[0], 3 * sizeof(float));
+                std::memcpy(&renUnit.m_mesh.m_boneIndex[3 * i], &indexBuf[0], 3 * sizeof(int32_t));
             }
-
-            weightBuffer = glm::normalize(weightBuffer);
-
-            std::memcpy(&renUnit.m_mesh.m_boneWeights[3 * i], &weightBuffer[0], 3 * sizeof(float));
-            std::memcpy(&renUnit.m_mesh.m_boneIndex[3 * i], &indexBuf[0], 3 * sizeof(int32_t));
         }
 
         return true;
@@ -506,6 +505,26 @@ namespace dal {
         return res;
     }
 
+    bool loadAssimpModelStatic(const ResourceID& resID, AssimpModelInfo& info) {
+        Assimp::Importer importer;
+        importer.SetIOHandler(new AssResourceIOSystem);
+        const auto scene = importer.ReadFile(makeAssimpResID(resID).c_str(), aiProcess_Triangulate);
+        if ( !isSceneComplete(scene) ) {
+            dalError("Assimp read fail: {}"_format(importer.GetErrorString()));
+            return false;
+        }
+
+        const auto materials = parseMaterials(scene);
+        info.m_model.m_globalTrans = convertAssimpMat(scene->mRootNode->mTransformation);
+
+        AABBBuildInfo aabbInfo;
+        const auto res = processNodeAnimated(info.m_model, materials, aabbInfo, scene, scene->mRootNode);
+        // TODO : Error handling.
+        info.m_model.m_aabb.set(aabbInfo.p1, aabbInfo.p2);
+
+        return true;
+    }
+
     bool loadAssimpModel(const ResourceID& resID, AssimpModelInfo& info) {
         Assimp::Importer importer;
         importer.SetIOHandler(new AssResourceIOSystem);
@@ -516,12 +535,16 @@ namespace dal {
         }
 
         const auto materials = parseMaterials(scene);
-        processAnimation(scene, info.m_animations);
         info.m_model.m_globalTrans = convertAssimpMat(scene->mRootNode->mTransformation);
 
         AABBBuildInfo aabbInfo;
         const auto res = processNodeAnimated(info.m_model, materials, aabbInfo, scene, scene->mRootNode);
-        // TODO : Error handling.
+        //TODO : Error handling.
+
+        if ( info.m_model.m_joints.getSize() > 0 ) {
+            processAnimation(scene, info.m_animations);
+        }
+
         info.m_model.m_aabb.set(aabbInfo.p1, aabbInfo.p2);
 
         return true;

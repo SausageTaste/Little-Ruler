@@ -14,6 +14,6 @@ namespace dal {
         std::vector<Animation> m_animations;
     };
 
-     bool loadAssimpModel(const ResourceID& resID, AssimpModelInfo& info);
+    bool loadAssimpModel(const ResourceID& resID, AssimpModelInfo& info);
 
 }
