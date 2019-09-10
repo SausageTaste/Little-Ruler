@@ -58,7 +58,7 @@ float _getShadowFactor_directional(int index, vec4 fragPosInDlight) {
 
 float _distanceDecreaser(float dist) {
     const float k_startDecrease = 15.0;
-    const float k_endDecrea = 20.0;
+    const float k_endDecrea = 80.0;
 
     if (dist < k_startDecrease)
         return 1.0;
