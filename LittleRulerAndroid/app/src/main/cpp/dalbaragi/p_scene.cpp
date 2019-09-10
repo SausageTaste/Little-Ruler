@@ -6,7 +6,6 @@
 #include <fmt/format.h>
 
 #include "s_logger_god.h"
-#include "u_maploader.h"
 #include "s_configs.h"
 #include "g_charastate.h"
 #include "u_vecutil.h"
