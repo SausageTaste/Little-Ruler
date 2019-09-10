@@ -1,6 +1,5 @@
 #include "u_objparser.h"
 
-//#include <array>
 #include <unordered_map>
 
 #include <glm/gtc/matrix_transform.hpp>

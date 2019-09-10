@@ -281,7 +281,8 @@ namespace dal {
 namespace dal {
 
     WaterRenderer::WaterRenderer(const dlb::WaterPlane& info, const unsigned int winWidth, const unsigned int winHeight)
-        : m_depthColor(info.m_deepColor)
+        : m_fbuffer(winWidth, winHeight)
+        , m_depthColor(info.m_deepColor)
         , m_height(info.m_centerPos.y)
         , m_moveSpeed(info.m_flowSpeed)
         , m_waveStreng(info.m_waveStreng)
@@ -290,7 +291,6 @@ namespace dal {
         , m_moveFactor(0.0f)
         , m_dudvMap(getDUDVMap())
         , m_normalMap(getWaterNormalMap())
-        , m_fbuffer(winWidth, winHeight)
     {
         constexpr float TEX_SCALE_FACTOR = 0.05f;
 

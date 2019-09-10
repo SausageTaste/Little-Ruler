@@ -1,8 +1,5 @@
 #include "p_scene.h"
 
-#include <unordered_set>
-#include <cassert>
-
 #include <fmt/format.h>
 
 #include "s_logger_god.h"
