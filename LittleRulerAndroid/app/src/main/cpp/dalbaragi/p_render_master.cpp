@@ -168,15 +168,15 @@ namespace dal {
         , m_fbuffer(winWidth, winHeight)
         , m_winWidth(winWidth), m_winHeight(winHeight)
         , m_flagDrawDlight1(true)
-        , m_skyColor(0.6f, 0.6f, 0.9f)
+        , m_skyColor(0.8f, 0.7f, 0.7f)
         , m_mainCamera(camera)
         , m_farPlaneDistance(150.0f)
         , m_baseAmbientColor(0.3f, 0.3f, 0.3f)
     {
         // Lights
         {
-            m_dlight1.m_color = { 0.7, 0.7, 0.7 };
-            m_dlight1.setDirectin(-0.3f, -0.4f, -0.5f);
+            m_dlight1.m_color = { 0.8, 0.7, 0.7 };
+            m_dlight1.setDirectin(0.26373626373626374f, -0.30726256983240224f, 1.f);
         }
 
         // OpenGL global switch
