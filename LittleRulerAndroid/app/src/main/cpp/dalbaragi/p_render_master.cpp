@@ -262,6 +262,8 @@ namespace dal {
                 dalAssert(res);
                 data.set(i, info.m_buf.data(), info.m_width, info.m_height, info.m_pixSize);
             }
+
+            this->m_cubeMap.init(data);
         }
 
         // Misc
@@ -410,6 +412,11 @@ namespace dal {
             }
 
             this->m_scene.renderWater(uniloc);
+        }
+
+        // Skybox
+        {
+
         }
 
         // Render framebuffer to quad 

@@ -294,4 +294,19 @@ namespace dal {
 
     };
 
+    class UnilocSkybox {
+
+    public:
+        UniInterfGeometry m_geometry;
+
+    private:
+        SamplerInterf u_skyboxTex;
+
+    public:
+        UnilocSkybox(const GLuint shader);
+
+        const SamplerInterf& getSkyboxTexLoc(void) const;
+
+    };
+
 }

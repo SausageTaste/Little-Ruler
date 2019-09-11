@@ -57,6 +57,10 @@ namespace {
         glDisable(GL_POLYGON_OFFSET_FILL);
     }
 
+    void setFor_skybox(void) {
+
+    }
+
 }
 
 
@@ -501,6 +505,8 @@ namespace dal {
         , m_animateUniloc(m_animate.get())
         , m_depthAnime(g_loader["depthanime.vert"], g_loader["depthanime.frag"])
         , m_depthAnimeUniloc(m_depthAnime.get())
+        , m_skybox(g_loader["skybox.vert"], g_loader["skybox.frag"])
+        , m_skyboxUniloc(m_skybox.get())
     {
         g_loader.clear();
     }
@@ -545,6 +551,12 @@ namespace dal {
         setFor_shadowmap();
         this->m_depthAnime.use();
         return this->m_depthAnimeUniloc;
+    }
+
+    const UnilocSkybox& ShaderMaster::useSkybox(void) const {
+        setFor_skybox();
+        this->m_skybox.use();
+        return this->m_skyboxUniloc;
     }
 
 }

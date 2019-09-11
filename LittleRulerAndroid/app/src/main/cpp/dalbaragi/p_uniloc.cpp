@@ -549,6 +549,22 @@ namespace dal {
 }
 
 
+// UnilocSkybox
+namespace dal {
+
+    UnilocSkybox::UnilocSkybox(const GLuint shader)
+        : m_geometry(shader) 
+    {
+        this->u_skyboxTex.init(getUniloc(shader, "u_skyboxTex"), -2, g_texUnitReg["u_skyboxTex"]);
+    }
+
+    const SamplerInterf& UnilocSkybox::getSkyboxTexLoc(void) const {
+        return this->u_skyboxTex;
+    }
+
+}
+
+
 namespace dal {
 
     UnilocDepthmp::UnilocDepthmp(const GLuint shader)

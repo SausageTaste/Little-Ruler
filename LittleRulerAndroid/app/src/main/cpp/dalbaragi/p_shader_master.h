@@ -45,6 +45,9 @@ namespace dal {
         ShaderProgram2 m_depthAnime;
         UnilocDepthAnime m_depthAnimeUniloc;
 
+        ShaderProgram2 m_skybox;
+        UnilocSkybox m_skyboxUniloc;
+
     public:
         ShaderMaster(void);
 
@@ -55,6 +58,7 @@ namespace dal {
         const UnilocWaterry& useWaterry(void) const;
         const UnilocAnimate& useAnimate(void) const;
         const UnilocDepthAnime& useDepthAnime(void) const;
+        const UnilocSkybox& useSkybox(void) const;
 
     };
 
