@@ -113,7 +113,7 @@ namespace dal {
             glBindVertexArray(0);
         }
 
-        this->m_tex = new Texture(this->m_colorMap);
+        this->m_tex = new Texture{ this->m_colorMap };
     }
 
     RenderMaster::MainFramebuffer::~MainFramebuffer(void) {

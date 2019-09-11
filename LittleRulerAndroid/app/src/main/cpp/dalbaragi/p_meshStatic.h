@@ -8,6 +8,7 @@
 #include "p_uniloc.h"
 
 
+// Meshes
 namespace dal {
 
     template <unsigned int _NumBuffs>
@@ -149,51 +150,111 @@ namespace dal {
 
     };
 
+}
 
-    class Texture {
 
-        //////// Attribs ////////
+// Textures
+namespace dal {
+
+    class ITexture {
 
     private:
         GLuint m_texID = 0;
 
-        //////// Methods ////////
+    public:
+        ITexture(const ITexture&) = delete;
+        ITexture& operator=(const ITexture&) = delete;
 
     public:
-        Texture(const Texture&) = delete;
-        Texture& operator=(const Texture&) = delete;
+        ITexture(void) = default;
+        ITexture(const GLuint id);
+        ITexture(ITexture&& other) noexcept;
+        ITexture& operator=(ITexture&& other) noexcept;
+        ~ITexture(void);
+
+        void invalidate(void);
+        void reset(const GLuint id);
+        bool isReady(void) const;
+        GLuint get(void) const noexcept {
+            return m_texID;
+        }
+
+    protected:
+        void genTexture(const char* const str4Log);
+
+    };
+
+
+    class Texture : public ITexture {
 
     public:
-        Texture(void) = default;
-        Texture(const GLuint id);
-
-        Texture(Texture&& other) noexcept;
-        Texture& operator=(Texture&& other) noexcept;
-
-        ~Texture(void);
-
         void init_diffueMap(const uint8_t* const image, const unsigned int width, const unsigned int height);
         void init_diffueMap3(const uint8_t* const image, const unsigned int width, const unsigned int height);
         void init_depthMap(const unsigned int width, const unsigned int height);
         void init_maskMap(const uint8_t* const image, const unsigned int width, const unsigned int height);
         void initAttach_colorMap(const unsigned int width, const unsigned int height);
 
-        void invalidate(void);
-        void reset(const GLuint id);
-        bool isReady(void) const;
-        GLuint get(void) {
-            return m_texID;
-        }
-
         void sendUniform(const GLint uniloc_sampler, const GLint uniloc_has, const unsigned int index) const;
         void sendUniform(const SamplerInterf& uniloc) const;
 
-    private:
-        void genTexture(const char* const str4Log);
+    };
 
+
+    class CubeMap : public ITexture {
+
+    public:
+        class CubeMapData {
+
+        private:
+            const uint8_t* m_buffers[6];
+            unsigned int m_widthes[6], m_heights[6];
+
+        public:
+            std::tuple<const uint8_t*, unsigned int, unsigned int> at(const size_t index) const {
+                return std::make_tuple(this->m_buffers[index], this->m_widthes[index], this->m_heights[index]);
+            }
+
+            void setRight(const uint8_t* const buf, const unsigned int width, const unsigned int height) {
+                this->setIndex<0>(buf, width, height);
+            }
+            void setLeft(const uint8_t* const buf, const unsigned int width, const unsigned int height) {
+                this->setIndex<1>(buf, width, height);
+            }
+            void setTop(const uint8_t* const buf, const unsigned int width, const unsigned int height) {
+                this->setIndex<2>(buf, width, height);
+            }
+            void setButtom(const uint8_t* const buf, const unsigned int width, const unsigned int height) {
+                this->setIndex<3>(buf, width, height);
+            }
+            void setBack(const uint8_t* const buf, const unsigned int width, const unsigned int height) {
+                this->setIndex<4>(buf, width, height);
+            }
+            void setFront(const uint8_t* const buf, const unsigned int width, const unsigned int height) {
+                this->setIndex<5>(buf, width, height);
+            }
+
+        private:
+            template <size_t _Index>
+            void setIndex(const uint8_t* const buf, const unsigned int width, const unsigned int height) {
+                this->m_buffers[_Index] = buf;
+                this->m_widthes[_Index] = width;
+                this->m_heights[_Index] = height;
+            }
+
+        };
+
+    public:
+        void init(const CubeMapData& data);
+
+        void sendUniform(const SamplerInterf& uniloc) const;
 
     };
 
+}
+
+
+// etc
+namespace dal {
 
     class Material {
 
