@@ -33,7 +33,7 @@ void main(void) {
 	v_clipSpace = u_projMat * u_viewMat * worldPos;
 	gl_Position = v_clipSpace;
 	vFragPos = vec3(worldPos);
-	vTexCoord = vec2(i_texCoord.x * u_texScale.x, -i_texCoord.y * u_texScale.y);
+	vTexCoord = vec2(i_texCoord.x * u_texScale.x, i_texCoord.y * u_texScale.y);
 	vNormalVec = normalize(vec3(u_modelMat * vec4(i_normal, 0.0)));
 	v_toCamera = uViewPos - worldPos.xyz;
 

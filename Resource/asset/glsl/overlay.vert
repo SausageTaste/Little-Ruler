@@ -25,8 +25,7 @@ void main(void) {
     }
 
     if (m_upsideDown_diffuseMap) {
-        //vTexCoord = vec2( iPosition.x, 1.0 - iPosition.y );
-        vTexCoord = iPosition;
+        vTexCoord = vec2( iPosition.x, 1.0 - iPosition.y );
     }
     else {
         vTexCoord = iPosition;

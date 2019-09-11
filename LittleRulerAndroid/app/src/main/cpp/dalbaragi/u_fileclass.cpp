@@ -628,7 +628,9 @@ namespace {
         output.m_pixSize = 4;
 
         // Assert that pixel size is 4.
-        assert(output.m_width * output.m_height * output.m_pixSize == output.m_buf.size());
+        dalAssert(output.m_width * output.m_height * output.m_pixSize == output.m_buf.size());
+
+        output.flipY();  // TGA does this automatically but not this.
 
         return true;
     }
@@ -651,8 +653,6 @@ namespace {
         const auto resArrSize = output.m_width * output.m_height * output.m_pixSize;
         output.m_buf.clear();
         output.m_buf.insert(output.m_buf.begin(), result.get(), result.get() + resArrSize);
-
-        output.flipY();  // PNG does this automatically but not this.
 
         return true;
     }

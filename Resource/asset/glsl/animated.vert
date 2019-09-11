@@ -59,7 +59,7 @@ void main(void) {
 
     gl_Position = u_projMat * u_viewMat * worldPos;
     v_fragPos = vec3(worldPos);
-    vTexCoord = vec2(i_texCoord.x * u_texScale.x, -i_texCoord.y * u_texScale.y);
+    vTexCoord = vec2(i_texCoord.x * u_texScale.x, i_texCoord.y * u_texScale.y);
     vNormalVec = normalize(vec3(u_modelMat * boneMat * vec4(i_normal, 0.0)));
 
     for (int i = 0; i < uDlightCount; i++) {

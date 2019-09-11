@@ -233,6 +233,18 @@ namespace dal {
                 auto& info = imageInfos[i];
                 const auto res = futil::getRes_image(imageNames[i], info);
                 dalAssert(res);
+                if ( i == 2 ) {
+                    info.rotate90();
+                }
+                else if ( 3 == i ) {
+                    info.rotate270();
+                }
+                else {
+                    info.flipX();
+                    info.flipY();
+                }
+                
+                
                 data.set(i, info.m_buf.data(), info.m_width, info.m_height, info.m_pixSize);
             }
 

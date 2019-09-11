@@ -461,7 +461,7 @@ namespace dal {
         uniloc.point1(devSpcP1);
         uniloc.point2(devSpcP2);
         uniloc.color(color);
-        uniloc.upsideDownDiffuseMap(true);
+        uniloc.upsideDownDiffuseMap(upsideDown_diffuseMap);
         uniloc.upsideDownMaskMap(upsideDown_maskMap);
         uniloc.texOffset(texOffset);
         uniloc.texScale(texScale);
