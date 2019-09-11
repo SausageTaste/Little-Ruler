@@ -37,8 +37,9 @@ namespace dal::binfo {
 
         void flipX(void);
         void flipY(void);
-        
+
         void rotate90(void);
+        void rotate180(void);
         void rotate270(void);
     };
 

@@ -41,7 +41,6 @@ namespace dal::binfo {
     }
 
     void ImageFileData::rotate90(void) {
-        const auto heightInBytes = this->m_height * this->m_pixSize;
         const auto widthInBytes = this->m_width * this->m_pixSize;
 
         std::vector<uint8_t> newBuf;
@@ -61,8 +60,27 @@ namespace dal::binfo {
         std::swap(this->m_width, this->m_height);
     }
 
+    void ImageFileData::rotate180(void) {
+        const auto widthInBytes = this->m_width * this->m_pixSize;
+
+        std::vector<uint8_t> newBuf;
+        newBuf.reserve(this->m_buf.size());
+
+        for ( size_t h = 0; h < this->m_height; ++h ) {
+            const auto hf = this->m_height - h - 1;
+            for ( size_t w = 0; w < this->m_width; ++w ) {
+                const auto wf = this->m_width - w - 1;
+                const auto index = wf * this->m_pixSize + hf * widthInBytes;
+                for ( size_t k = 0; k < this->m_pixSize; ++k ) {
+                    newBuf.push_back(this->m_buf[index + k]);
+                }
+            }
+        }
+
+        std::swap(this->m_buf, newBuf);
+    }
+
     void ImageFileData::rotate270(void) {
-        const auto heightInBytes = this->m_height * this->m_pixSize;
         const auto widthInBytes = this->m_width * this->m_pixSize;
 
         std::vector<uint8_t> newBuf;

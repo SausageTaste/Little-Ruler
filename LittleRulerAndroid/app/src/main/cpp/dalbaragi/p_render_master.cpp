@@ -240,11 +240,9 @@ namespace dal {
                     info.rotate270();
                 }
                 else {
-                    info.flipX();
-                    info.flipY();
+                    info.rotate180();
                 }
-                
-                
+
                 data.set(i, info.m_buf.data(), info.m_width, info.m_height, info.m_pixSize);
             }
 
