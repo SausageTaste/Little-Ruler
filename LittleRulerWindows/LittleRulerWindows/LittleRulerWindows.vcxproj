@@ -177,6 +177,7 @@
     <ClInclude Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\p_resource.h" />
     <ClInclude Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\p_scene.h" />
     <ClInclude Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\p_shader_master.h" />
+    <ClInclude Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\p_skybox.h" />
     <ClInclude Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\p_uniloc.h" />
     <ClInclude Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\p_water.h" />
     <ClInclude Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\s_configs.h" />
@@ -216,6 +217,7 @@
     <ClCompile Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\p_resource.cpp" />
     <ClCompile Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\p_scene.cpp" />
     <ClCompile Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\p_shader_master.cpp" />
+    <ClCompile Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\p_skybox.cpp" />
     <ClCompile Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\p_uniloc.cpp" />
     <ClCompile Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\p_water.cpp" />
     <ClCompile Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\s_configs.cpp" />

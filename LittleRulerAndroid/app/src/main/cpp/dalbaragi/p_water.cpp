@@ -337,6 +337,13 @@ namespace dal {
         this->m_fbuffer.bindReflectionFrameBuffer();
     }
 
+    void WaterRenderer::startRenderOnReflec(const UniInterfGeometry& uniloc, const ICamera& cam) const {
+        auto [reflectedPos, reflectedMat] = cam.makeReflected(this->m_height);
+        uniloc.viewMat(glm::mat4(glm::mat3(reflectedMat)));
+
+        this->m_fbuffer.bindReflectionFrameBuffer();
+    }
+
     void WaterRenderer::startRenderOnRefrac(const UnilocGeneral& uniloc, const ICamera& cam) const {
         uniloc.m_planeClip.flagDoClip(true);
         uniloc.m_planeClip.clipPlane(0.f, -1.f, 0.f, this->m_height);
@@ -344,6 +351,11 @@ namespace dal {
         uniloc.m_lightedMesh.viewMat(cam.getViewMat());
         uniloc.m_lightedMesh.viewPos(cam.m_pos);
 
+        this->m_fbuffer.bindRefractionFrameBuffer();
+    }
+
+    void WaterRenderer::startRenderOnRefrac(const UniInterfGeometry& uniloc, const ICamera& cam) const {
+        uniloc.viewMat(glm::mat4(glm::mat3(cam.getViewMat())));
         this->m_fbuffer.bindRefractionFrameBuffer();
     }
 

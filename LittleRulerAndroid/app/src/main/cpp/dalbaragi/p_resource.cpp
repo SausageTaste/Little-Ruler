@@ -295,6 +295,20 @@ namespace dal {
         }
     }
 
+    void MapChunk2::renderOnWaterSkybox(const UnilocSkybox& uniloc, const Skybox& skybox, const ICamera& cam) {
+        for ( auto& water : this->m_waters ) {
+            {
+                water.startRenderOnReflec(uniloc.m_geometry, cam);
+                skybox.render(uniloc);
+            }
+
+            {
+                water.startRenderOnRefrac(uniloc.m_geometry, cam);
+                skybox.render(uniloc);
+            }
+        }
+    }
+
     // Private
 
     int MapChunk2::sendLightUniforms(const UniInterfLightedMesh& uniloc, int startIndex) const {

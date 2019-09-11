@@ -124,7 +124,9 @@ namespace dal {
 
         void render(const UnilocWaterry& uniloc);
         void startRenderOnReflec(const UnilocGeneral& uniloc, const ICamera& cam) const;
+        void startRenderOnReflec(const UniInterfGeometry& uniloc, const ICamera& cam) const;
         void startRenderOnRefrac(const UnilocGeneral& uniloc, const ICamera& cam) const;
+        void startRenderOnRefrac(const UniInterfGeometry& uniloc, const ICamera& cam) const;
 
         void onWinResize(const unsigned int winWidth, const unsigned int winHeight) {
             this->m_fbuffer.onWinResize(winWidth, winHeight);

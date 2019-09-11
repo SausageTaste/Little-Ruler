@@ -11,6 +11,7 @@
 #include "p_water.h"
 #include "p_model.h"
 #include "p_light.h"
+#include "p_skybox.h"
 
 
 namespace dal {
@@ -54,6 +55,7 @@ namespace dal {
         void renderWater(const UnilocWaterry& uniloc);
         void renderOnWaterGeneral(const UnilocGeneral& uniloc, const ICamera& cam, entt::registry& reg);
         void renderOnWaterAnimated(const UnilocAnimate& uniloc, const ICamera& cam, entt::registry& reg);
+        void renderOnWaterSkybox(const UnilocSkybox& uniloc, const Skybox& skybox, const ICamera& cam);
 
     private:
         int sendLightUniforms(const UniInterfLightedMesh& uniloc, int startIndex) const;

@@ -49,6 +49,7 @@ add_library( interface4jni SHARED interface4jni.cpp javautil.cpp
         dalbaragi/x_init_windows.cpp
         dalbaragi/x_mainloop.cpp
         dalbaragi/p_model.cpp
+        dalbaragi/p_skybox.cpp
 )
 target_include_directories(interface4jni PRIVATE ./dalbaragi)
 
