@@ -334,6 +334,10 @@ namespace dal {
             this->m_scene.renderOnWaterAnimated(uniloc, *this->m_mainCamera, reg);
         }
 
+#ifdef _WIN32
+        glDisable(GL_CLIP_DISTANCE0);
+#endif
+
         // Render skybox on water
         {
             auto& uniloc = this->m_shader.useSkybox();
@@ -342,9 +346,6 @@ namespace dal {
         }
 
         this->m_fbuffer.clearAndstartRenderOn();
-#ifdef _WIN32
-        glDisable(GL_CLIP_DISTANCE0);
-#endif
 
         // Render to framebuffer 
         {
