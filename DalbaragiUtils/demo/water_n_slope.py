@@ -38,7 +38,7 @@ def main():
     model.m_name.set("Slope2")
 
     unit = model.newRenderUnit()
-    builder = mes.HeightGrid(200, 200, 15, 15)
+    builder = mes.HeightGrid(150, 150, 20, 20)
 
     heightmap = []
     for y in range(builder.m_heightMap.getRowSize()):
@@ -48,7 +48,7 @@ def main():
     builder.m_heightMap.setRowMajor(
         heightmap
     )
-    builder.m_heightMap.forEach(lambda h: 10 * h)
+    builder.m_heightMap.forEach(lambda h: 4 * h)
     builder.m_smoothShading = True
     unit.m_mesh = builder
 
@@ -61,17 +61,18 @@ def main():
     actor = model.newStaticActor()
     actor.m_name.set("slope_actor")
     actor.m_transform.m_pos.setX(0)
-    actor.m_transform.m_pos.setY(-9)
+    actor.m_transform.m_pos.setY(-6)
 
     ################
 
     water = mapbuild.newWaterPlane()
 
     water.m_centerPos.setXYZ(0, -4, 0)
-    water.m_width.set(200)
-    water.m_height.set(200)
+    water.m_width.set(500)
+    water.m_height.set(500)
     water.m_darkestDepth.set(10)
-    water.m_reflectivity.set(0.1)
+    water.m_reflectivity.set(0.2)
+    water.m_deepColor.setXYZ(0.09, 0.07, 0.11)
 
     ################
 
