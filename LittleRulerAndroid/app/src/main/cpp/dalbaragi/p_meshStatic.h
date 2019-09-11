@@ -215,31 +215,37 @@ namespace dal {
             }
 
             void setRight(const uint8_t* const buf, const unsigned int width, const unsigned int height, const unsigned int pixSize) {
-                this->setIndex<0>(buf, width, height, pixSize);
+                this->set<0>(buf, width, height, pixSize);
             }
             void setLeft(const uint8_t* const buf, const unsigned int width, const unsigned int height, const unsigned int pixSize) {
-                this->setIndex<1>(buf, width, height, pixSize);
+                this->set<1>(buf, width, height, pixSize);
             }
             void setTop(const uint8_t* const buf, const unsigned int width, const unsigned int height, const unsigned int pixSize) {
-                this->setIndex<2>(buf, width, height, pixSize);
+                this->set<2>(buf, width, height, pixSize);
             }
             void setButtom(const uint8_t* const buf, const unsigned int width, const unsigned int height, const unsigned int pixSize) {
-                this->setIndex<3>(buf, width, height, pixSize);
+                this->set<3>(buf, width, height, pixSize);
             }
             void setBack(const uint8_t* const buf, const unsigned int width, const unsigned int height, const unsigned int pixSize) {
-                this->setIndex<4>(buf, width, height, pixSize);
+                this->set<4>(buf, width, height, pixSize);
             }
             void setFront(const uint8_t* const buf, const unsigned int width, const unsigned int height, const unsigned int pixSize) {
-                this->setIndex<5>(buf, width, height, pixSize);
+                this->set<5>(buf, width, height, pixSize);
             }
 
-        private:
             template <size_t _Index>
-            void setIndex(const uint8_t* const buf, const unsigned int width, const unsigned int height, const unsigned int pixSize) {
+            void set(const uint8_t* const buf, const unsigned int width, const unsigned int height, const unsigned int pixSize) {
                 this->m_buffers[_Index] = buf;
                 this->m_widthes[_Index] = width;
                 this->m_heights[_Index] = height;
                 this->m_pixSize[_Index] = pixSize;
+            }
+
+            void set(const size_t index, const uint8_t* const buf, const unsigned int width, const unsigned int height, const unsigned int pixSize) {
+                this->m_buffers[index] = buf;
+                this->m_widthes[index] = width;
+                this->m_heights[index] = height;
+                this->m_pixSize[index] = pixSize;
             }
 
         };

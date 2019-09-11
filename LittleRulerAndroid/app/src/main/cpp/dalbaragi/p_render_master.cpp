@@ -243,6 +243,27 @@ namespace dal {
             }
         }
 
+        // Cube map
+        {
+            const char* imageNames[] = {
+                "asset::darkskies_rt.tga",
+                "asset::darkskies_lf.tga",
+                "asset::darkskies_up.tga",
+                "asset::darkskies_dn.tga",
+                "asset::darkskies_ft.tga",
+                "asset::darkskies_bk.tga",
+            };
+            dal::binfo::ImageFileData imageInfos[6];
+            CubeMap::CubeMapData data;
+
+            for ( int i = 0; i < 6; ++i ) {
+                auto& info = imageInfos[i];
+                const auto res = futil::getRes_image(imageNames[i], info);
+                dalAssert(res);
+                data.set(i, info.m_buf.data(), info.m_width, info.m_height, info.m_pixSize);
+            }
+        }
+
         // Misc
         {
             const auto renderer = reinterpret_cast<const char*>(glGetString(GL_RENDERER));

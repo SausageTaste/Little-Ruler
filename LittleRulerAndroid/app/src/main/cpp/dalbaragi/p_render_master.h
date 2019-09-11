@@ -59,6 +59,8 @@ namespace dal {
         float m_farPlaneDistance;
         glm::vec3 m_baseAmbientColor;
 
+        CubeMap m_cubeMap;
+
     public:
         RenderMaster(SceneGraph& scene, ShaderMaster& shader, OverlayMaster& overlay, ICamera* const camera, const unsigned int winWidth, const unsigned int winHeight);
 
