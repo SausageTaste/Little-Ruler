@@ -354,11 +354,6 @@ namespace dal {
         this->m_fbuffer.bindRefractionFrameBuffer();
     }
 
-    void WaterRenderer::startRenderOnRefrac(const UniInterfGeometry& uniloc, const ICamera& cam) const {
-        uniloc.viewMat(glm::mat4(glm::mat3(cam.getViewMat())));
-        this->m_fbuffer.bindRefractionFrameBuffer();
-    }
-
     // Private
 
     void WaterRenderer::initMesh(const glm::vec3& pos, const glm::vec2& size) {
