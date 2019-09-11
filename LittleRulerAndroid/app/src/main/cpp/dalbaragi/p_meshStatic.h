@@ -207,38 +207,39 @@ namespace dal {
 
         private:
             const uint8_t* m_buffers[6];
-            unsigned int m_widthes[6], m_heights[6];
+            unsigned int m_widthes[6], m_heights[6], m_pixSize[6];
 
         public:
-            std::tuple<const uint8_t*, unsigned int, unsigned int> at(const size_t index) const {
-                return std::make_tuple(this->m_buffers[index], this->m_widthes[index], this->m_heights[index]);
+            std::tuple<const uint8_t*, unsigned int, unsigned int, unsigned int> at(const size_t index) const {
+                return std::make_tuple(this->m_buffers[index], this->m_widthes[index], this->m_heights[index], this->m_pixSize[index]);
             }
 
-            void setRight(const uint8_t* const buf, const unsigned int width, const unsigned int height) {
-                this->setIndex<0>(buf, width, height);
+            void setRight(const uint8_t* const buf, const unsigned int width, const unsigned int height, const unsigned int pixSize) {
+                this->setIndex<0>(buf, width, height, pixSize);
             }
-            void setLeft(const uint8_t* const buf, const unsigned int width, const unsigned int height) {
-                this->setIndex<1>(buf, width, height);
+            void setLeft(const uint8_t* const buf, const unsigned int width, const unsigned int height, const unsigned int pixSize) {
+                this->setIndex<1>(buf, width, height, pixSize);
             }
-            void setTop(const uint8_t* const buf, const unsigned int width, const unsigned int height) {
-                this->setIndex<2>(buf, width, height);
+            void setTop(const uint8_t* const buf, const unsigned int width, const unsigned int height, const unsigned int pixSize) {
+                this->setIndex<2>(buf, width, height, pixSize);
             }
-            void setButtom(const uint8_t* const buf, const unsigned int width, const unsigned int height) {
-                this->setIndex<3>(buf, width, height);
+            void setButtom(const uint8_t* const buf, const unsigned int width, const unsigned int height, const unsigned int pixSize) {
+                this->setIndex<3>(buf, width, height, pixSize);
             }
-            void setBack(const uint8_t* const buf, const unsigned int width, const unsigned int height) {
-                this->setIndex<4>(buf, width, height);
+            void setBack(const uint8_t* const buf, const unsigned int width, const unsigned int height, const unsigned int pixSize) {
+                this->setIndex<4>(buf, width, height, pixSize);
             }
-            void setFront(const uint8_t* const buf, const unsigned int width, const unsigned int height) {
-                this->setIndex<5>(buf, width, height);
+            void setFront(const uint8_t* const buf, const unsigned int width, const unsigned int height, const unsigned int pixSize) {
+                this->setIndex<5>(buf, width, height, pixSize);
             }
 
         private:
             template <size_t _Index>
-            void setIndex(const uint8_t* const buf, const unsigned int width, const unsigned int height) {
+            void setIndex(const uint8_t* const buf, const unsigned int width, const unsigned int height, const unsigned int pixSize) {
                 this->m_buffers[_Index] = buf;
                 this->m_widthes[_Index] = width;
                 this->m_heights[_Index] = height;
+                this->m_pixSize[_Index] = pixSize;
             }
 
         };

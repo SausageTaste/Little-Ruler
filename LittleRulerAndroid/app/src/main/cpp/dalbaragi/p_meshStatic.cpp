@@ -277,8 +277,13 @@ namespace dal {
         glBindTexture(GL_TEXTURE_CUBE_MAP, this->get());
 
         for ( int i = 0; i < 6; i++ ) {
-            const auto [buf, width, height] = data.at(i);
-            glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, buf);
+            const auto [buf, width, height, pixSize] = data.at(i);
+            if ( 3 == pixSize ) {
+                glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, buf);
+            }
+            else if ( 4 == pixSize ) {
+                glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, buf);
+            }
         }
 
         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
