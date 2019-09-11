@@ -652,6 +652,8 @@ namespace {
         output.m_buf.clear();
         output.m_buf.insert(output.m_buf.begin(), result.get(), result.get() + resArrSize);
 
+        output.flipY();  // PNG does this automatically but not this.
+
         return true;
     }
 
