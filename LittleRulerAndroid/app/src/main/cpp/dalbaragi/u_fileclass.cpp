@@ -57,6 +57,7 @@ namespace {
             { "texture", {
                     {"dva", {}},
                     {"yuri2", {}},
+                    {"skybox", {}},
                     {"mess", {}}
                 }
             }
