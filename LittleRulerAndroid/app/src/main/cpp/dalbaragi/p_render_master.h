@@ -41,6 +41,19 @@ namespace dal {
 
         };
 
+        class Skybox {
+
+        private:
+            GLuint m_vao = 0, m_vbo = 0;
+            CubeMap m_cubeMap;
+
+        public:
+            Skybox(void);
+
+            void render(const UnilocSkybox& uniloc);
+
+        };
+
     private:
         SceneGraph& m_scene;
         ShaderMaster& m_shader;
@@ -59,7 +72,7 @@ namespace dal {
         float m_farPlaneDistance;
         glm::vec3 m_baseAmbientColor;
 
-        CubeMap m_cubeMap;
+        Skybox m_skybox;
 
     public:
         RenderMaster(SceneGraph& scene, ShaderMaster& shader, OverlayMaster& overlay, ICamera* const camera, const unsigned int winWidth, const unsigned int winHeight);

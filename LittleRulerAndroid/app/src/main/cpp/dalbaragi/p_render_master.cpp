@@ -158,6 +158,100 @@ namespace dal {
 }
 
 
+// Skybox
+namespace dal {
+
+    RenderMaster::Skybox::Skybox(void) {
+        {
+            const float skyboxVertices[] = {
+                // positions
+                -1.0f,  1.0f, -1.0f,
+                -1.0f, -1.0f, -1.0f,
+                 1.0f, -1.0f, -1.0f,
+                 1.0f, -1.0f, -1.0f,
+                 1.0f,  1.0f, -1.0f,
+                -1.0f,  1.0f, -1.0f,
+
+                -1.0f, -1.0f,  1.0f,
+                -1.0f, -1.0f, -1.0f,
+                -1.0f,  1.0f, -1.0f,
+                -1.0f,  1.0f, -1.0f,
+                -1.0f,  1.0f,  1.0f,
+                -1.0f, -1.0f,  1.0f,
+
+                 1.0f, -1.0f, -1.0f,
+                 1.0f, -1.0f,  1.0f,
+                 1.0f,  1.0f,  1.0f,
+                 1.0f,  1.0f,  1.0f,
+                 1.0f,  1.0f, -1.0f,
+                 1.0f, -1.0f, -1.0f,
+
+                -1.0f, -1.0f,  1.0f,
+                -1.0f,  1.0f,  1.0f,
+                 1.0f,  1.0f,  1.0f,
+                 1.0f,  1.0f,  1.0f,
+                 1.0f, -1.0f,  1.0f,
+                -1.0f, -1.0f,  1.0f,
+
+                -1.0f,  1.0f, -1.0f,
+                 1.0f,  1.0f, -1.0f,
+                 1.0f,  1.0f,  1.0f,
+                 1.0f,  1.0f,  1.0f,
+                -1.0f,  1.0f,  1.0f,
+                -1.0f,  1.0f, -1.0f,
+
+                -1.0f, -1.0f, -1.0f,
+                -1.0f, -1.0f,  1.0f,
+                 1.0f, -1.0f, -1.0f,
+                 1.0f, -1.0f, -1.0f,
+                -1.0f, -1.0f,  1.0f,
+                 1.0f, -1.0f,  1.0f
+            };
+
+            glGenVertexArrays(1, &this->m_vao);
+            glGenBuffers(1, &this->m_vbo);
+            glBindVertexArray(this->m_vao);
+            glBindBuffer(GL_ARRAY_BUFFER, this->m_vbo);
+            glBufferData(GL_ARRAY_BUFFER, sizeof(skyboxVertices), &skyboxVertices, GL_STATIC_DRAW);
+            glEnableVertexAttribArray(0);
+            glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), nullptr);
+        }
+
+        {
+            const char* imageNames[] = {
+                "asset::darkskies_rt.tga",
+                "asset::darkskies_lf.tga",
+                "asset::darkskies_up.tga",
+                "asset::darkskies_dn.tga",
+                "asset::darkskies_ft.tga",
+                "asset::darkskies_bk.tga",
+            };
+            dal::binfo::ImageFileData imageInfos[6];
+            CubeMap::CubeMapData data;
+
+            for ( int i = 0; i < 6; ++i ) {
+                auto& info = imageInfos[i];
+                const auto res = futil::getRes_image(imageNames[i], info);
+                dalAssert(res);
+                data.set(i, info.m_buf.data(), info.m_width, info.m_height, info.m_pixSize);
+            }
+
+            this->m_cubeMap.init(data);
+        }
+    }
+
+    void RenderMaster::Skybox::render(const UnilocSkybox& uniloc) {
+        glDepthMask(GL_FALSE);
+        // ... set view and projection matrix
+        glBindVertexArray(this->m_vao);
+        this->m_cubeMap.sendUniform(uniloc.getSkyboxTexLoc());
+        glDrawArrays(GL_TRIANGLES, 0, 36);
+        glDepthMask(GL_TRUE);
+    }
+
+}
+
+
 // Render Master
 namespace dal {
 
@@ -241,29 +335,6 @@ namespace dal {
                 auto renderScale = static_cast<float>(MAX_SCREEN_RES) / static_cast<float>(shorter);
                 this->resizeRenderScale(renderScale);
             }
-        }
-
-        // Cube map
-        {
-            const char* imageNames[] = {
-                "asset::darkskies_rt.tga",
-                "asset::darkskies_lf.tga",
-                "asset::darkskies_up.tga",
-                "asset::darkskies_dn.tga",
-                "asset::darkskies_ft.tga",
-                "asset::darkskies_bk.tga",
-            };
-            dal::binfo::ImageFileData imageInfos[6];
-            CubeMap::CubeMapData data;
-
-            for ( int i = 0; i < 6; ++i ) {
-                auto& info = imageInfos[i];
-                const auto res = futil::getRes_image(imageNames[i], info);
-                dalAssert(res);
-                data.set(i, info.m_buf.data(), info.m_width, info.m_height, info.m_pixSize);
-            }
-
-            this->m_cubeMap.init(data);
         }
 
         // Misc
@@ -362,6 +433,17 @@ namespace dal {
         glDisable(GL_CLIP_DISTANCE0);
 #endif
 
+        // Skybox
+        {
+            const auto& uniloc = this->m_shader.useSkybox();
+
+            uniloc.m_geometry.projectMat(this->m_projectMat);
+            const auto skyview = glm::mat4(glm::mat3(this->m_mainCamera->getViewMat()));
+            uniloc.m_geometry.viewMat(skyview);
+
+            this->m_skybox.render(uniloc);
+        }
+
         // Render to framebuffer 
         {
             auto& uniloc = this->m_shader.useGeneral();
@@ -412,11 +494,6 @@ namespace dal {
             }
 
             this->m_scene.renderWater(uniloc);
-        }
-
-        // Skybox
-        {
-
         }
 
         // Render framebuffer to quad 

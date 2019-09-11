@@ -272,7 +272,7 @@ namespace dal {
 // Cube map
 namespace dal {
 
-    void CubeMap::init(const CubeMapData& data) {
+    void CubeMap::init(const CubeMap::CubeMapData& data) {
         this->genTexture("CubeMap::init");
         glBindTexture(GL_TEXTURE_CUBE_MAP, this->get());
 
