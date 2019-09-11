@@ -65,12 +65,12 @@ namespace dal {
 
         {
             const char* imageNames[] = {
-                "asset::darkskies_rt.tga",
-                "asset::darkskies_lf.tga",
-                "asset::darkskies_up.tga",
-                "asset::darkskies_dn.tga",
-                "asset::darkskies_ft.tga",
-                "asset::darkskies_bk.tga",
+                "asset::cloudtop_rt.tga",
+                "asset::cloudtop_lf.tga",
+                "asset::cloudtop_up.tga",
+                "asset::cloudtop_dn.tga",
+                "asset::cloudtop_ft.tga",
+                "asset::cloudtop_bk.tga",
             };
             dal::binfo::ImageFileData imageInfos[6];
             CubeMap::CubeMapData data;
@@ -99,10 +99,11 @@ namespace dal {
     void Skybox::render(const UnilocSkybox& uniloc) const {
         glDepthMask(GL_FALSE);
         glDepthFunc(GL_LEQUAL);
-        // ... set view and projection matrix
+
         glBindVertexArray(this->m_vao);
         this->m_cubeMap.sendUniform(uniloc.getSkyboxTexLoc());
         glDrawArrays(GL_TRIANGLES, 0, 36);
+
         glDepthMask(GL_TRUE);
         glDepthFunc(GL_LESS);
     }
