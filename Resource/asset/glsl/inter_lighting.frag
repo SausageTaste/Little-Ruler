@@ -17,6 +17,8 @@ uniform vec3      uDlightDirecs[3];
 uniform vec3      uDlightColors[3];
 uniform sampler2D uDlightDepthMap[3];  // TEX 1, 2, 3
 
+uniform samplerCube u_environmentMap;
+
 
 float _sampleDlightDepth(int index, vec2 coord) {
 
@@ -133,4 +135,16 @@ vec4 calcFogMixedColor(vec4 color, vec3 fragPos) {
     float factor = _calcFogFactor(fragPos);
     vec3 mixedColor = mix(color.xyz, u_fogColor, factor);
     return vec4(mixedColor, color.a);
+}
+
+
+vec3 getEnvColor(vec3 fragPos, vec3 fragNormal) {
+    vec3 I = normalize(fragPos - uViewPos);
+    vec3 R = reflect(I, fragNormal);
+    return texture(u_environmentMap, R).rgb;
+}
+
+float getEnvFactor(void){
+    float factor = (uSpecularStrength) * 0.3;
+    return clamp(factor, 0.0, 1.0);
 }

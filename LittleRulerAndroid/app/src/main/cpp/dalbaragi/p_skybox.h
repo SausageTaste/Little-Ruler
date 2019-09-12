@@ -16,6 +16,7 @@ namespace dal {
         Skybox(void);
 
         void render(const UnilocSkybox& uniloc) const;
+        void sendUniform(const UniInterfLightedMesh& uniloc) const;
 
     };
 

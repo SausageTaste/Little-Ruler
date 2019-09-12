@@ -108,4 +108,8 @@ namespace dal {
         glDepthFunc(GL_LESS);
     }
 
+    void Skybox::sendUniform(const UniInterfLightedMesh& uniloc) const {
+        this->m_cubeMap.sendUniform(uniloc.getEnvironmentMap());
+    }
+
 }

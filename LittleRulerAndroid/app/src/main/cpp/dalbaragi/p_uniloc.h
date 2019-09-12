@@ -81,6 +81,8 @@ namespace dal {
         GLint uPlightColors[k_maxPlight];
         GLint uPlightMaxDists[k_maxPlight];
 
+        SamplerInterf u_environmentMap;
+
     public:
         UniInterfLightedMesh(const GLuint shader);
 
@@ -116,6 +118,8 @@ namespace dal {
         void plightColor(const unsigned int index, const glm::vec3& v) const;
 
         void plightMaxDist(const unsigned int index, const float x) const;
+
+        const SamplerInterf& getEnvironmentMap(void) const;
 
     };
 

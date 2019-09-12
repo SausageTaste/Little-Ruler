@@ -302,6 +302,8 @@ namespace dal {
             uniloc.m_lightedMesh.fogMaxPoint(this->m_farPlaneDistance);
             uniloc.m_lightedMesh.fogColor(this->m_skyColor);
 
+            this->m_skybox.sendUniform(uniloc.m_lightedMesh);
+
             if ( this->m_flagDrawDlight1 ) {
                 this->m_dlight1.sendUniform(uniloc.m_lightedMesh, 0);
                 uniloc.m_lightedMesh.dlightCount(1);
@@ -322,6 +324,8 @@ namespace dal {
             uniloc.m_lightedMesh.baseAmbient(this->m_baseAmbientColor);
             uniloc.m_lightedMesh.fogMaxPoint(this->m_farPlaneDistance);
             uniloc.m_lightedMesh.fogColor(this->m_skyColor);
+
+            this->m_skybox.sendUniform(uniloc.m_lightedMesh);
 
             if ( this->m_flagDrawDlight1 ) {
                 this->m_dlight1.sendUniform(uniloc.m_lightedMesh, 0);
@@ -359,6 +363,8 @@ namespace dal {
             uniloc.m_lightedMesh.fogMaxPoint(this->m_farPlaneDistance);
             uniloc.m_lightedMesh.fogColor(this->m_skyColor);
 
+            this->m_skybox.sendUniform(uniloc.m_lightedMesh);
+
             this->m_scene.renderGeneral(uniloc);
         }
 
@@ -373,6 +379,8 @@ namespace dal {
             uniloc.m_lightedMesh.baseAmbient(this->m_baseAmbientColor);
             uniloc.m_lightedMesh.fogMaxPoint(this->m_farPlaneDistance);
             uniloc.m_lightedMesh.fogColor(this->m_skyColor);
+
+            this->m_skybox.sendUniform(uniloc.m_lightedMesh);
 
             this->m_scene.renderAnimate(uniloc);
         }

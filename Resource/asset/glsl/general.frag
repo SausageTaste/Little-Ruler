@@ -39,6 +39,8 @@ void main(void) {
 
     vec4 texColor = texture(u_diffuseMap, vTexCoord);
     if (texColor.a < 0.5) discard;
-    fColor = texColor * vec4(lightedColor, 1.0);
+    vec3 diffuseColor = mix(texColor.rgb, getEnvColor(vFragPos, fragNormal), getEnvFactor());
+
+    fColor = vec4(diffuseColor * lightedColor, 1.0);
     fColor = calcFogMixedColor(fColor, vFragPos);
 }

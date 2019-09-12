@@ -211,6 +211,8 @@ namespace dal {
         this->uPlightMaxDists[0] = glGetUniformLocation(shader, "uPlightMaxDists[0]");
         this->uPlightMaxDists[1] = glGetUniformLocation(shader, "uPlightMaxDists[1]");
         this->uPlightMaxDists[2] = glGetUniformLocation(shader, "uPlightMaxDists[2]");
+
+        this->u_environmentMap.init(getUniloc(shader, "u_environmentMap"), -2, g_texUnitReg["u_environmentMap"]);
     }
 
     void UniInterfLightedMesh::viewPos(const float x, const float y, const float z) const {
@@ -315,6 +317,10 @@ namespace dal {
     void UniInterfLightedMesh::plightMaxDist(const unsigned int index, const float x) const {
         dalAssert(index < this->k_maxPlight);
         glUniform1f(this->uPlightMaxDists[index], x);
+    }
+
+    const SamplerInterf& UniInterfLightedMesh::getEnvironmentMap(void) const {
+        return this->u_environmentMap;
     }
 
 }
