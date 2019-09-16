@@ -619,7 +619,7 @@ namespace dal {
         futil::getRes_buffer(resID, buffer);
         auto mapInfo = parseDLB(buffer.data(), buffer.size());
         if ( !mapInfo ) {
-            dalAbort("Shit!");
+            dalAbort("Failed to load map : {}"_format(resID.makeIDStr()));
         }
 
         MapChunk2 map;

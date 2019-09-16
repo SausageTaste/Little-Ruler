@@ -782,7 +782,13 @@ namespace {
 namespace dal {
 
     std::optional<dlb::MapChunkInfo> parseDLB(const uint8_t* const buf, const size_t bufSize) {
-        const auto [data, dataSize] = uncompressMap(buf, bufSize);
+        const char* const magicBits = "dalmap";
+        if ( 0 != std::memcmp(buf, magicBits, 6) ) {
+            dalError("Given datablock does not start with magic numbers.");
+            return std::nullopt;
+        }
+
+        const auto [data, dataSize] = uncompressMap(buf + 6, bufSize);
         if ( nullptr == data ) {
             return std::nullopt;
         }

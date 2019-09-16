@@ -79,7 +79,7 @@ def workCompile(path: str):
     binData = mapData.getBinary()
     zippedData = exf.compressWithSizeInt32(binData)
     with open(folderFileName + ".dlb", "wb") as file:
-        file.write(zippedData)
+        file.write(b"dalmap" + zippedData)
 
 
 def main(args: list):
