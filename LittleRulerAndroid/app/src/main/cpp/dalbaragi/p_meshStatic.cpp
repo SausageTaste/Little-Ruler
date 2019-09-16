@@ -198,6 +198,20 @@ namespace dal {
         glBindTexture(GL_TEXTURE_2D, 0);
     }
 
+    void Texture::init_diffuseMap(const binfo::ImageFileData& image) {
+        if ( 3 == image.m_pixSize ) {
+            this->init_diffueMap3(image.m_buf.data(), image.m_width, image.m_height);
+        }
+        else if ( 4 == image.m_pixSize ) {
+            this->init_diffueMap(image.m_buf.data(), image.m_width, image.m_height);
+        }
+        else {
+            dalAbort("Not supported pixel size: {}"_format(image.m_pixSize));
+        }
+
+        this->setHasAlpha(image.m_hasTransparency);
+    }
+
     void Texture::init_depthMap(const unsigned int width, const unsigned int height) {
         this->genTexture("Texture::init_depthMap");
 

@@ -3,6 +3,39 @@
 #include "s_logger_god.h"
 
 
+namespace {
+
+    bool isBigEndian() {
+        constexpr short int number = 0x1;
+        const char* const numPtr = reinterpret_cast<const char*>(&number);
+        return numPtr[0] != 1;
+    }
+
+    template <typename T>
+    T assemble4Bytes(const uint8_t* const begin) {
+        static_assert(1 == sizeof(uint8_t));
+        static_assert(4 == sizeof(T));
+
+        T res;
+
+        if ( isBigEndian() ) {
+            uint8_t buf[4];
+            buf[0] = begin[3];
+            buf[1] = begin[2];
+            buf[2] = begin[1];
+            buf[3] = begin[0];
+            memcpy(&res, buf, 4);
+        }
+        else {
+            memcpy(&res, begin, 4);
+        }
+
+        return res;
+    }
+
+}
+
+
 namespace dal::binfo {
 
     void ImageFileData::flipX(void) {
@@ -98,6 +131,20 @@ namespace dal::binfo {
 
         std::swap(this->m_buf, newBuf);
         std::swap(this->m_width, this->m_height);
+    }
+
+    bool ImageFileData::hasTransparency(void) const {
+        if ( 4 == this->m_pixSize ) {
+            const auto numPixels = this->m_width * this->m_height;
+            for ( size_t i = 0; i < numPixels; ++i ) {
+                const auto alphaValue = this->m_buf[4 * i + 3];
+                if ( alphaValue != 255 ) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
 }

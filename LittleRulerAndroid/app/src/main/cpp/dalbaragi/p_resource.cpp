@@ -42,6 +42,7 @@ namespace {
 
         virtual void start(void) override {
             out_success = dal::futil::getRes_image(in_texID, out_img);
+            this->out_img.m_hasTransparency = this->out_img.hasTransparency();
         }
 
     };
@@ -504,15 +505,7 @@ namespace dal {
                 return;
             }
 
-            if ( loaded->out_img.m_pixSize == 3 ) {
-                loaded->data_handle->init_diffueMap3(loaded->out_img.m_buf.data(), loaded->out_img.m_width, loaded->out_img.m_height);
-            }
-            else if ( loaded->out_img.m_pixSize == 4 ) {
-                loaded->data_handle->init_diffueMap(loaded->out_img.m_buf.data(), loaded->out_img.m_width, loaded->out_img.m_height);
-            }
-            else {
-                dalAbort("Not supported pixel size: {}"_format(loaded->out_img.m_pixSize));
-            }
+            loaded->data_handle->init_diffuseMap(loaded->out_img);
         }
         else if ( g_sentTasks_modelAnimated.find(task.get()) != g_sentTasks_modelAnimated.end() ) {
             g_sentTasks_modelAnimated.erase(task.get());

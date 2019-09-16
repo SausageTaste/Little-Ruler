@@ -32,15 +32,22 @@ namespace dal::binfo {
     };
 
     struct ImageFileData {
+
+    public:
         std::vector<uint8_t> m_buf;
         size_t m_width = 0, m_height = 0, m_pixSize = 0;
+        bool m_hasTransparency = false;
 
+    public:
         void flipX(void);
         void flipY(void);
 
         void rotate90(void);
         void rotate180(void);
         void rotate270(void);
+
+        bool hasTransparency(void) const;
+
     };
 
     struct Model {

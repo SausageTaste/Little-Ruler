@@ -6,6 +6,7 @@
 
 #include "p_dalopengl.h"
 #include "p_uniloc.h"
+#include "u_loadinfo.h"
 
 
 // Meshes
@@ -160,6 +161,7 @@ namespace dal {
 
     private:
         GLuint m_texID = 0;
+        bool m_hasAlpha = false;
 
     public:
         ITexture(const ITexture&) = delete;
@@ -178,9 +180,15 @@ namespace dal {
         GLuint get(void) const noexcept {
             return m_texID;
         }
+        bool hasAlpha(void) const {
+            return this->m_hasAlpha;
+        }
 
     protected:
         void genTexture(const char* const str4Log);
+        void setHasAlpha(const bool v) {
+            this->m_hasAlpha = v;
+        }
 
     };
 
@@ -190,6 +198,7 @@ namespace dal {
     public:
         void init_diffueMap(const uint8_t* const image, const unsigned int width, const unsigned int height);
         void init_diffueMap3(const uint8_t* const image, const unsigned int width, const unsigned int height);
+        void init_diffuseMap(const binfo::ImageFileData& image);
         void init_depthMap(const unsigned int width, const unsigned int height);
         void init_maskMap(const uint8_t* const image, const unsigned int width, const unsigned int height);
         void initAttach_colorMap(const unsigned int width, const unsigned int height);
@@ -286,6 +295,15 @@ namespace dal {
 
         void sendUniform(const UniInterfLightedMesh& unilocLight) const;
         void sendUniform(const UniInterfLightedMesh& unilocLight, const SamplerInterf& samplerInterf) const;
+
+        bool hasDiffuseAlpha(void) const {
+            if ( nullptr == this->m_diffuseMap ) {
+                return false;
+            }
+            else {
+                return this->m_diffuseMap->hasAlpha();
+            }
+        }
 
     };
 
