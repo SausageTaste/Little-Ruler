@@ -45,7 +45,7 @@ add_library( interface4jni SHARED interface4jni.cpp javautil.cpp
         dalbaragi/u_luascript.cpp
         dalbaragi/u_objparser.cpp
         dalbaragi/u_timer.cpp
-        dalbaragi/u_vecutil.cpp
+        dalbaragi/u_math.cpp
         dalbaragi/x_init_windows.cpp
         dalbaragi/x_mainloop.cpp
         dalbaragi/p_model.cpp

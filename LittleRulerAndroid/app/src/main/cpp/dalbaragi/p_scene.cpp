@@ -5,7 +5,7 @@
 #include "s_logger_god.h"
 #include "s_configs.h"
 #include "g_charastate.h"
-#include "u_vecutil.h"
+#include "u_math.h"
 
 
 using namespace fmt::literals;
