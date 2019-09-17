@@ -347,6 +347,7 @@ namespace dal {
         , m_overlayMas(m_shader, winWidth, winHeight)
         , m_renderMan(m_scene, m_shader, m_overlayMas, &m_scene.m_playerCam, winWidth, winHeight)
         , m_inputApply(m_overlayMas, winWidth, winHeight)
+        , m_frameAccum(0)
         , m_flagQuit(false)
     {
         // This might be done already by SceneGraph or OverlayMaster but still...
@@ -403,9 +404,16 @@ namespace dal {
 
         const auto deltaTime = m_timer.checkGetElapsed();
 
-        if ( this->m_timerForFPSReport.getElapsed() > 0.1f ) {
-            g_fpsCounter.setText(static_cast<unsigned int>(1.0f / deltaTime));
-            this->m_timerForFPSReport.check();
+        // FPS counter
+        {
+            ++this->m_frameAccum;
+            const auto elapsedForFPS = this->m_timerForFPSReport.getElapsed();
+            if ( elapsedForFPS > 0.1f ) {
+                const auto fps = static_cast<unsigned int>(static_cast<float>(this->m_frameAccum) / elapsedForFPS);
+                g_fpsCounter.setText(fps);
+                this->m_timerForFPSReport.check();
+                this->m_frameAccum = 0;
+            }
         }
 
         // Process input

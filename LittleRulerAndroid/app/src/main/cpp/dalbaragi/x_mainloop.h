@@ -26,6 +26,7 @@ namespace dal {
 
         TimerThatCaps m_timer;
         Timer m_timerForFPSReport;
+        size_t m_frameAccum;
         bool m_flagQuit;
 
         //// Funcs ////
