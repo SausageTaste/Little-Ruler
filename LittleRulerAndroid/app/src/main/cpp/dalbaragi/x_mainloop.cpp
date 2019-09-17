@@ -288,6 +288,10 @@ namespace {
             }
         }
 
+        void exec(const char* const str) {
+            this->m_luaState.exec(str);
+        }
+
     protected:
         virtual void onScrSpaceBoxUpdate(void) override {
             constexpr float INNER_MARGIN = 5.0f;
@@ -387,6 +391,8 @@ namespace dal {
         // Test
         {
             test(this->m_timer.getElapsed());
+
+            g_luaConsole.exec("dofile(\"asset::test.lua\")");
         }
     }
 

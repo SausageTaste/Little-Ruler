@@ -3,6 +3,7 @@
 #include "s_logger_god.h"
 #include "p_render_master.h"
 #include "s_configs.h"
+#include "u_fileclass.h"
 
 
 // Dependencies
@@ -120,6 +121,24 @@ namespace {
         return 0;
     }
 
+    int moon_runFile(lua_State* const L) {
+        const auto nargs = lua_gettop(L);
+        if ( nargs < 1 ) {
+            return -1;
+        }
+
+        const auto arg = lua_tostring(L, 1);
+        std::string buffer;
+        if ( !dal::futil::getRes_text(arg, buffer) ) {
+            return -1;
+        }
+
+        auto luaState = findLuaState(L);
+        luaState->exec(buffer.c_str());
+
+        return 0;
+    }
+
 }
 
 
@@ -134,6 +153,7 @@ namespace dal {
         addPtrToGlobal(this->m_lua, this);
         addFunc(this->m_lua, "print", moon_print);
         addFunc(this->m_lua, "setFullscreen", moon_setFullscreen);
+        addFunc(this->m_lua, "dofile", moon_runFile);
     }
 
     LuaState::~LuaState(void) {
