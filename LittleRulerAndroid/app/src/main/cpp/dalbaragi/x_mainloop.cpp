@@ -318,7 +318,7 @@ namespace {
 namespace {
 
     void test(const float deltaTime) {
-        dal::StringBufferFixedTemplate<512> str;
+        dal::StaticString<512> str;
         str.append("0123456789", 10);
         auto a = str.getSubstr(2, 453);
         dalVerbose(a.getStrBuf());

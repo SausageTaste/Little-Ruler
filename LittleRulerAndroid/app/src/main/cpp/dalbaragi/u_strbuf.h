@@ -7,13 +7,13 @@
 
 namespace dal {
 
-    template <size_t CAPACITY>
-    class StringBufferFixedTemplate {
+    template <typename _CharTyp, size_t _Capacity>
+    class BasicStaticString {
 
     private:
         // +1 for null terminator.
         // Interface shouldn't expose the fact that it uses null terminator.
-        char m_buf[CAPACITY + 1] = { 0 };
+        _CharTyp m_buf[_Capacity + 1] = { 0 };
         size_t m_pos = 0;
 
     public:
@@ -21,21 +21,21 @@ namespace dal {
             return this->m_pos;
         }
         size_t getCapacity(void) const {
-            return CAPACITY;
+            return _Capacity;
         }
         size_t getRemaining(void) const {
             return this->getCapacity() - this->getSize();
         }
         bool isFull(void) const {
-            return this->m_pos >= CAPACITY;
+            return this->m_pos >= _Capacity;
         }
 
-        const char* getStrBuf(void) {
+        const _CharTyp* getStrBuf(void) {
             this->m_buf[this->m_pos] = '\0';
             return this->m_buf;
         }
-        StringBufferFixedTemplate<CAPACITY> getSubstr(const size_t offset, const size_t count) const {
-            StringBufferFixedTemplate<CAPACITY> result;
+        BasicStaticString<_CharTyp, _Capacity> getSubstr(const size_t offset, const size_t count = std::string::npos) const {
+            BasicStaticString<_CharTyp, _Capacity> result;
             
             const auto sizeAfterOffset = this->m_pos - offset;
             const auto sizeToCpy = sizeAfterOffset < count ? sizeAfterOffset : count;
@@ -53,7 +53,7 @@ namespace dal {
             this->m_pos = 0;
         }
 
-        bool append(const char* const buf, const size_t bufSize) {
+        bool append(const _CharTyp* const buf, const size_t bufSize) {
             if ( bufSize > this->getRemaining() ) {
                 return false;
             }
@@ -62,7 +62,7 @@ namespace dal {
             this->m_pos += bufSize;
             return true;
         }
-        bool append(const char c) {
+        bool append(const _CharTyp c) {
             if ( this->isFull() ) {
                 return false;
             }
@@ -76,6 +76,12 @@ namespace dal {
     };
 
 
-    using StringBufferBasic = StringBufferFixedTemplate<1024>;
+    template <size_t _Capacity>
+    class StaticString : public BasicStaticString<char, _Capacity> {
+
+    };
+
+
+    using StringBufferBasic = StaticString<1024>;
 
 }
