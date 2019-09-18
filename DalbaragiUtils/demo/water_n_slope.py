@@ -56,7 +56,7 @@ def main():
     unit.m_material.m_diffuseMap.set("asset::grass1.png")
     unit.m_material.m_texScaleX.set(50)
     unit.m_material.m_texScaleY.set(50)
-    unit.m_material.m_shininess.set(8)
+    unit.m_material.m_shininess.set(128)
     unit.m_material.m_specStreng.set(0.5)
 
     actor = model.newStaticActor()

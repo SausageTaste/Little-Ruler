@@ -23,10 +23,38 @@ uniform samplerCube u_environmentMap;
 const float PI = 3.14159265;
 
 
+float mapShininess(void) {
+    const float a = 0.0;  // minShin
+    const float b = 512.0;  // maxShin
+    const float c = 0.5;  // forMin
+    const float d = 0.001;  // forMax
+
+    const float alpha = (d - c) / (1.0/b - 1.0/a);
+    const float beta = c - alpha / a;
+
+    return alpha / uShininess + beta;  // Broken.
+}
+
 vec3 getEnvColor(vec3 fragPos, vec3 fragNormal) {
-    vec3 I = normalize(fragPos - uViewPos);
-    vec3 R = reflect(I, fragNormal);
-    return texture(u_environmentMap, R).rgb;
+    const int kSampleCount = 1;
+
+    float kSampleDistFactor = mapShininess();
+    vec3 color = vec3(0.0);
+
+    for (int i = -kSampleCount; i <= kSampleCount; i++) {
+        for (int j = -kSampleCount; j <= kSampleCount; j++) {
+            for (int k = -kSampleCount; k <= kSampleCount; k++) {
+                vec3 newPos = fragPos + vec3(i, j, k) * kSampleDistFactor;
+                vec3 I = normalize(newPos - uViewPos);
+                vec3 R = reflect(I, fragNormal);
+                color += texture(u_environmentMap, R).rgb;
+            }
+        }
+    }
+
+    const int sampledCount = (2 * kSampleCount + 1) * (2 * kSampleCount + 1) * (2 * kSampleCount + 1);
+
+    return color / sampledCount;
 }
 
 float getEnvFactor(void){
