@@ -1,5 +1,6 @@
 #pragma once
 
+#include <array>
 #include <optional>
 #include <unordered_map>
 
@@ -105,6 +106,7 @@ namespace dal {
 
     private:
         std::unordered_map<std::string, Package> m_packages;
+        std::vector<CubeMap> m_cubeMaps;
 
         //////// Methods ////////
 
@@ -121,6 +123,8 @@ namespace dal {
         ModelStaticHandle orderModelStatic(const ResourceID& resID);
         ModelAnimatedHandle orderModelAnim(const ResourceID& resID);
         Texture* orderTexture(const ResourceID& resID);
+        CubeMap* orderCubeMap(const std::array<ResourceID, 6>& resIDs);
+
         MapChunk2 loadMap(const ResourceID& resID);
 
     private:

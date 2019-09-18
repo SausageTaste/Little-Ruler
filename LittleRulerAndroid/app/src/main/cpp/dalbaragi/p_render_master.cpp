@@ -161,7 +161,7 @@ namespace dal {
 // Render Master
 namespace dal {
 
-    RenderMaster::RenderMaster(SceneGraph& scene, ShaderMaster& shader, OverlayMaster& overlay,
+    RenderMaster::RenderMaster(SceneGraph& scene, ShaderMaster& shader, OverlayMaster& overlay, ResourceMaster& resMas,
         ICamera* const camera, const unsigned int winWidth, const unsigned int winHeight)
         : m_scene(scene)
         , m_shader(shader)
@@ -230,6 +230,20 @@ namespace dal {
             }
         }
 		*/
+
+        // Skybox
+        {
+            std::array<ResourceID, 6> cubeMapImages{
+                "asset::cloudtop_rt.tga",
+                "asset::cloudtop_lf.tga",
+                "asset::cloudtop_up.tga",
+                "asset::cloudtop_dn.tga",
+                "asset::cloudtop_ft.tga",
+                "asset::cloudtop_bk.tga",
+            };
+            auto tex = resMas.orderCubeMap(cubeMapImages);
+            this->m_skybox.setCubeMap(tex);
+        }
 
         // Similar to on resize method
         {

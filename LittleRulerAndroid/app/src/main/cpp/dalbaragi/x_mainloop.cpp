@@ -349,7 +349,7 @@ namespace dal {
     Mainloop::Mainloop(const unsigned int winWidth, const unsigned int winHeight)
         : m_scene(m_resMas, winWidth, winHeight)
         , m_overlayMas(m_shader, winWidth, winHeight)
-        , m_renderMan(m_scene, m_shader, m_overlayMas, &m_scene.m_playerCam, winWidth, winHeight)
+        , m_renderMan(m_scene, m_shader, m_overlayMas, m_resMas, &m_scene.m_playerCam, winWidth, winHeight)
         , m_inputApply(m_overlayMas, winWidth, winHeight)
         , m_frameAccum(0)
         , m_flagQuit(false)

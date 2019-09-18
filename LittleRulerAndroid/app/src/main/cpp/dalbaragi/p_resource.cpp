@@ -24,7 +24,7 @@ namespace {
     class LoadTaskManger {
 
     public:
-        enum class ResTyp { texture, model_static, model_animated };
+        enum class ResTyp { texture, model_static, model_animated, cube_map };
 
     public:
         class TaskTexture : public dal::ITask {
@@ -110,6 +110,54 @@ namespace {
 
         };
 
+        class TaskCubeMap : public dal::ITask {
+
+        public:
+            std::array<dal::ResourceID, 6> in_resIDs;
+
+            bool out_success;
+            dal::binfo::ImageFileData out_imgs[6];
+
+            dal::CubeMap* data_handle;
+
+        public:
+            TaskCubeMap(const std::array<dal::ResourceID, 6>& resIDs, dal::CubeMap* handle)
+                : in_resIDs(resIDs)
+                , out_success(false)
+                , data_handle(handle)
+            {
+
+            }
+
+            virtual void start(void) override {
+                this->out_success = true;
+
+                for ( int i = 0; i < 6; ++i ) {
+                    const auto result = dal::futil::getRes_image(this->in_resIDs[i], this->out_imgs[i]);
+                    if ( !result ) {
+                        this->out_success = false;
+                        return;
+                    }
+                    else {
+                        this->out_imgs[i].m_hasTransparency = this->out_imgs[i].hasTransparency();
+
+                        switch ( i ) {
+                        case 2:
+                            this->out_imgs[i].rotate90();
+                            break;
+                        case 3:
+                            this->out_imgs[i].rotate270();
+                            break;
+                        default:
+                            this->out_imgs[i].rotate180();
+                            break;
+                        }
+                    }
+                }
+            }
+
+        };
+
     private:
         std::unordered_map<void*, ResTyp> m_map;
 
@@ -127,6 +175,11 @@ namespace {
         TaskModelAnimated* newModelAnimated(const dal::ResourceID& modelID, dal::ModelAnimated& coresponding, dal::Package& package) {
             auto task = new TaskModelAnimated(modelID, coresponding, package);
             this->m_map.emplace(task, ResTyp::model_animated);
+            return task;
+        }
+        TaskCubeMap* newCubeMap(const std::array<dal::ResourceID, 6>& resIDs, dal::CubeMap* const handle) {
+            auto task = new TaskCubeMap(resIDs, handle);
+            this->m_map.emplace(task, ResTyp::cube_map);
             return task;
         }
 
@@ -570,6 +623,22 @@ namespace dal {
                 }
             }
         }
+        else if ( taskTyp == LoadTaskManger::ResTyp::cube_map ) {
+            auto loaded = reinterpret_cast<LoadTaskManger::TaskCubeMap*>(task.get());
+            if ( !loaded->out_success ) {
+                dalError("Failed to load cube map: {}"_format(loaded->in_resIDs[0].makeIDStr()));
+                return;
+            }
+
+            CubeMap::CubeMapData data;
+
+            for ( int i = 0; i < 6; ++i ) {
+                auto& info = loaded->out_imgs[i];
+                data.set(i, info.m_buf.data(), info.m_width, info.m_height, info.m_pixSize);
+            }
+
+            loaded->data_handle->init(data);
+        }
         else {
             dalWarn("ResourceMaster got a task that it doesn't know.");
         }
@@ -633,6 +702,16 @@ namespace dal {
             return texture;
         }
     }
+
+    CubeMap* ResourceMaster::orderCubeMap(const std::array<ResourceID, 6>& resIDs) {
+        auto tex = &this->m_cubeMaps.emplace_back();
+
+        auto task = g_taskManger.newCubeMap(resIDs, tex);
+        TaskGod::getinst().orderTask(task, this);
+
+        return tex;
+    }
+
 
     MapChunk2 ResourceMaster::loadMap(const ResourceID& resID) {
         std::vector<uint8_t> buffer;

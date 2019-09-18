@@ -62,7 +62,8 @@ namespace dal {
         Skybox m_skybox;
 
     public:
-        RenderMaster(SceneGraph& scene, ShaderMaster& shader, OverlayMaster& overlay, ICamera* const camera, const unsigned int winWidth, const unsigned int winHeight);
+        RenderMaster(SceneGraph& scene, ShaderMaster& shader, OverlayMaster& overlay, ResourceMaster& resMas,
+            ICamera* const camera, const unsigned int winWidth, const unsigned int winHeight);
 
         void update(const float deltaTime);
         void render(entt::registry& reg);
