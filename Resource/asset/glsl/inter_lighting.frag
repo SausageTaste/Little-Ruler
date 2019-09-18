@@ -20,6 +20,21 @@ uniform sampler2D uDlightDepthMap[3];  // TEX 1, 2, 3
 uniform samplerCube u_environmentMap;
 
 
+const float PI = 3.14159265;
+
+
+vec3 getEnvColor(vec3 fragPos, vec3 fragNormal) {
+    vec3 I = normalize(fragPos - uViewPos);
+    vec3 R = reflect(I, fragNormal);
+    return texture(u_environmentMap, R).rgb;
+}
+
+float getEnvFactor(void){
+    float factor = (uSpecularStrength) * 0.5;
+    return clamp(factor, 0.0, 1.0);
+}
+
+
 float _sampleDlightDepth(int index, vec2 coord) {
 
 #ifdef GL_ES
@@ -81,7 +96,8 @@ float _getLightFactor_directional(int index, vec3 viewDir, vec3 fragNormal) {
     }
     else {
         vec3 reflectDir = reflect(-lightLocDir, fragNormal);
-        float spec = pow(max(dot(viewDir, reflectDir), 0.0), uShininess);
+        float energyConservation = ( 2.0 + uShininess ) / ( 2.0 * PI );
+        float spec = energyConservation * pow(max(dot(viewDir, reflectDir), 0.0), uShininess);
         float specular = max(uSpecularStrength * spec, 0.0);
 
         return diff + specular;
@@ -103,7 +119,8 @@ float getLightFactor_point(int index, vec3 viewDir, vec3 fragNormal, vec3 fragPo
     float spec = 0.0;
 
     vec3 halfwayDir = normalize(lightDir + viewDir);
-    spec = pow(max(dot(fragNormal, halfwayDir), 0.0), uShininess);
+    float energyConservation = ( 8.0 + uShininess ) / ( 8.0 * PI );
+    spec = energyConservation * pow(max(dot(fragNormal, halfwayDir), 0.0), uShininess);
 
     float specular = max(uSpecularStrength * spec, 0.0);
 
@@ -135,16 +152,4 @@ vec4 calcFogMixedColor(vec4 color, vec3 fragPos) {
     float factor = _calcFogFactor(fragPos);
     vec3 mixedColor = mix(color.xyz, u_fogColor, factor);
     return vec4(mixedColor, color.a);
-}
-
-
-vec3 getEnvColor(vec3 fragPos, vec3 fragNormal) {
-    vec3 I = normalize(fragPos - uViewPos);
-    vec3 R = reflect(I, fragNormal);
-    return texture(u_environmentMap, R).rgb;
-}
-
-float getEnvFactor(void){
-    float factor = (uSpecularStrength) * 0.3;
-    return clamp(factor, 0.0, 1.0);
 }
