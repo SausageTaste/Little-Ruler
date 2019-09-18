@@ -17,25 +17,24 @@ def main():
 
     unit = model.newRenderUnit()
     unit.m_mesh = mes.Rect(
-        pri.Vec3(-15, 70, -10),
-        pri.Vec3(-15, 70, 10),
-        pri.Vec3(15, -15, 10),
-        pri.Vec3(15, -15, -10)
+        pri.Vec3(10, 70, 0),
+        pri.Vec3(0, -10, -10),
+        pri.Vec3(-10, -10, 0),
+        pri.Vec3(0, 70, 10)
     )
     unit.m_material.m_diffuseMap.set("asset::0021di.png")
-    unit.m_material.m_texScaleX.set(45)
-    unit.m_material.m_texScaleY.set(10)
+    unit.m_material.m_texScaleX.set(14.142135623730951 / 2)
+    unit.m_material.m_texScaleY.set(81.24038404635961 / 2)
 
     actor = model.newStaticActor()
-    actor.m_name.set("slope_actor")
-    actor.m_transform.m_pos.setX(-20)
-    actor.m_transform.m_pos.setY(-5)
+    actor.m_name.set("main_actor")
+    actor.m_transform.m_pos.setZ(11)
 
     ################
 
     model = mapbuild.newEmbeddedModel()
     model.m_flagDetailedCollider.set(True)
-    model.m_name.set("Slope2")
+    model.m_name.set("terrain")
 
     unit = model.newRenderUnit()
     builder = mes.HeightGrid(150, 150, 20, 20)
@@ -59,7 +58,7 @@ def main():
     unit.m_material.m_specStreng.set(0.5)
 
     actor = model.newStaticActor()
-    actor.m_name.set("slope_actor")
+    actor.m_name.set("main_actor")
     actor.m_transform.m_pos.setX(0)
     actor.m_transform.m_pos.setY(-6)
 
@@ -80,8 +79,9 @@ def main():
     model.m_resourceID.set("asset::yuri_cso2.obj")
 
     actor = model.newStaticActor()
-    actor.m_name.set("yuri1")
-    actor.m_transform.m_pos.setY(-4)
+    actor.m_name.set("main_actor")
+    actor.m_transform.m_pos.setY(-3)
+    actor.m_transform.m_scale.set(3)
 
     ################
 
