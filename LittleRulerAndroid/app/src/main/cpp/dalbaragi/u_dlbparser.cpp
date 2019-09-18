@@ -490,17 +490,45 @@ namespace {
             }
 
         private:
-            glm::vec3 makePointAt(const size_t xGrid, const size_t zGrid) const {
-                const auto xGridCount = this->m_heightMap.getColumnSize();
-                const auto zGridCount = this->m_heightMap.getRowSize();
+            // Returns vec2{ x, z }
+            glm::vec2 calcWorldPos(const size_t xGrid, const size_t zGrid) const {
+                /*
+                const auto numGridX = this->m_heightMap.getColumnSize();
+                const auto numGridZ = this->m_heightMap.getRowSize();
 
                 const auto xLeftInGlobal = -(this->m_xLen * 0.5f);
                 const auto zFarInGlobal = -(this->m_zLen * 0.5f);
 
+                const auto x = xLeftInGlobal + (this->m_xLen / float(numGridX - 1)) * float(xGrid);
+                const auto z = zFarInGlobal + (this->m_zLen / float(numGridZ - 1)) * float(zGrid);
+
+                Bellow is simplified of above.
+                */
+
+                glm::vec2 result;
+
+                {
+                    const auto numGridX = this->m_heightMap.getColumnSize();
+                    const auto a = static_cast<float>(xGrid) / static_cast<float>(numGridX - 1);
+                    result.x = this->m_xLen * (a - 0.5f);
+                }
+                
+                {
+                    const auto numGridZ = this->m_heightMap.getRowSize();
+                    const auto a = static_cast<float>(zGrid) / static_cast<float>(numGridZ - 1);
+                    result.y = this->m_zLen * (a - 0.5f);
+                }
+
+                return result;
+            }
+
+            glm::vec3 makePointAt(const size_t xGrid, const size_t zGrid) const {
+                const auto worldPosXZ = calcWorldPos(xGrid, zGrid);
+
                 const glm::vec3 result{
-                    xLeftInGlobal + (this->m_xLen / float(xGridCount - 1)) * float(xGrid),
+                    worldPosXZ.x,
                     this->m_heightMap.getAt(zGrid, xGrid),
-                    zFarInGlobal + (this->m_zLen / float(zGridCount - 1)) * float(zGrid)
+                    worldPosXZ.y
                 };
 
                 return result;
