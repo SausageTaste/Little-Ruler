@@ -1,5 +1,6 @@
 #pragma once
 
+#include <array>
 #include <numeric>
 
 #include <glm/glm.hpp>
@@ -61,5 +62,124 @@ namespace dal {
 
         return result;
     }
+
+}
+
+
+// Classes
+namespace dal {
+
+    template <typename _ValTyp, size_t _Size>
+    class _BasicPolynomial {
+
+    private:
+        static inline constexpr auto ZERO = static_cast<_ValTyp>(0);
+        std::array<_ValTyp, _Size> m_array = { 0 };
+
+    public:
+        _BasicPolynomial(void) = default;
+        template <typename _ListTyp, size_t _ListSize>
+        _BasicPolynomial(const _ListTyp(&list)[_ListSize]) {
+            static_assert(_ListSize <= _Size);
+
+            for ( size_t i = 0; i < _ListSize; ++i ) {
+                this->m_array[i] = static_cast<_ValTyp>(list[i]);
+            }
+        }
+
+        template <size_t _OtherSize>
+        auto operator+(const _BasicPolynomial<_ValTyp, _OtherSize>& other) const {
+            constexpr auto bigger = _Size > _OtherSize ? _Size : _OtherSize;
+            _BasicPolynomial<_ValTyp, bigger> result;
+
+            for ( size_t i = 0; i < bigger; ++i ) {
+                result.m_array[i] = this->getCoeff(i) + other.getCoeff(i);
+            }
+            return result;
+        }
+        template <size_t _OtherSize>
+        auto operator-(const _BasicPolynomial<_ValTyp, _OtherSize>& other) const {
+            constexpr auto bigger = _Size > _OtherSize ? _Size : _OtherSize;
+            _BasicPolynomial<_ValTyp, bigger> result;
+
+            for ( size_t i = 0; i < bigger; ++i ) {
+                result.m_array[i] = this->getCoeff(i) - other.getCoeff(i);
+            }
+            return result;
+        }
+        _BasicPolynomial& operator*=(const _ValTyp factor) {
+            for ( size_t i = 0; i < _Size; ++i ) {
+                this->m_array[i] *= factor;
+            }
+        }
+
+        _ValTyp operator()(const _ValTyp x) const {
+            _ValTyp sum = this->ZERO;
+
+            {
+                const auto coeff = this->m_array[0];
+                if ( this->ZERO != coeff ) {
+                    sum += coeff;
+                }
+            }
+
+            for ( size_t i = 1; i < _Size; ++i ) {
+                const auto coeff = this->m_array[i];
+                if ( this->ZERO != coeff ) {
+                    sum += coeff * std::pow(x, i);
+                }
+            }
+
+            return sum;
+        }
+
+        template <size_t _Degree>
+        _ValTyp getCoeff(void) const {
+            static_assert(_Degree < _Size);
+            return this->m_array[_Degree];
+        }
+        _ValTyp getCoeff(const size_t degree) const {
+            if ( degree < _Size ) {
+                return this->m_array[degree];
+            }
+            else {
+                return this->ZERO;
+            }
+        }
+        template <size_t _Degree>
+        void setCoeff(const _ValTyp val) {
+            static_assert(_Degree < _Size);
+            this->m_array[_Degree] = val;
+        }
+        void setCoeff(const size_t degree, const _ValTyp val) {
+            assert(degree < _Size);
+            this->m_array[degree] = val;
+        }
+
+        _BasicPolynomial differentiate(void) const {
+            _BasicPolynomial result;
+
+            for ( size_t i = 1; i < _Size; ++i ) {
+                result.setCoeff(i - 1, this->m_array[i] * static_cast<_ValTyp>(i));
+            }
+
+            return result;
+        }
+        _BasicPolynomial integrate(const _ValTyp c = ZERO) const {
+            _BasicPolynomial result;
+            assert(this->ZERO == this->m_array[_Size - 1]);
+
+            for ( size_t i = 0; i < _Size - 1; ++i ) {
+                const auto newCoeff = this->m_array[i] / static_cast<_ValTyp>(i + 1);
+                result.m_array[i + 1] = newCoeff;
+            }
+            result.m_array[0] = c;
+
+            return result;
+        }
+
+    };
+
+    using Polynomial = _BasicPolynomial<float, 10>;
 
 }
