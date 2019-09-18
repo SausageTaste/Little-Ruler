@@ -9,6 +9,7 @@
 #include <fmt/format.h>
 
 #include "s_logger_god.h"
+#include "u_math.h"
 
 
 using namespace fmt::literals;
@@ -282,6 +283,49 @@ namespace {
                 return this->m_array[this->calcTotalIndex(row, column)];
             }
 
+            template <typename T>
+            float getInterpAt(const T row, const T column) const {
+                const glm::vec2 rowColVec{ static_cast<float>(row), static_cast<float>(column) };
+
+                const auto floorRow = static_cast<size_t>(row);
+                const auto floorRow_f = static_cast<float>(floorRow);
+                const auto floorColumn = static_cast<size_t>(column);
+                const auto floorColumn_f = static_cast<float>(floorColumn);
+
+                // Order is floor, next row, next column, next both.
+                
+
+                const glm::ivec2 gridOffsets[4] = {
+                    glm::ivec2{ 0, 0 },
+                    glm::ivec2{ 1, 0 },
+                    glm::ivec2{ 0, 1 },
+                    glm::ivec2{ 1, 1 }
+                };
+
+                float values[4];
+                float distSqrInv[4];
+
+                for ( int i = 0; i < 4; ++i ) {
+                    const auto rowGrid = static_cast<size_t>(row) + gridOffsets[i].x;
+                    const auto colGrid = static_cast<size_t>(column) + gridOffsets[i].y;
+                    if ( this->isCoordInside(rowGrid, colGrid) ) {
+                        values[i] = this->getAt(rowGrid, colGrid);
+
+                        const auto diffVec = rowColVec - glm::vec2{ static_cast<float>(rowGrid), static_cast<float>(colGrid) };
+                        const auto distSqr = glm::dot(diffVec, diffVec);
+                        if ( 0.f == distSqr ) {
+                            return values[i];
+                        }
+                        else {
+                            distSqrInv[i] = 1.f / distSqr;
+                        }
+                    }
+                }
+
+                const auto avrgValue = dal::calcWeightedAvrg(values, distSqrInv, 4);
+                return avrgValue;
+            }
+
             size_t getColumnSize(void) const {
                 return this->m_columns;
             }
@@ -491,7 +535,8 @@ namespace {
 
         private:
             // Returns vec2{ x, z }
-            glm::vec2 calcWorldPos(const size_t xGrid, const size_t zGrid) const {
+            template <typename T>
+            glm::vec2 calcWorldPos(const T xGrid, const T zGrid) const {
                 /*
                 const auto numGridX = this->m_heightMap.getColumnSize();
                 const auto numGridZ = this->m_heightMap.getRowSize();
@@ -532,6 +577,12 @@ namespace {
                 };
 
                 return result;
+            }
+
+            glm::vec3 makePointInterp(const float xGrid, const float zGrid) const {
+                const auto worldPosXZ = calcWorldPos(xGrid, zGrid);
+                const auto height = this->m_heightMap.getInterpAt<float>(xGrid, zGrid);
+                return glm::vec3{ worldPosXZ.x, height, worldPosXZ.y };
             }
 
             glm::vec2 makeTexcoordsAt(const size_t xGrid, const size_t zGrid) const {
