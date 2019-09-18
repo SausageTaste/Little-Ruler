@@ -25,6 +25,8 @@ def main():
     unit.m_material.m_diffuseMap.set("asset::0021di.png")
     unit.m_material.m_texScaleX.set(14.142135623730951 / 2)
     unit.m_material.m_texScaleY.set(81.24038404635961 / 2)
+    unit.m_material.m_shininess.set(2)
+    unit.m_material.m_specStreng.set(0.5)
 
     actor = model.newStaticActor()
     actor.m_name.set("main_actor")
