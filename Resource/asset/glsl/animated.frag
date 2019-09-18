@@ -36,13 +36,13 @@ void main(void) {
     for (i = 0; i < uPlightCount; i++) {
         lightedColor += getLightFactor_point(i, viewDir, fragNormal, v_fragPos) * uPlightColors[i];
     }
+    lightedColor += getEnvColor(v_fragPos, fragNormal);
 
     vec4 texColor = texture(u_diffuseMap, vTexCoord);
     if (texColor.a < 0.5) {
         discard;
     }
-    vec3 diffuseColor = mix(texColor.rgb, getEnvColor(v_fragPos, fragNormal), getEnvFactor());
 
-    fColor = vec4(diffuseColor * lightedColor, 1.0);
+    fColor = vec4(texColor.rgb * lightedColor, 1.0);
     fColor = calcFogMixedColor(fColor, v_fragPos);
 }

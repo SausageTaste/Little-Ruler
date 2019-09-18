@@ -328,6 +328,7 @@ namespace dal {
         : m_shininess(32.0f)
         , m_specularStrength(1.0f)
         , m_diffuseColor(1.0f, 1.0f, 1.0f)
+        , m_reflectivity(0.1f)
         , m_texScale(1.0f, 1.0f)
         , m_diffuseMap(nullptr)
     {
@@ -343,16 +344,15 @@ namespace dal {
         this->m_diffuseMap = tex;
     }
 
-    void Material::sendUniform(const UniInterfLightedMesh& unilocLight) const {
-        unilocLight.shininess(this->m_shininess);
-        unilocLight.specularStrength(this->m_specularStrength);
-        unilocLight.texScale(this->m_texScale);
+    void Material::sendUniform(const UniInterfLightedMesh& uniloc) const {
+        uniloc.shininess(this->m_shininess);
+        uniloc.specularStrength(this->m_specularStrength);
+        uniloc.texScale(this->m_texScale);
+        uniloc.envReflectivity(this->m_reflectivity);
     }
 
     void Material::sendUniform(const UniInterfLightedMesh& unilocLight, const SamplerInterf& samplerInterf) const {
-        unilocLight.shininess(this->m_shininess);
-        unilocLight.specularStrength(this->m_specularStrength);
-        unilocLight.texScale(this->m_texScale);
+        this->sendUniform(unilocLight);
 
         if ( nullptr != this->m_diffuseMap ) {
             this->m_diffuseMap->sendUniform(samplerInterf);

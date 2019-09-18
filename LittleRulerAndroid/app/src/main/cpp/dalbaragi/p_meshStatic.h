@@ -278,6 +278,7 @@ namespace dal {
         float m_shininess;
         float m_specularStrength;
         glm::vec3 m_diffuseColor;
+        float m_reflectivity;
 
     private:
         glm::vec2 m_texScale;
@@ -293,7 +294,7 @@ namespace dal {
         }
         void setDiffuseMap(const Texture* const tex);
 
-        void sendUniform(const UniInterfLightedMesh& unilocLight) const;
+        void sendUniform(const UniInterfLightedMesh& uniloc) const;
         void sendUniform(const UniInterfLightedMesh& unilocLight, const SamplerInterf& samplerInterf) const;
 
         bool hasDiffuseAlpha(void) const {

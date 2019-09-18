@@ -6,6 +6,7 @@ uniform int uPlightCount;
 
 uniform float uShininess;
 uniform float uSpecularStrength;
+uniform float u_envReflectivity;
 uniform float u_fogMaxPointInvSqr;
 uniform vec3 u_fogColor;
 
@@ -23,7 +24,7 @@ uniform samplerCube u_environmentMap;
 const float PI = 3.14159265;
 
 
-float mapShininess(void) {
+float _mapShininess(void) {
     const float a = 0.0;  // minShin
     const float b = 512.0;  // maxShin
     const float c = 0.5;  // forMin
@@ -36,9 +37,15 @@ float mapShininess(void) {
 }
 
 vec3 getEnvColor(vec3 fragPos, vec3 fragNormal) {
+    vec3 I = normalize(fragPos - uViewPos);
+    vec3 R = reflect(I, fragNormal);
+    return texture(u_environmentMap, R).rgb * u_envReflectivity;
+}
+
+vec3 getEnvColorMulti(vec3 fragPos, vec3 fragNormal) {
     const int kSampleCount = 1;
 
-    float kSampleDistFactor = mapShininess();
+    float kSampleDistFactor = _mapShininess();
     vec3 color = vec3(0.0);
 
     for (int i = -kSampleCount; i <= kSampleCount; i++) {
@@ -55,11 +62,6 @@ vec3 getEnvColor(vec3 fragPos, vec3 fragNormal) {
     const int sampledCount = (2 * kSampleCount + 1) * (2 * kSampleCount + 1) * (2 * kSampleCount + 1);
 
     return color / sampledCount;
-}
-
-float getEnvFactor(void){
-    float factor = (uSpecularStrength) * 0.5;
-    return clamp(factor, 0.0, 1.0);
 }
 
 

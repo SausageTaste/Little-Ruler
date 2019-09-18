@@ -180,6 +180,7 @@ namespace dal {
 
         this->uShininess = glGetUniformLocation(shader, "uShininess");
         this->uSpecularStrength = glGetUniformLocation(shader, "uSpecularStrength");
+        this->u_envReflectivity = glGetUniformLocation(shader, "u_envReflectivity");
         this->u_fogMaxPointInvSqr = glGetUniformLocation(shader, "u_fogMaxPointInvSqr");
         this->u_fogColor = glGetUniformLocation(shader, "u_fogColor");
 
@@ -245,6 +246,10 @@ namespace dal {
 
     void UniInterfLightedMesh::specularStrength(const float x) const {
         glUniform1f(this->uSpecularStrength, x);
+    }
+
+    void UniInterfLightedMesh::envReflectivity(const float x) const {
+        glUniform1f(this->u_envReflectivity, x);
     }
 
     void UniInterfLightedMesh::fogMaxPoint(const float x) const {
