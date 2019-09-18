@@ -234,12 +234,12 @@ namespace dal {
         // Skybox
         {
             std::array<ResourceID, 6> cubeMapImages{
-                "asset::cloudtop_rt.tga",
-                "asset::cloudtop_lf.tga",
-                "asset::cloudtop_up.tga",
-                "asset::cloudtop_dn.tga",
-                "asset::cloudtop_ft.tga",
-                "asset::cloudtop_bk.tga",
+                "asset::darkskies_rt.tga",
+                "asset::darkskies_lf.tga",
+                "asset::darkskies_up.tga",
+                "asset::darkskies_dn.tga",
+                "asset::darkskies_ft.tga",
+                "asset::darkskies_bk.tga",
             };
             auto tex = resMas.orderCubeMap(cubeMapImages);
             this->m_skybox.setCubeMap(tex);
