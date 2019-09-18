@@ -21,95 +21,124 @@ using namespace fmt::literals;
 // Tasks
 namespace {
 
-    class LoadTask_Texture : public dal::ITask {
+    class LoadTaskManger {
 
     public:
-        const dal::ResourceID in_texID;
-
-        dal::binfo::ImageFileData out_img;
-
-        bool out_success = false;
-
-        dal::Texture* data_handle;
+        enum class ResTyp { texture, model_static, model_animated };
 
     public:
-        LoadTask_Texture(const dal::ResourceID& texID, dal::Texture* const handle)
-            : in_texID(texID)
-            , data_handle(handle)
-        {
+        class TaskTexture : public dal::ITask {
 
-        }
+        public:
+            const dal::ResourceID in_texID;
 
-        virtual void start(void) override {
-            out_success = dal::futil::getRes_image(in_texID, out_img);
-            this->out_img.m_hasTransparency = this->out_img.hasTransparency();
-        }
+            dal::binfo::ImageFileData out_img;
 
-    };
+            bool out_success = false;
 
+            dal::Texture* data_handle;
 
-    class LoadTask_Model : public dal::ITask {
+        public:
+            TaskTexture(const dal::ResourceID& texID, dal::Texture* const handle)
+                : in_texID(texID)
+                , data_handle(handle)
+            {
 
-    public:
-        const dal::ResourceID in_modelID;
-
-        bool out_success;
-        dal::AssimpModelInfo out_info;
-
-        dal::ModelStatic& data_coresponding;
-        dal::Package& data_package;
-
-    public:
-        LoadTask_Model(const dal::ResourceID& modelID, dal::ModelStatic& coresponding, dal::Package& package)
-            : in_modelID(modelID),
-            out_success(false),
-            data_coresponding(coresponding),
-            data_package(package)
-        {
-
-        }
-
-        virtual void start(void) override {
-            this->out_success = dal::loadAssimpModel(this->in_modelID, this->out_info);
-        }
-
-    };
-
-
-    class LoadTask_ModelAnimated : public dal::ITask {
-
-    public:
-        const dal::ResourceID in_modelID;
-
-        bool out_success;
-        dal::AssimpModelInfo out_info;
-
-        dal::ModelAnimated& data_coresponding;
-        dal::Package& data_package;
-
-    public:
-        LoadTask_ModelAnimated(const dal::ResourceID& modelID, dal::ModelAnimated& coresponding, dal::Package& package)
-            : in_modelID(modelID),
-            out_success(false),
-            data_coresponding(coresponding),
-            data_package(package)
-        {
-
-        }
-
-        virtual void start(void) override {
-            this->out_success = dal::loadAssimpModel(this->in_modelID, this->out_info);
-            if ( 0 == this->out_info.m_model.m_joints.getSize() ) {
-                this->out_success = false;
             }
+
+            virtual void start(void) override {
+                out_success = dal::futil::getRes_image(in_texID, out_img);
+                this->out_img.m_hasTransparency = this->out_img.hasTransparency();
+            }
+
+        };
+
+        class TaskModelStatic : public dal::ITask {
+
+        public:
+            const dal::ResourceID in_modelID;
+
+            bool out_success;
+            dal::AssimpModelInfo out_info;
+
+            dal::ModelStatic& data_coresponding;
+            dal::Package& data_package;
+
+        public:
+            TaskModelStatic(const dal::ResourceID& modelID, dal::ModelStatic& coresponding, dal::Package& package)
+                : in_modelID(modelID),
+                out_success(false),
+                data_coresponding(coresponding),
+                data_package(package)
+            {
+
+            }
+
+            virtual void start(void) override {
+                this->out_success = dal::loadAssimpModel(this->in_modelID, this->out_info);
+            }
+
+        };
+
+        class TaskModelAnimated : public dal::ITask {
+
+        public:
+            const dal::ResourceID in_modelID;
+
+            bool out_success;
+            dal::AssimpModelInfo out_info;
+
+            dal::ModelAnimated& data_coresponding;
+            dal::Package& data_package;
+
+        public:
+            TaskModelAnimated(const dal::ResourceID& modelID, dal::ModelAnimated& coresponding, dal::Package& package)
+                : in_modelID(modelID),
+                out_success(false),
+                data_coresponding(coresponding),
+                data_package(package)
+            {
+
+            }
+
+            virtual void start(void) override {
+                this->out_success = dal::loadAssimpModel(this->in_modelID, this->out_info);
+                if ( 0 == this->out_info.m_model.m_joints.getSize() ) {
+                    this->out_success = false;
+                }
+            }
+
+        };
+
+    private:
+        std::unordered_map<void*, ResTyp> m_map;
+
+    public:
+        TaskTexture* newTexture(const dal::ResourceID& texID, dal::Texture* const handle) {
+            auto task = new TaskTexture(texID, handle);
+            this->m_map.emplace(task, ResTyp::texture);
+            return task;
+        }
+        TaskModelStatic* newModelStatic(const dal::ResourceID& modelID, dal::ModelStatic& coresponding, dal::Package& package) {
+            auto task = new TaskModelStatic(modelID, coresponding, package);
+            this->m_map.emplace(task, ResTyp::model_static);
+            return task;
+        }
+        TaskModelAnimated* newModelAnimated(const dal::ResourceID& modelID, dal::ModelAnimated& coresponding, dal::Package& package) {
+            auto task = new TaskModelAnimated(modelID, coresponding, package);
+            this->m_map.emplace(task, ResTyp::model_animated);
+            return task;
         }
 
-    };
+        ResTyp reportDone(void* const ptr) {
+            const auto found = this->m_map.find(ptr);
+            dalAssert(this->m_map.end() != found);
+            const auto tasktype = found->second;
+            this->m_map.erase(found);
+            return tasktype;
+        }
 
-
-    std::unordered_set<void*> g_sentTasks_texture;
-    std::unordered_set<void*> g_sentTasks_model;
-    std::unordered_set<void*> g_sentTasks_modelAnimated;
+    } g_taskManger;
 
 }
 
@@ -451,14 +480,12 @@ namespace dal {
 namespace dal {
 
     void ResourceMaster::notifyTask(std::unique_ptr<ITask> task) {
-        if ( nullptr == task ) {
-            dalAbort("ResourceMaster::notifyTask has got a nullptr. Why??");
-        }
+        dalAssert(nullptr != task);
 
-        if ( g_sentTasks_model.find(task.get()) != g_sentTasks_model.end() ) {
-            g_sentTasks_model.erase(task.get());
+        const auto taskTyp = g_taskManger.reportDone(task.get());
 
-            auto loaded = reinterpret_cast<LoadTask_Model*>(task.get());
+        if ( taskTyp == LoadTaskManger::ResTyp::model_static ) {
+            auto loaded = reinterpret_cast<LoadTaskManger::TaskModelStatic*>(task.get());
             if ( !loaded->out_success ) {
                 dalError("Failed to load model: {}"_format(loaded->in_modelID.makeIDStr()));
                 return;
@@ -496,10 +523,8 @@ namespace dal {
                 loaded->data_coresponding.m_bounding.reset(new ColAABB{ loaded->out_info.m_model.m_aabb });
             }
         }
-        else if ( g_sentTasks_texture.find(task.get()) != g_sentTasks_texture.end() ) {
-            g_sentTasks_texture.erase(task.get());
-
-            auto loaded = reinterpret_cast<LoadTask_Texture*>(task.get());
+        else if ( taskTyp == LoadTaskManger::ResTyp::texture ) {
+            auto loaded = reinterpret_cast<LoadTaskManger::TaskTexture*>(task.get());
             if ( !loaded->out_success ) {
                 dalError("Failed to load texture: {}"_format(loaded->in_texID.makeIDStr()));
                 return;
@@ -507,10 +532,8 @@ namespace dal {
 
             loaded->data_handle->init_diffuseMap(loaded->out_img);
         }
-        else if ( g_sentTasks_modelAnimated.find(task.get()) != g_sentTasks_modelAnimated.end() ) {
-            g_sentTasks_modelAnimated.erase(task.get());
-
-            auto loaded = reinterpret_cast<LoadTask_ModelAnimated*>(task.get());
+        else if ( taskTyp == LoadTaskManger::ResTyp::model_animated ) {
+            auto loaded = reinterpret_cast<LoadTaskManger::TaskModelAnimated*>(task.get());
             if ( !loaded->out_success ) {
                 dalError("Failed to load model: {}"_format(loaded->in_modelID.makeIDStr()));
                 return;
@@ -566,8 +589,7 @@ namespace dal {
             model->m_resID = resID;  // It might not be resolved.
             package.giveModelStatic(resID, modelHandle);
 
-            auto task = new LoadTask_Model{ resID, *model, package };
-            g_sentTasks_model.insert(task);
+            auto task = g_taskManger.newModelStatic(resID, *model, package);
             TaskGod::getinst().orderTask(task, this);
 
             return modelHandle;
@@ -587,8 +609,7 @@ namespace dal {
             model->m_resID = resID;
             package.giveModelAnim(resID, modelHandle);
 
-            auto task = new LoadTask_ModelAnimated{ resID, *model, package };
-            g_sentTasks_modelAnimated.insert(task);
+            auto task = g_taskManger.newModelAnimated(resID, *model, package);
             TaskGod::getinst().orderTask(task, this);
 
             return modelHandle;
@@ -606,8 +627,7 @@ namespace dal {
             auto texture = new Texture;
             package.giveTexture(resID, texture);
 
-            auto task = new LoadTask_Texture(resID, texture);
-            g_sentTasks_texture.insert(task);
+            auto task = g_taskManger.newTexture(resID, texture);
             TaskGod::getinst().orderTask(task, this);
 
             return texture;
