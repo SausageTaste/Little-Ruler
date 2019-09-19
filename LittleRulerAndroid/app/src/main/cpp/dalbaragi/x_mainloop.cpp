@@ -340,10 +340,6 @@ namespace dal {
         return isFilesystemReady();
     }
 
-    void Mainloop::giveWindowCtrlFuncs(std::function<void(bool)> fullscreenToggle) {
-        GlobalStateGod::getinst().giveFscreenToggleFunc(fullscreenToggle);
-    }
-
     // Public
 
     Mainloop::Mainloop(const unsigned int winWidth, const unsigned int winHeight)
@@ -444,6 +440,8 @@ namespace dal {
         this->m_renderMan.onWinResize(width, height);
         this->m_overlayMas.onWinResize(width, height);
         this->m_scene.onResize(width, height);
+
+        dalVerbose("Resize : {} x {}"_format(width, height));
     }
 
     void Mainloop::onEvent(const EventStatic& e) {

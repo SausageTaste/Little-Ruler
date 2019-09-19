@@ -8,6 +8,22 @@
 using namespace fmt::literals;
 
 
+// ExternalFuncGod
+namespace dal {
+
+    std::pair<size_t, size_t> ExternalFuncGod::queryWinSize(void) {
+        if ( !this->m_queryWinSize ) {
+            dalWarn("External func not set : queryWinSize");
+        }
+        else {
+            return this->m_queryWinSize();
+        }
+    }
+
+}
+
+
+// GlobalStateGod
 namespace dal {
 
     GlobalStateGod::GlobalStateGod(void)

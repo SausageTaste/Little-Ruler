@@ -140,7 +140,7 @@ namespace {
         }
 
         auto arg = static_cast<bool>(lua_toboolean(L, 1));
-        dal::GlobalStateGod::getinst().setFullscreen(arg);
+        dal::ExternalFuncGod::getinst().setFscreen(arg);
 
         return 0;
     }

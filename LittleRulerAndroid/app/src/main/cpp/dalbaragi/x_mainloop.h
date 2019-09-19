@@ -35,7 +35,6 @@ namespace dal {
         // Windows doesn't need this but Android sure does. Please give it AAssetManager.
         static void giveWhatFilesystemWants(void* androidAssetManager, const char* const sdcardPath);
         static bool isWhatFilesystemWantsGiven(void);
-        static void giveWindowCtrlFuncs(std::function<void(bool)> fullscreenToggle);
 
         Mainloop(const unsigned int winWidth, const unsigned int winHeight);
         virtual ~Mainloop(void) override;

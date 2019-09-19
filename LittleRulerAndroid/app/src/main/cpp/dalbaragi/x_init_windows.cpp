@@ -202,11 +202,15 @@ namespace dal {
     int main_windows(void) {
         WindowSDL window{ "Little Ruler", INIT_WIN_WIDTH, INIT_WIN_HEIGHT, FULLSCREEN };
 
-        std::unique_ptr<Mainloop> engine{ new Mainloop{ INIT_WIN_WIDTH, INIT_WIN_HEIGHT } };
+        {
+            ExternalFuncGod::getinst().giveFunc_setFscreen(
+                [&window](const bool fscreen) {
+                    window.setFullscreen(fscreen);
+                }
+            );
+        }
 
-        Mainloop::giveWindowCtrlFuncs([&window, &engine](bool fscreen) {
-            window.setFullscreen(fscreen);
-            });
+        std::unique_ptr<Mainloop> engine{ new Mainloop{ INIT_WIN_WIDTH, INIT_WIN_HEIGHT } };
 
         while ( true ) {
             switch ( pullEventSDL(*engine.get()) ) {
