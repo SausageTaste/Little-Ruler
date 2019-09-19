@@ -373,7 +373,7 @@ namespace dal {
 
         // Widgets
         {
-            LuaState::giveDependencies(&this->m_renderMan);
+            LuaState::giveDependencies(this, &this->m_renderMan);
 
             this->m_overlayMas.giveWidgetRef(&g_fpsCounter);
             this->m_overlayMas.giveWidgetRef(&g_luaConsole);

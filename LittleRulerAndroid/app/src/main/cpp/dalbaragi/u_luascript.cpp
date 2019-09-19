@@ -3,14 +3,16 @@
 #include <fmt/format.h>
 
 #include "s_logger_god.h"
-#include "p_render_master.h"
 #include "s_configs.h"
 #include "u_fileclass.h"
+
+#include "x_mainloop.h"
 
 
 // Dependencies
 namespace {
 
+    dal::Mainloop* g_mainloop = nullptr;
     dal::RenderMaster* g_renderMas = nullptr;
 
 }
@@ -236,7 +238,8 @@ namespace dal {
 
     // Static
 
-    void LuaState::giveDependencies(void* const renderMas) {
+    void LuaState::giveDependencies(void* const mainloop, void* const renderMas) {
+        g_mainloop = reinterpret_cast<Mainloop*>(mainloop);
         g_renderMas = reinterpret_cast<RenderMaster*>(renderMas);
     }
 

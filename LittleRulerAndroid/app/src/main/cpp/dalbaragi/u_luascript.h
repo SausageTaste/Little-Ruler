@@ -32,7 +32,7 @@ namespace dal {
         void exec(const char* const statements);
 
         // This is gonna be called from Mainloop's ctor and dtor.
-        static void giveDependencies(void* const renderMas);
+        static void giveDependencies(void* const mainloop, void* const renderMas);
 
     };
 
