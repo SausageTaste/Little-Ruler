@@ -238,6 +238,8 @@ namespace {
                         dalAbort("Failed to initiate freetype face: {}"_format(fontResID.makeIDStr()));
                     }
 
+                    FT_Select_Charmap(this->m_face, ft_encoding_unicode);
+
                     this->setPixelSize(17);
                 }
 
@@ -271,6 +273,9 @@ namespace {
 
                 void loadCharData(const uint32_t utf32Char, CharacterUnit& charUnit) {
                     const auto glyphIndex = FT_Get_Char_Index(this->m_face, utf32Char);
+                    if ( 0 == glyphIndex ) {
+                        dalWarn("Glyph not found : {}"_format(utf32Char));
+                    }
                     if ( FT_Load_Glyph(this->m_face, glyphIndex, FT_LOAD_RENDER) != 0 ) {
                         dalAbort("Failed to get Glyph for utf-32 char \'{}\' in font \"{}\""_format(utf32Char, this->m_fontName));
                     }
@@ -396,7 +401,7 @@ namespace {
         };
 
     private:
-        static inline const std::string BASIC_FONT_NAME{ "asset::NanumGothic.ttf" };
+        static inline const std::string BASIC_FONT_NAME{ "asset::NotoSansCJKkr-Regular.otf" };
         std::vector<std::unique_ptr<CharMap>> m_charMaps;
         FreetypeMaster m_freetypeMas;
 
@@ -563,7 +568,11 @@ namespace dal {
         : Widget2(parent)
         , m_textColor(1.0f, 1.0f, 1.0f, 1.0f)
         , m_cursorPos(cursorNullPos)
+#if defined(_WIN32)
         , m_textSize(15)
+#elif defined(__ANDROID__)
+        , m_textSize(30)
+#endif
         , m_lineSpacingRate(1.3f)
         , m_wordWrap(false)
         , m_owning(-1)

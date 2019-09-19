@@ -375,6 +375,8 @@ namespace dal {
         {
             this->m_overlayMas.giveWidgetRef(&g_fpsCounter);
             this->m_overlayMas.giveWidgetRef(&g_luaConsole);
+
+            g_luaConsole.setSize(800, 600);
         }
 
         // Regist
