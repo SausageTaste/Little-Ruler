@@ -9,6 +9,9 @@
 #include "x_mainloop.h"
 
 
+using namespace fmt::literals;
+
+
 // Dependencies
 namespace {
 
@@ -139,8 +142,12 @@ namespace {
             return -1;
         }
 
-        auto arg = static_cast<bool>(lua_toboolean(L, 1));
-        dal::ExternalFuncGod::getinst().setFscreen(arg);
+        auto& external = dal::ExternalFuncGod::getinst();
+
+        auto flagFscreen = static_cast<bool>(lua_toboolean(L, 1));
+        external.setFscreen(flagFscreen);
+        auto winSize = external.queryWinSize();
+        g_mainloop->onResize(winSize.first, winSize.second);
 
         return 0;
     }

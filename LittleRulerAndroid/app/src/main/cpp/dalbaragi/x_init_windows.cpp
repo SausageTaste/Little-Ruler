@@ -182,6 +182,12 @@ namespace {
             SDL_SetWindowFullscreen(this->mWindow, yes ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0);
         }
 
+        std::pair<unsigned, unsigned> getWinSize(void) {
+            int w, h;
+            SDL_GetWindowSize(this->mWindow, &w, &h);
+            return std::pair<size_t, size_t>(w, h);
+        }
+
     private:
         static void initGLew(void) {
             glewExperimental = GL_TRUE;
@@ -203,9 +209,17 @@ namespace dal {
         WindowSDL window{ "Little Ruler", INIT_WIN_WIDTH, INIT_WIN_HEIGHT, FULLSCREEN };
 
         {
-            ExternalFuncGod::getinst().giveFunc_setFscreen(
+            auto& extgod = ExternalFuncGod::getinst();
+
+            extgod.giveFunc_setFscreen(
                 [&window](const bool fscreen) {
                     window.setFullscreen(fscreen);
+                }
+            );
+
+            extgod.giveFunc_queryWinSize(
+                [&window](void) -> std::pair<unsigned, unsigned> {
+                    return window.getWinSize();
                 }
             );
         }

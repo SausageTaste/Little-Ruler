@@ -11,7 +11,7 @@ using namespace fmt::literals;
 // ExternalFuncGod
 namespace dal {
 
-    std::pair<size_t, size_t> ExternalFuncGod::queryWinSize(void) {
+    std::pair<unsigned, unsigned> ExternalFuncGod::queryWinSize(void) {
         if ( !this->m_queryWinSize ) {
             dalWarn("External func not set : queryWinSize");
         }

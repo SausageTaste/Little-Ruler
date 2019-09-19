@@ -14,7 +14,7 @@ namespace dal {
 
     private:
         std::function<void(bool)> m_setFscreen;
-        std::function<std::pair<size_t, size_t>(void)> m_queryWinSize;
+        std::function<std::pair<unsigned, unsigned>(void)> m_queryWinSize;
 
     public:
         ExternalFuncGod(const ExternalFuncGod&) = delete;
@@ -31,10 +31,10 @@ namespace dal {
             return inst;
         }
 
-        void giveFunc_queryWinSize(std::function<std::pair<size_t, size_t>(void)> func_queryWinSize) {
+        void giveFunc_queryWinSize(std::function<std::pair<unsigned, unsigned>(void)> func_queryWinSize) {
             this->m_queryWinSize = func_queryWinSize;
         }
-        std::pair<size_t, size_t> queryWinSize(void);
+        std::pair<unsigned, unsigned> queryWinSize(void);
 
         void giveFunc_setFscreen(std::function<void(bool)> func) {
             this->m_setFscreen = func;
