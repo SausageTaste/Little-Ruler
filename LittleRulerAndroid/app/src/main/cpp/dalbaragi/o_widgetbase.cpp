@@ -274,7 +274,7 @@ namespace {
                 void loadCharData(const uint32_t utf32Char, CharacterUnit& charUnit) {
                     const auto glyphIndex = FT_Get_Char_Index(this->m_face, utf32Char);
                     if ( 0 == glyphIndex ) {
-                        dalWarn("Glyph not found : {}"_format(utf32Char));
+                        //dalWarn("Glyph not found : {}"_format(utf32Char));
                     }
                     if ( FT_Load_Glyph(this->m_face, glyphIndex, FT_LOAD_RENDER) != 0 ) {
                         dalAbort("Failed to get Glyph for utf-32 char \'{}\' in font \"{}\""_format(utf32Char, this->m_fontName));

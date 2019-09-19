@@ -373,10 +373,10 @@ namespace dal {
 
         // Widgets
         {
+            LuaState::giveDependencies(&this->m_renderMan);
+
             this->m_overlayMas.giveWidgetRef(&g_fpsCounter);
             this->m_overlayMas.giveWidgetRef(&g_luaConsole);
-
-            g_luaConsole.setSize(800, 600);
         }
 
         // Regist
@@ -393,8 +393,6 @@ namespace dal {
         // Test
         {
             test(this->m_timer.getElapsed());
-
-            g_luaConsole.exec("dofile(\"asset::test.lua\")");
         }
     }
 

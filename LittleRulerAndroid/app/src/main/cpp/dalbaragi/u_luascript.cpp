@@ -1,5 +1,7 @@
 #include "u_luascript.h"
 
+#include <fmt/format.h>
+
 #include "s_logger_god.h"
 #include "p_render_master.h"
 #include "s_configs.h"
@@ -80,6 +82,25 @@ namespace {
 }
 
 
+
+// Libs
+namespace {
+
+    class ILuaLib {
+
+    private:
+        std::vector<std::pair<std::string, lua_CFunction>> m_funcs;
+
+    public:
+        void addFunction(const char* const name, lua_CFunction func) {
+            this->m_funcs.push_back({ name, func });
+        }
+
+    };
+
+}
+
+
 // Misc functions
 namespace {
 
@@ -109,7 +130,8 @@ namespace {
         return 0;
     }
 
-    int moon_setFullscreen(lua_State* const L) {
+
+    int set_fullscreen(lua_State* const L) {
         const auto nargs = lua_gettop(L);
         if ( nargs < 1 ) {
             return -1;
@@ -121,7 +143,19 @@ namespace {
         return 0;
     }
 
-    int moon_runFile(lua_State* const L) {
+    int set_render_scale(lua_State* const L) {
+        const auto nargs = lua_gettop(L);
+        if ( nargs < 1 ) {
+            return -1;
+        }
+
+        const auto scale = lua_tonumber(L, 1);
+        g_renderMas->resizeRenderScale(scale);
+
+        return 0;
+    }
+
+    int exec_res(lua_State* const L) {
         const auto nargs = lua_gettop(L);
         if ( nargs < 1 ) {
             return -1;
@@ -139,6 +173,20 @@ namespace {
         return 0;
     }
 
+
+    //name of this function is not flexible
+    int luaopen_mylib(lua_State* L) {
+        static const struct luaL_Reg funcs[] = {
+            { "set_fullscreen", set_fullscreen },
+            { "exec_res", exec_res },
+            { "set_render_scale", set_render_scale },
+            { nullptr, nullptr }
+        };
+
+        luaL_newlib(L, funcs);
+        return 1;
+    }
+
 }
 
 
@@ -152,8 +200,8 @@ namespace dal {
 
         addPtrToGlobal(this->m_lua, this);
         addFunc(this->m_lua, "print", moon_print);
-        addFunc(this->m_lua, "setFullscreen", moon_setFullscreen);
-        addFunc(this->m_lua, "dofile", moon_runFile);
+
+        luaL_requiref(this->m_lua, "mylib", luaopen_mylib, 0);
     }
 
     LuaState::~LuaState(void) {
@@ -178,10 +226,10 @@ namespace dal {
     }
 
     void LuaState::exec(const char* const statements) {
-        auto err = luaL_dostring(this->m_lua, statements);
-        if ( err ) {
-            auto errMsg = lua_tostring(this->m_lua, -1);
-            this->appendTextLine(errMsg, std::strlen(errMsg));
+        if ( luaL_dostring(this->m_lua, statements) ) {
+            auto errMsg = fmt::format("[LUA] {}", lua_tostring(this->m_lua, -1));;
+            //this->appendTextLine(errMsg.data(), errMsg.size());
+            dalError(errMsg);
             lua_pop(this->m_lua, 1);
         }
     }
