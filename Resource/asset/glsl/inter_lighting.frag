@@ -61,7 +61,7 @@ vec3 getEnvColorMulti(vec3 fragPos, vec3 fragNormal) {
 
     const int sampledCount = (2 * kSampleCount + 1) * (2 * kSampleCount + 1) * (2 * kSampleCount + 1);
 
-    return color / sampledCount;
+    return color / float(sampledCount);
 }
 
 

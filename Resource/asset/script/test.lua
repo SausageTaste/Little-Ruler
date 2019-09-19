@@ -1,4 +1,12 @@
-
-
-print("shit")
-print("ass")
+print("Hello")
+print("안녕하세요")
+print("你好")
+print("こんにちは")
+print("здравствуйте")
+print("¡Hola!")
+print("สวัสดีครับ/สวัสดีค่ะ")
+print("Сайн байна уу")
+print("مرحبًا")
+print("မင်္ဂလာပါ")
+print("Γειά σας")
+print("नमस्ते")

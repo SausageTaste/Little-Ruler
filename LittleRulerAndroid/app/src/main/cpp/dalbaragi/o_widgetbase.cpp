@@ -64,40 +64,37 @@ namespace {
         return 0;
     }
 
-    uint32_t convert_utf8_to_utf32(const uint8_t* begin, const uint8_t* end) {
-        const auto cp_size = end - begin;
-        assert((utf8_codepoint_size(*begin)) == cp_size);
-        assert(1 <= cp_size && cp_size <= 4);
+    uint32_t convertUTF8to32(const uint8_t* arr) {
+        const auto cp_size = utf8_codepoint_size(*arr);
 
         uint32_t buffer = 0;
 
         switch ( cp_size ) {
 
         case 1:
-            buffer = ((uint32_t)begin[0] & ~UTF8_ONE_BYTE_MASK);
+            buffer = ((uint32_t)arr[0] & ~UTF8_ONE_BYTE_MASK);
             return buffer;
         case 2:
             buffer =
-                ((uint32_t)begin[0] & ~UTF8_TWO_BYTES_MASK) << 6 |
-                ((uint32_t)begin[1] & ~UTF8_CONTINUATION_MASK);
+                ((uint32_t)arr[0] & ~UTF8_TWO_BYTES_MASK) << 6 |
+                ((uint32_t)arr[1] & ~UTF8_CONTINUATION_MASK);
             return buffer;
         case 3:
             buffer =
-                ((uint32_t)begin[0] & ~UTF8_THREE_BYTES_MASK) << 12 |
-                ((uint32_t)begin[1] & ~UTF8_CONTINUATION_MASK) << 6 |
-                ((uint32_t)begin[2] & ~UTF8_CONTINUATION_MASK);
+                ((uint32_t)arr[0] & ~UTF8_THREE_BYTES_MASK) << 12 |
+                ((uint32_t)arr[1] & ~UTF8_CONTINUATION_MASK) << 6 |
+                ((uint32_t)arr[2] & ~UTF8_CONTINUATION_MASK);
             return buffer;
         case 4:
             buffer =
-                ((uint32_t)begin[0] & ~UTF8_FOUR_BYTES_MASK) << 18 |
-                ((uint32_t)begin[1] & ~UTF8_CONTINUATION_MASK) << 12 |
-                ((uint32_t)begin[2] & ~UTF8_CONTINUATION_MASK) << 6 |
-                ((uint32_t)begin[3] & ~UTF8_CONTINUATION_MASK);
+                ((uint32_t)arr[0] & ~UTF8_FOUR_BYTES_MASK) << 18 |
+                ((uint32_t)arr[1] & ~UTF8_CONTINUATION_MASK) << 12 |
+                ((uint32_t)arr[2] & ~UTF8_CONTINUATION_MASK) << 6 |
+                ((uint32_t)arr[3] & ~UTF8_CONTINUATION_MASK);
             return buffer;
         default:
             // this should never happen, since we check validity of the string
-            fprintf(stderr, "utf8_to_utf32: invalid byte in UTF8 string.\n");
-            return 0;
+            dalAbort("utf8_to_utf32: invalid byte in UTF8 string.\n");
 
         }
     }
@@ -385,7 +382,7 @@ namespace {
                     return found->second;
                 }
                 else {
-                    auto [iter, success] = this->m_unicodes.emplace();
+                    auto [iter, success] = this->m_unicodes.emplace(utf32Code, CharacterUnit{});
                     dalAssert(success);
 
                     auto& face = this->m_freetype.getFace(this->m_fontName);
@@ -409,7 +406,7 @@ namespace {
         }
 
     private:
-        CharMap& getCharMap(unsigned int fontSize) {
+        CharMap& getCharMap(const unsigned int fontSize) {
             if ( this->m_charMaps.size() > fontSize ) {
                 if ( nullptr == this->m_charMaps[fontSize] ) {
                     this->m_charMaps[fontSize].reset(new CharMap{ fontSize, this->BASIC_FONT_NAME, this->m_freetypeMas });
@@ -417,7 +414,7 @@ namespace {
                 return *(this->m_charMaps[fontSize].get());
             }
             else {
-                this->m_charMaps.resize(fontSize + 1);
+                this->m_charMaps.resize(static_cast<size_t>(fontSize) + 1);
                 this->m_charMaps[fontSize].reset(new CharMap{ fontSize, this->BASIC_FONT_NAME, this->m_freetypeMas });
                 return *(this->m_charMaps[fontSize].get());
             }
@@ -596,19 +593,15 @@ namespace dal {
             // Fetch utf-32 char
             {
                 const auto ch = static_cast<uint8_t>(*header);
-                ++header;
                 const auto codeSize = utf8_codepoint_size(ch);
                 dalAssert(codeSize <= MAX_UTF8_CODE_SIZE);
-                if ( codeSize > 1 ) {
-                    uint8_t buffer[MAX_UTF8_CODE_SIZE];
-                    for ( size_t i = 0; i < codeSize; i++ ) {
-                        buffer[i] = ch;
-                    }
 
-                    c = convert_utf8_to_utf32(&buffer[0], &buffer[0] + codeSize);
+                if ( codeSize > 1 ) {
+                    c = convertUTF8to32(reinterpret_cast<const uint8_t*>(header));
+                    header += codeSize;
                 }
                 else {
-                    c = ch;
+                    c = ch; ++header;
                 }
             }
 

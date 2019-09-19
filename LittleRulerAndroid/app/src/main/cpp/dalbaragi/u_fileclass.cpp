@@ -60,7 +60,8 @@ namespace {
                     {"skybox", {}},
                     {"mess", {}}
                 }
-            }
+            },
+            { "script", {} }
         }
     };
 
