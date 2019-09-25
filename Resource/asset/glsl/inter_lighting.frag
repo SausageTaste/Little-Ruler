@@ -14,10 +14,10 @@ uniform vec3  uPlightPoses[3];
 uniform vec3  uPlightColors[3];
 uniform float uPlightMaxDists[3];
 
-uniform vec3      uDlightDirecs[3];
-uniform vec3      uDlightColors[3];
-uniform sampler2D uDlightDepthMap[3];
-uniform mat4      uDlightProjViewMat[3];
+uniform vec3       uDlightDirecs[3];
+uniform vec3       uDlightColors[3];
+uniform sampler2D  uDlightDepthMap[3];
+uniform highp mat4 uDlightProjViewMat[3];
 
 uniform samplerCube u_environmentMap;
 
@@ -26,12 +26,12 @@ const float PI = 3.14159265;
 
 
 float _getDitherValue(void) {
-    float ditherPattern[16] = {
-    0.0, 0.5, 0.125, 0.625,
-    0.75f, 0.22f, 0.875f, 0.375f,
-    0.1875f, 0.6875f, 0.0625f, 0.5625,
-    0.9375f, 0.4375f, 0.8125f, 0.3125
-    };
+    float ditherPattern[16] = float[](
+        0.0   , 0.5   , 0.125 , 0.625 ,
+        0.75  , 0.22  , 0.875 , 0.375 ,
+        0.1875, 0.6875, 0.0625, 0.5625,
+        0.9375, 0.4375, 0.8125, 0.3125
+    );
 
     int i = int(gl_FragCoord.x) % 4;
     int j = int(gl_FragCoord.y) % 4;

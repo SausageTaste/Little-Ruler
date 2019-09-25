@@ -43,5 +43,6 @@ void main(void) {
     }
 
     fColor = vec4(texColor.rgb * lightedColor, 1.0);
+    fColor.xyz += calcDlightVolumeColor(0, vFragPos);
     fColor = calcFogMixedColor(fColor, vFragPos);
 }
