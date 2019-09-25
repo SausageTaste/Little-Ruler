@@ -18,6 +18,7 @@ class Material(inf.IDataBlock):
         self.__specStreng = pri.FloatValue()
         self.__texScaleX = pri.FloatValue()
         self.__texScaleY = pri.FloatValue()
+        self.__reflectivity = pri.FloatValue()
         self.__diffuseMap = pri.StringValue()
         self.__specularMap = pri.StringValue()
         self.__flagAlphaBlend = pri.BoolValue()
@@ -30,22 +31,14 @@ class Material(inf.IDataBlock):
             "spec_strength": self.__specStreng,
             "tex_scale_x": self.__texScaleX,
             "tex_scale_y": self.__texScaleY,
+            "reflectivity": self.__reflectivity,
             "diffuse_map": self.__diffuseMap,
             "specular_map": self.__specularMap,
             "alpha_blend": self.__flagAlphaBlend,
         })
 
     def getBinary(self) -> bytearray:
-        data = bytearray()
-        data += self.__baseColor.getBinary()
-        data += self.__shininess.getBinary()
-        data += self.__specStreng.getBinary()
-        data += self.__texScaleX.getBinary()
-        data += self.__texScaleY.getBinary()
-        data += self.__diffuseMap.getBinary()
-        data += self.__specularMap.getBinary()
-        data += self.__flagAlphaBlend.getBinary()
-        return data
+        return self._makeBinaryAsListed()
 
     def setDefault(self) -> None:
         self.__baseColor.setXYZ(1, 1, 1)
@@ -53,6 +46,7 @@ class Material(inf.IDataBlock):
         self.__specStreng.set(1)
         self.__texScaleX.set(1)
         self.__texScaleY.set(1)
+        self.__reflectivity.set(0.1)
         self.__diffuseMap.set("")
         self.__specularMap.set("")
         self.__flagAlphaBlend.set(False)
@@ -83,6 +77,9 @@ class Material(inf.IDataBlock):
     @property
     def m_texScaleY(self):
         return self.__texScaleY
+    @property
+    def m_reflectivity(self):
+        return self.__reflectivity
     @property
     def m_diffuseMap(self):
         return self.__diffuseMap

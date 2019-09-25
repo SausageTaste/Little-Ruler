@@ -1,7 +1,6 @@
 import random
 
 import dalutils.map.primitives as pri
-import dalutils.map.datablock as blk
 import dalutils.map.mapbuilder as mbu
 import dalutils.map.meshbuilder as mes
 
@@ -27,6 +26,7 @@ def main():
     unit.m_material.m_texScaleY.set(81.24038404635961 / 2)
     unit.m_material.m_shininess.set(2)
     unit.m_material.m_specStreng.set(0.5)
+    unit.m_material.m_reflectivity.set(0.5)
 
     actor = model.newStaticActor()
     actor.m_name.set("main_actor")
@@ -61,6 +61,7 @@ def main():
     unit.m_material.m_texScaleY.set(81.24038404635961 / 2)
     unit.m_material.m_shininess.set(2)
     unit.m_material.m_specStreng.set(0.5)
+    unit.m_material.m_reflectivity.set(0.5)
 
     actor = model.newStaticActor()
     actor.m_name.set("main_actor")

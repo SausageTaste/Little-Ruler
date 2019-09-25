@@ -21,6 +21,7 @@ namespace dal::binfo {
         std::string m_diffuseMap, m_specularMap;
         glm::vec3 m_baseColor;
         glm::vec2 m_texScale;
+        float m_reflectivity = 0.1f;
         float m_shininess = 32.f, m_specStreng = 1.f;
         bool m_flagAlphaBlend = false;
     };
