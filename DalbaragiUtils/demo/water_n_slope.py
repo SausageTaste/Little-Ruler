@@ -13,6 +13,40 @@ def main():
 
     model = mapbuild.newEmbeddedModel()
     model.m_flagDetailedCollider.set(True)
+    model.m_name.set("Slope_back")
+
+    unit = model.newRenderUnit()
+    unit.m_mesh = mes.Rect(
+        pri.Vec3(0, 70, 10),
+        pri.Vec3(-10, -10, 0),
+        pri.Vec3(0, -10, -10),
+        pri.Vec3(10, 70, 0)
+    )
+    unit.m_material.m_diffuseMap.set("asset::0021di.png")
+    unit.m_material.m_texScaleX.set(14.142135623730951 / 2)
+    unit.m_material.m_texScaleY.set(81.24038404635961 / 2)
+    unit.m_material.m_shininess.set(2)
+    unit.m_material.m_specStreng.set(0.5)
+
+    actor = model.newStaticActor()
+    actor.m_name.set("main_actor")
+    actor.m_transform.m_pos.setZ(11)
+
+    actor = model.newStaticActor()
+    actor.m_name.set("main_actor2")
+    actor.m_transform.m_pos.setX(14)
+    actor.m_transform.m_pos.setZ(-2)
+
+    actor = model.newStaticActor()
+    actor.m_name.set("main_actor3")
+    actor.m_transform.m_pos.setX(7)
+    actor.m_transform.m_pos.setY(15)
+    actor.m_transform.m_pos.setZ(6)
+
+    ################
+
+    model = mapbuild.newEmbeddedModel()
+    model.m_flagDetailedCollider.set(True)
     model.m_name.set("Slope")
 
     unit = model.newRenderUnit()
@@ -31,6 +65,17 @@ def main():
     actor = model.newStaticActor()
     actor.m_name.set("main_actor")
     actor.m_transform.m_pos.setZ(11)
+
+    actor = model.newStaticActor()
+    actor.m_name.set("main_actor2")
+    actor.m_transform.m_pos.setX(14)
+    actor.m_transform.m_pos.setZ(-2)
+
+    actor = model.newStaticActor()
+    actor.m_name.set("main_actor3")
+    actor.m_transform.m_pos.setX(7)
+    actor.m_transform.m_pos.setY(15)
+    actor.m_transform.m_pos.setZ(6)
 
     ################
 
@@ -56,8 +101,8 @@ def main():
     unit.m_material.m_diffuseMap.set("asset::grass1.png")
     unit.m_material.m_texScaleX.set(50)
     unit.m_material.m_texScaleY.set(50)
-    unit.m_material.m_shininess.set(128)
-    unit.m_material.m_specStreng.set(0.5)
+    unit.m_material.m_shininess.set(32)
+    unit.m_material.m_specStreng.set(0.2)
 
     actor = model.newStaticActor()
     actor.m_name.set("main_actor")
@@ -82,7 +127,9 @@ def main():
 
     actor = model.newStaticActor()
     actor.m_name.set("main_actor")
+    actor.m_transform.m_pos.setX(3)
     actor.m_transform.m_pos.setY(-3)
+    actor.m_transform.m_pos.setZ(-5)
     actor.m_transform.m_scale.set(3)
 
     ################

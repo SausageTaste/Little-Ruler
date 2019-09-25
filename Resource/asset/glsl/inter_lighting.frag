@@ -16,7 +16,8 @@ uniform float uPlightMaxDists[3];
 
 uniform vec3      uDlightDirecs[3];
 uniform vec3      uDlightColors[3];
-uniform sampler2D uDlightDepthMap[3];  // TEX 1, 2, 3
+uniform sampler2D uDlightDepthMap[3];
+uniform mat4      uDlightProjViewMat[3];
 
 uniform samplerCube u_environmentMap;
 
@@ -24,8 +25,24 @@ uniform samplerCube u_environmentMap;
 const float PI = 3.14159265;
 
 
+float _getDitherValue(void) {
+    float ditherPattern[16] = {
+    0.0, 0.5, 0.125, 0.625,
+    0.75f, 0.22f, 0.875f, 0.375f,
+    0.1875f, 0.6875f, 0.0625f, 0.5625,
+    0.9375f, 0.4375f, 0.8125f, 0.3125
+    };
+
+    int i = int(gl_FragCoord.x) % 4;
+    int j = int(gl_FragCoord.y) % 4;
+
+    int index = 4 * i + j;
+    return ditherPattern[index];
+}
+
+
 float _mapShininess(void) {
-    const float a = 0.0;  // minShin
+    const float a = 0.1;  // minShin
     const float b = 512.0;  // maxShin
     const float c = 0.5;  // forMin
     const float d = 0.001;  // forMax
@@ -65,7 +82,7 @@ vec3 getEnvColorMulti(vec3 fragPos, vec3 fragNormal) {
 }
 
 
-float _sampleDlightDepth(int index, vec2 coord) {
+float _sampleDlightTexture(int index, vec2 coord) {
 
 #ifdef GL_ES
     switch (index){
@@ -84,21 +101,24 @@ float _sampleDlightDepth(int index, vec2 coord) {
 
 }
 
+float _sampleDlightDepth(int index, vec2 coord) {
+    if (coord.x > 1.0 || coord.x < 0.0) return 1.0;
+    if (coord.y > 1.0 || coord.y < 0.0) return 1.0;
+    return _sampleDlightTexture(index, coord);
+}
+
 float _getShadowFactor_directional(int index, vec4 fragPosInDlight) {
     vec3 projCoords = fragPosInDlight.xyz / fragPosInDlight.w;
     if (projCoords.z > 1.0) return 1.0;
 
     projCoords = projCoords * 0.5 + 0.5;
-    if (projCoords.x > 1.0 || projCoords.x < 0.0) return 1.0;
-    if (projCoords.y > 1.0 || projCoords.y < 0.0) return 1.0;
-
     float closestDepth = _sampleDlightDepth(index, projCoords.xy);
     float currentDepth = projCoords.z;
 
     //float bias = max(0.05 * (1.0 - dot(vNormalVec, -uDlightDirs[index])), 0.005);
     //float bias = 0.002;
     float bias = 0.0;
-    float shadow = currentDepth - bias > closestDepth  ? 0.0 : 1.0;
+    float shadow = (currentDepth - bias) > closestDepth ? 0.0 : 1.0;
 
     return shadow;
 }
@@ -136,6 +156,46 @@ float _getLightFactor_directional(int index, vec3 viewDir, vec3 fragNormal) {
 
 float getDlightFactor(int index, vec3 viewDir, vec3 fragNormal, vec4 fragPosInDlight) {
     return _getLightFactor_directional(index, viewDir, fragNormal) * _getShadowFactor_directional(index, fragPosInDlight);
+}
+
+float _computeScattering(float lightDotView) {
+    const float G_SCATTERING = 10.0;
+
+    float result = 1.0 - G_SCATTERING * G_SCATTERING;
+    result /= (4.0 * PI * pow(1.0 + G_SCATTERING * G_SCATTERING - (2.0 * G_SCATTERING) *  lightDotView, 1.5));
+    return result;
+}
+
+vec3 calcDlightVolumeColor(int index, vec3 fragPos) {
+    const int NUM_STEPS = 10;
+
+    vec3 toFragFromView = fragPos - uViewPos;
+    vec3 toFargDirec = normalize(toFragFromView);
+    vec3 toLightDirec = normalize(-uDlightDirecs[index]);
+    vec3 step = toFragFromView / float(NUM_STEPS);
+    float scatterFactor = _computeScattering(dot(toFargDirec, toLightDirec));
+
+    vec3 curPos = uViewPos;
+    vec3 accumFog = vec3(0.0);
+
+    for (int i = 0; i < NUM_STEPS; ++i) {
+        vec4 curPosInDlight = uDlightProjViewMat[index] * vec4(curPos, 1.0);
+        vec3 projCoords = curPosInDlight.xyz / curPosInDlight.w;
+        projCoords = projCoords * 0.5 + 0.5;
+
+        float depthFromMap = _sampleDlightDepth(index, projCoords.xy);
+        float curDepth = projCoords.z;
+
+        if (depthFromMap > curDepth) {
+            //accumFog += scatterFactor * uDlightColors[index];
+            accumFog += 0.2 * uDlightColors[index];
+        }
+
+        curPos += step * _getDitherValue();
+    }
+
+    accumFog /= float(NUM_STEPS);
+    return accumFog;
 }
 
 
