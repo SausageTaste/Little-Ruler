@@ -29,11 +29,10 @@ void main(void) {
     vec3 lightedColor = uBaseAmbient;
     vec3 fragNormal = vNormalVec;
 
-    int i;
-    for (i = 0; i < uDlightCount; i++) {
+    for (int i = 0; i < uDlightCount; i++) {
         lightedColor += getDlightFactor(i, viewDir, fragNormal, vFragPosInDlight[i]) * uDlightColors[i];
     }
-    for (i = 0; i < uPlightCount; i++) {
+    for (int i = 0; i < uPlightCount; i++) {
         lightedColor += getLightFactor_point(i, viewDir, fragNormal, vFragPos) * uPlightColors[i];
     }
     lightedColor += getEnvColor(vFragPos, fragNormal);
