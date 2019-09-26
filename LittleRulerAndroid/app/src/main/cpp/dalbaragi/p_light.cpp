@@ -147,3 +147,25 @@ namespace dal {
     }
 
 }
+
+
+namespace dal {
+
+    SpotLight::SpotLight(void)
+        : m_direc(0.f, -1.f, 0.f)
+        , m_color(1.f, 1.f, 1.f)
+        , m_startFade(cos(glm::radians(40.f)))
+        , m_endFade(cos(glm::radians(45.f)))
+    {
+
+    }
+
+    void SpotLight::sendUniform(const UniInterfLightedMesh::SpotLight& uniloc) const {
+        uniloc.pos(this->m_pos);
+        uniloc.direc(this->m_direc);
+        uniloc.color(this->m_color);
+        uniloc.startFade(this->m_startFade);
+        uniloc.endFade(this->m_endFade);
+    }
+
+}

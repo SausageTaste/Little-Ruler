@@ -9,7 +9,7 @@
 #include "s_logger_god.h"
 
 
-#define ASSERT_UNILOC 0
+#define ASSERT_UNILOC 1
 
 
 using namespace fmt::literals;
@@ -21,7 +21,7 @@ namespace {
         const auto tmp = glGetUniformLocation(shader, id);
 #if ASSERT_UNILOC != 0
         if ( asserting && -1 == tmp ) {
-            dalAbort("Failed to find uniloc \'{}\' for shader {}."_format(id, shader));
+            dalWarn("Failed to find uniloc \'{}\' for shader {}."_format(id, shader));
         }
 #endif
         return tmp;
@@ -164,6 +164,43 @@ namespace dal {
 // UniInterfLightedMesh
 namespace dal {
 
+    void UniInterfLightedMesh::SpotLight::init(const GLuint shader, const unsigned int index) {
+        this->m_pos = getUniloc(shader, fmt::format("u_slights[{}].m_pos", index).c_str());
+        this->m_direc = getUniloc(shader, fmt::format("u_slights[{}].m_direc", index).c_str());
+        this->m_color = getUniloc(shader, fmt::format("u_slights[{}].m_color", index).c_str());
+        this->m_startFade = getUniloc(shader, fmt::format("u_slights[{}].m_startFade", index).c_str());
+        this->m_endFade = getUniloc(shader, fmt::format("u_slights[{}].m_endFade", index).c_str());
+    }
+
+    void UniInterfLightedMesh::SpotLight::pos(const float x, const float y, const float z) const {
+        glUniform3f(this->m_pos, x, y, z);
+    }
+    void UniInterfLightedMesh::SpotLight::pos(const glm::vec3& v) const {
+        this->pos(v.x, v.y, v.z);
+    }
+
+    void UniInterfLightedMesh::SpotLight::direc(const float x, const float y, const float z) const {
+        glUniform3f(this->m_direc, x, y, z);
+    }
+    void UniInterfLightedMesh::SpotLight::direc(const glm::vec3& v) const {
+        this->direc(v.x, v.y, v.z);
+    }
+
+    void UniInterfLightedMesh::SpotLight::color(const float x, const float y, const float z) const {
+        glUniform3f(this->m_color, x, y, z);
+    }
+    void UniInterfLightedMesh::SpotLight::color(const glm::vec3& v) const {
+        this->color(v.x, v.y, v.z);
+    }
+
+    void UniInterfLightedMesh::SpotLight::startFade(const float v) const {
+        glUniform1f(this->m_startFade, v);
+    }
+    void UniInterfLightedMesh::SpotLight::endFade(const float v) const {
+        glUniform1f(this->m_endFade, v);
+    }
+
+
     UniInterfLightedMesh::UniInterfLightedMesh(const GLuint shader)
         : UniInterfMesh(shader)
     {
@@ -177,6 +214,7 @@ namespace dal {
         this->uBaseAmbient = glGetUniformLocation(shader, "uBaseAmbient");
         this->uDlightCount = glGetUniformLocation(shader, "uDlightCount");
         this->uPlightCount = glGetUniformLocation(shader, "uPlightCount");
+        this->u_slightCount = glGetUniformLocation(shader, "u_slightCount");
 
         this->uShininess = glGetUniformLocation(shader, "uShininess");
         this->uSpecularStrength = glGetUniformLocation(shader, "uSpecularStrength");
@@ -213,7 +251,11 @@ namespace dal {
         this->uPlightMaxDists[1] = glGetUniformLocation(shader, "uPlightMaxDists[1]");
         this->uPlightMaxDists[2] = glGetUniformLocation(shader, "uPlightMaxDists[2]");
 
-        this->u_environmentMap.init(getUniloc(shader, "u_environmentMap"), -2, g_texUnitReg["u_environmentMap"]);
+        this->u_environmentMap.init(getUniloc(shader, "u_environmentMap"), -2, g_texUnitReg["u_environmentMap"], false);
+
+        for ( unsigned int i = 0; i < this->k_maxSlight; ++i ) {
+            this->u_slights[i].init(shader, i);
+        }
     }
 
     void UniInterfLightedMesh::viewPos(const float x, const float y, const float z) const {
@@ -238,6 +280,10 @@ namespace dal {
 
     void UniInterfLightedMesh::plightCount(const unsigned int x) const {
         glUniform1i(this->uPlightCount, x);
+    }
+
+    void UniInterfLightedMesh::slightCount(const unsigned int x) const {
+        glUniform1i(this->u_slightCount, x);
     }
 
     void UniInterfLightedMesh::shininess(const float x) const {

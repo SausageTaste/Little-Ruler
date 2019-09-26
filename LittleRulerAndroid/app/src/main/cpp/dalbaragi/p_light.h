@@ -103,4 +103,40 @@ namespace dal {
 
     };
 
+
+    class SpotLight {
+
+    private:
+        glm::vec3 m_pos;
+        glm::vec3 m_direc;
+        glm::vec3 m_color;
+        float m_startFade, m_endFade;
+
+    public:
+        SpotLight(void);
+
+        void setPos(const float x, const float y, const float z) {
+            this->m_pos = glm::vec3{ x, y, z };
+        }
+        void setPos(const glm::vec3& v) {
+            this->m_pos = v;
+        }
+
+        void setStartFadeDegree(const float degree) {
+            this->setStartFadeRadian(glm::radians(degree));
+        }
+        void setStartFadeRadian(const float radian) {
+            this->m_startFade = cos(radian);
+        }
+        void setEndFadeDegree(const float degree) {
+            this->setEndFadeDegree(glm::radians(degree));
+        }
+        void setEndFadeRadian(const float radian) {
+            this->m_endFade = cos(radian);
+        }
+
+        void sendUniform(const UniInterfLightedMesh::SpotLight& uniloc) const;
+
+    };
+
 }

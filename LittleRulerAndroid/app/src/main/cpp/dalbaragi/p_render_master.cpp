@@ -326,6 +326,11 @@ namespace dal {
                 uniloc.m_lightedMesh.dlightCount(0);
             }
 
+            SpotLight light;
+            light.setPos(0.f, 2.f, 0.f);
+            light.sendUniform(uniloc.m_lightedMesh.u_slights[0]);
+            uniloc.m_lightedMesh.slightCount(1);
+
             this->m_scene.renderOnWaterGeneral(uniloc, *this->m_mainCamera, reg);
         }
 
@@ -348,6 +353,11 @@ namespace dal {
             else {
                 uniloc.m_lightedMesh.dlightCount(0);
             }
+
+            SpotLight light;
+            light.setPos(0.f, 2.f, 0.f);
+            light.sendUniform(uniloc.m_lightedMesh.u_slights[0]);
+            uniloc.m_lightedMesh.slightCount(1);
 
             this->m_scene.renderOnWaterAnimated(uniloc, *this->m_mainCamera, reg);
         }
@@ -417,6 +427,11 @@ namespace dal {
             else {
                 uniloc.m_lightedMesh.dlightCount(0);
             }
+
+            SpotLight light;
+            light.setPos(0.f, 2.f, 0.f);
+            light.sendUniform(uniloc.m_lightedMesh.u_slights[0]);
+            uniloc.m_lightedMesh.slightCount(1);
 
             this->m_scene.renderWater(uniloc);
         }

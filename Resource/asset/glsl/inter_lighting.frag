@@ -1,14 +1,24 @@
+struct SpotLight {
+    vec3 m_pos;
+    vec3 m_direc;
+    vec3 m_color;
+    float m_startFade;
+	float m_endFade;
+};
+
+
 uniform highp vec3 uViewPos;
 
-uniform vec3 uBaseAmbient;
+uniform vec3      uBaseAmbient;
 uniform highp int uDlightCount;
-uniform int uPlightCount;
+uniform int       uPlightCount;
+uniform int       u_slightCount;
 
 uniform float uShininess;
 uniform float uSpecularStrength;
 uniform float u_envReflectivity;
 uniform float u_fogMaxPointInvSqr;
-uniform vec3 u_fogColor;
+uniform vec3  u_fogColor;
 
 uniform vec3  uPlightPoses[3];
 uniform vec3  uPlightColors[3];
@@ -18,6 +28,8 @@ uniform vec3       uDlightDirecs[3];
 uniform vec3       uDlightColors[3];
 uniform sampler2D  uDlightDepthMap[3];
 uniform highp mat4 uDlightProjViewMat[3];
+
+uniform SpotLight u_slights[3];
 
 uniform samplerCube u_environmentMap;
 
@@ -214,6 +226,23 @@ float getLightFactor_point(int index, vec3 viewDir, vec3 fragNormal, vec3 fragPo
     float specular = max(uSpecularStrength * spec, 0.0);
 
     return (diff + specular) * _distanceDecreaser(dist);
+}
+
+
+vec2 calcSlightFactor(int index, vec3 fragToViewDirec, vec3 fragNormal, vec3 fragPos) {
+	vec3 lightToFragDirec = normalize(fragPos - u_slights[index].m_pos);
+    float lightAngle = dot(lightToFragDirec, u_slights[index].m_direc);
+
+	if (lightAngle > u_slights[index].m_startFade) {
+		return vec2(1.0, 0.0);
+	}
+	else if (lightAngle > u_slights[index].m_endFade) {
+		float factor = (lightAngle - u_slights[index].m_endFade) / (u_slights[index].m_startFade - u_slights[index].m_endFade);
+		return vec2(factor, 0.0);
+	}
+	else {
+		return vec2(0.0);
+	}
 }
 
 

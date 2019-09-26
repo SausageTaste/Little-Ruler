@@ -57,9 +57,37 @@ namespace dal {
 
     class UniInterfLightedMesh : public UniInterfMesh {
 
+    public:
+        class SpotLight {
+
+        private:
+            GLint m_pos = -1;
+            GLint m_direc = -1;
+            GLint m_color = -1;
+            GLint m_startFade = -1;
+            GLint m_endFade = -1;
+
+        public:
+            void init(const GLuint shader, const unsigned int index);
+
+            void pos(const float x, const float y, const float z) const;
+            void pos(const glm::vec3& v) const;
+
+            void direc(const float x, const float y, const float z) const;
+            void direc(const glm::vec3& v) const;
+
+            void color(const float x, const float y, const float z) const;
+            void color(const glm::vec3& v) const;
+
+            void startFade(const float v) const;
+            void endFade(const float v) const;
+
+        };
+
     private:
         static constexpr auto k_maxDlight = 3;
         static constexpr auto k_maxPlight = 3;
+        static constexpr auto k_maxSlight = 3;
 
         GLint uDlightProjViewMat[3];
 
@@ -67,6 +95,7 @@ namespace dal {
         GLint uBaseAmbient;
         GLint uDlightCount;
         GLint uPlightCount;
+        GLint u_slightCount;
 
         GLint uShininess;
         GLint uSpecularStrength;
@@ -85,6 +114,9 @@ namespace dal {
         SamplerInterf u_environmentMap;
 
     public:
+        SpotLight u_slights[k_maxSlight];
+
+    public:
         UniInterfLightedMesh(const GLuint shader);
 
         void viewPos(const float x, const float y, const float z) const;
@@ -95,6 +127,7 @@ namespace dal {
 
         void dlightCount(const unsigned int x) const;
         void plightCount(const unsigned int x) const;
+        void slightCount(const unsigned int x) const;
         void shininess(const float x) const;
         void specularStrength(const float x) const;
         void envReflectivity(const float x) const;
