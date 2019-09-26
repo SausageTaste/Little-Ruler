@@ -54,6 +54,17 @@ def main():
     ################
 
     model = mapbuild.newImportedModel()
+    model.m_resourceID.set("asset::house_test.obj")
+
+    actor = model.newStaticActor()
+    actor.m_name.set("main_actor")
+    actor.m_transform.m_pos.setXYZ(-10, -3, -10)
+    actor.m_transform.m_scale.set(2)
+    actor.m_transform.m_quat.rotate(180, (0, 1, 0))
+
+    ################
+
+    model = mapbuild.newImportedModel()
     model.m_resourceID.set("asset::yuri_cso2.obj")
 
     actor = model.newStaticActor()
@@ -62,17 +73,6 @@ def main():
     actor.m_transform.m_pos.setY(-3)
     actor.m_transform.m_pos.setZ(-5)
     actor.m_transform.m_scale.set(3)
-
-    ################
-
-    model = mapbuild.newImportedModel()
-    model.m_resourceID.set("asset::house_test.obj")
-
-    actor = model.newStaticActor()
-    actor.m_name.set("main_actor")
-    actor.m_transform.m_pos.setXYZ(-10, -2, -10)
-    actor.m_transform.m_scale.set(2)
-    actor.m_transform.m_quat.rotate(180, (0, 1, 0))
 
     ################
 
