@@ -135,6 +135,9 @@
     <Filter Include="Control">
       <UniqueIdentifier>{7e06975d-2fd2-4000-b55c-aaf54ea12ac8}</UniqueIdentifier>
     </Filter>
+    <Filter Include="GLSL">
+      <UniqueIdentifier>{7eba8e32-c1da-4384-bb77-eccfd00ab63c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\g_actor.h">
@@ -254,5 +257,58 @@
     <ClInclude Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\u_math.h">
       <Filter>Utility</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\Resource\asset\glsl\depth.vert">
+      <Filter>GLSL</Filter>
+    </None>
+    <None Include="..\..\Resource\asset\glsl\depthanime.frag">
+      <Filter>GLSL</Filter>
+    </None>
+    <None Include="..\..\Resource\asset\glsl\depthanime.vert">
+      <Filter>GLSL</Filter>
+    </None>
+    <None Include="..\..\Resource\asset\glsl\fillscreen.frag">
+      <Filter>GLSL</Filter>
+    </None>
+    <None Include="..\..\Resource\asset\glsl\fillscreen.vert">
+      <Filter>GLSL</Filter>
+    </None>
+    <None Include="..\..\Resource\asset\glsl\general.frag">
+      <Filter>GLSL</Filter>
+    </None>
+    <None Include="..\..\Resource\asset\glsl\general.vert">
+      <Filter>GLSL</Filter>
+    </None>
+    <None Include="..\..\Resource\asset\glsl\inter_lighting.frag">
+      <Filter>GLSL</Filter>
+    </None>
+    <None Include="..\..\Resource\asset\glsl\overlay.frag">
+      <Filter>GLSL</Filter>
+    </None>
+    <None Include="..\..\Resource\asset\glsl\overlay.vert">
+      <Filter>GLSL</Filter>
+    </None>
+    <None Include="..\..\Resource\asset\glsl\skybox.frag">
+      <Filter>GLSL</Filter>
+    </None>
+    <None Include="..\..\Resource\asset\glsl\skybox.vert">
+      <Filter>GLSL</Filter>
+    </None>
+    <None Include="..\..\Resource\asset\glsl\water.frag">
+      <Filter>GLSL</Filter>
+    </None>
+    <None Include="..\..\Resource\asset\glsl\water.vert">
+      <Filter>GLSL</Filter>
+    </None>
+    <None Include="..\..\Resource\asset\glsl\animated.frag">
+      <Filter>GLSL</Filter>
+    </None>
+    <None Include="..\..\Resource\asset\glsl\animated.vert">
+      <Filter>GLSL</Filter>
+    </None>
+    <None Include="..\..\Resource\asset\glsl\depth.frag">
+      <Filter>GLSL</Filter>
+    </None>
   </ItemGroup>
 </Project>
