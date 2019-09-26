@@ -564,6 +564,7 @@ namespace dal {
                     unit.m_material.m_diffuseColor = unitInfo.m_material.m_baseColor;
                     unit.m_material.m_shininess = unitInfo.m_material.m_shininess;
                     unit.m_material.m_specularStrength = unitInfo.m_material.m_specStreng;
+                    unit.m_material.m_reflectivity = 0.f;
 
                     if ( !unitInfo.m_material.m_diffuseMap.empty() ) {
                         ResourceID texResID{ unitInfo.m_material.m_diffuseMap };

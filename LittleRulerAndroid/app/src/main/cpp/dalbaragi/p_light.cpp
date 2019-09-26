@@ -90,7 +90,7 @@ namespace dal {
 namespace dal {
 
     DirectionalLight::DirectionalLight(void)
-        : m_halfProjBoxEdgeLen(10.0f)
+        : m_halfProjBoxEdgeLen(30.0f)
     {
         this->m_direction = glm::normalize(this->m_direction);
     }

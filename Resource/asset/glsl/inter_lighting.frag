@@ -172,7 +172,7 @@ vec3 calcDlightVolumeColor(int index, vec3 fragPos) {
     vec3 toFragFromView = fragPos - uViewPos;
     vec3 toFargDirec = normalize(toFragFromView);
     vec3 toLightDirec = normalize(-uDlightDirecs[index]);
-    vec3 step = toFragFromView / float(NUM_STEPS);
+    vec3 rayStep = toFragFromView / float(NUM_STEPS);
     float scatterFactor = _computeScattering(dot(toFargDirec, toLightDirec));
 
     vec3 curPos = uViewPos;
@@ -187,14 +187,13 @@ vec3 calcDlightVolumeColor(int index, vec3 fragPos) {
         float curDepth = projCoords.z;
 
         if (depthFromMap > curDepth) {
-            //accumFog += scatterFactor * uDlightColors[index];
-            accumFog += 0.2 * uDlightColors[index];
+            accumFog += uDlightColors[index];
         }
 
-        curPos += step * _getDitherValue();
+        curPos += rayStep * _getDitherValue();
     }
 
-    accumFog /= float(NUM_STEPS);
+    accumFog *= 0.2 / float(NUM_STEPS);
     return accumFog;
 }
 
