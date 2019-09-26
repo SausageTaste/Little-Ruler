@@ -179,7 +179,7 @@ float _computeScattering(float lightDotView) {
 }
 
 vec3 calcDlightVolumeColor(int index, vec3 fragPos) {
-    const int NUM_STEPS = 10;
+    const int NUM_STEPS = 3;
 
     vec3 toFragFromView = fragPos - uViewPos;
     vec3 toFargDirec = normalize(toFragFromView);
@@ -188,7 +188,7 @@ vec3 calcDlightVolumeColor(int index, vec3 fragPos) {
     float scatterFactor = _computeScattering(dot(toFargDirec, toLightDirec));
 
     vec3 curPos = uViewPos;
-    vec3 accumFog = vec3(0.0);
+    float accumFactor = 0.0;
 
     for (int i = 0; i < NUM_STEPS; ++i) {
         vec4 curPosInDlight = uDlightProjViewMat[index] * vec4(curPos, 1.0);
@@ -199,14 +199,14 @@ vec3 calcDlightVolumeColor(int index, vec3 fragPos) {
         float curDepth = projCoords.z;
 
         if (depthFromMap > curDepth) {
-            accumFog += uDlightColors[index];
+            accumFactor += 1.0;
         }
 
         curPos += rayStep * _getDitherValue();
     }
 
-    accumFog *= 0.2 / float(NUM_STEPS);
-    return accumFog;
+    accumFactor *= 0.2 / float(NUM_STEPS);
+    return accumFactor * uDlightColors[index];
 }
 
 
@@ -253,7 +253,7 @@ vec2 calcSlightFactor(int index, vec3 fragToViewDirec, vec3 fragNormal, vec3 fra
 }
 
 vec3 calcSlightVolumeColor(int index, vec3 fragPos) {
-    const int NUM_STEPS = 10;
+    const int NUM_STEPS = 3;
 
     vec3 toFragFromView = fragPos - uViewPos;
     vec3 toFargDirec = normalize(toFragFromView);
@@ -262,25 +262,25 @@ vec3 calcSlightVolumeColor(int index, vec3 fragPos) {
     float scatterFactor = _computeScattering(dot(toFargDirec, toLightDirec));
 
     vec3 curPos = uViewPos;
-    vec3 accumFog = vec3(0.0);
+    float accumFactor = 0.0;
 
     for (int i = 0; i < NUM_STEPS; ++i) {
 		vec3 lightToFragDirec = normalize(curPos - u_slights[index].m_pos);
 		float lightAngle = dot(lightToFragDirec, u_slights[index].m_direc);
 
         if (lightAngle > u_slights[index].m_startFade) {
-			accumFog += vec3(1.0);
+			accumFactor += 1.0;
 		}
 		else if (lightAngle > u_slights[index].m_endFade) {
 			float edgeCut = (lightAngle - u_slights[index].m_endFade) / (u_slights[index].m_startFade - u_slights[index].m_endFade);
-			accumFog += vec3(edgeCut);
+			accumFactor += edgeCut;
 		}
 
         curPos += rayStep * _getDitherValue();
     }
 
-    accumFog *= 0.2 / float(NUM_STEPS);
-    return accumFog;
+    accumFactor *= 0.2 / float(NUM_STEPS);
+    return accumFactor * u_slights[index].m_color;
 }
 
 
