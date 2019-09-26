@@ -175,8 +175,13 @@ namespace dal {
     {
         // Lights
         {
-            m_dlight1.m_color = { 0.9, 0.7, 0.7 };
-            m_dlight1.setDirectin(0.26373626373626374f, -0.30726256983240224f, 1.f);
+            this->m_dlight1.m_color = { 0.9, 0.7, 0.7 };
+            this->m_dlight1.setDirectin(0.26373626373626374f, -0.30726256983240224f, 1.f);
+
+            this->m_slight1.setPos(-3.f, 0.f, 0.f);
+            this->m_slight1.setDirec(-1, -1, 0);
+            this->m_slight1.setEndFadeDegree(30.f);
+            this->m_slight1.setStartFadeDegree(25.f);
         }
 
         // OpenGL global switch
@@ -326,9 +331,7 @@ namespace dal {
                 uniloc.m_lightedMesh.dlightCount(0);
             }
 
-            SpotLight light;
-            light.setPos(0.f, 2.f, 0.f);
-            light.sendUniform(uniloc.m_lightedMesh.u_slights[0]);
+            this->m_slight1.sendUniform(uniloc.m_lightedMesh.u_slights[0]);
             uniloc.m_lightedMesh.slightCount(1);
 
             this->m_scene.renderOnWaterGeneral(uniloc, *this->m_mainCamera, reg);
@@ -354,9 +357,7 @@ namespace dal {
                 uniloc.m_lightedMesh.dlightCount(0);
             }
 
-            SpotLight light;
-            light.setPos(0.f, 2.f, 0.f);
-            light.sendUniform(uniloc.m_lightedMesh.u_slights[0]);
+            this->m_slight1.sendUniform(uniloc.m_lightedMesh.u_slights[0]);
             uniloc.m_lightedMesh.slightCount(1);
 
             this->m_scene.renderOnWaterAnimated(uniloc, *this->m_mainCamera, reg);
@@ -428,9 +429,7 @@ namespace dal {
                 uniloc.m_lightedMesh.dlightCount(0);
             }
 
-            SpotLight light;
-            light.setPos(0.f, 2.f, 0.f);
-            light.sendUniform(uniloc.m_lightedMesh.u_slights[0]);
+            this->m_slight1.sendUniform(uniloc.m_lightedMesh.u_slights[0]);
             uniloc.m_lightedMesh.slightCount(1);
 
             this->m_scene.renderWater(uniloc);

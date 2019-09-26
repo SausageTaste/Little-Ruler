@@ -121,18 +121,18 @@ namespace dal {
         void setPos(const glm::vec3& v) {
             this->m_pos = v;
         }
+        void setDirec(const float x, const float y, const float z) {
+            this->setDirec(glm::vec3{ x, y, z });
+        }
+        void setDirec(const glm::vec3& v) {
+            this->m_direc = glm::normalize(v);
+        }
 
         void setStartFadeDegree(const float degree) {
-            this->setStartFadeRadian(glm::radians(degree));
-        }
-        void setStartFadeRadian(const float radian) {
-            this->m_startFade = cos(radian);
+            this->m_startFade = cos(glm::radians(degree));
         }
         void setEndFadeDegree(const float degree) {
-            this->setEndFadeDegree(glm::radians(degree));
-        }
-        void setEndFadeRadian(const float radian) {
-            this->m_endFade = cos(radian);
+            this->m_endFade = cos(glm::radians(degree));
         }
 
         void sendUniform(const UniInterfLightedMesh::SpotLight& uniloc) const;

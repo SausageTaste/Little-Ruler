@@ -216,12 +216,10 @@ float getLightFactor_point(int index, vec3 viewDir, vec3 fragNormal, vec3 fragPo
     vec3 lightDir = normalize(uPlightPoses[index] - fragPos);
     float diff = max(dot(lightDir, fragNormal), 0.0);
     // specular
-    vec3 reflectDir = reflect(-lightDir, fragNormal);
-    float spec = 0.0;
 
     vec3 halfwayDir = normalize(lightDir + viewDir);
     float energyConservation = ( 8.0 + uShininess ) / ( 8.0 * PI );
-    spec = energyConservation * pow(max(dot(fragNormal, halfwayDir), 0.0), uShininess);
+    float spec = energyConservation * pow(max(dot(fragNormal, halfwayDir), 0.0), uShininess);
 
     float specular = max(uSpecularStrength * spec, 0.0);
 
@@ -231,18 +229,58 @@ float getLightFactor_point(int index, vec3 viewDir, vec3 fragNormal, vec3 fragPo
 
 vec2 calcSlightFactor(int index, vec3 fragToViewDirec, vec3 fragNormal, vec3 fragPos) {
 	vec3 lightToFragDirec = normalize(fragPos - u_slights[index].m_pos);
-    float lightAngle = dot(lightToFragDirec, u_slights[index].m_direc);
+
+	float diffuseFactor = max(dot(-lightToFragDirec, fragNormal), 0.0);
+
+	vec3 halfwayDir = normalize(fragToViewDirec - lightToFragDirec);
+	float energyConservation = ( 8.0 + uShininess ) / ( 8.0 * PI );
+	float spec = energyConservation * pow(max(dot(fragNormal, halfwayDir), 0.0), uShininess);
+	float specular = max(uSpecularStrength * spec, 0.0);
+
+	vec2 factors = vec2(diffuseFactor, specular);
+	float lightAngle = dot(lightToFragDirec, u_slights[index].m_direc);
 
 	if (lightAngle > u_slights[index].m_startFade) {
-		return vec2(1.0, 0.0);
+		return factors;
 	}
 	else if (lightAngle > u_slights[index].m_endFade) {
-		float factor = (lightAngle - u_slights[index].m_endFade) / (u_slights[index].m_startFade - u_slights[index].m_endFade);
-		return vec2(factor, 0.0);
+		float edgeCut = (lightAngle - u_slights[index].m_endFade) / (u_slights[index].m_startFade - u_slights[index].m_endFade);
+		return factors * edgeCut;
 	}
 	else {
 		return vec2(0.0);
 	}
+}
+
+vec3 calcSlightVolumeColor(int index, vec3 fragPos) {
+    const int NUM_STEPS = 10;
+
+    vec3 toFragFromView = fragPos - uViewPos;
+    vec3 toFargDirec = normalize(toFragFromView);
+    vec3 toLightDirec = normalize(-uDlightDirecs[index]);
+    vec3 rayStep = toFragFromView / float(NUM_STEPS);
+    float scatterFactor = _computeScattering(dot(toFargDirec, toLightDirec));
+
+    vec3 curPos = uViewPos;
+    vec3 accumFog = vec3(0.0);
+
+    for (int i = 0; i < NUM_STEPS; ++i) {
+		vec3 lightToFragDirec = normalize(curPos - u_slights[index].m_pos);
+		float lightAngle = dot(lightToFragDirec, u_slights[index].m_direc);
+
+        if (lightAngle > u_slights[index].m_startFade) {
+			accumFog += vec3(1.0);
+		}
+		else if (lightAngle > u_slights[index].m_endFade) {
+			float edgeCut = (lightAngle - u_slights[index].m_endFade) / (u_slights[index].m_startFade - u_slights[index].m_endFade);
+			accumFog += vec3(edgeCut);
+		}
+
+        curPos += rayStep * _getDitherValue();
+    }
+
+    accumFog *= 0.2 / float(NUM_STEPS);
+    return accumFog;
 }
 
 

@@ -52,6 +52,7 @@ namespace dal {
 
         DirectionalLight m_dlight1;
         bool m_flagDrawDlight1;
+        SpotLight m_slight1;
 
         glm::vec3 m_skyColor;
         ICamera* m_mainCamera;
