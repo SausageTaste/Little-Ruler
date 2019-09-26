@@ -7,6 +7,7 @@ import numpy as np
 
 from dalutils.map.interface import json_t, IMapElement
 import dalutils.util.binutil as but
+import dalutils.util.math as dma
 
 
 class JsonDataMismatch(Exception):
@@ -222,12 +223,7 @@ class Quat(IMapElement):
         return data
 
     def rotate(self, degree: float, selector: Tuple[float, float, float]):
-        selcet = glm.vec3(selector[0], selector[1], selector[2])
-        what = glm.angleAxis(glm.radians(degree), selcet) * self.__quat
-        # Why do I need to do this???
-        # TODO Find out what is this.
-        self.__quat = glm.quat(what.z, what.y, -what.x, -what.w)
-        self.__quat = glm.normalize(self.__quat)
+        self.__quat = dma.rotateQuat(self.__quat, degree, selector)
 
     def isDefaultValue(self) -> bool:
         if self.__quat.x != 0.0:
