@@ -12,76 +12,6 @@ def main():
 
     model = mapbuild.newEmbeddedModel()
     model.m_flagDetailedCollider.set(True)
-    model.m_name.set("Slope_back")
-
-    unit = model.newRenderUnit()
-    unit.m_mesh = mes.Rect(
-        pri.Vec3(0, 70, 10),
-        pri.Vec3(-10, -10, 0),
-        pri.Vec3(0, -10, -10),
-        pri.Vec3(10, 70, 0)
-    )
-    unit.m_material.m_diffuseMap.set("asset::0021di.png")
-    unit.m_material.m_texScaleX.set(14.142135623730951 / 2)
-    unit.m_material.m_texScaleY.set(81.24038404635961 / 2)
-    unit.m_material.m_shininess.set(2)
-    unit.m_material.m_specStreng.set(0.5)
-    unit.m_material.m_reflectivity.set(0.5)
-
-    actor = model.newStaticActor()
-    actor.m_name.set("main_actor")
-    actor.m_transform.m_pos.setZ(11)
-
-    actor = model.newStaticActor()
-    actor.m_name.set("main_actor2")
-    actor.m_transform.m_pos.setX(14)
-    actor.m_transform.m_pos.setZ(-2)
-
-    actor = model.newStaticActor()
-    actor.m_name.set("main_actor3")
-    actor.m_transform.m_pos.setX(7)
-    actor.m_transform.m_pos.setY(15)
-    actor.m_transform.m_pos.setZ(6)
-
-    ################
-
-    model = mapbuild.newEmbeddedModel()
-    model.m_flagDetailedCollider.set(True)
-    model.m_name.set("Slope")
-
-    unit = model.newRenderUnit()
-    unit.m_mesh = mes.Rect(
-        pri.Vec3(10, 70, 0),
-        pri.Vec3(0, -10, -10),
-        pri.Vec3(-10, -10, 0),
-        pri.Vec3(0, 70, 10)
-    )
-    unit.m_material.m_diffuseMap.set("asset::0021di.png")
-    unit.m_material.m_texScaleX.set(14.142135623730951 / 2)
-    unit.m_material.m_texScaleY.set(81.24038404635961 / 2)
-    unit.m_material.m_shininess.set(2)
-    unit.m_material.m_specStreng.set(0.5)
-    unit.m_material.m_reflectivity.set(0.5)
-
-    actor = model.newStaticActor()
-    actor.m_name.set("main_actor")
-    actor.m_transform.m_pos.setZ(11)
-
-    actor = model.newStaticActor()
-    actor.m_name.set("main_actor2")
-    actor.m_transform.m_pos.setX(14)
-    actor.m_transform.m_pos.setZ(-2)
-
-    actor = model.newStaticActor()
-    actor.m_name.set("main_actor3")
-    actor.m_transform.m_pos.setX(7)
-    actor.m_transform.m_pos.setY(15)
-    actor.m_transform.m_pos.setZ(6)
-
-    ################
-
-    model = mapbuild.newEmbeddedModel()
-    model.m_flagDetailedCollider.set(True)
     model.m_name.set("terrain")
 
     unit = model.newRenderUnit()
@@ -135,9 +65,20 @@ def main():
 
     ################
 
-    light = mapbuild.newPointLight()
-    light.m_maxDistance.set(2)
-    light.m_color.setXYZ(0.5, 0.5, 0.5)
+    model = mapbuild.newImportedModel()
+    model.m_resourceID.set("asset::house_test.obj")
+
+    actor = model.newStaticActor()
+    actor.m_name.set("main_actor")
+    actor.m_transform.m_pos.setXYZ(-10, -2, -10)
+    actor.m_transform.m_scale.set(2)
+    actor.m_transform.m_quat.rotate(180, (0, 1, 0))
+
+    ################
+
+    #light = mapbuild.newPointLight()
+    #light.m_maxDistance.set(2)
+    #light.m_color.setXYZ(0.5, 0.5, 0.5)
 
     ################
 
