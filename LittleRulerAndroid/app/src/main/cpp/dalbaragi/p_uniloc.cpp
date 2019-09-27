@@ -172,7 +172,8 @@ namespace dal {
         this->m_endFade = getUniloc(shader, fmt::format("u_slights[{}].m_endFade", index).c_str());
 
         this->u_projViewMat = getUniloc(shader, fmt::format("u_slightProjViewMat[{}]", index).c_str());
-        this->m_depthMap.init(getUniloc(shader, "m_depthMap"), -2, g_texUnitReg["m_depthMap"], false);
+        const auto id = "u_slightDepthMap[{}]"_format(index);
+        this->m_depthMap.init(getUniloc(shader, id.c_str()), -2, g_texUnitReg[id], false);
     }
 
     void UniInterfLightedMesh::SpotLight::pos(const float x, const float y, const float z) const {

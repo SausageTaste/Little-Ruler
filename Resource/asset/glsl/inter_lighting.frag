@@ -4,7 +4,6 @@ struct SpotLight {
     vec3 m_color;
     float m_startFade;
     float m_endFade;
-    sampler2D m_depthMap;
 };
 
 
@@ -30,7 +29,8 @@ uniform vec3       uDlightColors[3];
 uniform sampler2D  uDlightDepthMap[3];
 uniform highp mat4 uDlightProjViewMat[3];
 
-uniform SpotLight u_slights[3];
+uniform SpotLight  u_slights[3];
+uniform sampler2D  u_slightDepthMap[3];
 uniform highp mat4 u_slightProjViewMat[3];
 
 uniform samplerCube u_environmentMap;
@@ -275,17 +275,17 @@ float _sampleSlightTexture(int index, vec2 coord) {
     switch (index){
 
     case 0:
-        return texture(u_slights[0].m_depthMap, coord).r;
+        return texture(u_slightDepthMap[0], coord).r;
     case 1:
-        return texture(u_slights[1].m_depthMap, coord).r;
+        return texture(u_slightDepthMap[1], coord).r;
     case 2:
-        return texture(u_slights[2].m_depthMap, coord).r;
+        return texture(u_slightDepthMap[2], coord).r;
     default:
         return 1.0;
 
     }
 #else
-    return texture(u_slights[index].m_depthMap, coord).r;
+    return texture(u_slightDepthMap[index], coord).r;
 #endif
 
 }
@@ -313,8 +313,9 @@ bool _isPointInSlightShadow(int index, vec4 fragPosInSlight) {
 
 vec3 getSlightColor(int i, vec3 fragToViewDirec, vec3 fragNormal, vec3 fragPos, vec4 fragPosInShadow) {
     vec2 diffNSpec = _calcSlightFactors(i, fragToViewDirec, fragNormal, fragPos);
-    bool isInShadow = _isPointInSlightShadow(i, fragPosInShadow);
-    return isInShadow ? (diffNSpec.x + diffNSpec.y) * u_slights[i].m_color : vec3(0.0);
+    //bool isInShadow = _isPointInSlightShadow(i, fragPosInShadow);
+    //return isInShadow ? (diffNSpec.x + diffNSpec.y) * u_slights[i].m_color : vec3(0.0);
+    return (diffNSpec.x + diffNSpec.y) * u_slights[i].m_color;
 }
 
 vec3 getTotalSlightColors(vec3 fragToViewDirec, vec3 fragNormal, vec3 fragPos) {
