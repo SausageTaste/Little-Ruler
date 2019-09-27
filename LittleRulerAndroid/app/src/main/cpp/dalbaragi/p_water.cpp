@@ -2,43 +2,37 @@
 
 #include <array>
 
+#include <fmt/format.h>
+
 #include "s_logger_god.h"
 #include "u_fileclass.h"
 
 
+using namespace fmt::literals;
+
+
 namespace {
 
-    dal::Texture* getDUDVMap(void) {
-        static dal::Texture* tex = nullptr;
-
-        if ( nullptr == tex ) {
-            dal::binfo::ImageFileData image;
-            if ( !dal::futil::getRes_image("asset::waterDUDV.png", image) ) {
-                dalAbort("Failed to load dudv map.");
-            }
-            assert(4 == image.m_pixSize);
-
-            tex = new dal::Texture();
-            tex->init_diffuseMap(image);
+    dal::Texture* loadTex(const char* const resID) {
+        dal::binfo::ImageFileData image;
+        if ( !dal::futil::getRes_image(resID, image) ) {
+            dalAbort("Failed to load a map for water: {}"_format(resID));
         }
+        assert(4 == image.m_pixSize);
+
+        auto tex = new dal::Texture();
+        tex->init_diffuseMap(image);
 
         return tex;
     }
 
+    dal::Texture* getDUDVMap(void) {
+        static dal::Texture* tex = loadTex("asset::waterDUDV.png");
+        return tex;
+    }
+
     dal::Texture* getWaterNormalMap(void) {
-        static dal::Texture* tex = nullptr;
-
-        if ( nullptr == tex ) {
-            dal::binfo::ImageFileData image;
-            if ( !dal::futil::getRes_image("asset::matchingNormalMap.png", image) ) {
-                dalAbort("Failed to load water normal map.");
-            }
-            assert(4 == image.m_pixSize);
-
-            tex = new dal::Texture();
-            tex->init_diffuseMap(image);
-        }
-
+        static dal::Texture* tex = loadTex("asset::matchingNormalMap.png");
         return tex;
     }
 
