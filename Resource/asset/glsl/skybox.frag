@@ -16,13 +16,8 @@ void main() {
     const float lambda = 0.5;
     const float SHIFT = 0.0;
 
-    float cosTheta = dot(normalize(v_texCoords), vec3(0.0, 1.0, 0.0)) + SHIFT;
-    if (cosTheta < 0.0) {
-        f_color = vec4(u_fogColor, 1.0);
-    }
-    else {
-        float factor = 1.0 - clamp(sqrt(abs(cosTheta) / lambda), 0.0, 1.0);
-        vec3 texColor = texture(u_skyboxTex, v_texCoords).xyz;
-        f_color = vec4(mix(texColor, u_fogColor, factor), 1.0);
-    }
+    float cosTheta = clamp(dot(normalize(v_texCoords), vec3(0.0, 1.0, 0.0)) + SHIFT, 0.0, 1.0);
+    float factor = 1.0 - clamp(sqrt(cosTheta / lambda), 0.0, 1.0);
+    vec3 texColor = texture(u_skyboxTex, v_texCoords).xyz;
+    f_color = vec4(mix(texColor, u_fogColor, factor), 1.0);
 }

@@ -168,14 +168,14 @@ namespace dal {
         , m_fbuffer(winWidth, winHeight)
         , m_winWidth(winWidth), m_winHeight(winHeight)
         , m_flagDrawDlight1(true)
-        , m_skyColor(1.0f, 0.2f, 0.2f)
+        , m_skyColor(1.0f, 0.3f, 0.3f)
         , m_mainCamera(camera)
         , m_farPlaneDistance(100.0f)
         , m_baseAmbientColor(0.3f, 0.3f, 0.3f)
     {
         // Lights
         {
-            this->m_dlight1.m_color = { 0.9, 0.7, 0.7 };
+            this->m_dlight1.m_color = { 1.0f, 0.4f, 0.4f };
             this->m_dlight1.setDirectin(0.26373626373626374f, -0.30726256983240224f, 1.f);
 
             this->m_slight1.setPos(-3.f, 0.f, 0.f);
