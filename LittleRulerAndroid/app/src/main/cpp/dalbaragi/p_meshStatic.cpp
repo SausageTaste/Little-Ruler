@@ -6,6 +6,8 @@
 
 #include "s_logger_god.h"
 
+#define BLOCKY_TEXTURE
+
 
 using namespace fmt::literals;
 
@@ -165,19 +167,19 @@ namespace dal {
         this->genTexture("Texture::init_diffueMap");
         glBindTexture(GL_TEXTURE_2D, this->get());
 
-#if BLOCKY_TEXTURE == 0
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-#else
+#ifdef BLOCKY_TEXTURE
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+#else
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 #endif
 
         if ( 3 == image.m_pixSize ) {
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_SRGB, image.m_width, image.m_height, 0, GL_RGB, GL_UNSIGNED_BYTE, image.m_buf.data());
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, image.m_width, image.m_height, 0, GL_RGB, GL_UNSIGNED_BYTE, image.m_buf.data());
         }
         else if ( 4 == image.m_pixSize ) {
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_SRGB_ALPHA, image.m_width, image.m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image.m_buf.data());
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image.m_width, image.m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image.m_buf.data());
         }
         else {
             dalAbort("Not supported pixel size: {}"_format(image.m_pixSize));
@@ -267,12 +269,12 @@ namespace dal {
         this->genTexture("CubeMap::init");
         glBindTexture(GL_TEXTURE_CUBE_MAP, this->get());
 
-#if BLOCKY_TEXTURE == 0
-        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-#else
+#ifdef BLOCKY_TEXTURE
         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+#else
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 #endif
 
         for ( unsigned int i = 0; i < 6; i++ ) {
