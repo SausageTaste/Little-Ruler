@@ -281,7 +281,7 @@ vec3 getTotalSlightColors(vec3 fragToViewDirec, vec3 fragNormal, vec3 fragPos) {
 
 vec3 calcSlightVolumeColor(int index, vec3 fragPos) {
     const int NUM_STEPS = 3;
-    const float INTENSITY = 0.1;
+    const float INTENSITY = 0.3;
 
     vec3 toFragFromView = fragPos - uViewPos;
     //vec3 toFargDirec = normalize(toFragFromView);

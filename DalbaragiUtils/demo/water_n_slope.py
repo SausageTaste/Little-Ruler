@@ -47,9 +47,9 @@ def main():
     water.m_centerPos.setXYZ(0, -4, 0)
     water.m_width.set(500)
     water.m_height.set(500)
-    water.m_darkestDepth.set(10)
+    water.m_darkestDepth.set(20)
     water.m_reflectivity.set(0.2)
-    water.m_deepColor.setXYZ(0.09, 0.07, 0.11)
+    water.m_deepColor.setXYZ(10/256, 10/256, 30/256)
 
     ################
 
