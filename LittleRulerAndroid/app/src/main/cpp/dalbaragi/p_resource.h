@@ -122,8 +122,8 @@ namespace dal {
 
         ModelStaticHandle orderModelStatic(const ResourceID& resID);
         ModelAnimatedHandle orderModelAnim(const ResourceID& resID);
-        Texture* orderTexture(const ResourceID& resID);
-        CubeMap* orderCubeMap(const std::array<ResourceID, 6>& resIDs);
+        Texture* orderTexture(const ResourceID& resID, const bool gammaCorrect);
+        CubeMap* orderCubeMap(const std::array<ResourceID, 6>& resIDs, const bool gammaCorrect);
 
         MapChunk2 loadMap(const ResourceID& resID);
 

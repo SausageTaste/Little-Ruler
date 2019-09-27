@@ -150,8 +150,6 @@ namespace dal::binfo {
     void ImageFileData::correctSRGB(void) {
         dalAssert(this->m_pixSize >= 3);
 
-        constexpr auto GAMMA_INV = 2.2;
-
         const auto numPixels = this->m_width * this->m_height;
 
         for ( size_t i = 0; i < numPixels; ++i ) {
@@ -159,12 +157,10 @@ namespace dal::binfo {
             const auto g = static_cast<double>(this->m_buf[this->m_pixSize * i + 1]) / 256.0;
             const auto b = static_cast<double>(this->m_buf[this->m_pixSize * i + 2]) / 256.0;
 
-            this->m_buf[this->m_pixSize * i + 0] = static_cast<uint8_t>(std::pow(r, GAMMA_INV) * 256.0);
-            this->m_buf[this->m_pixSize * i + 1] = static_cast<uint8_t>(std::pow(g, GAMMA_INV) * 256.0);
-            this->m_buf[this->m_pixSize * i + 2] = static_cast<uint8_t>(std::pow(b, GAMMA_INV) * 256.0);
+            this->m_buf[this->m_pixSize * i + 0] = static_cast<uint8_t>(std::pow(r, 2.2) * 256.0);
+            this->m_buf[this->m_pixSize * i + 1] = static_cast<uint8_t>(std::pow(g, 2.2) * 256.0);
+            this->m_buf[this->m_pixSize * i + 2] = static_cast<uint8_t>(std::pow(b, 2.2) * 256.0);
         }
-
-        return;
     }
 
 }

@@ -246,7 +246,7 @@ namespace dal {
                 "asset::darkskies_ft.tga",
                 "asset::darkskies_bk.tga",
             };
-            auto tex = resMas.orderCubeMap(cubeMapImages);
+            auto tex = resMas.orderCubeMap(cubeMapImages, true);
             this->m_skybox.setCubeMap(tex);
         }
 

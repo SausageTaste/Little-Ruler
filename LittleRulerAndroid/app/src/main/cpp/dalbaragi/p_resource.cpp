@@ -31,6 +31,7 @@ namespace {
 
         public:
             const dal::ResourceID in_texID;
+            bool in_gammaCorrect;
 
             dal::binfo::ImageFileData out_img;
 
@@ -39,16 +40,23 @@ namespace {
             dal::Texture* data_handle;
 
         public:
-            TaskTexture(const dal::ResourceID& texID, dal::Texture* const handle)
+            TaskTexture(const dal::ResourceID& texID, dal::Texture* const handle, const bool gammaCorrect)
                 : in_texID(texID)
+                , in_gammaCorrect(gammaCorrect)
                 , data_handle(handle)
             {
 
             }
 
             virtual void start(void) override {
-                out_success = dal::futil::getRes_image(in_texID, out_img);
-                this->out_img.m_hasTransparency = this->out_img.hasTransparency();
+                this->out_success = dal::futil::getRes_image(in_texID, out_img);
+
+                if ( this->out_success ) {
+                    this->out_img.m_hasTransparency = this->out_img.hasTransparency();
+                    if ( this->in_gammaCorrect ) {
+                        this->out_img.correctSRGB();
+                    }
+                }
             }
 
         };
@@ -114,6 +122,7 @@ namespace {
 
         public:
             std::array<dal::ResourceID, 6> in_resIDs;
+            bool in_gammaCorrect;
 
             bool out_success;
             dal::binfo::ImageFileData out_imgs[6];
@@ -121,8 +130,9 @@ namespace {
             dal::CubeMap* data_handle;
 
         public:
-            TaskCubeMap(const std::array<dal::ResourceID, 6>& resIDs, dal::CubeMap* handle)
+            TaskCubeMap(const std::array<dal::ResourceID, 6>& resIDs, dal::CubeMap* handle, const bool gammaCorrect)
                 : in_resIDs(resIDs)
+                , in_gammaCorrect(gammaCorrect)
                 , out_success(false)
                 , data_handle(handle)
             {
@@ -152,6 +162,10 @@ namespace {
                             this->out_imgs[i].rotate180();
                             break;
                         }
+
+                        if ( this->in_gammaCorrect ) {
+                            this->out_imgs[i].correctSRGB();
+                        }
                     }
                 }
             }
@@ -162,8 +176,8 @@ namespace {
         std::unordered_map<void*, ResTyp> m_map;
 
     public:
-        TaskTexture* newTexture(const dal::ResourceID& texID, dal::Texture* const handle) {
-            auto task = new TaskTexture(texID, handle);
+        TaskTexture* newTexture(const dal::ResourceID& texID, dal::Texture* const handle, const bool gammaCorrect) {
+            auto task = new TaskTexture(texID, handle, gammaCorrect);
             this->m_map.emplace(task, ResTyp::texture);
             return task;
         }
@@ -177,8 +191,8 @@ namespace {
             this->m_map.emplace(task, ResTyp::model_animated);
             return task;
         }
-        TaskCubeMap* newCubeMap(const std::array<dal::ResourceID, 6>& resIDs, dal::CubeMap* const handle) {
-            auto task = new TaskCubeMap(resIDs, handle);
+        TaskCubeMap* newCubeMap(const std::array<dal::ResourceID, 6>& resIDs, dal::CubeMap* const handle, const bool gammaCorrect) {
+            auto task = new TaskCubeMap(resIDs, handle, gammaCorrect);
             this->m_map.emplace(task, ResTyp::cube_map);
             return task;
         }
@@ -569,7 +583,7 @@ namespace dal {
                     if ( !unitInfo.m_material.m_diffuseMap.empty() ) {
                         ResourceID texResID{ unitInfo.m_material.m_diffuseMap };
                         texResID.setPackageIfEmpty(loaded->in_modelID.getPackage());
-                        auto tex = this->orderTexture(texResID);
+                        auto tex = this->orderTexture(texResID, true);
                         unit.m_material.setDiffuseMap(tex);
                     }
                 }
@@ -619,7 +633,7 @@ namespace dal {
                     ResourceID diffuseResID{ unitInfo.m_material.m_diffuseMap };
                     diffuseResID.setPackageIfEmpty(loaded->in_modelID.getPackage());
 
-                    auto tex = this->orderTexture(diffuseResID);
+                    auto tex = this->orderTexture(diffuseResID, true);
                     unit->m_material.setDiffuseMap(tex);
                 }
             }
@@ -686,7 +700,7 @@ namespace dal {
         }
     }
 
-    Texture* ResourceMaster::orderTexture(const ResourceID& resID) {
+    Texture* ResourceMaster::orderTexture(const ResourceID& resID, const bool gammaCorrect) {
         auto& package = this->orderPackage(resID.getPackage());
 
         auto found = package.getTexture(resID);
@@ -697,17 +711,17 @@ namespace dal {
             auto texture = new Texture;
             package.giveTexture(resID, texture);
 
-            auto task = g_taskManger.newTexture(resID, texture);
+            auto task = g_taskManger.newTexture(resID, texture, gammaCorrect);
             TaskGod::getinst().orderTask(task, this);
 
             return texture;
         }
     }
 
-    CubeMap* ResourceMaster::orderCubeMap(const std::array<ResourceID, 6>& resIDs) {
+    CubeMap* ResourceMaster::orderCubeMap(const std::array<ResourceID, 6>& resIDs, const bool gammaCorrect) {
         auto tex = &this->m_cubeMaps.emplace_back();
 
-        auto task = g_taskManger.newCubeMap(resIDs, tex);
+        auto task = g_taskManger.newCubeMap(resIDs, tex, gammaCorrect);
         TaskGod::getinst().orderTask(task, this);
 
         return tex;
@@ -752,7 +766,7 @@ namespace dal {
                 unit.m_material.m_reflectivity = unitInfo.m_material.m_reflectivity;
 
                 if ( !unitInfo.m_material.m_diffuseMap.empty() ) {
-                    auto tex = this->orderTexture(unitInfo.m_material.m_diffuseMap);
+                    auto tex = this->orderTexture(unitInfo.m_material.m_diffuseMap, true);
                     unit.m_material.setDiffuseMap(tex);
                 }
             }
