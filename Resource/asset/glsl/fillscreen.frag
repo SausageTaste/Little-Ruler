@@ -1,11 +1,11 @@
-
-
 uniform sampler2D uTexture;
 
-in vec2 vTexCoord;
 
-out vec4 fColor;
+in vec2 v_texCoord;
+
+out vec4 f_color;
+
 
 void main() { 
-	fColor = texture(uTexture, vTexCoord);
+	f_color = texture(uTexture, v_texCoord);
 }

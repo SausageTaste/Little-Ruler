@@ -3,7 +3,7 @@ struct SpotLight {
     vec3 m_direc;
     vec3 m_color;
     float m_startFade;
-	float m_endFade;
+    float m_endFade;
 };
 
 
@@ -228,28 +228,28 @@ float getLightFactor_point(int index, vec3 viewDir, vec3 fragNormal, vec3 fragPo
 
 
 vec2 calcSlightFactor(int index, vec3 fragToViewDirec, vec3 fragNormal, vec3 fragPos) {
-	vec3 lightToFragDirec = normalize(fragPos - u_slights[index].m_pos);
+    vec3 lightToFragDirec = normalize(fragPos - u_slights[index].m_pos);
 
-	float diffuseFactor = max(dot(-lightToFragDirec, fragNormal), 0.0);
+    float diffuseFactor = max(dot(-lightToFragDirec, fragNormal), 0.0);
 
-	vec3 halfwayDir = normalize(fragToViewDirec - lightToFragDirec);
-	float energyConservation = ( 8.0 + uShininess ) / ( 8.0 * PI );
-	float spec = energyConservation * pow(max(dot(fragNormal, halfwayDir), 0.0), uShininess);
-	float specular = max(uSpecularStrength * spec, 0.0);
+    vec3 halfwayDir = normalize(fragToViewDirec - lightToFragDirec);
+    float energyConservation = ( 8.0 + uShininess ) / ( 8.0 * PI );
+    float spec = energyConservation * pow(max(dot(fragNormal, halfwayDir), 0.0), uShininess);
+    float specular = max(uSpecularStrength * spec, 0.0);
 
-	vec2 factors = vec2(diffuseFactor, specular);
-	float lightAngle = dot(lightToFragDirec, u_slights[index].m_direc);
+    vec2 factors = vec2(diffuseFactor, specular);
+    float lightAngle = dot(lightToFragDirec, u_slights[index].m_direc);
 
-	if (lightAngle > u_slights[index].m_startFade) {
-		return factors;
-	}
-	else if (lightAngle > u_slights[index].m_endFade) {
-		float edgeCut = (lightAngle - u_slights[index].m_endFade) / (u_slights[index].m_startFade - u_slights[index].m_endFade);
-		return factors * edgeCut;
-	}
-	else {
-		return vec2(0.0);
-	}
+    if (lightAngle > u_slights[index].m_startFade) {
+        return factors;
+    }
+    else if (lightAngle > u_slights[index].m_endFade) {
+        float edgeCut = (lightAngle - u_slights[index].m_endFade) / (u_slights[index].m_startFade - u_slights[index].m_endFade);
+        return factors * edgeCut;
+    }
+    else {
+        return vec2(0.0);
+    }
 }
 
 vec3 calcSlightVolumeColor(int index, vec3 fragPos) {
@@ -265,16 +265,16 @@ vec3 calcSlightVolumeColor(int index, vec3 fragPos) {
     float accumFactor = 0.0;
 
     for (int i = 0; i < NUM_STEPS; ++i) {
-		vec3 lightToFragDirec = normalize(curPos - u_slights[index].m_pos);
-		float lightAngle = dot(lightToFragDirec, u_slights[index].m_direc);
+        vec3 lightToFragDirec = normalize(curPos - u_slights[index].m_pos);
+        float lightAngle = dot(lightToFragDirec, u_slights[index].m_direc);
 
         if (lightAngle > u_slights[index].m_startFade) {
-			accumFactor += 1.0;
-		}
-		else if (lightAngle > u_slights[index].m_endFade) {
-			float edgeCut = (lightAngle - u_slights[index].m_endFade) / (u_slights[index].m_startFade - u_slights[index].m_endFade);
-			accumFactor += edgeCut;
-		}
+            accumFactor += 1.0;
+        }
+        else if (lightAngle > u_slights[index].m_endFade) {
+            float edgeCut = (lightAngle - u_slights[index].m_endFade) / (u_slights[index].m_startFade - u_slights[index].m_endFade);
+            accumFactor += edgeCut;
+        }
 
         curPos += rayStep * _getDitherValue();
     }

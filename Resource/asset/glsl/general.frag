@@ -35,10 +35,10 @@ void main(void) {
     for (int i = 0; i < uPlightCount; i++) {
         lightedColor += getLightFactor_point(i, viewDir, fragNormal, vFragPos) * uPlightColors[i];
     }
-	for (int i = 0; i < u_slightCount; ++i) {
-		vec2 factor = calcSlightFactor(i, viewDir, fragNormal, vFragPos);
-		lightedColor += (factor.x + factor.y) * u_slights[i].m_color;
-	}
+    for (int i = 0; i < u_slightCount; ++i) {
+        vec2 factor = calcSlightFactor(i, viewDir, fragNormal, vFragPos);
+        lightedColor += (factor.x + factor.y) * u_slights[i].m_color;
+    }
     lightedColor += getEnvColor(vFragPos, fragNormal);
 
     vec4 texColor = texture(u_diffuseMap, vTexCoord);
