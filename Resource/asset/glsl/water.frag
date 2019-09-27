@@ -144,18 +144,14 @@ void main(void) {
 
     // Lighting
     vec3 lightedColor = uBaseAmbient;
-    for (int i = 0; i < uDlightCount; i++) {
-        vec4 fragPosInLight = vec4(vec3(vFragPosInDlight[i]) + fragNormal * u_waveStrength, 1.0);
-        fragPosInLight.y = vFragPosInDlight[i].y;
-        lightedColor += getDlightFactor(i, viewDir, fragNormal, fragPosInLight) * uDlightColors[i];
+    vec4 fragPosInShadowOffset = vec4(fragNormal * u_waveStrength, 1.0);
+    fragPosInShadowOffset.y = 0.0;
+
+    for (int i = 0; i < uDlightCount; ++i) {
+        lightedColor += getDlightColor(i, viewDir, fragNormal, vFragPos, vFragPosInDlight[i] + fragPosInShadowOffset);
     }
-    for (int i = 0; i < uPlightCount; i++) {
-        lightedColor += getLightFactor_point(i, viewDir, fragNormal, vFragPos) * uPlightColors[i];
-    }
-    for (int i = 0; i < u_slightCount; ++i) {
-        vec2 factor = calcSlightFactor(i, viewDir, fragNormal, vFragPos);
-        lightedColor += (factor.x + factor.y) * u_slights[i].m_color;
-    }
+    lightedColor += getTotalPlightColors(viewDir, fragNormal, vFragPos);
+    lightedColor += getTotalSlightColors(viewDir, fragNormal, vFragPos);
 
     // Water
     vec4 waterImage = calculateWater(fragNormal, distoredTexCoords);

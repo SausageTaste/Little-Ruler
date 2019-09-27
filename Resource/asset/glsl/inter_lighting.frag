@@ -166,16 +166,17 @@ float _getLightFactor_directional(int index, vec3 viewDir, vec3 fragNormal) {
     }
 }
 
-float getDlightFactor(int index, vec3 viewDir, vec3 fragNormal, vec4 fragPosInDlight) {
-    return _getLightFactor_directional(index, viewDir, fragNormal) * _getShadowFactor_directional(index, fragPosInDlight);
-}
-
 float _computeScattering(float lightDotView) {
     const float G_SCATTERING = 10.0;
 
     float result = 1.0 - G_SCATTERING * G_SCATTERING;
     result /= (4.0 * PI * pow(1.0 + G_SCATTERING * G_SCATTERING - (2.0 * G_SCATTERING) *  lightDotView, 1.5));
     return result;
+}
+
+vec3 getDlightColor(int i, vec3 fragToViewDirec, vec3 fragNormal, vec3 fragPos, vec4 fragPosInShadow) {
+    float factor = _getLightFactor_directional(i, fragToViewDirec, fragNormal) * _getShadowFactor_directional(i, fragPosInShadow);
+    return factor * uDlightColors[i];
 }
 
 vec3 calcDlightVolumeColor(int index, vec3 fragPos) {
@@ -211,35 +212,48 @@ vec3 calcDlightVolumeColor(int index, vec3 fragPos) {
 }
 
 
-float getLightFactor_point(int index, vec3 viewDir, vec3 fragNormal, vec3 fragPos) {
-    float dist = distance(uViewPos, uPlightPoses[index]);
+float _calcDistAttenu(float fragDist, float constant, float linear, float quadratic) {
+    return 1.0 / (constant + linear * fragDist + quadratic * (fragDist * fragDist));
+}
 
-    vec3 lightDir = normalize(uPlightPoses[index] - fragPos);
-    float diff = max(dot(lightDir, fragNormal), 0.0);
-    // specular
+vec2 _calcPlightFactors(int index, vec3 fragToViewDirec, vec3 fragNormal, vec3 fragPos) {
+    vec3 fragToLightDirec = normalize(uPlightPoses[index] - fragPos);
 
-    vec3 halfwayDir = normalize(lightDir + viewDir);
+    float diffuseFactor = max(dot(fragToLightDirec, fragNormal), 0.0);
+
+    vec3 halfwayDir = normalize(fragToViewDirec + fragToLightDirec);
     float energyConservation = ( 8.0 + uShininess ) / ( 8.0 * PI );
     float spec = energyConservation * pow(max(dot(fragNormal, halfwayDir), 0.0), uShininess);
-
     float specular = max(uSpecularStrength * spec, 0.0);
 
-    return (diff + specular) * _distanceDecreaser(dist);
+    return vec2(diffuseFactor, specular);
+}
+
+vec3 getTotalPlightColors(vec3 fragToViewDirec, vec3 fragNormal, vec3 fragPos) {
+    vec3 lightedColor = vec3(0.0);
+
+    for (int i = 0; i < uPlightCount; i++) {
+        vec2 diffNSpec = _calcPlightFactors(i, fragToViewDirec, fragNormal, fragPos);
+        float attenFactor = _calcDistAttenu(distance(fragPos, uPlightPoses[i]), 1.0, 0.09, 0.032);
+        lightedColor += (diffNSpec.x + diffNSpec.y) * attenFactor * uPlightColors[i];
+    }
+
+    return lightedColor;
 }
 
 
-vec2 calcSlightFactor(int index, vec3 fragToViewDirec, vec3 fragNormal, vec3 fragPos) {
-    vec3 lightToFragDirec = normalize(fragPos - u_slights[index].m_pos);
+vec2 _calcSlightFactors(int index, vec3 fragToViewDirec, vec3 fragNormal, vec3 fragPos) {
+    vec3 fragToLightDirec = normalize(u_slights[index].m_pos - fragPos);
 
-    float diffuseFactor = max(dot(-lightToFragDirec, fragNormal), 0.0);
+    float diffuseFactor = max(dot(fragToLightDirec, fragNormal), 0.0);
 
-    vec3 halfwayDir = normalize(fragToViewDirec - lightToFragDirec);
+    vec3 halfwayDir = normalize(fragToViewDirec + fragToLightDirec);
     float energyConservation = ( 8.0 + uShininess ) / ( 8.0 * PI );
     float spec = energyConservation * pow(max(dot(fragNormal, halfwayDir), 0.0), uShininess);
     float specular = max(uSpecularStrength * spec, 0.0);
 
     vec2 factors = vec2(diffuseFactor, specular);
-    float lightAngle = dot(lightToFragDirec, u_slights[index].m_direc);
+    float lightAngle = dot(-fragToLightDirec, u_slights[index].m_direc);
 
     if (lightAngle > u_slights[index].m_startFade) {
         return factors;
@@ -251,6 +265,18 @@ vec2 calcSlightFactor(int index, vec3 fragToViewDirec, vec3 fragNormal, vec3 fra
     else {
         return vec2(0.0);
     }
+}
+
+vec3 getTotalSlightColors(vec3 fragToViewDirec, vec3 fragNormal, vec3 fragPos) {
+    vec3 lightedColor = vec3(0.0);
+
+    for (int i = 0; i < u_slightCount; ++i) {
+        vec2 diffNSpec = _calcSlightFactors(i, fragToViewDirec, fragNormal, fragPos);
+        float attenFactor = _calcDistAttenu(distance(fragPos, u_slights[i].m_pos), 1.0, 0.09, 0.032);
+        lightedColor += (diffNSpec.x + diffNSpec.y) * attenFactor * u_slights[i].m_color;
+    }
+
+    return lightedColor;
 }
 
 vec3 calcSlightVolumeColor(int index, vec3 fragPos) {
