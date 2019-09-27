@@ -150,19 +150,21 @@ namespace dal::binfo {
     void ImageFileData::correctSRGB(void) {
         dalAssert(this->m_pixSize >= 3);
 
-        constexpr float GAMMA_INV = 1.f / 2.2f;
+        constexpr auto GAMMA_INV = 2.2;
 
         const auto numPixels = this->m_width * this->m_height;
 
         for ( size_t i = 0; i < numPixels; ++i ) {
-            const auto r = this->m_buf[this->m_pixSize * i + 0];
-            const auto g = this->m_buf[this->m_pixSize * i + 1];
-            const auto b = this->m_buf[this->m_pixSize * i + 2];
+            const auto r = static_cast<double>(this->m_buf[this->m_pixSize * i + 0]) / 256.0;
+            const auto g = static_cast<double>(this->m_buf[this->m_pixSize * i + 1]) / 256.0;
+            const auto b = static_cast<double>(this->m_buf[this->m_pixSize * i + 2]) / 256.0;
 
-            this->m_buf[this->m_pixSize * i + 0] = std::powf(r, GAMMA_INV);
-            this->m_buf[this->m_pixSize * i + 1] = std::powf(g, GAMMA_INV);
-            this->m_buf[this->m_pixSize * i + 2] = std::powf(b, GAMMA_INV);
+            this->m_buf[this->m_pixSize * i + 0] = static_cast<uint8_t>(std::pow(r, GAMMA_INV) * 256.0);
+            this->m_buf[this->m_pixSize * i + 1] = static_cast<uint8_t>(std::pow(g, GAMMA_INV) * 256.0);
+            this->m_buf[this->m_pixSize * i + 2] = static_cast<uint8_t>(std::pow(b, GAMMA_INV) * 256.0);
         }
+
+        return;
     }
 
 }
