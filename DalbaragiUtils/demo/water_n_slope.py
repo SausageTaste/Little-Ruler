@@ -29,7 +29,7 @@ def main():
     builder.m_smoothShading = True
     unit.m_mesh = builder
 
-    unit.m_material.m_diffuseMap.set("asset::grass1.png")
+    unit.m_material.m_diffuseMap.set("asset::grass1.tga")
     unit.m_material.m_texScaleX.set(50)
     unit.m_material.m_texScaleY.set(50)
     unit.m_material.m_shininess.set(32)
