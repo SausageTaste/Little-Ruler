@@ -144,11 +144,11 @@ void main(void) {
 
     // Lighting
     vec3 lightedColor = uBaseAmbient;
-    vec4 fragPosInShadowOffset = vec4(fragNormal * u_waveStrength, 1.0);
-    fragPosInShadowOffset.y = 0.0;
 
     for (int i = 0; i < uDlightCount; ++i) {
-        lightedColor += getDlightColor(i, viewDir, fragNormal, vFragPos, vFragPosInDlight[i] + fragPosInShadowOffset);
+        vec4 fragPosInLight = vec4(vec3(vFragPosInDlight[i]) + fragNormal * u_waveStrength, 1.0);
+        fragPosInLight.y = vFragPosInDlight[i].y;
+        lightedColor += getDlightColor(i, viewDir, fragNormal, vFragPos, fragPosInLight);
     }
     lightedColor += getTotalPlightColors(viewDir, fragNormal, vFragPos);
     lightedColor += getTotalSlightColors(viewDir, fragNormal, vFragPos);
