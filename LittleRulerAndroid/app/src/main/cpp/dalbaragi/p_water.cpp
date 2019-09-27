@@ -19,15 +19,7 @@ namespace {
             assert(4 == image.m_pixSize);
 
             tex = new dal::Texture();
-            if ( 4 == image.m_pixSize ) {
-                tex->init_diffueMap(image.m_buf.data(), image.m_width, image.m_height);
-            }
-            else if ( 3 == image.m_pixSize ) {
-                tex->init_diffueMap(image.m_buf.data(), image.m_width, image.m_height);
-            }
-            else {
-                dalAbort("Wrong pixel size for dudv map");
-            }
+            tex->init_diffuseMap(image);
         }
 
         return tex;
@@ -44,15 +36,7 @@ namespace {
             assert(4 == image.m_pixSize);
 
             tex = new dal::Texture();
-            if ( 4 == image.m_pixSize ) {
-                tex->init_diffueMap(image.m_buf.data(), image.m_width, image.m_height);
-            }
-            else if ( 3 == image.m_pixSize ) {
-                tex->init_diffueMap(image.m_buf.data(), image.m_width, image.m_height);
-            }
-            else {
-                dalAbort("Wrong pixel size for normal normal map");
-            }
+            tex->init_diffuseMap(image);
         }
 
         return tex;

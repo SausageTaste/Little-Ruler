@@ -138,7 +138,7 @@ namespace dal {
     class MeshStatic : public IMesh<3> {
 
     public:
-        int buildData(const float* const vertices, const float* const texcoords, const float* const normals, const int numVertices);
+        int buildData(const float* const vertices, const float* const texcoords, const float* const normals, const size_t numVertices);
 
     };
 
@@ -196,9 +196,7 @@ namespace dal {
     class Texture : public ITexture {
 
     public:
-        void init_diffueMap(const uint8_t* const image, const unsigned int width, const unsigned int height);
-        void init_diffueMap3(const uint8_t* const image, const unsigned int width, const unsigned int height);
-        void init_diffuseMap(const binfo::ImageFileData& image);
+        void init_diffuseMap(binfo::ImageFileData& image);
         void init_depthMap(const unsigned int width, const unsigned int height);
         void init_maskMap(const uint8_t* const image, const unsigned int width, const unsigned int height);
         void initAttach_colorMap(const unsigned int width, const unsigned int height);

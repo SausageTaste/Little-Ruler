@@ -12,7 +12,7 @@ using namespace fmt::literals;
 
 namespace dal {
 
-    int MeshStatic::buildData(const float* const vertices, const float* const texcoords, const float* const normals, const int numVertices) {
+    int MeshStatic::buildData(const float* const vertices, const float* const texcoords, const float* const normals, const size_t numVertices) {
         /* Check if data is wrong. */
         {
             if ( this->isReady() ) {
@@ -23,7 +23,6 @@ namespace dal {
 
         this->createBuffers();
         this->bindVAO();
-        size_t vramUsage = 0;
 
         // Vertices
         {
@@ -162,9 +161,8 @@ namespace dal {
 // Texture
 namespace dal {
 
-    void Texture::init_diffueMap(const uint8_t* const image, const unsigned int width, const unsigned int height) {
+    void Texture::init_diffuseMap(binfo::ImageFileData& image) {
         this->genTexture("Texture::init_diffueMap");
-
         glBindTexture(GL_TEXTURE_2D, this->get());
 
 #if BLOCKY_TEXTURE == 0
@@ -174,40 +172,19 @@ namespace dal {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 #endif
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_SRGB_ALPHA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image);
-        glGenerateMipmap(GL_TEXTURE_2D);
 
-        glBindTexture(GL_TEXTURE_2D, 0);
-    }
-
-    void Texture::init_diffueMap3(const uint8_t* const image, const unsigned int width, const unsigned int height) {
-        this->genTexture("Texture::init_diffueMap3");
-
-        glBindTexture(GL_TEXTURE_2D, this->get());
-
-#if BLOCKY_TEXTURE == 0
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-#else
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-#endif
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_SRGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
-        glGenerateMipmap(GL_TEXTURE_2D);
-
-        glBindTexture(GL_TEXTURE_2D, 0);
-    }
-
-    void Texture::init_diffuseMap(const binfo::ImageFileData& image) {
         if ( 3 == image.m_pixSize ) {
-            this->init_diffueMap3(image.m_buf.data(), image.m_width, image.m_height);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_SRGB, image.m_width, image.m_height, 0, GL_RGB, GL_UNSIGNED_BYTE, image.m_buf.data());
         }
         else if ( 4 == image.m_pixSize ) {
-            this->init_diffueMap(image.m_buf.data(), image.m_width, image.m_height);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_SRGB_ALPHA, image.m_width, image.m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image.m_buf.data());
         }
         else {
             dalAbort("Not supported pixel size: {}"_format(image.m_pixSize));
         }
+
+        glGenerateMipmap(GL_TEXTURE_2D);
+        glBindTexture(GL_TEXTURE_2D, 0);
 
         this->setHasAlpha(image.m_hasTransparency);
     }
@@ -271,7 +248,7 @@ namespace dal {
     void Texture::sendUniform(const SamplerInterf& uniloc) const {
         if ( this->isReady() ) {
             uniloc.setFlagHas(true);
-            glActiveTexture(GL_TEXTURE0 + uniloc.getUnitIndex());
+            glActiveTexture(GL_TEXTURE0 + static_cast<GLenum>(uniloc.getUnitIndex()));
             glBindTexture(GL_TEXTURE_2D, this->get());
             glUniform1i(uniloc.getSamplerLoc(), uniloc.getUnitIndex());
         }
@@ -290,18 +267,27 @@ namespace dal {
         this->genTexture("CubeMap::init");
         glBindTexture(GL_TEXTURE_CUBE_MAP, this->get());
 
-        for ( int i = 0; i < 6; i++ ) {
+#if BLOCKY_TEXTURE == 0
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+#else
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+#endif
+
+        for ( unsigned int i = 0; i < 6; i++ ) {
             const auto [buf, width, height, pixSize] = data.at(i);
             if ( 3 == pixSize ) {
-                glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_SRGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, buf);
+                glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, buf);
             }
             else if ( 4 == pixSize ) {
-                glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_SRGB_ALPHA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, buf);
+                glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, buf);
+            }
+            else {
+                dalAbort("Not supported pixel size: {}"_format(pixSize));
             }
         }
 
-        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
@@ -310,7 +296,7 @@ namespace dal {
     void CubeMap::sendUniform(const SamplerInterf& uniloc) const {
         if ( this->isReady() ) {
             uniloc.setFlagHas(true);
-            glActiveTexture(GL_TEXTURE0 + uniloc.getUnitIndex());
+            glActiveTexture(GL_TEXTURE0 + static_cast<GLenum>(uniloc.getUnitIndex()));
             glBindTexture(GL_TEXTURE_CUBE_MAP, this->get());
             glUniform1i(uniloc.getSamplerLoc(), uniloc.getUnitIndex());
         }
