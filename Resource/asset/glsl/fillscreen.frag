@@ -7,5 +7,8 @@ out vec4 f_color;
 
 
 void main() { 
-	f_color = texture(uTexture, v_texCoord);
+    const float GAMMA = 2.2;
+
+    f_color = texture(uTexture, v_texCoord);
+    f_color.xyz = pow(f_color.xyz, vec3(1.0 / GAMMA));
 }
