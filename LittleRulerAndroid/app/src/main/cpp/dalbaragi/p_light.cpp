@@ -65,8 +65,8 @@ namespace dal {
     }
 
 
-    void DepthmapForLights::sendUniform(const UniInterfLightedMesh& uniloc, int index) const {
-        this->m_depthTex.sendUniform(uniloc.getDlightDepthMap(index));
+    void DepthmapForLights::sendUniform(const SamplerInterf& uniloc) const {
+        this->m_depthTex.sendUniform(uniloc);
     }
 
     void DepthmapForLights::clearBuffer(void) {
@@ -99,14 +99,14 @@ namespace dal {
         this->m_direction = glm::normalize(v);
     }
 
-    void DirectionalLight::sendUniform(const UniInterfLightedMesh& uniloc, int index) const {
+    void DirectionalLight::sendUniform(const UniInterfLightedMesh& uniloc, const int index) const {
         uniloc.dlightColor(index, this->m_color);
         uniloc.dlightDirec(index, this->m_direction);
 
         auto projViewMat = this->makeProjMat() * this->makeViewMat();
         uniloc.dlightProjViewMat(index, projViewMat);
 
-        this->m_shadowMap.sendUniform(uniloc, index);
+        this->m_shadowMap.sendUniform(uniloc.getDlightDepthMap(index));
     }
 
     void DirectionalLight::clearDepthBuffer(void) {
@@ -166,6 +166,21 @@ namespace dal {
         uniloc.color(this->m_color);
         uniloc.startFade(this->m_startFade);
         uniloc.endFade(this->m_endFade);
+
+        auto projViewMat = this->makeProjMat() * this->makeViewMat();
+        uniloc.projViewMat(projViewMat);
+
+        this->m_shadowMap.sendUniform(uniloc.getDepthMap());
+    }
+
+    // Shadow mapping
+
+    glm::mat4 SpotLight::makeProjMat(void) const {
+        return glm::perspective(glm::radians(this->m_endFade) * 2.f, 1.f, 0.1f, 50.f);
+    }
+
+    glm::mat4 SpotLight::makeViewMat(void) const {
+        return glm::lookAt(-this->m_direc + this->m_pos, this->m_pos, { 0.f, 1.f, 0.f });
     }
 
 }

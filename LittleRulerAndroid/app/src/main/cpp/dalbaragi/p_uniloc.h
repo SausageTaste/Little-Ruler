@@ -67,6 +67,9 @@ namespace dal {
             GLint m_startFade = -1;
             GLint m_endFade = -1;
 
+            GLint u_projViewMat = -1;
+            SamplerInterf m_depthMap;
+
         public:
             void init(const GLuint shader, const unsigned int index);
 
@@ -81,6 +84,11 @@ namespace dal {
 
             void startFade(const float v) const;
             void endFade(const float v) const;
+
+            void projViewMat(const glm::mat4& mat) const;
+            const SamplerInterf& getDepthMap(void) const {
+                return this->m_depthMap;
+            }
 
         };
 
@@ -144,7 +152,7 @@ namespace dal {
         void dlightColor(const unsigned int index, const glm::vec3& v) const;
 
         const SamplerInterf& getDlightDepthMap(const unsigned int index) const;
-        void dlightProjViewMat(const unsigned int index, glm::mat4& mat) const;
+        void dlightProjViewMat(const unsigned int index, const glm::mat4& mat) const;
 
         void plightPos(const unsigned int index, const float x, const float y, const float z) const;
         void plightPos(const unsigned int index, const glm::vec3& v) const;

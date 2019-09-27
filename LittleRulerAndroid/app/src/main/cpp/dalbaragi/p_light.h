@@ -27,13 +27,13 @@ namespace dal {
         DepthmapForLights(DepthmapForLights&& other) noexcept;
         DepthmapForLights& operator=(DepthmapForLights&&) noexcept;
 
-        void sendUniform(const UniInterfLightedMesh& uniloc, int index) const;
+        void sendUniform(const SamplerInterf& uniloc) const;
 
         void clearBuffer(void);
         void startRender(void);
         void finishRender(void);
 
-		const Texture& getTexture(void) {
+		const Texture& getTexture(void) const {
 			return this->m_depthTex;
 		}
 
@@ -76,7 +76,7 @@ namespace dal {
             return this->m_direction;
         }
 
-        void sendUniform(const UniInterfLightedMesh& uniloc, int index) const;
+        void sendUniform(const UniInterfLightedMesh& uniloc, const int index) const;
 
         void clearDepthBuffer(void);
         void startRenderShadowmap(const UniInterfGeometry& uniloc);
@@ -112,6 +112,8 @@ namespace dal {
         glm::vec3 m_color;
         float m_startFade, m_endFade;
 
+        DepthmapForLights m_shadowMap;
+
     public:
         SpotLight(void);
 
@@ -136,6 +138,27 @@ namespace dal {
         }
 
         void sendUniform(const UniInterfLightedMesh::SpotLight& uniloc) const;
+
+        // Shadow mapping
+
+        glm::mat4 makeProjMat(void) const;
+        glm::mat4 makeViewMat(void) const;
+
+        void clearDepthBuffer(void) {
+            this->m_shadowMap.clearBuffer();
+        }
+        void startRenderShadowmap(const UniInterfGeometry& uniloc) {
+            uniloc.projectMat(this->makeProjMat());
+            uniloc.viewMat(this->makeViewMat());
+            this->m_shadowMap.startRender();
+        }
+        void finishRenderShadowmap(void) {
+            this->m_shadowMap.finishRender();
+        }
+
+        const dal::Texture* getDepthMap(void) const {
+            return &this->m_shadowMap.getTexture();
+        }
 
     };
 

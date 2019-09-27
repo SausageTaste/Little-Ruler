@@ -170,6 +170,9 @@ namespace dal {
         this->m_color = getUniloc(shader, fmt::format("u_slights[{}].m_color", index).c_str());
         this->m_startFade = getUniloc(shader, fmt::format("u_slights[{}].m_startFade", index).c_str());
         this->m_endFade = getUniloc(shader, fmt::format("u_slights[{}].m_endFade", index).c_str());
+
+        this->u_projViewMat = getUniloc(shader, fmt::format("u_slightProjViewMat[{}]", index).c_str());
+        this->m_depthMap.init(getUniloc(shader, "m_depthMap"), -2, g_texUnitReg["m_depthMap"], false);
     }
 
     void UniInterfLightedMesh::SpotLight::pos(const float x, const float y, const float z) const {
@@ -198,6 +201,10 @@ namespace dal {
     }
     void UniInterfLightedMesh::SpotLight::endFade(const float v) const {
         glUniform1f(this->m_endFade, v);
+    }
+
+    void UniInterfLightedMesh::SpotLight::projViewMat(const glm::mat4& mat) const {
+        sendMatrix(this->u_projViewMat, mat);
     }
 
 
@@ -340,7 +347,7 @@ namespace dal {
         return this->uDlightDepthMap[index];
     }
 
-    void UniInterfLightedMesh::dlightProjViewMat(const unsigned int index, glm::mat4& mat) const {
+    void UniInterfLightedMesh::dlightProjViewMat(const unsigned int index, const glm::mat4& mat) const {
         dalAssert(index < this->k_maxDlight);
         sendMatrix(this->uDlightProjViewMat[index], mat);
     }

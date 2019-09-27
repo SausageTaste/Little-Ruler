@@ -192,50 +192,6 @@ namespace dal {
 #endif
         }
 
-        // View
-		/*
-        {
-			auto water = this->m_scene.getWater("water_bowl", 0);
-			dalAssert(water != nullptr);
-
-			{
-				auto view = new TextureView(nullptr, &this->m_dlight1.getDepthTex());
-				view->setPosX(10.0f);
-				view->setPosY(10.0f + 130.0f * 3.0f);
-				view->setWidth(128.0f);
-				view->setHeight(128.0f);
-				overlay.giveWidgetOwnership(view);
-			}
-
-            {
-                auto view = new TextureView(nullptr, water->m_fbuffer.getReflectionTexture());
-                view->setPosX(10.0f);
-                view->setPosY(10.0f + 130.0f * 4.0f);
-                view->setWidth(128.0f);
-                view->setHeight(128.0f);
-				overlay.giveWidgetOwnership(view);
-            }
-
-            {
-                auto view = new TextureView(nullptr, water->m_fbuffer.getRefractionDepthTexture());
-                view->setPosX(10.0f);
-                view->setPosY(10.0f + 130.0f * 5.0f);
-                view->setWidth(128.0f);
-                view->setHeight(128.0f);
-				overlay.giveWidgetOwnership(view);
-            }
-
-            {
-                auto view = new TextureView(nullptr, water->m_fbuffer.getRefractionTexture());
-                view->setPosX(10.0f);
-                view->setPosY(10.0f + 130.0f * 6.0f);
-                view->setWidth(128.0f);
-                view->setHeight(128.0f);
-				overlay.giveWidgetOwnership(view);
-            }
-        }
-		*/
-
         // Skybox
         {
             std::array<ResourceID, 6> cubeMapImages{
@@ -290,21 +246,43 @@ namespace dal {
     void RenderMaster::render(entt::registry& reg) {
         // Shadow map
         {
-            this->m_dlight1.clearDepthBuffer();
-
+            // Dlight
             {
-                auto& uniloc = this->m_shader.useDepthMp();
-                this->m_dlight1.startRenderShadowmap(uniloc.m_geometry);
-                this->m_scene.renderDepthGeneral(uniloc);
+                this->m_dlight1.clearDepthBuffer();
+
+                {
+                    auto& uniloc = this->m_shader.useDepthMp();
+                    this->m_dlight1.startRenderShadowmap(uniloc.m_geometry);
+                    this->m_scene.renderDepthGeneral(uniloc);
+                }
+
+                {
+                    auto& uniloc = this->m_shader.useDepthAnime();
+                    this->m_dlight1.startRenderShadowmap(uniloc.m_geometry);
+                    this->m_scene.renderDepthAnimated(uniloc);
+                }
+
+                m_dlight1.finishRenderShadowmap();
             }
 
+            // Slight
             {
-                auto& uniloc = this->m_shader.useDepthAnime();
-                this->m_dlight1.startRenderShadowmap(uniloc.m_geometry);
-                this->m_scene.renderDepthAnimated(uniloc);
-            }
+                this->m_slight1.clearDepthBuffer();
 
-            m_dlight1.finishRenderShadowmap();
+                {
+                    auto& uniloc = this->m_shader.useDepthMp();
+                    this->m_slight1.startRenderShadowmap(uniloc.m_geometry);
+                    this->m_scene.renderDepthGeneral(uniloc);
+                }
+                
+                {
+                    auto& uniloc = this->m_shader.useDepthAnime();
+                    this->m_slight1.startRenderShadowmap(uniloc.m_geometry);
+                    this->m_scene.renderDepthAnimated(uniloc);
+                }
+
+                this->m_slight1.finishRenderShadowmap();
+            }
         }
 
 #ifdef _WIN32
