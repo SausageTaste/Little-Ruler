@@ -86,8 +86,6 @@ namespace dal {
         ~InputApplier(void);
 
         virtual void onEvent(const EventStatic& e) override;
-
-        //void apply(const float deltaTime, StrangeEulerCamera& camera, const entt::entity targetEntity, entt::registry& reg);
         void apply(const float deltaTime, StrangeEulerCamera& camera, cpnt::CharacterState& state);
 
     };
