@@ -180,6 +180,7 @@ float _computeScattering(float lightDotView) {
 
 vec3 calcDlightVolumeColor(int index, vec3 fragPos) {
     const int NUM_STEPS = 3;
+    const float INTENSITY = 0.05;
 
     vec3 toFragFromView = fragPos - uViewPos;
     vec3 toFargDirec = normalize(toFragFromView);
@@ -205,7 +206,7 @@ vec3 calcDlightVolumeColor(int index, vec3 fragPos) {
         curPos += rayStep * _getDitherValue();
     }
 
-    accumFactor *= 0.2 / float(NUM_STEPS);
+    accumFactor *= INTENSITY / float(NUM_STEPS);
     return accumFactor * uDlightColors[index];
 }
 
@@ -254,12 +255,13 @@ vec2 calcSlightFactor(int index, vec3 fragToViewDirec, vec3 fragNormal, vec3 fra
 
 vec3 calcSlightVolumeColor(int index, vec3 fragPos) {
     const int NUM_STEPS = 3;
+    const float INTENSITY = 0.1;
 
     vec3 toFragFromView = fragPos - uViewPos;
-    vec3 toFargDirec = normalize(toFragFromView);
-    vec3 toLightDirec = normalize(-uDlightDirecs[index]);
+    //vec3 toFargDirec = normalize(toFragFromView);
+    //vec3 toLightDirec = normalize(-uDlightDirecs[index]);
     vec3 rayStep = toFragFromView / float(NUM_STEPS);
-    float scatterFactor = _computeScattering(dot(toFargDirec, toLightDirec));
+    //float scatterFactor = _computeScattering(dot(toFargDirec, toLightDirec));
 
     vec3 curPos = uViewPos;
     float accumFactor = 0.0;
@@ -279,15 +281,16 @@ vec3 calcSlightVolumeColor(int index, vec3 fragPos) {
         curPos += rayStep * _getDitherValue();
     }
 
-    accumFactor *= 0.2 / float(NUM_STEPS);
+    accumFactor *= INTENSITY / float(NUM_STEPS);
     return accumFactor * u_slights[index].m_color;
 }
 
 
 float _calcDistanceFogFactor(vec3 fragPos) {
-    float fragDistance = distance(fragPos, uViewPos);
-    float factor = fragDistance * u_fogMaxPointInvSqr * fragDistance;
-    return clamp(factor, 0.0, 1.0);
+    vec3 fromViewToFrag = fragPos - uViewPos;
+    float fragDistanceSqr = dot(fromViewToFrag, fromViewToFrag);
+    float factor = fragDistanceSqr * (u_fogMaxPointInvSqr);
+    return min(factor, 1.0);
 }
 
 float _calcFogFactor(vec3 fragPos) {
