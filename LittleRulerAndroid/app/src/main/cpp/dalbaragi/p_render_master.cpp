@@ -266,7 +266,7 @@ namespace dal {
             }
 
             // Slight
-            {
+            /*{
                 this->m_slight1.clearDepthBuffer();
 
                 {
@@ -282,7 +282,7 @@ namespace dal {
                 }
 
                 this->m_slight1.finishRenderShadowmap();
-            }
+            }*/
         }
 
 #ifdef _WIN32
