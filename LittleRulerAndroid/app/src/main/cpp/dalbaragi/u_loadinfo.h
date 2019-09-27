@@ -48,6 +48,7 @@ namespace dal::binfo {
         void rotate270(void);
 
         bool hasTransparency(void) const;
+        void correctSRGB(void);
 
     };
 

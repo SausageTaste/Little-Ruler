@@ -147,4 +147,22 @@ namespace dal::binfo {
         return false;
     }
 
+    void ImageFileData::correctSRGB(void) {
+        dalAssert(this->m_pixSize >= 3);
+
+        constexpr float GAMMA_INV = 1.f / 2.2f;
+
+        const auto numPixels = this->m_width * this->m_height;
+
+        for ( size_t i = 0; i < numPixels; ++i ) {
+            const auto r = this->m_buf[this->m_pixSize * i + 0];
+            const auto g = this->m_buf[this->m_pixSize * i + 1];
+            const auto b = this->m_buf[this->m_pixSize * i + 2];
+
+            this->m_buf[this->m_pixSize * i + 0] = std::powf(r, GAMMA_INV);
+            this->m_buf[this->m_pixSize * i + 1] = std::powf(g, GAMMA_INV);
+            this->m_buf[this->m_pixSize * i + 2] = std::powf(b, GAMMA_INV);
+        }
+    }
+
 }
