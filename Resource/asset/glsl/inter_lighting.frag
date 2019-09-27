@@ -284,14 +284,6 @@ vec3 calcSlightVolumeColor(int index, vec3 fragPos) {
 }
 
 
-float _calcHeightFogFactor(vec3 fragPos) {
-    float fragHeight = fragPos.y;
-    const float lambda = 10.0;
-    const float maxFactor = 0.1;
-    float factor = -maxFactor * (fragHeight / lambda - 1.0);
-    return clamp(factor, 0.0, maxFactor);
-}
-
 float _calcDistanceFogFactor(vec3 fragPos) {
     float fragDistance = distance(fragPos, uViewPos);
     float factor = fragDistance * u_fogMaxPointInvSqr * fragDistance;
@@ -300,7 +292,6 @@ float _calcDistanceFogFactor(vec3 fragPos) {
 
 float _calcFogFactor(vec3 fragPos) {
     float factor = _calcDistanceFogFactor(fragPos);
-    factor += _calcHeightFogFactor(fragPos);
     return clamp(factor, 0.0, 1.0);
 }
 
