@@ -76,9 +76,10 @@ def main():
 
     ################
 
-    #light = mapbuild.newPointLight()
-    #light.m_maxDistance.set(2)
-    #light.m_color.setXYZ(0.5, 0.5, 0.5)
+    light = mapbuild.newPointLight()
+    light.m_maxDistance.set(5)
+    light.m_color.setXYZ(5, 5, 5)
+    light.m_pos.setXYZ(3, 0, 2)
 
     ################
 
