@@ -168,9 +168,9 @@ namespace dal {
         , m_fbuffer(winWidth, winHeight)
         , m_winWidth(winWidth), m_winHeight(winHeight)
         , m_flagDrawDlight1(true)
-        , m_skyColor(0.9f, 0.7f, 0.7f)
+        , m_skyColor(1.0f, 0.2f, 0.2f)
         , m_mainCamera(camera)
-        , m_farPlaneDistance(200.0f)
+        , m_farPlaneDistance(100.0f)
         , m_baseAmbientColor(0.3f, 0.3f, 0.3f)
     {
         // Lights
@@ -442,6 +442,7 @@ namespace dal {
             uniloc.m_geometry.projectMat(this->m_projectMat);
             const auto skyview = glm::mat4(glm::mat3(this->m_mainCamera->getViewMat()));
             uniloc.m_geometry.viewMat(skyview);
+            uniloc.fogColor(this->m_skyColor);
 
             this->m_skybox.render(uniloc);
         }

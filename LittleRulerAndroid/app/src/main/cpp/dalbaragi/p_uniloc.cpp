@@ -612,7 +612,15 @@ namespace dal {
     UnilocSkybox::UnilocSkybox(const GLuint shader)
         : m_geometry(shader) 
     {
+        this->u_fogColor = getUniloc(shader, "u_fogColor");
         this->u_skyboxTex.init(getUniloc(shader, "u_skyboxTex"), -2, g_texUnitReg["u_skyboxTex"]);
+    }
+
+    void UnilocSkybox::fogColor(const float x, const float y, const float z) const {
+        glUniform3f(this->u_fogColor, x, y, z);
+    }
+    void UnilocSkybox::fogColor(const glm::vec3& v) const {
+        this->fogColor(v.x, v.y, v.z);
     }
 
     const SamplerInterf& UnilocSkybox::getSkyboxTexLoc(void) const {

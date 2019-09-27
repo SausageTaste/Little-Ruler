@@ -339,10 +339,14 @@ namespace dal {
         UniInterfGeometry m_geometry;
 
     private:
+        GLint u_fogColor;
         SamplerInterf u_skyboxTex;
 
     public:
         UnilocSkybox(const GLuint shader);
+
+        void fogColor(const float x, const float y, const float z) const;
+        void fogColor(const glm::vec3& v) const;
 
         const SamplerInterf& getSkyboxTexLoc(void) const;
 
