@@ -14,10 +14,10 @@ namespace dal {
     class IModel {
 
     public:
-        template <typename _MeshTyp>
+        template <typename _MeshTypInner>
         struct RenderUnit {
             std::string m_name;
-            _MeshTyp m_mesh;
+            _MeshTypInner m_mesh;
             dal::Material m_material;
         };
 
