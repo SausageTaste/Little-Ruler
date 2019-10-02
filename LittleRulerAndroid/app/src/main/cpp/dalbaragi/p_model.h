@@ -12,47 +12,70 @@
 
 namespace dal {
 
+    template <typename _MeshTyp>
     class IModel {
 
     public:
-        ResourceID m_resID;
-        std::unique_ptr<ICollider> m_bounding, m_detailed;
-
-    };
-
-    class ModelStatic : public IModel {
-
-    public:
+        template <typename _MeshTyp>
         struct RenderUnit {
-            std::string m_meshName;
-            dal::MeshStatic m_mesh;
+            std::string m_name;
+            _MeshTyp m_mesh;
             dal::Material m_material;
         };
 
-    public:
-        std::vector<RenderUnit> m_renderUnits;
+    private:
+        ResourceID m_resID;
+        std::unique_ptr<ICollider> m_bounding, m_detailed;
+    protected:
+        std::vector<RenderUnit<_MeshTyp>> m_renderUnits;
 
     public:
-        ModelStatic(const ModelStatic&) = delete;
-        ModelStatic& operator=(const ModelStatic&) = delete;
-        ModelStatic(ModelStatic&&) = delete;
-        ModelStatic& operator=(ModelStatic&&) = delete;
+        IModel(const IModel&) = delete;
+        IModel& operator=(const IModel&) = delete;
 
-    public:
-        ModelStatic(void) = default;
+        IModel(void) = default;
+        IModel(IModel&&) = default;
+        IModel& operator=(IModel&&) = default;
 
-        void* operator new(size_t size);
-        void operator delete(void* ptr);
-
-        //RenderUnit* addRenderUnit(void);
-        //void init(const ResourceID& resID, const binfo::ModelStatic& info, ResourceMaster& resMas);
-        //void init(const binfo::ModelDefined& info, ResourceMaster& resMas);
-        
-        RenderUnit& newRenderUnit(void) {
+        void clearRenderUnits(void) {
+            this->m_renderUnits.clear();
+        }
+        void reserveRenderUnits(const size_t size) {
+            this->m_renderUnits.reserve(size);
+        }
+        RenderUnit<_MeshTyp>& newRenderUnit(void) {
             return this->m_renderUnits.emplace_back();
         }
 
-        void invalidate(void);
+        void setResID(const ResourceID& m_resID) {
+            this->m_resID = m_resID;
+        }
+        const ResourceID& getResID(void) const {
+            return this->m_resID;
+        }
+
+        void setBounding(std::unique_ptr<ICollider>&& col) {
+            this->m_bounding = std::move(col);
+        }
+        const ICollider& getBounding(void) const {
+            return *this->m_bounding.get();
+        }
+
+        void setDetailed(std::unique_ptr<ICollider>&& col) {
+            this->m_detailed = std::move(col);
+        }
+        const ICollider& getDetailed(void) const {
+            return *this->m_detailed.get();
+        }
+
+    };
+
+    class ModelStatic : public IModel<MeshStatic> {
+
+    public:
+        void* operator new(size_t size);
+        void operator delete(void* ptr);
+
         bool isReady(void) const;
 
         void render(const UniInterfLightedMesh& unilocLighted, const SamplerInterf& samplerInterf, const glm::mat4& modelMat) const;
@@ -60,16 +83,9 @@ namespace dal {
 
     };
 
-    class ModelAnimated : public IModel {
+    class ModelAnimated : public IModel<MeshAnimated> {
 
     private:
-        struct RenderUnit {
-            std::string m_meshName;
-            dal::MeshAnimated m_mesh;
-            dal::Material m_material;
-        };
-
-        std::vector<RenderUnit> m_renderUnits;
         SkeletonInterface m_jointInterface;
         std::vector<Animation> m_animations;
         glm::mat4 m_globalInvMat;
@@ -78,7 +94,6 @@ namespace dal {
         void* operator new(size_t size);
         void operator delete(void* ptr);
 
-        RenderUnit* addRenderUnit(void);
         void setSkeletonInterface(SkeletonInterface&& joints);
         void setAnimations(std::vector<Animation>&& animations);
         void setGlobalMat(const glm::mat4 mat);
@@ -186,13 +201,13 @@ namespace dal {
             return this->m_pimpl->m_refCount;
         }
         const ResourceID& getResID(void) const {
-            return this->getPimpl()->m_model->m_resID;
+            return this->getPimpl()->m_model->getResID();
         }
         const ICollider* getBounding(void) const {
-            return this->getPimpl()->m_model->m_bounding.get();
+            return &this->getPimpl()->m_model->getBounding();
         }
         const ICollider* getDetailed(void) const {
-            return this->getPimpl()->m_model->m_detailed.get();
+            return &this->getPimpl()->m_model->getDetailed();
         }
 
         void reset(_Model* const model) {

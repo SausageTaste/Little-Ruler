@@ -547,7 +547,7 @@ namespace dal {
 namespace dal {
 
     void ResourceMaster::notifyTask(std::unique_ptr<ITask> task) {
-        dalAssert(nullptr != task);
+        dalAssert(nullptr != task.get());
 
         const auto taskTyp = g_taskManger.reportDone(task.get());
 
@@ -560,10 +560,10 @@ namespace dal {
 
             //loaded->data_coresponding.init(loaded->in_modelID, loaded->out_info, *this);
             {
-                loaded->data_coresponding.invalidate();
+                loaded->data_coresponding.setResID(std::move(loaded->in_modelID));
 
-                loaded->data_coresponding.m_resID = std::move(loaded->in_modelID);
-
+                loaded->data_coresponding.clearRenderUnits();
+                loaded->data_coresponding.reserveRenderUnits(loaded->out_info.m_model.m_renderUnits.size());
                 for ( auto& unitInfo : loaded->out_info.m_model.m_renderUnits ) {
                     auto& unit = loaded->data_coresponding.newRenderUnit();
 
@@ -573,7 +573,7 @@ namespace dal {
                         unitInfo.m_mesh.m_normals.data(),
                         unitInfo.m_mesh.m_vertices.size() / 3
                     );
-                    unit.m_meshName = unitInfo.m_name;
+                    unit.m_name = unitInfo.m_name;
 
                     unit.m_material.m_diffuseColor = unitInfo.m_material.m_baseColor;
                     unit.m_material.m_shininess = unitInfo.m_material.m_shininess;
@@ -588,7 +588,7 @@ namespace dal {
                     }
                 }
 
-                loaded->data_coresponding.m_bounding.reset(new ColAABB{ loaded->out_info.m_model.m_aabb });
+                loaded->data_coresponding.setBounding(std::unique_ptr<ICollider>{ new ColAABB{ loaded->out_info.m_model.m_aabb } });
             }
         }
         else if ( taskTyp == LoadTaskManger::ResTyp::texture ) {
@@ -611,11 +611,12 @@ namespace dal {
             loaded->data_coresponding.setAnimations(std::move(loaded->out_info.m_animations));
             loaded->data_coresponding.setGlobalMat(loaded->out_info.m_model.m_globalTrans);
 
+            loaded->data_coresponding.clearRenderUnits();
+            loaded->data_coresponding.reserveRenderUnits(loaded->out_info.m_model.m_renderUnits.size());
             for ( auto& unitInfo : loaded->out_info.m_model.m_renderUnits ) {
-                auto unit = loaded->data_coresponding.addRenderUnit();
-                assert(nullptr != unit);
+                auto& unit = loaded->data_coresponding.newRenderUnit();
 
-                unit->m_mesh.buildData(
+                unit.m_mesh.buildData(
                     unitInfo.m_mesh.m_vertices.data(),
                     unitInfo.m_mesh.m_texcoords.data(),
                     unitInfo.m_mesh.m_normals.data(),
@@ -623,18 +624,18 @@ namespace dal {
                     unitInfo.m_mesh.m_boneWeights.data(),
                     unitInfo.m_mesh.m_vertices.size() / 3
                 );
-                unit->m_meshName = unitInfo.m_name;
+                unit.m_name = unitInfo.m_name;
 
-                unit->m_material.m_diffuseColor = unitInfo.m_material.m_baseColor;
-                unit->m_material.m_shininess = unitInfo.m_material.m_shininess;
-                unit->m_material.m_specularStrength = unitInfo.m_material.m_specStreng;
+                unit.m_material.m_diffuseColor = unitInfo.m_material.m_baseColor;
+                unit.m_material.m_shininess = unitInfo.m_material.m_shininess;
+                unit.m_material.m_specularStrength = unitInfo.m_material.m_specStreng;
 
                 if ( !unitInfo.m_material.m_diffuseMap.empty() ) {
                     ResourceID diffuseResID{ unitInfo.m_material.m_diffuseMap };
                     diffuseResID.setPackageIfEmpty(loaded->in_modelID.getPackage());
 
                     auto tex = this->orderTexture(diffuseResID, true);
-                    unit->m_material.setDiffuseMap(tex);
+                    unit.m_material.setDiffuseMap(tex);
                 }
             }
         }
@@ -670,7 +671,7 @@ namespace dal {
         else {
             auto model = new ModelStatic; dalAssert(nullptr != model);
             ModelStaticHandle modelHandle{ model };
-            model->m_resID = resID;  // It might not be resolved.
+            model->setResID(resID); // It might not be resolved.
             package.giveModelStatic(resID, modelHandle);
 
             auto task = g_taskManger.newModelStatic(resID, *model, package);
@@ -690,7 +691,7 @@ namespace dal {
         else {
             auto model = new ModelAnimated; dalAssert(nullptr != model);
             ModelAnimatedHandle modelHandle{ model };
-            model->m_resID = resID;
+            model->setResID(resID);
             package.giveModelAnim(resID, modelHandle);
 
             auto task = g_taskManger.newModelAnimated(resID, *model, package);
@@ -746,7 +747,7 @@ namespace dal {
             {
                 ResourceID mdlResName{ mdlEmbed.m_name };
                 mdlResName.setPackage(resID.getPackage());
-                model->m_resID = mdlResName;
+                model->setResID(mdlResName);
             }
 
             // Render units
@@ -773,8 +774,8 @@ namespace dal {
 
             // Colliders
             {
-                model->m_bounding = std::move(mdlEmbed.m_bounding);
-                model->m_detailed = std::move(mdlEmbed.m_detailed);
+                model->setBounding(std::move(mdlEmbed.m_bounding));
+                model->setDetailed(std::move(mdlEmbed.m_detailed));
             }
 
             map.addStaticActorModel(std::move(modelHandle), std::move(mdlEmbed.m_staticActors));

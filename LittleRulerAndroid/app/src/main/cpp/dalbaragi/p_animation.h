@@ -32,6 +32,14 @@ namespace dal {
         int32_t m_lastMadeIndex = -1;
 
     public:
+        SkeletonInterface(const SkeletonInterface&) = delete;
+        SkeletonInterface& operator=(const SkeletonInterface&) = delete;
+        SkeletonInterface(SkeletonInterface&&) = default;
+        SkeletonInterface& operator=(SkeletonInterface&&) = default;
+
+        SkeletonInterface(void) = default;
+
+    public:
         jointID_t getIndexOf(const std::string& jointName) const;
         jointID_t getOrMakeIndexOf(const std::string& jointName);
 
@@ -52,6 +60,14 @@ namespace dal {
 
     private:
         std::vector<glm::mat4> m_array;
+
+    public:
+        JointTransformArray(const JointTransformArray&) = delete;
+        JointTransformArray& operator=(const JointTransformArray&) = delete;
+        JointTransformArray(JointTransformArray&&) = default;
+        JointTransformArray& operator=(JointTransformArray&&) = default;
+
+        JointTransformArray(void) = default;
 
     public:
         void setSize(const jointID_t size);
@@ -82,6 +98,12 @@ namespace dal {
             std::vector<JointNode> m_children;
 
         public:
+            JointNode(const JointNode&) = delete;
+            JointNode& operator=(const JointNode&) = delete;
+            JointNode(JointNode&&) = default;
+            JointNode& operator=(JointNode&&) = default;
+
+        public:
             JointNode(const JointKeyframeInfo& info, const glm::mat4& transform, JointNode* const parent);
             JointNode(const std::string& name, const glm::mat4& transform, JointNode* const parent);
 
@@ -105,6 +127,12 @@ namespace dal {
         std::string m_name;
         JointNode m_rootNode;
         float m_tickPerSec, m_durationInTick;
+
+    public:
+        Animation(const Animation&) = delete;
+        Animation& operator=(const Animation&) = delete;
+        Animation(Animation&&) = default;
+        Animation& operator=(Animation&&) = default;
 
     public:
         Animation(const std::string& name, const float tickPerSec, const float durationTick, JointNode&& rootNode);

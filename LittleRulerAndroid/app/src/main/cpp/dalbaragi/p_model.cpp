@@ -100,10 +100,6 @@ namespace dal {
     }
     */
 
-    void ModelStatic::invalidate(void) {
-        this->m_renderUnits.clear();
-    }
-
     bool ModelStatic::isReady(void) const {
         for ( const auto& unit : this->m_renderUnits ) {
             if ( !unit.m_mesh.isReady() ) return false;
@@ -117,13 +113,13 @@ namespace dal {
             return;
         }
 
-        for ( auto& unit : this->m_renderUnits ) {
+        unilocLighted.modelMat(modelMat);
+
+        for ( const auto& unit : this->m_renderUnits ) {
             unit.m_material.sendUniform(unilocLighted, samplerInterf);
             if ( !unit.m_mesh.isReady() ) {
                 continue;
             }
-
-            unilocLighted.modelMat(modelMat);
             unit.m_mesh.draw();
         }
     }
@@ -133,12 +129,12 @@ namespace dal {
             return;
         }
 
+        unilocGeometry.modelMat(modelMat);
+
         for ( auto& unit : this->m_renderUnits ) {
             if ( !unit.m_mesh.isReady() ) {
                 continue;
             }
-
-            unilocGeometry.modelMat(modelMat);
             unit.m_mesh.draw();
         }
     }
@@ -163,11 +159,6 @@ namespace dal {
         g_pool_modelAnim.free(reinterpret_cast<ModelAnimated*>(ptr));
     }
 
-
-    ModelAnimated::RenderUnit* ModelAnimated::addRenderUnit(void) {
-        this->m_renderUnits.emplace_back();
-        return &this->m_renderUnits.back();
-    }
 
     void ModelAnimated::setSkeletonInterface(SkeletonInterface&& joints) {
         this->m_jointInterface = std::move(joints);
