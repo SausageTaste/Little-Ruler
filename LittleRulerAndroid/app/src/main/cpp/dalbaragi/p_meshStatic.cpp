@@ -328,7 +328,7 @@ namespace dal {
         this->m_texScale.y = y;
     }
 
-    void Material::setDiffuseMap(const Texture* const tex) {
+    void Material::setDiffuseMap(const std::shared_ptr<const Texture>& tex) {
         this->m_diffuseMap = tex;
     }
 

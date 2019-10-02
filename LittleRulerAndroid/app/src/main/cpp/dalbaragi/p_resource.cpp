@@ -237,7 +237,7 @@ namespace dal {
 
     void MapChunk2::applyCollision(const ICollider& inCol, cpnt::Transform& inTrans) {
         for ( auto& mdl : this->m_staticActors ) {
-            const auto mdlBounding = mdl.m_model.getBounding();
+            const auto mdlBounding = mdl.m_model->getBounding();
             if ( nullptr == mdlBounding ) {
                 continue;
             }
@@ -248,7 +248,7 @@ namespace dal {
                     continue;
                 }
 
-                const auto detailedCol = mdl.m_model.getDetailed();
+                const auto detailedCol = mdl.m_model->getDetailed();
                 if ( nullptr != detailedCol ) {
                     const auto withDetailed = checkCollisionAbs(inCol, *detailedCol, inTrans, actor.m_transform);
                     if ( withDetailed ) {
@@ -264,12 +264,12 @@ namespace dal {
         std::optional<RayCastingResult> result{ std::nullopt };
 
         for ( auto& modelActor : this->m_staticActors ) {
-            const auto mdlBounding = modelActor.m_model.getBounding();
+            const auto mdlBounding = modelActor.m_model->getBounding();
             if ( nullptr == mdlBounding ) {
                 continue;
             }
 
-            const auto mdlDetailed = modelActor.m_model.getDetailed();
+            const auto mdlDetailed = modelActor.m_model->getDetailed();
 
             if ( nullptr != mdlDetailed ) {
                 for ( auto& actor : modelActor.m_actors ) {
@@ -309,7 +309,7 @@ namespace dal {
 
         for ( const auto& [model, actors] : this->m_staticActors ) {
             for ( const auto& actor : actors ) {
-                model.render(uniloc.m_lightedMesh, uniloc.getDiffuseMapLoc(), actor.m_transform.getMat());
+                model->render(uniloc.m_lightedMesh, uniloc.getDiffuseMapLoc(), actor.m_transform.getMat());
             }
         }
     }
@@ -317,7 +317,7 @@ namespace dal {
     void MapChunk2::renderDepthGeneral(const UnilocDepthmp& uniloc) {
         for ( const auto& [mdl, actors] : this->m_staticActors ) {
             for ( const auto& actor : actors ) {
-                mdl.renderDepth(uniloc.m_geometry, actor.m_transform.getMat());
+                mdl->renderDepth(uniloc.m_geometry, actor.m_transform.getMat());
             }
         }
     }
@@ -341,7 +341,7 @@ namespace dal {
 
                 view.each(
                     [&uniloc](const cpnt::Transform& trans, const cpnt::StaticModel& model) {
-                        model.m_model.render(uniloc.m_lightedMesh, uniloc.getDiffuseMapLoc(), trans.getMat());
+                        model.m_model->render(uniloc.m_lightedMesh, uniloc.getDiffuseMapLoc(), trans.getMat());
                     }
                 );
             }
@@ -353,7 +353,7 @@ namespace dal {
 
                 view.each(
                     [&uniloc](const cpnt::Transform& trans, const cpnt::StaticModel& model) {
-                        model.m_model.render(uniloc.m_lightedMesh, uniloc.getDiffuseMapLoc(), trans.getMat());
+                        model.m_model->render(uniloc.m_lightedMesh, uniloc.getDiffuseMapLoc(), trans.getMat());
                     }
                 );
             }
@@ -372,7 +372,7 @@ namespace dal {
                     auto& cpntTransform = view.get<cpnt::Transform>(entity);
                     auto& cpntModel = view.get<cpnt::AnimatedModel>(entity);
 
-                    cpntModel.m_model.render(uniloc.m_lightedMesh, uniloc.getDiffuseMapLoc(), uniloc.m_anime, cpntTransform.getMat(),
+                    cpntModel.m_model->render(uniloc.m_lightedMesh, uniloc.getDiffuseMapLoc(), uniloc.m_anime, cpntTransform.getMat(),
                         cpntModel.m_animState.getTransformArray());
                 }
             }
@@ -385,7 +385,7 @@ namespace dal {
                     auto& cpntTransform = view.get<cpnt::Transform>(entity);
                     auto& cpntModel = view.get<cpnt::AnimatedModel>(entity);
 
-                    cpntModel.m_model.render(uniloc.m_lightedMesh, uniloc.getDiffuseMapLoc(), uniloc.m_anime, cpntTransform.getMat(),
+                    cpntModel.m_model->render(uniloc.m_lightedMesh, uniloc.getDiffuseMapLoc(), uniloc.m_anime, cpntTransform.getMat(),
                         cpntModel.m_animState.getTransformArray());
                 }
             }
@@ -452,12 +452,6 @@ namespace dal {
         return *this;
     }
 
-    Package::~Package(void) {
-        for ( auto& [id, pTex] : this->m_textures ) {
-            delete pTex;
-        }
-    }
-
 
     bool Package::hasTexture(const ResourceID& resID) {
         return this->m_textures.end() != this->m_textures.find(resID.makeFileName());
@@ -471,27 +465,27 @@ namespace dal {
         return this->m_animatedModels.end() != this->m_animatedModels.find(resID.makeFileName());
     }
 
-    std::optional<ModelStaticHandle> Package::getModelStatic(const ResourceID& resID) {
+    ModelStaticHandle Package::getModelStatic(const ResourceID& resID) {
         auto found = this->m_models.find(resID.makeFileName());
         if ( this->m_models.end() == found ) {
-            return std::nullopt;
+            return nullptr;
         }
         else {
             return found->second;
         }
     }
 
-    std::optional<ModelAnimatedHandle> Package::getModelAnim(const ResourceID& resID) {
+    ModelAnimatedHandle Package::getModelAnim(const ResourceID& resID) {
         auto found = this->m_animatedModels.find(resID.makeFileName());
         if ( this->m_animatedModels.end() == found ) {
-            return std::nullopt;
+            return nullptr;
         }
         else {
             return found->second;
         }
     }
 
-    Texture* Package::getTexture(const ResourceID& resID) {
+    std::shared_ptr<Texture> Package::getTexture(const ResourceID& resID) {
         auto found = this->m_textures.find(resID.makeFileName());
         if ( this->m_textures.end() == found ) {
             return nullptr;
@@ -527,7 +521,7 @@ namespace dal {
         }
     }
 
-    bool Package::giveTexture(const ResourceID& resID, Texture* const tex) {
+    bool Package::giveTexture(const ResourceID& resID, const std::shared_ptr<Texture>& tex) {
         const auto filename = resID.makeFileName();
 
         if ( this->m_textures.end() != this->m_textures.find(filename) ) {
@@ -666,7 +660,7 @@ namespace dal {
 
         auto found = package.getModelStatic(resID);
         if ( found ) {
-            return *found;
+            return found;
         }
         else {
             auto model = new ModelStatic; dalAssert(nullptr != model);
@@ -686,7 +680,7 @@ namespace dal {
 
         auto found = package.getModelAnim(resID);
         if ( found ) {
-            return *found;
+            return found;
         }
         else {
             auto model = new ModelAnimated; dalAssert(nullptr != model);
@@ -701,7 +695,7 @@ namespace dal {
         }
     }
 
-    Texture* ResourceMaster::orderTexture(const ResourceID& resID, const bool gammaCorrect) {
+    std::shared_ptr<const Texture> ResourceMaster::orderTexture(const ResourceID& resID, const bool gammaCorrect) {
         auto& package = this->orderPackage(resID.getPackage());
 
         auto found = package.getTexture(resID);
@@ -709,10 +703,10 @@ namespace dal {
             return found;
         }
         else {
-            auto texture = new Texture;
+            auto texture = std::shared_ptr<Texture>{ new Texture };
             package.giveTexture(resID, texture);
 
-            auto task = g_taskManger.newTexture(resID, texture, gammaCorrect);
+            auto task = g_taskManger.newTexture(resID, texture.get(), gammaCorrect);
             TaskGod::getinst().orderTask(task, this);
 
             return texture;

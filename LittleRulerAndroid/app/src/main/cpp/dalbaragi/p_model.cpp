@@ -217,6 +217,7 @@ namespace dal {
 }
 
 
+/*
 namespace dal {
 
     void ModelStaticHandle::render(const UniInterfLightedMesh& unilocLighted, const SamplerInterf& samplerInterf, const glm::mat4& modelMat) const {
@@ -257,3 +258,4 @@ namespace dal {
     }
 
 }
+*/

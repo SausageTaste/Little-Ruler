@@ -71,7 +71,7 @@ namespace dal {
         // All keys are stored in form of file name + ext.
         std::unordered_map<std::string, ModelStaticHandle> m_models;
         std::unordered_map<std::string, ModelAnimatedHandle> m_animatedModels;
-        std::unordered_map<std::string, Texture*> m_textures;
+        std::unordered_map<std::string, std::shared_ptr<Texture>> m_textures;
 
     public:
         Package(const Package&) = delete;
@@ -80,7 +80,6 @@ namespace dal {
     public:
         Package(const std::string& pckName);
         Package(std::string&& pckName);
-        ~Package(void);
 
         Package(Package&& other) noexcept;
         Package& operator=(Package&&) noexcept;
@@ -89,13 +88,13 @@ namespace dal {
         bool hasModelStatic(const ResourceID& resPath);
         bool hasModelAnim(const ResourceID& resPath);
 
-        std::optional<ModelStaticHandle> getModelStatic(const ResourceID& resID);
-        std::optional<ModelAnimatedHandle> getModelAnim(const ResourceID& resID);
-        Texture* getTexture(const ResourceID& resID);
+        ModelStaticHandle getModelStatic(const ResourceID& resID);
+        ModelAnimatedHandle getModelAnim(const ResourceID& resID);
+        std::shared_ptr<Texture> getTexture(const ResourceID& resID);
 
         bool giveModelStatic(const ResourceID& resID, const ModelStaticHandle& mdl);
         bool giveModelAnim(const ResourceID& resID, const ModelAnimatedHandle& mdl);
-        bool giveTexture(const ResourceID& resID, Texture* const tex);
+        bool giveTexture(const ResourceID& resID, const std::shared_ptr<Texture>& tex);
 
     };
 
@@ -122,7 +121,7 @@ namespace dal {
 
         ModelStaticHandle orderModelStatic(const ResourceID& resID);
         ModelAnimatedHandle orderModelAnim(const ResourceID& resID);
-        Texture* orderTexture(const ResourceID& resID, const bool gammaCorrect);
+        std::shared_ptr<const Texture> orderTexture(const ResourceID& resID, const bool gammaCorrect);
         CubeMap* orderCubeMap(const std::array<ResourceID, 6>& resIDs, const bool gammaCorrect);
 
         MapChunk2 loadMap(const ResourceID& resID);

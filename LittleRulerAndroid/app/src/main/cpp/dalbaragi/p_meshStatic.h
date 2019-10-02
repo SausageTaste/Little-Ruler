@@ -280,7 +280,7 @@ namespace dal {
 
     private:
         glm::vec2 m_texScale;
-        const Texture* m_diffuseMap;
+        std::shared_ptr<const Texture> m_diffuseMap;
 
     public:
         Material(void);
@@ -290,7 +290,7 @@ namespace dal {
         void setTexScale(const glm::vec2 v) {
             this->m_texScale = v;
         }
-        void setDiffuseMap(const Texture* const tex);
+        void setDiffuseMap(const std::shared_ptr<const Texture>& tex);
 
         void sendUniform(const UniInterfLightedMesh& uniloc) const;
         void sendUniform(const UniInterfLightedMesh& unilocLight, const SamplerInterf& samplerInterf) const;

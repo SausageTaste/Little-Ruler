@@ -3,6 +3,7 @@
 #include <optional>
 #include <iostream>
 #include <unordered_map>
+#include <memory>
 
 #include <entt/entity/registry.hpp>
 
@@ -57,15 +58,15 @@ namespace dal {
         void setBounding(std::unique_ptr<ICollider>&& col) {
             this->m_bounding = std::move(col);
         }
-        const ICollider& getBounding(void) const {
-            return *this->m_bounding.get();
+        const ICollider* getBounding(void) const {
+            return this->m_bounding.get();
         }
 
         void setDetailed(std::unique_ptr<ICollider>&& col) {
             this->m_detailed = std::move(col);
         }
-        const ICollider& getDetailed(void) const {
-            return *this->m_detailed.get();
+        const ICollider* getDetailed(void) const {
+            return this->m_detailed.get();
         }
 
     };
@@ -122,6 +123,7 @@ namespace dal {
     };
 
 
+    /*
     template <typename _Model>
     struct ModelHandleImpl {
         std::unique_ptr<_Model> m_model;
@@ -167,7 +169,7 @@ namespace dal {
             ++this->m_pimpl->m_refCount;
         }
         IModelHandle(IModelHandle&& other) noexcept
-            : m_pimpl(nullptr) 
+            : m_pimpl(nullptr)
         {
             std::swap(this->m_pimpl, other.m_pimpl);
         }
@@ -231,6 +233,7 @@ namespace dal {
         }
 
     };
+    */
 
 
     /*
@@ -272,6 +275,8 @@ namespace dal {
     };
     */
 
+
+    /*
     class ModelStaticHandle : public IModelHandle<ModelStatic> {
 
     public:
@@ -293,6 +298,11 @@ namespace dal {
             const JointTransformArray& transformArr) const;
 
     };
+    */
+
+
+    using ModelStaticHandle = std::shared_ptr<ModelStatic>;
+    using ModelAnimatedHandle = std::shared_ptr<ModelAnimated>;
 
 
     namespace cpnt {
