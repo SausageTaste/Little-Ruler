@@ -127,31 +127,74 @@ namespace {
     class ColliderResolver {
 
     private:
-        using checkColFunc_t = bool (*)(const dal::ICollider& one, const dal::ICollider& two, const dal::Transform& transOne, const dal::Transform& transTwo);
+        template <typename T>
+        class ColFuncTable {
+
+        private:
+            static constexpr size_t NUM_COLLIDERS = static_cast<size_t>(dal::ColliderType::eoe);
+            T m_array[NUM_COLLIDERS][NUM_COLLIDERS] = { 0 };
+
+        public:
+            T& at(const dal::ColliderType one, const dal::ColliderType two) {
+                return this->m_array[this->indexof(one)][this->indexof(two)];
+            }
+
+            const T& get(const dal::ColliderType one, const dal::ColliderType two, const char* const debugStr) const {
+                const auto ptr = this->m_array[this->indexof(one)][this->indexof(two)];
+                if ( nullptr == ptr ) {
+                    const auto indexOfOne = this->indexof(one);
+                    const auto indexOfTwo = this->indexof(two);
+                    dalWarn("No {} registered for those colliders: {}, {}"_format(debugStr, indexOfOne, indexOfTwo));
+                    return nullptr;
+                }
+                else {
+                    return ptr;
+                }
+            }
+
+            static size_t indexof(const dal::ColliderType e) {
+                return static_cast<unsigned int>(e);
+            }
+
+        };
 
     private:
-        static constexpr unsigned int k_numColliders = static_cast<unsigned int>(dal::ColliderType::eoe);
-        checkColFunc_t m_checkColTable[k_numColliders][k_numColliders];
+        using checkColFunc_t = bool (*)(const dal::ICollider& one, const dal::ICollider& two, const dal::Transform& transOne, const dal::Transform& transTwo);
+        using calcResolveFunc_t = dal::CollisionResolveInfo(*)(
+            const dal::ICollider& one, const dal::PhysicalProperty& physicsOne, const dal::Transform& transOne,
+            const dal::ICollider& two, const dal::PhysicalProperty& physicsTwo, const dal::Transform& transTwo
+            );
+
+    private:
+        ColFuncTable<checkColFunc_t> m_checkCol;
+        ColFuncTable<calcResolveFunc_t> m_calcResolve;
 
     public:
         ColliderResolver(void) {
-            this->getItem(dal::ColliderType::sphere, dal::ColliderType::sphere) = nullptr;
-            this->getItem(dal::ColliderType::sphere, dal::ColliderType::aabb) = checkCol_sphere_aabb;
-            this->getItem(dal::ColliderType::sphere, dal::ColliderType::triangle_soup) = nullptr;
+            // Collision check functions
+            {
+                this->m_checkCol.at(dal::ColliderType::sphere, dal::ColliderType::sphere) = nullptr;
+                this->m_checkCol.at(dal::ColliderType::sphere, dal::ColliderType::aabb) = checkCol_sphere_aabb;
+                this->m_checkCol.at(dal::ColliderType::sphere, dal::ColliderType::triangle_soup) = nullptr;
 
-            this->getItem(dal::ColliderType::aabb, dal::ColliderType::sphere) = checkCol_aabb_sphere;
-            this->getItem(dal::ColliderType::aabb, dal::ColliderType::aabb) = checkCol_aabb_aabb;
-            this->getItem(dal::ColliderType::aabb, dal::ColliderType::triangle_soup) = checkCol_aabb_trisoup;
+                this->m_checkCol.at(dal::ColliderType::aabb, dal::ColliderType::sphere) = checkCol_aabb_sphere;
+                this->m_checkCol.at(dal::ColliderType::aabb, dal::ColliderType::aabb) = checkCol_aabb_aabb;
+                this->m_checkCol.at(dal::ColliderType::aabb, dal::ColliderType::triangle_soup) = checkCol_aabb_trisoup;
 
-            this->getItem(dal::ColliderType::triangle_soup, dal::ColliderType::sphere) = nullptr;
-            this->getItem(dal::ColliderType::triangle_soup, dal::ColliderType::aabb) = nullptr;
-            this->getItem(dal::ColliderType::triangle_soup, dal::ColliderType::triangle_soup) = nullptr;
+                this->m_checkCol.at(dal::ColliderType::triangle_soup, dal::ColliderType::sphere) = nullptr;
+                this->m_checkCol.at(dal::ColliderType::triangle_soup, dal::ColliderType::aabb) = nullptr;
+                this->m_checkCol.at(dal::ColliderType::triangle_soup, dal::ColliderType::triangle_soup) = nullptr;
+            }
+
+            // Collision resolve function
+            {
+                this->m_calcResolve.at(dal::ColliderType::aabb, dal::ColliderType::aabb) = calcResolve_aabb_aabb;
+            }
         }
 
         bool checkCollision(const dal::ICollider& one, const dal::ICollider& two, const dal::Transform& transOne, const dal::Transform& transTwo) const {
-            const auto pFunc = this->getItem(one.getColType(), two.getColType());
+            const auto pFunc = this->m_checkCol.get(one.getColType(), two.getColType(), "collision check function");
             if ( nullptr == pFunc ) {
-                dalWarn("No function registered for those colliders: {}, {}"_format(this->getIndexOf(one.getColType()), this->getIndexOf(two.getColType())));
                 return false;
             }
             else {
@@ -159,17 +202,16 @@ namespace {
             }
         }
 
-    private:
-        static unsigned int getIndexOf(const dal::ColliderType e) {
-            return static_cast<unsigned int>(e);
-        }
-
-        checkColFunc_t& getItem(const dal::ColliderType one, const dal::ColliderType two) {
-            return this->m_checkColTable[this->getIndexOf(one)][this->getIndexOf(two)];
-        }
-
-        const checkColFunc_t& getItem(const dal::ColliderType one, const dal::ColliderType two) const {
-            return this->m_checkColTable[this->getIndexOf(one)][this->getIndexOf(two)];
+        dal::CollisionResolveInfo calcResolveInfoABS(const dal::ICollider& one, const dal::PhysicalProperty& physicsOne, const dal::Transform& transOne,
+            const dal::ICollider& two, const dal::PhysicalProperty& physicsTwo, const dal::Transform& transTwo) const
+        {
+            const auto func = this->m_calcResolve.get(one.getColType(), two.getColType(), "collision resolve function");
+            if ( nullptr == func ) {
+                return dal::CollisionResolveInfo{};
+            }
+            else {
+                return func(one, physicsOne, transOne, two, physicsTwo, transTwo);
+            }
         }
 
     private:
@@ -195,6 +237,15 @@ namespace {
             const auto& aabb = reinterpret_cast<const dal::ColAABB&>(one);
             const auto& soup = reinterpret_cast<const dal::ColTriangleSoup&>(two);
             return dal::checkCollision(aabb, soup, transOne, transTwo);
+        }
+
+    private:
+        static dal::CollisionResolveInfo calcResolve_aabb_aabb(const dal::ICollider& one, const dal::PhysicalProperty& physicsOne, const dal::Transform& transOne,
+            const dal::ICollider& two, const dal::PhysicalProperty& physicsTwo, const dal::Transform& transTwo)
+        {
+            const auto& oneAABB = reinterpret_cast<const dal::ColAABB&>(one);
+            const auto& twoAABB = reinterpret_cast<const dal::ColAABB&>(two);
+            return dal::calcResolveInfo(oneAABB, physicsOne, transOne, twoAABB, physicsTwo, transTwo);
         }
 
     } g_colResolver;
@@ -1039,6 +1090,15 @@ namespace dal {
 // calcResolveInfo funcs
 namespace dal {
 
+    CollisionResolveInfo calcResolveInfoABS(
+        const ICollider& one, const PhysicalProperty& physicsOne, const Transform& transOne,
+        const ICollider& two, const PhysicalProperty& physicsTwo, const Transform& transTwo
+    ) {
+        return g_colResolver.calcResolveInfoABS(one, physicsOne, transOne, two, physicsTwo, transTwo);
+    }
+
+
+    /*
     CollisionResolveInfo calcResolveInfo(const AABB& one, const AABB& other, const PhysicalProperty& physicsOne, const PhysicalProperty& physicsTwo) {
         const auto sumOfMassInv = physicsOne.getMassInv() + physicsTwo.getMassInv();
         if ( sumOfMassInv == 0.0f ) {
@@ -1055,9 +1115,10 @@ namespace dal {
 
         return calcResolveInfo_withMinMax(one1, one2, other1, other2, thisFactor, otherFactor);
     }
+    */
 
-    CollisionResolveInfo calcResolveInfo(const AABB& one, const AABB& other, const PhysicalProperty& physicsOne, const PhysicalProperty& physicsTwo,
-        const Transform& transOne, const Transform& transTwo)
+    CollisionResolveInfo calcResolveInfo(const AABB& one, const PhysicalProperty& physicsOne, const Transform& transOne,
+        const AABB& two, const PhysicalProperty& physicsTwo, const Transform& transTwo)
     {
         const auto sumOfMassInv = physicsOne.getMassInv() + physicsTwo.getMassInv();
         if ( sumOfMassInv == 0.0f ) {
@@ -1069,8 +1130,8 @@ namespace dal {
 
         const auto one1 = transOne.getScale() * one.getPoint000() + transOne.getPos();
         const auto one2 = transOne.getScale() * one.getPoint111() + transOne.getPos();
-        const auto other1 = transTwo.getScale() * other.getPoint000() + transTwo.getPos();
-        const auto other2 = transTwo.getScale() * other.getPoint111() + transTwo.getPos();
+        const auto other1 = transTwo.getScale() * two.getPoint000() + transTwo.getPos();
+        const auto other2 = transTwo.getScale() * two.getPoint111() + transTwo.getPos();
 
         return calcResolveInfo_withMinMax(one1, one2, other1, other2, thisFactor, otherFactor);
     }

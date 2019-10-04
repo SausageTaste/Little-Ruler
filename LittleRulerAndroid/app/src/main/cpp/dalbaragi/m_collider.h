@@ -510,9 +510,16 @@ namespace dal {
 // calcResolveInfo funcs
 namespace dal {
 
-    CollisionResolveInfo calcResolveInfo(const AABB& one, const AABB& other, const PhysicalProperty& physicsOne, const PhysicalProperty& physicsTwo);
-    CollisionResolveInfo calcResolveInfo(const AABB& one, const AABB& other, const PhysicalProperty& physicsOne, const PhysicalProperty& physicsTwo,
-        const Transform& transOne, const Transform& transTwo);
+    CollisionResolveInfo calcResolveInfoABS(
+        const ICollider& one, const PhysicalProperty& physicsOne, const Transform& transOne,
+        const ICollider& two, const PhysicalProperty& physicsTwo, const Transform& transTwo
+    );
+    
+    //CollisionResolveInfo calcResolveInfo(const AABB& one, const AABB& other, const PhysicalProperty& physicsOne, const PhysicalProperty& physicsTwo);
+    CollisionResolveInfo calcResolveInfo(
+        const AABB& one, const PhysicalProperty& physicsOne, const Transform& transOne,
+        const AABB& two, const PhysicalProperty& physicsTwo, const Transform& transTwo
+    );
 
 }
 

@@ -242,18 +242,27 @@ namespace dal {
                 continue;
             }
 
-            for ( auto& actor : mdl.m_actors ) {
-                const auto withBounding = checkCollisionAbs(inCol, *mdlBounding, inTrans, actor.m_transform);
-                if ( !withBounding ) {
-                    continue;
-                }
+            PhysicalProperty inPhysics, mdlPhysics;
+            inPhysics.setMassInv(1.f);
 
-                const auto detailedCol = mdl.m_model->getDetailed();
-                if ( nullptr != detailedCol ) {
-                    const auto withDetailed = checkCollisionAbs(inCol, *detailedCol, inTrans, actor.m_transform);
-                    if ( withDetailed ) {
-
+            const auto mdlDetailed = mdl.m_model->getDetailed();
+            if ( nullptr != mdlDetailed ) {
+                for ( auto& actor : mdl.m_actors ) {
+                    const auto withBounding = checkCollisionAbs(inCol, *mdlBounding, inTrans, actor.m_transform);
+                    if ( !withBounding ) {
+                        continue;
                     }
+
+                    const auto result = calcResolveInfoABS(inCol, inPhysics, inTrans, *mdlDetailed, mdlPhysics, actor.m_transform);
+                    inTrans.addPos(result.m_this);
+                    actor.m_transform.addPos(result.m_other);
+                }
+            }
+            else {
+                for ( auto& actor : mdl.m_actors ) {
+                    const auto result = calcResolveInfoABS(inCol, inPhysics, inTrans, *mdlBounding, mdlPhysics, actor.m_transform);
+                    inTrans.addPos(result.m_this);
+                    actor.m_transform.addPos(result.m_other);
                 }
             }
         }
