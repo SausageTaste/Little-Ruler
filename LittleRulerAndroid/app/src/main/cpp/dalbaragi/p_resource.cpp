@@ -434,6 +434,32 @@ namespace dal {
 
     }
 
+    Package::~Package(void) {
+
+#ifdef _DEBUG
+        for ( auto& [name, mdl] : this->m_models ) {
+            if ( mdl.use_count() > 1 ) {
+                dalWarn(fmt::format("On package \"{}\" destruction, a static model \"{}\" is being referenced: {}", this->m_name, name, mdl.use_count()));
+            }
+        }
+        this->m_models.clear();
+
+        for ( auto& [name, mdl] : this->m_animatedModels ) {
+            if ( mdl.use_count() > 1 ) {
+                dalWarn(fmt::format("On package \"{}\" destruction, a animated model \"{}\" is being referenced: {}", this->m_name, name, mdl.use_count()));
+            }
+        }
+        this->m_animatedModels.clear();
+
+        for ( auto& [name, mdl] : this->m_textures ) {
+            if ( mdl.use_count() > 1 ) {
+                dalWarn(fmt::format("On package \"{}\" destruction, a texture \"{}\" is being referenced: {}", this->m_name, name, mdl.use_count()));
+            }
+        }
+#endif
+
+    }
+
     Package::Package(Package&& other) noexcept
         : m_name(std::move(other.m_name))
         , m_models(std::move(other.m_models))
@@ -465,7 +491,7 @@ namespace dal {
         return this->m_animatedModels.end() != this->m_animatedModels.find(resID.makeFileName());
     }
 
-    ModelStaticHandle Package::getModelStatic(const ResourceID& resID) {
+    std::shared_ptr<const ModelStatic> Package::getModelStatic(const ResourceID& resID) {
         auto found = this->m_models.find(resID.makeFileName());
         if ( this->m_models.end() == found ) {
             return nullptr;
@@ -475,7 +501,7 @@ namespace dal {
         }
     }
 
-    ModelAnimatedHandle Package::getModelAnim(const ResourceID& resID) {
+    std::shared_ptr<const ModelAnimated> Package::getModelAnim(const ResourceID& resID) {
         auto found = this->m_animatedModels.find(resID.makeFileName());
         if ( this->m_animatedModels.end() == found ) {
             return nullptr;
@@ -485,7 +511,7 @@ namespace dal {
         }
     }
 
-    std::shared_ptr<Texture> Package::getTexture(const ResourceID& resID) {
+    std::shared_ptr<const Texture> Package::getTexture(const ResourceID& resID) {
         auto found = this->m_textures.find(resID.makeFileName());
         if ( this->m_textures.end() == found ) {
             return nullptr;
@@ -495,7 +521,7 @@ namespace dal {
         }
     }
 
-    bool Package::giveModelStatic(const ResourceID& resID, const ModelStaticHandle& mdl) {
+    bool Package::giveModelStatic(const ResourceID& resID, const std::shared_ptr<ModelStatic>& mdl) {
         const auto filename = resID.makeFileName();
 
         if ( this->m_models.end() != this->m_models.find(filename) ) {
@@ -508,7 +534,7 @@ namespace dal {
         }
     }
 
-    bool Package::giveModelAnim(const ResourceID& resID, const ModelAnimatedHandle& mdl) {
+    bool Package::giveModelAnim(const ResourceID& resID, const std::shared_ptr<ModelAnimated>& mdl) {
         const auto filename = resID.makeFileName();
 
         if ( this->m_animatedModels.end() != this->m_animatedModels.find(filename) ) {
@@ -655,7 +681,7 @@ namespace dal {
     }
 
 
-    ModelStaticHandle ResourceMaster::orderModelStatic(const ResourceID& resID) {
+    std::shared_ptr<const ModelStatic> ResourceMaster::orderModelStatic(const ResourceID& resID) {
         auto& package = this->orderPackage(resID.getPackage());
 
         auto found = package.getModelStatic(resID);
@@ -664,7 +690,7 @@ namespace dal {
         }
         else {
             auto model = new ModelStatic; dalAssert(nullptr != model);
-            ModelStaticHandle modelHandle{ model };
+            std::shared_ptr<ModelStatic> modelHandle{ model };
             model->setResID(resID); // It might not be resolved.
             package.giveModelStatic(resID, modelHandle);
 
@@ -675,7 +701,7 @@ namespace dal {
         }
     }
 
-    ModelAnimatedHandle ResourceMaster::orderModelAnim(const ResourceID& resID) {
+    std::shared_ptr<const ModelAnimated> ResourceMaster::orderModelAnim(const ResourceID& resID) {
         auto& package = this->orderPackage(resID.getPackage());
 
         auto found = package.getModelAnim(resID);
@@ -684,7 +710,7 @@ namespace dal {
         }
         else {
             auto model = new ModelAnimated; dalAssert(nullptr != model);
-            ModelAnimatedHandle modelHandle{ model };
+            std::shared_ptr<ModelAnimated> modelHandle{ model };
             model->setResID(resID);
             package.giveModelAnim(resID, modelHandle);
 
@@ -713,10 +739,10 @@ namespace dal {
         }
     }
 
-    CubeMap* ResourceMaster::orderCubeMap(const std::array<ResourceID, 6>& resIDs, const bool gammaCorrect) {
-        auto tex = &this->m_cubeMaps.emplace_back();
+    std::shared_ptr<const CubeMap> ResourceMaster::orderCubeMap(const std::array<ResourceID, 6>& resIDs, const bool gammaCorrect) {
+        auto tex = this->m_cubeMaps.emplace_back(new CubeMap);
 
-        auto task = g_taskManger.newCubeMap(resIDs, tex, gammaCorrect);
+        auto task = g_taskManger.newCubeMap(resIDs, tex.get(), gammaCorrect);
         TaskGod::getinst().orderTask(task, this);
 
         return tex;
@@ -734,8 +760,8 @@ namespace dal {
         MapChunk2 map;
 
         for ( auto& mdlEmbed : mapInfo->m_embeddedModels ) {
-            auto model = new ModelStatic;
-            ModelStaticHandle modelHandle{ model };
+            //std::shared_ptr<ModelStatic> model{ new ModelStatic };
+            auto model = std::make_shared<ModelStatic>();
 
             // Name
             {
@@ -772,7 +798,7 @@ namespace dal {
                 model->setDetailed(std::move(mdlEmbed.m_detailed));
             }
 
-            map.addStaticActorModel(std::move(modelHandle), std::move(mdlEmbed.m_staticActors));
+            map.addStaticActorModel(std::move(model), std::move(mdlEmbed.m_staticActors));
         }
 
         for ( auto& mdlImport : mapInfo->m_importedModels ) {

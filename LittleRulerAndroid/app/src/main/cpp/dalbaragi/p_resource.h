@@ -21,10 +21,10 @@ namespace dal {
 
     private:
         struct StaticModelActor {
-            ModelStaticHandle m_model;
+            std::shared_ptr<const ModelStatic> m_model;
             std::vector<ActorInfo> m_actors;
 
-            StaticModelActor(ModelStaticHandle&& model, std::vector<ActorInfo>&& actors)
+            StaticModelActor(std::shared_ptr<const ModelStatic>&& model, std::vector<ActorInfo>&& actors)
                 : m_model(std::move(model))
                 , m_actors(std::move(actors))
             {
@@ -40,7 +40,7 @@ namespace dal {
     public:
         void onWinResize(const unsigned int winWidth, const unsigned int winHeight);
 
-        void addStaticActorModel(ModelStaticHandle&& model, std::vector<ActorInfo>&& actors) {
+        void addStaticActorModel(std::shared_ptr<const ModelStatic>&& model, std::vector<ActorInfo>&& actors) {
             this->m_staticActors.emplace_back(std::move(model), std::move(actors));
         }
         void addWaterPlane(const dlb::WaterPlane& waterInfo);
@@ -69,8 +69,8 @@ namespace dal {
     private:
         std::string m_name;
         // All keys are stored in form of file name + ext.
-        std::unordered_map<std::string, ModelStaticHandle> m_models;
-        std::unordered_map<std::string, ModelAnimatedHandle> m_animatedModels;
+        std::unordered_map<std::string, std::shared_ptr<ModelStatic>> m_models;
+        std::unordered_map<std::string, std::shared_ptr<ModelAnimated>> m_animatedModels;
         std::unordered_map<std::string, std::shared_ptr<Texture>> m_textures;
 
     public:
@@ -80,6 +80,7 @@ namespace dal {
     public:
         Package(const std::string& pckName);
         Package(std::string&& pckName);
+        ~Package(void);
 
         Package(Package&& other) noexcept;
         Package& operator=(Package&&) noexcept;
@@ -88,12 +89,12 @@ namespace dal {
         bool hasModelStatic(const ResourceID& resPath);
         bool hasModelAnim(const ResourceID& resPath);
 
-        ModelStaticHandle getModelStatic(const ResourceID& resID);
-        ModelAnimatedHandle getModelAnim(const ResourceID& resID);
-        std::shared_ptr<Texture> getTexture(const ResourceID& resID);
+        std::shared_ptr<const ModelStatic> getModelStatic(const ResourceID& resID);
+        std::shared_ptr<const ModelAnimated> getModelAnim(const ResourceID& resID);
+        std::shared_ptr<const Texture> getTexture(const ResourceID& resID);
 
-        bool giveModelStatic(const ResourceID& resID, const ModelStaticHandle& mdl);
-        bool giveModelAnim(const ResourceID& resID, const ModelAnimatedHandle& mdl);
+        bool giveModelStatic(const ResourceID& resID, const std::shared_ptr<ModelStatic>& mdl);
+        bool giveModelAnim(const ResourceID& resID, const std::shared_ptr<ModelAnimated>& mdl);
         bool giveTexture(const ResourceID& resID, const std::shared_ptr<Texture>& tex);
 
     };
@@ -105,7 +106,7 @@ namespace dal {
 
     private:
         std::unordered_map<std::string, Package> m_packages;
-        std::vector<CubeMap> m_cubeMaps;
+        std::vector<std::shared_ptr<CubeMap>> m_cubeMaps;
 
         //////// Methods ////////
 
@@ -119,10 +120,10 @@ namespace dal {
 
         virtual void notifyTask(std::unique_ptr<ITask> task) override;
 
-        ModelStaticHandle orderModelStatic(const ResourceID& resID);
-        ModelAnimatedHandle orderModelAnim(const ResourceID& resID);
+        std::shared_ptr<const ModelStatic> orderModelStatic(const ResourceID& resID);
+        std::shared_ptr<const ModelAnimated> orderModelAnim(const ResourceID& resID);
         std::shared_ptr<const Texture> orderTexture(const ResourceID& resID, const bool gammaCorrect);
-        CubeMap* orderCubeMap(const std::array<ResourceID, 6>& resIDs, const bool gammaCorrect);
+        std::shared_ptr<const CubeMap> orderCubeMap(const std::array<ResourceID, 6>& resIDs, const bool gammaCorrect);
 
         MapChunk2 loadMap(const ResourceID& resID);
 

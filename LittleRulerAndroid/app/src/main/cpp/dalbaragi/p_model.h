@@ -118,18 +118,14 @@ namespace dal {
     };
 
 
-    using ModelStaticHandle = std::shared_ptr<const ModelStatic>;
-    using ModelAnimatedHandle = std::shared_ptr<const ModelAnimated>;
-
-
     namespace cpnt {
 
         struct StaticModel {
-            ModelStaticHandle m_model;
+            std::shared_ptr<const ModelStatic> m_model;
         };
 
         struct AnimatedModel {
-            ModelAnimatedHandle m_model;
+            std::shared_ptr<const ModelAnimated> m_model;
             AnimationState m_animState;
         };
 
