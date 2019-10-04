@@ -236,14 +236,16 @@ namespace dal {
 
 
     void MapChunk2::applyCollision(const ICollider& inCol, cpnt::Transform& inTrans) {
+        PhysicalProperty inPhysics, mdlPhysics;
+        inPhysics.setMassInv(1.f);
+
         for ( auto& mdl : this->m_staticActors ) {
+            const auto mdlName = mdl.m_model->getResID().makeIDStr();
+
             const auto mdlBounding = mdl.m_model->getBounding();
             if ( nullptr == mdlBounding ) {
                 continue;
             }
-
-            PhysicalProperty inPhysics, mdlPhysics;
-            inPhysics.setMassInv(1.f);
 
             const auto mdlDetailed = mdl.m_model->getDetailed();
             if ( nullptr != mdlDetailed ) {
@@ -254,15 +256,21 @@ namespace dal {
                     }
 
                     const auto result = calcResolveInfoABS(inCol, inPhysics, inTrans, *mdlDetailed, mdlPhysics, actor.m_transform);
-                    inTrans.addPos(result.m_this);
-                    actor.m_transform.addPos(result.m_other);
+                    if ( result.m_valid ) {
+                        inTrans.addPos(result.m_this);
+                        actor.m_transform.addPos(result.m_other);
+                        dalVerbose("addpos by {} : ( {}, {}, {} )"_format(mdlName, result.m_this.x, result.m_this.y, result.m_this.z));
+                    }
                 }
             }
             else {
                 for ( auto& actor : mdl.m_actors ) {
                     const auto result = calcResolveInfoABS(inCol, inPhysics, inTrans, *mdlBounding, mdlPhysics, actor.m_transform);
-                    inTrans.addPos(result.m_this);
-                    actor.m_transform.addPos(result.m_other);
+                    if ( result.m_valid ) {
+                        inTrans.addPos(result.m_this);
+                        actor.m_transform.addPos(result.m_other);
+                        dalVerbose("addpos by {} : ( {}, {}, {} )"_format(mdlName, result.m_this.x, result.m_this.y, result.m_this.z));
+                    }
                 }
             }
         }
@@ -635,6 +643,10 @@ namespace dal {
                 dalError("Failed to load model: {}"_format(loaded->in_modelID.makeIDStr()));
                 return;
             }
+
+            loaded->data_coresponding.setResID(std::move(loaded->in_modelID));
+
+            loaded->data_coresponding.setBounding(std::unique_ptr<ICollider>{new ColAABB{ loaded->out_info.m_model.m_aabb }});
 
             loaded->data_coresponding.setSkeletonInterface(std::move(loaded->out_info.m_model.m_joints));
             loaded->data_coresponding.setAnimations(std::move(loaded->out_info.m_animations));

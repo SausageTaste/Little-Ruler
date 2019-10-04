@@ -353,11 +353,11 @@ namespace {
         switch ( minValueIndex(selector, 3) ) {
 
         case 0:
-            return dal::CollisionResolveInfo{ { xForThis, 0.0f, 0.0f }, { xForOther, 0.0f, 0.0f } };
+            return dal::CollisionResolveInfo{ { xForThis, 0.0f, 0.0f }, { xForOther, 0.0f, 0.0f }, true };
         case 1:
-            return dal::CollisionResolveInfo{ { 0.0f, yForThis, 0.0f }, { 0.0f, yForOther, 0.0f } };
+            return dal::CollisionResolveInfo{ { 0.0f, yForThis, 0.0f }, { 0.0f, yForOther, 0.0f }, true };
         case 2:
-            return dal::CollisionResolveInfo{ { 0.0f, 0.0f, zForThis }, { 0.0f, 0.0f, zForOther } };
+            return dal::CollisionResolveInfo{ { 0.0f, 0.0f, zForThis }, { 0.0f, 0.0f, zForOther }, true };
         default:
             dalAbort("This can't happen!");
 
@@ -1122,7 +1122,7 @@ namespace dal {
     {
         const auto sumOfMassInv = physicsOne.getMassInv() + physicsTwo.getMassInv();
         if ( sumOfMassInv == 0.0f ) {
-            return CollisionResolveInfo{ { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } };
+            return CollisionResolveInfo{};
         }
 
         const auto thisFactor = physicsOne.getMassInv() / sumOfMassInv;

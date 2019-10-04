@@ -15,6 +15,7 @@ namespace dal {
 
     struct CollisionResolveInfo {
         glm::vec3 m_this, m_other;
+        bool m_valid = false;
     };
 
     struct RayCastingResult {

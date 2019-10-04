@@ -18,7 +18,7 @@ namespace {
         {
             const glm::vec3 MODEL_ORIGIN_OFFSET{ 0.0f, 1.3f, 0.0f };
             constexpr float MAX_Y_DEGREE = 75.0f;
-            constexpr float CAM_ROTATE_SPEED_INV = 0.5f;
+            constexpr float CAM_ROTATE_SPEED_INV = 1.0f;
             static_assert(0.0f <= CAM_ROTATE_SPEED_INV && CAM_ROTATE_SPEED_INV <= 1.0f);
 
             const auto camOrigin = thisPos + MODEL_ORIGIN_OFFSET;
@@ -396,10 +396,14 @@ namespace dal {
         // Resolve collisions
         {
             auto& trans = this->m_entities.get<cpnt::Transform>(this->m_player);
-            const auto lastPos = trans.getPos();
             auto& model = this->m_entities.get<cpnt::AnimatedModel>(this->m_player);
-            //this->m_scene.applyCollision(model.m_model->get(), trans);
-            bindCameraPos(this->m_playerCam, trans.getPos(), lastPos);
+
+            const auto bounding = model.m_model->getBounding();
+            if ( nullptr != bounding ) {
+                const auto lastPos = trans.getPos();
+                this->applyCollision(*bounding, trans);
+                bindCameraPos(this->m_playerCam, trans.getPos(), lastPos);
+            }
         }
 
         // Update animtions of dynamic objects.
@@ -485,10 +489,9 @@ namespace dal {
     }
 
 
-    void SceneGraph::applyCollision(const AABB& inOriginalBox, cpnt::Transform& inTrans) {
-        const ColAABB absAABB{ inOriginalBox };
+    void SceneGraph::applyCollision(const ICollider& inCol, cpnt::Transform& inTrans) {
         for ( auto& map : this->m_mapChunks2 ) {
-            map.applyCollision(absAABB, inTrans);
+            map.applyCollision(inCol, inTrans);
         }
     }
 
@@ -501,6 +504,7 @@ namespace dal {
             if ( info ) {
                 if ( info->m_distance < closestDist ) {
                     result = info;
+                    closestDist = info->m_distance;
                 }
             }
         }

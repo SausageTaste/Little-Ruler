@@ -98,7 +98,7 @@ namespace dal {
         void renderOnWaterAnimated(const UnilocAnimate& uniloc, const ICamera& cam, entt::registry& reg);
         void renderOnWaterSkybox(const UnilocSkybox& uniloc, const Skybox& skybox, const ICamera& cam);
 
-        void applyCollision(const AABB& inOriginalBox, cpnt::Transform& inTrans);
+        void applyCollision(const ICollider& inCol, cpnt::Transform& inTrans);
         std::optional<RayCastingResult> doRayCasting(const Ray& ray);
 
         void onResize(const unsigned int width, const unsigned int height);
