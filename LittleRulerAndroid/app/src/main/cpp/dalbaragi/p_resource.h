@@ -68,7 +68,7 @@ namespace dal {
 
     private:
         std::string m_name;
-        // All keys are stored in form of file name + ext.
+        // All keys are stored in form of filename + ext.
         std::unordered_map<std::string, std::shared_ptr<ModelStatic>> m_models;
         std::unordered_map<std::string, std::shared_ptr<ModelAnimated>> m_animatedModels;
         std::unordered_map<std::string, std::shared_ptr<Texture>> m_textures;
