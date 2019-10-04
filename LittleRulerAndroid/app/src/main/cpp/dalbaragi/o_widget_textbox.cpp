@@ -233,7 +233,7 @@ namespace dal {
 
     void TextBox::render(const UnilocOverlay& uniloc, const float width, const float height) {
         if ( nullptr != this->m_strBuf ) {
-            auto str = this->m_strBuf->getStrBuf();
+            auto str = this->m_strBuf->data();
             this->m_textRenderer.appendText(str);
             this->m_strBuf->clear();
         }
