@@ -70,16 +70,16 @@ namespace dal {
 namespace dal {
 
     template <typename _ValTyp, size_t _Size>
-    class _BasicPolynomial {
+    class Polynomial {
 
     private:
         static inline constexpr auto ZERO = static_cast<_ValTyp>(0);
         std::array<_ValTyp, _Size> m_array = { 0 };
 
     public:
-        _BasicPolynomial(void) = default;
+        Polynomial(void) = default;
         template <typename _ListTyp, size_t _ListSize>
-        _BasicPolynomial(const _ListTyp(&list)[_ListSize]) {
+        Polynomial(const _ListTyp(&list)[_ListSize]) {
             static_assert(_ListSize <= _Size);
 
             for ( size_t i = 0; i < _ListSize; ++i ) {
@@ -88,9 +88,9 @@ namespace dal {
         }
 
         template <size_t _OtherSize>
-        auto operator+(const _BasicPolynomial<_ValTyp, _OtherSize>& other) const {
+        auto operator+(const Polynomial<_ValTyp, _OtherSize>& other) const {
             constexpr auto bigger = _Size > _OtherSize ? _Size : _OtherSize;
-            _BasicPolynomial<_ValTyp, bigger> result;
+            Polynomial<_ValTyp, bigger> result;
 
             for ( size_t i = 0; i < bigger; ++i ) {
                 result.m_array[i] = this->getCoeff(i) + other.getCoeff(i);
@@ -98,16 +98,16 @@ namespace dal {
             return result;
         }
         template <size_t _OtherSize>
-        auto operator-(const _BasicPolynomial<_ValTyp, _OtherSize>& other) const {
+        auto operator-(const Polynomial<_ValTyp, _OtherSize>& other) const {
             constexpr auto bigger = _Size > _OtherSize ? _Size : _OtherSize;
-            _BasicPolynomial<_ValTyp, bigger> result;
+            Polynomial<_ValTyp, bigger> result;
 
             for ( size_t i = 0; i < bigger; ++i ) {
                 result.m_array[i] = this->getCoeff(i) - other.getCoeff(i);
             }
             return result;
         }
-        _BasicPolynomial& operator*=(const _ValTyp factor) {
+        Polynomial& operator*=(const _ValTyp factor) {
             for ( size_t i = 0; i < _Size; ++i ) {
                 this->m_array[i] *= factor;
             }
@@ -156,8 +156,8 @@ namespace dal {
             this->m_array[degree] = val;
         }
 
-        _BasicPolynomial differentiate(void) const {
-            _BasicPolynomial result;
+        Polynomial differentiate(void) const {
+            Polynomial result;
 
             for ( size_t i = 1; i < _Size; ++i ) {
                 result.setCoeff(i - 1, this->m_array[i] * static_cast<_ValTyp>(i));
@@ -165,8 +165,8 @@ namespace dal {
 
             return result;
         }
-        _BasicPolynomial integrate(const _ValTyp c = ZERO) const {
-            _BasicPolynomial result;
+        Polynomial integrate(const _ValTyp c = ZERO) const {
+            Polynomial result;
             assert(this->ZERO == this->m_array[_Size - 1]);
 
             for ( size_t i = 0; i < _Size - 1; ++i ) {
@@ -179,7 +179,5 @@ namespace dal {
         }
 
     };
-
-    using Polynomial = _BasicPolynomial<float, 10>;
 
 }
