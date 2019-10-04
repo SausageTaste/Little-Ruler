@@ -259,7 +259,6 @@ namespace dal {
                     if ( result.m_valid ) {
                         inTrans.addPos(result.m_this);
                         actor.m_transform.addPos(result.m_other);
-                        dalVerbose("addpos by {} : ( {}, {}, {} )"_format(mdlName, result.m_this.x, result.m_this.y, result.m_this.z));
                     }
                 }
             }
@@ -269,7 +268,6 @@ namespace dal {
                     if ( result.m_valid ) {
                         inTrans.addPos(result.m_this);
                         actor.m_transform.addPos(result.m_other);
-                        dalVerbose("addpos by {} : ( {}, {}, {} )"_format(mdlName, result.m_this.x, result.m_this.y, result.m_this.z));
                     }
                 }
             }

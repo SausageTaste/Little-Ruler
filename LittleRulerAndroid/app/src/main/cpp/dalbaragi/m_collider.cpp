@@ -142,9 +142,9 @@ namespace {
             const T& get(const dal::ColliderType one, const dal::ColliderType two, const char* const debugStr) const {
                 const auto ptr = this->m_array[this->indexof(one)][this->indexof(two)];
                 if ( nullptr == ptr ) {
-                    const auto indexOfOne = this->indexof(one);
-                    const auto indexOfTwo = this->indexof(two);
-                    dalWarn("No {} registered for those colliders: {}, {}"_format(debugStr, indexOfOne, indexOfTwo));
+                    //const auto indexOfOne = this->indexof(one);
+                    //const auto indexOfTwo = this->indexof(two);
+                    //dalWarn("No {} registered for those colliders: {}, {}"_format(debugStr, indexOfOne, indexOfTwo));
                     return nullptr;
                 }
                 else {
@@ -1122,6 +1122,10 @@ namespace dal {
     {
         const auto sumOfMassInv = physicsOne.getMassInv() + physicsTwo.getMassInv();
         if ( sumOfMassInv == 0.0f ) {
+            return CollisionResolveInfo{};
+        }
+
+        if ( !checkCollision(one, two, transOne, transTwo) ) {
             return CollisionResolveInfo{};
         }
 

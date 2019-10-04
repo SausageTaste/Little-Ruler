@@ -178,7 +178,7 @@ namespace {
         }
 
         virtual void process(const float deltaTime, const dal::MoveInputInfo& info) override {
-            //processCharaHeight(this->m_transform, this->m_scene);
+            processCharaHeight(this->m_transform, this->m_scene);
             applybindingCameraToModel(this->m_camera, deltaTime, info, this->m_transform.getPos(), this->m_transform.getPos());
         }
 
@@ -212,7 +212,7 @@ namespace {
 
         virtual void process(const float deltaTime, const dal::MoveInputInfo& info) override {
             applyMove(this->m_transform, this->m_model, this->m_camera, deltaTime, info);
-            //processCharaHeight(this->m_transform, this->m_scene);
+            processCharaHeight(this->m_transform, this->m_scene);
             applybindingCameraToModel(this->m_camera, deltaTime, info, this->m_transform.getPos(), this->m_lastPos);
             this->m_lastPos = this->m_transform.getPos();
         }
