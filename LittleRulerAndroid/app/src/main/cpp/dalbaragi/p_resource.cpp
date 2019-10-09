@@ -425,7 +425,7 @@ namespace dal {
         uniloc.plightCount(startIndex + this->m_plights.size());
         for ( size_t i = 0; i < this->m_plights.size(); i++ ) {
             if ( i >= 3 ) break;
-            this->m_plights.at(i).sendUniform(uniloc, startIndex + i);
+            this->m_plights.at(i).sendUniform(uniloc.u_plights[startIndex + i]);
         }
 
         return startIndex + this->m_plights.size();

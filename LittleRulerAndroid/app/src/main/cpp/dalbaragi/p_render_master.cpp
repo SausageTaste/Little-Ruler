@@ -302,7 +302,7 @@ namespace dal {
             this->m_skybox.sendUniform(uniloc.m_lightedMesh);
 
             if ( this->m_flagDrawDlight1 ) {
-                this->m_dlight1.sendUniform(uniloc.m_lightedMesh, 0);
+                this->m_dlight1.sendUniform(uniloc.m_lightedMesh.u_dlights[0]);
                 uniloc.m_lightedMesh.dlightCount(1);
             }
             else {
@@ -328,7 +328,7 @@ namespace dal {
             this->m_skybox.sendUniform(uniloc.m_lightedMesh);
 
             if ( this->m_flagDrawDlight1 ) {
-                this->m_dlight1.sendUniform(uniloc.m_lightedMesh, 0);
+                this->m_dlight1.sendUniform(uniloc.m_lightedMesh.u_dlights[0]);
                 uniloc.m_lightedMesh.dlightCount(1);
             }
             else {
@@ -400,7 +400,7 @@ namespace dal {
             uniloc.m_lightedMesh.fogColor(this->m_skyColor);
 
             if ( this->m_flagDrawDlight1 ) {
-                this->m_dlight1.sendUniform(uniloc.m_lightedMesh, 0);
+                this->m_dlight1.sendUniform(uniloc.m_lightedMesh.u_dlights[0]);
                 uniloc.m_lightedMesh.dlightCount(1);
             }
             else {

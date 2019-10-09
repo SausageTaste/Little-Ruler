@@ -92,12 +92,52 @@ namespace dal {
 
         };
 
+        class DirecLight {
+
+        private:
+            GLint m_direc = -1;
+            GLint m_color = -1;
+
+            GLint u_projViewMat = -1;
+            SamplerInterf m_depthMap;
+
+        public:
+            void init(const GLuint shader, const unsigned int index);
+
+            void direc(const float x, const float y, const float z) const;
+            void direc(const glm::vec3& v) const;
+
+            void color(const float x, const float y, const float z) const;
+            void color(const glm::vec3& v) const;
+
+            void projViewMat(const glm::mat4& mat) const;
+            const SamplerInterf& getDepthMap(void) const {
+                return this->m_depthMap;
+            }
+
+        };
+
+        class PointLight {
+
+        private:
+            GLint m_pos = -1;
+            GLint m_color = -1;
+
+        public:
+            void init(const GLuint shader, const unsigned int index);
+
+            void pos(const float x, const float y, const float z) const;
+            void pos(const glm::vec3& v) const;
+
+            void color(const float x, const float y, const float z) const;
+            void color(const glm::vec3& v) const;
+
+        };
+
     private:
         static constexpr auto k_maxDlight = 3;
         static constexpr auto k_maxPlight = 3;
         static constexpr auto k_maxSlight = 3;
-
-        GLint uDlightProjViewMat[3];
 
         GLint uViewPos;
         GLint uBaseAmbient;
@@ -111,18 +151,12 @@ namespace dal {
         GLint u_fogMaxPointInvSqr;
         GLint u_fogColor;
 
-        GLint uDlightDirecs[k_maxDlight];
-        GLint uDlightColors[k_maxDlight];
-        SamplerInterf uDlightDepthMap[k_maxDlight];
-
-        GLint uPlightPoses[k_maxPlight];
-        GLint uPlightColors[k_maxPlight];
-        GLint uPlightMaxDists[k_maxPlight];
-
         SamplerInterf u_environmentMap;
 
     public:
         SpotLight u_slights[k_maxSlight];
+        DirecLight u_dlights[k_maxDlight];
+        PointLight u_plights[k_maxPlight];
 
     public:
         UniInterfLightedMesh(const GLuint shader);
@@ -144,23 +178,6 @@ namespace dal {
 
         void fogColor(const float x, const float y, const float z) const;
         void fogColor(const glm::vec3& v) const;
-
-        void dlightDirec(const unsigned int index, const float x, const float y, const float z) const;
-        void dlightDirec(const unsigned int index, const glm::vec3& v) const;
-
-        void dlightColor(const unsigned int index, const float x, const float y, const float z) const;
-        void dlightColor(const unsigned int index, const glm::vec3& v) const;
-
-        const SamplerInterf& getDlightDepthMap(const unsigned int index) const;
-        void dlightProjViewMat(const unsigned int index, const glm::mat4& mat) const;
-
-        void plightPos(const unsigned int index, const float x, const float y, const float z) const;
-        void plightPos(const unsigned int index, const glm::vec3& v) const;
-
-        void plightColor(const unsigned int index, const float x, const float y, const float z) const;
-        void plightColor(const unsigned int index, const glm::vec3& v) const;
-
-        void plightMaxDist(const unsigned int index, const float x) const;
 
         const SamplerInterf& getEnvironmentMap(void) const;
 

@@ -161,7 +161,7 @@ namespace dal {
 }
 
 
-// UniInterfLightedMesh
+// SpotLight
 namespace dal {
 
     void UniInterfLightedMesh::SpotLight::init(const GLuint shader, const unsigned int index) {
@@ -208,14 +208,75 @@ namespace dal {
         sendMatrix(this->u_projViewMat, mat);
     }
 
+}
+
+
+
+// DirecLight
+namespace dal {
+
+    void UniInterfLightedMesh::DirecLight::init(const GLuint shader, const unsigned int index) {
+        this->m_direc = getUniloc(shader, fmt::format("u_dlights[{}].m_direc", index).c_str());
+        this->m_color = getUniloc(shader, fmt::format("u_dlights[{}].m_color", index).c_str());
+
+        this->u_projViewMat = getUniloc(shader, fmt::format("uDlightProjViewMat[{}]", index).c_str());
+        const auto id = "uDlightDepthMap[{}]"_format(index);
+        this->m_depthMap.init(getUniloc(shader, id.c_str()), -2, g_texUnitReg[id], false);
+    }
+
+    void UniInterfLightedMesh::DirecLight::direc(const float x, const float y, const float z) const {
+        glUniform3f(this->m_direc, x, y, z);
+    }
+
+    void UniInterfLightedMesh::DirecLight::direc(const glm::vec3& v) const {
+        this->direc(v.x, v.y, v.z);
+    }
+
+    void UniInterfLightedMesh::DirecLight::color(const float x, const float y, const float z) const {
+        glUniform3f(this->m_color, x, y, z);
+    }
+    void UniInterfLightedMesh::DirecLight::color(const glm::vec3& v) const {
+        this->color(v.x, v.y, v.z);
+    }
+
+    void UniInterfLightedMesh::DirecLight::projViewMat(const glm::mat4& mat) const {
+        sendMatrix(this->u_projViewMat, mat);
+    }
+
+}
+
+
+// PointLight
+namespace dal {
+
+    void UniInterfLightedMesh::PointLight::init(const GLuint shader, const unsigned int index) {
+        this->m_pos = getUniloc(shader, fmt::format("u_plights[{}].m_pos", index).c_str());
+        this->m_color = getUniloc(shader, fmt::format("u_plights[{}].m_color", index).c_str());
+    }
+
+    void UniInterfLightedMesh::PointLight::pos(const float x, const float y, const float z) const {
+        glUniform3f(this->m_pos, x, y, z);
+    }
+    void UniInterfLightedMesh::PointLight::pos(const glm::vec3& v) const {
+        this->pos(v.x, v.y, v.z);
+    }
+
+    void UniInterfLightedMesh::PointLight::color(const float x, const float y, const float z) const {
+        glUniform3f(this->m_color, x, y, z);
+    }
+    void UniInterfLightedMesh::PointLight::color(const glm::vec3& v) const {
+        this->color(v.x, v.y, v.z);
+    }
+
+}
+
+
+// UniInterfLightedMesh
+namespace dal {
 
     UniInterfLightedMesh::UniInterfLightedMesh(const GLuint shader)
         : UniInterfMesh(shader)
     {
-        this->uDlightProjViewMat[0] = glGetUniformLocation(shader, "uDlightProjViewMat[0]");
-        this->uDlightProjViewMat[1] = glGetUniformLocation(shader, "uDlightProjViewMat[1]");
-        this->uDlightProjViewMat[2] = glGetUniformLocation(shader, "uDlightProjViewMat[2]");
-
         // Fragment shader
 
         this->uViewPos = glGetUniformLocation(shader, "uViewPos");
@@ -230,39 +291,16 @@ namespace dal {
         this->u_fogMaxPointInvSqr = glGetUniformLocation(shader, "u_fogMaxPointInvSqr");
         this->u_fogColor = glGetUniformLocation(shader, "u_fogColor");
 
-        // Directional Lights
-
-        this->uDlightDirecs[0] = glGetUniformLocation(shader, "uDlightDirecs[0]");
-        this->uDlightDirecs[1] = glGetUniformLocation(shader, "uDlightDirecs[1]");
-        this->uDlightDirecs[2] = glGetUniformLocation(shader, "uDlightDirecs[2]");
-
-        this->uDlightColors[0] = glGetUniformLocation(shader, "uDlightColors[0]");
-        this->uDlightColors[1] = glGetUniformLocation(shader, "uDlightColors[1]");
-        this->uDlightColors[2] = glGetUniformLocation(shader, "uDlightColors[2]");
-
-        for ( int i = 0; i < this->k_maxDlight; ++i ) {
-            const auto id = "uDlightDepthMap[{}]"_format(i);
-            this->uDlightDepthMap[i].init(getUniloc(shader, id.c_str()), -2, g_texUnitReg[id.c_str()]);
-        }
-
-        // Point Lights
-
-        this->uPlightPoses[0] = glGetUniformLocation(shader, "uPlightPoses[0]");
-        this->uPlightPoses[1] = glGetUniformLocation(shader, "uPlightPoses[1]");
-        this->uPlightPoses[2] = glGetUniformLocation(shader, "uPlightPoses[2]");
-
-        this->uPlightColors[0] = glGetUniformLocation(shader, "uPlightColors[0]");
-        this->uPlightColors[1] = glGetUniformLocation(shader, "uPlightColors[1]");
-        this->uPlightColors[2] = glGetUniformLocation(shader, "uPlightColors[2]");
-
-        this->uPlightMaxDists[0] = glGetUniformLocation(shader, "uPlightMaxDists[0]");
-        this->uPlightMaxDists[1] = glGetUniformLocation(shader, "uPlightMaxDists[1]");
-        this->uPlightMaxDists[2] = glGetUniformLocation(shader, "uPlightMaxDists[2]");
-
         this->u_environmentMap.init(getUniloc(shader, "u_environmentMap"), -2, g_texUnitReg["u_environmentMap"], false);
 
         for ( unsigned int i = 0; i < this->k_maxSlight; ++i ) {
             this->u_slights[i].init(shader, i);
+        }
+        for ( unsigned int i = 0; i < this->k_maxDlight; ++i ) {
+            this->u_dlights[i].init(shader, i);
+        }
+        for ( unsigned int i = 0; i < this->k_maxPlight; ++i ) {
+            this->u_plights[i].init(shader, i);
         }
     }
 
@@ -321,61 +359,6 @@ namespace dal {
 
     void UniInterfLightedMesh::fogColor(const glm::vec3& v) const {
         this->fogColor(v.x, v.y, v.z);
-    }
-
-    void UniInterfLightedMesh::dlightDirec(const unsigned int index, const float x, const float y, const float z) const {
-        dalAssert(index < this->k_maxDlight);
-        glUniform3f(this->uDlightDirecs[index], x, y, z);
-    }
-
-    void UniInterfLightedMesh::dlightDirec(const unsigned int index, const glm::vec3& v) const {
-        dalAssert(index < this->k_maxDlight);
-        this->dlightDirec(index, v.x, v.y, v.z);
-    }
-
-    void UniInterfLightedMesh::dlightColor(const unsigned int index, const float x, const float y, const float z) const {
-        dalAssert(index < this->k_maxDlight);
-        glUniform3f(this->uDlightColors[index], x, y, z);
-    }
-
-    void UniInterfLightedMesh::dlightColor(const unsigned int index, const glm::vec3& v) const {
-        dalAssert(index < this->k_maxDlight);
-        this->dlightColor(index, v.x, v.y, v.z);
-    }
-
-    const SamplerInterf& UniInterfLightedMesh::getDlightDepthMap(const unsigned int index) const {
-        dalAssert(index < this->k_maxDlight);
-        return this->uDlightDepthMap[index];
-    }
-
-    void UniInterfLightedMesh::dlightProjViewMat(const unsigned int index, const glm::mat4& mat) const {
-        dalAssert(index < this->k_maxDlight);
-        sendMatrix(this->uDlightProjViewMat[index], mat);
-    }
-
-    void UniInterfLightedMesh::plightPos(const unsigned int index, const float x, const float y, const float z) const {
-        dalAssert(index < this->k_maxPlight);
-        glUniform3f(this->uPlightPoses[index], x, y, z);
-    }
-
-    void UniInterfLightedMesh::plightPos(const unsigned int index, const glm::vec3& v) const {
-        dalAssert(index < this->k_maxPlight);
-        this->plightPos(index, v.x, v.y, v.z);
-    }
-
-    void UniInterfLightedMesh::plightColor(const unsigned int index, const float x, const float y, const float z) const {
-        dalAssert(index < this->k_maxPlight);
-        glUniform3f(this->uPlightColors[index], x, y, z);
-    }
-
-    void UniInterfLightedMesh::plightColor(const unsigned int index, const glm::vec3& v) const {
-        dalAssert(index < this->k_maxPlight);
-        this->plightColor(index, v.x, v.y, v.z);
-    }
-
-    void UniInterfLightedMesh::plightMaxDist(const unsigned int index, const float x) const {
-        dalAssert(index < this->k_maxPlight);
-        glUniform1f(this->uPlightMaxDists[index], x);
     }
 
     const SamplerInterf& UniInterfLightedMesh::getEnvironmentMap(void) const {

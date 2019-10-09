@@ -87,6 +87,7 @@ namespace dal {
 }
 
 
+// DirectionalLight
 namespace dal {
 
     DirectionalLight::DirectionalLight(void)
@@ -99,14 +100,11 @@ namespace dal {
         this->m_direction = glm::normalize(v);
     }
 
-    void DirectionalLight::sendUniform(const UniInterfLightedMesh& uniloc, const int index) const {
-        uniloc.dlightColor(index, this->m_color);
-        uniloc.dlightDirec(index, this->m_direction);
-
-        auto projViewMat = this->makeProjMat() * this->makeViewMat();
-        uniloc.dlightProjViewMat(index, projViewMat);
-
-        this->m_shadowMap.sendUniform(uniloc.getDlightDepthMap(index));
+    void DirectionalLight::sendUniform(const UniInterfLightedMesh::DirecLight& uniloc) const {
+        uniloc.color(this->m_color);
+        uniloc.direc(this->m_direction);
+        uniloc.projViewMat(this->makeProjMat() * this->makeViewMat());
+        this->m_shadowMap.sendUniform(uniloc.getDepthMap());
     }
 
     void DirectionalLight::clearDepthBuffer(void) {
@@ -138,17 +136,18 @@ namespace dal {
 }
 
 
+// PointLight
 namespace dal {
 
-    void PointLight::sendUniform(const UniInterfLightedMesh& uniloc, int index) const {
-        uniloc.plightColor(index, this->m_color);
-        uniloc.plightPos(index, this->mPos);
-        uniloc.plightMaxDist(index, this->mMaxDistance);
+    void PointLight::sendUniform(const UniInterfLightedMesh::PointLight& uniloc) const {
+        uniloc.color(this->m_color);
+        uniloc.pos(this->mPos);
     }
 
 }
 
 
+// SpotLight
 namespace dal {
 
     SpotLight::SpotLight(void)
