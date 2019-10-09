@@ -61,47 +61,40 @@ float _getDitherValue(void) {
     return ditherPattern[index];
 }
 
-
-float _mapShininess(void) {
-    const float a = 0.1;  // minShin
-    const float b = 512.0;  // maxShin
-    const float c = 0.5;  // forMin
-    const float d = 0.001;  // forMax
-
-    const float alpha = (d - c) / (1.0/b - 1.0/a);
-    const float beta = c - alpha / a;
-
-    return alpha / uShininess + beta;  // Broken.
-}
-
 vec3 getEnvColor(vec3 fragPos, vec3 fragNormal) {
     vec3 I = normalize(fragPos - uViewPos);
     vec3 R = reflect(I, fragNormal);
     return texture(u_environmentMap, R).rgb * u_envReflectivity;
 }
 
-vec3 getEnvColorMulti(vec3 fragPos, vec3 fragNormal) {
-    const int kSampleCount = 1;
 
-    float kSampleDistFactor = _mapShininess();
-    vec3 color = vec3(0.0);
+// Simple light
 
-    for (int i = -kSampleCount; i <= kSampleCount; i++) {
-        for (int j = -kSampleCount; j <= kSampleCount; j++) {
-            for (int k = -kSampleCount; k <= kSampleCount; k++) {
-                vec3 newPos = fragPos + vec3(i, j, k) * kSampleDistFactor;
-                vec3 I = normalize(newPos - uViewPos);
-                vec3 R = reflect(I, fragNormal);
-                color += texture(u_environmentMap, R).rgb;
-            }
-        }
-    }
+float _computeScattering(float lightDotView) {
+    const float G_SCATTERING = 10.0;
 
-    const int sampledCount = (2 * kSampleCount + 1) * (2 * kSampleCount + 1) * (2 * kSampleCount + 1);
-
-    return color / float(sampledCount);
+    float result = 1.0 - G_SCATTERING * G_SCATTERING;
+    result /= (4.0 * PI * pow(1.0 + G_SCATTERING * G_SCATTERING - (2.0 * G_SCATTERING) *  lightDotView, 1.5));
+    return result;
 }
 
+float _calcDistAttenu(float fragDist, float constant, float linear, float quadratic) {
+    return 1.0 / (constant + linear * fragDist + quadratic * (fragDist * fragDist));
+}
+
+float _calcDiffuse(vec3 fragToLight_n, vec3 fragNormal_n) {
+    return max(dot(fragToLight_n, fragNormal_n), 0.0);
+}
+
+float _calcSpecular(vec3 fragToLight_n, vec3 fragNormal_n, vec3 fragToView_n) {
+    vec3 halfwayDir = normalize(fragToView_n + fragToLight_n);
+    float energyConservation = ( 8.0 + uShininess ) / ( 8.0 * PI );
+    float spec = energyConservation * pow(max(dot(fragNormal_n, halfwayDir), 0.0), uShininess);
+    return max(uSpecularStrength * spec, 0.0);
+}
+
+
+// Dlight
 
 float _sampleDlightTexture(int index, vec2 coord) {
 
@@ -144,43 +137,13 @@ float _getShadowFactor_directional(int index, vec4 fragPosInDlight) {
     return shadow;
 }
 
-float _distanceDecreaser(float dist) {
-    const float k_startDecrease = 15.0;
-    const float k_endDecrea = 80.0;
-
-    if (dist < k_startDecrease)
-        return 1.0;
-    else if (dist > k_endDecrea)
-        return 0.0;
-    else
-        return (dist - k_endDecrea) / (k_startDecrease - k_endDecrea);
-}
-
 float _getLightFactor_directional(int index, vec3 viewDir, vec3 fragNormal) {
     vec3 lightLocDir = normalize(-u_dlights[index].m_direc);
 
-    float diff = max(dot(fragNormal, lightLocDir), 0.0);
+    float diffuse = _calcDiffuse(lightLocDir, fragNormal);
+    float specular = _calcSpecular(lightLocDir, fragNormal, viewDir);
 
-    // Calculate specular lighting.
-    if (uShininess <= 0.0) {
-        return diff;
-    }
-    else {
-        vec3 reflectDir = reflect(-lightLocDir, fragNormal);
-        float energyConservation = ( 2.0 + uShininess ) / ( 2.0 * PI );
-        float spec = energyConservation * pow(max(dot(viewDir, reflectDir), 0.0), uShininess);
-        float specular = max(uSpecularStrength * spec, 0.0);
-
-        return diff + specular;
-    }
-}
-
-float _computeScattering(float lightDotView) {
-    const float G_SCATTERING = 10.0;
-
-    float result = 1.0 - G_SCATTERING * G_SCATTERING;
-    result /= (4.0 * PI * pow(1.0 + G_SCATTERING * G_SCATTERING - (2.0 * G_SCATTERING) *  lightDotView, 1.5));
-    return result;
+    return diffuse + specular;
 }
 
 vec3 getDlightColor(int i, vec3 fragToViewDirec, vec3 fragNormal, vec3 fragPos, vec4 fragPosInShadow) {
@@ -221,21 +184,15 @@ vec3 calcDlightVolumeColor(int index, vec3 fragPos) {
 }
 
 
-float _calcDistAttenu(float fragDist, float constant, float linear, float quadratic) {
-    return 1.0 / (constant + linear * fragDist + quadratic * (fragDist * fragDist));
-}
+// Plight
 
 vec2 _calcPlightFactors(int index, vec3 fragToViewDirec, vec3 fragNormal, vec3 fragPos) {
     vec3 fragToLightDirec = normalize(u_plights[index].m_pos - fragPos);
 
-    float diffuseFactor = max(dot(fragToLightDirec, fragNormal), 0.0);
+    float diffuse = _calcDiffuse(fragToLightDirec, fragNormal);
+    float specular = _calcSpecular(fragToLightDirec, fragNormal, fragToViewDirec);
 
-    vec3 halfwayDir = normalize(fragToViewDirec + fragToLightDirec);
-    float energyConservation = ( 8.0 + uShininess ) / ( 8.0 * PI );
-    float spec = energyConservation * pow(max(dot(fragNormal, halfwayDir), 0.0), uShininess);
-    float specular = max(uSpecularStrength * spec, 0.0);
-
-    return vec2(diffuseFactor, specular);
+    return vec2(diffuse, specular);
 }
 
 vec3 getTotalPlightColors(vec3 fragToViewDirec, vec3 fragNormal, vec3 fragPos) {
@@ -251,17 +208,15 @@ vec3 getTotalPlightColors(vec3 fragToViewDirec, vec3 fragNormal, vec3 fragPos) {
 }
 
 
+// Slight
+
 vec2 _calcSlightFactors(int index, vec3 fragToViewDirec, vec3 fragNormal, vec3 fragPos) {
     vec3 fragToLightDirec = normalize(u_slights[index].m_pos - fragPos);
 
-    float diffuseFactor = max(dot(fragToLightDirec, fragNormal), 0.0);
+    float diffuse = _calcDiffuse(fragToLightDirec, fragNormal);
+    float specular = _calcSpecular(fragToLightDirec, fragNormal, fragToViewDirec);
 
-    vec3 halfwayDir = normalize(fragToViewDirec + fragToLightDirec);
-    float energyConservation = ( 8.0 + uShininess ) / ( 8.0 * PI );
-    float spec = energyConservation * pow(max(dot(fragNormal, halfwayDir), 0.0), uShininess);
-    float specular = max(uSpecularStrength * spec, 0.0);
-
-    vec2 factors = vec2(diffuseFactor, specular);
+    vec2 factors = vec2(diffuse, specular);
     float lightAngle = dot(-fragToLightDirec, u_slights[index].m_direc);
 
     if (lightAngle > u_slights[index].m_startFade) {
