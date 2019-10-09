@@ -246,7 +246,9 @@ namespace dal {
     void RenderMaster::render(entt::registry& reg) {
         // Shadow map
         {
+#ifdef _WIN32
             glEnable(GL_DEPTH_CLAMP);
+#endif
 
             // Dlight
             {
@@ -285,8 +287,9 @@ namespace dal {
 
                 this->m_slight1.finishRenderShadowmap();
             }
-
+#ifdef _WIN32
             glDisable(GL_DEPTH_CLAMP);
+#endif
         }
 
 #ifdef _WIN32
