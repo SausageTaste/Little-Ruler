@@ -22,6 +22,7 @@ in vec3 vFragPos;
 in vec2 vTexCoord;
 in vec3 vNormalVec;
 in vec4 vFragPosInDlight[3];
+in vec4 v_fragPosInSlight[3];
 in vec4 v_clipSpace;
 in vec3 v_toCamera;
 
@@ -151,7 +152,9 @@ void main(void) {
         lightedColor += getDlightColor(i, viewDir, fragNormal, vFragPos, fragPosInLight);
     }
     lightedColor += getTotalPlightColors(viewDir, fragNormal, vFragPos);
-    lightedColor += getTotalSlightColors(viewDir, fragNormal, vFragPos);
+    for (int i = 0; i < u_slightCount; ++i) {
+        lightedColor += getSlightColor(i, viewDir, fragNormal, vFragPos, v_fragPosInSlight[i]);
+    }
 
     // Water
     vec4 waterImage = calculateWater(fragNormal, distoredTexCoords);

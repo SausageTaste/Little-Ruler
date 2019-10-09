@@ -14,16 +14,19 @@ uniform mat4 u_modelMat;
 // Interf - Mesh
 uniform vec2 u_texScale;
 
-uniform highp int uDlightCount;
 uniform highp vec3 uViewPos;
 
+uniform highp int uDlightCount;
 uniform mat4 uDlightProjViewMat[3];
+uniform highp int u_slightCount;
+uniform mat4 u_slightProjViewMat[3];
 
 
 out vec3 vFragPos;
 out vec2 vTexCoord;
 out vec3 vNormalVec;
 out vec4 vFragPosInDlight[3];
+out vec4 v_fragPosInSlight[3];
 out vec4 v_clipSpace;
 out vec3 v_toCamera;
 
@@ -39,5 +42,8 @@ void main(void) {
 
 	for (int i = 0; i < uDlightCount; i++) {
 		vFragPosInDlight[i] = uDlightProjViewMat[i] * vec4(vFragPos, 1.0);
+	}
+	for (int i = 0; i < u_slightCount; ++i) {
+		v_fragPosInSlight[i] = u_slightProjViewMat[i] * worldPos;
 	}
 }

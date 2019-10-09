@@ -26,14 +26,16 @@ uniform bool u_doClip;
 uniform vec4 u_clipPlane;
 
 uniform highp int uDlightCount;
-
 uniform mat4 uDlightProjViewMat[3];
+uniform highp int u_slightCount;
+uniform mat4 u_slightProjViewMat[3];
 
 
 out vec3 v_fragPos;
 out vec2 vTexCoord;
 out vec3 vNormalVec;
 out vec4 vFragPosInDlight[3];
+out vec4 v_fragPosInSlight[3];
 #ifdef GL_ES
 out float v_clipDistance;
 #endif
@@ -64,5 +66,8 @@ void main(void) {
 
     for (int i = 0; i < uDlightCount; i++) {
         vFragPosInDlight[i] = uDlightProjViewMat[i] * worldPos;
+    }
+    for (int i = 0; i < u_slightCount; ++i) {
+        v_fragPosInSlight[i] = u_slightProjViewMat[i] * worldPos;
     }
 }

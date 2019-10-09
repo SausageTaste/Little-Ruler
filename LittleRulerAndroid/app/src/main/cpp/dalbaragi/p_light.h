@@ -110,6 +110,7 @@ namespace dal {
         glm::vec3 m_pos;
         glm::vec3 m_direc;
         glm::vec3 m_color;
+        float m_endFadeRadians;
         float m_startFade, m_endFade;
 
         DepthmapForLights m_shadowMap;
@@ -134,7 +135,8 @@ namespace dal {
             this->m_startFade = cos(glm::radians(degree));
         }
         void setEndFadeDegree(const float degree) {
-            this->m_endFade = cos(glm::radians(degree));
+            this->m_endFadeRadians = glm::radians(degree);
+            this->m_endFade = cos(this->m_endFadeRadians);
         }
 
         void sendUniform(const UniInterfLightedMesh::SpotLight& uniloc) const;

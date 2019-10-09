@@ -153,8 +153,9 @@ namespace dal {
     SpotLight::SpotLight(void)
         : m_direc(0.f, -1.f, 0.f)
         , m_color(1.f, 1.f, 1.f)
+        , m_endFadeRadians(glm::radians(45.f))
         , m_startFade(cos(glm::radians(40.f)))
-        , m_endFade(cos(glm::radians(45.f)))
+        , m_endFade(cos(m_endFadeRadians))
     {
 
     }
@@ -175,11 +176,13 @@ namespace dal {
     // Shadow mapping
 
     glm::mat4 SpotLight::makeProjMat(void) const {
-        return glm::perspective(glm::radians(this->m_endFade) * 2.f, 1.f, 0.1f, 50.f);
+        return glm::perspective(this->m_endFadeRadians * 2.f, 1.f, 1.f, 100.f);
     }
 
     glm::mat4 SpotLight::makeViewMat(void) const {
-        return glm::lookAt(-this->m_direc + this->m_pos, this->m_pos, { 0.f, 1.f, 0.f });
+        const auto eye = this->m_pos;
+        const auto center = this->m_pos + this->m_direc;
+        return glm::lookAt(eye, center, glm::vec3{ 0.f, 1.f, 0.f });
     }
 
 }

@@ -11,6 +11,7 @@ in vec3 v_fragPos;
 in vec2 vTexCoord;
 in vec3 vNormalVec;
 in vec4 vFragPosInDlight[3];
+in vec4 v_fragPosInSlight[3];
 #ifdef GL_ES
 in float v_clipDistance;
 #endif
@@ -33,7 +34,9 @@ void main(void) {
         lightedColor += getDlightColor(i, viewDir, fragNormal, v_fragPos, vFragPosInDlight[i]);
     }
     lightedColor += getTotalPlightColors(viewDir, fragNormal, v_fragPos);
-    lightedColor += getTotalSlightColors(viewDir, fragNormal, v_fragPos);
+    for (int i = 0; i < u_slightCount; ++i) {
+        lightedColor += getSlightColor(i, viewDir, fragNormal, v_fragPos, v_fragPosInSlight[i]);
+    }
     lightedColor += getEnvColor(v_fragPos, fragNormal);
 
     vec4 texColor = texture(u_diffuseMap, vTexCoord);

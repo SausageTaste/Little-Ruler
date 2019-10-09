@@ -217,18 +217,13 @@ vec2 _calcSlightFactors(int index, vec3 fragToViewDirec, vec3 fragNormal, vec3 f
     float specular = _calcSpecular(fragToLightDirec, fragNormal, fragToViewDirec);
 
     vec2 factors = vec2(diffuse, specular);
-    float lightAngle = dot(-fragToLightDirec, u_slights[index].m_direc);
+    float lightAngle = acos(dot(-fragToLightDirec, u_slights[index].m_direc));
 
-    if (lightAngle > u_slights[index].m_startFade) {
-        return factors;
-    }
-    else if (lightAngle > u_slights[index].m_endFade) {
-        float edgeCut = (lightAngle - u_slights[index].m_endFade) / (u_slights[index].m_startFade - u_slights[index].m_endFade);
-        return factors * edgeCut;
-    }
-    else {
-        return vec2(0.0);
-    }
+    float theta     = dot(-fragToLightDirec, u_slights[index].m_direc);
+    float epsilon   = u_slights[index].m_startFade - u_slights[index].m_endFade;
+    float intensity = clamp((theta - u_slights[index].m_endFade) / epsilon, 0.0, 1.0);
+
+    return vec2(diffuse, specular) * intensity;
 }
 
 float _sampleSlightTexture(int index, vec2 coord) {
@@ -275,9 +270,9 @@ bool _isPointInSlightShadow(int index, vec4 fragPosInSlight) {
 
 vec3 getSlightColor(int i, vec3 fragToViewDirec, vec3 fragNormal, vec3 fragPos, vec4 fragPosInShadow) {
     vec2 diffNSpec = _calcSlightFactors(i, fragToViewDirec, fragNormal, fragPos);
-    //bool isInShadow = _isPointInSlightShadow(i, fragPosInShadow);
-    //return isInShadow ? (diffNSpec.x + diffNSpec.y) * u_slights[i].m_color : vec3(0.0);
-    return (diffNSpec.x + diffNSpec.y) * u_slights[i].m_color;
+    bool isInShadow = _isPointInSlightShadow(i, fragPosInShadow);
+    return isInShadow ? vec3(0.0) : (diffNSpec.x + diffNSpec.y) * u_slights[i].m_color;
+    //return (diffNSpec.x + diffNSpec.y) * u_slights[i].m_color;
 }
 
 vec3 getTotalSlightColors(vec3 fragToViewDirec, vec3 fragNormal, vec3 fragPos) {
