@@ -246,6 +246,8 @@ namespace dal {
     void RenderMaster::render(entt::registry& reg) {
         // Shadow map
         {
+            glEnable(GL_DEPTH_CLAMP);
+
             // Dlight
             {
                 this->m_dlight1.clearDepthBuffer();
@@ -283,6 +285,8 @@ namespace dal {
 
                 this->m_slight1.finishRenderShadowmap();
             }
+
+            glDisable(GL_DEPTH_CLAMP);
         }
 
 #ifdef _WIN32
