@@ -16,14 +16,19 @@ out vec4 fColor;
 
 
 void main() {
+    vec4 color = vec4(0.0);
     if (mHasDiffuseMap) {
-        fColor = texture(mDiffuseMap, vTexCoord);
+        color = texture(mDiffuseMap, vTexCoord);
     }
     else {
-        fColor = uColor;
+        color = uColor;
     }
 
     if (mHasMaskMap) {
+        fColor.xyz = color.xyz;
         fColor.a = texture(mMaskMap, vTexCoord_maskMap).r;
+    }
+    else {
+        fColor.xyzw = color.xyzw;
     }
 }

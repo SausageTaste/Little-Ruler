@@ -554,7 +554,8 @@ namespace dal {
 
     Widget2::Widget2(Widget2* const parent)
         : m_parent(parent)
-        , m_flagDraw(true)
+        , m_hidden(false)
+        , m_hasUpdated(false)
     {
 
     }

@@ -224,16 +224,24 @@ namespace dal {
     }
 
     void Texture::initAttach_colorMap(const unsigned int width, const unsigned int height) {
-        this->genTexture("Texture::init_texAttachment");
+        this->genTexture("Texture::initAttach_colorMap");
 
         glBindTexture(GL_TEXTURE_2D, this->get());
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
 
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, this->get(), 0);
         //glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, texture, 0);
     }
+
+
+    void Texture::resize_colorMap(const unsigned int width, const unsigned int height) {
+        glBindTexture(GL_TEXTURE_2D, this->get());
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+        glBindTexture(GL_TEXTURE_2D, 0);
+    }
+
 
     void Texture::sendUniform(const GLint uniloc_sampler, const GLint uniloc_has, const unsigned int index) const {
         if ( this->isReady() ) {

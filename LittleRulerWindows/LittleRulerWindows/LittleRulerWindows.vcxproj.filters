@@ -109,6 +109,9 @@
     <ClCompile Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\u_math.cpp">
       <Filter>Utility</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\o_widgetcache.cpp">
+      <Filter>Overlay</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Game">
@@ -256,6 +259,9 @@
     </ClInclude>
     <ClInclude Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\u_math.h">
       <Filter>Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\o_widgetcache.h">
+      <Filter>Overlay</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

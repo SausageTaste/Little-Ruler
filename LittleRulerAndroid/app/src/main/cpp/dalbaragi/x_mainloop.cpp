@@ -11,6 +11,7 @@
 #include "u_luascript.h"
 #include "g_charastate.h"
 #include "p_model.h"
+#include "o_widgetcache.h"
 
 
 using namespace fmt::literals;

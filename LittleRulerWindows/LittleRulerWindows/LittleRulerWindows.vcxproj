@@ -164,6 +164,7 @@
     <ClInclude Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\m_collider.h" />
     <ClInclude Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\o_overlay_master.h" />
     <ClInclude Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\o_widgetbase.h" />
+    <ClInclude Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\o_widgetcache.h" />
     <ClInclude Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\o_widgetmanager.h" />
     <ClInclude Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\o_widget_textbox.h" />
     <ClInclude Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\o_widget_texview.h" />
@@ -205,6 +206,7 @@
     <ClCompile Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\m_collider.cpp" />
     <ClCompile Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\o_overlay_master.cpp" />
     <ClCompile Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\o_widgetbase.cpp" />
+    <ClCompile Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\o_widgetcache.cpp" />
     <ClCompile Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\o_widgetmanager.cpp" />
     <ClCompile Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\o_widget_textbox.cpp" />
     <ClCompile Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\o_widget_texview.cpp" />

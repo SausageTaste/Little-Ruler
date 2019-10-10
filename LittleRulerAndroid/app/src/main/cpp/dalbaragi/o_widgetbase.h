@@ -151,7 +151,7 @@ namespace dal {
 
     private:
         Widget2* m_parent;
-        bool m_flagDraw;
+        bool m_hidden, m_hasUpdated;
 
     public:
         Widget2(const Widget2&) = delete;
@@ -166,11 +166,17 @@ namespace dal {
         const Widget2* getParent(void) const {
             return this->m_parent;
         }
-        bool getFlagDraw(void) const {
-            return this->m_flagDraw;
+        bool isHidden(void) const {
+            return this->m_hidden;
         }
-        void setFlagDraw(const bool x) {
-            this->m_flagDraw = x;
+        void setHide(const bool x) {
+            this->m_hidden = x;
+        }
+        bool hasUpdated(void) const {
+            return this->m_hasUpdated;
+        }
+        void setUpdated(const bool v) {
+            this->m_hasUpdated = v;
         }
 
         virtual void render(const UnilocOverlay& uniloc, const float width, const float height) {}
