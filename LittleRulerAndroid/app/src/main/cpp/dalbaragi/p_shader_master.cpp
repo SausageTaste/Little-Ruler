@@ -19,25 +19,24 @@ namespace {
         glEnable(GL_DEPTH_TEST);
         glEnable(GL_CULL_FACE);
         glEnable(GL_BLEND); glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        //glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
         glDisable(GL_POLYGON_OFFSET_FILL);
+        //glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
     }
 
     void setFor_fillingScreen(void) {
         glDisable(GL_DEPTH_TEST);
         glDisable(GL_CULL_FACE);
         glDisable(GL_BLEND);
-        //glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
         glDisable(GL_POLYGON_OFFSET_FILL);
+        //glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
     }
 
     void setFor_shadowmap(void) {
         glEnable(GL_DEPTH_TEST);
         glDisable(GL_CULL_FACE);
         glDisable(GL_BLEND);
+        glEnable(GL_POLYGON_OFFSET_FILL); glPolygonOffset(4.0f, 100.0f);
         //glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
-        glEnable(GL_POLYGON_OFFSET_FILL);
-        glPolygonOffset(4.0f, 100.0f);
 
     }
 
@@ -45,20 +44,24 @@ namespace {
         glDisable(GL_DEPTH_TEST);
         glDisable(GL_CULL_FACE);
         glEnable(GL_BLEND); glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        //glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
         glDisable(GL_POLYGON_OFFSET_FILL);
+        //glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
     }
 
     void setFor_water(void) {
         glEnable(GL_DEPTH_TEST);
         glEnable(GL_CULL_FACE);
         glEnable(GL_BLEND); glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        //glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
         glDisable(GL_POLYGON_OFFSET_FILL);
+        //glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
     }
 
     void setFor_skybox(void) {
-
+        glEnable(GL_DEPTH_TEST);
+        glDisable(GL_CULL_FACE);
+        glDisable(GL_BLEND);
+        glDisable(GL_POLYGON_OFFSET_FILL);
+        //glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
     }
 
 }
@@ -445,10 +448,10 @@ namespace dal {
 }
 
 
-// ShaderProgram2
+// ShaderProgram
 namespace dal {
 
-    ShaderProgram2::ShaderProgram2(const char* const vertSrc, const char* const fragSrc) {
+    ShaderProgram::ShaderProgram(const char* const vertSrc, const char* const fragSrc) {
         this->m_id = glCreateProgram();
         dalAssert(0 != this->m_id);
 
@@ -470,17 +473,17 @@ namespace dal {
         }
     }
 
-    ShaderProgram2::ShaderProgram2(const std::string& vertSrc, const std::string& fragSrc)
-        : ShaderProgram2(vertSrc.c_str(), fragSrc.c_str())
+    ShaderProgram::ShaderProgram(const std::string& vertSrc, const std::string& fragSrc)
+        : ShaderProgram(vertSrc.c_str(), fragSrc.c_str())
     {
 
     }
 
-    GLuint ShaderProgram2::get(void) {
+    GLuint ShaderProgram::get(void) {
         return this->m_id;
     }
 
-    void ShaderProgram2::use(void) const {
+    void ShaderProgram::use(void) const {
         glUseProgram(this->m_id);
     }
 

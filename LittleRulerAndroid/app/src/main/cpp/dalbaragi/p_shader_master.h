@@ -7,14 +7,14 @@ namespace dal {
 
     class ShaderLoader;
 
-    class ShaderProgram2 {
+    class ShaderProgram {
 
     private:
         GLuint m_id = 0;
 
     public:
-        ShaderProgram2(const char* const vertSrc, const char* const fragSrc);
-        ShaderProgram2(const std::string& vertSrc, const std::string& fragSrc);
+        ShaderProgram(const char* const vertSrc, const char* const fragSrc);
+        ShaderProgram(const std::string& vertSrc, const std::string& fragSrc);
         GLuint get(void);
         void use(void) const;
 
@@ -24,28 +24,28 @@ namespace dal {
     class ShaderMaster {
 
     private:
-        ShaderProgram2 m_general;
+        ShaderProgram m_general;
         UnilocGeneral m_generalUniloc;
 
-        ShaderProgram2 m_fscreen;
+        ShaderProgram m_fscreen;
         UnilocFScreen m_fscreenUniloc;
 
-        ShaderProgram2 m_depthmap;
+        ShaderProgram m_depthmap;
         UnilocDepthmp m_depthmapUniloc;
 
-        ShaderProgram2 m_overlay;
+        ShaderProgram m_overlay;
         UnilocOverlay m_overlayUniloc;
 
-        ShaderProgram2 m_waterry;
+        ShaderProgram m_waterry;
         UnilocWaterry m_waterryUniloc;
 
-        ShaderProgram2 m_animate;
+        ShaderProgram m_animate;
         UnilocAnimate m_animateUniloc;
 
-        ShaderProgram2 m_depthAnime;
+        ShaderProgram m_depthAnime;
         UnilocDepthAnime m_depthAnimeUniloc;
 
-        ShaderProgram2 m_skybox;
+        ShaderProgram m_skybox;
         UnilocSkybox m_skyboxUniloc;
 
     public:
