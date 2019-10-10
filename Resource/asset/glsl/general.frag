@@ -34,7 +34,6 @@ void main(void) {
         lightedColor += getDlightColor(i, viewDir, fragNormal, vFragPos, vFragPosInDlight[i]);
     }
     lightedColor += getTotalPlightColors(viewDir, fragNormal, vFragPos);
-    lightedColor += getTotalSlightColors(viewDir, fragNormal, vFragPos);
     for (int i = 0; i < u_slightCount; ++i) {
         lightedColor += getSlightColor(i, viewDir, fragNormal, vFragPos, v_fragPosInSlight[i]);
     }

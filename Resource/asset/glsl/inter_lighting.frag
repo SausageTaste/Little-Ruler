@@ -272,19 +272,6 @@ vec3 getSlightColor(int i, vec3 fragToViewDirec, vec3 fragNormal, vec3 fragPos, 
     vec2 diffNSpec = _calcSlightFactors(i, fragToViewDirec, fragNormal, fragPos);
     bool isInShadow = _isPointInSlightShadow(i, fragPosInShadow);
     return isInShadow ? vec3(0.0) : (diffNSpec.x + diffNSpec.y) * u_slights[i].m_color;
-    //return (diffNSpec.x + diffNSpec.y) * u_slights[i].m_color;
-}
-
-vec3 getTotalSlightColors(vec3 fragToViewDirec, vec3 fragNormal, vec3 fragPos) {
-    vec3 lightedColor = vec3(0.0);
-
-    for (int i = 0; i < u_slightCount; ++i) {
-        vec2 diffNSpec = _calcSlightFactors(i, fragToViewDirec, fragNormal, fragPos);
-        float attenFactor = _calcDistAttenu(distance(fragPos, u_slights[i].m_pos), 1.0, 0.09, 0.032);
-        lightedColor += (diffNSpec.x + diffNSpec.y) * attenFactor * u_slights[i].m_color;
-    }
-
-    return lightedColor;
 }
 
 vec3 calcSlightVolumeColor(int index, vec3 fragPos) {
@@ -303,6 +290,11 @@ vec3 calcSlightVolumeColor(int index, vec3 fragPos) {
     for (int i = 0; i < NUM_STEPS; ++i) {
         vec3 lightToFragDirec = normalize(curPos - u_slights[index].m_pos);
         float lightAngle = dot(lightToFragDirec, u_slights[index].m_direc);
+
+        vec4 curPosInDlight = u_slightProjViewMat[index] * vec4(curPos, 1.0);
+        if (_isPointInSlightShadow(index, curPosInDlight)) {
+            continue;
+        }
 
         if (lightAngle > u_slights[index].m_startFade) {
             accumFactor += 1.0;
