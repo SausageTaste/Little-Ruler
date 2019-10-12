@@ -324,8 +324,8 @@ float _calcFogFactor(vec3 fragPos) {
     return clamp(factor, 0.0, 1.0);
 }
 
-vec4 calcFogMixedColor(vec4 color, vec3 fragPos) {
+vec3 calcFogMixedColor(vec3 color, vec3 fragPos) {
     float factor = _calcFogFactor(fragPos);
-    vec3 mixedColor = mix(color.xyz, u_fogColor, factor);
-    return vec4(mixedColor, color.a);
+    vec3 mixedColor = mix(color, u_fogColor, factor);
+    return mixedColor;
 }
