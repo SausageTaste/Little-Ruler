@@ -25,7 +25,7 @@ def main():
     builder.m_heightMap.setRowMajor(
         heightmap
     )
-    builder.m_heightMap.forEach(lambda h: 4 * h)
+    builder.m_heightMap.forEach(lambda h: 2 * h)
     builder.m_smoothShading = True
     unit.m_mesh = builder
 
@@ -38,13 +38,13 @@ def main():
     actor = model.newStaticActor()
     actor.m_name.set("main_actor")
     actor.m_transform.m_pos.setX(0)
-    actor.m_transform.m_pos.setY(-6)
+    actor.m_transform.m_pos.setY(-4)
 
     ################
 
     water = mapbuild.newWaterPlane()
 
-    water.m_centerPos.setXYZ(0, -4, 0)
+    water.m_centerPos.setXYZ(0, -2, 0)
     water.m_width.set(500)
     water.m_height.set(500)
     water.m_darkestDepth.set(20)
@@ -80,6 +80,35 @@ def main():
     light.m_maxDistance.set(5)
     light.m_color.setXYZ(5, 5, 5)
     light.m_pos.setXYZ(3, 0, 2)
+
+    ################
+
+    model = mapbuild.newEmbeddedModel()
+    model.m_name.set("Hentai 2")
+
+    unit = model.newRenderUnit()
+
+    unit.m_mesh = mes.Rect(
+        pri.Vec3(-1, 1, 0),
+        pri.Vec3(-1, -1, 0),
+        pri.Vec3(1, -1, 0),
+        pri.Vec3(1, 1, 0)
+    )
+    unit.m_material.m_diffuseMap.set("asset::taeguk.png")
+
+    actor = model.newStaticActor()
+    actor.m_name.set("actor1")
+    actor.m_transform.m_pos.setX(10)
+    actor.m_transform.m_pos.setZ(-2)
+
+    actor = model.newStaticActor()
+    actor.m_name.set("actor2")
+    actor.m_transform.m_pos.setX(10)
+    actor.m_transform.m_pos.setZ(2)
+
+    actor = model.newStaticActor()
+    actor.m_name.set("actor2")
+    actor.m_transform.m_pos.setX(10)
 
     ################
 
