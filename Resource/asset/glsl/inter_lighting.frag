@@ -363,7 +363,7 @@ vec3 fresnelSchlick(float cosTheta, vec3 F0) {
     return F0 + (1.0 - F0) * pow(1.0 - cosTheta, 5.0);
 }
 
-vec3 lightingIntergrateStep(vec3 N, vec3 V, vec3 F0, vec3 L, vec3 albedo, vec3 radiance) {
+vec3 lightingIntergrateStep(vec3 N, vec3 V, vec3 F0, vec3 L, vec3 albedo) {
     const float metallic = 0.0;
     const float roughness = 0.7;
 
@@ -383,5 +383,5 @@ vec3 lightingIntergrateStep(vec3 N, vec3 V, vec3 F0, vec3 L, vec3 albedo, vec3 r
 
     float NdotL = max(dot(N, L), 0.0);
 
-    return (kD * albedo / PI + specular) * radiance * NdotL;
+    return (kD * albedo / PI + specular) * NdotL;
 }
