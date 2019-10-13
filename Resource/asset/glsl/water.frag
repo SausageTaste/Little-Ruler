@@ -61,10 +61,10 @@ float makeDepthFactor_exponent(float waterDepth) {
 }
 
 
-vec3 getWorldPosFromDepth(highp float depth, vec2 TexCoord) {
-    highp float z = depth * 2.0 - 1.0;
+vec3 getWorldPosFromDepth(float depth, vec2 TexCoord) {
+    float z = depth * 2.0 - 1.0;
 
-    highp vec4 clipSpacePosition = vec4(TexCoord * 2.0 - 1.0, z, 1.0);
+    vec4 clipSpacePosition = vec4(TexCoord * 2.0 - 1.0, z, 1.0);
     vec4 viewSpacePosition = inverse(u_projMat) * clipSpacePosition;
 
     // Perspective division
