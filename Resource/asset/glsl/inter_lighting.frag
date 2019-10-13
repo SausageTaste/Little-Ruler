@@ -27,13 +27,17 @@ uniform highp int u_slightCount;
 uniform float uShininess;
 uniform float uSpecularStrength;
 uniform float u_envReflectivity;
+
+uniform float u_roughness;
+uniform float u_metallic;
+
 uniform float u_fogMaxPointInvSqr;
 uniform vec3  u_fogColor;
 
 uniform PointLight u_plights[3];
 
 uniform DirecLight u_dlights[3];
-uniform sampler2D  uDlightDepthMap[3];
+uniform highp sampler2D  uDlightDepthMap[3];
 uniform highp mat4 uDlightProjViewMat[3];
 
 uniform SpotLight  u_slights[3];
@@ -44,7 +48,7 @@ uniform samplerCube u_environmentMap;
 
 
 const float PI = 3.14159265;
-const float EPSILON = 0.000000001;
+const float EPSILON = 0.0001;
 
 
 float _getDitherValue(void) {
@@ -66,6 +70,18 @@ vec3 getEnvColor(vec3 fragPos, vec3 fragNormal) {
     vec3 I = normalize(fragPos - uViewPos);
     vec3 R = reflect(I, fragNormal);
     return texture(u_environmentMap, R).rgb * u_envReflectivity;
+}
+
+bool iserr(float v) {
+    if (isnan(v)) {
+        return true;
+    }
+    else if (isinf(v)) {
+        return true;
+    }
+    else {
+        return false;
+    }
 }
 
 
@@ -122,20 +138,16 @@ float _sampleDlightDepth(int index, vec2 coord) {
     return _sampleDlightTexture(index, coord);
 }
 
-float _getShadowFactor_directional(int index, vec4 fragPosInDlight) {
+bool isPointInDlightShadow(int i, vec4 fragPosInDlight) {
     vec3 projCoords = fragPosInDlight.xyz / fragPosInDlight.w;
-    if (projCoords.z > 1.0) return 1.0;
+    if (projCoords.z > 1.0)
+        return false;
 
     projCoords = projCoords * 0.5 + 0.5;
-    float closestDepth = _sampleDlightDepth(index, projCoords.xy);
+    float closestDepth = _sampleDlightDepth(i, projCoords.xy);
     float currentDepth = projCoords.z;
 
-    //float bias = max(0.05 * (1.0 - dot(vNormalVec, -uDlightDirs[index])), 0.005);
-    //float bias = 0.002;
-    float bias = 0.0;
-    float shadow = (currentDepth - bias) > closestDepth ? 0.0 : 1.0;
-
-    return shadow;
+    return currentDepth > closestDepth;
 }
 
 float _getLightFactor_directional(int index, vec3 viewDir, vec3 fragNormal) {
@@ -148,7 +160,7 @@ float _getLightFactor_directional(int index, vec3 viewDir, vec3 fragNormal) {
 }
 
 vec3 getDlightColor(int i, vec3 fragToViewDirec, vec3 fragNormal, vec3 fragPos, vec4 fragPosInShadow) {
-    float factor = _getLightFactor_directional(i, fragToViewDirec, fragNormal) * _getShadowFactor_directional(i, fragPosInShadow);
+    float factor = isPointInDlightShadow(i, fragPosInShadow) ? 0.0 : _getLightFactor_directional(i, fragToViewDirec, fragNormal);
     return factor * u_dlights[i].m_color;
 }
 
@@ -363,23 +375,20 @@ vec3 fresnelSchlick(float cosTheta, vec3 F0) {
     return F0 + (1.0 - F0) * pow(1.0 - cosTheta, 5.0);
 }
 
-vec3 lightingIntergrateStep(vec3 N, vec3 V, vec3 F0, vec3 L, vec3 albedo) {
-    const float metallic = 0.0;
-    const float roughness = 0.7;
-
+vec3 lightingIntegrateStep(vec3 N, vec3 V, vec3 F0, vec3 L, vec3 albedo) {
     vec3 H = normalize(V + L);
 
-    float NDF = DistributionGGX(N, H, roughness);
-    float G   = GeometrySmith(N, V, L, roughness);
+    float NDF = DistributionGGX(N, H, u_roughness);
+    float G   = GeometrySmith(N, V, L, u_roughness);
     vec3  F   = fresnelSchlick(clamp(dot(H, V), 0.0, 1.0), F0);
 
     vec3 nominator    = NDF * G * F;
-    float denominator = 4 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0);
+    float denominator = 4.0 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0);
     vec3 specular = nominator / max(denominator, EPSILON);
 
     vec3 kS = F;
     vec3 kD = vec3(1.0) - kS;
-    kD *= 1.0 - metallic;
+    kD *= 1.0 - u_metallic;
 
     float NdotL = max(dot(N, L), 0.0);
 

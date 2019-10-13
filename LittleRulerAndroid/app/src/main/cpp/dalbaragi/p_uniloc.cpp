@@ -9,7 +9,7 @@
 #include "s_logger_god.h"
 
 
-#define ASSERT_UNILOC 1
+#define ASSERT_UNILOC 0
 
 
 using namespace fmt::literals;
@@ -288,6 +288,10 @@ namespace dal {
         this->uShininess = glGetUniformLocation(shader, "uShininess");
         this->uSpecularStrength = glGetUniformLocation(shader, "uSpecularStrength");
         this->u_envReflectivity = glGetUniformLocation(shader, "u_envReflectivity");
+
+        this->u_roughness = getUniloc(shader, "u_roughness");
+        this->u_metallic = getUniloc(shader, "u_metallic");
+
         this->u_fogMaxPointInvSqr = glGetUniformLocation(shader, "u_fogMaxPointInvSqr");
         this->u_fogColor = glGetUniformLocation(shader, "u_fogColor");
 
@@ -342,6 +346,14 @@ namespace dal {
 
     void UniInterfLightedMesh::envReflectivity(const float x) const {
         glUniform1f(this->u_envReflectivity, x);
+    }
+
+    void UniInterfLightedMesh::roughness(const float v) const {
+        glUniform1f(this->u_roughness, v);
+    }
+
+    void UniInterfLightedMesh::metallic(const float v) const {
+        glUniform1f(this->u_metallic, v);
     }
 
     void UniInterfLightedMesh::fogMaxPoint(const float x) const {

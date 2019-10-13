@@ -31,6 +31,7 @@ void main(void) {
     vec4 texColor = texture(u_diffuseMap, vTexCoord);
 
     // Lighting
+    /*
     vec3 lightedColor = uBaseAmbient;
 
     for ( int i = 0; i < uDlightCount; ++i ) {
@@ -46,27 +47,33 @@ void main(void) {
     fColor.rgb = texColor.rgb * lightedColor;
     fColor.rgb = calcFogMixedColor(fColor.rgb, vFragPos);
     fColor.a = texColor.a;
+    */
 
     vec3 F0 = vec3(0.04);
-    F0 = mix(F0, texColor.rgb, 0.0);
+    F0 = mix(F0, texColor.rgb, u_metallic);
     vec3 pbrL = uBaseAmbient * texColor.rgb;
     for ( int i = 0; i < uPlightCount; ++i ) {
         vec3 radiance = calcPlightRadiance(i, vFragPos);
         vec3 L = normalize(u_plights[i].m_pos - vFragPos);
-        pbrL += lightingIntergrateStep(fragNormal, viewDir, F0, L, texColor.rgb) * radiance;
+        pbrL += lightingIntegrateStep(fragNormal, viewDir, F0, L, texColor.rgb) * radiance;
     }
     for ( int i = 0; i < u_slightCount; ++i ) {
         vec3 radiance = calcSlightRadiance(i, vFragPos);
         vec3 L = normalize(u_slights[i].m_pos - vFragPos);
         bool isInShadow = isPointInSlightShadow(i, v_fragPosInSlight[i]);
-        pbrL += isInShadow ? vec3(0.0) : lightingIntergrateStep(fragNormal, viewDir, F0, L, texColor.rgb) * radiance;
+        pbrL += isInShadow ? vec3(0.0) : lightingIntegrateStep(fragNormal, viewDir, F0, L, texColor.rgb) * radiance;
     }
     for ( int i = 0; i < uDlightCount; ++i ) {
         vec3 radiance = u_dlights[i].m_color;
         vec3 L = normalize(-u_dlights[i].m_direc);
-        float isInShadow = _getShadowFactor_directional(i, vFragPosInDlight[i]);
-        pbrL += isInShadow < 0.5 ? vec3(0.0) : lightingIntergrateStep(fragNormal, viewDir, F0, L, texColor.rgb) * radiance;
+        bool isInShadow = isPointInDlightShadow(i, vFragPosInDlight[i]);
+        pbrL += isInShadow ? vec3(0.0) : lightingIntegrateStep(fragNormal, viewDir, F0, L, texColor.rgb) * radiance;
     }
     fColor.rgb = pbrL;
-    fColor.a = 1.0;
+    fColor.a = texColor.a;
+
+    if (iserr(fColor.r) || iserr(fColor.g) || iserr(fColor.b)) {
+        int shit = int(vFragPos.x + vFragPos.y + vFragPos.z) * 5;
+        fColor.rgb = (shit % 2 == 0) ? vec3(1.0, 0.0, 0.8627450980392157) : vec3(0.0);
+    }
 }

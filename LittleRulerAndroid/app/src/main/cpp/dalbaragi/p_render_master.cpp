@@ -372,6 +372,10 @@ namespace dal {
             uniloc.m_lightedMesh.fogMaxPoint(this->m_farPlaneDistance);
             uniloc.m_lightedMesh.fogColor(this->m_skyColor);
 
+            const auto time = (sin(dal::getTime_sec()) + 1.f) / 2.f;
+            uniloc.m_lightedMesh.roughness(0.3f);
+            uniloc.m_lightedMesh.metallic(time);
+
             this->m_skybox.sendUniform(uniloc.m_lightedMesh);
 
             this->m_scene.renderGeneral(uniloc);
