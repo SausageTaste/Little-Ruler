@@ -71,9 +71,4 @@ void main(void) {
     }
     fColor.rgb = pbrL;
     fColor.a = texColor.a;
-
-    if (iserr(fColor.r) || iserr(fColor.g) || iserr(fColor.b)) {
-        int shit = int(vFragPos.x + vFragPos.y + vFragPos.z) * 5;
-        fColor.rgb = (shit % 2 == 0) ? vec3(1.0, 0.0, 0.8627450980392157) : vec3(0.0);
-    }
 }
