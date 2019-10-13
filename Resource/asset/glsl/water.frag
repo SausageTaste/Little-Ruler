@@ -128,7 +128,7 @@ vec4 calculateWater(vec3 fragNormal, vec2 distortedCoords) {
     gooljulColor = mix(gooljulColor, vec4(u_deepColor, 1.0), depthFactor);
 
     vec3 viewVec = normalize(v_toCamera);
-    float refractiveFactor = pow(dot(viewVec, fragNormal), u_reflectivity);
+    float refractiveFactor = pow(max(dot(viewVec, fragNormal), 0.0), u_reflectivity);
 
     vec4 outColor = mix(bansaColor, gooljulColor, refractiveFactor);
     outColor.a = clamp(waterDepth / 0.5, 0.0, 1.0);
