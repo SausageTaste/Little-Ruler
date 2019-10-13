@@ -72,7 +72,7 @@ def main():
     actor.m_transform.m_pos.setX(3)
     actor.m_transform.m_pos.setY(-3)
     actor.m_transform.m_pos.setZ(-5)
-    actor.m_transform.m_scale.set(3)
+    actor.m_transform.m_scale.set(1)
 
     ################
 
@@ -84,7 +84,7 @@ def main():
     ################
 
     model = mapbuild.newEmbeddedModel()
-    model.m_name.set("Hentai 2")
+    model.m_name.set("Taeguk")
 
     unit = model.newRenderUnit()
 
@@ -109,6 +109,17 @@ def main():
     actor = model.newStaticActor()
     actor.m_name.set("actor2")
     actor.m_transform.m_pos.setX(10)
+
+    ################
+
+    model = mapbuild.newImportedModel()
+    model.m_resourceID.set("asset::sheeptangball.dae")
+
+    actor = model.newStaticActor()
+    actor.m_name.set("main_actor")
+    actor.m_transform.m_pos.setX(6)
+    actor.m_transform.m_pos.setY(-1)
+    actor.m_transform.m_pos.setZ(-5)
 
     ################
 
