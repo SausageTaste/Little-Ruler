@@ -52,4 +52,6 @@ void main(void) {
     }
     fColor.rgb = pbrL;
     fColor.a = texColor.a;
+
+    fColor.rgb = calcFogMixedColor(fColor.rgb, v_fragPos);
 }

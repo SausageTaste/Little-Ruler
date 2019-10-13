@@ -30,25 +30,6 @@ void main(void) {
     vec3 fragNormal = normalize(vNormalVec);
     vec4 texColor = texture(u_diffuseMap, vTexCoord);
 
-    // Lighting
-    /*
-    vec3 lightedColor = uBaseAmbient;
-
-    for ( int i = 0; i < uDlightCount; ++i ) {
-        lightedColor += getDlightColor(i, viewDir, fragNormal, vFragPos, vFragPosInDlight[i]);
-    }
-    lightedColor += getTotalPlightColors(viewDir, fragNormal, vFragPos);
-    for ( int i = 0; i < u_slightCount; ++i ) {
-        lightedColor += getSlightColor(i, viewDir, fragNormal, vFragPos, v_fragPosInSlight[i]);
-    }
-    lightedColor += getEnvColor(vFragPos, fragNormal);
-
-    // Final
-    fColor.rgb = texColor.rgb * lightedColor;
-    fColor.rgb = calcFogMixedColor(fColor.rgb, vFragPos);
-    fColor.a = texColor.a;
-    */
-
     vec3 F0 = vec3(0.04);
     F0 = mix(F0, texColor.rgb, u_metallic);
     vec3 pbrL = uBaseAmbient * texColor.rgb;
@@ -71,4 +52,6 @@ void main(void) {
     }
     fColor.rgb = pbrL;
     fColor.a = texColor.a;
+
+    fColor.rgb = calcFogMixedColor(fColor.rgb, vFragPos);
 }
