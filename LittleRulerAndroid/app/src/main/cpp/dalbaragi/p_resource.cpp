@@ -414,8 +414,6 @@ namespace dal {
         }
     }
 
-    // Private
-
     int MapChunk2::sendLightUniforms(const UniInterfLightedMesh& uniloc, int startIndex) const {
         if ( startIndex >= 3 )
             dalAbort("Too many point lights.");

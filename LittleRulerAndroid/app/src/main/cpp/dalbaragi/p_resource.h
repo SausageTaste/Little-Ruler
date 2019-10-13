@@ -58,7 +58,6 @@ namespace dal {
         void renderOnWaterAnimated(const UnilocAnimate& uniloc, const ICamera& cam, entt::registry& reg);
         void renderOnWaterSkybox(const UnilocSkybox& uniloc, const Skybox& skybox, const ICamera& cam);
 
-    private:
         int sendLightUniforms(const UniInterfLightedMesh& uniloc, int startIndex) const;
 
     };
