@@ -23,7 +23,7 @@ in vec2 vTexCoord;
 in vec3 vNormalVec;
 in vec4 vFragPosInDlight[3];
 in vec4 v_fragPosInSlight[3];
-in vec4 v_clipSpace;
+in highp vec4 v_clipSpace;
 in vec3 v_toCamera;
 
 out vec4 fColor;
