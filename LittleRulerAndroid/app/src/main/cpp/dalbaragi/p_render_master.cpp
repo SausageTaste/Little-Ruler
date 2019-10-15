@@ -174,9 +174,10 @@ namespace dal {
     {
         // Lights
         {
-            this->m_dlight1.m_color = { 1.0f, 0.4f, 0.4f };
+            this->m_dlight1.m_color = { 10.0f, 4.f, 4.f };
             this->m_dlight1.setDirectin(0.26373626373626374f, -0.30726256983240224f, 1.f);
-
+            
+            this->m_slight1.setColor(5.f, 5.f, 5.f);
             this->m_slight1.setPos(-3.f, 0.f, 0.f);
             this->m_slight1.setDirec(-1, -1, 0);
             this->m_slight1.setEndFadeDegree(30.f);

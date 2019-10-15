@@ -130,6 +130,12 @@ namespace dal {
         void setDirec(const glm::vec3& v) {
             this->m_direc = glm::normalize(v);
         }
+        void setColor(const float x, const float y, const float z) {
+            this->m_color = glm::vec3{ x, y, z };
+        }
+        void setColor(const glm::vec3& v) {
+            this->m_color = v;
+        }
 
         void setStartFadeDegree(const float degree) {
             this->m_startFade = cos(glm::radians(degree));
