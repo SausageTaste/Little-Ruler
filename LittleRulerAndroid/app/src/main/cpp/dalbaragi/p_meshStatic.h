@@ -275,26 +275,17 @@ namespace dal {
     class Material {
 
     public:
-        glm::vec3 m_diffuseColor;
         float m_shininess;
         float m_specularStrength;
         float m_reflectivity;
         float m_roughness;
         float m_metallic;
 
-    private:
         glm::vec2 m_texScale;
-        std::shared_ptr<const Texture> m_diffuseMap;
+        std::shared_ptr<const Texture> m_diffuseMap, m_roughnessMap, m_metallicMap;
 
     public:
         Material(void);
-
-        // If paremeter value is 0, old value remains.
-        void setTexScale(float x, float y);
-        void setTexScale(const glm::vec2 v) {
-            this->m_texScale = v;
-        }
-        void setDiffuseMap(const std::shared_ptr<const Texture>& tex);
 
         void sendUniform(const UniInterfLightedMesh& uniloc) const;
         void sendUniform(const UniInterfLightedMesh& unilocLight, const SamplerInterf& samplerInterf) const;

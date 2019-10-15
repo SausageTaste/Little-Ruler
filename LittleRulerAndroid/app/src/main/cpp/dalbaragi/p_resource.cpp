@@ -217,6 +217,40 @@ namespace {
 }
 
 
+// Utils
+namespace {
+
+    void copyMaterial(dal::Material& dst, const dal::binfo::Material& src, dal::ResourceMaster& resMas, const std::string& packageName) {
+        dst.m_shininess = src.m_shininess;
+        dst.m_specularStrength = src.m_specStreng;
+        dst.m_reflectivity = src.m_reflectivity;
+        dst.m_roughness = src.m_roughness;
+        dst.m_metallic = src.m_metallic;
+        dst.m_texScale = src.m_texScale;
+
+        if ( !src.m_diffuseMap.empty() ) {
+            dal::ResourceID texResID{ src.m_diffuseMap };
+            if ( !packageName.empty() )
+                texResID.setPackageIfEmpty(packageName);
+            dst.m_diffuseMap = resMas.orderTexture(texResID, true);
+        }
+        if ( !src.m_roughnessMap.empty() ) {
+            dal::ResourceID texResID{ src.m_diffuseMap };
+            if ( !packageName.empty() )
+                texResID.setPackageIfEmpty(packageName);
+            dst.m_roughnessMap = resMas.orderTexture(texResID, true);
+        }
+        if ( !src.m_metallicMap.empty() ) {
+            dal::ResourceID texResID{ src.m_diffuseMap };
+            if ( !packageName.empty() )
+                texResID.setPackageIfEmpty(packageName);
+            dst.m_metallicMap = resMas.orderTexture(texResID, true);
+        }
+    }
+
+}
+
+
 // Map chunk 2
 namespace dal {
 
@@ -422,8 +456,12 @@ namespace dal {
 
         uniloc.plightCount(startIndex + this->m_plights.size());
         for ( size_t i = 0; i < this->m_plights.size(); i++ ) {
-            if ( i >= 3 ) break;
-            this->m_plights.at(i).sendUniform(uniloc.u_plights[startIndex + i]);
+            if ( i >= 3 ) {
+                break;
+            }
+            else {
+                this->m_plights.at(i).sendUniform(uniloc.u_plights[startIndex + i]);
+            }
         }
 
         return startIndex + this->m_plights.size();
@@ -608,17 +646,7 @@ namespace dal {
                     );
                     unit.m_name = unitInfo.m_name;
 
-                    unit.m_material.m_diffuseColor = unitInfo.m_material.m_baseColor;
-                    unit.m_material.m_shininess = unitInfo.m_material.m_shininess;
-                    unit.m_material.m_specularStrength = unitInfo.m_material.m_specStreng;
-                    unit.m_material.m_reflectivity = 0.f;
-
-                    if ( !unitInfo.m_material.m_diffuseMap.empty() ) {
-                        ResourceID texResID{ unitInfo.m_material.m_diffuseMap };
-                        texResID.setPackageIfEmpty(loaded->in_modelID.getPackage());
-                        auto tex = this->orderTexture(texResID, true);
-                        unit.m_material.setDiffuseMap(tex);
-                    }
+                    copyMaterial(unit.m_material, unitInfo.m_material, *this, loaded->in_modelID.getPackage());
                 }
 
                 loaded->data_coresponding.setBounding(std::unique_ptr<ICollider>{ new ColAABB{ loaded->out_info.m_model.m_aabb } });
@@ -663,17 +691,7 @@ namespace dal {
                 );
                 unit.m_name = unitInfo.m_name;
 
-                unit.m_material.m_diffuseColor = unitInfo.m_material.m_baseColor;
-                unit.m_material.m_shininess = unitInfo.m_material.m_shininess;
-                unit.m_material.m_specularStrength = unitInfo.m_material.m_specStreng;
-
-                if ( !unitInfo.m_material.m_diffuseMap.empty() ) {
-                    ResourceID diffuseResID{ unitInfo.m_material.m_diffuseMap };
-                    diffuseResID.setPackageIfEmpty(loaded->in_modelID.getPackage());
-
-                    auto tex = this->orderTexture(diffuseResID, true);
-                    unit.m_material.setDiffuseMap(tex);
-                }
+                copyMaterial(unit.m_material, unitInfo.m_material, *this, loaded->in_modelID.getPackage());
             }
         }
         else if ( taskTyp == LoadTaskManger::ResTyp::cube_map ) {
@@ -797,16 +815,7 @@ namespace dal {
                     unitInfo.m_mesh.m_vertices.size() / 3
                 );
 
-                unit.m_material.m_diffuseColor = unitInfo.m_material.m_baseColor;
-                unit.m_material.m_shininess = unitInfo.m_material.m_shininess;
-                unit.m_material.m_specularStrength = unitInfo.m_material.m_specStreng;
-                unit.m_material.setTexScale(unitInfo.m_material.m_texScale);
-                unit.m_material.m_reflectivity = unitInfo.m_material.m_reflectivity;
-
-                if ( !unitInfo.m_material.m_diffuseMap.empty() ) {
-                    auto tex = this->orderTexture(unitInfo.m_material.m_diffuseMap, true);
-                    unit.m_material.setDiffuseMap(tex);
-                }
+                copyMaterial(unit.m_material, unitInfo.m_material, *this, "");
             }
 
             // Colliders

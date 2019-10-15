@@ -13,43 +13,55 @@ import dalutils.util.reporter as rep
 
 class Material(inf.IDataBlock):
     def __init__(self):
-        self.__baseColor = pri.Vec3()
         self.__shininess = pri.FloatValue()
         self.__specStreng = pri.FloatValue()
+        self.__reflectivity = pri.FloatValue()
+
+        self.__roughness = pri.FloatValue()
+        self.__metallic = pri.FloatValue()
+
         self.__texScaleX = pri.FloatValue()
         self.__texScaleY = pri.FloatValue()
-        self.__reflectivity = pri.FloatValue()
+
         self.__diffuseMap = pri.StringValue()
-        self.__specularMap = pri.StringValue()
-        self.__flagAlphaBlend = pri.BoolValue()
+        self.__roughnessMap = pri.StringValue()
+        self.__metallicMap = pri.StringValue()
 
         self.setDefault()
 
         super().__init__({
-            "base_color": self.__baseColor,
             "shininess": self.__shininess,
             "spec_strength": self.__specStreng,
+            "reflectivity": self.__reflectivity,
+
+            "roughness": self.__roughness,
+            "metallic": self.__metallic,
+
             "tex_scale_x": self.__texScaleX,
             "tex_scale_y": self.__texScaleY,
-            "reflectivity": self.__reflectivity,
+
             "diffuse_map": self.__diffuseMap,
-            "specular_map": self.__specularMap,
-            "alpha_blend": self.__flagAlphaBlend,
+            "roughness_map": self.__roughnessMap,
+            "metallic_map": self.__metallicMap,
         })
 
     def getBinary(self) -> bytearray:
         return self._makeBinaryAsListed()
 
     def setDefault(self) -> None:
-        self.__baseColor.setXYZ(1, 1, 1)
         self.__shininess.set(32)
         self.__specStreng.set(1)
+        self.__reflectivity.set(0.1)
+
+        self.__roughness.set(0.3)
+        self.__metallic.set(0)
+
         self.__texScaleX.set(1)
         self.__texScaleY.set(1)
-        self.__reflectivity.set(0.1)
+
         self.__diffuseMap.set("")
-        self.__specularMap.set("")
-        self.__flagAlphaBlend.set(False)
+        self.__roughnessMap.set("")
+        self.__metallicMap.set("")
 
     def fillErrReport(self, journal: rep.ErrorJournal) -> None:
         if self.__texScaleX.get() == 0.0:
@@ -63,29 +75,38 @@ class Material(inf.IDataBlock):
             journal.addNote(rep.ErrorNote("diffuse_map -> It must be defined.", rep.ErrorLevel.ERRO))
 
     @property
-    def m_baeColor(self):
-        return self.__baseColor
-    @property
     def m_shininess(self):
         return self.__shininess
     @property
     def m_specStreng(self):
         return self.__specStreng
     @property
+    def m_reflectivity(self):
+        return self.__reflectivity
+
+    @property
+    def m_roughness(self):
+        return self.__roughness
+    @property
+    def m_metallic(self):
+        return self.__metallic
+
+    @property
     def m_texScaleX(self):
         return self.__texScaleX
     @property
     def m_texScaleY(self):
         return self.__texScaleY
-    @property
-    def m_reflectivity(self):
-        return self.__reflectivity
+
     @property
     def m_diffuseMap(self):
         return self.__diffuseMap
     @property
-    def m_specularMap(self):
-        return self.__specularMap
+    def m_roughnessMap(self):
+        return self.__roughnessMap
+    @property
+    def m_metallicMap(self):
+        return self.__metallicMap
 
 
 class Mesh(inf.IDataBlock):

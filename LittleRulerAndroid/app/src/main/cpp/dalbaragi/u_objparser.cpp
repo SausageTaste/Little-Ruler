@@ -187,13 +187,6 @@ namespace {
                 if ( aiReturn_SUCCESS == aiGetMaterialFloat(assMaterial, AI_MATKEY_SHININESS_STRENGTH, &floatBuf) ) {
                     matInfo.m_specStreng = floatBuf;
                 }
-
-                aiColor4D vec4Buf;
-                if ( aiReturn_SUCCESS == aiGetMaterialColor(assMaterial, AI_MATKEY_COLOR_DIFFUSE, &vec4Buf) ) {
-                    matInfo.m_baseColor.r = vec4Buf.r;
-                    matInfo.m_baseColor.g = vec4Buf.g;
-                    matInfo.m_baseColor.b = vec4Buf.b;
-                }
             }
 
             aiString str;
@@ -201,12 +194,6 @@ namespace {
             if ( assMaterial->GetTextureCount(aiTextureType_DIFFUSE) > 0 ) {
                 if ( assMaterial->GetTexture(aiTextureType_DIFFUSE, 0, &str) == aiReturn_SUCCESS ) {
                     matInfo.m_diffuseMap = str.C_Str();
-                }
-            }
-
-            if ( assMaterial->GetTextureCount(aiTextureType_SPECULAR) > 0 ) {
-                if ( assMaterial->GetTexture(aiTextureType_SPECULAR, 0, &str) == aiReturn_SUCCESS ) {
-
                 }
             }
         }

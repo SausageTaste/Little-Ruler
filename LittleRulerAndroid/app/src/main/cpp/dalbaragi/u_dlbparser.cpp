@@ -652,22 +652,23 @@ namespace {
 
     const uint8_t* parseMaterial(dal::binfo::Material& info, const uint8_t* begin, const uint8_t* const end) {
         {
-            float floatBuf[8];
-            begin = assemble4BytesArray<float>(begin, floatBuf, 8);
+            float floatBuf[7];
+            begin = assemble4BytesArray<float>(begin, floatBuf, 7);
 
-            info.m_baseColor.x = floatBuf[0];
-            info.m_baseColor.y = floatBuf[1];
-            info.m_baseColor.z = floatBuf[2];
-            info.m_shininess = floatBuf[3];
-            info.m_specStreng = floatBuf[4];
+            info.m_shininess = floatBuf[0];
+            info.m_specStreng = floatBuf[1];
+            info.m_reflectivity = floatBuf[2];
+
+            info.m_roughness = floatBuf[3];
+            info.m_metallic = floatBuf[4];
+
             info.m_texScale.x = floatBuf[5];
             info.m_texScale.y = floatBuf[6];
-            info.m_reflectivity = floatBuf[7];
         }
 
         begin = parseStr(info.m_diffuseMap, begin, end);
-        begin = parseStr(info.m_specularMap, begin, end);
-        info.m_flagAlphaBlend = makeBool1(begin); begin += 1;
+        begin = parseStr(info.m_roughnessMap, begin, end);
+        begin = parseStr(info.m_metallicMap, begin, end);
 
         return begin;
     }

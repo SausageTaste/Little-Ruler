@@ -18,12 +18,11 @@ namespace dal::binfo {
     };
 
     struct Material {
-        std::string m_diffuseMap, m_specularMap;
-        glm::vec3 m_baseColor;
-        glm::vec2 m_texScale;
-        float m_reflectivity = 0.1f;
+        std::string m_diffuseMap, m_roughnessMap, m_metallicMap;
+        glm::vec2 m_texScale{ 1.f, 1.f };
         float m_shininess = 32.f, m_specStreng = 1.f;
-        bool m_flagAlphaBlend = false;
+        float m_reflectivity = 0.1f;
+        float m_roughness = 0.3f, m_metallic = 0.f;
     };
 
     struct RenderUnit {

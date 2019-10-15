@@ -277,7 +277,7 @@ namespace dal {
 
         this->m_material.m_shininess = info.m_shininess;
         this->m_material.m_specularStrength = info.m_specStreng;
-        this->m_material.setTexScale(info.m_width * TEX_SCALE_FACTOR, info.m_height * TEX_SCALE_FACTOR);
+        this->m_material.m_texScale = glm::vec2{ info.m_width * TEX_SCALE_FACTOR, info.m_height * TEX_SCALE_FACTOR };
     }
 
 
