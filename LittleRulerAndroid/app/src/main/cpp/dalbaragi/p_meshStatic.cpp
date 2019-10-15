@@ -321,10 +321,12 @@ namespace dal {
 namespace dal {
 
     Material::Material(void)
-        : m_shininess(32.0f)
+        : m_diffuseColor(1.0f, 1.0f, 1.0f)
+        , m_shininess(32.0f)
         , m_specularStrength(1.0f)
-        , m_diffuseColor(1.0f, 1.0f, 1.0f)
         , m_reflectivity(0.1f)
+        , m_roughness(0.5f)
+        , m_metallic(0.f)
         , m_texScale(1.0f, 1.0f)
         , m_diffuseMap(nullptr)
     {
@@ -345,6 +347,8 @@ namespace dal {
         uniloc.specularStrength(this->m_specularStrength);
         uniloc.texScale(this->m_texScale);
         uniloc.envReflectivity(this->m_reflectivity);
+        uniloc.roughness(this->m_roughness);
+        uniloc.metallic(this->m_metallic);
     }
 
     void Material::sendUniform(const UniInterfLightedMesh& unilocLight, const SamplerInterf& samplerInterf) const {

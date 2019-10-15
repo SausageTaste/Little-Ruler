@@ -275,10 +275,12 @@ namespace dal {
     class Material {
 
     public:
+        glm::vec3 m_diffuseColor;
         float m_shininess;
         float m_specularStrength;
-        glm::vec3 m_diffuseColor;
         float m_reflectivity;
+        float m_roughness;
+        float m_metallic;
 
     private:
         glm::vec2 m_texScale;
