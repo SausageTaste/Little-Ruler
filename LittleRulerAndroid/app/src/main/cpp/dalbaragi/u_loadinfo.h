@@ -20,7 +20,7 @@ namespace dal::binfo {
     struct Material {
         std::string m_diffuseMap, m_roughnessMap, m_metallicMap;
         glm::vec2 m_texScale{ 1.f, 1.f };
-        float m_roughness = 0.3f, m_metallic = 0.f;
+        float m_roughness = 0.3f, m_metallic = 1.f;
     };
 
     struct RenderUnit {

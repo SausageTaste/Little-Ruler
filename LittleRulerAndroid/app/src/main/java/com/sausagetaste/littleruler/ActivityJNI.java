@@ -38,7 +38,7 @@ public class ActivityJNI extends Activity {
 
         mView.setOnTouchListener(new CallableJNI.MyListener(mView));
 
-        //this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE);
+        this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE);
 
         //getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
         //getWindow().takeKeyEvents(true);
