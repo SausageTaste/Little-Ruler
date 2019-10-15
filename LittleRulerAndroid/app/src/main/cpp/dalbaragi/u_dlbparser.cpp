@@ -653,17 +653,13 @@ namespace {
     const uint8_t* parseMaterial(dal::binfo::Material& info, const uint8_t* begin, const uint8_t* const end) {
         {
             float floatBuf[7];
-            begin = assemble4BytesArray<float>(begin, floatBuf, 7);
+            begin = assemble4BytesArray<float>(begin, floatBuf, 4);
 
-            info.m_shininess = floatBuf[0];
-            info.m_specStreng = floatBuf[1];
-            info.m_reflectivity = floatBuf[2];
+            info.m_roughness = floatBuf[0];
+            info.m_metallic = floatBuf[1];
 
-            info.m_roughness = floatBuf[3];
-            info.m_metallic = floatBuf[4];
-
-            info.m_texScale.x = floatBuf[5];
-            info.m_texScale.y = floatBuf[6];
+            info.m_texScale.x = floatBuf[2];
+            info.m_texScale.y = floatBuf[3];
         }
 
         begin = parseStr(info.m_diffuseMap, begin, end);
@@ -816,8 +812,8 @@ namespace {
     }
 
     const uint8_t* parseWaterPlane(dal::dlb::WaterPlane& info, const uint8_t* begin, const uint8_t* const end) {
-        float fbuf[14];
-        begin = assemble4BytesArray<float>(begin, fbuf, 14);
+        float fbuf[12];
+        begin = assemble4BytesArray<float>(begin, fbuf, 12);
 
         info.m_centerPos.x = fbuf[0];
         info.m_centerPos.y = fbuf[1];
@@ -825,17 +821,15 @@ namespace {
 
         info.m_width = fbuf[3];
         info.m_height = fbuf[4];
-        info.m_shininess = fbuf[5];
-        info.m_specStreng = fbuf[6];
-        info.m_flowSpeed = fbuf[7];
-        info.m_waveStreng = fbuf[8];
-        info.m_darkestDepth = fbuf[9];
+        info.m_flowSpeed = fbuf[5];
+        info.m_waveStreng = fbuf[6];
+        info.m_darkestDepth = fbuf[7];
 
-        info.m_deepColor.x = fbuf[10];
-        info.m_deepColor.y = fbuf[11];
-        info.m_deepColor.z = fbuf[12];
+        info.m_deepColor.x = fbuf[8];
+        info.m_deepColor.y = fbuf[9];
+        info.m_deepColor.z = fbuf[10];
 
-        info.m_reflectivity = fbuf[13];
+        info.m_reflectivity = fbuf[11];
 
         return begin;
     }

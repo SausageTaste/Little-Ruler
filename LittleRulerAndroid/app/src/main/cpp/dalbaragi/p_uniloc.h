@@ -145,10 +145,6 @@ namespace dal {
         GLint uPlightCount;
         GLint u_slightCount;
 
-        GLint uShininess;
-        GLint uSpecularStrength;
-        GLint u_envReflectivity;
-
         GLint u_roughness;
         GLint u_metallic;
 
@@ -174,10 +170,6 @@ namespace dal {
         void dlightCount(const unsigned int x) const;
         void plightCount(const unsigned int x) const;
         void slightCount(const unsigned int x) const;
-
-        void shininess(const float x) const;
-        void specularStrength(const float x) const;
-        void envReflectivity(const float x) const;
 
         void roughness(const float v) const;
         void metallic(const float v) const;

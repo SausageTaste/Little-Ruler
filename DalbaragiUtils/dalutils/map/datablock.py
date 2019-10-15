@@ -13,13 +13,8 @@ import dalutils.util.reporter as rep
 
 class Material(inf.IDataBlock):
     def __init__(self):
-        self.__shininess = pri.FloatValue()
-        self.__specStreng = pri.FloatValue()
-        self.__reflectivity = pri.FloatValue()
-
         self.__roughness = pri.FloatValue()
         self.__metallic = pri.FloatValue()
-
         self.__texScaleX = pri.FloatValue()
         self.__texScaleY = pri.FloatValue()
 
@@ -30,13 +25,8 @@ class Material(inf.IDataBlock):
         self.setDefault()
 
         super().__init__({
-            "shininess": self.__shininess,
-            "spec_strength": self.__specStreng,
-            "reflectivity": self.__reflectivity,
-
             "roughness": self.__roughness,
             "metallic": self.__metallic,
-
             "tex_scale_x": self.__texScaleX,
             "tex_scale_y": self.__texScaleY,
 
@@ -49,13 +39,8 @@ class Material(inf.IDataBlock):
         return self._makeBinaryAsListed()
 
     def setDefault(self) -> None:
-        self.__shininess.set(32)
-        self.__specStreng.set(1)
-        self.__reflectivity.set(0.1)
-
         self.__roughness.set(0.3)
         self.__metallic.set(0)
-
         self.__texScaleX.set(1)
         self.__texScaleY.set(1)
 
@@ -73,16 +58,6 @@ class Material(inf.IDataBlock):
 
         if self.__diffuseMap.get() == "":
             journal.addNote(rep.ErrorNote("diffuse_map -> It must be defined.", rep.ErrorLevel.ERRO))
-
-    @property
-    def m_shininess(self):
-        return self.__shininess
-    @property
-    def m_specStreng(self):
-        return self.__specStreng
-    @property
-    def m_reflectivity(self):
-        return self.__reflectivity
 
     @property
     def m_roughness(self):

@@ -181,11 +181,11 @@ namespace {
                 float floatBuf;
 
                 if ( aiReturn_SUCCESS == aiGetMaterialFloat(assMaterial, AI_MATKEY_SHININESS, &floatBuf) ) {
-                    matInfo.m_shininess = floatBuf;
+
                 }
 
                 if ( aiReturn_SUCCESS == aiGetMaterialFloat(assMaterial, AI_MATKEY_SHININESS_STRENGTH, &floatBuf) ) {
-                    matInfo.m_specStreng = floatBuf;
+
                 }
             }
 

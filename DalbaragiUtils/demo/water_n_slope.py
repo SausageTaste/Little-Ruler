@@ -32,8 +32,6 @@ def main():
     unit.m_material.m_diffuseMap.set("asset::grass1.tga")
     unit.m_material.m_texScaleX.set(50)
     unit.m_material.m_texScaleY.set(50)
-    unit.m_material.m_shininess.set(32)
-    unit.m_material.m_specStreng.set(0.2)
 
     actor = model.newStaticActor()
     actor.m_name.set("main_actor")

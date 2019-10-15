@@ -285,10 +285,6 @@ namespace dal {
         this->uPlightCount = glGetUniformLocation(shader, "uPlightCount");
         this->u_slightCount = glGetUniformLocation(shader, "u_slightCount");
 
-        this->uShininess = glGetUniformLocation(shader, "uShininess");
-        this->uSpecularStrength = glGetUniformLocation(shader, "uSpecularStrength");
-        this->u_envReflectivity = glGetUniformLocation(shader, "u_envReflectivity");
-
         this->u_roughness = getUniloc(shader, "u_roughness");
         this->u_metallic = getUniloc(shader, "u_metallic");
 
@@ -334,18 +330,6 @@ namespace dal {
 
     void UniInterfLightedMesh::slightCount(const unsigned int x) const {
         glUniform1i(this->u_slightCount, x);
-    }
-
-    void UniInterfLightedMesh::shininess(const float x) const {
-        glUniform1f(this->uShininess, x);
-    }
-
-    void UniInterfLightedMesh::specularStrength(const float x) const {
-        glUniform1f(this->uSpecularStrength, x);
-    }
-
-    void UniInterfLightedMesh::envReflectivity(const float x) const {
-        glUniform1f(this->u_envReflectivity, x);
     }
 
     void UniInterfLightedMesh::roughness(const float v) const {

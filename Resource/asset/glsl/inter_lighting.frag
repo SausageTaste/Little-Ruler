@@ -24,10 +24,6 @@ uniform highp int uDlightCount;
 uniform int       uPlightCount;
 uniform highp int u_slightCount;
 
-uniform float uShininess;
-uniform float uSpecularStrength;
-uniform float u_envReflectivity;
-
 uniform float u_roughness;
 uniform float u_metallic;
 
@@ -69,7 +65,7 @@ float _getDitherValue(void) {
 vec3 getEnvColor(vec3 fragPos, vec3 fragNormal) {
     vec3 I = normalize(fragPos - uViewPos);
     vec3 R = reflect(I, fragNormal);
-    return texture(u_environmentMap, R).rgb * u_envReflectivity;
+    return texture(u_environmentMap, R).rgb;
 }
 
 bool iserr(float v) {
@@ -97,17 +93,6 @@ float _computeScattering(float lightDotView) {
 
 float _calcDistAttenu(float fragDist, float constant, float linear, float quadratic) {
     return 1.0 / (constant + linear * fragDist + quadratic * (fragDist * fragDist));
-}
-
-float _calcDiffuse(vec3 fragToLight_n, vec3 fragNormal_n) {
-    return max(dot(fragToLight_n, fragNormal_n), 0.0);
-}
-
-float _calcSpecular(vec3 fragToLight_n, vec3 fragNormal_n, vec3 fragToView_n) {
-    vec3 halfwayDir = normalize(fragToView_n + fragToLight_n);
-    float energyConservation = ( 8.0 + uShininess ) / ( 8.0 * PI );
-    float spec = energyConservation * pow(max(dot(fragNormal_n, halfwayDir), 0.0), uShininess);
-    return max(uSpecularStrength * spec, 0.0);
 }
 
 
@@ -150,20 +135,6 @@ bool isPointInDlightShadow(int i, vec4 fragPosInDlight) {
     return currentDepth > closestDepth;
 }
 
-float _getLightFactor_directional(int index, vec3 viewDir, vec3 fragNormal) {
-    vec3 lightLocDir = normalize(-u_dlights[index].m_direc);
-
-    float diffuse = _calcDiffuse(lightLocDir, fragNormal);
-    float specular = _calcSpecular(lightLocDir, fragNormal, viewDir);
-
-    return diffuse + specular;
-}
-
-vec3 getDlightColor(int i, vec3 fragToViewDirec, vec3 fragNormal, vec3 fragPos, vec4 fragPosInShadow) {
-    float factor = isPointInDlightShadow(i, fragPosInShadow) ? 0.0 : _getLightFactor_directional(i, fragToViewDirec, fragNormal);
-    return factor * u_dlights[i].m_color;
-}
-
 vec3 calcDlightVolumeColor(int index, vec3 fragPos) {
     const int NUM_STEPS = 3;
     const float INTENSITY = 0.05;
@@ -199,40 +170,13 @@ vec3 calcDlightVolumeColor(int index, vec3 fragPos) {
 
 // Point Light
 
-vec2 _calcPlightFactors(int index, vec3 fragToViewDirec, vec3 fragNormal, vec3 fragPos) {
-    vec3 fragToLightDirec = normalize(u_plights[index].m_pos - fragPos);
-
-    float diffuse = _calcDiffuse(fragToLightDirec, fragNormal);
-    float specular = _calcSpecular(fragToLightDirec, fragNormal, fragToViewDirec);
-
-    return vec2(diffuse, specular);
-}
-
 vec3 calcPlightRadiance(int i, vec3 fragPos) {
     float attenFactor = _calcDistAttenu(distance(fragPos, u_plights[i].m_pos), 1.0, 0.09, 0.032);
     return u_plights[i].m_color * attenFactor;
 }
 
-vec3 getTotalPlightColors(vec3 fragToViewDirec, vec3 fragNormal, vec3 fragPos) {
-    vec3 lightedColor = vec3(0.0);
-
-    for (int i = 0; i < uPlightCount; i++) {
-        vec2 diffNSpec = _calcPlightFactors(i, fragToViewDirec, fragNormal, fragPos);
-        lightedColor += (diffNSpec.x + diffNSpec.y) * calcPlightRadiance(i, fragPos);
-    }
-
-    return lightedColor;
-}
-
 
 // Spot Light
-
-vec2 _calcSlightFactors(int index, vec3 fragToView_n, vec3 fragNormal, vec3 fragPos) {
-    vec3 fragToLight_n = normalize(u_slights[index].m_pos - fragPos);
-    float diffuse = _calcDiffuse(fragToLight_n, fragNormal);
-    float specular = _calcSpecular(fragToLight_n, fragNormal, fragToView_n);
-    return vec2(diffuse, specular);
-}
 
 float _calcSlightAtten(int i, vec3 fragPos) {
     vec3 fragToLight_n = normalize(u_slights[i].m_pos - fragPos);
@@ -279,12 +223,6 @@ bool isPointInSlightShadow(int i, vec4 fragPosInSlight) {
 
 vec3 calcSlightRadiance(int i, vec3 fragPos) {
     return u_slights[i].m_color * _calcSlightAtten(i, fragPos);
-}
-
-vec3 getSlightColor(int i, vec3 fragToViewDirec, vec3 fragNormal, vec3 fragPos, vec4 fragPosInShadow) {
-    vec2 diffNSpec = _calcSlightFactors(i, fragToViewDirec, fragNormal, fragPos);
-    bool isInShadow = isPointInSlightShadow(i, fragPosInShadow);
-    return isInShadow ? vec3(0.0) : (diffNSpec.x + diffNSpec.y) * calcSlightRadiance(i, fragPos);
 }
 
 vec3 calcSlightVolumeColor(int index, vec3 fragPos) {

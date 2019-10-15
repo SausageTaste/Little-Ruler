@@ -20,8 +20,6 @@ namespace dal::binfo {
     struct Material {
         std::string m_diffuseMap, m_roughnessMap, m_metallicMap;
         glm::vec2 m_texScale{ 1.f, 1.f };
-        float m_shininess = 32.f, m_specStreng = 1.f;
-        float m_reflectivity = 0.1f;
         float m_roughness = 0.3f, m_metallic = 0.f;
     };
 
@@ -98,7 +96,7 @@ namespace dal::dlb {
 
     struct WaterPlane {
         glm::vec3 m_centerPos, m_deepColor;
-        float m_width, m_height, m_shininess, m_specStreng;
+        float m_width, m_height;
         float m_flowSpeed, m_waveStreng, m_darkestDepth, m_reflectivity;
     };
 

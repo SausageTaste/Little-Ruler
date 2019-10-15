@@ -221,9 +221,6 @@ namespace {
 namespace {
 
     void copyMaterial(dal::Material& dst, const dal::binfo::Material& src, dal::ResourceMaster& resMas, const std::string& packageName) {
-        dst.m_shininess = src.m_shininess;
-        dst.m_specularStrength = src.m_specStreng;
-        dst.m_reflectivity = src.m_reflectivity;
         dst.m_roughness = src.m_roughness;
         dst.m_metallic = src.m_metallic;
         dst.m_texScale = src.m_texScale;

@@ -143,23 +143,34 @@ void main(void) {
     vec2 distoredTexCoords = getDistortedCoords();
     vec3 fragNormal = makeFragNormal(distoredTexCoords);
 
-    // Lighting
-    vec3 lightedColor = uBaseAmbient;
-
-    for (int i = 0; i < uDlightCount; ++i) {
-        vec4 fragPosInLight = vec4(vec3(vFragPosInDlight[i]) + fragNormal * u_waveStrength, 1.0);
-        fragPosInLight.y = vFragPosInDlight[i].y;
-        lightedColor += getDlightColor(i, viewDir, fragNormal, vFragPos, fragPosInLight);
-    }
-    lightedColor += getTotalPlightColors(viewDir, fragNormal, vFragPos);
-    for (int i = 0; i < u_slightCount; ++i) {
-        lightedColor += getSlightColor(i, viewDir, fragNormal, vFragPos, v_fragPosInSlight[i]);
-    }
-
     // Water
     vec4 waterImage = calculateWater(fragNormal, distoredTexCoords);
+    vec4 texColor = waterImage;
+
+    // Lighting
+    vec3 F0 = vec3(0.04);
+    F0 = mix(F0, texColor.rgb, u_metallic);
+    vec3 pbrL = uBaseAmbient * texColor.rgb;
+    for ( int i = 0; i < uPlightCount; ++i ) {
+        vec3 radiance = calcPlightRadiance(i, vFragPos);
+        vec3 L = normalize(u_plights[i].m_pos - vFragPos);
+        pbrL += lightingIntegrateStep(fragNormal, viewDir, F0, L, texColor.rgb) * radiance;
+    }
+    for ( int i = 0; i < u_slightCount; ++i ) {
+        vec3 radiance = calcSlightRadiance(i, vFragPos);
+        vec3 L = normalize(u_slights[i].m_pos - vFragPos);
+        bool isInShadow = isPointInSlightShadow(i, v_fragPosInSlight[i]);
+        pbrL += isInShadow ? vec3(0.0) : lightingIntegrateStep(fragNormal, viewDir, F0, L, texColor.rgb) * radiance;
+    }
+    for ( int i = 0; i < uDlightCount; ++i ) {
+        vec3 radiance = u_dlights[i].m_color;
+        vec3 L = normalize(-u_dlights[i].m_direc);
+        bool isInShadow = isPointInDlightShadow(i, vFragPosInDlight[i]);
+        pbrL += isInShadow ? vec3(0.0) : lightingIntegrateStep(fragNormal, viewDir, F0, L, texColor.rgb) * radiance;
+    }
 
     // Final color
-    fColor = 0.5 * waterImage * (vec4(lightedColor, 1.0) + 1.0);
+    fColor.rgb = mix(waterImage.rgb, pbrL, 0.5);
     fColor.rgb = calcFogMixedColor(fColor.rgb, vFragPos);
+    fColor.a = 1.0;
 }

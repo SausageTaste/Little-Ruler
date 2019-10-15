@@ -275,9 +275,6 @@ namespace dal {
     class Material {
 
     public:
-        float m_shininess;
-        float m_specularStrength;
-        float m_reflectivity;
         float m_roughness;
         float m_metallic;
 

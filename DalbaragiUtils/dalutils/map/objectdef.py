@@ -152,8 +152,6 @@ class WaterPlane(inf.IDataBlock):
         self.__centerPos = pri.Vec3()
         self.__width = pri.FloatValue()
         self.__height = pri.FloatValue()
-        self.__shininess = pri.FloatValue()
-        self.__sepcularStrength = pri.FloatValue()
         self.__flowSpeed = pri.FloatValue()
         self.__waveStrength = pri.FloatValue()
         self.__darkestDepth = pri.FloatValue()
@@ -166,8 +164,6 @@ class WaterPlane(inf.IDataBlock):
             "center_pos" : self.__centerPos,
             "width" : self.__width,
             "height" : self.__height,
-            "shininess" : self.__shininess,
-            "spec_strength" : self.__sepcularStrength,
             "flow_speed" : self.__flowSpeed,
             "wave_strength" : self.__waveStrength,
             "darkest_depth" : self.__darkestDepth,
@@ -176,25 +172,12 @@ class WaterPlane(inf.IDataBlock):
         })
 
     def getBinary(self) -> bytearray:
-        data = bytearray()
-        data += self.__centerPos.getBinary()
-        data += self.__width.getBinary()
-        data += self.__height.getBinary()
-        data += self.__shininess.getBinary()
-        data += self.__sepcularStrength.getBinary()
-        data += self.__flowSpeed.getBinary()
-        data += self.__waveStrength.getBinary()
-        data += self.__darkestDepth.getBinary()
-        data += self.__deepColor.getBinary()
-        data += self.__reflectivity.getBinary()
-        return data
+        return self._makeBinaryAsListed()
 
     def setDefault(self) -> None:
         self.__centerPos.setXYZ(0, 0, 0)
         self.__width.set(1)
         self.__height.set(1)
-        self.__shininess.set(64)
-        self.__sepcularStrength.set(1)
         self.__flowSpeed.set(0.03)
         self.__waveStrength.set(0.02)
         self.__darkestDepth.set(5)
@@ -216,12 +199,6 @@ class WaterPlane(inf.IDataBlock):
     @property
     def m_height(self):
         return self.__height
-    @property
-    def m_sepcularStrength(self):
-        return self.__sepcularStrength
-    @property
-    def m_shininess(self):
-        return self.__shininess
     @property
     def m_flowSpeed(self):
         return self.__flowSpeed
