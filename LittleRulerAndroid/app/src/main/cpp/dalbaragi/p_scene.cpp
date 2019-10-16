@@ -431,8 +431,6 @@ namespace dal {
     }
 
     void SceneGraph::renderAnimate(const UnilocAnimate& uniloc) {
-        this->m_mapChunks2.back().sendLightUniforms(uniloc.m_lightedMesh, 0);
-
         const auto viewAnimated = this->m_entities.view<cpnt::Transform, cpnt::AnimatedModel>();
         for ( const auto entity : viewAnimated ) {
             auto& cpntTrans = viewAnimated.get<cpnt::Transform>(entity);
