@@ -26,6 +26,29 @@ namespace dal {
     };
 
 
+    class UniInterfLightmaps {
+
+    private:
+        SamplerInterf u_diffuseMap;
+        SamplerInterf u_roughnessMap;
+        SamplerInterf u_metallicMap;
+
+    public:
+        UniInterfLightmaps(const GLuint shader);
+
+        const SamplerInterf& getDiffuseMapLoc(void) const {
+            return this->u_diffuseMap;
+        }
+        const SamplerInterf& getRoughnessMapLoc(void) const {
+            return this->u_roughnessMap;
+        }
+        const SamplerInterf& getMetallicMapLoc(void) const {
+            return this->u_metallicMap;
+        }
+
+    };
+
+
     class UniInterfGeometry {
 
     private:
@@ -215,21 +238,13 @@ namespace dal {
 
     class UnilocGeneral {
 
-        //////// Vars ////////
-
     public:
         UniInterfLightedMesh m_lightedMesh;
         UniInterfPlaneClip m_planeClip;
-
-    private:
-        SamplerInterf u_diffuseMap;
-
-        //////// Funcs ////////
+        UniInterfLightmaps m_lightmaps;
 
     public:
         UnilocGeneral(const GLuint shader);
-
-        const SamplerInterf& getDiffuseMapLoc(void) const;
 
     };
 

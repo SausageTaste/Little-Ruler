@@ -232,13 +232,13 @@ namespace {
             dst.m_diffuseMap = resMas.orderTexture(texResID, true);
         }
         if ( !src.m_roughnessMap.empty() ) {
-            dal::ResourceID texResID{ src.m_diffuseMap };
+            dal::ResourceID texResID{ src.m_roughnessMap };
             if ( !packageName.empty() )
                 texResID.setPackageIfEmpty(packageName);
             dst.m_roughnessMap = resMas.orderTexture(texResID, true);
         }
         if ( !src.m_metallicMap.empty() ) {
-            dal::ResourceID texResID{ src.m_diffuseMap };
+            dal::ResourceID texResID{ src.m_metallicMap };
             if ( !packageName.empty() )
                 texResID.setPackageIfEmpty(packageName);
             dst.m_metallicMap = resMas.orderTexture(texResID, true);
@@ -355,7 +355,7 @@ namespace dal {
 
         for ( const auto& [model, actors] : this->m_staticActors ) {
             for ( const auto& actor : actors ) {
-                model->render(uniloc.m_lightedMesh, uniloc.getDiffuseMapLoc(), actor.m_transform.getMat());
+                model->render(uniloc.m_lightedMesh, uniloc.m_lightmaps, actor.m_transform.getMat());
             }
         }
     }
@@ -387,7 +387,7 @@ namespace dal {
 
                 view.each(
                     [&uniloc](const cpnt::Transform& trans, const cpnt::StaticModel& model) {
-                        model.m_model->render(uniloc.m_lightedMesh, uniloc.getDiffuseMapLoc(), trans.getMat());
+                        model.m_model->render(uniloc.m_lightedMesh, uniloc.m_lightmaps, trans.getMat());
                     }
                 );
             }
@@ -399,7 +399,7 @@ namespace dal {
 
                 view.each(
                     [&uniloc](const cpnt::Transform& trans, const cpnt::StaticModel& model) {
-                        model.m_model->render(uniloc.m_lightedMesh, uniloc.getDiffuseMapLoc(), trans.getMat());
+                        model.m_model->render(uniloc.m_lightedMesh, uniloc.m_lightmaps, trans.getMat());
                     }
                 );
             }
@@ -418,7 +418,7 @@ namespace dal {
                     auto& cpntTransform = view.get<cpnt::Transform>(entity);
                     auto& cpntModel = view.get<cpnt::AnimatedModel>(entity);
 
-                    cpntModel.m_model->render(uniloc.m_lightedMesh, uniloc.getDiffuseMapLoc(), uniloc.m_anime, cpntTransform.getMat(),
+                    cpntModel.m_model->render(uniloc.m_lightedMesh, uniloc.m_lightmaps, uniloc.m_anime, cpntTransform.getMat(),
                         cpntModel.m_animState.getTransformArray());
                 }
             }
@@ -431,7 +431,7 @@ namespace dal {
                     auto& cpntTransform = view.get<cpnt::Transform>(entity);
                     auto& cpntModel = view.get<cpnt::AnimatedModel>(entity);
 
-                    cpntModel.m_model->render(uniloc.m_lightedMesh, uniloc.getDiffuseMapLoc(), uniloc.m_anime, cpntTransform.getMat(),
+                    cpntModel.m_model->render(uniloc.m_lightedMesh, uniloc.m_lightmaps, uniloc.m_anime, cpntTransform.getMat(),
                         cpntModel.m_animState.getTransformArray());
                 }
             }
@@ -626,7 +626,6 @@ namespace dal {
                 return;
             }
 
-            //loaded->data_coresponding.init(loaded->in_modelID, loaded->out_info, *this);
             {
                 loaded->data_coresponding.setResID(std::move(loaded->in_modelID));
 
@@ -657,6 +656,7 @@ namespace dal {
             }
 
             loaded->data_handle->init_diffuseMap(loaded->out_img);
+            dalInfo("Texture loaded: {}"_format(loaded->in_texID.makeIDStr()));
         }
         else if ( taskTyp == LoadTaskManger::ResTyp::model_animated ) {
             auto loaded = reinterpret_cast<LoadTaskManger::TaskModelAnimated*>(task.get());

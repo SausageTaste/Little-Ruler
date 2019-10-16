@@ -47,7 +47,7 @@ namespace dal {
         return true;
     }
 
-    void ModelStatic::render(const UniInterfLightedMesh& unilocLighted, const SamplerInterf& samplerInterf, const glm::mat4& modelMat) const {
+    void ModelStatic::render(const UniInterfLightedMesh& unilocLighted, const UniInterfLightmaps& unilocLightmaps, const glm::mat4& modelMat) const {
         if ( !this->isReady() ) {
             return;
         }
@@ -55,7 +55,7 @@ namespace dal {
         unilocLighted.modelMat(modelMat);
 
         for ( const auto& unit : this->m_renderUnits ) {
-            unit.m_material.sendUniform(unilocLighted, samplerInterf);
+            unit.m_material.sendUniform(unilocLighted, unilocLightmaps);
             if ( !unit.m_mesh.isReady() ) {
                 continue;
             }
@@ -122,7 +122,7 @@ namespace dal {
     }
 
 
-    void ModelAnimated::render(const UniInterfLightedMesh& unilocLighted, const SamplerInterf& samplerInterf,
+    void ModelAnimated::render(const UniInterfLightedMesh& unilocLighted, const UniInterfLightmaps& unilocLightmaps,
         const UniInterfAnime& unilocAnime, const glm::mat4 modelMat, const JointTransformArray& transformArr) const
     {
         if ( !this->isReady() ) return;
@@ -130,7 +130,7 @@ namespace dal {
         transformArr.sendUniform(unilocAnime);
 
         for ( auto& unit : this->m_renderUnits ) {
-            unit.m_material.sendUniform(unilocLighted, samplerInterf);
+            unit.m_material.sendUniform(unilocLighted, unilocLightmaps);
             if ( !unit.m_mesh.isReady() ) continue;
 
             unilocLighted.modelMat(modelMat);

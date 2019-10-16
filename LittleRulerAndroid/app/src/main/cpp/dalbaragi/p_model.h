@@ -77,7 +77,7 @@ namespace dal {
 
         bool isReady(void) const;
 
-        void render(const UniInterfLightedMesh& unilocLighted, const SamplerInterf& samplerInterf, const glm::mat4& modelMat) const;
+        void render(const UniInterfLightedMesh& unilocLighted, const UniInterfLightmaps& unilocLightmaps, const glm::mat4& modelMat) const;
         void renderDepth(const UniInterfGeometry& unilocGeometry, const glm::mat4& modelMat) const;
 
     };
@@ -100,7 +100,7 @@ namespace dal {
 
         bool isReady(void) const;
 
-        void render(const UniInterfLightedMesh& unilocLighted, const SamplerInterf& samplerInterf, const UniInterfAnime& unilocAnime,
+        void render(const UniInterfLightedMesh& unilocLighted, const UniInterfLightmaps& unilocLightmaps, const UniInterfAnime& unilocAnime,
             const glm::mat4 modelMat, const JointTransformArray& transformArr) const;
         void renderDepth(const UniInterfGeometry& unilocGeometry, const UniInterfAnime& unilocAnime, const glm::mat4 modelMat,
             const JointTransformArray& transformArr) const;

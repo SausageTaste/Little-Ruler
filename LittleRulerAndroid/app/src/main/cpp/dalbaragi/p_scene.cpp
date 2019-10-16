@@ -425,7 +425,7 @@ namespace dal {
 
         this->m_entities.view<cpnt::Transform, cpnt::StaticModel>().each(
             [&uniloc](const cpnt::Transform& trans, const cpnt::StaticModel& model) {
-                model.m_model->render(uniloc.m_lightedMesh, uniloc.getDiffuseMapLoc(), trans.getMat());
+                model.m_model->render(uniloc.m_lightedMesh, uniloc.m_lightmaps, trans.getMat());
             }
         );
     }
@@ -438,7 +438,7 @@ namespace dal {
             auto& cpntTrans = viewAnimated.get<cpnt::Transform>(entity);
             auto& cpntModel = viewAnimated.get<cpnt::AnimatedModel>(entity);
 
-            cpntModel.m_model->render(uniloc.m_lightedMesh, uniloc.getDiffuseMapLoc(), uniloc.m_anime, cpntTrans.getMat(),
+            cpntModel.m_model->render(uniloc.m_lightedMesh, uniloc.m_lightmaps, uniloc.m_anime, cpntTrans.getMat(),
                 cpntModel.m_animState.getTransformArray());
         }
     }

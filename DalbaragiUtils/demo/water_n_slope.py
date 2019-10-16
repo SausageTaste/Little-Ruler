@@ -121,6 +121,27 @@ def main():
 
     ################
 
+    model = mapbuild.newEmbeddedModel()
+    model.m_name.set("PBR quad")
+
+    unit = model.newRenderUnit()
+
+    unit.m_mesh = mes.Rect(
+        pri.Vec3(-1, -1, 0),
+        pri.Vec3(-1, 1, 0),
+        pri.Vec3(1, 1, 0),
+        pri.Vec3(1, -1, 0)
+    )
+    unit.m_material.m_diffuseMap.set("asset::rustediron2_basecolor.png")
+    unit.m_material.m_roughnessMap.set("asset::rustediron2_roughness.png")
+    unit.m_material.m_metallicMap.set("asset::rustediron2_metallic.png")
+
+    actor = model.newStaticActor()
+    actor.m_name.set("actor1")
+    actor.m_transform.m_pos.setXYZ(7, -1, 5)
+
+    ################
+
     mbu.exportJson(mapbuild, "demo/intermediates/water_n_slope.json")
 
 

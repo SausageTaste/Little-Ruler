@@ -286,6 +286,7 @@ namespace dal {
 
         void sendUniform(const UniInterfLightedMesh& uniloc) const;
         void sendUniform(const UniInterfLightedMesh& unilocLight, const SamplerInterf& samplerInterf) const;
+        void sendUniform(const UniInterfLightedMesh& unilocLight, const UniInterfLightmaps& unilocLightmaps) const;
 
         bool hasDiffuseAlpha(void) const {
             if ( nullptr == this->m_diffuseMap ) {

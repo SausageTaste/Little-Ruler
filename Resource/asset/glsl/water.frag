@@ -154,19 +154,19 @@ void main(void) {
     for ( int i = 0; i < uPlightCount; ++i ) {
         vec3 radiance = calcPlightRadiance(i, vFragPos);
         vec3 L = normalize(u_plights[i].m_pos - vFragPos);
-        pbrL += lightingIntegrateStep(fragNormal, viewDir, F0, L, texColor.rgb) * radiance;
+        pbrL += lightingIntegrateStep(fragNormal, viewDir, F0, L, texColor.rgb, u_roughness, u_metallic) * radiance;
     }
     for ( int i = 0; i < u_slightCount; ++i ) {
         vec3 radiance = calcSlightRadiance(i, vFragPos);
         vec3 L = normalize(u_slights[i].m_pos - vFragPos);
         bool isInShadow = isPointInSlightShadow(i, v_fragPosInSlight[i]);
-        pbrL += isInShadow ? vec3(0.0) : lightingIntegrateStep(fragNormal, viewDir, F0, L, texColor.rgb) * radiance;
+        pbrL += isInShadow ? vec3(0.0) : lightingIntegrateStep(fragNormal, viewDir, F0, L, texColor.rgb, u_roughness, u_metallic) * radiance;
     }
     for ( int i = 0; i < uDlightCount; ++i ) {
         vec3 radiance = u_dlights[i].m_color;
         vec3 L = normalize(-u_dlights[i].m_direc);
         bool isInShadow = isPointInDlightShadow(i, vFragPosInDlight[i]);
-        pbrL += isInShadow ? vec3(0.0) : lightingIntegrateStep(fragNormal, viewDir, F0, L, texColor.rgb) * radiance;
+        pbrL += isInShadow ? vec3(0.0) : lightingIntegrateStep(fragNormal, viewDir, F0, L, texColor.rgb, u_roughness, u_metallic) * radiance;
     }
 
     // Final color

@@ -109,6 +109,19 @@ namespace dal {
 
 }
 
+
+// UniInterfLightmaps
+namespace dal {
+
+    UniInterfLightmaps::UniInterfLightmaps(const GLuint shader) {
+        this->u_diffuseMap.init(getUniloc(shader, "u_diffuseMap"), -2, g_texUnitReg["u_diffuseMap"]);
+        this->u_roughnessMap.init(getUniloc(shader, "u_roughnessMap"), getUniloc(shader, "u_hasRoughnessMap"), g_texUnitReg["u_roughnessMap"]);
+        this->u_metallicMap.init(getUniloc(shader, "u_metallicMap"), getUniloc(shader, "u_hasMetallicMap"), g_texUnitReg["u_metallicMap"]);
+    }
+
+}
+
+
 // UniInterfGeometry
 namespace dal {
 
@@ -209,7 +222,6 @@ namespace dal {
     }
 
 }
-
 
 
 // DirecLight
@@ -416,12 +428,9 @@ namespace dal {
     UnilocGeneral::UnilocGeneral(const GLuint shader)
         : m_lightedMesh(shader)
         , m_planeClip(shader)
+        , m_lightmaps(shader)
     {
-        this->u_diffuseMap.init(getUniloc(shader, "u_diffuseMap"), -2, g_texUnitReg["u_diffuseMap"]);
-    }
-
-    const SamplerInterf& UnilocGeneral::getDiffuseMapLoc(void) const {
-        return this->u_diffuseMap;
+        
     }
 
 }

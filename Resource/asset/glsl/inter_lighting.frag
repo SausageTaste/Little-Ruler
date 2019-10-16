@@ -277,8 +277,8 @@ vec3 calcFogMixedColor(vec3 color, vec3 fragPos) {
 
 // PBR
 
-float DistributionGGX(float NdotH) {
-    float a = u_roughness * u_roughness;
+float DistributionGGX(float NdotH, float roughness) {
+    float a = roughness;
     float a2 = a*a;
     float NdotH2 = NdotH*NdotH;
 
@@ -289,8 +289,8 @@ float DistributionGGX(float NdotH) {
     return nom / max(denom, EPSILON); // prevent divide by zero for roughness=0.0 and NdotH=1.0
 }
 
-float GeometrySchlickGGX(float NdotV) {
-    float r = (u_roughness + 1.0);
+float GeometrySchlickGGX(float NdotV, float roughness) {
+    float r = (roughness + 1.0);
     float k = (r*r) / 8.0;
 
     float nom   = NdotV;
@@ -299,9 +299,9 @@ float GeometrySchlickGGX(float NdotV) {
     return nom / denom;
 }
 
-float GeometrySmith(float NdotV, float NdotL) {
-    float ggx2 = GeometrySchlickGGX(NdotV);
-    float ggx1 = GeometrySchlickGGX(NdotL);
+float GeometrySmith(float NdotV, float NdotL, float roughness) {
+    float ggx2 = GeometrySchlickGGX(NdotV, roughness);
+    float ggx1 = GeometrySchlickGGX(NdotL, roughness);
     return ggx1 * ggx2;
 }
 
@@ -309,15 +309,15 @@ vec3 fresnelSchlick(float cosTheta, vec3 F0) {
     return F0 + (1.0 - F0) * pow(1.0 - cosTheta, 5.0);
 }
 
-vec3 lightingIntegrateStep(vec3 N, vec3 V, vec3 F0, vec3 L, vec3 albedo) {
+vec3 lightingIntegrateStep(vec3 N, vec3 V, vec3 F0, vec3 L, vec3 albedo, float roughness, float metallic) {
     vec3 H = normalize(V + L);
 
     float NdotL = max(dot(N, L), 0.0);
     float NdotV = max(dot(N, V), 0.0);
     float NdotH = max(dot(N, H), 0.0);
 
-    float NDF = DistributionGGX(NdotH);
-    float G   = GeometrySmith(NdotV, NdotL);
+    float NDF = DistributionGGX(NdotH, roughness);
+    float G   = GeometrySmith(NdotV, NdotL, roughness);
     vec3  F   = fresnelSchlick(NdotH, F0);
 
     vec3  nominator   = NDF * G * F;
@@ -325,7 +325,7 @@ vec3 lightingIntegrateStep(vec3 N, vec3 V, vec3 F0, vec3 L, vec3 albedo) {
     vec3  specular    = nominator / max(denominator, EPSILON);
 
     vec3 kD = vec3(1.0) - F;
-    kD *= 1.0 - u_metallic;
+    kD *= 1.0 - metallic;
 
     return (kD * albedo / PI + specular) * NdotL;
 }
