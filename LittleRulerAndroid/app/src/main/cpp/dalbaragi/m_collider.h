@@ -470,6 +470,9 @@ namespace dal {
         void addTriangle(const Triangle& tri) {
             this->m_triangles.push_back(tri);
         }
+        Triangle& emplaceTriangle(const glm::vec3& p1, const glm::vec3& p2, const glm::vec3& p3) {
+            return this->m_triangles.emplace_back(p1, p2, p3);
+        }
         void reserve(const size_t size) {
             this->m_triangles.reserve(size);
         }

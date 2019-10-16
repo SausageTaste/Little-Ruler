@@ -8,6 +8,7 @@ namespace dal {
 
     struct AssimpModelInfo {
         binfo::Model m_model;
+        std::unique_ptr<ICollider> m_detailedCol;
         std::vector<Animation> m_animations;
     };
 

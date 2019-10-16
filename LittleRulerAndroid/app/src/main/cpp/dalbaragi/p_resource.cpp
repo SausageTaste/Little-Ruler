@@ -628,6 +628,7 @@ namespace dal {
 
             {
                 loaded->data_coresponding.setResID(std::move(loaded->in_modelID));
+                loaded->data_coresponding.setDetailed(std::move(loaded->out_info.m_detailedCol));
 
                 loaded->data_coresponding.clearRenderUnits();
                 loaded->data_coresponding.reserveRenderUnits(loaded->out_info.m_model.m_renderUnits.size());

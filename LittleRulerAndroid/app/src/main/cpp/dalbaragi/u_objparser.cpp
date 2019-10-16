@@ -311,29 +311,40 @@ namespace {
     }
 
     // I don't know if big endian systems cannot use this algorithm.
-    void copy3BasicVertexInfo(std::vector<float>& vertices, std::vector<float>& texcoords, std::vector<float>& normals, const aiMesh* const mesh) {
+    void copy3BasicVertexInfo(std::vector<float>& vertices, std::vector<float>& texcoords, std::vector<float>& normals,
+        const aiMesh* const mesh, dal::ColTriangleSoup& detailed)
+    {
         dalAssert(sizeof(aiVector3D) == sizeof(float) * 3);
 
-        vertices.resize(mesh->mNumVertices * 3);
-        texcoords.resize(mesh->mNumVertices * 2);
-        normals.resize(mesh->mNumVertices * 3);
+        vertices.resize(static_cast<size_t>(mesh->mNumVertices) * 3);
+        texcoords.resize(static_cast<size_t>(mesh->mNumVertices) * 2);
+        normals.resize(static_cast<size_t>(mesh->mNumVertices) * 3);
 
-        const auto sizeFor3 = mesh->mNumVertices * 3 * sizeof(float);
+        const auto sizeFor3 = static_cast<size_t>(mesh->mNumVertices) * 3 * sizeof(float);
         std::memcpy(vertices.data(), mesh->mVertices, sizeFor3);
         std::memcpy(normals.data(), mesh->mNormals, sizeFor3);
 
-        for ( unsigned int i = 0; i < mesh->mNumVertices; i++ ) {
+        for ( size_t i = 0; i < mesh->mNumVertices; i++ ) {
             const auto& tex = mesh->mTextureCoords[0][i];
             texcoords[2 * i + 0] = tex.x;
             texcoords[2 * i + 1] = tex.y;
         }
+
+        const auto numTriangles = vertices.size() / 9;
+        for ( size_t i = 0; i < numTriangles; ++i ) {
+            const glm::vec3 p1{ vertices[9 * i + 0], vertices[9 * i + 1], vertices[9 * i + 2] };
+            const glm::vec3 p2{ vertices[9 * i + 3], vertices[9 * i + 4], vertices[9 * i + 5] };
+            const glm::vec3 p3{ vertices[9 * i + 6], vertices[9 * i + 7], vertices[9 * i + 8] };
+
+            detailed.emplaceTriangle(p1, p2, p3);
+        }
     }
 
     bool processMeshAnimated(dal::binfo::RenderUnit& renUnit, dal::SkeletonInterface& jointInfo,
-        dal::AABB& aabb, aiMesh* const mesh)
+        dal::AABB& aabb, aiMesh* const mesh, dal::ColTriangleSoup& detailed)
     {
         renUnit.m_name = reinterpret_cast<char*>(&mesh->mName);
-        copy3BasicVertexInfo(renUnit.m_mesh.m_vertices, renUnit.m_mesh.m_texcoords, renUnit.m_mesh.m_normals, mesh);
+        copy3BasicVertexInfo(renUnit.m_mesh.m_vertices, renUnit.m_mesh.m_texcoords, renUnit.m_mesh.m_normals, mesh, detailed);
         updateAABB(mesh, aabb);
 
         if ( mesh->mNumBones > 0 ) {
@@ -390,20 +401,20 @@ namespace {
 namespace {
 
     bool processNodeAnimated(dal::binfo::Model& info, const std::vector<dal::binfo::Material>& materials,
-        dal::AABB& aabbInfo, const aiScene* const scene, const aiNode* const node)
+        dal::AABB& aabbInfo, const aiScene* const scene, const aiNode* const node, dal::ColTriangleSoup& detailed)
     {
         info.m_renderUnits.reserve(node->mNumMeshes);
         for ( unsigned int i = 0; i < node->mNumMeshes; i++ ) {
             aiMesh* ai_mesh = scene->mMeshes[node->mMeshes[i]];
             auto& renUnit = info.m_renderUnits.emplace_back();
-            if ( !processMeshAnimated(renUnit, info.m_joints, aabbInfo, ai_mesh) ) {
+            if ( !processMeshAnimated(renUnit, info.m_joints, aabbInfo, ai_mesh, detailed) ) {
                 return false;
             }
             renUnit.m_material = materials.at(ai_mesh->mMaterialIndex);
         }
 
         for ( unsigned int i = 0; i < node->mNumChildren; i++ ) {
-            if ( !processNodeAnimated(info, materials, aabbInfo, scene, node->mChildren[i]) ) {
+            if ( !processNodeAnimated(info, materials, aabbInfo, scene, node->mChildren[i], detailed) ) {
                 return false;
             }
         }
@@ -429,7 +440,9 @@ namespace dal {
         info.m_model.m_globalTrans = convertAssimpMat(scene->mRootNode->mTransformation);
 
         dal::AABB aabbInfo;
-        const auto res = processNodeAnimated(info.m_model, materials, info.m_model.m_aabb, scene, scene->mRootNode);
+        auto soup = new dal::ColTriangleSoup;
+        info.m_detailedCol.reset(soup);
+        const auto res = processNodeAnimated(info.m_model, materials, info.m_model.m_aabb, scene, scene->mRootNode, *soup);
         //TODO : Error handling.
 
         if ( info.m_model.m_joints.getSize() > 0 ) {
