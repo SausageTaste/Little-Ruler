@@ -314,7 +314,7 @@ namespace {
     void copy3BasicVertexInfo(std::vector<float>& vertices, std::vector<float>& texcoords, std::vector<float>& normals,
         const aiMesh* const mesh, dal::ColTriangleSoup& detailed)
     {
-        dalAssert(sizeof(aiVector3D) == sizeof(float) * 3);
+        static_assert(sizeof(aiVector3D) == sizeof(float) * 3);
 
         vertices.resize(static_cast<size_t>(mesh->mNumVertices) * 3);
         texcoords.resize(static_cast<size_t>(mesh->mNumVertices) * 2);
@@ -330,14 +330,20 @@ namespace {
             texcoords[2 * i + 1] = tex.y;
         }
 
-        const auto numTriangles = vertices.size() / 9;
+        const auto numTriangles = static_cast<size_t>(mesh->mNumVertices) / 3;
+        /*
+        detailed.reserve(numTriangles);
         for ( size_t i = 0; i < numTriangles; ++i ) {
             const glm::vec3 p1{ vertices[9 * i + 0], vertices[9 * i + 1], vertices[9 * i + 2] };
             const glm::vec3 p2{ vertices[9 * i + 3], vertices[9 * i + 4], vertices[9 * i + 5] };
             const glm::vec3 p3{ vertices[9 * i + 6], vertices[9 * i + 7], vertices[9 * i + 8] };
-
             detailed.emplaceTriangle(p1, p2, p3);
         }
+        /*/
+        const auto sizeBefore = detailed.getSize();
+        detailed.resize(sizeBefore + numTriangles);
+        std::memcpy(detailed.data() + sizeBefore, mesh->mVertices, numTriangles * sizeof(dal::Triangle));
+        //*/
     }
 
     bool processMeshAnimated(dal::binfo::RenderUnit& renUnit, dal::SkeletonInterface& jointInfo,

@@ -476,6 +476,13 @@ namespace dal {
         void reserve(const size_t size) {
             this->m_triangles.reserve(size);
         }
+        void resize(const size_t size) {
+            this->m_triangles.resize(size);
+        }
+        auto data(void) {
+            static_assert(sizeof(float) * 9 == sizeof(Triangle));
+            return this->m_triangles.data();
+        }
 
     };
 
