@@ -305,7 +305,7 @@ namespace dal {
         }
     }
 
-    std::optional<RayCastingResult> MapChunk2::castRayToClosest(const Ray& ray) const {
+    std::optional<RayCastingResult> MapChunk2::castRayToClosest(const Segment& ray) const {
         float closestDistance = std::numeric_limits<float>::max();
         std::optional<RayCastingResult> result{ std::nullopt };
 

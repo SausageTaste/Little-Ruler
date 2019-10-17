@@ -283,7 +283,7 @@ namespace dal {
         }
     }
 
-    std::optional<RayCastingResult> MapChunk::doRayCasting(const Ray& ray) {
+    std::optional<RayCastingResult> MapChunk::doRayCasting(const Segment& ray) {
         RayCastingResult result;
         bool found = false;
 
@@ -495,7 +495,7 @@ namespace dal {
         }
     }
 
-    std::optional<RayCastingResult> SceneGraph::doRayCasting(const Ray& ray) {
+    std::optional<RayCastingResult> SceneGraph::doRayCasting(const Segment& ray) {
         std::optional<RayCastingResult> result{ std::nullopt };
         float closestDist = std::numeric_limits<float>::max();
 

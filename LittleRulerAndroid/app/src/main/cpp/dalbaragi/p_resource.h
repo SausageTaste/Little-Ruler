@@ -49,7 +49,7 @@ namespace dal {
         }
 
         void applyCollision(const ICollider& inCol, cpnt::Transform& inTrans);
-        std::optional<RayCastingResult> castRayToClosest(const Ray& ray) const;
+        std::optional<RayCastingResult> castRayToClosest(const Segment& ray) const;
 
         void renderGeneral(const UnilocGeneral& uniloc);
         void renderDepthGeneral(const UnilocDepthmp& uniloc);

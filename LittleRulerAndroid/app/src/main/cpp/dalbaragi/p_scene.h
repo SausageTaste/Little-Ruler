@@ -55,7 +55,7 @@ namespace dal {
 
         // Only for objects that are outside of this chunk.
         void applyCollision(const AABB& inOriginalBox, cpnt::Transform& inTrans);
-        std::optional<RayCastingResult> doRayCasting(const Ray& ray);
+        std::optional<RayCastingResult> doRayCasting(const Segment& ray);
 
         WaterRenderer* getWater(const size_t index);
         ActorInfo* addActor(ModelStaticHandle const model, const std::string& actorName, bool flagStatic, ResourceMaster& resMas);
@@ -99,7 +99,7 @@ namespace dal {
         void renderOnWaterSkybox(const UnilocSkybox& uniloc, const Skybox& skybox, const ICamera& cam);
 
         void applyCollision(const ICollider& inCol, cpnt::Transform& inTrans);
-        std::optional<RayCastingResult> doRayCasting(const Ray& ray);
+        std::optional<RayCastingResult> doRayCasting(const Segment& ray);
 
         void onResize(const unsigned int width, const unsigned int height);
 

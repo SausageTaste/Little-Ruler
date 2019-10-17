@@ -198,15 +198,15 @@ namespace dal {
 // Primitive colliders
 namespace dal {
 
-    class Ray {
+    class Segment {
 
     private:
         glm::vec3 m_pos, m_rel;
         float m_len;
 
     public:
-        Ray(void);
-        Ray(const glm::vec3& pos, const glm::vec3& rel);
+        Segment(void);
+        Segment(const glm::vec3& pos, const glm::vec3& rel);
 
         const glm::vec3& getStartPos(void) const {
             return this->m_pos;
@@ -486,14 +486,14 @@ namespace dal {
 namespace dal {
 
     bool checkCollisionAbs(const ICollider& one, const ICollider& two, const Transform& transOne, const Transform& transTwo);
-    bool checkCollisionAbs(const Ray& ray, const ICollider& col, const Transform& transCol);
+    bool checkCollisionAbs(const Segment& ray, const ICollider& col, const Transform& transCol);
 
-    bool checkCollision(const Ray& ray, const Plane& plane);
-    bool checkCollision(const Ray& ray, const Sphere& sphere);
-    bool checkCollision(const Ray& ray, const Sphere& sphere, const Transform& transSphere);
-    bool checkCollision(const Ray& ray, const Triangle& tri);
-    bool checkCollision(const Ray& ray, const AABB& aabb);
-    bool checkCollision(const Ray& ray, const AABB& aabb, const Transform& transAABB);
+    bool checkCollision(const Segment& ray, const Plane& plane);
+    bool checkCollision(const Segment& ray, const Sphere& sphere);
+    bool checkCollision(const Segment& ray, const Sphere& sphere, const Transform& transSphere);
+    bool checkCollision(const Segment& ray, const Triangle& tri);
+    bool checkCollision(const Segment& ray, const AABB& aabb);
+    bool checkCollision(const Segment& ray, const AABB& aabb, const Transform& transAABB);
 
     bool checkCollision(const Plane& plane, const Sphere& sphere);
     bool checkCollision(const Plane& plane, const Sphere& sphere, const Transform& transSphere);
@@ -531,13 +531,13 @@ namespace dal {
 // calcCollisionInfo funcs
 namespace dal {
 
-    std::optional<RayCastingResult> calcCollisionInfoAbs(const Ray& ray, const ICollider& col, const Transform& transCol);
+    std::optional<RayCastingResult> calcCollisionInfoAbs(const Segment& ray, const ICollider& col, const Transform& transCol);
 
-    std::optional<RayCastingResult> calcCollisionInfo(const Ray& ray, const Triangle& tri, const bool ignoreFromBack = false);
-    std::optional<RayCastingResult> calcCollisionInfo(const Ray& ray, const Sphere& sphere, const Transform& transSphere);
-    std::optional<RayCastingResult> calcCollisionInfo(const Ray& ray, const Plane& plane);
-    std::optional<RayCastingResult> calcCollisionInfo(const Ray& ray, const AABB& aabb);
-    std::optional<RayCastingResult> calcCollisionInfo(const Ray& ray, const AABB& aabb, const Transform& transAABB);
-    std::optional<RayCastingResult> calcCollisionInfo(const Ray& ray, const ColTriangleSoup triSoup, const Transform& transTriSoup);
+    std::optional<RayCastingResult> calcCollisionInfo(const Segment& ray, const Triangle& tri, const bool ignoreFromBack = false);
+    std::optional<RayCastingResult> calcCollisionInfo(const Segment& ray, const Sphere& sphere, const Transform& transSphere);
+    std::optional<RayCastingResult> calcCollisionInfo(const Segment& ray, const Plane& plane);
+    std::optional<RayCastingResult> calcCollisionInfo(const Segment& ray, const AABB& aabb);
+    std::optional<RayCastingResult> calcCollisionInfo(const Segment& ray, const AABB& aabb, const Transform& transAABB);
+    std::optional<RayCastingResult> calcCollisionInfo(const Segment& ray, const ColTriangleSoup triSoup, const Transform& transTriSoup);
 
 }

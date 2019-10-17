@@ -279,7 +279,7 @@ namespace {
         return false;
     }
 
-    bool checkCollision_rayVsMinMax(const dal::Ray& ray, const glm::vec3& aabbMin, const glm::vec3& aabbMax) {
+    bool checkCollision_rayVsMinMax(const dal::Segment& ray, const glm::vec3& aabbMin, const glm::vec3& aabbMax) {
         // From https://www.scratchapixel.com/lessons/3d-basic-rendering/minimal-ray-tracer-rendering-simple-shapes/ray-box-intersection
 
         const glm::vec3 bounds[2] = { aabbMin, aabbMax };
@@ -683,10 +683,10 @@ namespace dal {
 }
 
 
-// Ray
+// Segment
 namespace dal {
 
-    Ray::Ray(void)
+    Segment::Segment(void)
         : m_pos(0.f, 0.f, 0.f)
         , m_rel(0.f, 1.f, 0.f)
         , m_len(1.f)
@@ -694,7 +694,7 @@ namespace dal {
 
     }
 
-    Ray::Ray(const glm::vec3& pos, const glm::vec3& rel)
+    Segment::Segment(const glm::vec3& pos, const glm::vec3& rel)
         : m_pos(pos)
         , m_rel(rel)
         , m_len(glm::length(rel))
@@ -702,13 +702,13 @@ namespace dal {
         dalAssert(this->m_len > 0.0f);
     }
 
-    void Ray::setRel(const glm::vec3 v) {
+    void Segment::setRel(const glm::vec3 v) {
         this->m_rel = v;
         this->m_len = glm::length(this->m_rel);
         dalAssert(this->m_len > 0.0f);
     }
 
-    glm::vec3 Ray::projectPointOn(const glm::vec3 p) const {
+    glm::vec3 Segment::projectPointOn(const glm::vec3 p) const {
         // From https://answers.unity.com/questions/62644/distance-between-a-ray-and-a-point.html
 
         const auto rhs = p - this->m_pos;
@@ -722,7 +722,7 @@ namespace dal {
         return this->m_pos + (lhs * num2);
     }
 
-    float Ray::calcDistance(const glm::vec3 p) const {
+    float Segment::calcDistance(const glm::vec3 p) const {
         const auto projected = this->projectPointOn(p);
         return glm::length(projected - p);
     }
@@ -936,7 +936,7 @@ namespace dal {
         return g_colResolver.checkCollision(one, two, transOne, transTwo);
     }
 
-    bool checkCollisionAbs(const Ray& ray, const ICollider& col, const Transform& transCol) {
+    bool checkCollisionAbs(const Segment& ray, const ICollider& col, const Transform& transCol) {
         const auto colType = col.getColType();
         switch ( colType ) {
 
@@ -961,7 +961,7 @@ namespace dal {
     }
 
 
-    bool checkCollision(const Ray& ray, const Plane& plane) {
+    bool checkCollision(const Segment& ray, const Plane& plane) {
         const auto pointA = ray.getStartPos();
         const auto pointB = pointA + ray.getRel();
 
@@ -971,7 +971,7 @@ namespace dal {
         return (distA * distB) <= 0.0f;
     }
 
-    bool checkCollision(const Ray& ray, const Sphere& sphere) {
+    bool checkCollision(const Segment& ray, const Sphere& sphere) {
         if ( sphere.isInside(ray.getStartPos()) ) {
             return true;
         }
@@ -983,11 +983,11 @@ namespace dal {
         }
     }
 
-    bool checkCollision(const Ray& ray, const Sphere& sphere, const Transform& transSphere) {
+    bool checkCollision(const Segment& ray, const Sphere& sphere, const Transform& transSphere) {
         return checkCollision(ray, sphere.transform(transSphere));
     }
 
-    bool checkCollision(const Ray& ray, const Triangle& tri) {
+    bool checkCollision(const Segment& ray, const Triangle& tri) {
         const Plane plane{ tri.getPoint1(), tri.getPoint2(), tri.getPoint3() };
         const auto planeCollision = calcCollisionInfo(ray, plane);
 
@@ -1000,11 +1000,11 @@ namespace dal {
         }
     }
 
-    bool checkCollision(const Ray& ray, const AABB& aabb) {
+    bool checkCollision(const Segment& ray, const AABB& aabb) {
         return checkCollision_rayVsMinMax(ray, aabb.getPoint000(), aabb.getPoint111());
     }
 
-    bool checkCollision(const Ray& ray, const AABB& aabb, const Transform& transAABB) {
+    bool checkCollision(const Segment& ray, const AABB& aabb, const Transform& transAABB) {
         return checkCollision_rayVsMinMax(ray,
             transAABB.getScale() * aabb.getPoint000() + transAABB.getPos(),
             transAABB.getScale() * aabb.getPoint111() + transAABB.getPos()
@@ -1146,7 +1146,7 @@ namespace dal {
 // calcCollisionInfo funcs
 namespace dal {
 
-    std::optional<RayCastingResult> calcCollisionInfoAbs(const Ray& ray, const ICollider& col, const Transform& transCol) {
+    std::optional<RayCastingResult> calcCollisionInfoAbs(const Segment& ray, const ICollider& col, const Transform& transCol) {
         const auto colType = col.getColType();
         switch ( colType ) {
 
@@ -1172,7 +1172,7 @@ namespace dal {
     }
 
 
-    std::optional<RayCastingResult> calcCollisionInfo(const Ray& ray, const Plane& plane) {
+    std::optional<RayCastingResult> calcCollisionInfo(const Segment& ray, const Plane& plane) {
         const auto pointA = ray.getStartPos();
         const auto pointB = pointA + ray.getRel();
 
@@ -1189,7 +1189,7 @@ namespace dal {
         return RayCastingResult{ distA > distB, distance };
     }
 
-    std::optional<RayCastingResult> calcCollisionInfo(const Ray& ray, const Triangle& tri, const bool ignoreFromBack) {
+    std::optional<RayCastingResult> calcCollisionInfo(const Segment& ray, const Triangle& tri, const bool ignoreFromBack) {
         Plane plane{ tri.getPoint1(), tri.getPoint2(), tri.getPoint3() };
         const auto planeCol = calcCollisionInfo(ray, plane);
         if ( !planeCol ) {
@@ -1207,11 +1207,11 @@ namespace dal {
         }
     }
 
-    std::optional<RayCastingResult> calcCollisionInfo(const Ray& ray, const Sphere& sphere, const Transform& transSphere) {
+    std::optional<RayCastingResult> calcCollisionInfo(const Segment& ray, const Sphere& sphere, const Transform& transSphere) {
         dalAbort("Not implemented.");
     }
 
-    std::optional<RayCastingResult> calcCollisionInfo(const Ray& ray, const AABB& aabb) {
+    std::optional<RayCastingResult> calcCollisionInfo(const Segment& ray, const AABB& aabb) {
         if ( aabb.calcArea() == 0.0f ) {
             return std::nullopt;
         }
@@ -1227,7 +1227,7 @@ namespace dal {
         return std::nullopt;
     }
 
-    std::optional<RayCastingResult> calcCollisionInfo(const Ray& ray, const AABB& aabb, const Transform& transAABB) {
+    std::optional<RayCastingResult> calcCollisionInfo(const Segment& ray, const AABB& aabb, const Transform& transAABB) {
         if ( aabb.calcArea() == 0.0f ) {
             return std::nullopt;
         }
@@ -1243,7 +1243,7 @@ namespace dal {
         return std::nullopt;
     }
 
-    std::optional<RayCastingResult> calcCollisionInfo(const Ray& ray, const ColTriangleSoup triSoup, const Transform& transTriSoup) {
+    std::optional<RayCastingResult> calcCollisionInfo(const Segment& ray, const ColTriangleSoup triSoup, const Transform& transTriSoup) {
         std::optional<RayCastingResult> result{ std::nullopt };
         float leastDistance = std::numeric_limits<float>::max();
 
