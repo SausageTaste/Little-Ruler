@@ -80,7 +80,7 @@ namespace dal {
         glm::vec3 m_pos;
         float m_scale;
         bool m_isDefault;
-        
+
     public:
         Transform(void);
         Transform(const glm::vec3& pos, const glm::quat& quat, const float scale);
@@ -255,7 +255,7 @@ namespace dal {
         float getSignedDist(const glm::vec3 v) const {
             const auto numerator = glm::dot(this->m_coeff, glm::vec4{v, 1.0f});
             const auto denominatorInv = glm::inversesqrt(
-                this->m_coeff.x * this->m_coeff.x + this->m_coeff.y * this->m_coeff.y  + this->m_coeff.z * this->m_coeff.z
+                this->m_coeff.x * this->m_coeff.x + this->m_coeff.y * this->m_coeff.y + this->m_coeff.z * this->m_coeff.z
             );
             return numerator * denominatorInv;
         }
@@ -494,7 +494,7 @@ namespace dal {
     bool checkCollision(const Ray& ray, const Triangle& tri);
     bool checkCollision(const Ray& ray, const AABB& aabb);
     bool checkCollision(const Ray& ray, const AABB& aabb, const Transform& transAABB);
-    
+
     bool checkCollision(const Plane& plane, const Sphere& sphere);
     bool checkCollision(const Plane& plane, const Sphere& sphere, const Transform& transSphere);
     bool checkCollision(const Plane& plane, const AABB& aabb);
@@ -507,7 +507,7 @@ namespace dal {
     bool checkCollision(const AABB& one, const AABB& other);
     bool checkCollision(const AABB& one, const AABB& two, const Transform& transOne, const Transform& transTwo);
     bool checkCollision(const AABB& aabb, const ColTriangleSoup triSoup, const Transform& transAABB, const Transform& transTriSoup);
-    
+
 }
 
 
@@ -518,7 +518,7 @@ namespace dal {
         const ICollider& one, const PhysicalProperty& physicsOne, const Transform& transOne,
         const ICollider& two, const PhysicalProperty& physicsTwo, const Transform& transTwo
     );
-    
+
     //CollisionResolveInfo calcResolveInfo(const AABB& one, const AABB& other, const PhysicalProperty& physicsOne, const PhysicalProperty& physicsTwo);
     CollisionResolveInfo calcResolveInfo(
         const AABB& one, const PhysicalProperty& physicsOne, const Transform& transOne,
@@ -541,6 +541,3 @@ namespace dal {
     std::optional<RayCastingResult> calcCollisionInfo(const Ray& ray, const ColTriangleSoup triSoup, const Transform& transTriSoup);
 
 }
-
-
-
