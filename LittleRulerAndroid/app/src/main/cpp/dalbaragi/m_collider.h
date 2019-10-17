@@ -240,7 +240,8 @@ namespace dal {
     class Plane {
 
     private:
-        glm::vec4 m_coeff;
+        glm::vec3 m_normal;
+        float m_d;
 
     public:
         Plane(void);
@@ -248,19 +249,18 @@ namespace dal {
         Plane(const glm::vec3& p1, const glm::vec3& p2, const glm::vec3& p3);
         Plane(const float a, const float b, const float c, const float d);
 
-        glm::vec3 getNormal(void) const {
-            return glm::vec3{ this->m_coeff.x, this->m_coeff.y, this->m_coeff.z };
+        const glm::vec3& getNormal(void) const {
+            return this->m_normal;
+        }
+        glm::vec4 getCoeff(void) const {
+            return glm::vec4{ this->m_normal, this->m_d };
         }
 
         float getSignedDist(const glm::vec3 v) const {
-            const auto numerator = glm::dot(this->m_coeff, glm::vec4{v, 1.0f});
-            const auto denominatorInv = glm::inversesqrt(
-                this->m_coeff.x * this->m_coeff.x + this->m_coeff.y * this->m_coeff.y + this->m_coeff.z * this->m_coeff.z
-            );
-            return numerator * denominatorInv;
+            return glm::dot(this->getCoeff(), glm::vec4{ v, 1.0f });
         }
         bool isInFront(const glm::vec3 v) const {
-            return 0.0f < glm::dot(this->m_coeff, glm::vec4{v, 1.0f});
+            return 0.f < glm::dot(this->getCoeff(), glm::vec4{v, 1.0f});
         }
 
     };

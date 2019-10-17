@@ -657,15 +657,15 @@ namespace dal {
 namespace dal {
 
     Plane::Plane(void)
-        : m_coeff(0.0f, 1.0f, 0.0f, 0.0f)
+        : m_normal(0.f, 1.f, 0.f)
+        , m_d(0.f)
     {
 
     }
 
-    Plane::Plane(const glm::vec3& normal, const glm::vec3& point)
-        : m_coeff(normal.x, normal.y, normal.z, -glm::dot(normal, point))
-    {
-
+    Plane::Plane(const glm::vec3& normal, const glm::vec3& point) {
+        this->m_normal = glm::normalize(normal);
+        this->m_d = -glm::dot(this->m_normal, point);
     }
 
     Plane::Plane(const glm::vec3& p1, const glm::vec3& p2, const glm::vec3& p3)
@@ -675,7 +675,8 @@ namespace dal {
     }
 
     Plane::Plane(const float a, const float b, const float c, const float d)
-        : m_coeff(a, b, c, d)
+        : m_normal(a, b, c)
+        , m_d(d)
     {
 
     }
