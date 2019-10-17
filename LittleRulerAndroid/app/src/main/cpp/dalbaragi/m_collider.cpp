@@ -908,16 +908,10 @@ namespace dal {
     }
 
     Sphere Sphere::transform(const Transform& trans) const {
-        Sphere result;
-
-        if ( glm::dot(this->m_center, this->m_center) != 0.0f ) {
-            dalWarn("Sphere's transformation is defined for only one's center is at origin.");
-        }
-
-        result.setCenter(this->m_center + trans.getPos());
-        result.setRadius(this->m_radius * trans.getScale());
-
-        return result;
+        return Sphere{
+            this->m_center + trans.getPos(),
+            this->m_radius* trans.getScale()
+        };
     }
 
     void Sphere::resizeToInclude(const glm::vec3 p) {
