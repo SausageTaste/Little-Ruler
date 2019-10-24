@@ -112,6 +112,9 @@
     <ClCompile Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\o_widgetcache.cpp">
       <Filter>Overlay</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\u_byteutils.cpp">
+      <Filter>Utility</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Game">
@@ -262,6 +265,9 @@
     </ClInclude>
     <ClInclude Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\o_widgetcache.h">
       <Filter>Overlay</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\u_byteutils.h">
+      <Filter>Utility</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

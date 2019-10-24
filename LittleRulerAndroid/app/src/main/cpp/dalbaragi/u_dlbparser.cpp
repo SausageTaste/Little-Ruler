@@ -4,12 +4,11 @@
 #include <cstring>
 #include <exception>
 
-#define ZLIB_WINAPI
-#include <zlib.h>
 #include <fmt/format.h>
 
 #include "s_logger_god.h"
 #include "u_math.h"
+#include "u_byteutils.h"
 
 
 using namespace fmt::literals;
@@ -17,100 +16,20 @@ using namespace fmt::literals;
 
 namespace {
 
-    bool isBigEndian() {
-        constexpr short int number = 0x1;
-        const char* const numPtr = reinterpret_cast<const char*>(&number);
-        return numPtr[0] != 1;
-    }
-
-    bool makeBool1(const uint8_t* begin) {
-        return (*begin) != static_cast<uint8_t>(0);
-    }
-
-    int32_t makeInt2(const uint8_t* begin) {
-        static_assert(1 == sizeof(uint8_t), "Size of uint8 is not 1 byte. WTF???");
-        static_assert(4 == sizeof(float), "Size of float is not 4 bytes.");
-
-        uint8_t buf[4];
-
-        if ( isBigEndian() ) {
-            buf[0] = 0;
-            buf[1] = 0;
-            buf[2] = begin[1];
-            buf[3] = begin[0];
-        }
-        else {
-            buf[0] = begin[0];
-            buf[1] = begin[1];
-            buf[2] = 0;
-            buf[3] = 0;
-        }
-
-        int32_t res;
-        memcpy(&res, buf, 4);
-        return res;
-    }
-
-    template <typename T>
-    T assemble4Bytes(const uint8_t* const begin) {
-        static_assert(1 == sizeof(uint8_t));
-        static_assert(4 == sizeof(T));
-
-        T res;
-
-        if ( isBigEndian() ) {
-            uint8_t buf[4];
-            buf[0] = begin[3];
-            buf[1] = begin[2];
-            buf[2] = begin[1];
-            buf[3] = begin[0];
-            memcpy(&res, buf, 4);
-        }
-        else {
-            memcpy(&res, begin, 4);
-        }
-
-        return res;
-    }
-
-    int32_t makeInt4(const uint8_t* begin) {
-        return assemble4Bytes<int32_t>(begin);
-    }
-
-    template <typename T>
-    const uint8_t* assemble4BytesArray(const uint8_t* src, T* const dst, const size_t size) {
-        for ( size_t i = 0; i < size; ++i ) {
-            dst[i] = assemble4Bytes<T>(src); src += 4;
-        }
-        return src;
-    }
-
     // Returns nullptr containing unique_ptr and 0 on failure.
     std::pair<std::unique_ptr<uint8_t[]>, size_t> uncompressMap(const uint8_t* const buf, const size_t bufSize) {
-        const auto allocatedSize = static_cast<size_t>(1.01 * makeInt4(buf));  // Just to ensure that buffer never lacks.
+        const auto allocatedSize = static_cast<size_t>(1.01 * dal::makeInt4(buf));  // Just to ensure that buffer never lacks.
         std::unique_ptr<uint8_t[]> decomBuf{ new uint8_t[allocatedSize] };
-        uLongf decomBufSize = allocatedSize;
+        const auto unzippedSize = dal::unzip(decomBuf.get(), allocatedSize, buf + 4, bufSize - 4);
 
-        const auto res = uncompress(decomBuf.get(), &decomBufSize, buf + 4, bufSize);
-        switch ( res ) {
-
-        case Z_OK:
-            return std::make_pair(std::move(decomBuf), static_cast<size_t>(decomBufSize));
-        case Z_BUF_ERROR:
-            dalError("Zlib fail: buffer is not large enough");
+        if ( 0 != unzippedSize ) {
+            return std::make_pair(std::move(decomBuf), static_cast<size_t>(unzippedSize));
+        }
+        else {
             return std::make_pair(nullptr, 0);
-        case Z_MEM_ERROR:
-            dalError("Zlib fail: Insufficient memory");
-            return std::make_pair(nullptr, 0);
-        case Z_DATA_ERROR:
-            dalError("Zlib fail: Corrupted data");
-            return std::make_pair(nullptr, 0);
-        default:
-            dalError("Zlib fail: Unknown reason ({})"_format(res));
-            return std::make_pair(nullptr, 0);
-
         }
     }
+
 
     class CorruptedBinary {  };
 
@@ -198,7 +117,7 @@ namespace {
 
     const uint8_t* parseVec3(glm::vec3& info, const uint8_t* begin, const uint8_t* const end) {
         float fbuf[3];
-        begin = assemble4BytesArray<float>(begin, fbuf, 3);
+        begin = dal::assemble4BytesArray<float>(begin, fbuf, 3);
         info.x = fbuf[0];
         info.y = fbuf[1];
         info.z = fbuf[2];
@@ -216,9 +135,9 @@ namespace {
     }
 
     const uint8_t* parseFloatList(std::vector<float>& info, const uint8_t* begin, const uint8_t* const end) {
-        const auto arrSize = makeInt4(begin); begin += 4;
+        const auto arrSize = dal::makeInt4(begin); begin += 4;
         info.resize(arrSize);
-        begin = assemble4BytesArray<float>(begin, info.data(), arrSize);
+        begin = dal::assemble4BytesArray<float>(begin, info.data(), arrSize);
 
         assertHeaderPtr(begin, end);
         return begin;
@@ -238,7 +157,7 @@ namespace {
 
     const uint8_t* parseSphere(dal::Sphere& info, const uint8_t* begin, const uint8_t* const end) {
         float fbuf[4];
-        begin = assemble4BytesArray<float>(begin, fbuf, 4);
+        begin = dal::assemble4BytesArray<float>(begin, fbuf, 4);
 
         info.setCenter(fbuf[0], fbuf[1], fbuf[2]);
         info.setRadius(fbuf[3]);
@@ -272,8 +191,8 @@ namespace {
 
         public:
             const uint8_t* parse(const uint8_t* begin, const uint8_t* const end) {
-                this->m_rows = makeInt4(begin); begin += 4;
-                this->m_columns = makeInt4(begin); begin += 4;
+                this->m_rows = dal::makeInt4(begin); begin += 4;
+                this->m_columns = dal::makeInt4(begin); begin += 4;
                 begin = parseFloatList(this->m_array, begin, end);
                 return begin;
             }
@@ -365,7 +284,7 @@ namespace {
                 // 4 vectors
                 {
                     float fbuf[12];
-                    begin = assemble4BytesArray<float>(begin, fbuf, 12);
+                    begin = dal::assemble4BytesArray<float>(begin, fbuf, 12);
 
                     this->m_p00.x = fbuf[0];
                     this->m_p00.y = fbuf[1];
@@ -386,7 +305,7 @@ namespace {
 
                 // Smooth shading
                 {
-                    this->m_smoothShading = makeBool1(begin); begin += 1;
+                    this->m_smoothShading = dal::makeBool1(begin); begin += 1;
                 }
 
                 return begin;
@@ -449,7 +368,7 @@ namespace {
                 // xLen, zLen
                 {
                     float fbuf[2];
-                    begin = assemble4BytesArray<float>(begin, fbuf, 2);
+                    begin = dal::assemble4BytesArray<float>(begin, fbuf, 2);
 
                     this->m_xLen = fbuf[0];
                     this->m_zLen = fbuf[1];
@@ -462,7 +381,7 @@ namespace {
 
                 // Smooth shading
                 {
-                    this->m_smoothShading = makeBool1(begin); begin += 1;
+                    this->m_smoothShading = dal::makeBool1(begin); begin += 1;
                 }
 
                 return begin;
@@ -653,7 +572,7 @@ namespace {
     const uint8_t* parseMaterial(dal::binfo::Material& info, const uint8_t* begin, const uint8_t* const end) {
         {
             float floatBuf[7];
-            begin = assemble4BytesArray<float>(begin, floatBuf, 4);
+            begin = dal::assemble4BytesArray<float>(begin, floatBuf, 4);
 
             info.m_roughness = floatBuf[0];
             info.m_metallic = floatBuf[1];
@@ -672,7 +591,7 @@ namespace {
     const uint8_t* parseRenderUnit(dal::dlb::RenderUnit& info, const uint8_t* begin, const uint8_t* const end) {
         // Mesh variant
         {
-            const auto typeCode = makeInt2(begin); begin += 2;
+            const auto typeCode = dal::makeInt2(begin); begin += 2;
             switch ( typeCode ) {
 
             case 0:
@@ -696,7 +615,7 @@ namespace {
 
     const uint8_t* parseTransform(dal::Transform& info, const uint8_t* begin, const uint8_t* const end) {
         float floatBuf[8];
-        begin = assemble4BytesArray<float>(begin, floatBuf, 8);
+        begin = dal::assemble4BytesArray<float>(begin, floatBuf, 8);
 
         info.setPos(floatBuf[0], floatBuf[1], floatBuf[2]);
         info.setQuat(floatBuf[3], floatBuf[4], floatBuf[5], floatBuf[6]);
@@ -722,7 +641,7 @@ namespace {
 
 
     const uint8_t* parseMetadata(Metadata& info, const uint8_t* begin, const uint8_t* const end) {
-        info.m_binVersion = makeInt4(begin); begin += 4;
+        info.m_binVersion = dal::makeInt4(begin); begin += 4;
 
         return begin;
     }
@@ -735,7 +654,7 @@ namespace {
 
         // Render units
         {
-            const auto numUnits = makeInt4(begin); begin += 4;
+            const auto numUnits = dal::makeInt4(begin); begin += 4;
             info.m_renderUnits.resize(numUnits);
 
             for ( auto& unit : info.m_renderUnits ) {
@@ -745,7 +664,7 @@ namespace {
 
         // Static actors
         {
-            const auto numActors = makeInt4(begin); begin += 4;
+            const auto numActors = dal::makeInt4(begin); begin += 4;
             info.m_staticActors.resize(numActors);
 
             for ( auto& actor : info.m_staticActors ) {
@@ -754,10 +673,10 @@ namespace {
         }
 
         // Flag detailed collider
-        const auto flagDetailedCol = makeBool1(begin); begin += 1;
+        const auto flagDetailedCol = dal::makeBool1(begin); begin += 1;
 
         // Has rotating actor
-        const auto hasRotatingActor = makeBool1(begin); begin += 1;
+        const auto hasRotatingActor = dal::makeBool1(begin); begin += 1;
 
         // Build mesh data
         {
@@ -794,7 +713,7 @@ namespace {
 
         // Static actors
         {
-            const auto numActors = makeInt4(begin); begin += 4;
+            const auto numActors = dal::makeInt4(begin); begin += 4;
             info.m_staticActors.resize(numActors);
 
             for ( auto& actor : info.m_staticActors ) {
@@ -804,7 +723,7 @@ namespace {
 
         // Flag detailed collider
         {
-            info.m_detailedCollider = makeBool1(begin); begin += 1;
+            info.m_detailedCollider = dal::makeBool1(begin); begin += 1;
         }
 
         assertHeaderPtr(begin, end);
@@ -813,7 +732,7 @@ namespace {
 
     const uint8_t* parseWaterPlane(dal::dlb::WaterPlane& info, const uint8_t* begin, const uint8_t* const end) {
         float fbuf[12];
-        begin = assemble4BytesArray<float>(begin, fbuf, 12);
+        begin = dal::assemble4BytesArray<float>(begin, fbuf, 12);
 
         info.m_centerPos.x = fbuf[0];
         info.m_centerPos.y = fbuf[1];
@@ -836,7 +755,7 @@ namespace {
 
     const uint8_t* parsePlight(dal::dlb::Plight& info, const uint8_t* begin, const uint8_t* const end) {
         float fbuf[7];
-        begin = assemble4BytesArray<float>(begin, fbuf, 7);
+        begin = dal::assemble4BytesArray<float>(begin, fbuf, 7);
 
         info.m_color.x = fbuf[0];
         info.m_color.y = fbuf[1];
