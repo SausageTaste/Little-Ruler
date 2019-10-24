@@ -111,7 +111,7 @@ def main():
     ################
 
     model = mapbuild.newImportedModel()
-    model.m_resourceID.set("asset::sheeptangball.dae")
+    model.m_resourceID.set("asset::honoka_maid.dmd")
 
     actor = model.newStaticActor()
     actor.m_name.set("main_actor")
