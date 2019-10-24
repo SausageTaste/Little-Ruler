@@ -37,6 +37,8 @@ namespace dal::binfo {
         bool m_hasTransparency = false;
 
     public:
+        bool checkValidity(void) const;
+
         void flipX(void);
         void flipY(void);
 

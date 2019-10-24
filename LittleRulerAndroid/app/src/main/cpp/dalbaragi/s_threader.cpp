@@ -11,7 +11,7 @@
 #include "u_timer.h"
 
 
-#define DAL_THREAD_COUNT 1
+#define DAL_THREAD_COUNT 3
 
 
 using namespace fmt::literals;

@@ -1,42 +1,21 @@
 #include "u_loadinfo.h"
 
+#include <fmt/format.h>
+
 #include "s_logger_god.h"
 
 
-namespace {
+namespace dal::binfo {
 
-    bool isBigEndian() {
-        constexpr short int number = 0x1;
-        const char* const numPtr = reinterpret_cast<const char*>(&number);
-        return numPtr[0] != 1;
-    }
-
-    template <typename T>
-    T assemble4Bytes(const uint8_t* const begin) {
-        static_assert(1 == sizeof(uint8_t));
-        static_assert(4 == sizeof(T));
-
-        T res;
-
-        if ( isBigEndian() ) {
-            uint8_t buf[4];
-            buf[0] = begin[3];
-            buf[1] = begin[2];
-            buf[2] = begin[1];
-            buf[3] = begin[0];
-            memcpy(&res, buf, 4);
+    bool ImageFileData::checkValidity(void) const {
+        if ( (this->m_width * this->m_height * this->m_pixSize) != this->m_buf.size() ) {
+            dalWarn(fmt::format("Invalid dimension -> {} * {} * {} =/= {}", this->m_width, this->m_height, this->m_pixSize, this->m_buf.size()));
+            return false;
         }
         else {
-            memcpy(&res, begin, 4);
+            return true;
         }
-
-        return res;
     }
-
-}
-
-
-namespace dal::binfo {
 
     void ImageFileData::flipX(void) {
         const auto lineSizeInBytes = this->m_width * this->m_pixSize;
@@ -148,18 +127,14 @@ namespace dal::binfo {
     }
 
     void ImageFileData::correctSRGB(void) {
-        dalAssert(this->m_pixSize >= 3);
-
         const auto numPixels = this->m_width * this->m_height;
+        const auto pixSize = this->m_pixSize < 3 ? this->m_pixSize : 3;
 
         for ( size_t i = 0; i < numPixels; ++i ) {
-            const auto r = static_cast<double>(this->m_buf[this->m_pixSize * i + 0]) / 256.0;
-            const auto g = static_cast<double>(this->m_buf[this->m_pixSize * i + 1]) / 256.0;
-            const auto b = static_cast<double>(this->m_buf[this->m_pixSize * i + 2]) / 256.0;
-
-            this->m_buf[this->m_pixSize * i + 0] = static_cast<uint8_t>(std::pow(r, 2.2) * 256.0);
-            this->m_buf[this->m_pixSize * i + 1] = static_cast<uint8_t>(std::pow(g, 2.2) * 256.0);
-            this->m_buf[this->m_pixSize * i + 2] = static_cast<uint8_t>(std::pow(b, 2.2) * 256.0);
+            for ( size_t j = 0; j < pixSize; ++j ) {
+                const auto r = static_cast<double>(this->m_buf[this->m_pixSize * i + j]) / 256.0;
+                this->m_buf[this->m_pixSize * i + j] = static_cast<uint8_t>(std::pow(r, 2.2) * 256.0);
+            }
         }
     }
 

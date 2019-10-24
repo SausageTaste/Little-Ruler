@@ -54,7 +54,11 @@ namespace {
                 if ( this->out_success ) {
                     this->out_img.m_hasTransparency = this->out_img.hasTransparency();
                     if ( this->in_gammaCorrect ) {
-                        this->out_img.correctSRGB();
+                        //this->out_img.correctSRGB();
+                    }
+
+                    if ( !this->out_img.checkValidity() ) {
+                        this->out_success = false;
                     }
                 }
             }
@@ -83,7 +87,12 @@ namespace {
             }
 
             virtual void start(void) override {
-                this->out_success = dal::loadAssimpModel(this->in_modelID, this->out_info);
+                if ( this->in_modelID.getExt() == ".dmd" ) {
+                    this->out_success = dal::loadDalModel(this->in_modelID, this->out_info);
+                }
+                else {
+                    this->out_success = dal::loadAssimpModel(this->in_modelID, this->out_info);
+                }
             }
 
         };
@@ -235,13 +244,13 @@ namespace {
             dal::ResourceID texResID{ src.m_roughnessMap };
             if ( !packageName.empty() )
                 texResID.setPackageIfEmpty(packageName);
-            dst.m_roughnessMap = resMas.orderTexture(texResID, true);
+            dst.m_roughnessMap = resMas.orderTexture(texResID, false);
         }
         if ( !src.m_metallicMap.empty() ) {
             dal::ResourceID texResID{ src.m_metallicMap };
             if ( !packageName.empty() )
                 texResID.setPackageIfEmpty(packageName);
-            dst.m_metallicMap = resMas.orderTexture(texResID, true);
+            dst.m_metallicMap = resMas.orderTexture(texResID, false);
         }
     }
 

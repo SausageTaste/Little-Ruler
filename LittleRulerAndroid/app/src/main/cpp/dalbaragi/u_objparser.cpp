@@ -12,6 +12,7 @@
 
 #include "s_logger_god.h"
 #include "u_timer.h"
+#include "u_byteutils.h"
 
 
 using namespace fmt::literals;
@@ -431,6 +432,63 @@ namespace {
 }
 
 
+// DMD
+namespace {
+
+    const uint8_t* parseMaterial(const uint8_t* const begin, const uint8_t* const end, dal::binfo::Material& material) {
+        const uint8_t* header = begin;
+
+        material.m_roughness = dal::assemble4Bytes<float>(header); header += 4;
+        material.m_metallic = dal::assemble4Bytes<float>(header); header += 4;
+
+        material.m_diffuseMap = reinterpret_cast<const char*>(header);
+        header += material.m_diffuseMap.size() + 1;
+
+        material.m_roughnessMap = reinterpret_cast<const char*>(header);
+        header += material.m_roughnessMap.size() + 1;
+
+        material.m_metallicMap = reinterpret_cast<const char*>(header);
+        header += material.m_metallicMap.size() + 1;
+
+        return header;
+    }
+
+    const uint8_t* parseRenderUnit(const uint8_t* const begin, const uint8_t* const end, dal::binfo::RenderUnit& unit) {
+        const uint8_t* header = begin;
+
+        // Name
+        {
+            unit.m_name = reinterpret_cast<const char*>(header);
+            header += unit.m_name.size() + 1;
+        }
+
+        // Material
+        {
+            header = parseMaterial(header, end, unit.m_material);
+        }
+
+        // Vertices
+        {
+            const auto numVert = dal::makeInt4(header); header += 4;
+            const auto numVertTimes3 = numVert * 3;
+            const auto numVertTimes2 = numVert * 2;
+
+            unit.m_mesh.m_vertices.resize(numVertTimes3);
+            header = dal::assemble4BytesArray<float>(header, unit.m_mesh.m_vertices.data(), numVertTimes3);
+
+            unit.m_mesh.m_texcoords.resize(numVertTimes2);
+            header = dal::assemble4BytesArray<float>(header, unit.m_mesh.m_texcoords.data(), numVertTimes2);
+
+            unit.m_mesh.m_normals.resize(numVertTimes3);
+            header = dal::assemble4BytesArray<float>(header, unit.m_mesh.m_normals.data(), numVertTimes3);
+        }
+
+        return header;
+    }
+
+}
+
+
 namespace dal {
 
     bool loadAssimpModel(const ResourceID& resID, AssimpModelInfo& info) {
@@ -453,6 +511,30 @@ namespace dal {
 
         if ( info.m_model.m_joints.getSize() > 0 ) {
             processAnimation(scene, info.m_animations);
+        }
+
+        return true;
+    }
+
+    bool loadDalModel(const ResourceID& resID, AssimpModelInfo& info) {
+        std::vector<uint8_t> filebuf;
+        if ( !dal::futil::getRes_buffer(resID, filebuf) ) {
+            return false;
+        }
+        const auto fullSize = dal::makeInt4(filebuf.data());
+        std::vector<uint8_t> unzipped;
+        unzipped.resize(fullSize);
+        const auto unzipSize = dal::unzip(unzipped.data(), unzipped.size(), filebuf.data() + 4, filebuf.size() - 4);
+        if ( 0 == unzipSize ) {
+            return false;
+        }
+
+        const auto numUnits = dal::makeInt4(unzipped.data());
+        const uint8_t* header = unzipped.data() + 4;
+        const auto end = unzipped.data() + unzipped.size();
+        for ( int i = 0; i < numUnits; ++i ) {
+            auto& unit = info.m_model.m_renderUnits.emplace_back();
+            header = parseRenderUnit(header, end, unit);
         }
 
         return true;

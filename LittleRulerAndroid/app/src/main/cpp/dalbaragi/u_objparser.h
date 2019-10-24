@@ -14,4 +14,6 @@ namespace dal {
 
     bool loadAssimpModel(const ResourceID& resID, AssimpModelInfo& info);
 
+    bool loadDalModel(const ResourceID& resID, AssimpModelInfo& info);
+
 }

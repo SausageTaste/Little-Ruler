@@ -175,7 +175,13 @@ namespace dal {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 #endif
 
-        if ( 3 == image.m_pixSize ) {
+        if ( 1 == image.m_pixSize ) {
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_R, image.m_width, image.m_height, 0, GL_R, GL_UNSIGNED_BYTE, image.m_buf.data());
+        }
+        else if ( 2 == image.m_pixSize ) {
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RG, image.m_width, image.m_height, 0, GL_RG, GL_UNSIGNED_BYTE, image.m_buf.data());
+        }
+        else if ( 3 == image.m_pixSize ) {
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, image.m_width, image.m_height, 0, GL_RGB, GL_UNSIGNED_BYTE, image.m_buf.data());
         }
         else if ( 4 == image.m_pixSize ) {
