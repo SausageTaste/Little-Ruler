@@ -799,12 +799,6 @@ namespace dal::futil {
     }
 
     bool getRes_image(const ResourceID& resID, binfo::ImageFileData& data) {
-        const auto found = IMAGE_PARSER_MAP.find(resID.getExt());
-        if ( IMAGE_PARSER_MAP.end() == found ) {
-            dalError("Not supported image file format: {}"_format(resID.makeIDStr()));
-            return false;
-        }
-
         std::vector<uint8_t> fileBuffer;
         {
             auto file = resopen(resID, FileMode::bread);
@@ -819,11 +813,33 @@ namespace dal::futil {
             }
         }
 
-        const auto success = found->second(data, fileBuffer);
-        if ( !success ) {
-            dalError("Error while parsing image ({}) : {}"_format(found->first, resID.makeIDStr()));
+        decltype(parseImagePNG)* parseFunc = nullptr;
+        std::string selectedFormat;
+        {
+            if ( fileBuffer.size() > 5 && fileBuffer[1] == 'P' && fileBuffer[2] == 'N' && fileBuffer[3] == 'G') {
+                parseFunc = parseImagePNG;
+                selectedFormat = ".png";
+            }
+            else {
+                const auto found = IMAGE_PARSER_MAP.find(resID.getExt());
+                if (IMAGE_PARSER_MAP.end() == found) {
+                    dalError("Not supported image file format: {}"_format(resID.makeIDStr()));
+                    return false;
+                }
+                else {
+                    parseFunc = found->second;
+                    selectedFormat = found->first;
+                }
+            }
         }
-        return success;
+
+        if ( !parseFunc(data, fileBuffer) ) {
+            dalError("Error while parsing image ({}) : {}"_format(selectedFormat, resID.makeIDStr()));
+            return false;
+        }
+        else {
+            return true;
+        }
     }
 
     bool getRes_buffer(const ResourceID& resID, std::vector<uint8_t>& buffer) {
