@@ -54,7 +54,7 @@ namespace {
                 if ( this->out_success ) {
                     this->out_img.m_hasTransparency = this->out_img.hasTransparency();
                     if ( this->in_gammaCorrect ) {
-                        //this->out_img.correctSRGB();
+                        this->out_img.correctSRGB();
                     }
 
                     if ( !this->out_img.checkValidity() ) {

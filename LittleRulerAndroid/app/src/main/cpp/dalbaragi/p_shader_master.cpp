@@ -18,7 +18,7 @@ namespace {
     void setFor_generalRender(void) {
         glEnable(GL_DEPTH_TEST);
         glEnable(GL_CULL_FACE);
-        glEnable(GL_BLEND); glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glDisable(GL_BLEND);
         glDisable(GL_POLYGON_OFFSET_FILL);
         //glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
     }
@@ -37,7 +37,6 @@ namespace {
         glDisable(GL_BLEND);
         glEnable(GL_POLYGON_OFFSET_FILL); glPolygonOffset(4.0f, 100.0f);
         //glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
-
     }
 
     void setFor_overlay(void) {
