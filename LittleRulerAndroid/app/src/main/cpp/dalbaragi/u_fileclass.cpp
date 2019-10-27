@@ -938,33 +938,7 @@ namespace dal {
     }
 
     /*
-    FileMode mapFileMode(const char* const str) {
-        // "wb", "w", "wt", "rb", "r", "rt".
-
-        std::unordered_map<std::string, dal::FileMode> map{
-            { "wb", dal::FileMode::bwrite },
-            { "w", dal::FileMode::write },
-            { "wt", dal::FileMode::write },
-            { "rb", dal::FileMode::bread },
-            { "r", dal::FileMode::read },
-            { "rt", dal::FileMode::read },
-            { "ab", dal::FileMode::bappend },
-            { "a", dal::FileMode::append },
-            { "at", dal::FileMode::append },
-        };
-
-        const auto iter = map.find(str);
-        if ( map.end() != iter ) {
-            return iter->second;
-        }
-        else {
-            dalAbort("Unkown file mode str: "s + str);
-        }
-    }
-    */
-
-    /*
-    Input should be one of followings
+    Input str must be one of followings
     { "wb", "w", "wt", "rb", "r", "rt", "ab", "a", "at" }
     */
     FileMode mapFileMode(const char* const str) {
