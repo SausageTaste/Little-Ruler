@@ -20,13 +20,18 @@ def main():
     heightmap = []
     for y in range(builder.m_heightMap.getRowSize()):
         for x in range(builder.m_heightMap.getColumnSize()):
-            heightmap.append(random.random())
+            if y < builder.m_heightMap.getRowSize() / 3:
+                heightmap.append(-5)
+            elif y > builder.m_heightMap.getRowSize() * 2 / 3:
+                heightmap.append(5)
+            else:
+                heightmap.append(0)
 
     builder.m_heightMap.setRowMajor(
         heightmap
     )
-    builder.m_heightMap.forEach(lambda h: 2 * h)
-    builder.m_smoothShading = True
+    builder.m_heightMap.forEach(lambda h: 1 * h)
+    builder.m_smoothShading = False
     unit.m_mesh = builder
 
     unit.m_material.m_diffuseMap.set("asset::grass1.tga")
@@ -35,14 +40,12 @@ def main():
 
     actor = model.newStaticActor()
     actor.m_name.set("main_actor")
-    actor.m_transform.m_pos.setX(0)
-    actor.m_transform.m_pos.setY(-4)
 
     ################
 
     water = mapbuild.newWaterPlane()
 
-    water.m_centerPos.setXYZ(0, -2, 0)
+    water.m_centerPos.setXYZ(0, 0.1, 0)
     water.m_width.set(500)
     water.m_height.set(500)
     water.m_darkestDepth.set(20)
@@ -56,7 +59,7 @@ def main():
 
     actor = model.newStaticActor()
     actor.m_name.set("main_actor")
-    actor.m_transform.m_pos.setXYZ(-10, -3, -10)
+    actor.m_transform.m_pos.setXYZ(-10, 0.2, -10)
     actor.m_transform.m_scale.set(2)
     actor.m_transform.m_quat.rotate(180, (0, 1, 0))
 
@@ -68,7 +71,7 @@ def main():
     actor = model.newStaticActor()
     actor.m_name.set("main_actor")
     actor.m_transform.m_pos.setX(3)
-    actor.m_transform.m_pos.setY(-3)
+    actor.m_transform.m_pos.setY(0)
     actor.m_transform.m_pos.setZ(-5)
     actor.m_transform.m_scale.set(1)
 
@@ -97,16 +100,19 @@ def main():
     actor = model.newStaticActor()
     actor.m_name.set("actor1")
     actor.m_transform.m_pos.setX(10)
+    actor.m_transform.m_pos.setY(2)
     actor.m_transform.m_pos.setZ(-2)
 
     actor = model.newStaticActor()
     actor.m_name.set("actor2")
     actor.m_transform.m_pos.setX(10)
+    actor.m_transform.m_pos.setY(2)
     actor.m_transform.m_pos.setZ(2)
 
     actor = model.newStaticActor()
-    actor.m_name.set("actor2")
+    actor.m_name.set("actor3")
     actor.m_transform.m_pos.setX(10)
+    actor.m_transform.m_pos.setY(2)
 
     ################
 
@@ -115,9 +121,8 @@ def main():
 
     actor = model.newStaticActor()
     actor.m_name.set("main_actor")
-    actor.m_transform.m_pos.setX(6)
-    actor.m_transform.m_pos.setY(-1)
-    actor.m_transform.m_pos.setZ(-5)
+    actor.m_transform.m_pos.setXYZ(6, 0, -5)
+    actor.m_transform.m_scale.set(0.5)
 
     ################
 
@@ -138,7 +143,7 @@ def main():
 
     actor = model.newStaticActor()
     actor.m_name.set("actor1")
-    actor.m_transform.m_pos.setXYZ(7, -1, 5)
+    actor.m_transform.m_pos.setXYZ(7, 1, 5)
 
     ################
 
