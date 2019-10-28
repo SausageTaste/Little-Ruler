@@ -36,7 +36,18 @@ class Material(inf.IDataBlock):
         })
 
     def getBinary(self) -> bytearray:
-        return self._makeBinaryAsListed()
+        data = bytearray()
+
+        data += self.__roughness.getBinary()
+        data += self.__metallic.getBinary()
+        data += self.__texScaleX.getBinary()
+        data += self.__texScaleY.getBinary()
+
+        data += self.__diffuseMap.getBinary()
+        data += self.__roughnessMap.getBinary()
+        data += self.__metallicMap.getBinary()
+
+        return data
 
     def setDefault(self) -> None:
         self.__roughness.set(0.3)
@@ -264,7 +275,12 @@ class RenderUnit(inf.IDataBlock):
         })
 
     def getBinary(self) -> bytearray:
-        return self._makeBinaryAsListed()
+        data = bytearray()
+
+        data += self.__mesh.getBinary()
+        data += self.__material.getBinary()
+
+        return data
 
     def setDefault(self) -> None:
         self.__mesh.clear()

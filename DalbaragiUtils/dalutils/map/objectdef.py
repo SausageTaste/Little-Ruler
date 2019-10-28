@@ -172,7 +172,18 @@ class WaterPlane(inf.IDataBlock):
         })
 
     def getBinary(self) -> bytearray:
-        return self._makeBinaryAsListed()
+        data = bytearray()
+
+        data += self.__centerPos.getBinary()
+        data += self.__width.getBinary()
+        data += self.__height.getBinary()
+        data += self.__flowSpeed.getBinary()
+        data += self.__waveStrength.getBinary()
+        data += self.__darkestDepth.getBinary()
+        data += self.__deepColor.getBinary()
+        data += self.__reflectivity.getBinary()
+
+        return data
 
     def setDefault(self) -> None:
         self.__centerPos.setXYZ(0, 0, 0)

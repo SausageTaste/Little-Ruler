@@ -148,7 +148,15 @@ class Rect(IMeshBuilder):
         })
 
     def getBinary(self) -> bytearray:
-        return self._makeBinaryAsListed()
+        data = bytearray()
+
+        data += self.__p00.getBinary()
+        data += self.__p01.getBinary()
+        data += self.__p10.getBinary()
+        data += self.__p11.getBinary()
+        data += self.__smoothShading.getBinary()
+
+        return data
 
     def setDefault(self) -> None:
         self.__p00.setXYZ(0, 0, 0)
@@ -245,7 +253,14 @@ class HeightGrid(IMeshBuilder):
         return self.__heightMap.__str__()
 
     def getBinary(self) -> bytearray:
-        return self._makeBinaryAsListed()
+        data = bytearray()
+
+        data += self.__xLen.getBinary()
+        data += self.__zLen.getBinary()
+        data += self.__heightMap.getBinary()
+        data += self.__smoothShading.getBinary()
+
+        return data
 
     def setDefault(self) -> None:
         self.__xLen.set(10)

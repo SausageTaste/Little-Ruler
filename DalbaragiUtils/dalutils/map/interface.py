@@ -51,14 +51,6 @@ class IDataBlock(IMapElement):
             if field in data.keys():
                 element.setJson(data[field])
 
-    def _makeBinaryAsListed(self) -> bytearray:
-        data = bytearray()
-
-        for field, element in self.__attribs.items():
-            data += element.getBinary()
-
-        return data
-
     @abc.abstractmethod
     def setDefault(self) -> None:
         pass
