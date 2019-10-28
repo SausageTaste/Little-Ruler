@@ -55,25 +55,30 @@ def main():
     ################
 
     model = mapbuild.newImportedModel()
-    model.m_resourceID.set("asset::house_test.obj")
+    model.m_resourceID.set("asset::yuri_cso2.dmd")
 
     actor = model.newStaticActor()
     actor.m_name.set("main_actor")
-    actor.m_transform.m_pos.setXYZ(-10, 0.2, -10)
-    actor.m_transform.m_scale.set(2)
-    actor.m_transform.m_quat.rotate(180, (0, 1, 0))
+    actor.m_transform.m_pos.setXYZ(3, 0, -5)
 
     ################
 
     model = mapbuild.newImportedModel()
-    model.m_resourceID.set("asset::yuri_cso2.obj")
+    model.m_resourceID.set("asset::pbr_ball.dmd")
 
     actor = model.newStaticActor()
     actor.m_name.set("main_actor")
-    actor.m_transform.m_pos.setX(3)
-    actor.m_transform.m_pos.setY(0)
-    actor.m_transform.m_pos.setZ(-5)
-    actor.m_transform.m_scale.set(1)
+    actor.m_transform.m_pos.setXYZ(6, 2, -5)
+
+    ################
+
+    model = mapbuild.newImportedModel()
+    model.m_resourceID.set("test::honoka_maid.dmd")
+
+    actor = model.newStaticActor()
+    actor.m_name.set("main_actor")
+    actor.m_transform.m_pos.setXYZ(3, 0, -8)
+    actor.m_transform.m_scale.set(0.5)
 
     ################
 
@@ -113,16 +118,6 @@ def main():
     actor.m_name.set("actor3")
     actor.m_transform.m_pos.setX(10)
     actor.m_transform.m_pos.setY(2)
-
-    ################
-
-    model = mapbuild.newImportedModel()
-    model.m_resourceID.set("asset::honoka_maid.dmd")
-
-    actor = model.newStaticActor()
-    actor.m_name.set("main_actor")
-    actor.m_transform.m_pos.setXYZ(6, 0, -5)
-    actor.m_transform.m_scale.set(0.5)
 
     ################
 
