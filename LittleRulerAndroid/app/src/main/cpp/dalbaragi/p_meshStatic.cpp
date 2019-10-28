@@ -176,7 +176,11 @@ namespace dal {
 #endif
 
         if ( 1 == image.m_pixSize ) {
+#ifdef GL_R
             glTexImage2D(GL_TEXTURE_2D, 0, GL_R, image.m_width, image.m_height, 0, GL_R, GL_UNSIGNED_BYTE, image.m_buf.data());
+#else
+            dalAbort("Not supported pixel size: 1");
+#endif
         }
         else if ( 2 == image.m_pixSize ) {
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RG, image.m_width, image.m_height, 0, GL_RG, GL_UNSIGNED_BYTE, image.m_buf.data());
