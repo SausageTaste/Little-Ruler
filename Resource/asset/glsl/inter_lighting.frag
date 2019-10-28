@@ -278,7 +278,7 @@ vec3 calcFogMixedColor(vec3 color, vec3 fragPos) {
 // PBR
 
 float DistributionGGX(float NdotH, float roughness) {
-    float a = roughness;
+    float a = roughness * roughness;
     float a2 = a*a;
     float NdotH2 = NdotH*NdotH;
 

@@ -28,8 +28,8 @@ void main(void) {
     vec3 viewDir = normalize(uViewPos - vFragPos);
     vec3 fragNormal = normalize(vNormalVec);
     vec4 texColor = texture(u_diffuseMap, vTexCoord);
-    float roughness = u_hasRoughnessMap ? texture(u_roughnessMap, vTexCoord).g : u_roughness;
-    float metallic = u_hasMetallicMap ? texture(u_metallicMap, vTexCoord).g : u_metallic;
+    float roughness = u_hasRoughnessMap ? texture(u_roughnessMap, vTexCoord).r : u_roughness;
+    float metallic = u_hasMetallicMap ? texture(u_metallicMap, vTexCoord).r : u_metallic;
 
     vec3 F0 = vec3(0.04);
     F0 = mix(F0, texColor.rgb, u_metallic);
@@ -55,6 +55,4 @@ void main(void) {
     fColor.a = texColor.a;
 
     fColor.rgb = calcFogMixedColor(fColor.rgb, vFragPos);
-
-    //fColor.rgb = vec3(roughness);
 }
