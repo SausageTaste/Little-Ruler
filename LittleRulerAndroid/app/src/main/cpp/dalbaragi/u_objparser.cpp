@@ -470,7 +470,6 @@ namespace {
 
         result.first.setName(skeleton.getName(0));
         result.second[0] = &result.first;  // The address of root node changes upon return.
-        
 
         makeAnimJoint_recur(result.first, 0, skeleton, result.second);
 
@@ -531,6 +530,12 @@ namespace {
 
     const uint8_t* parse_animations(const uint8_t* header, const uint8_t* const end, const dal::SkeletonInterface& skeleton, std::vector<dal::Animation>& animations) {
         const auto numAnims = dal::makeInt4(header); header += 4;
+
+        if ( numAnims > 0 ) {
+            auto [rootNode, jointList] = makeAnimJointHierarchy(skeleton);
+            animations.emplace_back("nullptr", 0.f, 0.f, std::move(rootNode));
+        }
+
         for ( int i = 0; i < numAnims; ++i ) {
             const std::string animName = reinterpret_cast<const char*>(header);
             header += animName.size() + 1;

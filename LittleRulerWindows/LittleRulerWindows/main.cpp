@@ -1,4 +1,4 @@
-#if false
+#if true
 
 #include "x_init_windows.h"
 
