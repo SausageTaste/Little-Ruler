@@ -36,20 +36,22 @@ namespace {
             }
         }
 
-        dalAssert(false);
-        return 0;
+        return container.size() - 1;
     }
 
     template <typename T>
     T makeInterpValue(const float animTick, const std::vector<std::pair<float, T>>& container) {
         dalAssert(0 != container.size());
+
         if ( 1 == container.size() ) {
             return container[0].second;
         }
 
         const auto startIndex = findIndexToStartInterp(container, animTick);
         const auto nextIndex = startIndex + 1;
-        dalAssert(nextIndex < container.size());
+        if ( nextIndex >= container.size() ) {
+            return container.back().second;
+        }
 
         const auto deltaTime = container[nextIndex].first - container[startIndex].first;
         auto factor = (animTick - container[startIndex].first) / deltaTime;
