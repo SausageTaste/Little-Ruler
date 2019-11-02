@@ -132,6 +132,9 @@ namespace dal {
                 const std::pair<float, float> input{ timepoint, scale };
                 this->m_scales.push_back(input);
             }
+            void setMat(const glm::mat4& mat) {
+                this->m_transform = mat;
+            }
 
             const std::string& getName(void) const {
                 return this->m_name;
