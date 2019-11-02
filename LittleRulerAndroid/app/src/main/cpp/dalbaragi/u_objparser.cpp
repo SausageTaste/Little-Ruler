@@ -366,7 +366,7 @@ namespace {
                 const auto bone = mesh->mBones[i];
                 const auto jointIndex = jointInfo.getOrMakeIndexOf(bone->mName.C_Str());
 
-                jointInfo.setOffsetMat(jointIndex, convertAssimpMat(bone->mOffsetMatrix));
+                jointInfo.at(jointIndex).m_boneOffset = convertAssimpMat(bone->mOffsetMatrix);
 
                 for ( unsigned int j = 0; j < bone->mNumWeights; j++ ) {
                     const auto& weight = bone->mWeights[j];
@@ -435,7 +435,122 @@ namespace {
 // DMD
 namespace {
 
-    const uint8_t* parseMaterial(const uint8_t* const begin, const uint8_t* const end, dal::binfo::Material& material) {
+    void makeAnimJoint_recur(dal::Animation::JointNode& parent, const dal::jointID_t parIndex, const dal::SkeletonInterface& skeleton, std::vector<dal::Animation::JointNode*>& resultList) {
+        const auto numJoints = skeleton.getSize();
+
+        size_t numChildren = 0;
+        for ( int i = 0; i < numJoints; ++i ) {
+            if ( skeleton.at(i).m_parentIndex == parIndex ) {
+                numChildren++;
+            }
+        }
+        parent.reserveChildrenVector(numChildren);
+
+        for ( int i = 0; i < numJoints; ++i ) {
+            if ( skeleton.at(i).m_parentIndex != parIndex ) {
+                continue;
+            }
+
+            auto child = parent.emplaceChild(skeleton.getName(i), glm::mat4{ 1.f }, &parent);
+            resultList[i] = child;
+            makeAnimJoint_recur(*child, i, skeleton, resultList);
+        }
+    }
+
+    auto makeAnimJointHierarchy(const dal::SkeletonInterface& skeleton) {
+        std::pair<dal::Animation::JointNode, std::vector<dal::Animation::JointNode*>> result;
+
+        const auto numJoints = skeleton.getSize();
+        result.second.resize(numJoints);
+        for ( auto& x : result.second ) {
+            x = nullptr;
+        }
+
+        dalAssert(-1 == skeleton.at(0).m_parentIndex);
+
+        result.first.setName(skeleton.getName(0));
+        result.second[0] = &result.first;  // The address of root node changes upon return.
+        
+
+        makeAnimJoint_recur(result.first, 0, skeleton, result.second);
+
+        for ( const auto x : result.second ) {
+            dalAssert(nullptr != x);
+        }
+
+        return result;
+    }
+
+
+    const uint8_t* parse_skeleton(const uint8_t* header, const uint8_t* const end, dal::SkeletonInterface& skeleton) {
+        const auto numBones = dal::makeInt4(header); header += 4;
+
+        for ( int i = 0; i < numBones; ++i ) {
+            const std::string boneName = reinterpret_cast<const char*>(header);
+            header += boneName.size() + 1;
+            const auto parentIndex = dal::makeInt4(header); header += 4;
+
+            const auto result = skeleton.getOrMakeIndexOf(boneName);
+            dalAssert(result == i);
+            skeleton.at(result).m_parentIndex = parentIndex;
+        }
+
+        return header;
+    }
+
+    const uint8_t* parse_animJoint(const uint8_t* header, const uint8_t* const end, dal::Animation::JointNode& joint) {
+        {
+            const auto num = dal::makeInt4(header); header += 4;
+            for ( int i = 0; i < num; ++i ) {
+                float fbuf[4];
+                header = dal::assemble4BytesArray<float>(header, fbuf, 4);
+                joint.addPos(fbuf[0], glm::vec3{ fbuf[1], fbuf[2], fbuf[3] });
+            }
+        }
+
+        {
+            const auto num = dal::makeInt4(header); header += 4;
+            for ( int i = 0; i < num; ++i ) {
+                float fbuf[5];
+                header = dal::assemble4BytesArray<float>(header, fbuf, 5);
+                joint.addRotation(fbuf[0], glm::quat{ fbuf[4], fbuf[1], fbuf[2], fbuf[3] });
+            }
+        }
+
+        {
+            const auto num = dal::makeInt4(header); header += 4;
+            for ( int i = 0; i < num; ++i ) {
+                float fbuf[2];
+                header = dal::assemble4BytesArray<float>(header, fbuf, 2);
+                joint.addScale(fbuf[0], fbuf[1]);
+            }
+        }
+
+        return header;
+    }
+
+    const uint8_t* parse_animations(const uint8_t* header, const uint8_t* const end, const dal::SkeletonInterface& skeleton, std::vector<dal::Animation>& animations) {
+        const auto numAnims = dal::makeInt4(header); header += 4;
+        for ( int i = 0; i < numAnims; ++i ) {
+            const std::string animName = reinterpret_cast<const char*>(header);
+            header += animName.size() + 1;
+            const auto numJoints = dal::makeInt4(header); header += 4;
+
+            auto [rootNode, jointList] = makeAnimJointHierarchy(skeleton);
+            jointList[0] = &rootNode;
+
+            for ( int j = 0; j < numJoints; ++j ) {
+                header = parse_animJoint(header, end, *jointList[j]);
+            }
+            jointList.clear();
+
+            animations.emplace_back(animName, 4.f, 44.f, std::move(rootNode));
+        }
+
+        return header;
+    }
+
+    const uint8_t* parse_material(const uint8_t* const begin, const uint8_t* const end, dal::binfo::Material& material) {
         const uint8_t* header = begin;
 
         material.m_roughness = dal::assemble4Bytes<float>(header); header += 4;
@@ -453,7 +568,7 @@ namespace {
         return header;
     }
 
-    const uint8_t* parseRenderUnit(const uint8_t* const begin, const uint8_t* const end, dal::binfo::RenderUnit& unit) {
+    const uint8_t* parse_renderUnit(const uint8_t* const begin, const uint8_t* const end, dal::binfo::RenderUnit& unit) {
         const uint8_t* header = begin;
 
         // Name
@@ -464,12 +579,13 @@ namespace {
 
         // Material
         {
-            header = parseMaterial(header, end, unit.m_material);
+            header = parse_material(header, end, unit.m_material);
         }
 
         // Vertices
         {
             const auto numVert = dal::makeInt4(header); header += 4;
+            const auto hasBones = dal::makeBool1(header); header += 1;
             const auto numVertTimes3 = numVert * 3;
             const auto numVertTimes2 = numVert * 2;
 
@@ -481,6 +597,14 @@ namespace {
 
             unit.m_mesh.m_normals.resize(numVertTimes3);
             header = dal::assemble4BytesArray<float>(header, unit.m_mesh.m_normals.data(), numVertTimes3);
+
+            if ( hasBones ) {
+                unit.m_mesh.m_boneWeights.resize(numVertTimes3);
+                header = dal::assemble4BytesArray<float>(header, unit.m_mesh.m_boneWeights.data(), numVertTimes3);
+
+                unit.m_mesh.m_boneIndex.resize(numVertTimes3);
+                header = dal::assemble4BytesArray<int32_t>(header, unit.m_mesh.m_boneIndex.data(), numVertTimes3);
+            }
         }
 
         return header;
@@ -529,13 +653,21 @@ namespace dal {
             return false;
         }
 
-        const auto numUnits = dal::makeInt4(unzipped.data());
-        const uint8_t* header = unzipped.data() + 4;
-        const auto end = unzipped.data() + unzipped.size();
+        // Start parsing
+
+        const uint8_t* const end = unzipped.data() + unzipped.size();
+        const uint8_t* header = unzipped.data();
+
+        header = parse_skeleton(header, end, info.m_model.m_joints);
+        header = parse_animations(header, end, info.m_model.m_joints, info.m_animations);
+
+        const auto numUnits = dal::makeInt4(header); header += 4;
         for ( int i = 0; i < numUnits; ++i ) {
             auto& unit = info.m_model.m_renderUnits.emplace_back();
-            header = parseRenderUnit(header, end, unit);
+            header = parse_renderUnit(header, end, unit);
         }
+
+        dalAssert(header == end);
 
         return true;
     }

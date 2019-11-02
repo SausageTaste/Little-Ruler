@@ -27,9 +27,15 @@ namespace dal {
     class SkeletonInterface {
 
     private:
-        std::map<std::string, int32_t> m_map;
-        std::vector<glm::mat4> m_boneOffsets;
-        int32_t m_lastMadeIndex = -1;
+        struct BoneInfo {
+            glm::mat4 m_boneOffset;
+            jointID_t m_parentIndex = -1;
+        };
+
+    private:
+        std::map<std::string, jointID_t> m_map;
+        std::vector<BoneInfo> m_boneInfo;
+        jointID_t m_lastMadeIndex = -1;
 
     public:
         SkeletonInterface(const SkeletonInterface&) = delete;
@@ -43,11 +49,14 @@ namespace dal {
         jointID_t getIndexOf(const std::string& jointName) const;
         jointID_t getOrMakeIndexOf(const std::string& jointName);
 
-        void setOffsetMat(const jointID_t index, const glm::mat4& mat);
-        const glm::mat4& getOffsetMat(const jointID_t index) const;
+        BoneInfo& at(const jointID_t index);
+        const BoneInfo& at(const jointID_t index) const;
+        const std::string& getName(const jointID_t index) const;
 
         jointID_t getSize(void) const;
         bool isEmpty(void) const;
+
+        void clear(void);
 
     private:
         jointID_t upsizeAndGetIndex(void);
@@ -104,9 +113,33 @@ namespace dal {
             JointNode& operator=(JointNode&&) = default;
 
         public:
+            JointNode(void);
             JointNode(const JointKeyframeInfo& info, const glm::mat4& transform, JointNode* const parent);
             JointNode(const std::string& name, const glm::mat4& transform, JointNode* const parent);
 
+            void setName(const std::string& name) {
+                this->m_name = name;
+            }
+            void addPos(const float timepoint, const glm::vec3& pos) {
+                const std::pair<float, glm::vec3> input{ timepoint, pos };
+                this->m_poses.push_back(input);
+            }
+            void addRotation(const float timepoint, const glm::quat& rot) {
+                const std::pair<float, glm::quat> input{ timepoint, rot };
+                this->m_rotates.push_back(input);
+            }
+            void addScale(const float timepoint, const float scale) {
+                const std::pair<float, float> input{ timepoint, scale };
+                this->m_scales.push_back(input);
+            }
+
+            const std::string& getName(void) const {
+                return this->m_name;
+            }
+
+            void reserveChildrenVector(const size_t size) {
+                this->m_children.reserve(size);
+            }
             JointNode* emplaceChild(const JointKeyframeInfo& info, const glm::mat4& transform, JointNode* const parent);
             JointNode* emplaceChild(const std::string& name, const glm::mat4& transform, JointNode* const parent);
 

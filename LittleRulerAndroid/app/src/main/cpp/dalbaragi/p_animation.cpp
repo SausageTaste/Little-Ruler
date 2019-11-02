@@ -93,38 +93,59 @@ namespace dal {
         }
     }
 
-    void SkeletonInterface::setOffsetMat(const jointID_t index, const glm::mat4& mat) {
+    SkeletonInterface::BoneInfo& SkeletonInterface::at(const jointID_t index) {
         dalAssert(this->isIndexValid(index));
-
-        this->m_boneOffsets[index] = mat;
+        return this->m_boneInfo[index];
     }
 
-    const glm::mat4& SkeletonInterface::getOffsetMat(const jointID_t index) const {
-        dalAssert(this->isIndexValid(index));
+    const SkeletonInterface::BoneInfo& SkeletonInterface::at(const jointID_t index) const {
+        const auto valid = this->isIndexValid(index);
+        dalAssert(valid);
+        return this->m_boneInfo[index];
+    }
 
-        return this->m_boneOffsets[index];
+    const std::string& SkeletonInterface::getName(const jointID_t index) const {
+        dalAssert(this->isIndexValid(index));
+        for ( const auto& [name, id] : this->m_map ) {
+            if ( id == index ) {
+                return name;
+            }
+        }
+        dalAbort("WTF");
     }
 
     jointID_t SkeletonInterface::getSize(void) const {
-        return static_cast<int32_t>(this->m_boneOffsets.size());
+        return static_cast<int32_t>(this->m_boneInfo.size());
     }
 
     bool SkeletonInterface::isEmpty(void) const {
         return this->m_map.empty();
     }
 
+    void SkeletonInterface::clear(void) {
+        this->m_map.clear();
+        this->m_boneInfo.clear();
+        this->m_lastMadeIndex = -1;
+    }
+
     // Private
 
     jointID_t SkeletonInterface::upsizeAndGetIndex(void) {
         this->m_lastMadeIndex++;
-        this->m_boneOffsets.emplace_back();
+        this->m_boneInfo.emplace_back();
         return this->m_lastMadeIndex;
     }
 
     bool SkeletonInterface::isIndexValid(const jointID_t index) const {
-        if ( index < 0 ) return false;
-        else if ( static_cast<unsigned int>(index) >= this->m_boneOffsets.size() ) return false;
-        else return true;
+        if ( index < 0 ) {
+            return false;
+        }
+        else if ( static_cast<unsigned int>(index) >= this->m_boneInfo.size() ) {
+            return false;
+        }
+        else {
+            return true;
+        }
     }
 
 }  // namespace dal
@@ -152,6 +173,12 @@ namespace dal {
 
 
 namespace dal {
+
+    Animation::JointNode::JointNode(void)
+        : m_parent(nullptr)
+    {
+
+    }
 
     Animation::JointNode::JointNode(const JointKeyframeInfo& info, const glm::mat4& transform, JointNode* const parent)
         : m_name(info.m_name),
@@ -200,7 +227,7 @@ namespace dal {
 
         const auto jointInferfIndex = interf.getIndexOf(this->m_name);
         if ( -1 != jointInferfIndex ) {
-            const auto finalTrans = globalInvMat * nodeTransform * interf.getOffsetMat(jointInferfIndex);
+            const auto finalTrans = globalInvMat * nodeTransform * interf.at(jointInferfIndex).m_boneOffset;
             transformArr.setTransform(jointInferfIndex, finalTrans);
         }
 
