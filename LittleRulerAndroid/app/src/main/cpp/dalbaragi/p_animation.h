@@ -148,6 +148,7 @@ namespace dal {
 
             void sample(const float animTick, const glm::mat4& parentTrans, const SkeletonInterface& interf, const glm::mat4& globalInvMat,
                 JointTransformArray& transformArr) const;
+            void sample2(const float animTick, const SkeletonInterface& interf, std::vector<glm::mat4>& trans) const;
 
         private:
             bool hasKeyframes(void) const;
@@ -178,6 +179,7 @@ namespace dal {
         float getDurationInTick(void) const { return this->m_durationInTick; }
 
         void sample(const float animTick, const SkeletonInterface& interf, const glm::mat4& globalInvMat, JointTransformArray& transformArr) const;
+        void sample2(const float animTick, const SkeletonInterface& interf, JointTransformArray& transformArr) const;
         float calcAnimTick(const float seconds) const;
 
     };

@@ -119,12 +119,7 @@ namespace {
             }
 
             virtual void start(void) override {
-                if ( this->in_modelID.getExt() == ".dmd" ) {
-                    this->out_success = dal::loadDalModel(this->in_modelID, this->out_info);
-                }
-                else {
-                    this->out_success = dal::loadAssimpModel(this->in_modelID, this->out_info);
-                }
+                this->out_success = dal::loadAssimpModel(this->in_modelID, this->out_info);
 
                 if ( 0 == this->out_info.m_model.m_joints.getSize() ) {
                     this->out_success = false;

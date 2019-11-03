@@ -67,6 +67,22 @@ namespace {
         }
     }
 
+    std::vector<dal::jointID_t> makeParentList(const dal::jointID_t id, const dal::SkeletonInterface& interf) {
+        std::vector<dal::jointID_t> result;
+
+        dal::jointID_t currentID = id;
+        while ( true ) {
+            const auto parentID = interf.at(currentID).m_parentIndex;
+            if ( parentID < 0 ) {
+                return result;
+            }
+            else {
+                result.push_back(parentID);
+                currentID = parentID;
+            }
+        }
+    }
+
 }
 
 
@@ -238,6 +254,17 @@ namespace dal {
         }
     }
 
+    void Animation::JointNode::sample2(const float animTick, const SkeletonInterface& interf, std::vector<glm::mat4>& trans) const {
+        const auto boneIndex = interf.getIndexOf(this->m_name);
+        if ( -1 != boneIndex ) {
+            trans.at(boneIndex) = this->makeTransformInterp(animTick);
+        }
+
+        for ( auto& child : this->m_children ) {
+            child.sample2(animTick, interf, trans);
+        }
+    }
+
     // Private
 
     bool Animation::JointNode::hasKeyframes(void) const {
@@ -246,7 +273,7 @@ namespace dal {
 
     glm::vec3 Animation::JointNode::makePosInterp(const float animTick) const {
         if ( 0 == this->m_poses.size() ) {
-            dalAbort("Trying to interpolate poses when there is no pos keyframes for: {}"_format(this->m_name));
+            return glm::vec3{};
         }
 
         return makeInterpValue(animTick, this->m_poses);
@@ -254,7 +281,7 @@ namespace dal {
 
     glm::quat Animation::JointNode::makeRotateInterp(const float animTick) const {
         if ( 0 == this->m_rotates.size() ) {
-            dalAbort("Trying to interpolate rotates when there is no rotate keyframes for: {}"_format(this->m_name));
+            return glm::quat{};
         }
 
         return makeInterpValue(animTick, this->m_rotates);
@@ -262,7 +289,7 @@ namespace dal {
 
     float Animation::JointNode::makeScaleInterp(const float animTick) const {
         if ( 0 == this->m_scales.size() ) {
-            dalAbort("Trying to interpolate scales when there is no scale keyframes for: {}"_format(this->m_name));
+            return 1.f;
         }
 
         return makeInterpValue(animTick, this->m_scales);
@@ -306,7 +333,44 @@ namespace dal {
         transformArr.setSize(interf.getSize());
         this->m_rootNode.sample(animTick, glm::mat4{ 1.0f }, interf, globalInvMat, transformArr);
     }
-    
+
+    void Animation::sample2(const float animTick, const SkeletonInterface& interf, JointTransformArray& transformArr) const {
+        const auto numBones = interf.getSize();
+        transformArr.setSize(numBones);
+        std::vector<glm::mat4> nodeTransforms;
+        nodeTransforms.resize(numBones);
+        this->m_rootNode.sample2(animTick, interf, nodeTransforms);
+
+        for ( int i = 0; i < numBones; ++i ) {
+            const auto parentList = makeParentList(i, interf);
+            glm::mat4 wholeOffset = interf.at(i).m_boneOffset;
+            for ( const auto parentID : parentList ) {
+                wholeOffset *= interf.at(parentID).m_boneOffset;
+            }
+            wholeOffset = glm::inverse(wholeOffset);
+
+            glm::mat4 transform = nodeTransforms[i];
+            for ( auto iter = parentList.rbegin(); iter != parentList.rend(); ++iter ) {
+                const auto parentID = *iter;
+                transform = nodeTransforms[parentID] * interf.at(parentID).m_boneOffset * transform;
+            }
+            transform = interf.at(i).m_boneOffset * transform;
+            transform = transform * wholeOffset;
+
+            transformArr.setTransform(i, transform);
+        }
+        return;
+        for ( int i = 0; i < numBones; ++i ) {
+            transformArr.setTransform(i, glm::inverse(interf.at(i).m_boneOffset));
+        }
+
+        {
+            const auto r1 = glm::inverse(interf.at(1).m_boneOffset) * glm::vec4{ 0.0000, 0.0000, 2.9565, 1.0 };
+            const auto r2 = glm::inverse(interf.at(2).m_boneOffset) * glm::vec4{ -2.0161, 0.0000, 2.9565, 1.0 };
+            return;
+        }
+    }
+
     float Animation::calcAnimTick(const float seconds) const {
         const auto animDuration = this->getDurationInTick();
         const auto animTickPerSec = this->getTickPerSec();
@@ -332,6 +396,7 @@ namespace dal {
         const auto& anim = anims[selectedAnimIndex];
         const auto elapsed = state.getElapsed();
         const auto animTick = anim.calcAnimTick(elapsed);
+        //anim.sample(animTick, skeletonInterf, globalMatInv, state.getTransformArray());
         anim.sample(animTick, skeletonInterf, globalMatInv, state.getTransformArray());
     }
 
