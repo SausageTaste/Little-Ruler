@@ -72,16 +72,6 @@ def main():
 
     ################
 
-    model = mapbuild.newImportedModel()
-    model.m_resourceID.set("test::honoka_maid.dmd")
-
-    actor = model.newStaticActor()
-    actor.m_name.set("main_actor")
-    actor.m_transform.m_pos.setXYZ(3, 0, -8)
-    actor.m_transform.m_scale.set(0.5)
-
-    ################
-
     light = mapbuild.newPointLight()
     light.m_maxDistance.set(5)
     light.m_color.setXYZ(5, 5, 5)
