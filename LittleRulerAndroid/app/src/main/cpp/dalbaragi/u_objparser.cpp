@@ -680,20 +680,25 @@ namespace dal {
         }
 
         // Start parsing
+        {
+            const uint8_t* const end = unzipped.data() + unzipped.size();
+            const uint8_t* header = unzipped.data();
 
-        const uint8_t* const end = unzipped.data() + unzipped.size();
-        const uint8_t* header = unzipped.data();
+            header = parse_skeleton(header, end, info.m_model.m_joints);
+            header = parse_animations(header, end, info.m_model.m_joints, info.m_animations);
 
-        header = parse_skeleton(header, end, info.m_model.m_joints);
-        header = parse_animations(header, end, info.m_model.m_joints, info.m_animations);
+            const auto numUnits = dal::makeInt4(header); header += 4;
+            for ( int i = 0; i < numUnits; ++i ) {
+                auto& unit = info.m_model.m_renderUnits.emplace_back();
+                header = parse_renderUnit(header, end, unit);
+            }
 
-        const auto numUnits = dal::makeInt4(header); header += 4;
-        for ( int i = 0; i < numUnits; ++i ) {
-            auto& unit = info.m_model.m_renderUnits.emplace_back();
-            header = parse_renderUnit(header, end, unit);
+            dalAssert(header == end);
         }
 
-        dalAssert(header == end);
+        {
+            info.m_model.m_globalTrans = glm::rotate(glm::mat4{ 1.f }, glm::radians(90.f), glm::vec3{ 1.f, 0.f, 0.f });
+        }
 
         return true;
     }

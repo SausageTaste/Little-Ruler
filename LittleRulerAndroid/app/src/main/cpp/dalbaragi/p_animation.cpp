@@ -334,41 +334,43 @@ namespace dal {
         this->m_rootNode.sample(animTick, glm::mat4{ 1.0f }, interf, globalInvMat, transformArr);
     }
 
-    void Animation::sample2(const float animTick, const SkeletonInterface& interf, JointTransformArray& transformArr) const {
+    void Animation::sample2(const float animTick, const SkeletonInterface& interf, const glm::mat4& globalInvMat, JointTransformArray& transformArr) const {
         const auto numBones = interf.getSize();
         transformArr.setSize(numBones);
-        std::vector<glm::mat4> nodeTransforms;
-        nodeTransforms.resize(numBones);
-        this->m_rootNode.sample2(animTick, interf, nodeTransforms);
 
-        for ( int i = 0; i < numBones; ++i ) {
-            const auto parentList = makeParentList(i, interf);
-            glm::mat4 wholeOffset = interf.at(i).m_boneOffset;
-            for ( const auto parentID : parentList ) {
-                wholeOffset *= interf.at(parentID).m_boneOffset;
-            }
-            wholeOffset = glm::inverse(wholeOffset);
-
-            glm::mat4 transform = nodeTransforms[i];
-            for ( auto iter = parentList.rbegin(); iter != parentList.rend(); ++iter ) {
-                const auto parentID = *iter;
-                transform = nodeTransforms[parentID] * interf.at(parentID).m_boneOffset * transform;
-            }
-            transform = interf.at(i).m_boneOffset * transform;
-            transform = transform * wholeOffset;
-
-            transformArr.setTransform(i, transform);
-        }
-        return;
-        for ( int i = 0; i < numBones; ++i ) {
-            transformArr.setTransform(i, glm::inverse(interf.at(i).m_boneOffset));
-        }
-
+        std::vector<glm::mat4> toParentMats(numBones);
         {
-            const auto r1 = glm::inverse(interf.at(1).m_boneOffset) * glm::vec4{ 0.0000, 0.0000, 2.9565, 1.0 };
-            const auto r2 = glm::inverse(interf.at(2).m_boneOffset) * glm::vec4{ -2.0161, 0.0000, 2.9565, 1.0 };
-            return;
+            toParentMats[0] = interf.at(0).m_boneOffset;
+            for ( int i = 1; i < numBones; ++i ) {
+                const auto parentIndex = interf.at(i).m_parentIndex;
+                const auto& parentOffset = interf.at(parentIndex).m_boneOffset;
+                const auto& selfOffset = interf.at(i).m_boneOffset;
+                toParentMats[i] = glm::inverse(parentOffset) * selfOffset;
+            }
         }
+
+        std::vector<glm::mat4> boneTransforms(numBones);
+        this->m_rootNode.sample2(animTick, interf, boneTransforms);
+
+        for ( dal::jointID_t i = 0; i < numBones; ++i ) {
+            dal::jointID_t curBone = i;
+            glm::mat4 totalTrans = glm::inverse(interf.at(i).m_boneOffset);
+            while ( curBone != -1 ) {
+                totalTrans = toParentMats[curBone] * boneTransforms[curBone] * totalTrans;
+                curBone = interf.at(curBone).m_parentIndex;
+            }
+            transformArr.setTransform(i, globalInvMat * totalTrans);
+        }
+
+        static bool once = false;
+        if ( !once ) {
+            for ( dal::jointID_t i = 0; i < numBones; ++i ) {
+
+            }
+            once = true;
+        }
+
+        return;
     }
 
     float Animation::calcAnimTick(const float seconds) const {
@@ -384,9 +386,7 @@ namespace dal {
 // Functions
 namespace dal {
 
-    void updateAnimeState(AnimationState& state, const std::vector<Animation>& anims,
-        const SkeletonInterface& skeletonInterf, const glm::mat4& globalMatInv)
-    {
+    void updateAnimeState(AnimationState& state, const std::vector<Animation>& anims, const SkeletonInterface& skeletonInterf, const glm::mat4& globalMatInv) {
         const auto selectedAnimIndex = state.getSelectedAnimeIndex();
         if ( selectedAnimIndex >= anims.size() ) {
             //dalError("Selected animation index out of range");
@@ -397,7 +397,7 @@ namespace dal {
         const auto elapsed = state.getElapsed();
         const auto animTick = anim.calcAnimTick(elapsed);
         //anim.sample(animTick, skeletonInterf, globalMatInv, state.getTransformArray());
-        anim.sample(animTick, skeletonInterf, globalMatInv, state.getTransformArray());
+        anim.sample2(animTick, skeletonInterf, globalMatInv, state.getTransformArray());
     }
 
 }

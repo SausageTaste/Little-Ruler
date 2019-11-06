@@ -179,7 +179,7 @@ namespace dal {
         float getDurationInTick(void) const { return this->m_durationInTick; }
 
         void sample(const float animTick, const SkeletonInterface& interf, const glm::mat4& globalInvMat, JointTransformArray& transformArr) const;
-        void sample2(const float animTick, const SkeletonInterface& interf, JointTransformArray& transformArr) const;
+        void sample2(const float animTick, const SkeletonInterface& interf, const glm::mat4& globalInvMat, JointTransformArray& transformArr) const;
         float calcAnimTick(const float seconds) const;
 
     };
