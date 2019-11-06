@@ -560,6 +560,10 @@ namespace {
         for ( int i = 0; i < numAnims; ++i ) {
             const std::string animName = reinterpret_cast<const char*>(header);
             header += animName.size() + 1;
+
+            const auto durationTick = dal::assemble4Bytes<float>(header); header += 4;
+            const auto tickPerSec = dal::assemble4Bytes<float>(header); header += 4;
+
             const auto numJoints = dal::makeInt4(header); header += 4;
 
             auto [rootNode, jointList] = makeAnimJointHierarchy(skeleton);
@@ -570,7 +574,7 @@ namespace {
             }
             jointList.clear();
 
-            animations.emplace_back(animName, 4.f, 44.f, std::move(rootNode));
+            animations.emplace_back(animName, tickPerSec, durationTick, std::move(rootNode));
         }
 
         return header;

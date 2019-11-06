@@ -168,7 +168,7 @@ namespace {
         }
 
         virtual void enter(void) override {
-            this->m_model.m_animState.setSelectedAnimeIndex(0);
+            this->m_model.m_animState.setSelectedAnimeIndex(2);
 
             dalVerbose("IDLE");
         }
