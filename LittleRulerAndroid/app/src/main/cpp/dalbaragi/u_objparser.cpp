@@ -696,10 +696,6 @@ namespace dal {
             dalAssert(header == end);
         }
 
-        {
-            info.m_model.m_globalTrans = glm::rotate(glm::mat4{ 1.f }, glm::radians(90.f), glm::vec3{ 1.f, 0.f, 0.f });
-        }
-
         return true;
     }
 

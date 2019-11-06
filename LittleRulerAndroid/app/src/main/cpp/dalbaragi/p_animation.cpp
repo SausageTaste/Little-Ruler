@@ -335,6 +335,9 @@ namespace dal {
     }
 
     void Animation::sample2(const float animTick, const SkeletonInterface& interf, const glm::mat4& globalInvMat, JointTransformArray& transformArr) const {
+        static const auto k_spaceAnim2Model = glm::rotate(glm::mat4{ 1.f }, glm::radians(-90.f), glm::vec3{ 1.f, 0.f, 0.f });
+        static const auto k_spaceModel2Anim = glm::inverse(k_spaceAnim2Model);
+
         const auto numBones = interf.getSize();
         transformArr.setSize(numBones);
 
@@ -359,7 +362,7 @@ namespace dal {
                 totalTrans = toParentMats[curBone] * boneTransforms[curBone] * totalTrans;
                 curBone = interf.at(curBone).m_parentIndex;
             }
-            transformArr.setTransform(i, globalInvMat * totalTrans);
+            transformArr.setTransform(i, k_spaceAnim2Model * totalTrans * k_spaceModel2Anim);
         }
 
         static bool once = false;
