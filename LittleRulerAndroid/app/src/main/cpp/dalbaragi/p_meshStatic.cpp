@@ -176,7 +176,7 @@ namespace dal {
 #endif
 
         if ( 1 == image.m_pixSize ) {
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, image.m_width, image.m_height, 0, GL_R, GL_UNSIGNED_BYTE, image.m_buf.data());
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, image.m_width, image.m_height, 0, GL_RED, GL_UNSIGNED_BYTE, image.m_buf.data());
         }
         else if ( 2 == image.m_pixSize ) {
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RG, image.m_width, image.m_height, 0, GL_RG, GL_UNSIGNED_BYTE, image.m_buf.data());
