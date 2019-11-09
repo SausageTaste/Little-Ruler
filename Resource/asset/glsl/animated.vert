@@ -19,7 +19,7 @@ uniform mat4 u_modelMat;
 uniform vec2 u_texScale;
 
 // Interf - Anime
-uniform mat4 u_jointTransforms[100];
+uniform mat4 u_jointTransforms[30];
 
 // Interf - PlaneClip
 uniform bool u_doClip;

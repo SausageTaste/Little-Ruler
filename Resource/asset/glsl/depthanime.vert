@@ -12,7 +12,7 @@ uniform mat4 u_viewMat;
 uniform mat4 u_modelMat;
 
 // Interf - Anime
-uniform mat4 u_jointTransforms[100];
+uniform mat4 u_jointTransforms[30];
 
 
 void main() {
