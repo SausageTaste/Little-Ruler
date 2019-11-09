@@ -55,15 +55,6 @@ def main():
     ################
 
     model = mapbuild.newImportedModel()
-    model.m_resourceID.set("asset::yuri_cso2.dmd")
-
-    actor = model.newStaticActor()
-    actor.m_name.set("main_actor")
-    actor.m_transform.m_pos.setXYZ(3, 0, -5)
-
-    ################
-
-    model = mapbuild.newImportedModel()
     model.m_resourceID.set("asset::pbr_ball.dmd")
 
     actor = model.newStaticActor()

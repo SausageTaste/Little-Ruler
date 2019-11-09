@@ -481,6 +481,15 @@ namespace {
     }
 
 
+    const uint8_t* parse_aabb(const uint8_t* header, const uint8_t* const end, dal::AABB& aabb) {
+        float fbuf[6];
+        header = dal::assemble4BytesArray<float>(header, fbuf, 6);
+
+        aabb.set(glm::vec3{ fbuf[0], fbuf[1], fbuf[2] }, glm::vec3{ fbuf[3], fbuf[4], fbuf[5] });
+
+        return header;
+    }
+
     const uint8_t* parse_mat4(const uint8_t* header, const uint8_t* const end, glm::mat4& mat) {
         float fbuf[16];
         header = dal::assemble4BytesArray<float>(header, fbuf, 16);
@@ -688,6 +697,7 @@ namespace dal {
             const uint8_t* const end = unzipped.data() + unzipped.size();
             const uint8_t* header = unzipped.data();
 
+            header = parse_aabb(header, end, info.m_model.m_aabb);
             header = parse_skeleton(header, end, info.m_model.m_joints);
             header = parse_animations(header, end, info.m_model.m_joints, info.m_animations);
 
