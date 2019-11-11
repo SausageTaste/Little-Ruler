@@ -269,6 +269,7 @@
     <ClInclude Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\u_byteutils.h">
       <Filter>Utility</Filter>
     </ClInclude>
+    <ClInclude Include="resource.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\Resource\asset\glsl\depth.vert">
@@ -322,5 +323,11 @@
     <None Include="..\..\Resource\asset\glsl\depth.frag">
       <Filter>GLSL</Filter>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="icon.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="icon1.ico" />
   </ItemGroup>
 </Project>
