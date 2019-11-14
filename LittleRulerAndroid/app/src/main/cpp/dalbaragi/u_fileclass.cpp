@@ -1060,4 +1060,35 @@ namespace dal {
 
     }
 
+    std::vector<std::string> listdir(ResourceID resID) {
+        std::vector<std::string> result;
+
+#if defined(_WIN32)
+        {
+            std::string filePath;
+            if ( resID.getPackage() == PACKAGE_NAME_ASSET ) {
+                filePath = fmt::format("{}{}/{}", getResourceDir_win(), PACKAGE_NAME_ASSET, resID.getOptionalDir());
+            }
+            else if ( resID.getPackage() == LOG_FOLDER_NAME ) {
+                filePath = fmt::format("{}{}/{}", getResourceDir_win(), LOG_FOLDER_NAME, resID.getOptionalDir());
+                assertDir_log();
+            }
+            else {
+                const auto dirToAssert = fmt::format("{}{}/{}", getResourceDir_win(), USERDATA_FOLDER_NAME, resID.getPackage());
+                filePath = fmt::format("{}/{}", dirToAssert, resID.getOptionalDir());
+                assertDir_userdata();
+                assertDir(dirToAssert.c_str());
+            }
+
+            getListFolFile_win(filePath, result);
+        }
+#elif defined(__ANDROID__)
+        {
+
+        }
+#endif
+
+        return result;
+    }
+
 }

@@ -96,5 +96,6 @@ namespace dal {
 
 
     std::unique_ptr<IResourceStream> resopen(ResourceID resID, const FileMode mode);
+    std::vector<std::string> listdir(ResourceID resID);
 
 }

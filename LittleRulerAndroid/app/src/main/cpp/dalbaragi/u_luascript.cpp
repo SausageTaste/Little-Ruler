@@ -135,6 +135,21 @@ namespace {
         return 0;
     }
 
+    int print_licenses(lua_State* const L) {
+        fmt::print("========================================================\n");
+        fmt::print("Open source libraries used in this game engines are...\n\n");
+
+        for ( auto& x : dal::listdir("asset::license/") ) {
+            fmt::print(x);
+            fmt::print("\n");
+        }
+
+        fmt::print("\nEntire text for each lib can be found in asset::license/\n");
+        fmt::print("========================================================\n");
+
+        return 0;
+    }
+
 
     int set_fullscreen(lua_State* const L) {
         const auto nargs = lua_gettop(L);
@@ -209,6 +224,7 @@ namespace dal {
 
         addPtrToGlobal(this->m_lua, this);
         addFunc(this->m_lua, "print", moon_print);
+        addFunc(this->m_lua, "print_licenses", print_licenses);
 
         luaL_requiref(this->m_lua, "mylib", luaopen_mylib, 0);
     }
