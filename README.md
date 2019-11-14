@@ -3,6 +3,7 @@
 * 혼자서 진행하고 있는 게임 엔진입니다. 한 번의 코딩으로 안드로이드와 윈도우 모두에서 사용 가능한 엔진을 목표로 하고 있습니다.
 * 사용 언어는 C++이며, 안드로이드에서는 JNI 인터페이스를 이용한 NDK를 사용합니다.
 * 독자적인 레벨 에디터, 루아 스크립팅 등을 지원할 예정입니다.
+* 엔진 소스코드는 모두 `{repo_root}/LittleRulerAndroid/app/src/main/cpp/` 안에 있습니다.
 
 ![alt text](./screenshots/main.jpg)
 
@@ -17,10 +18,6 @@
 
 # 내용물 설명
 
-### DalbaragiUtils 폴더
-
-* 맵 에디터 및 맵 컴파일러 등 게임 플레이에는 필요없지만 제작에 유용한 도구들은 제 입문 언어인 파이썬으로 구현합니다.
-
 ### LittleRulerAndroid 폴더
 
 * 안드로이드 apk로 빌드 하기 위한 안드로이드 스튜디오 프로젝트입니다.
@@ -31,11 +28,9 @@
 * 윈도우즈 exe로 빌드 하기 위한 비주얼스튜디오 2019 프로젝트입니다.
 * 프로젝트 구성 파일 외에는 없습니다. 소스는 안드로이드 프로젝트에 있는 파일을 참조하여 사용합니다.
 
-### Library 폴더
+### Resource 폴더
 
-* 빌드를 위해 필요한 C/C++ 헤더, 정적/동적 라이브러리 파일들이 들어있습니다.
-* a/so는 안드로이드용이고 lib/dll은 윈도우용이며, include 헤더 파일들은 공용입니다.
-
+* 모델, 이미지, 텍스트, 폰트 등 모든 종류의 리소스들은 여기에 넣습니다.
 
 <br>
 
@@ -77,16 +72,30 @@
 
 # 빌드 방법
 
-* 먼저 깃 저장소를 체크아웃 하거나 다운로드해 주세요.
+아래 외부 라이브러리에 적혀 있는 모든 라이브러리에 대한 링킹 설정을 직접 해주셔야 합니다. 새로운 컴퓨터에서 쉽게 빌드 할 수 있게 해주는 방법을 모릅니다. 좋은 공부 자료가 있으면 추천해 주세요. ㅜㅜ
 
-### Windows의 경우
-* 윈도우용 exe를 빌드하기 위해서는 `{repo_root}/LittleRuler/LittleRulerWindows/LittleRulerWindows.sln` 파일을 **Visual Studio 2019**로 열어서 빌드 하시면 됩니다.
-* 실행 파일이 생성되는 위치는 `.../LittleRulerWindows/outputs/`입니다.
-* 실행하기 위해서는 3개의 DLL 파일이 필요합니다. ( assimp-vc140-mt.dll, glew32d.dll 또는 glew32.dll, SDL2.dll ) 해당 파일들은 `.../LittleRulerWindows/dll_files/` 폴더에 들어 있습니다. 이 폴더의 내용물을 그대로 `.../LittleRulerWindows/outputs/` 폴더로 복사하면 됩니다.
-* VS 2019 이전 버전에서는 아마 안 될 겁니다.
+<br>
 
-### Android의 경우
-* 디버그 APK를 빌드하기 위해서는 **Android Studio**로 `{repo_root}/LittleRuler/LittleRulerAndroid/` 프로젝트 폴더를 열어서 빌드 하시면 됩니다.
+# 외부 라이브러리
+
+### C++ 17
+
+* [Open Asset Import Lib (Assimp)](http://www.assimp.org/)
+* [FreeType](https://www.freetype.org/)
+* [The OpenGL Extension Wrangler Library (GLEW)](http://glew.sourceforge.net/)
+* [OpenGL Mathematics (GLM)](https://glm.g-truc.net/)
+* [LodePNG](https://lodev.org/lodepng/)
+* [Lua](https://www.lua.org/)
+* [Simple DirectMedia Layer 2 (SDL2)](https://www.libsdl.org/)
+* [TGA](https://github.com/ColumbusUtrigas/TGA)
+* [zlib](https://www.zlib.net/)
+* [fmt](http://fmtlib.net/latest/index.html)
+* [entt](https://github.com/skypjack/entt)
+
+### Python 3.6.8
+
+* [NumPy](https://www.numpy.org/)
+* [PyGLM](https://pypi.org/project/PyGLM/)
 
 <br>
 
@@ -119,23 +128,7 @@
 
 <br>
 
-# 외부 라이브러리
+# 관련 프로젝트
 
-### C++ 17
-
-* [Open Asset Import Lib (Assimp)](http://www.assimp.org/)
-* [FreeType](https://www.freetype.org/)
-* [The OpenGL Extension Wrangler Library (GLEW)](http://glew.sourceforge.net/)
-* [OpenGL Mathematics (GLM)](https://glm.g-truc.net/)
-* [LodePNG](https://lodev.org/lodepng/)
-* [Lua](https://www.lua.org/)
-* [Simple DirectMedia Layer 2 (SDL2)](https://www.libsdl.org/)
-* [TGA](https://github.com/ColumbusUtrigas/TGA)
-* [zlib](https://www.zlib.net/)
-* [fmt](http://fmtlib.net/latest/index.html)
-* [entt](https://github.com/skypjack/entt)
-
-### Python 3.6.8
-
-* [NumPy](https://www.numpy.org/)
-* [PyGLM](https://pypi.org/project/PyGLM/)
+* [Dalbaragi Model (DMD) Exporter for Blender](https://github.com/SausageTaste/io_scene_dalbaragi)
+* [Dalbaragi Python Utils](https://github.com/SausageTaste/Dalbaragi-Utils)
