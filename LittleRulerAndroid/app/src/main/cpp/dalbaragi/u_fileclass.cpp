@@ -52,13 +52,13 @@ namespace {
         PACKAGE_NAME_ASSET, {
             { "font", {}},
             { "glsl", {}},
+            { "license", {}},
             { "map", {}},
             { "model", {}},
             { "texture", {
-                    {"dva", {}},
-                    {"yuri2", {}},
-                    {"skybox", {}},
-                    {"mess", {}}
+                    {"rustediron1-alt2", {}},
+                    {"water", {}},
+                    {"skybox", {}}
                 }
             },
             { "script", {} }
