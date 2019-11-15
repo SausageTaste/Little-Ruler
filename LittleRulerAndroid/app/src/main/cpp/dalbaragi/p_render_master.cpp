@@ -195,12 +195,12 @@ namespace dal {
         // Skybox
         {
             std::array<ResourceID, 6> cubeMapImages{
-                "asset::darkskies_rt.tga",
-                "asset::darkskies_lf.tga",
-                "asset::darkskies_up.tga",
-                "asset::darkskies_dn.tga",
-                "asset::darkskies_ft.tga",
-                "asset::darkskies_bk.tga",
+                "asset::plane_blue_rt.tga",
+                "asset::plane_blue_lf.tga",
+                "asset::plane_blue_up.tga",
+                "asset::plane_blue_dn.tga",
+                "asset::plane_blue_ft.tga",
+                "asset::plane_blue_bk.tga",
             };
             auto tex = resMas.orderCubeMap(cubeMapImages, true);
             this->m_skybox.setCubeMap(tex);

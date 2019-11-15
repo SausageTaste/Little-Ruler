@@ -379,9 +379,9 @@ namespace dal {
             this->m_player = this->m_entities.create();
 
             auto& transform = this->m_entities.assign<cpnt::Transform>(this->m_player);
-            transform.setScale(0.024f);
+            transform.setScale(0.2f);
 
-            auto ptrModel = this->m_resMas.orderModelAnim("asset::yuri_cso2.dmd");
+            auto ptrModel = this->m_resMas.orderModelAnim("asset::Character Running.dmd");
             auto& renderable = this->m_entities.assign<cpnt::AnimatedModel>(this->m_player);
             renderable.m_model = ptrModel;
 
