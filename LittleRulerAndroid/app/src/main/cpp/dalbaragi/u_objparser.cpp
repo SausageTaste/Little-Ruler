@@ -435,6 +435,10 @@ namespace {
 // DMD
 namespace {
 
+    constexpr size_t MAGIC_NUMBER_COUNT = 6;
+    constexpr char MAGIC_NUMBERS[] = "dalmdl";
+
+
     void makeAnimJoint_recur(dal::Animation::JointNode& parent, const dal::jointID_t parIndex, const dal::SkeletonInterface& skeleton, std::vector<dal::Animation::JointNode*>& resultList) {
         const auto numJoints = skeleton.getSize();
 
@@ -478,6 +482,16 @@ namespace {
         }
 
         return result;
+    }
+
+    bool checkMagicNumbers(const uint8_t* const begin) {
+        for ( unsigned int i = 0; i < MAGIC_NUMBER_COUNT; ++i ) {
+            if ( begin[i] != MAGIC_NUMBERS[i] ) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
 
@@ -680,16 +694,28 @@ namespace dal {
     }
 
     bool loadDalModel(const ResourceID& resID, AssimpModelInfo& info) {
+        // Load file contents
         std::vector<uint8_t> filebuf;
         if ( !dal::futil::getRes_buffer(resID, filebuf) ) {
             return false;
         }
-        const auto fullSize = dal::makeInt4(filebuf.data());
-        std::vector<uint8_t> unzipped;
-        unzipped.resize(fullSize);
-        const auto unzipSize = dal::unzip(unzipped.data(), unzipped.size(), filebuf.data() + 4, filebuf.size() - 4);
-        if ( 0 == unzipSize ) {
+
+        // Check magic numbers
+        if ( !checkMagicNumbers(filebuf.data()) ) {
             return false;
+        }
+
+        // Decompress
+        std::vector<uint8_t> unzipped;
+        {
+            const auto fullSize = dal::makeInt4(filebuf.data() + MAGIC_NUMBER_COUNT);
+            const auto zippedBytesOffset = MAGIC_NUMBER_COUNT + 4;
+
+            unzipped.resize(fullSize);
+            const auto unzipSize = dal::unzip(unzipped.data(), unzipped.size(), filebuf.data() + zippedBytesOffset, filebuf.size() - zippedBytesOffset);
+            if ( 0 == unzipSize ) {
+                return false;
+            }
         }
 
         // Start parsing
