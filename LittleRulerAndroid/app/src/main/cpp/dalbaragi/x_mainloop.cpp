@@ -397,6 +397,24 @@ namespace {
             const auto isDir = dal::isdir(filepath.c_str());
             dalVerbose(fmt::format("{}, {}, {}, {}", isFile, isFolder, isDir, filepath));
         }
+
+        dalVerbose("=============================================================");
+
+        std::vector<std::string> files{
+            "asset/glsl/animated.frag",
+            "asset::glsl/animated.frag",
+            "asset::animated.frag"
+        };
+
+        for ( auto& fname : files ) {
+            auto file = dal::fileopen(fname.c_str(), dal::FileMode2::read);
+            if ( file ) {
+                dalVerbose(fmt::format("File open succeeded: {}", fname));
+            }
+            else {
+                dalVerbose(fmt::format("File open failed: {}", fname));
+            }
+        }
     }
 
 }
