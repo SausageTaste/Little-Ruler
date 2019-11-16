@@ -80,7 +80,6 @@
 
 ### C++ 17
 
-* [Open Asset Import Lib (Assimp)](http://www.assimp.org/)
 * [FreeType](https://www.freetype.org/)
 * [The OpenGL Extension Wrangler Library (GLEW)](http://glew.sourceforge.net/)
 * [OpenGL Mathematics (GLM)](https://glm.g-truc.net/)
