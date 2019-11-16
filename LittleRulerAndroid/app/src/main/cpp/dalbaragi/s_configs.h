@@ -8,6 +8,9 @@
 #include "p_globalfsm.h"
 
 
+class AAssetManager;
+
+
 namespace dal {
 
     class ExternalFuncGod {
@@ -15,6 +18,12 @@ namespace dal {
     private:
         std::function<void(bool)> m_setFscreen;
         std::function<std::pair<unsigned, unsigned>(void)> m_queryWinSize;
+
+#ifdef __ANDROID__
+        // Android filesystem
+        AAssetManager* m_assetMgr = nullptr;
+        std::string m_androidStoragePath;
+#endif
 
     public:
         ExternalFuncGod(const ExternalFuncGod&) = delete;
@@ -34,14 +43,22 @@ namespace dal {
         void giveFunc_queryWinSize(std::function<std::pair<unsigned, unsigned>(void)> func_queryWinSize) {
             this->m_queryWinSize = func_queryWinSize;
         }
-        std::pair<unsigned, unsigned> queryWinSize(void);
+        std::pair<unsigned, unsigned> queryWinSize(void) const;
 
         void giveFunc_setFscreen(std::function<void(bool)> func) {
             this->m_setFscreen = func;
         }
-        void setFscreen(const bool yes) {
+        void setFscreen(const bool yes) const {
             this->m_setFscreen(yes);
         }
+
+        void giveValue_assetMgr(AAssetManager* const ptr);
+        void giveValue_androidStoragePath(const std::string& path);
+
+#ifdef __ANDROID__
+        const std::string& getAndroidStoragePath(void) const;
+        AAssetManager* getAssetMgr(void) const;
+#endif
 
     };
 

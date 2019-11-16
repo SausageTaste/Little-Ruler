@@ -319,11 +319,44 @@ namespace {
 }
 
 
+#include "u_filesystem.h"
+
+
 // Test codes
 namespace {
 
     void test(const float deltaTime) {
+        for ( auto& x : dal::listfolder("asset/texture") ) {
+            const auto filepath = fmt::format("asset/texture/{}", x);
+            const auto isFile = dal::isfile(filepath.c_str());
+            const auto isFolder = dal::isfolder(filepath.c_str());
+            const auto isDir = dal::isdir(filepath.c_str());
+            dalVerbose(fmt::format("{}, {}, {}, {}", isFile, isFolder, isDir, x));
+        }
 
+        for ( auto& x : dal::listfile("asset/texture") ) {
+            const auto filepath = fmt::format("asset/texture/{}", x);
+            const auto isFile = dal::isfile(filepath.c_str());
+            const auto isFolder = dal::isfolder(filepath.c_str());
+            const auto isDir = dal::isdir(filepath.c_str());
+            dalVerbose(fmt::format("{}, {}, {}, {}", isFile, isFolder, isDir, x));
+        }
+
+        for ( auto& x : dal::listfolder("test") ) {
+            const auto filepath = fmt::format("test/{}", x);
+            const auto isFile = dal::isfile(filepath.c_str());
+            const auto isFolder = dal::isfolder(filepath.c_str());
+            const auto isDir = dal::isdir(filepath.c_str());
+            dalVerbose(fmt::format("{}, {}, {}, {}", isFile, isFolder, isDir, x));
+        }
+
+        for ( auto& x : dal::listfile("test") ) {
+            const auto filepath = fmt::format("test/{}", x);
+            const auto isFile = dal::isfile(filepath.c_str());
+            const auto isFolder = dal::isfolder(filepath.c_str());
+            const auto isDir = dal::isdir(filepath.c_str());
+            dalVerbose(fmt::format("{}, {}, {}, {}", isFile, isFolder, isDir, x));
+        }
     }
 
 }
@@ -335,6 +368,8 @@ namespace dal {
 
     void Mainloop::giveWhatFilesystemWants(void* androidAssetManager, const char* const sdcardPath) {
         initFilesystem(androidAssetManager, sdcardPath);
+        dal::ExternalFuncGod::getinst().giveValue_assetMgr(reinterpret_cast<AAssetManager*>(androidAssetManager));
+        dal::ExternalFuncGod::getinst().giveValue_androidStoragePath(sdcardPath);
     }
 
     bool Mainloop::isWhatFilesystemWantsGiven(void) {
