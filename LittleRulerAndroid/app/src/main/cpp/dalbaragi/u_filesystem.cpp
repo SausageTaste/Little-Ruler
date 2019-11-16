@@ -1,5 +1,6 @@
 #include "u_filesystem.h"
 
+#include <fstream>
 #include <optional>
 
 #include <fmt/format.h>
@@ -8,7 +9,6 @@
 #include "s_configs.h"
 
 #if defined(_WIN32)
-#include <fstream>
 #include <windows.h>
 #elif defined(__ANDROID__)
 #include <dirent.h>
@@ -271,6 +271,10 @@ namespace {
             }
 
             const DirNode* findByPath(const std::string& assetPath) const {
+                if ( assetPath.empty() ) {
+                    return this;
+                }
+
                 const auto pathDivided = split(assetPath, '/');
                 const DirNode* node = this;
 
@@ -375,9 +379,20 @@ namespace {
 
         std::string makeAndroidStoragePath(const ResPathInfo& resPathInfo) {
             const auto& storagePath = dal::ExternalFuncGod::getinst().getAndroidStoragePath();
-            return fmt::format( "{}{}/{}/{}/{}", storagePath, USERDATA_FOLDER_NAME,
-                                resPathInfo.m_package, resPathInfo.m_intermPath,
-                                resPathInfo.m_finalPath );
+
+            if ( LOG_FOLDER_NAME == resPathInfo.m_package ) {
+                return fmt::format( "{}{}/{}/{}", storagePath, resPathInfo.m_package,
+                        resPathInfo.m_intermPath, resPathInfo.m_finalPath );
+            }
+            else {
+                return fmt::format( "{}{}/{}/{}/{}", storagePath, USERDATA_FOLDER_NAME,
+                                    resPathInfo.m_package, resPathInfo.m_intermPath,
+                                    resPathInfo.m_finalPath );
+            }
+        }
+
+        std::string makeAssetPath(const ResPathInfo& resPathInfo) {
+            return resPathInfo.m_intermPath + resPathInfo.m_finalPath;;
         }
 
         bool isfile(const char* const path) {
@@ -569,15 +584,8 @@ namespace {
 
         virtual bool open(const char* const path, const dal::FileMode2 mode) override {
             this->close();
-
             this->m_file.open(path, this->convertOpenMode(mode));
-
-            if ( this->isOpen() ) {
-                return true;
-            }
-            else {
-                return false;
-            }
+            return this->isOpen();
         }
 
         virtual void close(void) override {
@@ -670,7 +678,7 @@ namespace {
         }
 
     private:
-        static int convertOpenMode(const dal::FileMode2 mode) {
+        static std::ios_base::openmode convertOpenMode(const dal::FileMode2 mode) {
             switch ( mode ) {
 
             case dal::FileMode2::read:
@@ -685,8 +693,6 @@ namespace {
                 return (std::ios::out | std::ios::binary);
             case dal::FileMode2::bappend:
                 return (std::ios::out | std::ios::app | std::ios::binary);
-            default:
-                dalAbort(fmt::format("Unkown dal::FileMode: ", static_cast<unsigned int>(mode)));
 
             }
         }
@@ -714,7 +720,7 @@ namespace {
 
 #ifdef __ANDROID__
 
-    class AssetSteam : public dal::IResourceStream {
+    class AssetSteam : public dal::IFileStream {
 
     private:
         AAsset* m_asset = nullptr;
@@ -725,24 +731,24 @@ namespace {
             this->close();
         }
 
-        virtual bool open(const char* const path, const dal::FileMode mode) override {
+        virtual bool open(const char* const path, const dal::FileMode2 mode) override {
             this->close();
 
             switch ( mode ) {
-            case dal::FileMode::read:
-            case dal::FileMode::bread:
+            case dal::FileMode2::read:
+            case dal::FileMode2::bread:
                 break;
-            case dal::FileMode::write:
-            case dal::FileMode::append:
-            case dal::FileMode::bwrite:
-            case dal::FileMode::bappend:
+            case dal::FileMode2::write:
+            case dal::FileMode2::append:
+            case dal::FileMode2::bwrite:
+            case dal::FileMode2::bappend:
                 dalError("Cannot open Asset as write mode: "s + path);
                 return false;
             }
 
-            this->m_asset = AAssetManager_open(gAssetMgr, path, AASSET_MODE_UNKNOWN);
+            const auto assetMgr = dal::ExternalFuncGod::getinst().getAssetMgr();
+            this->m_asset = AAssetManager_open(assetMgr, path, AASSET_MODE_UNKNOWN);
             if ( nullptr == this->m_asset ) {
-                dalError("Failed AssetSteam::open for: "s + path);
                 return false;
             }
 
@@ -811,17 +817,17 @@ namespace {
             return nullptr != this->m_asset;
         }
 
-        virtual bool seek(const size_t offset, const dal::Whence whence = dal::Whence::beg) override {
+        virtual bool seek(const size_t offset, const dal::Whence2 whence = dal::Whence2::beg) override {
             decltype(SEEK_SET) cwhence;
 
             switch ( whence ) {
-            case dal::Whence::beg:
+            case dal::Whence2::beg:
                 cwhence = SEEK_SET;
                 break;
-            case dal::Whence::cur:
+            case dal::Whence2::cur:
                 cwhence = SEEK_CUR;
                 break;
-            case dal::Whence::end:
+            case dal::Whence2::end:
                 cwhence = SEEK_END;
                 break;
             }
@@ -841,25 +847,25 @@ namespace {
 }
 
 
-namespace dal {
+namespace {
 
-    std::unique_ptr<IFileStream> fileopen(const char* const resPath, const FileMode2 mode) {
-        const auto pathinfo = parseResPath(resPath);
-      
-#if defined(_WIN32)
-        const std::string filePath = win::makeWinResPath(pathinfo);
-        std::unique_ptr<IFileStream> file{ new STDFileStream };
+    template <typename _StreamTyp, std::string(_PathFunc)(const ResPathInfo&)>
+    std::unique_ptr<dal::IFileStream> fileopen_general(const ResPathInfo& pathinfo, const dal::FileMode2 mode) {
+        const std::string filePath = _PathFunc(pathinfo);
+        std::unique_ptr<dal::IFileStream> file{ new _StreamTyp };
 
         if ( file->open(filePath.c_str(), mode) ) {
             return file;
         }
 
-        if ( pathinfo.m_isResolveMode ) {
+        const auto isWriteMode = (dal::FileMode2::write == mode) || (dal::FileMode2::bwrite == mode);
+
+        if ( pathinfo.m_isResolveMode && !isWriteMode ) {
             const auto newPathInfo = resolvePath(pathinfo.m_package, "", pathinfo.m_finalPath);
             if ( !newPathInfo ) {
                 return { nullptr };
             }
-            const auto nweFilePath = win::makeWinResPath(*newPathInfo);
+            const auto nweFilePath = _PathFunc(*newPathInfo);
 
             if ( file->open(nweFilePath.c_str(), mode) ) {
                 return file;
@@ -871,33 +877,29 @@ namespace dal {
         else {
             return { nullptr };
         }
-#elif defined(__ANDROID__)
-        std::string filePath;
-        std::unique_ptr<IResourceStream> file;
+    }
 
-        if ( PACKAGE_NAME_ASSET == resID.getPackage() ) {
-            filePath = resID.makeFilePath();
-            file.reset(new AssetSteam);
-        }
-        else if ( LOG_FOLDER_NAME == resID.getPackage() ) {
-            filePath = fmt::format("{}{}/{}", g_storagePath, LOG_FOLDER_NAME, resID.makeFilePath());
-            assertDir_log();
-            file.reset(new STDFileStream);
-        }
-        else {
-            const auto dirToAssert = fmt::format("{}{}/{}", g_storagePath, USERDATA_FOLDER_NAME, resID.getPackage());
-            filePath = fmt::format("{}/{}", dirToAssert, resID.makeFilePath());
-            assertDir_userdata();
-            assertDir(dirToAssert.c_str());
-            file.reset(new STDFileStream);
-        }
+}
 
-        if ( !file->open(filePath.c_str(), mode) ) {
-            dalError("Failed to open file: {}"_format(resID.makeIDStr()));
+
+namespace dal {
+
+    std::unique_ptr<IFileStream> fileopen(const char* const resPath, const FileMode2 mode) {
+        const auto pathinfo = parseResPath(resPath);
+
+        if ( pathinfo.m_finalPath.empty() ) {
             return { nullptr };
         }
-
-        return file;
+      
+#if defined(_WIN32)
+        return fileopen_general<STDFileStream, win::makeWinResPath>(pathinfo, mode);
+#elif defined(__ANDROID__)
+        if ( PACKAGE_NAME_ASSET == pathinfo.m_package ) {
+            return fileopen_general<AssetSteam, android::makeAssetPath>(pathinfo, mode);
+        }
+        else {
+            return fileopen_general<STDFileStream, android::makeAndroidStoragePath>(pathinfo, mode);
+        }
 #endif
 
     }

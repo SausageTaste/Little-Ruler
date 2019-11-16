@@ -403,7 +403,10 @@ namespace {
         std::vector<std::string> files{
             "asset/glsl/animated.frag",
             "asset::glsl/animated.frag",
-            "asset::animated.frag"
+            "asset::animated.frag",
+            "test/skybox/cloudtop_dn.tga",
+            "test::skybox/cloudtop_dn.tga",
+            "test::cloudtop_dn.tga",
         };
 
         for ( auto& fname : files ) {
@@ -414,6 +417,13 @@ namespace {
             else {
                 dalVerbose(fmt::format("File open failed: {}", fname));
             }
+        }
+
+        dalVerbose("=============================================================");
+
+        auto file = dal::fileopen("log::test.txt", dal::FileMode2::write);
+        if (file){
+            file->write("Fuck this shit.");
         }
     }
 

@@ -25,7 +25,6 @@ namespace dal {
     enum class FileMode2 { read = 0, write, append, bread, bwrite, bappend };  // Order shouldn't change.
     enum class Whence2 { beg, cur, end };
 
-
     class IFileStream {
 
     public:
@@ -56,6 +55,7 @@ namespace dal {
 
     };
 
+    
     std::unique_ptr<IFileStream> fileopen(const char* const resPath, const FileMode2 mode);
 
 }
