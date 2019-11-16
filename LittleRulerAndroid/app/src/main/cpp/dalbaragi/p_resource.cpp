@@ -71,7 +71,7 @@ namespace {
             const dal::ResourceID in_modelID;
 
             bool out_success;
-            dal::AssimpModelInfo out_info;
+            dal::ModelLoadInfo out_info;
 
             dal::ModelStatic& data_coresponding;
             dal::Package& data_package;
@@ -98,7 +98,7 @@ namespace {
             const dal::ResourceID in_modelID;
 
             bool out_success;
-            dal::AssimpModelInfo out_info;
+            dal::ModelLoadInfo out_info;
 
             dal::ModelAnimated& data_coresponding;
             dal::Package& data_package;

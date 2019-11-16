@@ -13,12 +13,17 @@
 using namespace fmt::literals;
 
 
-// DMD
+// Consts
 namespace {
 
     constexpr size_t MAGIC_NUMBER_COUNT = 6;
     constexpr char MAGIC_NUMBERS[] = "dalmdl";
 
+}
+
+
+// Utils
+namespace {
 
     void makeAnimJoint_recur(dal::Animation::JointNode& parent, const dal::jointID_t parIndex, const dal::SkeletonInterface& skeleton, std::vector<dal::Animation::JointNode*>& resultList) {
         const auto numJoints = skeleton.getSize();
@@ -75,7 +80,6 @@ namespace {
         return true;
     }
 
-
     const uint8_t* parse_aabb(const uint8_t* header, const uint8_t* const end, dal::AABB& aabb) {
         float fbuf[6];
         header = dal::assemble4BytesArray<float>(header, fbuf, 6);
@@ -98,6 +102,12 @@ namespace {
         return header;
     }
 
+}
+
+
+// Animation
+namespace {
+
     const uint8_t* parse_skeleton(const uint8_t* header, const uint8_t* const end, dal::SkeletonInterface& skeleton) {
         const auto numBones = dal::makeInt4(header); header += 4;
 
@@ -105,7 +115,7 @@ namespace {
             const std::string boneName = reinterpret_cast<const char*>(header);
             header += boneName.size() + 1;
             const auto parentIndex = dal::makeInt4(header); header += 4;
-            
+
 
             const auto result = skeleton.getOrMakeIndexOf(boneName);
             dalAssert(result == i);
@@ -184,6 +194,12 @@ namespace {
         return header;
     }
 
+}
+
+
+// DMD
+namespace {
+
     const uint8_t* parse_material(const uint8_t* const begin, const uint8_t* const end, dal::binfo::Material& material) {
         const uint8_t* header = begin;
 
@@ -249,7 +265,7 @@ namespace {
 
 namespace dal {
 
-    bool loadDalModel(const ResourceID& resID, AssimpModelInfo& info) {
+    bool loadDalModel(const ResourceID& resID, ModelLoadInfo& info) {
         // Load file contents
         std::vector<uint8_t> filebuf;
         if ( !dal::futil::getRes_buffer(resID, filebuf) ) {
