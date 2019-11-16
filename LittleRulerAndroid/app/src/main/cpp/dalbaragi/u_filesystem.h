@@ -4,6 +4,7 @@
 #include <string>
 
 
+// Primitives
 namespace dal {
 
     std::vector<std::string> listdir(const char* const resPath);

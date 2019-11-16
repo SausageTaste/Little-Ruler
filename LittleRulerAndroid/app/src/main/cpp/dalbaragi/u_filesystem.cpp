@@ -9,8 +9,8 @@
 #include <fstream>
 #include <windows.h>
 #elif defined(__ANDROID__)
-#include <functional>
 #include <dirent.h>
+#include <sys/stat.h>
 
 #include <android/asset_manager.h>
 #endif
@@ -225,9 +225,37 @@ namespace {
 
     namespace android {
 
-        struct DirNode {
+        class DirNode {
+
+        public:
             std::string m_name;
             std::vector<DirNode> m_subfolders;
+
+        public:
+            const DirNode* findChild(const std::string& name) const {
+                for ( auto& child : this->m_subfolders ) {
+                    if ( name == child.m_name ){
+                        return &child;
+                    }
+                }
+
+                return nullptr;
+            }
+
+            const DirNode* findByPath(const std::string& assetPath) const {
+                const auto pathDivided = split(assetPath, '/');
+                const DirNode* node = this;
+
+                for ( const auto& part : pathDivided ) {
+                    node = node->findChild(part.c_str());
+                    if ( nullptr == node ) {
+                        return nullptr;
+                    }
+                }
+
+                return node;
+            }
+
         };
 
         DirNode g_assetFolders = {
@@ -241,7 +269,7 @@ namespace {
                                 {"rustediron1-alt2", {}},
                                 {"water", {}},
                                 {"skybox", {}}
-                        }
+                            }
                         },
                         { "script", {} }
                 }
@@ -324,6 +352,18 @@ namespace {
                                 resPathInfo.m_finalPath );
         }
 
+        bool isfile(const char* const path) {
+            struct stat path_stat;
+            stat( path, &path_stat );
+            return S_ISREG( path_stat.st_mode );
+        }
+
+        bool isfolder(const char* const path) {
+            struct stat path_stat;
+            stat( path, &path_stat );
+            return S_ISDIR( path_stat.st_mode );
+        }
+
     }
 
 #endif
@@ -343,7 +383,18 @@ namespace dal {
         win::listdir(winPath, result);
 #elif defined(__ANDROID__)
         if ( PACKAGE_NAME_ASSET == resPathInfo.m_package ) {
-            dalWarn("Not implemented: listdir for assets on Android.");
+            const auto assetPath = resPathInfo.m_intermPath + resPathInfo.m_finalPath;
+
+            // Files
+            android::listfile_asset(assetPath, result);
+
+            // Folders
+            const auto dirNode = android::g_assetFolders.findByPath(assetPath.c_str());
+            if ( nullptr != dirNode ) {
+                for ( const auto& child : dirNode->m_subfolders ) {
+                    result.push_back(child.m_name);
+                }
+            }
         }
         else {
             const auto filePath = android::makeAndroidStoragePath(resPathInfo);
@@ -405,7 +456,13 @@ namespace dal {
         }
 #elif defined(__ANDROID__)
         if ( PACKAGE_NAME_ASSET == resPathInfo.m_package ) {
-            dalWarn("Not implemented: listfolder for assets on Android.");
+            const auto assetPath = resPathInfo.m_intermPath + resPathInfo.m_finalPath;
+            const auto dirNode = android::g_assetFolders.findByPath(assetPath.c_str());
+            if ( nullptr != dirNode ) {
+                for ( const auto& child : dirNode->m_subfolders ) {
+                    result.push_back(child.m_name);
+                }
+            }
         }
         else {
             const auto filePath = android::makeAndroidStoragePath(resPathInfo);
@@ -423,7 +480,7 @@ namespace dal {
         const auto absPath = win::makeWinResPath(resPathInfo);
         return win::getDirType(absPath.c_str()) != win::WinDirType::error;
 #elif defined(__ANDROID__)
-        return false;
+        return isfolder(resPath) || isfile(resPath);
 #endif
 
     }
@@ -435,7 +492,14 @@ namespace dal {
         const auto absPath = win::makeWinResPath(resPathInfo);
         return win::getDirType(absPath.c_str()) == win::WinDirType::file;
 #elif defined(__ANDROID__)
-        return false;
+        if ( PACKAGE_NAME_ASSET == resPathInfo.m_package ) {
+            const auto assetPath = resPathInfo.m_intermPath + resPathInfo.m_finalPath;
+            return android::isfile_asset(assetPath.c_str());
+        }
+        else {
+            const auto strgPath = android::makeAndroidStoragePath(resPathInfo);
+            return android::isfile(strgPath.c_str());
+        }
 #endif
 
     }
@@ -447,7 +511,14 @@ namespace dal {
         const auto absPath = win::makeWinResPath(resPathInfo);
         return win::getDirType(absPath.c_str()) == win::WinDirType::folder;
 #elif defined(__ANDROID__)
-        return false;
+        if ( PACKAGE_NAME_ASSET == resPathInfo.m_package ) {
+            const auto assetPath = resPathInfo.m_intermPath + resPathInfo.m_finalPath;
+            return nullptr != android::g_assetFolders.findByPath(assetPath);
+        }
+        else {
+            const auto strgPath = android::makeAndroidStoragePath(resPathInfo);
+            return android::isfolder(strgPath.c_str());
+        }
 #endif
 
     }

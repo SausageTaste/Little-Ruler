@@ -342,6 +342,18 @@ namespace {
             dalVerbose(fmt::format("{}, {}, {}, {}", isFile, isFolder, isDir, x));
         }
 
+        dalVerbose("=============================================================");
+
+        for ( auto& x : dal::listdir("asset/texture") ) {
+            const auto filepath = fmt::format("asset/texture/{}", x);
+            const auto isFile = dal::isfile(filepath.c_str());
+            const auto isFolder = dal::isfolder(filepath.c_str());
+            const auto isDir = dal::isdir(filepath.c_str());
+            dalVerbose(fmt::format("{}, {}, {}, {}", isFile, isFolder, isDir, x));
+        }
+
+        dalVerbose("=============================================================");
+
         for ( auto& x : dal::listfolder("test") ) {
             const auto filepath = fmt::format("test/{}", x);
             const auto isFile = dal::isfile(filepath.c_str());
@@ -356,6 +368,34 @@ namespace {
             const auto isFolder = dal::isfolder(filepath.c_str());
             const auto isDir = dal::isdir(filepath.c_str());
             dalVerbose(fmt::format("{}, {}, {}, {}", isFile, isFolder, isDir, x));
+        }
+
+        dalVerbose("=============================================================");
+
+        for ( auto& x : dal::listdir("test") ) {
+            const auto filepath = fmt::format("test/{}", x);
+            const auto isFile = dal::isfile(filepath.c_str());
+            const auto isFolder = dal::isfolder(filepath.c_str());
+            const auto isDir = dal::isdir(filepath.c_str());
+            dalVerbose(fmt::format("{}, {}, {}, {}", isFile, isFolder, isDir, x));
+        }
+
+        dalVerbose("=============================================================");
+
+        {
+            const std::string filepath = "test/fuasioflkas";
+            const auto isFile = dal::isfile(filepath.c_str());
+            const auto isFolder = dal::isfolder(filepath.c_str());
+            const auto isDir = dal::isdir(filepath.c_str());
+            dalVerbose(fmt::format("{}, {}, {}, {}", isFile, isFolder, isDir, filepath));
+        }
+
+        {
+            const std::string filepath = "asset/fuasioflkas";
+            const auto isFile = dal::isfile(filepath.c_str());
+            const auto isFolder = dal::isfolder(filepath.c_str());
+            const auto isDir = dal::isdir(filepath.c_str());
+            dalVerbose(fmt::format("{}, {}, {}, {}", isFile, isFolder, isDir, filepath));
         }
     }
 
