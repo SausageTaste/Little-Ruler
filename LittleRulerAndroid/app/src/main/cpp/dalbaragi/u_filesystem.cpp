@@ -10,6 +10,7 @@
 
 #if defined(_WIN32)
 #include <windows.h>
+#include <direct.h>  // mkdir
 #elif defined(__ANDROID__)
 #include <dirent.h>
 #include <sys/stat.h>
@@ -78,6 +79,12 @@ namespace {
         }
 
         return str.substr(count);
+    }
+
+    bool isdir_stat(const char* const rawpath) {
+        struct stat st;
+        stat(rawpath, &st);
+        return static_cast<bool>(st.st_mode & S_IFDIR);
     }
 
 }
@@ -402,9 +409,7 @@ namespace {
         }
 
         bool isfolder(const char* const path) {
-            struct stat path_stat;
-            stat( path, &path_stat );
-            return S_ISDIR( path_stat.st_mode );
+            return isdir_stat(path);
         }
 
     }
@@ -848,6 +853,59 @@ namespace {
 
 
 namespace {
+
+    void assertDir(const char* const path) {
+        if ( isdir_stat(path) ) {
+            return;
+        }
+
+#if defined(_WIN32)
+        const auto res = _mkdir(path);
+#elif defined(__ANDROID__)
+        const auto res = mkdir(path, 0);
+#endif
+        if ( 0 != res ) {
+            switch ( errno ) {
+
+            case EEXIST:
+                dalWarn("Checked isdir but dir already exists upon _mkdir for userdata.");
+                break;
+            case ENOENT:
+                dalAbort(fmt::format("Invalid path name in assertDir_userdata: {}", path));
+            case EROFS:
+                dalAbort(fmt::format("Parent folder is read only: {}", path));
+            default:
+                dalAbort(fmt::format("Unknown errno for _mkdir in assertDir_userdata: {}", errno));
+
+            }
+        }
+        else {
+            dalInfo(fmt::format("Folder created: {}", path));
+        }
+    }
+
+    void assertDir_userdata(void) {
+
+#if defined(_WIN32)
+        const auto path = win::getResFolderPath() + USERDATA_FOLDER_NAME;
+#elif defined(__ANDROID__)
+        const auto path = dal::ExternalFuncGod::getinst().getAndroidStoragePath() + USERDATA_FOLDER_NAME;
+#endif
+        assertDir(path.c_str());
+
+    }
+
+    void assertDir_log(void) {
+
+#if defined(_WIN32)
+        const auto path = win::getResFolderPath() + LOG_FOLDER_NAME;
+#elif defined(__ANDROID__)
+        const auto path = dal::ExternalFuncGod::getinst().getAndroidStoragePath() + LOG_FOLDER_NAME;
+#endif
+        assertDir(path.c_str());
+
+    }
+
 
     template <typename _StreamTyp, std::string(_PathFunc)(const ResPathInfo&)>
     std::unique_ptr<dal::IFileStream> fileopen_general(const ResPathInfo& pathinfo, const dal::FileMode2 mode) {
