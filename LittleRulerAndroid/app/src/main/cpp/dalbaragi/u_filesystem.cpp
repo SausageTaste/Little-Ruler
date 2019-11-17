@@ -86,6 +86,42 @@ namespace {
         return static_cast<bool>(st.st_mode & S_IFDIR);
     }
 
+    bool assertDir(const char* const path) {
+        if ( isdir_stat(path) ) {
+            return true;
+        }
+
+#if defined(_WIN32)
+        const auto res = _mkdir(path);
+#elif defined(__ANDROID__)
+        const auto res = mkdir(path, 0);
+#endif
+
+        if ( 0 != res ) {
+            switch ( errno ) {
+
+            case EEXIST:
+                dalWarn("Checked isdir but dir already exists upon _mkdir for userdata.");
+                return true;
+                break;
+            case ENOENT:
+                dalError(fmt::format("Invalid path name in assertDir_userdata: {}", path));
+                return false;
+            case EROFS:
+                dalError(fmt::format("Parent folder is read only: {}", path));
+                return false;
+            default:
+                dalError(fmt::format("Unknown errno for _mkdir in assertDir_userdata: {}", errno));
+                return false;
+
+            }
+        }
+        else {
+            dalInfo(fmt::format("Folder created: {}", path));
+            return true;
+        }
+    }
+
 }
 
 
@@ -418,6 +454,28 @@ namespace dal {
         else {
             return "";
         }
+    }
+
+    bool assertUserdataFolder(void) {
+
+#if defined(_WIN32)
+        const auto path = win::getResFolderPath() + USERDATA_FOLDER_NAME;
+#elif defined(__ANDROID__)
+        const auto path = dal::ExternalFuncGod::getinst().getAndroidStoragePath() + USERDATA_FOLDER_NAME;
+#endif
+
+        return assertDir(path.c_str());
+    }
+
+    bool assertLogFolder(void) {
+
+#if defined(_WIN32)
+        const auto path = win::getResFolderPath() + LOG_FOLDER_NAME;
+#elif defined(__ANDROID__)
+        const auto path = dal::ExternalFuncGod::getinst().getAndroidStoragePath() + LOG_FOLDER_NAME;
+#endif
+
+        return assertDir(path.c_str());
     }
 
 }
@@ -857,59 +915,6 @@ namespace {
 
 
 namespace {
-
-    void assertDir(const char* const path) {
-        if ( isdir_stat(path) ) {
-            return;
-        }
-
-#if defined(_WIN32)
-        const auto res = _mkdir(path);
-#elif defined(__ANDROID__)
-        const auto res = mkdir(path, 0);
-#endif
-        if ( 0 != res ) {
-            switch ( errno ) {
-
-            case EEXIST:
-                dalWarn("Checked isdir but dir already exists upon _mkdir for userdata.");
-                break;
-            case ENOENT:
-                dalAbort(fmt::format("Invalid path name in assertDir_userdata: {}", path));
-            case EROFS:
-                dalAbort(fmt::format("Parent folder is read only: {}", path));
-            default:
-                dalAbort(fmt::format("Unknown errno for _mkdir in assertDir_userdata: {}", errno));
-
-            }
-        }
-        else {
-            dalInfo(fmt::format("Folder created: {}", path));
-        }
-    }
-
-    void assertDir_userdata(void) {
-
-#if defined(_WIN32)
-        const auto path = win::getResFolderPath() + USERDATA_FOLDER_NAME;
-#elif defined(__ANDROID__)
-        const auto path = dal::ExternalFuncGod::getinst().getAndroidStoragePath() + USERDATA_FOLDER_NAME;
-#endif
-        assertDir(path.c_str());
-
-    }
-
-    void assertDir_log(void) {
-
-#if defined(_WIN32)
-        const auto path = win::getResFolderPath() + LOG_FOLDER_NAME;
-#elif defined(__ANDROID__)
-        const auto path = dal::ExternalFuncGod::getinst().getAndroidStoragePath() + LOG_FOLDER_NAME;
-#endif
-        assertDir(path.c_str());
-
-    }
-
 
     template <typename _StreamTyp, std::string(_PathFunc)(const dal::ResPathInfo&)>
     std::unique_ptr<dal::IFileStream> fileopen_general(const dal::ResPathInfo& pathinfo, const dal::FileMode2 mode) {

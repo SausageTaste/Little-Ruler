@@ -97,6 +97,7 @@ namespace {
             const auto fileID = fmt::format("log::log_{}-{:0>2}-{:0>2}_{:0>2}-{:0>2}.txt", dt.m_year, dt.m_month, dt.m_day, dt.m_hour, dt.m_min);
             const auto fileContents = makeFileContents(dt, logLevel, str, line, func, file);
 
+            dal::assertLogFolder();
             auto logFile = dal::fileopen(fileID.c_str(), dal::FileMode2::append);
             if ( nullptr == logFile ) {
                 fmt::print("Failed to create log file: {}\n", fileID);
@@ -387,6 +388,7 @@ namespace dal {
         // Misc
         {
             this->m_timer.setCapFPS(0);
+            assertUserdataFolder();
         }
 
         // Test

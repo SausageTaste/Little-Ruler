@@ -19,6 +19,9 @@ namespace dal {
 
     std::string findExtension(const std::string& path);
 
+    bool assertUserdataFolder(void);
+    bool assertLogFolder(void);
+
 }
 
 
