@@ -309,6 +309,23 @@ namespace dal {
             dalAssert(header == end);
         }
 
+        // Post process
+        {
+            for ( auto& unit : info.m_model.m_renderUnits ) {
+                auto& mat = unit.m_material;
+
+                if ( !mat.m_diffuseMap.empty() ) {
+                    mat.m_diffuseMap = "::" + mat.m_diffuseMap;
+                }
+                if ( !mat.m_metallicMap.empty() ) {
+                    mat.m_metallicMap = "::" + mat.m_metallicMap;
+                }
+                if ( !mat.m_roughnessMap.empty() ) {
+                    mat.m_roughnessMap = "::" + mat.m_roughnessMap;
+                }
+            }
+        }
+
         return true;
     }
 
