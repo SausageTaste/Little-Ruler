@@ -419,6 +419,22 @@ namespace {
 }
 
 
+// Path
+namespace dal {
+
+    std::string findExtension(const std::string& path) {
+        const auto found = path.rfind('.');
+        if ( std::string::npos != found ) {
+            return path.substr(found + 1);
+        }
+        else {
+            return "";
+        }
+    }
+
+}
+
+
 namespace dal {
 
     std::vector<std::string> listdir(const char* const resPath) {

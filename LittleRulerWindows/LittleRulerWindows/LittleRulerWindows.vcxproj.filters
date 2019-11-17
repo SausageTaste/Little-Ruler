@@ -118,6 +118,9 @@
     <ClCompile Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\u_filesystem.cpp">
       <Filter>Utility</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\u_fileutils.cpp">
+      <Filter>Utility</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Game">
@@ -274,6 +277,9 @@
     </ClInclude>
     <ClInclude Include="resource.h" />
     <ClInclude Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\u_filesystem.h">
+      <Filter>Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\u_fileutils.h">
       <Filter>Utility</Filter>
     </ClInclude>
   </ItemGroup>

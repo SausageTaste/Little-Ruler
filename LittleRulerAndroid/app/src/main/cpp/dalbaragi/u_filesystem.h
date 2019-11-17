@@ -5,6 +5,14 @@
 #include <memory>
 
 
+// Path
+namespace dal {
+
+    std::string findExtension(const char* const path);
+
+}
+
+
 // Primitives
 namespace dal {
 

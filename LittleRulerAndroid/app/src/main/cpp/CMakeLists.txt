@@ -53,6 +53,7 @@ add_library( interface4jni SHARED interface4jni.cpp javautil.cpp
         dalbaragi/o_widgetcache.cpp
         dalbaragi/u_byteutils.cpp
         dalbaragi/u_filesystem.cpp
+        dalbaragi/u_fileutils.cpp
 )
 target_include_directories(interface4jni PRIVATE ./dalbaragi)
 
