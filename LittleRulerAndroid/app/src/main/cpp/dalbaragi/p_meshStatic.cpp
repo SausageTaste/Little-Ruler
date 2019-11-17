@@ -163,7 +163,7 @@ namespace dal {
 // Texture
 namespace dal {
 
-    void Texture::init_diffuseMap(binfo::ImageFileData& image) {
+    void Texture::init_diffuseMap(ImageFileData& image) {
         this->genTexture("Texture::init_diffueMap");
         glBindTexture(GL_TEXTURE_2D, this->get());
 
@@ -175,26 +175,24 @@ namespace dal {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 #endif
 
-        if ( 1 == image.m_pixSize ) {
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, image.m_width, image.m_height, 0, GL_RED, GL_UNSIGNED_BYTE, image.m_buf.data());
+        if ( 1 == image.pixSize() ) {
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, image.width(), image.height(), 0, GL_RED, GL_UNSIGNED_BYTE, image.data());
         }
-        else if ( 2 == image.m_pixSize ) {
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RG, image.m_width, image.m_height, 0, GL_RG, GL_UNSIGNED_BYTE, image.m_buf.data());
+        else if ( 2 == image.pixSize() ) {
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RG, image.width(), image.height(), 0, GL_RG, GL_UNSIGNED_BYTE, image.data());
         }
-        else if ( 3 == image.m_pixSize ) {
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, image.m_width, image.m_height, 0, GL_RGB, GL_UNSIGNED_BYTE, image.m_buf.data());
+        else if ( 3 == image.pixSize() ) {
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, image.width(), image.height(), 0, GL_RGB, GL_UNSIGNED_BYTE, image.data());
         }
-        else if ( 4 == image.m_pixSize ) {
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image.m_width, image.m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image.m_buf.data());
+        else if ( 4 == image.pixSize() ) {
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image.width(), image.height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, image.data());
         }
         else {
-            dalAbort("Not supported pixel size: {}"_format(image.m_pixSize));
+            dalAbort("Not supported pixel size: {}"_format(image.pixSize()));
         }
 
         glGenerateMipmap(GL_TEXTURE_2D);
         glBindTexture(GL_TEXTURE_2D, 0);
-
-        this->setHasAlpha(image.m_hasTransparency);
     }
 
     void Texture::init_depthMap(const unsigned int width, const unsigned int height) {

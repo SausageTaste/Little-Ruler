@@ -28,27 +28,23 @@ namespace {
 // Image reader functions
 namespace {
 
-    bool parseImagePNG(dal::binfo::ImageFileData& output, std::vector<uint8_t>& dataBuffer) {
+    bool parseImagePNG(dal::ImageFileData& output, std::vector<uint8_t>& dataBuffer) {
         unsigned int w, h;
-        auto error = lodepng::decode(output.m_buf, w, h, dataBuffer);
+        auto error = lodepng::decode(output.vector(), w, h, dataBuffer);
         if ( error ) {
             dalError(fmt::format("PNG decode error: {}", lodepng_error_text(error)));
             return false;
         }
 
-        output.m_width = static_cast<size_t>(w);
-        output.m_height = static_cast<size_t>(h);
-        output.m_pixSize = 4;
-
-        // Assert that pixel size is 4.
-        dalAssert(output.m_width * output.m_height * output.m_pixSize == output.m_buf.size());
+        output.setDimensions(static_cast<size_t>(w), static_cast<size_t>(h), 4);
 
         output.flipY();  // TGA does this automatically but not this.
 
+        dalAssert(output.checkValidity());
         return true;
     }
 
-    bool parseImageTGA(dal::binfo::ImageFileData& output, std::vector<uint8_t>& dataBuffer) {
+    bool parseImageTGA(dal::ImageFileData& output, std::vector<uint8_t>& dataBuffer) {
         int w, h, p;
         std::unique_ptr<uint8_t, decltype(free)*> result{
             tga_load_memory(dataBuffer.data(), static_cast<int>(dataBuffer.size()), &w, &h, &p), free
@@ -59,14 +55,13 @@ namespace {
             return false;
         }
 
-        output.m_width = static_cast<size_t>(w);
-        output.m_height = static_cast<size_t>(h);
-        output.m_pixSize = static_cast<size_t>(p);
+        output.setDimensions(static_cast<size_t>(w), static_cast<size_t>(h), static_cast<size_t>(p));
 
-        const auto resArrSize = output.m_width * output.m_height * output.m_pixSize;
-        output.m_buf.clear();
-        output.m_buf.insert(output.m_buf.begin(), result.get(), result.get() + resArrSize);
+        const auto resArrSize = output.width() * output.height() * output.pixSize();
+        output.vector().clear();
+        output.vector().insert(output.vector().begin(), result.get(), result.get() + resArrSize);
 
+        dalAssert(output.checkValidity());
         return true;
     }
 
@@ -86,7 +81,7 @@ namespace dal {
         }
     }
 
-    bool loadFileImage(const char* const respath, binfo::ImageFileData& data) {
+    bool loadFileImage(const char* const respath, ImageFileData& data) {
         std::vector<uint8_t> fileBuffer;
         {
             auto file = fileopen(respath, FileMode2::bread);

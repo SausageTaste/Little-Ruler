@@ -14,11 +14,11 @@ using namespace fmt::literals;
 namespace {
 
     dal::Texture* loadTex(const char* const respath) {
-        dal::binfo::ImageFileData image;
+        dal::ImageFileData image;
         if ( !dal::loadFileImage(respath, image) ) {
             dalAbort("Failed to load a map for water: {}"_format(respath));
         }
-        assert(4 == image.m_pixSize);
+        assert(4 == image.pixSize());
 
         auto tex = new dal::Texture();
         tex->init_diffuseMap(image);

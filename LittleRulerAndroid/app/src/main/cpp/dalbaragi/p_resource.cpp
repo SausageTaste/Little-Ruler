@@ -35,7 +35,7 @@ namespace {
             const std::string in_texID;
             bool in_gammaCorrect;
 
-            dal::binfo::ImageFileData out_img;
+            dal::ImageFileData out_img;
 
             bool out_success = false;
 
@@ -54,7 +54,6 @@ namespace {
                 this->out_success = dal::loadFileImage(this->in_texID.c_str(), this->out_img);
 
                 if ( this->out_success ) {
-                    this->out_img.m_hasTransparency = this->out_img.hasTransparency();
                     if ( this->in_gammaCorrect ) {
                         this->out_img.correctSRGB();
                     }
@@ -132,7 +131,7 @@ namespace {
             bool in_gammaCorrect;
 
             bool out_success;
-            dal::binfo::ImageFileData out_imgs[6];
+            dal::ImageFileData out_imgs[6];
 
             dal::CubeMap* data_handle;
 
@@ -156,8 +155,6 @@ namespace {
                         return;
                     }
                     else {
-                        this->out_imgs[i].m_hasTransparency = this->out_imgs[i].hasTransparency();
-
                         switch ( i ) {
                         case 2:
                             this->out_imgs[i].rotate90();
@@ -708,7 +705,7 @@ namespace dal {
 
             for ( int i = 0; i < 6; ++i ) {
                 auto& info = loaded->out_imgs[i];
-                data.set(i, info.m_buf.data(), info.m_width, info.m_height, info.m_pixSize);
+                data.set(i, info.data(), info.width(), info.height(), info.pixSize());
             }
 
             loaded->data_handle->init(data);
