@@ -320,112 +320,11 @@ namespace {
 }
 
 
-#include "u_filesystem.h"
-
-
 // Test codes
 namespace {
 
     void test(const float deltaTime) {
-        for ( auto& x : dal::listfolder("asset/texture") ) {
-            const auto filepath = fmt::format("asset/texture/{}", x);
-            const auto isFile = dal::isfile(filepath.c_str());
-            const auto isFolder = dal::isfolder(filepath.c_str());
-            const auto isDir = dal::isdir(filepath.c_str());
-            dalVerbose(fmt::format("{}, {}, {}, {}", isFile, isFolder, isDir, x));
-        }
-
-        for ( auto& x : dal::listfile("asset/texture") ) {
-            const auto filepath = fmt::format("asset/texture/{}", x);
-            const auto isFile = dal::isfile(filepath.c_str());
-            const auto isFolder = dal::isfolder(filepath.c_str());
-            const auto isDir = dal::isdir(filepath.c_str());
-            dalVerbose(fmt::format("{}, {}, {}, {}", isFile, isFolder, isDir, x));
-        }
-
-        dalVerbose("=============================================================");
-
-        for ( auto& x : dal::listdir("asset/texture") ) {
-            const auto filepath = fmt::format("asset/texture/{}", x);
-            const auto isFile = dal::isfile(filepath.c_str());
-            const auto isFolder = dal::isfolder(filepath.c_str());
-            const auto isDir = dal::isdir(filepath.c_str());
-            dalVerbose(fmt::format("{}, {}, {}, {}", isFile, isFolder, isDir, x));
-        }
-
-        dalVerbose("=============================================================");
-
-        for ( auto& x : dal::listfolder("test") ) {
-            const auto filepath = fmt::format("test/{}", x);
-            const auto isFile = dal::isfile(filepath.c_str());
-            const auto isFolder = dal::isfolder(filepath.c_str());
-            const auto isDir = dal::isdir(filepath.c_str());
-            dalVerbose(fmt::format("{}, {}, {}, {}", isFile, isFolder, isDir, x));
-        }
-
-        for ( auto& x : dal::listfile("test") ) {
-            const auto filepath = fmt::format("test/{}", x);
-            const auto isFile = dal::isfile(filepath.c_str());
-            const auto isFolder = dal::isfolder(filepath.c_str());
-            const auto isDir = dal::isdir(filepath.c_str());
-            dalVerbose(fmt::format("{}, {}, {}, {}", isFile, isFolder, isDir, x));
-        }
-
-        dalVerbose("=============================================================");
-
-        for ( auto& x : dal::listdir("test") ) {
-            const auto filepath = fmt::format("test/{}", x);
-            const auto isFile = dal::isfile(filepath.c_str());
-            const auto isFolder = dal::isfolder(filepath.c_str());
-            const auto isDir = dal::isdir(filepath.c_str());
-            dalVerbose(fmt::format("{}, {}, {}, {}", isFile, isFolder, isDir, x));
-        }
-
-        dalVerbose("=============================================================");
-
-        {
-            const std::string filepath = "test/fuasioflkas";
-            const auto isFile = dal::isfile(filepath.c_str());
-            const auto isFolder = dal::isfolder(filepath.c_str());
-            const auto isDir = dal::isdir(filepath.c_str());
-            dalVerbose(fmt::format("{}, {}, {}, {}", isFile, isFolder, isDir, filepath));
-        }
-
-        {
-            const std::string filepath = "asset/fuasioflkas";
-            const auto isFile = dal::isfile(filepath.c_str());
-            const auto isFolder = dal::isfolder(filepath.c_str());
-            const auto isDir = dal::isdir(filepath.c_str());
-            dalVerbose(fmt::format("{}, {}, {}, {}", isFile, isFolder, isDir, filepath));
-        }
-
-        dalVerbose("=============================================================");
-
-        std::vector<std::string> files{
-            "asset/glsl/animated.frag",
-            "asset::glsl/animated.frag",
-            "asset::animated.frag",
-            "test/skybox/cloudtop_dn.tga",
-            "test::skybox/cloudtop_dn.tga",
-            "test::cloudtop_dn.tga",
-        };
-
-        for ( auto& fname : files ) {
-            auto file = dal::fileopen(fname.c_str(), dal::FileMode2::read);
-            if ( file ) {
-                dalVerbose(fmt::format("File open succeeded: {}", fname));
-            }
-            else {
-                dalVerbose(fmt::format("File open failed: {}", fname));
-            }
-        }
-
-        dalVerbose("=============================================================");
-
-        auto file = dal::fileopen("log::test.txt", dal::FileMode2::write);
-        if (file){
-            file->write("Fuck this shit.");
-        }
+      
     }
 
 }
