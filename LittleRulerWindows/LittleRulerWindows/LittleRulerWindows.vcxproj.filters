@@ -70,9 +70,6 @@
     <ClCompile Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\u_dlbparser.cpp">
       <Filter>Utility</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\u_fileclass.cpp">
-      <Filter>Utility</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\u_loadinfo.cpp">
       <Filter>Utility</Filter>
     </ClCompile>
@@ -225,9 +222,6 @@
       <Filter>Singleton</Filter>
     </ClInclude>
     <ClInclude Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\u_dlbparser.h">
-      <Filter>Utility</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\u_fileclass.h">
       <Filter>Utility</Filter>
     </ClInclude>
     <ClInclude Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\u_loadinfo.h">

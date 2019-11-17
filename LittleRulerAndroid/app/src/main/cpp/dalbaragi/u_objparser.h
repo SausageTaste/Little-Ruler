@@ -1,7 +1,6 @@
 #pragma once
 
 #include "u_loadinfo.h"
-#include "u_fileclass.h"
 
 
 namespace dal {
@@ -12,6 +11,6 @@ namespace dal {
         std::vector<Animation> m_animations;
     };
 
-    bool loadDalModel(const ResourceID& resID, ModelLoadInfo& info);
+    bool loadDalModel(const char* const respath, ModelLoadInfo& info);
 
 }

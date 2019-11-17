@@ -4,7 +4,8 @@
 
 #include "s_logger_god.h"
 #include "s_configs.h"
-#include "u_fileclass.h"
+#include "u_filesystem.h"
+#include "u_fileutils.h"
 
 #include "x_mainloop.h"
 
@@ -139,7 +140,7 @@ namespace {
         fmt::print("========================================================\n");
         fmt::print("Open source libraries used in this game engines are...\n\n");
 
-        for ( auto& x : dal::listdir("asset::license/") ) {
+        for ( auto& x : dal::listfile("asset::license/") ) {
             fmt::print(x);
             fmt::print("\n");
         }
@@ -187,7 +188,7 @@ namespace {
 
         const auto arg = lua_tostring(L, 1);
         std::string buffer;
-        if ( !dal::futil::getRes_text(arg, buffer) ) {
+        if ( !dal::loadFileText(arg, buffer) ) {
             return -1;
         }
 

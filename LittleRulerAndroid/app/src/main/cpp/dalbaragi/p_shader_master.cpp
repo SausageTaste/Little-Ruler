@@ -6,8 +6,8 @@
 
 #include <fmt/format.h>
 
-#include "u_fileclass.h"
 #include "s_logger_god.h"
+#include "u_fileutils.h"
 
 
 using namespace fmt::literals;
@@ -344,7 +344,7 @@ namespace dal {
             else {
                 auto [iter, success] = this->m_soures.emplace(fileName, "");
                 dalAssert(success);
-                if ( !dal::futil::getRes_text("asset::glsl/{}"_format(fileName), iter->second) ) {
+                if ( !dal::loadFileText("asset::glsl/{}"_format(fileName).c_str(), iter->second) ) {
                     dalAbort("Failed to load glsl file: {}"_format(fileName));
                 }
                 iter->second = this->preprocess(iter->second);

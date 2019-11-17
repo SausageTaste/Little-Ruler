@@ -4,7 +4,6 @@
 
 #include <entt/entity/registry.hpp>
 
-#include "u_fileclass.h"
 #include "p_meshStatic.h"
 
 
@@ -22,7 +21,7 @@ namespace dal {
         };
 
     private:
-        ResourceID m_resID;
+        std::string m_resID;
         std::unique_ptr<ICollider> m_bounding, m_detailed;
     protected:
         std::vector<RenderUnit<_MeshTyp>> m_renderUnits;
@@ -45,10 +44,10 @@ namespace dal {
             return this->m_renderUnits.emplace_back();
         }
 
-        void setResID(const ResourceID& m_resID) {
+        void setResID(const std::string& m_resID) {
             this->m_resID = m_resID;
         }
-        const ResourceID& getResID(void) const {
+        const std::string& getResID(void) const {
             return this->m_resID;
         }
 

@@ -3,12 +3,21 @@
 #include <vector>
 #include <string>
 #include <memory>
+#include <optional>
 
 
 // Path
 namespace dal {
 
-    std::string findExtension(const char* const path);
+    struct ResPathInfo {
+        std::string m_package, m_intermPath, m_finalPath;
+        bool m_isResolveMode = false;
+    };
+
+    ResPathInfo parseResPath(const std::string& resPath);
+    std::optional<ResPathInfo> resolvePath(const std::string& package, const std::string& dir, const std::string& fname);
+
+    std::string findExtension(const std::string& path);
 
 }
 

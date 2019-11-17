@@ -11,7 +11,7 @@ extern "C" {
 
 #include "s_logger_god.h"
 #include "p_resource.h"
-#include "u_fileclass.h"
+#include "u_fileutils.h"
 
 
 using namespace fmt::literals;
@@ -228,14 +228,14 @@ namespace {
 
                 }
 
-                FreetypeFace(const dal::ResourceID& fontResID, FT_Library ftLib) {
-                    if ( !dal::futil::getRes_buffer(fontResID, this->m_fontData) ) {
-                        dalAbort("Failed to load font file: {}"_format(fontResID.makeIDStr()));
+                FreetypeFace(const char* const fontResID, FT_Library ftLib) {
+                    if ( !dal::loadFileBuffer(fontResID, this->m_fontData) ) {
+                        dalAbort("Failed to load font file: {}"_format(fontResID));
                     }
 
                     const auto error = FT_New_Memory_Face(ftLib, this->m_fontData.data(), static_cast<FT_Long>(this->m_fontData.size()), 0, &this->m_face);
                     if ( error ) {
-                        dalAbort("Failed to initiate freetype face: {}"_format(fontResID.makeIDStr()));
+                        dalAbort("Failed to initiate freetype face: {}"_format(fontResID));
                     }
 
                     FT_Select_Charmap(this->m_face, ft_encoding_unicode);
@@ -334,7 +334,7 @@ namespace {
                     return found->second;
                 }
                 else {
-                    auto [inserted, success] = this->m_faces.emplace(fontResBasicForm, FreetypeFace{ fontResBasicForm, this->m_library });
+                    auto [inserted, success] = this->m_faces.emplace(fontResBasicForm, FreetypeFace{ fontResBasicForm.c_str(), this->m_library });
                     dalAssert(success);
                     return inserted->second;
                 }

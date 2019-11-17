@@ -7,7 +7,6 @@
 #include <entt/entity/registry.hpp>
 
 #include "s_threader.h"
-#include "u_fileclass.h"
 #include "p_meshStatic.h"
 #include "p_water.h"
 #include "p_model.h"
@@ -84,17 +83,21 @@ namespace dal {
         Package(Package&& other) noexcept;
         Package& operator=(Package&&) noexcept;
 
-        bool hasTexture(const ResourceID& resPath);
-        bool hasModelStatic(const ResourceID& resPath);
-        bool hasModelAnim(const ResourceID& resPath);
+        const std::string& getName(void) const {
+            return this->m_name;
+        }
 
-        std::shared_ptr<const ModelStatic> getModelStatic(const ResourceID& resID);
-        std::shared_ptr<const ModelAnimated> getModelAnim(const ResourceID& resID);
-        std::shared_ptr<const Texture> getTexture(const ResourceID& resID);
+        bool hasTexture(const std::string& name);
+        bool hasModelStatic(const std::string& name);
+        bool hasModelAnim(const std::string& name);
 
-        bool giveModelStatic(const ResourceID& resID, const std::shared_ptr<ModelStatic>& mdl);
-        bool giveModelAnim(const ResourceID& resID, const std::shared_ptr<ModelAnimated>& mdl);
-        bool giveTexture(const ResourceID& resID, const std::shared_ptr<Texture>& tex);
+        std::shared_ptr<const ModelStatic> getModelStatic(const std::string& name);
+        std::shared_ptr<const ModelAnimated> getModelAnim(const std::string& name);
+        std::shared_ptr<const Texture> getTexture(const std::string& name);
+
+        bool giveModelStatic(const std::string& name, const std::shared_ptr<ModelStatic>& mdl);
+        bool giveModelAnim(const std::string& name, const std::shared_ptr<ModelAnimated>& mdl);
+        bool giveTexture(const std::string& name, const std::shared_ptr<Texture>& tex);
 
     };
 
@@ -119,12 +122,12 @@ namespace dal {
 
         virtual void notifyTask(std::unique_ptr<ITask> task) override;
 
-        std::shared_ptr<const ModelStatic> orderModelStatic(const ResourceID& resID);
-        std::shared_ptr<const ModelAnimated> orderModelAnim(const ResourceID& resID);
-        std::shared_ptr<const Texture> orderTexture(const ResourceID& resID, const bool gammaCorrect);
-        std::shared_ptr<const CubeMap> orderCubeMap(const std::array<ResourceID, 6>& resIDs, const bool gammaCorrect);
+        std::shared_ptr<const ModelStatic> orderModelStatic(const char* const respath);
+        std::shared_ptr<const ModelAnimated> orderModelAnim(const char* const respath);
+        std::shared_ptr<const Texture> orderTexture(const char* const respath, const bool gammaCorrect);
+        std::shared_ptr<const CubeMap> orderCubeMap(const std::array<std::string, 6>& respathes, const bool gammaCorrect);
 
-        MapChunk2 loadMap(const ResourceID& resID);
+        MapChunk2 loadMap(const char* const respath);
 
     private:
         Package& orderPackage(const std::string& packName);

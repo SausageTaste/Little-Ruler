@@ -5,7 +5,7 @@
 #include <fmt/format.h>
 
 #include "s_logger_god.h"
-#include "u_fileclass.h"
+#include "u_fileutils.h"
 
 
 using namespace fmt::literals;
@@ -13,10 +13,10 @@ using namespace fmt::literals;
 
 namespace {
 
-    dal::Texture* loadTex(const char* const resID) {
+    dal::Texture* loadTex(const char* const respath) {
         dal::binfo::ImageFileData image;
-        if ( !dal::futil::getRes_image(resID, image) ) {
-            dalAbort("Failed to load a map for water: {}"_format(resID));
+        if ( !dal::loadFileImage(respath, image) ) {
+            dalAbort("Failed to load a map for water: {}"_format(respath));
         }
         assert(4 == image.m_pixSize);
 

@@ -40,7 +40,6 @@ add_library( interface4jni SHARED interface4jni.cpp javautil.cpp
         dalbaragi/s_logger_god.cpp
         dalbaragi/s_threader.cpp
         dalbaragi/u_dlbparser.cpp
-        dalbaragi/u_fileclass.cpp
         dalbaragi/u_loadinfo.cpp
         dalbaragi/u_luascript.cpp
         dalbaragi/u_objparser.cpp

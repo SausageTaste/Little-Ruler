@@ -8,6 +8,7 @@
 #include "s_logger_god.h"
 #include "u_timer.h"
 #include "u_byteutils.h"
+#include "u_fileutils.h"
 
 
 using namespace fmt::literals;
@@ -265,10 +266,10 @@ namespace {
 
 namespace dal {
 
-    bool loadDalModel(const ResourceID& resID, ModelLoadInfo& info) {
+    bool loadDalModel(const char* const respath, ModelLoadInfo& info) {
         // Load file contents
         std::vector<uint8_t> filebuf;
-        if ( !dal::futil::getRes_buffer(resID, filebuf) ) {
+        if ( !loadFileBuffer(respath, filebuf) ) {
             return false;
         }
 

@@ -10,6 +10,8 @@
 #include "u_pool.h"
 #include "s_configs.h"
 #include "u_dlbparser.h"
+#include "u_filesystem.h"
+#include "u_fileutils.h"
 
 
 #define BLOCKY_TEXTURE 0
@@ -30,7 +32,7 @@ namespace {
         class TaskTexture : public dal::ITask {
 
         public:
-            const dal::ResourceID in_texID;
+            const std::string in_texID;
             bool in_gammaCorrect;
 
             dal::binfo::ImageFileData out_img;
@@ -40,7 +42,7 @@ namespace {
             dal::Texture* data_handle;
 
         public:
-            TaskTexture(const dal::ResourceID& texID, dal::Texture* const handle, const bool gammaCorrect)
+            TaskTexture(const std::string& texID, dal::Texture* const handle, const bool gammaCorrect)
                 : in_texID(texID)
                 , in_gammaCorrect(gammaCorrect)
                 , data_handle(handle)
@@ -49,7 +51,7 @@ namespace {
             }
 
             virtual void start(void) override {
-                this->out_success = dal::futil::getRes_image(in_texID, out_img);
+                this->out_success = dal::loadFileImage(this->in_texID.c_str(), this->out_img);
 
                 if ( this->out_success ) {
                     this->out_img.m_hasTransparency = this->out_img.hasTransparency();
@@ -68,7 +70,7 @@ namespace {
         class TaskModelStatic : public dal::ITask {
 
         public:
-            const dal::ResourceID in_modelID;
+            const std::string in_modelID;
 
             bool out_success;
             dal::ModelLoadInfo out_info;
@@ -77,7 +79,7 @@ namespace {
             dal::Package& data_package;
 
         public:
-            TaskModelStatic(const dal::ResourceID& modelID, dal::ModelStatic& coresponding, dal::Package& package)
+            TaskModelStatic(const std::string& modelID, dal::ModelStatic& coresponding, dal::Package& package)
                 : in_modelID(modelID),
                 out_success(false),
                 data_coresponding(coresponding),
@@ -87,7 +89,7 @@ namespace {
             }
 
             virtual void start(void) override {
-                this->out_success = dal::loadDalModel(this->in_modelID, this->out_info);
+                this->out_success = dal::loadDalModel(this->in_modelID.c_str(), this->out_info);
             }
 
         };
@@ -95,7 +97,7 @@ namespace {
         class TaskModelAnimated : public dal::ITask {
 
         public:
-            const dal::ResourceID in_modelID;
+            const std::string in_modelID;
 
             bool out_success;
             dal::ModelLoadInfo out_info;
@@ -104,7 +106,7 @@ namespace {
             dal::Package& data_package;
 
         public:
-            TaskModelAnimated(const dal::ResourceID& modelID, dal::ModelAnimated& coresponding, dal::Package& package)
+            TaskModelAnimated(const std::string& modelID, dal::ModelAnimated& coresponding, dal::Package& package)
                 : in_modelID(modelID),
                 out_success(false),
                 data_coresponding(coresponding),
@@ -114,7 +116,7 @@ namespace {
             }
 
             virtual void start(void) override {
-                this->out_success = dal::loadDalModel(this->in_modelID, this->out_info);
+                this->out_success = dal::loadDalModel(this->in_modelID.c_str(), this->out_info);
 
                 if ( 0 == this->out_info.m_model.m_joints.getSize() ) {
                     this->out_success = false;
@@ -126,7 +128,7 @@ namespace {
         class TaskCubeMap : public dal::ITask {
 
         public:
-            std::array<dal::ResourceID, 6> in_resIDs;
+            std::array<std::string, 6> in_resIDs;
             bool in_gammaCorrect;
 
             bool out_success;
@@ -135,7 +137,7 @@ namespace {
             dal::CubeMap* data_handle;
 
         public:
-            TaskCubeMap(const std::array<dal::ResourceID, 6>& resIDs, dal::CubeMap* handle, const bool gammaCorrect)
+            TaskCubeMap(const std::array<std::string, 6>& resIDs, dal::CubeMap* handle, const bool gammaCorrect)
                 : in_resIDs(resIDs)
                 , in_gammaCorrect(gammaCorrect)
                 , out_success(false)
@@ -148,7 +150,7 @@ namespace {
                 this->out_success = true;
 
                 for ( int i = 0; i < 6; ++i ) {
-                    const auto result = dal::futil::getRes_image(this->in_resIDs[i], this->out_imgs[i]);
+                    const auto result = dal::loadFileImage(this->in_resIDs[i].c_str(), this->out_imgs[i]);
                     if ( !result ) {
                         this->out_success = false;
                         return;
@@ -181,22 +183,22 @@ namespace {
         std::unordered_map<void*, ResTyp> m_map;
 
     public:
-        TaskTexture* newTexture(const dal::ResourceID& texID, dal::Texture* const handle, const bool gammaCorrect) {
+        TaskTexture* newTexture(const std::string& texID, dal::Texture* const handle, const bool gammaCorrect) {
             auto task = new TaskTexture(texID, handle, gammaCorrect);
             this->m_map.emplace(task, ResTyp::texture);
             return task;
         }
-        TaskModelStatic* newModelStatic(const dal::ResourceID& modelID, dal::ModelStatic& coresponding, dal::Package& package) {
+        TaskModelStatic* newModelStatic(const std::string& modelID, dal::ModelStatic& coresponding, dal::Package& package) {
             auto task = new TaskModelStatic(modelID, coresponding, package);
             this->m_map.emplace(task, ResTyp::model_static);
             return task;
         }
-        TaskModelAnimated* newModelAnimated(const dal::ResourceID& modelID, dal::ModelAnimated& coresponding, dal::Package& package) {
+        TaskModelAnimated* newModelAnimated(const std::string& modelID, dal::ModelAnimated& coresponding, dal::Package& package) {
             auto task = new TaskModelAnimated(modelID, coresponding, package);
             this->m_map.emplace(task, ResTyp::model_animated);
             return task;
         }
-        TaskCubeMap* newCubeMap(const std::array<dal::ResourceID, 6>& resIDs, dal::CubeMap* const handle, const bool gammaCorrect) {
+        TaskCubeMap* newCubeMap(const std::array<std::string, 6>& resIDs, dal::CubeMap* const handle, const bool gammaCorrect) {
             auto task = new TaskCubeMap(resIDs, handle, gammaCorrect);
             this->m_map.emplace(task, ResTyp::cube_map);
             return task;
@@ -231,22 +233,28 @@ namespace {
         dst.m_texScale = src.m_texScale;
 
         if ( !src.m_diffuseMap.empty() ) {
-            dal::ResourceID texResID{ src.m_diffuseMap };
-            if ( !packageName.empty() )
-                texResID.setPackageIfEmpty(packageName);
-            dst.m_diffuseMap = resMas.orderTexture(texResID, true);
+            if ( ':' == src.m_diffuseMap.front() ) {
+                dst.m_diffuseMap = resMas.orderTexture((packageName + src.m_diffuseMap).c_str(), true);
+            }
+            else {
+                dst.m_diffuseMap = resMas.orderTexture(src.m_diffuseMap.c_str(), true);
+            }
         }
         if ( !src.m_roughnessMap.empty() ) {
-            dal::ResourceID texResID{ src.m_roughnessMap };
-            if ( !packageName.empty() )
-                texResID.setPackageIfEmpty(packageName);
-            dst.m_roughnessMap = resMas.orderTexture(texResID, false);
+            if ( ':' == src.m_roughnessMap.front() ) {
+                dst.m_roughnessMap = resMas.orderTexture((packageName + src.m_roughnessMap).c_str(), false);
+            }
+            else {
+                dst.m_roughnessMap = resMas.orderTexture(src.m_roughnessMap.c_str(), false);
+            }
         }
         if ( !src.m_metallicMap.empty() ) {
-            dal::ResourceID texResID{ src.m_metallicMap };
-            if ( !packageName.empty() )
-                texResID.setPackageIfEmpty(packageName);
-            dst.m_metallicMap = resMas.orderTexture(texResID, false);
+            if ( ':' == src.m_metallicMap.front() ) {
+                dst.m_metallicMap = resMas.orderTexture((packageName + src.m_metallicMap).c_str(), false);
+            }
+            else {
+                dst.m_metallicMap = resMas.orderTexture(src.m_metallicMap.c_str(), false);
+            }
         }
     }
 
@@ -276,8 +284,6 @@ namespace dal {
         inPhysics.setMassInv(1.f);
 
         for ( auto& mdl : this->m_staticActors ) {
-            const auto mdlName = mdl.m_model->getResID().makeIDStr();
-
             const auto mdlBounding = mdl.m_model->getBounding();
             if ( nullptr == mdlBounding ) {
                 continue;
@@ -532,20 +538,20 @@ namespace dal {
     }
 
 
-    bool Package::hasTexture(const ResourceID& resID) {
-        return this->m_textures.end() != this->m_textures.find(resID.makeFileName());
+    bool Package::hasTexture(const std::string& name) {
+        return nullptr != this->getTexture(name);
     }
 
-    bool Package::hasModelStatic(const ResourceID& resID) {
-        return this->m_models.end() != this->m_models.find(resID.makeFileName());
+    bool Package::hasModelStatic(const std::string& name) {
+        return nullptr != this->getModelStatic(name);
     }
 
-    bool Package::hasModelAnim(const ResourceID& resID) {
-        return this->m_animatedModels.end() != this->m_animatedModels.find(resID.makeFileName());
+    bool Package::hasModelAnim(const std::string& name) {
+        return nullptr != this->getModelAnim(name);
     }
 
-    std::shared_ptr<const ModelStatic> Package::getModelStatic(const ResourceID& resID) {
-        auto found = this->m_models.find(resID.makeFileName());
+    std::shared_ptr<const ModelStatic> Package::getModelStatic(const std::string& name) {
+        auto found = this->m_models.find(name);
         if ( this->m_models.end() == found ) {
             return nullptr;
         }
@@ -554,8 +560,8 @@ namespace dal {
         }
     }
 
-    std::shared_ptr<const ModelAnimated> Package::getModelAnim(const ResourceID& resID) {
-        auto found = this->m_animatedModels.find(resID.makeFileName());
+    std::shared_ptr<const ModelAnimated> Package::getModelAnim(const std::string& name) {
+        auto found = this->m_animatedModels.find(name);
         if ( this->m_animatedModels.end() == found ) {
             return nullptr;
         }
@@ -564,8 +570,8 @@ namespace dal {
         }
     }
 
-    std::shared_ptr<const Texture> Package::getTexture(const ResourceID& resID) {
-        auto found = this->m_textures.find(resID.makeFileName());
+    std::shared_ptr<const Texture> Package::getTexture(const std::string& name) {
+        auto found = this->m_textures.find(name);
         if ( this->m_textures.end() == found ) {
             return nullptr;
         }
@@ -574,41 +580,35 @@ namespace dal {
         }
     }
 
-    bool Package::giveModelStatic(const ResourceID& resID, const std::shared_ptr<ModelStatic>& mdl) {
-        const auto filename = resID.makeFileName();
-
-        if ( this->m_models.end() != this->m_models.find(filename) ) {
-            dalError(fmt::format(ERR_FORMAT_STR, "static model", this->m_name, resID.makeIDStr()));
+    bool Package::giveModelStatic(const std::string& name, const std::shared_ptr<ModelStatic>& mdl) {
+        if ( this->m_models.end() != this->m_models.find(name) ) {
+            dalError(fmt::format(ERR_FORMAT_STR, "static model", this->m_name, name));
             return false;
         }
         else {
-            this->m_models.emplace(filename, mdl);
+            this->m_models.emplace(name, mdl);
             return true;
         }
     }
 
-    bool Package::giveModelAnim(const ResourceID& resID, const std::shared_ptr<ModelAnimated>& mdl) {
-        const auto filename = resID.makeFileName();
-
-        if ( this->m_animatedModels.end() != this->m_animatedModels.find(filename) ) {
-            dalError(fmt::format(ERR_FORMAT_STR, "animated model", this->m_name, resID.makeIDStr()));
+    bool Package::giveModelAnim(const std::string& name, const std::shared_ptr<ModelAnimated>& mdl) {
+        if ( this->m_animatedModels.end() != this->m_animatedModels.find(name) ) {
+            dalError(fmt::format(ERR_FORMAT_STR, "animated model", this->m_name, name));
             return false;
         }
         else {
-            this->m_animatedModels.emplace(filename, mdl);
+            this->m_animatedModels.emplace(name, mdl);
             return true;
         }
     }
 
-    bool Package::giveTexture(const ResourceID& resID, const std::shared_ptr<Texture>& tex) {
-        const auto filename = resID.makeFileName();
-
-        if ( this->m_textures.end() != this->m_textures.find(filename) ) {
-            dalError(fmt::format(ERR_FORMAT_STR, "texture", this->m_name, resID.makeIDStr()));
+    bool Package::giveTexture(const std::string& name, const std::shared_ptr<Texture>& tex) {
+        if ( this->m_textures.end() != this->m_textures.find(name) ) {
+            dalError(fmt::format(ERR_FORMAT_STR, "texture", this->m_name, name));
             return false;
         }
         else {
-            this->m_textures.emplace(filename, tex);
+            this->m_textures.emplace(name, tex);
             return true;
         }
     }
@@ -627,7 +627,7 @@ namespace dal {
         if ( taskTyp == LoadTaskManger::ResTyp::model_static ) {
             auto loaded = reinterpret_cast<LoadTaskManger::TaskModelStatic*>(task.get());
             if ( !loaded->out_success ) {
-                dalError("Failed to load model: {}"_format(loaded->in_modelID.makeIDStr()));
+                dalError(fmt::format("Failed to load model: {}", loaded->in_modelID));
                 return;
             }
 
@@ -648,7 +648,7 @@ namespace dal {
                     );
                     unit.m_name = unitInfo.m_name;
 
-                    copyMaterial(unit.m_material, unitInfo.m_material, *this, loaded->in_modelID.getPackage());
+                    copyMaterial(unit.m_material, unitInfo.m_material, *this, loaded->data_package.getName());
                 }
 
                 loaded->data_coresponding.setBounding(std::unique_ptr<ICollider>{ new ColAABB{ loaded->out_info.m_model.m_aabb } });
@@ -657,17 +657,17 @@ namespace dal {
         else if ( taskTyp == LoadTaskManger::ResTyp::texture ) {
             auto loaded = reinterpret_cast<LoadTaskManger::TaskTexture*>(task.get());
             if ( !loaded->out_success ) {
-                dalError("Failed to load texture: {}"_format(loaded->in_texID.makeIDStr()));
+                dalError(fmt::format("Failed to load texture: {}", loaded->in_texID));
                 return;
             }
 
             loaded->data_handle->init_diffuseMap(loaded->out_img);
-            dalInfo("Texture loaded: {}"_format(loaded->in_texID.makeIDStr()));
+            dalInfo(fmt::format("Texture loaded: {}", loaded->in_texID));
         }
         else if ( taskTyp == LoadTaskManger::ResTyp::model_animated ) {
             auto loaded = reinterpret_cast<LoadTaskManger::TaskModelAnimated*>(task.get());
             if ( !loaded->out_success ) {
-                dalError("Failed to load model: {}"_format(loaded->in_modelID.makeIDStr()));
+                dalError(fmt::format("Failed to load model: {}", loaded->in_modelID));
                 return;
             }
 
@@ -694,13 +694,13 @@ namespace dal {
                 );
                 unit.m_name = unitInfo.m_name;
 
-                copyMaterial(unit.m_material, unitInfo.m_material, *this, loaded->in_modelID.getPackage());
+                copyMaterial(unit.m_material, unitInfo.m_material, *this, loaded->data_package.getName());
             }
         }
         else if ( taskTyp == LoadTaskManger::ResTyp::cube_map ) {
             auto loaded = reinterpret_cast<LoadTaskManger::TaskCubeMap*>(task.get());
             if ( !loaded->out_success ) {
-                dalError("Failed to load cube map: {}"_format(loaded->in_resIDs[0].makeIDStr()));
+                dalError(fmt::format("Failed to load cube map: {}", loaded->in_resIDs[0]));
                 return;
             }
 
@@ -719,80 +719,83 @@ namespace dal {
     }
 
 
-    std::shared_ptr<const ModelStatic> ResourceMaster::orderModelStatic(const ResourceID& resID) {
-        auto& package = this->orderPackage(resID.getPackage());
+    std::shared_ptr<const ModelStatic> ResourceMaster::orderModelStatic(const char* const respath) {
+        const auto resinfo = parseResPath(respath);
+        auto& package = this->orderPackage(resinfo.m_package);
 
-        auto found = package.getModelStatic(resID);
+        auto found = package.getModelStatic(resinfo.m_finalPath);
         if ( found ) {
             return found;
         }
         else {
             auto model = new ModelStatic; dalAssert(nullptr != model);
             std::shared_ptr<ModelStatic> modelHandle{ model };
-            model->setResID(resID); // It might not be resolved.
-            package.giveModelStatic(resID, modelHandle);
+            model->setResID(resinfo.m_finalPath); // It might not be resolved.
+            package.giveModelStatic(resinfo.m_finalPath, modelHandle);
 
-            auto task = g_taskManger.newModelStatic(resID, *model, package);
+            auto task = g_taskManger.newModelStatic(respath, *model, package);
             TaskGod::getinst().orderTask(task, this);
 
             return modelHandle;
         }
     }
 
-    std::shared_ptr<const ModelAnimated> ResourceMaster::orderModelAnim(const ResourceID& resID) {
-        auto& package = this->orderPackage(resID.getPackage());
+    std::shared_ptr<const ModelAnimated> ResourceMaster::orderModelAnim(const char* const respath) {
+        const auto resinfo = parseResPath(respath);
+        auto& package = this->orderPackage(resinfo.m_package);
 
-        auto found = package.getModelAnim(resID);
+        auto found = package.getModelAnim(resinfo.m_finalPath);
         if ( found ) {
             return found;
         }
         else {
             auto model = new ModelAnimated; dalAssert(nullptr != model);
             std::shared_ptr<ModelAnimated> modelHandle{ model };
-            model->setResID(resID);
-            package.giveModelAnim(resID, modelHandle);
+            model->setResID(resinfo.m_finalPath);
+            package.giveModelAnim(resinfo.m_finalPath, modelHandle);
 
-            auto task = g_taskManger.newModelAnimated(resID, *model, package);
+            auto task = g_taskManger.newModelAnimated(respath, *model, package);
             TaskGod::getinst().orderTask(task, this);
 
             return modelHandle;
         }
     }
 
-    std::shared_ptr<const Texture> ResourceMaster::orderTexture(const ResourceID& resID, const bool gammaCorrect) {
-        auto& package = this->orderPackage(resID.getPackage());
+    std::shared_ptr<const Texture> ResourceMaster::orderTexture(const char* const respath, const bool gammaCorrect) {
+        const auto resinfo = parseResPath(respath);
+        auto& package = this->orderPackage(resinfo.m_package);
 
-        auto found = package.getTexture(resID);
+        auto found = package.getTexture(resinfo.m_finalPath);
         if ( nullptr != found ) {
             return found;
         }
         else {
             auto texture = std::shared_ptr<Texture>{ new Texture };
-            package.giveTexture(resID, texture);
+            package.giveTexture(resinfo.m_finalPath, texture);
 
-            auto task = g_taskManger.newTexture(resID, texture.get(), gammaCorrect);
+            auto task = g_taskManger.newTexture(respath, texture.get(), gammaCorrect);
             TaskGod::getinst().orderTask(task, this);
 
             return texture;
         }
     }
 
-    std::shared_ptr<const CubeMap> ResourceMaster::orderCubeMap(const std::array<ResourceID, 6>& resIDs, const bool gammaCorrect) {
+    std::shared_ptr<const CubeMap> ResourceMaster::orderCubeMap(const std::array<std::string, 6>& respathes, const bool gammaCorrect) {
         auto tex = this->m_cubeMaps.emplace_back(new CubeMap);
 
-        auto task = g_taskManger.newCubeMap(resIDs, tex.get(), gammaCorrect);
+        auto task = g_taskManger.newCubeMap(respathes, tex.get(), gammaCorrect);
         TaskGod::getinst().orderTask(task, this);
 
         return tex;
     }
 
 
-    MapChunk2 ResourceMaster::loadMap(const ResourceID& resID) {
+    MapChunk2 ResourceMaster::loadMap(const char* const respath) {
         std::vector<uint8_t> buffer;
-        futil::getRes_buffer(resID, buffer);
+        loadFileBuffer(respath, buffer);
         auto mapInfo = parseDLB(buffer.data(), buffer.size());
         if ( !mapInfo ) {
-            dalAbort("Failed to load map : {}"_format(resID.makeIDStr()));
+            dalAbort(fmt::format("Failed to load map : {}", respath));
         }
 
         MapChunk2 map;
@@ -803,9 +806,7 @@ namespace dal {
 
             // Name
             {
-                ResourceID mdlResName{ mdlEmbed.m_name };
-                mdlResName.setPackage(resID.getPackage());
-                model->setResID(mdlResName);
+                model->setResID(mdlEmbed.m_name);
             }
 
             // Render units
@@ -831,7 +832,7 @@ namespace dal {
         }
 
         for ( auto& mdlImport : mapInfo->m_importedModels ) {
-            auto model = this->orderModelStatic(mdlImport.m_resourceID);
+            auto model = this->orderModelStatic(mdlImport.m_resourceID.c_str());
             map.addStaticActorModel(std::move(model), std::move(mdlImport.m_staticActors));
         }
 

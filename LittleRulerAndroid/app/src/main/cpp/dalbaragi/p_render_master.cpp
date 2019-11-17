@@ -194,7 +194,7 @@ namespace dal {
 
         // Skybox
         {
-            std::array<ResourceID, 6> cubeMapImages{
+            std::array<std::string, 6> cubeMapImages{
                 "asset::plane_blue_rt.tga",
                 "asset::plane_blue_lf.tga",
                 "asset::plane_blue_up.tga",

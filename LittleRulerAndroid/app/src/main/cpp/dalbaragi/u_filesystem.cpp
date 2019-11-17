@@ -1,7 +1,6 @@
 #include "u_filesystem.h"
 
 #include <fstream>
-#include <optional>
 
 #include <fmt/format.h>
 
@@ -90,81 +89,6 @@ namespace {
 }
 
 
-// Resource path funcs
-namespace {
-
-    struct ResPathInfo {
-        std::string m_package, m_intermPath, m_finalPath;
-        bool m_isResolveMode = false;
-    };
-
-    ResPathInfo parseResPath(const std::string& resPath) {
-        ResPathInfo result;
-
-        constexpr auto restDivider = [](const std::string& str, const size_t restPos, std::string& intermResult, std::string& finalResult) {
-            const auto rightMostDivider = str.rfind('/');
-            if ( (rightMostDivider > restPos) && (std::string::npos != rightMostDivider) ) {
-                intermResult = str.substr(restPos, rightMostDivider - restPos) + '/';
-                intermResult = removeDuplicates(intermResult, '/');
-                intermResult = lstrip(intermResult, '/');
-                finalResult = str.substr(rightMostDivider + 1);
-            }
-            else {
-                intermResult.clear();
-                finalResult = str.substr(restPos);
-            }
-        };
-
-        const auto colonPos = resPath.find("::");
-        if ( std::string::npos != colonPos ) {
-            result.m_isResolveMode = true;
-            result.m_package = resPath.substr(0, colonPos);
-            restDivider(resPath, colonPos + 2, result.m_intermPath, result.m_finalPath);
-        }
-        else {
-            result.m_isResolveMode = false;
-            const auto packageDivider = resPath.find('/');
-            if ( std::string::npos != packageDivider ) {
-                result.m_package = resPath.substr(0, packageDivider);
-                restDivider(resPath, packageDivider + 1, result.m_intermPath, result.m_finalPath);
-            }
-            else {
-                result.m_package = resPath;
-            }
-        }
-
-        return result;
-    }
-
-    std::optional<ResPathInfo> resolvePath(const std::string& package, const std::string& dir, const std::string& fname) {
-        // dir must start with / or empty.
-
-        const auto folPath = package + dir;
-
-        for ( const auto& child : dal::listfile(folPath.c_str()) ) {
-            if ( fname == child ) {
-                ResPathInfo result{ package, dir, fname, false };
-                if ( !result.m_intermPath.empty() ) {
-                    result.m_intermPath = result.m_intermPath.substr(1);
-                    result.m_intermPath.push_back('/');
-                }
-                return result;
-            }
-        }
-
-        for ( const auto& child : dal::listfolder(folPath.c_str()) ) {
-            auto result = resolvePath(package, dir + '/' + child, fname);
-            if ( result ) {
-                return result;
-            }
-        }
-
-        return std::nullopt;
-    }
-
-}
-
-
 // Windows
 namespace {
 
@@ -242,7 +166,7 @@ namespace {
             return path;
         }
 
-        std::string makeWinResPath(const ResPathInfo& resPathInfo) {
+        std::string makeWinResPath(const dal::ResPathInfo& resPathInfo) {
             if ( PACKAGE_NAME_ASSET == resPathInfo.m_package ) {
                 return fmt::format("{}{}/{}{}", win::getResFolderPath(), PACKAGE_NAME_ASSET, resPathInfo.m_intermPath, resPathInfo.m_finalPath);
             }
@@ -384,7 +308,7 @@ namespace {
             });
         }
 
-        std::string makeAndroidStoragePath(const ResPathInfo& resPathInfo) {
+        std::string makeAndroidStoragePath(const dal::ResPathInfo& resPathInfo) {
             const auto& storagePath = dal::ExternalFuncGod::getinst().getAndroidStoragePath();
 
             if ( LOG_FOLDER_NAME == resPathInfo.m_package ) {
@@ -398,7 +322,7 @@ namespace {
             }
         }
 
-        std::string makeAssetPath(const ResPathInfo& resPathInfo) {
+        std::string makeAssetPath(const dal::ResPathInfo& resPathInfo) {
             return resPathInfo.m_intermPath + resPathInfo.m_finalPath;;
         }
 
@@ -421,6 +345,70 @@ namespace {
 
 // Path
 namespace dal {
+
+    ResPathInfo parseResPath(const std::string& resPath) {
+        ResPathInfo result;
+
+        constexpr auto restDivider = [](const std::string& str, const size_t restPos, std::string& intermResult, std::string& finalResult) {
+            const auto rightMostDivider = str.rfind('/');
+            if ( (rightMostDivider > restPos) && (std::string::npos != rightMostDivider) ) {
+                intermResult = str.substr(restPos, rightMostDivider - restPos) + '/';
+                intermResult = removeDuplicates(intermResult, '/');
+                intermResult = lstrip(intermResult, '/');
+                finalResult = str.substr(rightMostDivider + 1);
+            }
+            else {
+                intermResult.clear();
+                finalResult = str.substr(restPos);
+            }
+        };
+
+        const auto colonPos = resPath.find("::");
+        if ( std::string::npos != colonPos ) {
+            result.m_isResolveMode = true;
+            result.m_package = resPath.substr(0, colonPos);
+            restDivider(resPath, colonPos + 2, result.m_intermPath, result.m_finalPath);
+        }
+        else {
+            result.m_isResolveMode = false;
+            const auto packageDivider = resPath.find('/');
+            if ( std::string::npos != packageDivider ) {
+                result.m_package = resPath.substr(0, packageDivider);
+                restDivider(resPath, packageDivider + 1, result.m_intermPath, result.m_finalPath);
+            }
+            else {
+                result.m_package = resPath;
+            }
+        }
+
+        return result;
+    }
+
+    std::optional<ResPathInfo> resolvePath(const std::string& package, const std::string& dir, const std::string& fname) {
+        // dir must start with / or empty.
+
+        const auto folPath = package + dir;
+
+        for ( const auto& child : dal::listfile(folPath.c_str()) ) {
+            if ( fname == child ) {
+                ResPathInfo result{ package, dir, fname, false };
+                if ( !result.m_intermPath.empty() ) {
+                    result.m_intermPath = result.m_intermPath.substr(1);
+                    result.m_intermPath.push_back('/');
+                }
+                return result;
+            }
+        }
+
+        for ( const auto& child : dal::listfolder(folPath.c_str()) ) {
+            auto result = resolvePath(package, dir + '/' + child, fname);
+            if ( result ) {
+                return result;
+            }
+        }
+
+        return std::nullopt;
+    }
 
     std::string findExtension(const std::string& path) {
         const auto found = path.rfind('.');
@@ -923,8 +911,8 @@ namespace {
     }
 
 
-    template <typename _StreamTyp, std::string(_PathFunc)(const ResPathInfo&)>
-    std::unique_ptr<dal::IFileStream> fileopen_general(const ResPathInfo& pathinfo, const dal::FileMode2 mode) {
+    template <typename _StreamTyp, std::string(_PathFunc)(const dal::ResPathInfo&)>
+    std::unique_ptr<dal::IFileStream> fileopen_general(const dal::ResPathInfo& pathinfo, const dal::FileMode2 mode) {
         const std::string filePath = _PathFunc(pathinfo);
         std::unique_ptr<dal::IFileStream> file{ new _StreamTyp };
 
@@ -935,7 +923,7 @@ namespace {
         const auto isWriteMode = (dal::FileMode2::write == mode) || (dal::FileMode2::bwrite == mode);
 
         if ( pathinfo.m_isResolveMode && !isWriteMode ) {
-            const auto newPathInfo = resolvePath(pathinfo.m_package, "", pathinfo.m_finalPath);
+            const auto newPathInfo = dal::resolvePath(pathinfo.m_package, "", pathinfo.m_finalPath);
             if ( !newPathInfo ) {
                 return { nullptr };
             }
@@ -962,6 +950,9 @@ namespace dal {
         const auto pathinfo = parseResPath(resPath);
 
         if ( pathinfo.m_finalPath.empty() ) {
+            return { nullptr };
+        }
+        else if ( pathinfo.m_package.empty() ) {
             return { nullptr };
         }
       

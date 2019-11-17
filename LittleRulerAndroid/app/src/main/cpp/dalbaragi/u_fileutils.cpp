@@ -1,5 +1,10 @@
 #include "u_fileutils.h"
 
+#ifdef _WIN32
+#pragma warning(disable:4996)
+// To disable fopen deprecated error which is caused by tga.h
+#endif
+
 #include <tga.h>
 #include <lodepng.h>
 #include <fmt/format.h>

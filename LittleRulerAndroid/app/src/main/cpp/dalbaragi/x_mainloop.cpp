@@ -12,6 +12,7 @@
 #include "g_charastate.h"
 #include "p_model.h"
 #include "o_widgetcache.h"
+#include "u_filesystem.h"
 
 
 using namespace fmt::literals;
@@ -96,7 +97,7 @@ namespace {
             const auto fileID = fmt::format("log::log_{}-{:0>2}-{:0>2}_{:0>2}-{:0>2}.txt", dt.m_year, dt.m_month, dt.m_day, dt.m_hour, dt.m_min);
             const auto fileContents = makeFileContents(dt, logLevel, str, line, func, file);
 
-            auto logFile = dal::resopen(fileID, dal::FileMode::append);
+            auto logFile = dal::fileopen(fileID.c_str(), dal::FileMode2::append);
             if ( nullptr == logFile ) {
                 fmt::print("Failed to create log file: {}\n", fileID);
                 return;
@@ -435,13 +436,12 @@ namespace dal {
     // Static
 
     void Mainloop::giveWhatFilesystemWants(void* androidAssetManager, const char* const sdcardPath) {
-        initFilesystem(androidAssetManager, sdcardPath);
         dal::ExternalFuncGod::getinst().giveValue_assetMgr(reinterpret_cast<AAssetManager*>(androidAssetManager));
         dal::ExternalFuncGod::getinst().giveValue_androidStoragePath(sdcardPath);
     }
 
     bool Mainloop::isWhatFilesystemWantsGiven(void) {
-        return isFilesystemReady();
+        return true;
     }
 
     // Public
