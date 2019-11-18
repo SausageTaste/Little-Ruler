@@ -142,37 +142,6 @@ namespace {
 // Widgets
 namespace {
 
-    class FPSCounter : public dal::Widget2 {
-
-    private:
-        dal::Label2 m_label;
-
-    public:
-        FPSCounter(void) 
-            : dal::Widget2(nullptr)
-            , m_label(this)
-        {
-            this->setPos(10.0f, 10.0f);
-            this->setSize(50.0f, 20.0f);
-        }
-
-        virtual void render(const dal::UnilocOverlay& uniloc, const float width, const float height) override {
-            this->m_label.render(uniloc, width, height);
-        }
-
-        void setText(const unsigned int fps) {
-            this->m_label.setText(std::to_string(fps));
-        }
-
-    protected:
-        virtual void onScrSpaceBoxUpdate(void) override {
-            this->m_label.setSize(this->getSize());
-            this->m_label.setPos(this->getPos());
-        };
-
-    } g_fpsCounter;
-
-
     class LuaConsole : public dal::Widget2 {
 
     private:
@@ -349,13 +318,11 @@ namespace dal {
     Mainloop::Mainloop(const unsigned int winWidth, const unsigned int winHeight)
         // Managers
         : m_scene(m_resMas, winWidth, winHeight)
-        , m_overlayMas(m_shader, winWidth, winHeight)
-        , m_renderMan(m_scene, m_shader, m_overlayMas, m_resMas, &m_scene.m_playerCam, winWidth, winHeight)
+        , m_renderMan(m_scene, m_shader, m_resMas, &m_scene.m_playerCam, winWidth, winHeight)
         // Contexts
         , m_currentContext(nullptr)
-        , m_cxtIngame(m_renderMan, m_scene, m_overlayMas, winWidth, winHeight)
+        , m_cxtIngame(m_shader, m_renderMan, m_scene, winWidth, winHeight)
         // Misc
-        , m_frameAccum(0)
         , m_flagQuit(false)
     {
         // This might be done already by SceneGraph or OverlayMaster but still...
@@ -378,9 +345,6 @@ namespace dal {
         // Widgets
         {
             LuaState::giveDependencies(this, &this->m_renderMan);
-
-            this->m_overlayMas.giveWidgetRef(&g_fpsCounter);
-            this->m_overlayMas.giveWidgetRef(&g_luaConsole);
         }
 
         // Regist
@@ -408,9 +372,6 @@ namespace dal {
 
     Mainloop::~Mainloop(void) {
         EventGod::getinst().deregisterHandler(this, EventType::quit_game);
-
-        this->m_overlayMas.removeWidgetRef(&g_fpsCounter);
-        this->m_overlayMas.removeWidgetRef(&g_luaConsole);
     }
 
     int Mainloop::update(void) {
@@ -420,17 +381,7 @@ namespace dal {
 
         const auto deltaTime = m_timer.checkGetElapsed();
 
-        // FPS counter
-        {
-            ++this->m_frameAccum;
-            const auto elapsedForFPS = this->m_timerForFPSReport.getElapsed();
-            if ( elapsedForFPS > 0.1f ) {
-                const auto fps = static_cast<unsigned int>(static_cast<float>(this->m_frameAccum) / elapsedForFPS);
-                g_fpsCounter.setText(fps);
-                this->m_timerForFPSReport.check();
-                this->m_frameAccum = 0;
-            }
-        }
+        
 
         this->m_currentContext = this->m_currentContext->update(deltaTime);
 
@@ -441,7 +392,6 @@ namespace dal {
         GlobalStateGod::getinst().setWinSize(width, height);
 
         this->m_renderMan.onWinResize(width, height);
-        this->m_overlayMas.onWinResize(width, height);
         this->m_scene.onResize(width, height);
 
         this->m_cxtIngame.onWinResize(width, height);

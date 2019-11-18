@@ -10,14 +10,17 @@ namespace dal {
     class InGameCxt : public IContext {
 
     private:
+        ShaderMaster& m_shaders;
         RenderMaster& m_renMas;
         SceneGraph& m_scene;
-        OverlayMaster& m_overlay;
 
         PlayerControlWidget m_crtlWidget;
 
+        unsigned m_winWidth, m_winHeight;
+
     public:
-        InGameCxt(RenderMaster& renMas, SceneGraph& scene, OverlayMaster& overlay, const unsigned width, const unsigned height);
+        InGameCxt(ShaderMaster& shaders, RenderMaster& renMas, SceneGraph& scene, const unsigned width, const unsigned height);
+        virtual ~InGameCxt(void) override;
 
         virtual IContext* update(const float deltaTime) override;
         virtual void onWinResize(const unsigned width, const unsigned height) override;

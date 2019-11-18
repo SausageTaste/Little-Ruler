@@ -5,7 +5,6 @@
 #include "s_event.h"
 #include "c_input_apply.h"
 #include "u_timer.h"
-#include "o_overlay_master.h"
 #include "p_resource.h"
 #include "g_actor.h"
 #include "d_context_main.h"
@@ -22,7 +21,6 @@ namespace dal {
         ShaderMaster m_shader;
         ResourceMaster m_resMas;
         SceneGraph m_scene;
-        OverlayMaster m_overlayMas;
         RenderMaster m_renderMan;
 
         // Contexts
@@ -31,8 +29,6 @@ namespace dal {
 
         // Misc
         TimerThatCaps m_timer;
-        Timer m_timerForFPSReport;
-        size_t m_frameAccum;
         bool m_flagQuit;
 
         //// Funcs ////

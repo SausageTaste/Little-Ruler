@@ -3,7 +3,6 @@
 #include <entt/entity/registry.hpp>
 
 #include "s_event.h"
-#include "o_overlay_master.h"
 #include "o_widget_texview.h"
 #include "g_charastate.h"
 

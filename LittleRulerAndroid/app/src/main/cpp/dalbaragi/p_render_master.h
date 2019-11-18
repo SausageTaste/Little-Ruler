@@ -5,8 +5,8 @@
 #include <glm/glm.hpp>
 #include <entt/entity/registry.hpp>
 
-#include "o_overlay_master.h"
 #include "p_scene.h"
+#include "p_shader_master.h"
 
 
 namespace dal {
@@ -63,7 +63,7 @@ namespace dal {
         Skybox m_skybox;
 
     public:
-        RenderMaster(SceneGraph& scene, ShaderMaster& shader, OverlayMaster& overlay, ResourceMaster& resMas,
+        RenderMaster(SceneGraph& scene, ShaderMaster& shader, ResourceMaster& resMas,
             ICamera* const camera, const unsigned int winWidth, const unsigned int winHeight);
 
         void update(const float deltaTime);

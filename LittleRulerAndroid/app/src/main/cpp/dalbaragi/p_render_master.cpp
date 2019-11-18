@@ -160,7 +160,7 @@ namespace dal {
 // Render Master
 namespace dal {
 
-    RenderMaster::RenderMaster(SceneGraph& scene, ShaderMaster& shader, OverlayMaster& overlay, ResourceMaster& resMas,
+    RenderMaster::RenderMaster(SceneGraph& scene, ShaderMaster& shader, ResourceMaster& resMas,
         ICamera* const camera, const unsigned int winWidth, const unsigned int winHeight)
         : m_scene(scene)
         , m_shader(shader)
