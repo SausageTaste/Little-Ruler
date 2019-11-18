@@ -280,8 +280,6 @@ namespace dal {
     {
         this->mHandlerName = "InputApplier";
         EventGod::getinst().registerHandler(this, EventType::global_fsm_change);
-
-        this->m_overlayMas.giveBackgroudWidgetRef(&this->m_ctrlInputWidget);
     }
 
     InputApplier::~InputApplier(void) {

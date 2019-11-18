@@ -11,14 +11,16 @@ namespace dal {
 
     private:
         RenderMaster& m_renMas;
-        InputApplier& m_input;
         SceneGraph& m_scene;
         OverlayMaster& m_overlay;
 
+        InputApplier::PlayerControlWidget m_crtlWidget;
+
     public:
-        InGameCxt(RenderMaster& renMas, InputApplier& input, SceneGraph& scene, OverlayMaster& overlay);
+        InGameCxt(RenderMaster& renMas, SceneGraph& scene, OverlayMaster& overlay, const unsigned width, const unsigned height);
 
         virtual IContext* update(const float deltaTime) override;
+        virtual void onWinResize(const unsigned width, const unsigned height) override;
 
     };
 

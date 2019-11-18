@@ -24,12 +24,12 @@ namespace dal {
         SceneGraph m_scene;
         OverlayMaster m_overlayMas;
         RenderMaster m_renderMan;
-        InputApplier m_inputApply;
 
         // Contexts
         IContext* m_currentContext;
         InGameCxt m_cxtIngame;
 
+        // Misc
         TimerThatCaps m_timer;
         Timer m_timerForFPSReport;
         size_t m_frameAccum;

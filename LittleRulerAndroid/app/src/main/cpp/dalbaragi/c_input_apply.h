@@ -12,10 +12,10 @@ namespace dal {
 
     class InputApplier : public iEventHandler {
 
-    private:
+    public:
         class PlayerControlWidget : public dal::Widget2 {
 
-        private:
+        public:
             class MoveDPad : public dal::Widget2 {
                 /*
                  * Widget2's width and height always must be same, which means it's always sqaure.
