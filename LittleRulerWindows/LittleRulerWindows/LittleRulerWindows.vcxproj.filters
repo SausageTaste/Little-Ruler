@@ -7,9 +7,6 @@
     <ClCompile Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\g_charastate.cpp">
       <Filter>Game</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\o_overlay_master.cpp">
-      <Filter>Overlay</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\o_widget_textbox.cpp">
       <Filter>Overlay</Filter>
     </ClCompile>
@@ -160,9 +157,6 @@
     </ClInclude>
     <ClInclude Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\g_charastate.h">
       <Filter>Game</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\o_overlay_master.h">
-      <Filter>Overlay</Filter>
     </ClInclude>
     <ClInclude Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\o_widget_textbox.h">
       <Filter>Overlay</Filter>

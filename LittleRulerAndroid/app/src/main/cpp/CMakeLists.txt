@@ -19,7 +19,6 @@ add_library( interface4jni SHARED interface4jni.cpp javautil.cpp
         dalbaragi/g_actor.cpp
         dalbaragi/g_charastate.cpp
         dalbaragi/m_collider.cpp
-        dalbaragi/o_overlay_master.cpp
         dalbaragi/o_widget_textbox.cpp
         dalbaragi/o_widget_texview.cpp
         dalbaragi/o_widgetbase.cpp
