@@ -52,9 +52,6 @@
     <ClCompile Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\s_configs.cpp">
       <Filter>Singleton</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\s_event.cpp">
-      <Filter>Singleton</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\s_input_queue.cpp">
       <Filter>Singleton</Filter>
     </ClCompile>
@@ -204,9 +201,6 @@
       <Filter>Presentation</Filter>
     </ClInclude>
     <ClInclude Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\s_configs.h">
-      <Filter>Singleton</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\s_event.h">
       <Filter>Singleton</Filter>
     </ClInclude>
     <ClInclude Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\s_input_queue.h">

@@ -347,12 +347,6 @@ namespace dal {
             LuaState::giveDependencies(this, &this->m_renderMan);
         }
 
-        // Regist
-        {
-            this->mHandlerName = "dal::Mainloop";
-            EventGod::getinst().registerHandler(this, EventType::quit_game);
-        }
-
         // Context
         {
             this->m_currentContext = &this->m_cxtIngame;
@@ -371,7 +365,7 @@ namespace dal {
     }
 
     Mainloop::~Mainloop(void) {
-        EventGod::getinst().deregisterHandler(this, EventType::quit_game);
+
     }
 
     int Mainloop::update(void) {
@@ -397,18 +391,6 @@ namespace dal {
         this->m_cxtIngame.onWinResize(width, height);
 
         dalVerbose("Resize : {} x {}"_format(width, height));
-    }
-
-    void Mainloop::onEvent(const EventStatic& e) {
-        switch ( e.type ) {
-
-        case EventType::quit_game:
-            this->m_flagQuit = true;
-            break;
-        default:
-            dalWarn("dal::Mainloop can't handle this event:");
-
-        }
     }
 
 }

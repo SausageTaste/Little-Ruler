@@ -2,7 +2,6 @@
 
 
 #include "p_render_master.h"
-#include "s_event.h"
 #include "c_input_apply.h"
 #include "u_timer.h"
 #include "p_resource.h"
@@ -12,7 +11,7 @@
 
 namespace dal {
 
-    class Mainloop : iEventHandler {
+    class Mainloop {
 
         //// Vars ////
 
@@ -39,11 +38,9 @@ namespace dal {
         static bool isWhatFilesystemWantsGiven(void);
 
         Mainloop(const unsigned int winWidth, const unsigned int winHeight);
-        virtual ~Mainloop(void) override;
+        ~Mainloop(void);
         int update(void);
         void onResize(unsigned int width, unsigned int height);
-
-        virtual void onEvent(const EventStatic& e) override;
 
     };
 

@@ -6,7 +6,6 @@
 
 #include <glm/glm.hpp>
 
-#include "s_event.h"
 #include "o_widgetbase.h"
 #include "u_strbuf.h"
 

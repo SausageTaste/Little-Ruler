@@ -183,7 +183,6 @@
     <ClInclude Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\p_uniloc.h" />
     <ClInclude Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\p_water.h" />
     <ClInclude Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\s_configs.h" />
-    <ClInclude Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\s_event.h" />
     <ClInclude Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\s_input_queue.h" />
     <ClInclude Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\s_logchannel.h" />
     <ClInclude Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\s_logger_god.h" />
@@ -228,7 +227,6 @@
     <ClCompile Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\p_uniloc.cpp" />
     <ClCompile Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\p_water.cpp" />
     <ClCompile Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\s_configs.cpp" />
-    <ClCompile Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\s_event.cpp" />
     <ClCompile Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\s_input_queue.cpp" />
     <ClCompile Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\s_logger_god.cpp" />
     <ClCompile Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\s_threader.cpp" />

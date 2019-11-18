@@ -34,7 +34,6 @@ add_library( interface4jni SHARED interface4jni.cpp javautil.cpp
         dalbaragi/p_uniloc.cpp
         dalbaragi/p_water.cpp
         dalbaragi/s_configs.cpp
-        dalbaragi/s_event.cpp
         dalbaragi/s_input_queue.cpp
         dalbaragi/s_logger_god.cpp
         dalbaragi/s_threader.cpp

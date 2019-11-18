@@ -1,10 +1,10 @@
 #pragma once
 
+#include <string>
 #include <functional>
 
 #include <glm/glm.hpp>
 
-#include "s_event.h"
 #include "p_globalfsm.h"
 
 
@@ -63,7 +63,7 @@ namespace dal {
     };
 
 
-    class GlobalStateGod : public iEventHandler {
+    class GlobalStateGod {
 
     private:
         unsigned int m_winWidth, m_winHeight;
@@ -84,8 +84,6 @@ namespace dal {
             static GlobalStateGod inst;
             return inst;
         }
-
-        virtual void onEvent(const EventStatic& e) override;
 
         unsigned int getWinWidth(void) const noexcept {
             return this->m_winWidth;

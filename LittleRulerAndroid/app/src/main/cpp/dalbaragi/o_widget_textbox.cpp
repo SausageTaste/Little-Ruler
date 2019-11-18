@@ -16,23 +16,6 @@ namespace {
 
     constexpr float DARK_THEME_COLOR = 30.0f / 255.0f;
 
-
-    void toggleGameState(void) {
-        dal::EventStatic e;
-        e.type = dal::EventType::global_fsm_change;
-
-        const auto curState = dal::GlobalStateGod::getinst().getGlobalGameState();
-
-        switch ( curState ) {
-        case dal::GlobalGameState::game:
-            e.intArg1 = static_cast<int>(dal::GlobalGameState::menu); break;
-        case dal::GlobalGameState::menu:
-            e.intArg1 = static_cast<int>(dal::GlobalGameState::game); break;
-        }
-
-        dal::EventGod::getinst().notifyAll(e);
-    }
-
 }
 
 
