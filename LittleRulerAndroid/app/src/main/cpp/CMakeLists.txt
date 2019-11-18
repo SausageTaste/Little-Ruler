@@ -54,6 +54,7 @@ add_library( interface4jni SHARED interface4jni.cpp javautil.cpp
         dalbaragi/u_filesystem.cpp
         dalbaragi/u_fileutils.cpp
         dalbaragi/u_imagebuf.cpp
+        dalbaragi/d_context_main.cpp
 )
 target_include_directories(interface4jni PRIVATE ./dalbaragi)
 

@@ -159,6 +159,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\c_input_apply.h" />
+    <ClInclude Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\d_context.h" />
+    <ClInclude Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\d_context_main.h" />
     <ClInclude Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\g_actor.h" />
     <ClInclude Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\g_charastate.h" />
     <ClInclude Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\m_collider.h" />
@@ -205,6 +207,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\c_input_apply.cpp" />
+    <ClCompile Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\d_context_main.cpp" />
     <ClCompile Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\g_actor.cpp" />
     <ClCompile Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\g_charastate.cpp" />
     <ClCompile Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\m_collider.cpp" />

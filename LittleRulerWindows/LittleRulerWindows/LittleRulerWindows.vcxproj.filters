@@ -121,6 +121,9 @@
     <ClCompile Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\u_imagebuf.cpp">
       <Filter>Utility</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\d_context_main.cpp">
+      <Filter>Control</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Game">
@@ -281,6 +284,12 @@
     </ClInclude>
     <ClInclude Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\u_imagebuf.h">
       <Filter>Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\d_context.h">
+      <Filter>Control</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\d_context_main.h">
+      <Filter>Control</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
