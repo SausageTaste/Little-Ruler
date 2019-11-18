@@ -35,7 +35,7 @@ namespace {
             const std::string in_texID;
             bool in_gammaCorrect;
 
-            dal::ImageFileData out_img;
+            dal::ImageData out_img;
 
             bool out_success = false;
 
@@ -127,7 +127,7 @@ namespace {
             bool in_gammaCorrect;
 
             bool out_success;
-            dal::ImageFileData out_imgs[6];
+            dal::ImageData out_imgs[6];
 
             dal::CubeMap* data_handle;
 

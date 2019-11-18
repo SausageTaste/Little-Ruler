@@ -190,7 +190,7 @@ namespace dal {
     class Texture : public ITexture {
 
     public:
-        void init_diffuseMap(ImageFileData& image);
+        void init_diffuseMap(ImageData& image);
         void init_depthMap(const unsigned int width, const unsigned int height);
         void init_maskMap(const uint8_t* const image, const unsigned int width, const unsigned int height);
         void initAttach_colorMap(const unsigned int width, const unsigned int height);

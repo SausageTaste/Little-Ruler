@@ -9,7 +9,7 @@ namespace dal {
 
     // Getters
 
-    glm::vec4 ImageFileData::rgba(const size_t x, const size_t y) const {
+    glm::vec4 ImageData::rgba(const size_t x, const size_t y) const {
         glm::vec4 result{ 0.f, 0.f, 0.f, 1.f };
 
         const auto bytesOffset = this->pixOffset(x % this->width(), y % this->height()) * this->pixSize();
@@ -20,7 +20,7 @@ namespace dal {
         return result;
     }
 
-    glm::vec4 ImageFileData::rgba_f(const float x, const float y) const {
+    glm::vec4 ImageData::rgba_f(const float x, const float y) const {
         const auto xTimesWidth = x * static_cast<float>(this->width());
         const auto yTimesHeight = y * static_cast<float>(this->height());
         const auto x_i = static_cast<size_t>(xTimesWidth);
@@ -30,7 +30,7 @@ namespace dal {
 
     // Calc info
 
-    bool ImageFileData::hasTransparency(void) const {
+    bool ImageData::hasTransparency(void) const {
         if ( 4 == this->m_pixSize ) {
             const auto numPixels = this->m_width * this->m_height;
             for ( size_t i = 0; i < numPixels; ++i ) {
@@ -46,7 +46,7 @@ namespace dal {
 
     // Manipulate
 
-    void ImageFileData::flipX(void) {
+    void ImageData::flipX(void) {
         const auto lineSizeInBytes = this->m_width * this->m_pixSize;
         dalAssert((lineSizeInBytes * this->m_height) == this->m_buf.size());
         std::vector<uint8_t> flipped;
@@ -64,7 +64,7 @@ namespace dal {
         std::swap(this->m_buf, flipped);
     }
 
-    void ImageFileData::flipY(void) {
+    void ImageData::flipY(void) {
         const auto lineSizeInBytes = this->m_width * this->m_pixSize;
         dalAssert((lineSizeInBytes * this->m_height) == this->m_buf.size());
         std::vector<uint8_t> flipped;
@@ -81,7 +81,7 @@ namespace dal {
         std::swap(this->m_buf, flipped);
     }
 
-    void ImageFileData::rotate90(void) {
+    void ImageData::rotate90(void) {
         const auto widthInBytes = this->m_width * this->m_pixSize;
 
         std::vector<uint8_t> newBuf;
@@ -101,7 +101,7 @@ namespace dal {
         std::swap(this->m_width, this->m_height);
     }
 
-    void ImageFileData::rotate180(void) {
+    void ImageData::rotate180(void) {
         const auto widthInBytes = this->m_width * this->m_pixSize;
 
         std::vector<uint8_t> newBuf;
@@ -121,7 +121,7 @@ namespace dal {
         std::swap(this->m_buf, newBuf);
     }
 
-    void ImageFileData::rotate270(void) {
+    void ImageData::rotate270(void) {
         const auto widthInBytes = this->m_width * this->m_pixSize;
 
         std::vector<uint8_t> newBuf;
@@ -141,7 +141,7 @@ namespace dal {
         std::swap(this->m_width, this->m_height);
     }
 
-    void ImageFileData::correctSRGB(void) {
+    void ImageData::correctSRGB(void) {
         const auto numPixels = this->m_width * this->m_height;
         const auto pixSize = this->m_pixSize < 3 ? this->m_pixSize : 3;
 
@@ -155,7 +155,7 @@ namespace dal {
 
     // Private
 
-    bool ImageFileData::checkValidity(void) const {
+    bool ImageData::checkValidity(void) const {
         if ( (this->m_width * this->m_height * this->m_pixSize) != this->m_buf.size() ) {
             dalWarn(fmt::format("Invalid dimension -> {} * {} * {} =/= {}", this->m_width, this->m_height, this->m_pixSize, this->m_buf.size()));
             return false;

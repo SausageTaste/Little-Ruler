@@ -163,7 +163,7 @@ namespace dal {
 // Texture
 namespace dal {
 
-    void Texture::init_diffuseMap(ImageFileData& image) {
+    void Texture::init_diffuseMap(ImageData& image) {
         this->genTexture("Texture::init_diffueMap");
         glBindTexture(GL_TEXTURE_2D, this->get());
 

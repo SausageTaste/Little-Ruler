@@ -7,7 +7,7 @@
 
 namespace dal {
 
-    class ImageFileData {
+    class ImageData {
 
     private:
         std::vector<uint8_t> m_buf;

@@ -28,7 +28,7 @@ namespace {
 // Image reader functions
 namespace {
 
-    bool parseImagePNG(dal::ImageFileData& output, std::vector<uint8_t>& dataBuffer) {
+    bool parseImagePNG(dal::ImageData& output, std::vector<uint8_t>& dataBuffer) {
         {
             unsigned int w, h;
             std::vector<uint8_t> buffer;
@@ -49,7 +49,7 @@ namespace {
         return true;
     }
 
-    bool parseImageTGA(dal::ImageFileData& output, std::vector<uint8_t>& dataBuffer) {
+    bool parseImageTGA(dal::ImageData& output, std::vector<uint8_t>& dataBuffer) {
         int w, h, p;
         std::unique_ptr<uint8_t, decltype(std::free)*> result{
             tga_load_memory(dataBuffer.data(), static_cast<int>(dataBuffer.size()), &w, &h, &p), std::free
@@ -86,7 +86,7 @@ namespace dal {
         }
     }
 
-    bool loadFileImage(const char* const respath, ImageFileData& data) {
+    bool loadFileImage(const char* const respath, ImageData& data) {
         std::vector<uint8_t> fileBuffer;
         {
             auto file = fileopen(respath, FileMode2::bread);

@@ -14,7 +14,7 @@ using namespace fmt::literals;
 namespace {
 
     dal::Texture* loadTex(const char* const respath) {
-        dal::ImageFileData image;
+        dal::ImageData image;
         if ( !dal::loadFileImage(respath, image) ) {
             dalAbort("Failed to load a map for water: {}"_format(respath));
         }
