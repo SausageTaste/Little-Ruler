@@ -29,25 +29,30 @@ namespace {
 namespace {
 
     bool parseImagePNG(dal::ImageFileData& output, std::vector<uint8_t>& dataBuffer) {
-        unsigned int w, h;
-        auto error = lodepng::decode(output.vector(), w, h, dataBuffer);
-        if ( error ) {
-            dalError(fmt::format("PNG decode error: {}", lodepng_error_text(error)));
-            return false;
+        {
+            unsigned int w, h;
+            std::vector<uint8_t> buffer;
+
+            auto error = lodepng::decode(buffer, w, h, dataBuffer);
+            if ( error ) {
+                dalError(fmt::format("PNG decode error: {}", lodepng_error_text(error)));
+                return false;
+            }
+
+            const auto isValid = output.set(static_cast<size_t>(w), static_cast<size_t>(h), 4, std::move(buffer));
+            dalAssert(isValid);
         }
 
-        output.setDimensions(static_cast<size_t>(w), static_cast<size_t>(h), 4);
-
         output.flipY();  // TGA does this automatically but not this.
+        // Actually this makes bottom-most pixels are in front part of the buffer.
 
-        dalAssert(output.checkValidity());
         return true;
     }
 
     bool parseImageTGA(dal::ImageFileData& output, std::vector<uint8_t>& dataBuffer) {
         int w, h, p;
-        std::unique_ptr<uint8_t, decltype(free)*> result{
-            tga_load_memory(dataBuffer.data(), static_cast<int>(dataBuffer.size()), &w, &h, &p), free
+        std::unique_ptr<uint8_t, decltype(std::free)*> result{
+            tga_load_memory(dataBuffer.data(), static_cast<int>(dataBuffer.size()), &w, &h, &p), std::free
         };
 
         if ( nullptr == result ) {
@@ -55,13 +60,13 @@ namespace {
             return false;
         }
 
-        output.setDimensions(static_cast<size_t>(w), static_cast<size_t>(h), static_cast<size_t>(p));
+        std::vector<uint8_t> buffer;
+        const auto resArrSize = w * h * p;
+        buffer.insert(buffer.begin(), result.get(), result.get() + resArrSize);
 
-        const auto resArrSize = output.width() * output.height() * output.pixSize();
-        output.vector().clear();
-        output.vector().insert(output.vector().begin(), result.get(), result.get() + resArrSize);
+        const auto success = output.set(static_cast<size_t>(w), static_cast<size_t>(h), static_cast<size_t>(p), std::move(buffer));
+        dalAssert(success);
 
-        dalAssert(output.checkValidity());
         return true;
     }
 

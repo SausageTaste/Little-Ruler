@@ -2,6 +2,8 @@
 
 #include <vector>
 
+#include <glm/glm.hpp>
+
 
 namespace dal {
 
@@ -13,12 +15,6 @@ namespace dal {
 
     public:
         // Getters
-        auto& vector(void) {
-            return this->m_buf;
-        }
-        auto& vector(void) const {
-            return this->m_buf;
-        }
         auto data(void) {
             return this->m_buf.data();
         }
@@ -39,15 +35,20 @@ namespace dal {
             return this->m_pixSize;
         }
 
+        glm::vec4 rgba(const size_t x, const size_t y) const;
+        glm::vec4 rgba_f(const float x, const float y) const;
+
         // Setters
-        void setDimensions(const size_t width, const size_t height, const size_t pixSize) {
+        bool set(const size_t width, const size_t height, const size_t pixSize, std::vector<uint8_t>&& buffer) {
             this->m_width = width;
             this->m_height = height;
             this->m_pixSize = pixSize;
+            this->m_buf = std::move(buffer);
+
+            return this->checkValidity();
         }
 
         // Calc info
-        bool checkValidity(void) const;
         bool hasTransparency(void) const;
 
         // Manipulate
@@ -59,6 +60,12 @@ namespace dal {
         void rotate270(void);
 
         void correctSRGB(void);
+
+    private:
+        bool checkValidity(void) const;
+        size_t pixOffset(const size_t x, const size_t y) const {
+            return y * this->width() + x;
+        }
 
     };
 

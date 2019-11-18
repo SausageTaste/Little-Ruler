@@ -7,15 +7,44 @@
 
 namespace dal {
 
-    bool ImageFileData::checkValidity(void) const {
-        if ( (this->m_width * this->m_height * this->m_pixSize) != this->m_buf.size() ) {
-            dalWarn(fmt::format("Invalid dimension -> {} * {} * {} =/= {}", this->m_width, this->m_height, this->m_pixSize, this->m_buf.size()));
-            return false;
+    // Getters
+
+    glm::vec4 ImageFileData::rgba(const size_t x, const size_t y) const {
+        glm::vec4 result{ 0.f, 0.f, 0.f, 1.f };
+
+        const auto bytesOffset = this->pixOffset(x % this->width(), y % this->height()) * this->pixSize();
+        for ( size_t i = 0; i < this->pixSize(); ++i ) {
+            result[i] = static_cast<float>(this->m_buf[bytesOffset + i]);
         }
-        else {
-            return true;
-        }
+
+        return result;
     }
+
+    glm::vec4 ImageFileData::rgba_f(const float x, const float y) const {
+        const auto xTimesWidth = x * static_cast<float>(this->width());
+        const auto yTimesHeight = y * static_cast<float>(this->height());
+        const auto x_i = static_cast<size_t>(xTimesWidth);
+        const auto y_i = static_cast<size_t>(yTimesHeight);
+        return this->rgba(x_i, y_i);
+    }
+
+    // Calc info
+
+    bool ImageFileData::hasTransparency(void) const {
+        if ( 4 == this->m_pixSize ) {
+            const auto numPixels = this->m_width * this->m_height;
+            for ( size_t i = 0; i < numPixels; ++i ) {
+                const auto alphaValue = this->m_buf[4 * i + 3];
+                if ( alphaValue != 255 ) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    // Manipulate
 
     void ImageFileData::flipX(void) {
         const auto lineSizeInBytes = this->m_width * this->m_pixSize;
@@ -112,29 +141,27 @@ namespace dal {
         std::swap(this->m_width, this->m_height);
     }
 
-    bool ImageFileData::hasTransparency(void) const {
-        if ( 4 == this->m_pixSize ) {
-            const auto numPixels = this->m_width * this->m_height;
-            for ( size_t i = 0; i < numPixels; ++i ) {
-                const auto alphaValue = this->m_buf[4 * i + 3];
-                if ( alphaValue != 255 ) {
-                    return true;
-                }
-            }
-        }
-
-        return false;
-    }
-
     void ImageFileData::correctSRGB(void) {
         const auto numPixels = this->m_width * this->m_height;
         const auto pixSize = this->m_pixSize < 3 ? this->m_pixSize : 3;
 
         for ( size_t i = 0; i < numPixels; ++i ) {
             for ( size_t j = 0; j < pixSize; ++j ) {
-                const auto r = static_cast<double>(this->m_buf[this->m_pixSize * i + j]) / 256.0;
-                this->m_buf[this->m_pixSize * i + j] = static_cast<uint8_t>(std::pow(r, 2.2) * 256.0);
+                const auto r = static_cast<double>(this->m_buf[this->m_pixSize * i + j]) / 255.0;
+                this->m_buf[this->m_pixSize * i + j] = static_cast<uint8_t>(std::pow(r, 2.2) * 255.0);
             }
+        }
+    }
+
+    // Private
+
+    bool ImageFileData::checkValidity(void) const {
+        if ( (this->m_width * this->m_height * this->m_pixSize) != this->m_buf.size() ) {
+            dalWarn(fmt::format("Invalid dimension -> {} * {} * {} =/= {}", this->m_width, this->m_height, this->m_pixSize, this->m_buf.size()));
+            return false;
+        }
+        else {
+            return true;
         }
     }
 

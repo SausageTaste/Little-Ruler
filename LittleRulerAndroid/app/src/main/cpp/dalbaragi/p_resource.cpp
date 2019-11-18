@@ -57,10 +57,6 @@ namespace {
                     if ( this->in_gammaCorrect ) {
                         this->out_img.correctSRGB();
                     }
-
-                    if ( !this->out_img.checkValidity() ) {
-                        this->out_success = false;
-                    }
                 }
             }
 
