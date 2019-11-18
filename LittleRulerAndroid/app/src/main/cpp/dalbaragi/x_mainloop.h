@@ -8,6 +8,7 @@
 #include "o_overlay_master.h"
 #include "p_resource.h"
 #include "g_actor.h"
+#include "d_context_main.h"
 
 
 namespace dal {
@@ -17,12 +18,17 @@ namespace dal {
         //// Vars ////
 
     private:
+        // Managers
         ShaderMaster m_shader;
         ResourceMaster m_resMas;
         SceneGraph m_scene;
         OverlayMaster m_overlayMas;
         RenderMaster m_renderMan;
         InputApplier m_inputApply;
+
+        // Contexts
+        IContext* m_currentContext;
+        InGameCxt m_cxtIngame;
 
         TimerThatCaps m_timer;
         Timer m_timerForFPSReport;

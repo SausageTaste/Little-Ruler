@@ -351,6 +351,8 @@ namespace dal {
         , m_overlayMas(m_shader, winWidth, winHeight)
         , m_renderMan(m_scene, m_shader, m_overlayMas, m_resMas, &m_scene.m_playerCam, winWidth, winHeight)
         , m_inputApply(m_overlayMas, winWidth, winHeight)
+        , m_currentContext(nullptr)
+        , m_cxtIngame(m_renderMan, m_inputApply, m_scene, m_overlayMas)
         , m_frameAccum(0)
         , m_flagQuit(false)
     {
@@ -383,6 +385,11 @@ namespace dal {
         {
             this->mHandlerName = "dal::Mainloop";
             EventGod::getinst().registerHandler(this, EventType::quit_game);
+        }
+
+        // Context
+        {
+            this->m_currentContext = &this->m_cxtIngame;
         }
 
         // Misc
@@ -423,18 +430,7 @@ namespace dal {
             }
         }
 
-        // Process input
-        {
-            this->m_overlayMas.updateInputs();
-            this->m_inputApply.apply(deltaTime, this->m_scene.m_playerCam, this->m_scene.m_entities.get<cpnt::CharacterState>(this->m_scene.m_player));
-        }
-
-        TaskGod::getinst().update();
-
-        this->m_scene.update(deltaTime);
-        this->m_renderMan.update(deltaTime);
-        this->m_renderMan.render(this->m_scene.m_entities);
-        this->m_overlayMas.render();
+        this->m_currentContext = this->m_currentContext->update(deltaTime);
 
         return 0;
     }
