@@ -444,6 +444,8 @@ namespace dal {
         this->m_overlayMas.onWinResize(width, height);
         this->m_scene.onResize(width, height);
 
+        this->m_cxtIngame.onWinResize(width, height);
+
         dalVerbose("Resize : {} x {}"_format(width, height));
     }
 

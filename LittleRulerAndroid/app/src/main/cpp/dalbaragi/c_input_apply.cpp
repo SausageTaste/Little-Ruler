@@ -13,7 +13,7 @@ using namespace fmt::literals;
 // MoveDPad
 namespace dal {
 
-    InputApplier::PlayerControlWidget::MoveDPad::MoveDPad(dal::Widget2* const parent, const float winWidth, const float winHeight)
+    PlayerControlWidget::MoveDPad::MoveDPad(dal::Widget2* const parent, const float winWidth, const float winHeight)
         : Widget2(parent)
         , m_fixedCenterPoint(this, 1.0f, 1.0f, 1.0f, 1.0f)
         , m_touchedPoint(this, 1.0f, 1.0f, 1.0f, 1.0f)
@@ -26,7 +26,7 @@ namespace dal {
         this->m_touchedPoint.setSize(RENDERED_POINT_EDGE_LEN_HALF * 2.0f, RENDERED_POINT_EDGE_LEN_HALF * 2.0f);
     }
 
-    void InputApplier::PlayerControlWidget::MoveDPad::render(const UnilocOverlay& uniloc, const float width, const float height) {
+    void PlayerControlWidget::MoveDPad::render(const UnilocOverlay& uniloc, const float width, const float height) {
         this->m_fixedCenterPoint.render(uniloc, width, height);
 
         if ( -1 != this->m_owning ) {
@@ -35,7 +35,7 @@ namespace dal {
         }
     }
 
-    InputCtrlFlag InputApplier::PlayerControlWidget::MoveDPad::onTouch(const dal::TouchEvent& e) {
+    InputCtrlFlag PlayerControlWidget::MoveDPad::onTouch(const dal::TouchEvent& e) {
         if ( this->isActive() ) {
             if ( e.m_id == this->m_owning ) {
                 if ( e.m_actionType == TouchActionType::move ) {
@@ -68,7 +68,7 @@ namespace dal {
         return InputCtrlFlag::ignored;
     }
 
-    void InputApplier::PlayerControlWidget::MoveDPad::onParentResize(const float width, const float height) {
+    void PlayerControlWidget::MoveDPad::onParentResize(const float width, const float height) {
         const auto shorter = width < height ? width : height;
         const auto edgeLen = shorter * 0.5f;
         this->setPos(CORNER_MARGIN, height - edgeLen - CORNER_MARGIN);
@@ -77,7 +77,7 @@ namespace dal {
         this->m_fixedCenterPoint.setPos(this->makeFixedCenterPos() - RENDERED_POINT_EDGE_LEN_HALF);
     }
 
-    glm::vec2 InputApplier::PlayerControlWidget::MoveDPad::getRel(void) const {
+    glm::vec2 PlayerControlWidget::MoveDPad::getRel(void) const {
         if ( !this->isActive() ) {
             return glm::vec2{ 0.0f };
         }
@@ -88,27 +88,27 @@ namespace dal {
         return (this->m_touchedPos - fixedCenter) / (this->getWidth() * 0.5f);
     }
 
-    bool InputApplier::PlayerControlWidget::MoveDPad::isActive(void) const {
+    bool PlayerControlWidget::MoveDPad::isActive(void) const {
         return -1 != this->m_owning;
     }
 
     // Private
 
-    void InputApplier::PlayerControlWidget::MoveDPad::updateTouchedPos(const float x, const float y, glm::vec2& target) const {
+    void PlayerControlWidget::MoveDPad::updateTouchedPos(const float x, const float y, glm::vec2& target) const {
         dalAssert(this->getWidth() == this->getHeight());
 
         const auto fixedCenter = this->makeFixedCenterPos();;
         target = clampVec(glm::vec2{ x, y } -fixedCenter, this->getWidth() * 0.5f) + fixedCenter;
     }
 
-    glm::vec2 InputApplier::PlayerControlWidget::MoveDPad::makeFixedCenterPos(void) const {
+    glm::vec2 PlayerControlWidget::MoveDPad::makeFixedCenterPos(void) const {
         return glm::vec2{
             this->getPosX() + this->getWidth() * 0.5f,
             this->getPosY() + this->getHeight() * 0.5f
         };
     }
 
-    bool InputApplier::PlayerControlWidget::MoveDPad::isInsideCircle(const glm::vec2& v) const {
+    bool PlayerControlWidget::MoveDPad::isInsideCircle(const glm::vec2& v) const {
         const float radiusSqr = this->getWidth() * this->getWidth() * 0.5f * 0.5f;
         const auto center = this->makeFixedCenterPos();
         const auto rel = v - center;
@@ -122,7 +122,7 @@ namespace dal {
 // PlayerControlWidget
 namespace dal {
 
-    InputApplier::PlayerControlWidget::PlayerControlWidget(const float winWidth, const float winHeight)
+    PlayerControlWidget::PlayerControlWidget(const float winWidth, const float winHeight)
         : Widget2(nullptr)
         , m_dpad(this, winWidth, winHeight)
         , m_owningForView(-1)
@@ -131,11 +131,11 @@ namespace dal {
         this->setSize(winWidth, winHeight);
     }
 
-    void InputApplier::PlayerControlWidget::render(const UnilocOverlay& uniloc, const float width, const float height) {
+    void PlayerControlWidget::render(const UnilocOverlay& uniloc, const float width, const float height) {
         this->m_dpad.render(uniloc, width, height);
     }
 
-    InputCtrlFlag InputApplier::PlayerControlWidget::onTouch(const TouchEvent& e) {
+    InputCtrlFlag PlayerControlWidget::onTouch(const TouchEvent& e) {
         const auto dpadReturnFlag = this->m_dpad.onTouch(e);
 
         if ( InputCtrlFlag::ignored != dpadReturnFlag ) {
@@ -177,7 +177,7 @@ namespace dal {
         }
     }
 
-    InputCtrlFlag InputApplier::PlayerControlWidget::onKeyInput(const KeyboardEvent& e, const KeyStatesRegistry& keyStates) {
+    InputCtrlFlag PlayerControlWidget::onKeyInput(const KeyboardEvent& e, const KeyStatesRegistry& keyStates) {
         this->m_keyboardMoveInfo.clear();
 
         if ( keyStates[dal::KeySpec::w].m_pressed ) {
@@ -218,20 +218,20 @@ namespace dal {
         return InputCtrlFlag::consumed;
     }
 
-    void InputApplier::PlayerControlWidget::onParentResize(const float width, const float height) {
+    void PlayerControlWidget::onParentResize(const float width, const float height) {
         this->m_dpad.onParentResize(width, height);
 
         this->setPos(0.0f, 0.0f);
         this->setSize(width, height);
     }
 
-    void InputApplier::PlayerControlWidget::onFocusChange(const bool v) {
+    void PlayerControlWidget::onFocusChange(const bool v) {
         if ( v ) {
             this->m_keyboardMoveInfo.clear();
         }
     }
 
-    MoveInputInfo InputApplier::PlayerControlWidget::getMoveInfo(const float deltaTime, const float winWidth, const float winHeight) {
+    MoveInputInfo PlayerControlWidget::getMoveInfo(const float deltaTime, const float winWidth, const float winHeight) {
         MoveInputInfo info;
 
         const float widthOrHeightButShorter = winWidth < winHeight ? winWidth : winHeight;
@@ -257,54 +257,14 @@ namespace dal {
 
     // Private
 
-    glm::vec2 InputApplier::PlayerControlWidget::getMoveVec(void) const {
+    glm::vec2 PlayerControlWidget::getMoveVec(void) const {
         return this->m_dpad.getRel();
     }
 
-    glm::vec2 InputApplier::PlayerControlWidget::getResetViewAccum(void) {
+    glm::vec2 PlayerControlWidget::getResetViewAccum(void) {
         const auto tmp = this->m_viewTouchAccum;
         this->m_viewTouchAccum = glm::vec2{ 0.0f };
         return tmp;
-    }
-
-}
-
-
-// InputApplier
-namespace dal {
-
-    InputApplier::InputApplier(OverlayMaster& overlayMas, const unsigned int width, const unsigned int height)
-        : mFSM(GlobalGameState::game)
-        , m_overlayMas(overlayMas)
-        , m_ctrlInputWidget(static_cast<float>(width), static_cast<float>(height))
-    {
-        this->mHandlerName = "InputApplier";
-        EventGod::getinst().registerHandler(this, EventType::global_fsm_change);
-    }
-
-    InputApplier::~InputApplier(void) {
-        EventGod::getinst().deregisterHandler(this, EventType::global_fsm_change);
-
-        this->m_overlayMas.removeWidgetRef(&this->m_ctrlInputWidget);
-    }
-
-    void InputApplier::onEvent(const EventStatic& e) {
-        switch ( e.type ) {
-
-        case EventType::global_fsm_change:
-            this->mFSM = GlobalGameState(e.intArg1);
-            break;
-        default:
-            dalWarn("InputApplier can't handle this event: {}"_format(getEventTypeStr(e.type)));
-            break;
-
-        }
-    }
-
-    void InputApplier::apply(const float deltaTime, StrangeEulerCamera& camera, cpnt::CharacterState& state) {
-        const auto winSize = GlobalStateGod::getinst().getWinSizeFloat();
-        const auto info = this->m_ctrlInputWidget.getMoveInfo(deltaTime, winSize.x, winSize.y);
-        state.update(deltaTime, info);
     }
 
 }

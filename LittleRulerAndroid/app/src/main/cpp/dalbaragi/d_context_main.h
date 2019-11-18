@@ -14,7 +14,7 @@ namespace dal {
         SceneGraph& m_scene;
         OverlayMaster& m_overlay;
 
-        InputApplier::PlayerControlWidget m_crtlWidget;
+        PlayerControlWidget m_crtlWidget;
 
     public:
         InGameCxt(RenderMaster& renMas, SceneGraph& scene, OverlayMaster& overlay, const unsigned width, const unsigned height);

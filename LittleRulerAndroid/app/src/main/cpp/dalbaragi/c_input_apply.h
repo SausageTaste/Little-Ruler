@@ -10,83 +10,66 @@
 
 namespace dal {
 
-    class InputApplier : public iEventHandler {
+    class PlayerControlWidget : public dal::Widget2 {
 
-    public:
-        class PlayerControlWidget : public dal::Widget2 {
-
-        public:
-            class MoveDPad : public dal::Widget2 {
-                /*
-                 * Widget2's width and height always must be same, which means it's always sqaure.
-                 */
-
-            private:
-                static constexpr float RENDERED_POINT_EDGE_LEN_HALF = 10.0f;
-                static constexpr float CORNER_MARGIN = 40.0f;
-
-            private:
-                dal::ColoredTile m_fixedCenterPoint, m_touchedPoint;
-
-                glm::vec2 m_touchedPos;
-                touchID_t m_owning = -1;
-
-            public:
-                MoveDPad(dal::Widget2* const parent, const float winWidth, const float winHeight);
-
-                virtual void render(const dal::UnilocOverlay& uniloc, const float width, const float height) override;
-                virtual dal::InputCtrlFlag onTouch(const dal::TouchEvent& e) override;
-                virtual void onParentResize(const float width, const float height) override;
-
-                glm::vec2 getRel(void) const;
-                bool isActive(void) const;
-
-            private:
-                void updateTouchedPos(const float x, const float y, glm::vec2& target) const;
-                glm::vec2 makeFixedCenterPos(void) const;
-                bool isInsideCircle(const glm::vec2& v) const;
-                bool isInsideCircle(const float x, const float y) const {
-                    return this->isInsideCircle(glm::vec2{ x, y });
-                }
-
-            };
+    private:
+        class MoveDPad : public dal::Widget2 {
+            /*
+             * Widget2's width and height always must be same, which means it's always sqaure.
+             */
 
         private:
-            MoveDPad m_dpad;
+            static constexpr float RENDERED_POINT_EDGE_LEN_HALF = 10.0f;
+            static constexpr float CORNER_MARGIN = 40.0f;
 
-            touchID_t m_owningForView;
-            glm::vec2 m_lastViewTouchPos, m_viewTouchAccum;
+        private:
+            dal::ColoredTile m_fixedCenterPoint, m_touchedPoint;
 
-            MoveInputInfo m_keyboardMoveInfo;
+            glm::vec2 m_touchedPos;
+            touchID_t m_owning = -1;
 
         public:
-            PlayerControlWidget(const float winWidth, const float winHeight);
+            MoveDPad(dal::Widget2* const parent, const float winWidth, const float winHeight);
 
             virtual void render(const dal::UnilocOverlay& uniloc, const float width, const float height) override;
             virtual dal::InputCtrlFlag onTouch(const dal::TouchEvent& e) override;
-            virtual InputCtrlFlag onKeyInput(const KeyboardEvent& e, const KeyStatesRegistry& keyStates) override;
             virtual void onParentResize(const float width, const float height) override;
-            virtual void onFocusChange(const bool v) override;
 
-            MoveInputInfo getMoveInfo(const float deltaTime, const float winWidth, const float winHeight);
+            glm::vec2 getRel(void) const;
+            bool isActive(void) const;
 
         private:
-            glm::vec2 getMoveVec(void) const;
-            glm::vec2 getResetViewAccum(void);
+            void updateTouchedPos(const float x, const float y, glm::vec2& target) const;
+            glm::vec2 makeFixedCenterPos(void) const;
+            bool isInsideCircle(const glm::vec2& v) const;
+            bool isInsideCircle(const float x, const float y) const {
+                return this->isInsideCircle(glm::vec2{ x, y });
+            }
 
         };
 
     private:
-        GlobalGameState mFSM;
-        OverlayMaster& m_overlayMas;
-        PlayerControlWidget m_ctrlInputWidget;
+        MoveDPad m_dpad;
+
+        touchID_t m_owningForView;
+        glm::vec2 m_lastViewTouchPos, m_viewTouchAccum;
+
+        MoveInputInfo m_keyboardMoveInfo;
 
     public:
-        InputApplier(OverlayMaster& overlayMas, const unsigned int width, const unsigned int height);
-        ~InputApplier(void);
+        PlayerControlWidget(const float winWidth, const float winHeight);
 
-        virtual void onEvent(const EventStatic& e) override;
-        void apply(const float deltaTime, StrangeEulerCamera& camera, cpnt::CharacterState& state);
+        virtual void render(const dal::UnilocOverlay& uniloc, const float width, const float height) override;
+        virtual dal::InputCtrlFlag onTouch(const dal::TouchEvent& e) override;
+        virtual InputCtrlFlag onKeyInput(const KeyboardEvent& e, const KeyStatesRegistry& keyStates) override;
+        virtual void onParentResize(const float width, const float height) override;
+        virtual void onFocusChange(const bool v) override;
+
+        MoveInputInfo getMoveInfo(const float deltaTime, const float winWidth, const float winHeight);
+
+    private:
+        glm::vec2 getMoveVec(void) const;
+        glm::vec2 getResetViewAccum(void);
 
     };
 
