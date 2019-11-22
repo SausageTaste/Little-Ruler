@@ -320,8 +320,8 @@ namespace dal {
         : m_scene(m_resMas, winWidth, winHeight)
         , m_renderMan(m_scene, m_shader, m_resMas, &m_scene.m_playerCam, winWidth, winHeight)
         // Contexts
-        , m_currentContext(nullptr)
-        , m_cxtIngame(m_shader, m_renderMan, m_scene, winWidth, winHeight)
+        , m_contexts(initContexts(winWidth, winHeight, m_shader, m_renderMan, m_scene))
+        , m_currentContext(m_contexts.front().get())
         // Misc
         , m_flagQuit(false)
     {
@@ -347,11 +347,6 @@ namespace dal {
             LuaState::giveDependencies(this, &this->m_renderMan);
         }
 
-        // Context
-        {
-            this->m_currentContext = &this->m_cxtIngame;
-        }
-
         // Misc
         {
             this->m_timer.setCapFPS(0);
@@ -374,9 +369,6 @@ namespace dal {
         }
 
         const auto deltaTime = m_timer.checkGetElapsed();
-
-        
-
         this->m_currentContext = this->m_currentContext->update(deltaTime);
 
         return 0;
@@ -388,7 +380,9 @@ namespace dal {
         this->m_renderMan.onWinResize(width, height);
         this->m_scene.onResize(width, height);
 
-        this->m_cxtIngame.onWinResize(width, height);
+        for ( auto& cnxt : this->m_contexts ) {
+            cnxt->onWinResize(width, height);
+        }
 
         dalVerbose("Resize : {} x {}"_format(width, height));
     }

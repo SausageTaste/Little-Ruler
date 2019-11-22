@@ -23,8 +23,8 @@ namespace dal {
         RenderMaster m_renderMan;
 
         // Contexts
+        std::vector<std::unique_ptr<IContext>> m_contexts;
         IContext* m_currentContext;
-        InGameCxt m_cxtIngame;
 
         // Misc
         TimerThatCaps m_timer;
