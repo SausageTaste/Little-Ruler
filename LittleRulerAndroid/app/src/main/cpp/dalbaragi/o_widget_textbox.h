@@ -6,7 +6,7 @@
 
 #include <glm/glm.hpp>
 
-#include "o_widgetbase.h"
+#include "d_widgettext.h"
 #include "u_strbuf.h"
 
 
