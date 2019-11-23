@@ -1,5 +1,7 @@
 #include "d_context_main.h"
 
+#include "p_render_master.h"
+#include "c_input_apply.h"
 #include "s_logger_god.h"
 #include "o_widget_textbox.h"
 #include "o_widget_texview.h"
