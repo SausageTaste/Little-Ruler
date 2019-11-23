@@ -92,12 +92,12 @@ namespace dal {
     }
 
 
-    void renderQuadOverlay(const UnilocOverlay& uniloc, const glm::vec2& devSpcP1, const glm::vec2& devSpcP2, const glm::vec4& color,
+    void renderQuadOverlay(const UnilocOverlay& uniloc, const glm::vec2& bottomLeft, const glm::vec2& rectSize, const glm::vec4& color,
         const Texture* const diffuseMap, const Texture* const maskMap, const bool upsideDown_diffuseMap, const bool upsideDown_maskMap,
         const glm::vec2& texOffset, const glm::vec2& texScale)
     {
-        uniloc.point1(devSpcP1);
-        uniloc.point2(devSpcP2);
+        uniloc.bottomLeft(bottomLeft);
+        uniloc.rectSize(rectSize);
         uniloc.color(color);
         uniloc.upsideDownDiffuseMap(upsideDown_diffuseMap);
         uniloc.upsideDownMaskMap(upsideDown_maskMap);

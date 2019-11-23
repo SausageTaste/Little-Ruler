@@ -253,16 +253,16 @@ namespace dal {
         //////// Vars ////////
 
     private:
-        GLint uPoint1;
-        GLint uPoint2;
+        GLint u_bottLeft;
+        GLint u_rectSize;
 
-        GLint mUpsideDown_maskMap;
-        GLint m_upsideDown_diffuseMap;
+        GLint u_upsideDown_maskMap;
+        GLint u_upsideDown_diffuseMap;
 
         GLint u_texOffset;
         GLint u_texScale;
 
-        GLint uColor;
+        GLint u_color;
 
         SamplerInterf m_diffuseMap, m_maskMap;
 
@@ -277,8 +277,8 @@ namespace dal {
         void texScale(const float x, const float y) const;
         void texScale(const glm::vec2& v) const;
 
-        void point1(const glm::vec2& v) const;
-        void point2(const glm::vec2& v) const;
+        void bottomLeft(const glm::vec2& v) const;
+        void rectSize(const glm::vec2& v) const;
         void upsideDownDiffuseMap(const bool x) const;
         void upsideDownMaskMap(const bool x) const;
         void color(const glm::vec4& v) const;

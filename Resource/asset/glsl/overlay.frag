@@ -1,34 +1,21 @@
 
 
-uniform vec4 uColor;
+uniform vec4 u_color;
 
-uniform sampler2D mDiffuseMap;  // 0
-uniform bool mHasDiffuseMap;
+uniform sampler2D u_diffuseMap;
+uniform bool u_hasDiffuseMap;
 
-uniform sampler2D mMaskMap;  // 1
-uniform bool mHasMaskMap;
+uniform sampler2D u_maskMap;
+uniform bool u_hasMaskMap;
 
 
-in vec2 vTexCoord;
-in vec2 vTexCoord_maskMap;
+in vec2 v_texCoord_diffuse;
+in vec2 v_texCoord_mask;
 
-out vec4 fColor;
+out vec4 f_color;
 
 
 void main() {
-    vec4 color = vec4(0.0);
-    if (mHasDiffuseMap) {
-        color = texture(mDiffuseMap, vTexCoord);
-    }
-    else {
-        color = uColor;
-    }
-
-    if (mHasMaskMap) {
-        fColor.xyz = color.xyz;
-        fColor.a = texture(mMaskMap, vTexCoord_maskMap).r;
-    }
-    else {
-        fColor.xyzw = color.xyzw;
-    }
+    f_color = u_hasDiffuseMap ? texture(u_diffuseMap, v_texCoord_diffuse) : u_color;
+    f_color.a = u_hasMaskMap  ? texture(u_maskMap   , v_texCoord_mask).r  : f_color.a;
 }

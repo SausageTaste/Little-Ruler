@@ -440,21 +440,21 @@ namespace dal {
 namespace dal {
 
     UnilocOverlay::UnilocOverlay(const GLuint shader) {
-        this->uPoint1 = getUniloc(shader, "uPoint1");
-        this->uPoint2 = getUniloc(shader, "uPoint2");
+        this->u_bottLeft = getUniloc(shader, "u_bottLeft");
+        this->u_rectSize = getUniloc(shader, "u_rectSize");
 
-        this->mUpsideDown_maskMap = getUniloc(shader, "mUpsideDown_maskMap");
-        this->m_upsideDown_diffuseMap = getUniloc(shader, "m_upsideDown_diffuseMap");
+        this->u_upsideDown_maskMap = getUniloc(shader, "u_upsideDown_maskMap");
+        this->u_upsideDown_diffuseMap = getUniloc(shader, "m_upsideDown_diffuseMap");
 
         this->u_texOffset = getUniloc(shader, "u_texOffset");
         this->u_texScale = getUniloc(shader, "u_texScale");
 
         // Fragment shader
 
-        this->uColor = getUniloc(shader, "uColor");
+        this->u_color = getUniloc(shader, "u_color");
 
-        this->m_diffuseMap.init(getUniloc(shader, "mDiffuseMap"), getUniloc(shader, "mHasDiffuseMap"), g_texUnitReg["mDiffuseMap"]);
-        this->m_maskMap.init(getUniloc(shader, "mMaskMap"), getUniloc(shader, "mHasMaskMap"), g_texUnitReg["mMaskMap"]);
+        this->m_diffuseMap.init(getUniloc(shader, "u_diffuseMap"), getUniloc(shader, "u_hasDiffuseMap"), g_texUnitReg["u_diffuseMap"]);
+        this->m_maskMap.init(getUniloc(shader, "u_maskMap"), getUniloc(shader, "u_hasMaskMap"), g_texUnitReg["u_maskMap"]);
     }
 
     void UnilocOverlay::texOffset(const float x, const float y) const {
@@ -473,24 +473,24 @@ namespace dal {
         this->texScale(v.x, v.y);
     }
 
-    void UnilocOverlay::point1(const glm::vec2& v) const {
-        glUniform2f(this->uPoint1, v.x, v.y);
+    void UnilocOverlay::bottomLeft(const glm::vec2& v) const {
+        glUniform2f(this->u_bottLeft, v.x, v.y);
     }
 
-    void UnilocOverlay::point2(const glm::vec2& v) const {
-        glUniform2f(this->uPoint2, v.x, v.y);
+    void UnilocOverlay::rectSize(const glm::vec2& v) const {
+        glUniform2f(this->u_rectSize, v.x, v.y);
     }
 
     void UnilocOverlay::upsideDownDiffuseMap(const bool x) const {
-        sendBool(this->m_upsideDown_diffuseMap, x);
+        sendBool(this->u_upsideDown_diffuseMap, x);
     }
 
     void UnilocOverlay::upsideDownMaskMap(const bool x) const {
-        sendBool(this->mUpsideDown_maskMap, x);
+        sendBool(this->u_upsideDown_maskMap, x);
     }
 
     void UnilocOverlay::color(const glm::vec4& v) const {
-        glUniform4f(this->uColor, v.x, v.y, v.z, v.w);
+        glUniform4f(this->u_color, v.x, v.y, v.z, v.w);
     }
 
     const SamplerInterf& UnilocOverlay::getDiffuseMap(void) const {
