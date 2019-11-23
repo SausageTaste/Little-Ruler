@@ -410,6 +410,103 @@ namespace {
 }
 
 
+namespace {
+
+    class TitleScreen : public dal::IContext {
+
+    private:
+        dal::ShaderMaster& m_shaders;
+        dal::TaskMaster& m_task;
+
+        // Contexts
+        dal::IContext* m_cnxtIngame;
+
+        dal::ColoredTile m_background;
+        dal::LineEdit m_lineedit;
+
+        dal::Timer m_timer;
+        unsigned m_winWidth, m_winHeight;
+
+    public:
+        TitleScreen(const unsigned width, const unsigned height, dal::ShaderMaster& shaders, dal::TaskMaster& taskMas)
+            : m_shaders(shaders)
+            , m_task(taskMas)
+            , m_cnxtIngame(nullptr)
+            , m_background(nullptr, 0.1f, 0.1f, 0.1f, 1.f)
+            , m_lineedit(nullptr)
+            , m_winWidth(width)
+            , m_winHeight(height)
+        {
+            this->m_background.setSize(width, height);
+            this->m_background.setPos(0, 0);
+
+            this->m_lineedit.setPos(30, 30);
+            this->m_lineedit.setSize(500, 500);
+            this->m_lineedit.setBackgroundColor(0.1f, 0.1f, 0.1f, 1.f);
+            this->m_lineedit.setText("Little Ruler");
+        }
+
+        virtual dal::IContext* update(const float deltaTime) override {
+            dal::IContext* nextContext = this;
+
+            // Process Input
+            {
+                {
+                    auto& tq = dal::TouchEvtQueueGod::getinst();
+
+                    for ( unsigned int i = 0; i < tq.getSize(); i++ ) {
+                        const auto& e = tq.at(i);
+                        if ( dal::TouchActionType::down == e.m_actionType ) {
+                            nextContext = this->m_cnxtIngame;
+                        }
+                    }
+
+                    tq.clear();
+                }
+
+                {
+                    auto& kq = dal::KeyboardEvtQueueGod::getinst();
+                    const auto kqSize = kq.getSize();
+
+                    for ( unsigned int i = 0; i < kqSize; ++i ) {
+                        const auto& e = kq.at(i);
+
+                        if ( dal::KeyActionType::down == e.m_actionType ) {
+                            nextContext = this->m_cnxtIngame;
+                        }
+                    }
+
+                    kq.clear();
+                }
+            }
+
+            this->m_task.update();
+
+            glBindFramebuffer(GL_FRAMEBUFFER, 0);
+            auto& uniloc = this->m_shaders.useOverlay();
+            this->m_background.render(uniloc, this->m_winWidth, this->m_winHeight);
+            this->m_lineedit.render(uniloc, this->m_winWidth, this->m_winHeight);
+
+            return nextContext;
+        }
+
+        virtual void onWinResize(const unsigned width, const unsigned height) override {
+            this->m_background.onParentResize(width, height);
+            this->m_lineedit.onParentResize(width, height);
+
+            this->m_winWidth = width;
+            this->m_winHeight = height;
+        }
+
+        void registerContexts(dal::IContext* const ingame) {
+            this->m_cnxtIngame = ingame;
+        }
+
+    };
+
+}
+
+
 namespace dal {
 
     std::vector <std::unique_ptr<IContext>> initContexts(const unsigned width, const unsigned height,
@@ -417,12 +514,15 @@ namespace dal {
     {
         std::vector <std::unique_ptr<IContext>> result;
 
+        std::unique_ptr<TitleScreen> title{ new TitleScreen{ width, height, shaders, taskMas } };
         std::unique_ptr<InGameCxt> ingame{ new InGameCxt{ width, height, shaders, renMas, scene, taskMas } };
         std::unique_ptr<PauseMenu> pause{ new PauseMenu{ width, height, shaders, taskMas } };
 
+        title->registerContexts(ingame.get());
         ingame->registerContexts(pause.get());
         pause->registerContexts(ingame.get());
 
+        result.push_back(std::unique_ptr<IContext>{ title.release() });
         result.push_back(std::unique_ptr<IContext>{ ingame.release() });
         result.push_back(std::unique_ptr<IContext>{ pause.release() });
 
