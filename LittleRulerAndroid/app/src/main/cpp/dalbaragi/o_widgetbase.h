@@ -21,9 +21,14 @@ namespace dal {
 
     struct QuadRenderInfo {
         glm::vec4 m_color{ 1.0f };
-        glm::vec2 m_devSpcP1, m_devSpcP2, m_texOffset{ 0.f, 0.f }, m_texScale{ 1.0f, 1.0f };
-        const Texture *m_diffuseMap = nullptr, *m_maskMap = nullptr;
-        bool m_upsideDown_diffuse = false, m_upsideDown_mask = false;
+        glm::vec2 m_devSpcP1;
+        glm::vec2 m_devSpcP2;
+        glm::vec2 m_texOffset{ 0.f, 0.f };
+        glm::vec2 m_texScale{ 1.0f, 1.0f };
+        const Texture* m_diffuseMap = nullptr;
+        const Texture* m_maskMap = nullptr;
+        bool m_upsideDown_diffuse = false;
+        bool m_upsideDown_mask = false;
     };
 
     void renderQuadOverlay(const UnilocOverlay& uniloc, const QuadRenderInfo& info);
