@@ -476,25 +476,32 @@ namespace dal {
             }
 
             if ( this->m_cursorPos == charCount && this->canDrawCursor() ) {
-                const auto p1 = glm::vec2{ charQuad.second.x, charQuad.second.y - static_cast<float>(this->m_textSize) };
-                const auto p2 = glm::vec2{ charQuad.second.x + 1.0f, charQuad.second.y };
+                const auto bottomLeft = glm::vec2{ charQuad.second.x, charQuad.second.y };
+                const auto recSize = glm::vec2{ 1.f, static_cast<float>(this->m_textSize) };
 
                 QuadRenderInfo quadInfo;
-                quadInfo.m_devSpcP1 = screen2device(p1, width, height);
-                quadInfo.m_devSpcP2 = screen2device(p2, width, height);
+                quadInfo.m_bottomLeftNormalized = screen2device(bottomLeft, width, height);
+                quadInfo.m_rectSize = size2device(recSize, glm::vec2{ width, height });
                 quadInfo.m_color = this->m_textColor;
                 renderQuadOverlay(uniloc, quadInfo);
             }
 
-            const auto charQuadCut = this->makeCutCharArea(charQuad.first, charQuad.second);
-
-            QuadRenderInfo charQuadInfo;
             {
-                charQuadInfo.m_devSpcP1 = screen2device(charQuadCut.first, width, height);
-                charQuadInfo.m_devSpcP2 = screen2device(charQuadCut.second, width, height);
+                const auto charQuadCut = this->makeCutCharArea(charQuad.first, charQuad.second);
+                QuadRenderInfo charQuadInfo;
+
+                const auto bottomLeft = glm::vec2{ charQuadCut.first.x, charQuadCut.second.y };
+                const auto recSize = glm::vec2{
+                    charQuadCut.second.x - charQuadCut.first.x,
+                    charQuadCut.second.y - charQuadCut.first.y
+                };
+
+                charQuadInfo.m_bottomLeftNormalized = screen2device(bottomLeft, width, height);
+                charQuadInfo.m_rectSize = size2device(recSize, glm::vec2{ width, height });
 
                 charQuadInfo.m_color = this->m_textColor;
                 charQuadInfo.m_maskMap = &charInfo.tex;
+                charQuadInfo.m_upsideDown_mask = true;
 
                 if ( charQuadCut.first != charQuad.first || charQuadCut.second != charQuad.second ) {
                     const auto [scale, offset] = calcScaleOffset(charQuad, charQuadCut);
@@ -502,20 +509,22 @@ namespace dal {
                     charQuadInfo.m_texScale = scale;
                     charQuadInfo.m_texOffset = offset;
                 }
+
+                renderQuadOverlay(uniloc, charQuadInfo);
             }
 
-            renderQuadOverlay(uniloc, charQuadInfo);
+            
 
             xAdvance += (charInfo.advance >> 6);
         }
 
         if ( this->m_cursorPos == charCount && this->canDrawCursor() ) {
-            const auto p1 = glm::vec2{ xAdvance, yHeight - static_cast<float>(this->m_textSize) };
-            const auto p2 = glm::vec2{ xAdvance + 1.0f, yHeight };
+            const auto bottomLeft = glm::vec2{ xAdvance, yHeight };
+            const auto recSize = glm::vec2{ 1.f, static_cast<float>(this->m_textSize) };
 
             QuadRenderInfo quadInfo;
-            quadInfo.m_devSpcP1 = screen2device(p1, width, height);
-            quadInfo.m_devSpcP2 = screen2device(p2, width, height);
+            quadInfo.m_bottomLeftNormalized = screen2device(bottomLeft, width, height);
+            quadInfo.m_rectSize = size2device(recSize, glm::vec2{ width, height });
             quadInfo.m_color = this->m_textColor;
             renderQuadOverlay(uniloc, quadInfo);
         }

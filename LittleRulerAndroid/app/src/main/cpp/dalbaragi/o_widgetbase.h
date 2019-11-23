@@ -17,12 +17,13 @@ namespace dal {
     glm::vec2 screen2device(const glm::vec2& p, const unsigned int winWidth, const unsigned int winHeight);
     glm::vec2 device2screen(const glm::vec2& p, const float winWidth, const float winHeight);
     glm::vec2 device2screen(const glm::vec2& p, const unsigned int winWidth, const unsigned int winHeight);
+    glm::vec2 size2device(const glm::vec2& size, const glm::vec2& parentSize);
 
 
     struct QuadRenderInfo {
         glm::vec4 m_color{ 1.0f };
-        glm::vec2 m_devSpcP1;
-        glm::vec2 m_devSpcP2;
+        glm::vec2 m_bottomLeftNormalized;
+        glm::vec2 m_rectSize;
         glm::vec2 m_texOffset{ 0.f, 0.f };
         glm::vec2 m_texScale{ 1.0f, 1.0f };
         const Texture* m_diffuseMap = nullptr;
@@ -131,7 +132,7 @@ namespace dal {
             return this->isPointInside(v.x, v.y);
         }
 
-        std::pair<glm::vec2, glm::vec2> makeDeviceSpace(const float width, const float height) const;
+        std::pair<glm::vec2, glm::vec2> makePosSize(const float width, const float height) const;
 
     protected:
         virtual void onScrSpaceBoxUpdate(void) {};

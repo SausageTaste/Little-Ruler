@@ -142,10 +142,10 @@ namespace {
         }
 
         virtual void render(const dal::UnilocOverlay& uniloc, const float width, const float height) override {
-            dal::QuadRenderInfo qinfo;
-            std::tie(qinfo.m_devSpcP1, qinfo.m_devSpcP2) = this->makeDeviceSpace(width, height);
-            qinfo.m_color = this->m_bgColor;
-            dal::renderQuadOverlay(uniloc, qinfo);
+            dal::QuadRenderInfo info;
+            std::tie(info.m_bottomLeftNormalized, info.m_rectSize) = this->makePosSize(width, height);
+            info.m_color = this->m_bgColor;
+            dal::renderQuadOverlay(uniloc, info);
 
             this->m_lineEdit.render(uniloc, width, height);
             this->m_textBox.render(uniloc, width, height);

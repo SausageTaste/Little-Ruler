@@ -87,6 +87,10 @@ namespace dal {
         return device2screen(p, static_cast<float>(winWidth), static_cast<float>(winHeight));
     }
 
+    glm::vec2 size2device(const glm::vec2& size, const glm::vec2& parentSize) {
+        return 2.f * size / parentSize;
+    }
+
 
     void renderQuadOverlay(const UnilocOverlay& uniloc, const glm::vec2& devSpcP1, const glm::vec2& devSpcP2, const glm::vec4& color,
         const Texture* const diffuseMap, const Texture* const maskMap, const bool upsideDown_diffuseMap, const bool upsideDown_maskMap,
@@ -118,7 +122,7 @@ namespace dal {
     }
 
     void renderQuadOverlay(const UnilocOverlay& uniloc, const QuadRenderInfo& info) {
-        renderQuadOverlay(uniloc, info.m_devSpcP1, info.m_devSpcP2, info.m_color, info.m_diffuseMap, info.m_maskMap,
+        renderQuadOverlay(uniloc, info.m_bottomLeftNormalized, info.m_rectSize, info.m_color, info.m_diffuseMap, info.m_maskMap,
             info.m_upsideDown_diffuse, info.m_upsideDown_mask, info.m_texOffset, info.m_texScale);
     }
 
@@ -149,14 +153,11 @@ namespace dal {
         }
     }
 
-    std::pair<glm::vec2, glm::vec2> IScreenSpaceBox::makeDeviceSpace(const float width, const float height) const {
+    std::pair<glm::vec2, glm::vec2> IScreenSpaceBox::makePosSize(const float width, const float height) const {
         std::pair<glm::vec2, glm::vec2> result;
 
         result.first = screen2device(this->getPoint01(), width, height);
-        result.second = screen2device(this->getPoint10(), width, height);
-
-        dalAssert(result.first.x <= result.second.x);
-        dalAssert(result.first.y <= result.second.y);
+        result.second = size2device(this->m_size, glm::vec2{ width, height });
 
         return result;
     }

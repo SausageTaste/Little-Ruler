@@ -108,7 +108,7 @@ namespace dal {
 
     void Label2::render(const UnilocOverlay& uniloc, const float width, const float height) {
         QuadRenderInfo info;
-        std::tie(info.m_devSpcP1, info.m_devSpcP2) = this->makeDeviceSpace(width, height);
+        std::tie(info.m_bottomLeftNormalized, info.m_rectSize) = this->makePosSize(width, height);
         info.m_color = this->m_backgroundColor;
         renderQuadOverlay(uniloc, info);
 
@@ -224,7 +224,7 @@ namespace dal {
         }
 
         QuadRenderInfo info;
-        std::tie(info.m_devSpcP1, info.m_devSpcP2) = this->makeDeviceSpace(width, height);
+        std::tie(info.m_bottomLeftNormalized, info.m_rectSize) = this->makePosSize(width, height);
         info.m_color = glm::vec4{ DARK_THEME_COLOR, DARK_THEME_COLOR, DARK_THEME_COLOR, 1.0f };
         renderQuadOverlay(uniloc, info);
 
