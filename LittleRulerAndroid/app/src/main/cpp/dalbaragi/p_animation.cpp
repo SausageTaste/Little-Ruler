@@ -198,27 +198,6 @@ namespace dal {
 
     }
 
-    Animation::JointNode::JointNode(const JointKeyframeInfo& info, const glm::mat4& transform, JointNode* const parent)
-        : m_name(info.m_name),
-        m_transform(transform),
-        m_parent(parent)
-    {
-        this->m_poses.reserve(info.m_poses.size());
-        for ( const auto& x : info.m_poses ) {
-            this->m_poses.emplace_back(x);
-        }
-
-        this->m_rotates.reserve(info.m_rotates.size());
-        for ( const auto& x : info.m_rotates ) {
-            this->m_rotates.emplace_back(x);
-        }
-
-        this->m_scales.reserve(info.m_scales.size());
-        for ( const auto& x : info.m_scales ) {
-            this->m_scales.emplace_back(x);
-        }
-    }
-
     Animation::JointNode::JointNode(const std::string& name, const glm::mat4& transform, JointNode* const parent)
         : m_name(name),
         m_transform(transform),
@@ -229,29 +208,9 @@ namespace dal {
         this->m_scales.reserve(0);
     }
 
-    Animation::JointNode* Animation::JointNode::emplaceChild(const JointKeyframeInfo& info, const glm::mat4& transform, JointNode* const parent) {
-        this->m_children.emplace_back(info, transform, parent);
-        return &(this->m_children.back());
-    }
-
     Animation::JointNode* Animation::JointNode::emplaceChild(const std::string& name, const glm::mat4& transform, JointNode* const parent) {
         this->m_children.emplace_back(name, transform, parent);
         return &(this->m_children.back());
-    }
-
-    void Animation::JointNode::sample(const float animTick, const glm::mat4& parentTrans, const SkeletonInterface& interf, const glm::mat4& globalInvMat,
-        JointTransformArray& transformArr) const {
-        const auto nodeTransform = parentTrans * (this->hasKeyframes() ? this->makeTransformInterp(animTick) : this->m_transform);
-
-        const auto jointInferfIndex = interf.getIndexOf(this->m_name);
-        if ( -1 != jointInferfIndex ) {
-            const auto finalTrans = globalInvMat * nodeTransform * interf.at(jointInferfIndex).m_boneOffset;
-            transformArr.setTransform(jointInferfIndex, finalTrans);
-        }
-
-        for ( auto& child : this->m_children ) {
-            child.sample(animTick, nodeTransform, interf, globalInvMat, transformArr);
-        }
     }
 
     void Animation::JointNode::sample2(const float animTick, const SkeletonInterface& interf, std::vector<glm::mat4>& trans) const {
@@ -272,27 +231,15 @@ namespace dal {
     }
 
     glm::vec3 Animation::JointNode::makePosInterp(const float animTick) const {
-        if ( 0 == this->m_poses.size() ) {
-            return glm::vec3{};
-        }
-
-        return makeInterpValue(animTick, this->m_poses);
+        return this->m_poses.empty() ? glm::vec3{} : makeInterpValue(animTick, this->m_poses);
     }
 
     glm::quat Animation::JointNode::makeRotateInterp(const float animTick) const {
-        if ( 0 == this->m_rotates.size() ) {
-            return glm::quat{};
-        }
-
-        return makeInterpValue(animTick, this->m_rotates);
+        return this->m_rotates.empty() ? glm::quat{} : makeInterpValue(animTick, this->m_rotates);
     }
 
     float Animation::JointNode::makeScaleInterp(const float animTick) const {
-        if ( 0 == this->m_scales.size() ) {
-            return 1.f;
-        }
-
-        return makeInterpValue(animTick, this->m_scales);
+        return this->m_scales.empty() ? 1.f : makeInterpValue(animTick, this->m_scales);
     }
 
     glm::mat4 Animation::JointNode::makeTransformInterp(const float animTick) const {
@@ -327,13 +274,6 @@ namespace dal {
         }
     }
 
-    void Animation::sample(const float animTick, const SkeletonInterface& interf, const glm::mat4& globalInvMat,
-        JointTransformArray& transformArr) const {
-        //const float sampleTick = this->m_durationInTick * std::fmod(scale, 1.0f);
-        transformArr.setSize(interf.getSize());
-        this->m_rootNode.sample(animTick, glm::mat4{ 1.0f }, interf, globalInvMat, transformArr);
-    }
-
     void Animation::sample2(const float animTick, const SkeletonInterface& interf, const glm::mat4& globalInvMat, JointTransformArray& transformArr) const {
         static const auto k_spaceAnim2Model = glm::rotate(glm::mat4{ 1.f }, glm::radians(-90.f), glm::vec3{ 1.f, 0.f, 0.f });
         static const auto k_spaceModel2Anim = glm::inverse(k_spaceAnim2Model);
@@ -341,25 +281,14 @@ namespace dal {
         const auto numBones = interf.getSize();
         transformArr.setSize(numBones);
 
-        std::vector<glm::mat4> toParentMats(numBones);
-        {
-            toParentMats[0] = interf.at(0).m_boneOffset;
-            for ( int i = 1; i < numBones; ++i ) {
-                const auto parentIndex = interf.at(i).m_parentIndex;
-                const auto& parentOffset = interf.at(parentIndex).m_boneOffset;
-                const auto& selfOffset = interf.at(i).m_boneOffset;
-                toParentMats[i] = glm::inverse(parentOffset) * selfOffset;
-            }
-        }
-
         std::vector<glm::mat4> boneTransforms(numBones);
         this->m_rootNode.sample2(animTick, interf, boneTransforms);
 
         for ( dal::jointID_t i = 0; i < numBones; ++i ) {
             dal::jointID_t curBone = i;
-            glm::mat4 totalTrans = glm::inverse(interf.at(i).m_boneOffset);
+            glm::mat4 totalTrans = interf.at(i).m_boneOffset;
             while ( curBone != -1 ) {
-                totalTrans = toParentMats[curBone] * boneTransforms[curBone] * totalTrans;
+                totalTrans = interf.at(curBone).m_spaceToParent * boneTransforms[curBone] * totalTrans;
                 curBone = interf.at(curBone).m_parentIndex;
             }
             transformArr.setTransform(i, k_spaceAnim2Model * totalTrans * k_spaceModel2Anim);

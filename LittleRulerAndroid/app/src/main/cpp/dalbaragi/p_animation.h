@@ -16,19 +16,12 @@ namespace dal {
     using jointID_t = int32_t;
 
 
-    struct JointKeyframeInfo {
-        std::string m_name;
-        std::map<float, glm::vec3> m_poses;
-        std::map<float, glm::quat> m_rotates;
-        std::map<float, float> m_scales;
-    };
-
-
     class SkeletonInterface {
 
     private:
         struct BoneInfo {
             glm::mat4 m_boneOffset;
+            glm::mat4 m_spaceToParent;
             jointID_t m_parentIndex = -1;
         };
 
@@ -114,7 +107,6 @@ namespace dal {
 
         public:
             JointNode(void);
-            JointNode(const JointKeyframeInfo& info, const glm::mat4& transform, JointNode* const parent);
             JointNode(const std::string& name, const glm::mat4& transform, JointNode* const parent);
 
             void setName(const std::string& name) {
@@ -143,11 +135,8 @@ namespace dal {
             void reserveChildrenVector(const size_t size) {
                 this->m_children.reserve(size);
             }
-            JointNode* emplaceChild(const JointKeyframeInfo& info, const glm::mat4& transform, JointNode* const parent);
             JointNode* emplaceChild(const std::string& name, const glm::mat4& transform, JointNode* const parent);
 
-            void sample(const float animTick, const glm::mat4& parentTrans, const SkeletonInterface& interf, const glm::mat4& globalInvMat,
-                JointTransformArray& transformArr) const;
             void sample2(const float animTick, const SkeletonInterface& interf, std::vector<glm::mat4>& trans) const;
 
         private:
@@ -178,7 +167,6 @@ namespace dal {
         float getTickPerSec(void) const { return this->m_tickPerSec; }
         float getDurationInTick(void) const { return this->m_durationInTick; }
 
-        void sample(const float animTick, const SkeletonInterface& interf, const glm::mat4& globalInvMat, JointTransformArray& transformArr) const;
         void sample2(const float animTick, const SkeletonInterface& interf, const glm::mat4& globalInvMat, JointTransformArray& transformArr) const;
         float calcAnimTick(const float seconds) const;
 

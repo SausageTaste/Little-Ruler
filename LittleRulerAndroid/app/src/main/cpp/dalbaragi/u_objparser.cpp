@@ -117,11 +117,24 @@ namespace {
             header += boneName.size() + 1;
             const auto parentIndex = dal::makeInt4(header); header += 4;
 
-
             const auto result = skeleton.getOrMakeIndexOf(boneName);
             dalAssert(result == i);
             skeleton.at(result).m_parentIndex = parentIndex;
             header = parse_mat4(header, end, skeleton.at(result).m_boneOffset);
+        }
+
+        if ( skeleton.getSize() > 0 ) {
+            skeleton.at(0).m_spaceToParent = skeleton.at(0).m_boneOffset;
+            for ( int i = 1; i < numBones; ++i ) {
+                const auto parentIndex = skeleton.at(i).m_parentIndex;
+                const auto& parentOffset = skeleton.at(parentIndex).m_boneOffset;
+                const auto& selfOffset = skeleton.at(i).m_boneOffset;
+                skeleton.at(i).m_spaceToParent = glm::inverse(parentOffset) * selfOffset;
+            }
+
+            for ( int i = 0; i < numBones; ++i ) {
+                skeleton.at(i).m_boneOffset = glm::inverse(skeleton.at(i).m_boneOffset);
+            }
         }
 
         return header;
