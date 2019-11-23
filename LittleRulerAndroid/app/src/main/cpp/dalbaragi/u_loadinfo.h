@@ -35,7 +35,6 @@ namespace dal::binfo {
         SkeletonInterface m_joints;
         std::vector<RenderUnit> m_renderUnits;
         AABB m_aabb;
-        glm::mat4 m_globalTrans;
 
     };
 

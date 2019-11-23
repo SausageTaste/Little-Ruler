@@ -676,7 +676,6 @@ namespace dal {
 
             loaded->data_coresponding.setSkeletonInterface(std::move(loaded->out_info.m_model.m_joints));
             loaded->data_coresponding.setAnimations(std::move(loaded->out_info.m_animations));
-            loaded->data_coresponding.setGlobalMat(loaded->out_info.m_model.m_globalTrans);
 
             loaded->data_coresponding.clearRenderUnits();
             loaded->data_coresponding.reserveRenderUnits(loaded->out_info.m_model.m_renderUnits.size());

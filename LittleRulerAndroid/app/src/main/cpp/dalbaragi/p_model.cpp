@@ -107,10 +107,6 @@ namespace dal {
         this->m_animations = std::move(animations);
     }
 
-    void ModelAnimated::setGlobalMat(const glm::mat4 mat) {
-        this->m_globalInvMat = glm::inverse(mat);
-    }
-
     bool ModelAnimated::isReady(void) const {
         for ( const auto& unit : this->m_renderUnits ) {
             if ( !unit.m_mesh.isReady() ) {

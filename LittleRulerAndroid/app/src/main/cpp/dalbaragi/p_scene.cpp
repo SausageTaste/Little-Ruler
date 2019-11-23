@@ -412,7 +412,7 @@ namespace dal {
             for ( const auto entity : view ) {
                 auto& cpntModel = view.get(entity);
                 auto pModel = cpntModel.m_model;
-                updateAnimeState(cpntModel.m_animState, pModel->getAnimations(), pModel->getSkeletonInterf(), pModel->getGlobalInvMat());
+                updateAnimeState(cpntModel.m_animState, pModel->getAnimations(), pModel->getSkeletonInterf());
             }
         }
     }

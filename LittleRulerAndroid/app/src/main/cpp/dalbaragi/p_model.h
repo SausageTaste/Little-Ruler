@@ -87,7 +87,6 @@ namespace dal {
     private:
         SkeletonInterface m_jointInterface;
         std::vector<Animation> m_animations;
-        glm::mat4 m_globalInvMat;
 
     public:
         void* operator new(size_t size);
@@ -95,7 +94,6 @@ namespace dal {
 
         void setSkeletonInterface(SkeletonInterface&& joints);
         void setAnimations(std::vector<Animation>&& animations);
-        void setGlobalMat(const glm::mat4 mat);
 
         bool isReady(void) const;
 
@@ -109,9 +107,6 @@ namespace dal {
         }
         const std::vector<Animation>& getAnimations(void) const {
             return this->m_animations;
-        }
-        const glm::mat4& getGlobalInvMat(void) const {
-            return this->m_globalInvMat;
         }
 
     };

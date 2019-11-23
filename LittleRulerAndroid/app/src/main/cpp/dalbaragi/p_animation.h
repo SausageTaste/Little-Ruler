@@ -163,7 +163,7 @@ namespace dal {
             return this->m_durationInTick;
         }
 
-        void sample2(const float animTick, const SkeletonInterface& interf, const glm::mat4& globalInvMat, JointTransformArray& transformArr) const;
+        void sample2(const float animTick, const SkeletonInterface& interf, JointTransformArray& transformArr) const;
         float calcAnimTick(const float seconds) const;
 
     };
@@ -204,6 +204,6 @@ namespace dal {
     };
 
 
-    void updateAnimeState(AnimationState& state, const std::vector<Animation>& anims, const SkeletonInterface& skeletonInterf, const glm::mat4& globalMatInv);
+    void updateAnimeState(AnimationState& state, const std::vector<Animation>& anims, const SkeletonInterface& skeletonInterf);
 
 }

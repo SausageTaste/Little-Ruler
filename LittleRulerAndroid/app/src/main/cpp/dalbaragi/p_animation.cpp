@@ -241,7 +241,7 @@ namespace dal {
         }
     }
 
-    void Animation::sample2(const float animTick, const SkeletonInterface& interf, const glm::mat4& globalInvMat, JointTransformArray& transformArr) const {
+    void Animation::sample2(const float animTick, const SkeletonInterface& interf, JointTransformArray& transformArr) const {
         static const auto k_spaceAnim2Model = glm::rotate(glm::mat4{ 1.f }, glm::radians(-90.f), glm::vec3{ 1.f, 0.f, 0.f });
         static const auto k_spaceModel2Anim = glm::inverse(k_spaceAnim2Model);
 
@@ -288,18 +288,17 @@ namespace dal {
 // Functions
 namespace dal {
 
-    void updateAnimeState(AnimationState& state, const std::vector<Animation>& anims, const SkeletonInterface& skeletonInterf, const glm::mat4& globalMatInv) {
+    void updateAnimeState(AnimationState& state, const std::vector<Animation>& anims, const SkeletonInterface& skeletonInterf) {
         const auto selectedAnimIndex = state.getSelectedAnimeIndex();
         if ( selectedAnimIndex >= anims.size() ) {
-            //dalError("Selected animation index out of range");
+            dalError("Selected animation index out of range");
             return;
         }
 
         const auto& anim = anims[selectedAnimIndex];
         const auto elapsed = state.getElapsed();
         const auto animTick = anim.calcAnimTick(elapsed);
-        //anim.sample(animTick, skeletonInterf, globalMatInv, state.getTransformArray());
-        anim.sample2(animTick, skeletonInterf, globalMatInv, state.getTransformArray());
+        anim.sample2(animTick, skeletonInterf, state.getTransformArray());
     }
 
 }
