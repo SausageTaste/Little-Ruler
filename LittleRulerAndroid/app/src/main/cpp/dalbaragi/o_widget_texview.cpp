@@ -12,7 +12,14 @@ namespace dal {
     }
 
     void TextureView::render(const UnilocOverlay& uniloc, const float width, const float height) {
-        renderQuadOverlay(uniloc, this->makeDeviceSpace(width, height), glm::vec4{ 0.0f, 0.0f, 0.0f, 1.0f }, this->m_tex, nullptr, this->m_upsideDown, false);
+        QuadRenderInfo info;
+
+        std::tie(info.m_devSpcP1, info.m_devSpcP2) = this->makeDeviceSpace(width, height);
+        info.m_color = glm::vec4{ 0.0f, 0.0f, 0.0f, 1.0f };
+        info.m_diffuseMap = this->m_tex;
+        info.m_upsideDown_diffuse = this->m_upsideDown;
+
+        renderQuadOverlay(uniloc, info);
     }
 
     void TextureView::setTexture(Texture* const tex) {
@@ -35,7 +42,12 @@ namespace dal {
     }
 
     void ColoredTile::render(const UnilocOverlay& uniloc, const float width, const float height) {
-        renderQuadOverlay(uniloc, this->makeDeviceSpace(width, height), this->m_color, nullptr, nullptr, false, false);
+        QuadRenderInfo info;
+
+        std::tie(info.m_devSpcP1, info.m_devSpcP2) = this->makeDeviceSpace(width, height);
+        info.m_color = this->m_color;
+
+        renderQuadOverlay(uniloc, info);
     }
 
     void ColoredTile::setColor(const float r, const float g, const float b, const float a) {

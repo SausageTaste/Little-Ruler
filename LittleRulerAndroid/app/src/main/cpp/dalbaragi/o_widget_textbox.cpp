@@ -107,8 +107,10 @@ namespace dal {
     }
 
     void Label2::render(const UnilocOverlay& uniloc, const float width, const float height) {
-        const auto deviceSpace = this->makeDeviceSpace(width, height);
-        renderQuadOverlay(uniloc, deviceSpace.first, deviceSpace.second, this->m_backgroundColor);
+        QuadRenderInfo info;
+        std::tie(info.m_devSpcP1, info.m_devSpcP2) = this->makeDeviceSpace(width, height);
+        info.m_color = this->m_backgroundColor;
+        renderQuadOverlay(uniloc, info);
 
         this->m_textRenderer.render(uniloc, width, height);
     }
@@ -221,8 +223,10 @@ namespace dal {
             this->m_strBuf->clear();
         }
 
-        const auto info = this->makeDeviceSpace(width, height);
-        renderQuadOverlay(uniloc, info.first, info.second, glm::vec4{ DARK_THEME_COLOR, DARK_THEME_COLOR, DARK_THEME_COLOR, 1.0f });
+        QuadRenderInfo info;
+        std::tie(info.m_devSpcP1, info.m_devSpcP2) = this->makeDeviceSpace(width, height);
+        info.m_color = glm::vec4{ DARK_THEME_COLOR, DARK_THEME_COLOR, DARK_THEME_COLOR, 1.0f };
+        renderQuadOverlay(uniloc, info);
 
         this->m_textRenderer.render(uniloc, width, height);
     }

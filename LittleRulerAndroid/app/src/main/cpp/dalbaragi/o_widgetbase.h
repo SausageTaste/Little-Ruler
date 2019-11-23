@@ -21,23 +21,10 @@ namespace dal {
 
     struct QuadRenderInfo {
         glm::vec4 m_color{ 1.0f };
-        glm::vec2 m_devSpcP1, m_devSpcP2, m_texOffset, m_texScale{ 1.0f, 1.0f };
+        glm::vec2 m_devSpcP1, m_devSpcP2, m_texOffset{ 0.f, 0.f }, m_texScale{ 1.0f, 1.0f };
         const Texture *m_diffuseMap = nullptr, *m_maskMap = nullptr;
         bool m_upsideDown_diffuse = false, m_upsideDown_mask = false;
     };
-
-
-    void renderQuadOverlay(const UnilocOverlay& uniloc, const glm::vec2& devSpcP1, const glm::vec2& devSpcP2, const glm::vec4& color,
-        const Texture* const diffuseMap, const Texture* const maskMap, const bool upsideDown_diffuseMap, const bool upsideDown_maskMap,
-        const glm::vec2& texOffset, const glm::vec2& texScale);
-
-    void renderQuadOverlay(const UnilocOverlay& uniloc, const glm::vec2& devSpcP1, const glm::vec2& devSpcP2, const glm::vec4& color,
-        const Texture* const diffuseMap, const Texture* const maskMap, const bool upsideDown_diffuseMap, const bool upsideDown_maskMap);
-
-    void renderQuadOverlay(const UnilocOverlay& uniloc, const std::pair<glm::vec2, glm::vec2>& devSpc, const glm::vec4& color,
-        const Texture* const diffuseMap, const Texture* const maskMap, const bool upsideDown_diffuseMap, const bool upsideDown_maskMap);
-
-    void renderQuadOverlay(const UnilocOverlay& uniloc, const glm::vec2& devSpcP1, const glm::vec2& devSpcP2, const glm::vec4& color);
 
     void renderQuadOverlay(const UnilocOverlay& uniloc, const QuadRenderInfo& info);
 

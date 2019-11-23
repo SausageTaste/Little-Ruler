@@ -485,23 +485,6 @@ namespace dal {
         RealQuadRenderer2::getinst().drawArray();
     }
 
-    void renderQuadOverlay(const UnilocOverlay& uniloc, const glm::vec2& devSpcP1, const glm::vec2& devSpcP2, const glm::vec4& color,
-        const Texture* const diffuseMap, const Texture* const maskMap, const bool upsideDown_diffuseMap, const bool upsideDown_maskMap)
-    {
-        renderQuadOverlay(uniloc, devSpcP1, devSpcP2, color, diffuseMap, maskMap,
-			upsideDown_diffuseMap, upsideDown_maskMap, glm::vec2{ 0.f }, glm::vec2{ 1.f });
-    }
-
-    void renderQuadOverlay(const UnilocOverlay& uniloc, const std::pair<glm::vec2, glm::vec2>& devSpc, const glm::vec4& color,
-        const Texture* const diffuseMap, const Texture* const maskMap, const bool upsideDown_diffuseMap, const bool upsideDown_maskMap)
-    {
-        renderQuadOverlay(uniloc, devSpc.first, devSpc.second, color, diffuseMap, maskMap, upsideDown_diffuseMap, upsideDown_maskMap);
-    }
-
-    void renderQuadOverlay(const UnilocOverlay& uniloc, const glm::vec2& devSpcP1, const glm::vec2& devSpcP2, const glm::vec4& color) {
-        renderQuadOverlay(uniloc, devSpcP1, devSpcP2, color, nullptr, nullptr, false, false);
-    }
-
     void renderQuadOverlay(const UnilocOverlay& uniloc, const QuadRenderInfo& info) {
         renderQuadOverlay(uniloc, info.m_devSpcP1, info.m_devSpcP2, info.m_color, info.m_diffuseMap, info.m_maskMap,
             info.m_upsideDown_diffuse, info.m_upsideDown_mask, info.m_texOffset, info.m_texScale);
@@ -669,9 +652,12 @@ namespace dal {
             if ( this->m_cursorPos == charCount && this->canDrawCursor() ) {
                 const auto p1 = glm::vec2{ charQuad.second.x, charQuad.second.y - static_cast<float>(this->m_textSize) };
                 const auto p2 = glm::vec2{ charQuad.second.x + 1.0f, charQuad.second.y };
-                const auto cursorPos1 = screen2device(p1, width, height);
-                const auto cursorPos2 = screen2device(p2, width, height);
-                renderQuadOverlay(uniloc, cursorPos1, cursorPos2, this->m_textColor);
+
+                QuadRenderInfo quadInfo;
+                quadInfo.m_devSpcP1 = screen2device(p1, width, height);
+                quadInfo.m_devSpcP2 = screen2device(p2, width, height);
+                quadInfo.m_color = this->m_textColor;
+                renderQuadOverlay(uniloc, quadInfo);
             }
 
             const auto charQuadCut = this->makeCutCharArea(charQuad.first, charQuad.second);
@@ -700,9 +686,12 @@ namespace dal {
         if ( this->m_cursorPos == charCount && this->canDrawCursor() ) {
             const auto p1 = glm::vec2{ xAdvance, yHeight - static_cast<float>(this->m_textSize) };
             const auto p2 = glm::vec2{ xAdvance + 1.0f, yHeight };
-            const auto cursorPos1 = screen2device(p1, width, height);
-            const auto cursorPos2 = screen2device(p2, width, height);
-            renderQuadOverlay(uniloc, cursorPos1, cursorPos2, this->m_textColor);
+
+            QuadRenderInfo quadInfo;
+            quadInfo.m_devSpcP1 = screen2device(p1, width, height);
+            quadInfo.m_devSpcP2 = screen2device(p2, width, height);
+            quadInfo.m_color = this->m_textColor;
+            renderQuadOverlay(uniloc, quadInfo);
         }
     }
 
