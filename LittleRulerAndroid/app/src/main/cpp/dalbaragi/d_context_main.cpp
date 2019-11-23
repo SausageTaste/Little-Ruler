@@ -1,11 +1,15 @@
 #include "d_context_main.h"
 
+#include <fmt/format.h>
+
 #include "p_render_master.h"
 #include "c_input_apply.h"
 #include "s_logger_god.h"
 #include "o_widget_textbox.h"
 #include "o_widget_texview.h"
+#include "o_widgetmanager.h"
 #include "u_timer.h"
+#include "u_luascript.h"
 
 
 namespace {
@@ -49,6 +53,152 @@ namespace {
         virtual void onScrSpaceBoxUpdate(void) override {
             this->m_label.setSize(this->getSize());
             this->m_label.setPos(this->getPos());
+        };
+
+    };
+
+
+    class LuaConsole : public dal::Widget2 {
+
+    private:
+        class TextStreamChannel : public dal::ILoggingChannel {
+
+        private:
+            dal::StringBufferBasic& m_texStream;
+
+        public:
+            TextStreamChannel(dal::StringBufferBasic& texStream)
+                : m_texStream(texStream)
+            {
+
+            }
+
+            virtual void verbose(const char* const str, const int line, const char* const func, const char* const file) override {
+                const auto text = fmt::format("[VERBO] {}\n", str);
+                this->m_texStream.append(text.data(), text.size());
+            }
+
+            virtual void debug(const char* const str, const int line, const char* const func, const char* const file) override {
+                const auto text = fmt::format("[DEBUG] {}\n", str);
+                this->m_texStream.append(text.data(), text.size());
+            }
+
+            virtual void info(const char* const str, const int line, const char* const func, const char* const file) override {
+                const auto text = fmt::format("[INFO] {}\n", str);
+                this->m_texStream.append(text.data(), text.size());
+            }
+
+            virtual void warn(const char* const str, const int line, const char* const func, const char* const file) override {
+                const auto text = fmt::format("[WARN] {}\n", str);
+                this->m_texStream.append(text.data(), text.size());
+            }
+
+            virtual void error(const char* const str, const int line, const char* const func, const char* const file) override {
+                const auto text = fmt::format("[ERROR] {}\n", str);
+                this->m_texStream.append(text.data(), text.size());
+            }
+
+            virtual void fatal(const char* const str, const int line, const char* const func, const char* const file) override {
+                const auto text = fmt::format("[FATAL] {}\n", str);
+                this->m_texStream.append(text.data(), text.size());
+            }
+
+        };
+
+    private:
+        dal::WidgetInputDispatcher m_dispatcher;
+        dal::LineEdit m_lineEdit;
+        dal::TextBox m_textBox;
+        glm::vec4 m_bgColor;
+        Widget2* m_focused;
+        dal::LuaState m_luaState;
+        dal::StringBufferBasic m_strbuf;
+        TextStreamChannel m_stream;
+
+    public:
+        LuaConsole(void)
+            : dal::Widget2(nullptr)
+            , m_lineEdit(this)
+            , m_textBox(this)
+            , m_bgColor(0.0f, 0.0f, 0.0f, 1.0f)
+            , m_focused(nullptr)
+            , m_stream(m_strbuf)
+        {
+            this->m_lineEdit.setHeight(20.0f);
+            this->m_lineEdit.setCallbackOnEnter([this](const char* const text) {
+                this->m_luaState.exec(text);
+                });
+
+            this->m_luaState.replaceStrbuf(&this->m_strbuf);
+            this->m_textBox.replaceBuffer(&this->m_strbuf);
+            dal::LoggerGod::getinst().addChannel(&this->m_stream);
+
+            this->setPos(10.0f, 50.0f);
+            this->setSize(300.0f, 300.0f);
+        }
+
+        ~LuaConsole(void) {
+            dal::LoggerGod::getinst().deleteChannel(&this->m_stream);
+        }
+
+        virtual void render(const dal::UnilocOverlay& uniloc, const float width, const float height) override {
+            const auto [a, b] = this->makeDeviceSpace(width, height);
+            dal::renderQuadOverlay(uniloc, a, b, this->m_bgColor);
+
+            this->m_lineEdit.render(uniloc, width, height);
+            this->m_textBox.render(uniloc, width, height);
+        }
+
+        virtual dal::InputCtrlFlag onTouch(const dal::TouchEvent& e) override {
+            dal::Widget2* widgetArr[2] = { &this->m_lineEdit, &this->m_textBox };
+            const auto [flag, focused] = this->m_dispatcher.dispatch(widgetArr, widgetArr + 2, e);
+
+            this->m_focused = dal::resolveNewFocus(this->m_focused, focused);
+
+            return flag;
+        }
+
+        virtual dal::InputCtrlFlag onKeyInput(const dal::KeyboardEvent& e, const dal::KeyStatesRegistry& keyStates) override {
+            if ( &this->m_lineEdit == this->m_focused ) {
+                const auto iter = &this->m_focused;
+                const auto end = iter + 1;
+                return this->m_dispatcher.dispatch(iter, end, e, keyStates);
+            }
+
+            return dal::InputCtrlFlag::ignored;
+        }
+
+        virtual void onFocusChange(const bool v) override {
+            if ( !v ) {
+                this->m_lineEdit.onFocusChange(false);
+                this->m_textBox.onFocusChange(false);
+                this->m_focused = nullptr;
+            }
+        }
+
+        void exec(const char* const str) {
+            this->m_luaState.exec(str);
+        }
+
+    protected:
+        virtual void onScrSpaceBoxUpdate(void) override {
+            constexpr float INNER_MARGIN = 5.0f;
+
+            const auto pp1 = this->getPoint00();
+            const auto pp2 = this->getPoint11();
+
+            {
+                this->m_lineEdit.setPos(pp1.x + INNER_MARGIN, pp2.y - INNER_MARGIN - this->m_lineEdit.getHeight());
+                this->m_lineEdit.setWidth(this->getWidth() - INNER_MARGIN - INNER_MARGIN);
+            }
+
+            {
+                this->m_textBox.setPos(pp1.x + INNER_MARGIN, pp1.y + INNER_MARGIN);
+                this->m_textBox.setSize(
+                    this->getWidth() - INNER_MARGIN - INNER_MARGIN,
+                    this->getHeight() - this->m_lineEdit.getHeight() - INNER_MARGIN - INNER_MARGIN - INNER_MARGIN
+                );
+            }
         };
 
     };
@@ -181,6 +331,7 @@ namespace {
         dal::IContext* m_cnxtIngame;
 
         dal::ColoredTile m_red;
+        LuaConsole m_luaConsole;
 
         unsigned m_winWidth, m_winHeight;
 
@@ -207,6 +358,7 @@ namespace {
 
                     for ( unsigned int i = 0; i < tq.getSize(); i++ ) {
                         const auto& e = tq.at(i);
+                        this->m_luaConsole.onTouch(e);
                     }
 
                     tq.clear();
@@ -223,6 +375,8 @@ namespace {
                             nextContext = this->m_cnxtIngame;
                             dalVerbose("pause -> ingame");
                         }
+
+                        this->m_luaConsole.onKeyInput(e, kq.getKeyStates());
                     }
 
                     kq.clear();
@@ -234,12 +388,15 @@ namespace {
             glBindFramebuffer(GL_FRAMEBUFFER, 0);
             auto& uniloc = this->m_shaders.useOverlay();
             this->m_red.render(uniloc, this->m_winWidth, this->m_winHeight);
+            this->m_luaConsole.render(uniloc, this->m_winWidth, this->m_winHeight);
 
             return nextContext;
         }
 
         virtual void onWinResize(const unsigned width, const unsigned height) override {
             this->m_red.onParentResize(width, height);
+            this->m_luaConsole.onParentResize(width, height);
+
             this->m_winWidth = width;
             this->m_winHeight = height;
         }
