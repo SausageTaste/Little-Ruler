@@ -17,6 +17,7 @@ namespace dal {
 
     private:
         // Managers
+        TaskMaster m_task;
         ShaderMaster m_shader;
         ResourceMaster m_resMas;
         SceneGraph m_scene;

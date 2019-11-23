@@ -64,6 +64,7 @@ namespace {
         dal::ShaderMaster& m_shaders;
         dal::RenderMaster& m_renMas;
         dal::SceneGraph& m_scene;
+        dal::TaskMaster& m_task;
 
         // Contexts
         dal::IContext* m_cnxtPauseMenu;
@@ -74,10 +75,14 @@ namespace {
         unsigned m_winWidth, m_winHeight;
 
     public:
-        InGameCxt(dal::ShaderMaster& shaders, dal::RenderMaster& renMas, dal::SceneGraph& scene, const unsigned width, const unsigned height)
+        InGameCxt(
+            const unsigned width, const unsigned height,
+            dal::ShaderMaster& shaders, dal::RenderMaster& renMas, dal::SceneGraph& scene, dal::TaskMaster& taskMas
+        )
             : m_shaders(shaders)
             , m_renMas(renMas)
             , m_scene(scene)
+            , m_task(taskMas)
             , m_cnxtPauseMenu(nullptr)
             , m_crtlWidget(static_cast<float>(width), static_cast<float>(height))
             , m_winWidth(width)
@@ -132,7 +137,7 @@ namespace {
                 }
             }
 
-            dal::TaskGod::getinst().update();
+            this->m_task.update();
 
             this->m_scene.update(deltaTime);
             this->m_renMas.update(deltaTime);
@@ -170,6 +175,7 @@ namespace {
 
     private:
         dal::ShaderMaster& m_shaders;
+        dal::TaskMaster& m_task;
 
         // Contexts
         dal::IContext* m_cnxtIngame;
@@ -179,8 +185,9 @@ namespace {
         unsigned m_winWidth, m_winHeight;
 
     public:
-        PauseMenu(const unsigned width, const unsigned height, dal::ShaderMaster& shaders)
+        PauseMenu(const unsigned width, const unsigned height, dal::ShaderMaster& shaders, dal::TaskMaster& taskMas)
             : m_shaders(shaders)
+            , m_task(taskMas)
             , m_cnxtIngame(nullptr)
             , m_red(nullptr, 1, 0, 0, 1)
             , m_winWidth(width)
@@ -222,7 +229,7 @@ namespace {
                 }
             }
 
-            dal::TaskGod::getinst().update();
+            this->m_task.update();
 
             glBindFramebuffer(GL_FRAMEBUFFER, 0);
             auto& uniloc = this->m_shaders.useOverlay();
@@ -248,11 +255,13 @@ namespace {
 
 namespace dal {
 
-    std::vector <std::unique_ptr<IContext>> initContexts(const unsigned width, const unsigned height, ShaderMaster& shaders, RenderMaster& renMas, SceneGraph& scene) {
+    std::vector <std::unique_ptr<IContext>> initContexts(const unsigned width, const unsigned height,
+        ShaderMaster& shaders, RenderMaster& renMas, SceneGraph& scene, TaskMaster& taskMas)
+    {
         std::vector <std::unique_ptr<IContext>> result;
 
-        std::unique_ptr<InGameCxt> ingame{ new InGameCxt{shaders, renMas, scene, width, height} };
-        std::unique_ptr<PauseMenu> pause{ new PauseMenu{width, height, shaders} };
+        std::unique_ptr<InGameCxt> ingame{ new InGameCxt{ width, height, shaders, renMas, scene, taskMas } };
+        std::unique_ptr<PauseMenu> pause{ new PauseMenu{ width, height, shaders, taskMas } };
 
         ingame->registerContexts(pause.get());
         pause->registerContexts(ingame.get());

@@ -317,10 +317,11 @@ namespace dal {
 
     Mainloop::Mainloop(const unsigned int winWidth, const unsigned int winHeight)
         // Managers
-        : m_scene(m_resMas, winWidth, winHeight)
+        : m_resMas(m_task)
+        , m_scene(m_resMas, winWidth, winHeight)
         , m_renderMan(m_scene, m_shader, m_resMas, &m_scene.m_playerCam, winWidth, winHeight)
         // Contexts
-        , m_contexts(initContexts(winWidth, winHeight, m_shader, m_renderMan, m_scene))
+        , m_contexts(initContexts(winWidth, winHeight, m_shader, m_renderMan, m_scene, m_task))
         , m_currentContext(m_contexts.front().get())
         // Misc
         , m_flagQuit(false)

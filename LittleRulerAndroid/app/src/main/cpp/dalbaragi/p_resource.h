@@ -107,6 +107,8 @@ namespace dal {
         //////// Attribs ////////
 
     private:
+        TaskMaster& m_task;
+
         std::unordered_map<std::string, Package> m_packages;
         std::vector<std::shared_ptr<CubeMap>> m_cubeMaps;
 
@@ -117,7 +119,7 @@ namespace dal {
         ResourceMaster& operator=(const ResourceMaster&) = delete;
 
     public:
-        ResourceMaster(void) = default;
+        ResourceMaster(TaskMaster& taskMas);
         virtual ~ResourceMaster(void) override = default;
 
         virtual void notifyTask(std::unique_ptr<ITask> task) override;

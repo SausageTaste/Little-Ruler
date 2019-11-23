@@ -176,25 +176,25 @@ namespace {
         std::unordered_map<void*, ResTyp> m_map;
 
     public:
-        TaskTexture* newTexture(const std::string& texID, dal::Texture* const handle, const bool gammaCorrect) {
-            auto task = new TaskTexture(texID, handle, gammaCorrect);
-            this->m_map.emplace(task, ResTyp::texture);
-            return task;
+        std::unique_ptr<dal::ITask> newTexture(const std::string& texID, dal::Texture* const handle, const bool gammaCorrect) {
+            std::unique_ptr<dal::ITask> task{ new TaskTexture{texID, handle, gammaCorrect} };
+            this->m_map.emplace(task.get(), ResTyp::texture);
+            return std::move(task);
         }
-        TaskModelStatic* newModelStatic(const std::string& modelID, dal::ModelStatic& coresponding, dal::Package& package) {
-            auto task = new TaskModelStatic(modelID, coresponding, package);
-            this->m_map.emplace(task, ResTyp::model_static);
-            return task;
+        std::unique_ptr<dal::ITask> newModelStatic(const std::string& modelID, dal::ModelStatic& coresponding, dal::Package& package) {
+            std::unique_ptr<dal::ITask> task{ new TaskModelStatic(modelID, coresponding, package) };
+            this->m_map.emplace(task.get(), ResTyp::model_static);
+            return std::move(task);
         }
-        TaskModelAnimated* newModelAnimated(const std::string& modelID, dal::ModelAnimated& coresponding, dal::Package& package) {
-            auto task = new TaskModelAnimated(modelID, coresponding, package);
-            this->m_map.emplace(task, ResTyp::model_animated);
-            return task;
+        std::unique_ptr<dal::ITask> newModelAnimated(const std::string& modelID, dal::ModelAnimated& coresponding, dal::Package& package) {
+            std::unique_ptr<dal::ITask> task{ new TaskModelAnimated(modelID, coresponding, package) };
+            this->m_map.emplace(task.get(), ResTyp::model_animated);
+            return std::move(task);
         }
-        TaskCubeMap* newCubeMap(const std::array<std::string, 6>& resIDs, dal::CubeMap* const handle, const bool gammaCorrect) {
-            auto task = new TaskCubeMap(resIDs, handle, gammaCorrect);
-            this->m_map.emplace(task, ResTyp::cube_map);
-            return task;
+        std::unique_ptr<dal::ITask> newCubeMap(const std::array<std::string, 6>& resIDs, dal::CubeMap* const handle, const bool gammaCorrect) {
+            std::unique_ptr<dal::ITask> task{ new TaskCubeMap(resIDs, handle, gammaCorrect) };
+            this->m_map.emplace(task.get(), ResTyp::cube_map);
+            return std::move(task);
         }
 
         ResTyp reportDone(void* const ptr) {
@@ -612,6 +612,12 @@ namespace dal {
 // ResourceMaster
 namespace dal {
 
+    ResourceMaster::ResourceMaster(TaskMaster& taskMas)
+        : m_task(taskMas)
+    {
+
+    }
+
     void ResourceMaster::notifyTask(std::unique_ptr<ITask> task) {
         dalAssert(nullptr != task.get());
 
@@ -727,7 +733,7 @@ namespace dal {
             package.giveModelStatic(resinfo.m_finalPath, modelHandle);
 
             auto task = g_taskManger.newModelStatic(respath, *model, package);
-            TaskGod::getinst().orderTask(task, this);
+            this->m_task.orderTask(std::move(task), this);
 
             return modelHandle;
         }
@@ -748,7 +754,7 @@ namespace dal {
             package.giveModelAnim(resinfo.m_finalPath, modelHandle);
 
             auto task = g_taskManger.newModelAnimated(respath, *model, package);
-            TaskGod::getinst().orderTask(task, this);
+            this->m_task.orderTask(std::move(task), this);
 
             return modelHandle;
         }
@@ -767,7 +773,7 @@ namespace dal {
             package.giveTexture(resinfo.m_finalPath, texture);
 
             auto task = g_taskManger.newTexture(respath, texture.get(), gammaCorrect);
-            TaskGod::getinst().orderTask(task, this);
+            this->m_task.orderTask(std::move(task), this);
 
             return texture;
         }
@@ -777,7 +783,7 @@ namespace dal {
         auto tex = this->m_cubeMaps.emplace_back(new CubeMap);
 
         auto task = g_taskManger.newCubeMap(respathes, tex.get(), gammaCorrect);
-        TaskGod::getinst().orderTask(task, this);
+        this->m_task.orderTask(std::move(task), this);
 
         return tex;
     }
