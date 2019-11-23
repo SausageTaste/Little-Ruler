@@ -192,36 +192,17 @@ namespace dal {
 
 namespace dal {
 
-    Animation::JointNode::JointNode(void)
-        : m_parent(nullptr)
-    {
+    glm::mat4 Animation::JointNode::makeTransform(const float animTick) const {
+        const auto pos = this->makePosInterp(animTick);
+        const auto rotate = this->makeRotateInterp(animTick);
+        const auto scale = this->makeScaleInterp(animTick);
 
-    }
+        const glm::mat4 identity{ 1.0f };
+        const auto posMat = glm::translate(identity, pos);
+        const auto rotateMat = glm::mat4_cast(rotate);
+        const auto scaleMat = glm::scale(identity, glm::vec3{ scale });
 
-    Animation::JointNode::JointNode(const std::string& name, const glm::mat4& transform, JointNode* const parent)
-        : m_name(name),
-        m_transform(transform),
-        m_parent(parent)
-    {
-        this->m_poses.reserve(0);
-        this->m_rotates.reserve(0);
-        this->m_scales.reserve(0);
-    }
-
-    Animation::JointNode* Animation::JointNode::emplaceChild(const std::string& name, const glm::mat4& transform, JointNode* const parent) {
-        this->m_children.emplace_back(name, transform, parent);
-        return &(this->m_children.back());
-    }
-
-    void Animation::JointNode::sample2(const float animTick, const SkeletonInterface& interf, std::vector<glm::mat4>& trans) const {
-        const auto boneIndex = interf.getIndexOf(this->m_name);
-        if ( -1 != boneIndex ) {
-            trans.at(boneIndex) = this->makeTransformInterp(animTick);
-        }
-
-        for ( auto& child : this->m_children ) {
-            child.sample2(animTick, interf, trans);
-        }
+        return posMat * rotateMat * scaleMat;
     }
 
     // Private
@@ -242,27 +223,13 @@ namespace dal {
         return this->m_scales.empty() ? 1.f : makeInterpValue(animTick, this->m_scales);
     }
 
-    glm::mat4 Animation::JointNode::makeTransformInterp(const float animTick) const {
-        const auto pos = this->makePosInterp(animTick);
-        const auto rotate = this->makeRotateInterp(animTick);
-        const auto scale = this->makeScaleInterp(animTick);
-
-        const glm::mat4 identity{ 1.0f };
-        const auto posMat = glm::translate(identity, pos);
-        const auto rotateMat = glm::mat4_cast(rotate);
-        const auto scaleMat = glm::scale(identity, glm::vec3{ scale });
-
-        return posMat * rotateMat * scaleMat;
-    }
-
 }  // namespace dal
 
 
 namespace dal {
 
-    Animation::Animation(const std::string& name, const float tickPerSec, const float durationTick, JointNode&& rootNode)
+    Animation::Animation(const std::string& name, const float tickPerSec, const float durationTick)
         : m_name(name)
-        , m_rootNode(std::move(rootNode))
         , m_tickPerSec(tickPerSec)
         , m_durationInTick(durationTick)
     {
@@ -282,7 +249,10 @@ namespace dal {
         transformArr.setSize(numBones);
 
         std::vector<glm::mat4> boneTransforms(numBones);
-        this->m_rootNode.sample2(animTick, interf, boneTransforms);
+        dalAssert(numBones == this->m_joints.size());
+        for ( int i = 0; i < numBones; ++i ) {
+            boneTransforms[i] = this->m_joints[i].makeTransform(animTick);
+        }
 
         for ( dal::jointID_t i = 0; i < numBones; ++i ) {
             dal::jointID_t curBone = i;

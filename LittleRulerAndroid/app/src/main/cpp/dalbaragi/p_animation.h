@@ -90,14 +90,10 @@ namespace dal {
 
         private:
             std::string m_name;
-            glm::mat4 m_transform;
 
             std::vector<std::pair<float, glm::vec3>> m_poses;
             std::vector<std::pair<float, glm::quat>> m_rotates;
             std::vector<std::pair<float, float>> m_scales;
-
-            JointNode* m_parent;
-            std::vector<JointNode> m_children;
 
         public:
             JointNode(const JointNode&) = delete;
@@ -106,8 +102,7 @@ namespace dal {
             JointNode& operator=(JointNode&&) = default;
 
         public:
-            JointNode(void);
-            JointNode(const std::string& name, const glm::mat4& transform, JointNode* const parent);
+            JointNode(void) = default;;
 
             void setName(const std::string& name) {
                 this->m_name = name;
@@ -124,20 +119,12 @@ namespace dal {
                 const std::pair<float, float> input{ timepoint, scale };
                 this->m_scales.push_back(input);
             }
-            void setMat(const glm::mat4& mat) {
-                this->m_transform = mat;
-            }
-
-            const std::string& getName(void) const {
+           
+            const std::string& name(void) const {
                 return this->m_name;
             }
 
-            void reserveChildrenVector(const size_t size) {
-                this->m_children.reserve(size);
-            }
-            JointNode* emplaceChild(const std::string& name, const glm::mat4& transform, JointNode* const parent);
-
-            void sample2(const float animTick, const SkeletonInterface& interf, std::vector<glm::mat4>& trans) const;
+            glm::mat4 makeTransform(const float animTick) const;
 
         private:
             bool hasKeyframes(void) const;
@@ -145,13 +132,12 @@ namespace dal {
             glm::vec3 makePosInterp(const float animTick) const;
             glm::quat makeRotateInterp(const float animTick) const;
             float makeScaleInterp(const float animTick) const;
-            glm::mat4 makeTransformInterp(const float animTick) const;
 
         };
 
     private:
         std::string m_name;
-        JointNode m_rootNode;
+        std::vector<JointNode> m_joints;
         float m_tickPerSec, m_durationInTick;
 
     public:
@@ -161,11 +147,21 @@ namespace dal {
         Animation& operator=(Animation&&) = default;
 
     public:
-        Animation(const std::string& name, const float tickPerSec, const float durationTick, JointNode&& rootNode);
+        Animation(const std::string& name, const float tickPerSec, const float durationTick);
 
-        const std::string& getName(void) const { return this->m_name; }
-        float getTickPerSec(void) const { return this->m_tickPerSec; }
-        float getDurationInTick(void) const { return this->m_durationInTick; }
+        JointNode& newJoint(void) {
+            return this->m_joints.emplace_back();
+        }
+
+        const std::string& getName(void) const {
+            return this->m_name;
+        }
+        float getTickPerSec(void) const {
+            return this->m_tickPerSec;
+        }
+        float getDurationInTick(void) const {
+            return this->m_durationInTick;
+        }
 
         void sample2(const float animTick, const SkeletonInterface& interf, const glm::mat4& globalInvMat, JointTransformArray& transformArr) const;
         float calcAnimTick(const float seconds) const;

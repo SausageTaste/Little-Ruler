@@ -26,51 +26,6 @@ namespace {
 // Utils
 namespace {
 
-    void makeAnimJoint_recur(dal::Animation::JointNode& parent, const dal::jointID_t parIndex, const dal::SkeletonInterface& skeleton, std::vector<dal::Animation::JointNode*>& resultList) {
-        const auto numJoints = skeleton.getSize();
-
-        size_t numChildren = 0;
-        for ( int i = 0; i < numJoints; ++i ) {
-            if ( skeleton.at(i).m_parentIndex == parIndex ) {
-                numChildren++;
-            }
-        }
-        parent.reserveChildrenVector(numChildren);
-
-        for ( int i = 0; i < numJoints; ++i ) {
-            if ( skeleton.at(i).m_parentIndex != parIndex ) {
-                continue;
-            }
-
-            auto child = parent.emplaceChild(skeleton.getName(i), glm::mat4{ 1.f }, &parent);
-            resultList[i] = child;
-            makeAnimJoint_recur(*child, i, skeleton, resultList);
-        }
-    }
-
-    auto makeAnimJointHierarchy(const dal::SkeletonInterface& skeleton) {
-        std::pair<dal::Animation::JointNode, std::vector<dal::Animation::JointNode*>> result;
-
-        const auto numJoints = skeleton.getSize();
-        result.second.resize(numJoints);
-        for ( auto& x : result.second ) {
-            x = nullptr;
-        }
-
-        dalAssert(-1 == skeleton.at(0).m_parentIndex);
-
-        result.first.setName(skeleton.getName(0));
-        result.second[0] = &result.first;  // The address of root node changes upon return.
-
-        makeAnimJoint_recur(result.first, 0, skeleton, result.second);
-
-        for ( const auto x : result.second ) {
-            dalAssert(nullptr != x);
-        }
-
-        return result;
-    }
-
     bool checkMagicNumbers(const uint8_t* const begin) {
         for ( unsigned int i = 0; i < MAGIC_NUMBER_COUNT; ++i ) {
             if ( begin[i] != MAGIC_NUMBERS[i] ) {
@@ -144,7 +99,6 @@ namespace {
         {
             glm::mat4 mat;
             header = parse_mat4(header, end, mat);
-            joint.setMat(mat);
         }
 
         {
@@ -181,8 +135,10 @@ namespace {
         const auto numAnims = dal::makeInt4(header); header += 4;
 
         if ( numAnims > 0 ) {
-            auto [rootNode, jointList] = makeAnimJointHierarchy(skeleton);
-            animations.emplace_back("nullptr", 0.f, 0.f, std::move(rootNode));
+            auto& anim = animations.emplace_back("nullpos", 0.f, 0.f);
+            for ( int i = 0; i < skeleton.getSize(); ++i ) {
+                anim.newJoint();
+            }
         }
 
         for ( int i = 0; i < numAnims; ++i ) {
@@ -192,17 +148,13 @@ namespace {
             const auto durationTick = dal::assemble4Bytes<float>(header); header += 4;
             const auto tickPerSec = dal::assemble4Bytes<float>(header); header += 4;
 
+            auto& anim = animations.emplace_back(animName, tickPerSec, durationTick);
+
             const auto numJoints = dal::makeInt4(header); header += 4;
 
-            auto [rootNode, jointList] = makeAnimJointHierarchy(skeleton);
-            jointList[0] = &rootNode;
-
             for ( int j = 0; j < numJoints; ++j ) {
-                header = parse_animJoint(header, end, *jointList[j]);
+                header = parse_animJoint(header, end, anim.newJoint());
             }
-            jointList.clear();
-
-            animations.emplace_back(animName, tickPerSec, durationTick, std::move(rootNode));
         }
 
         return header;
