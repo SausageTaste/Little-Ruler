@@ -9,17 +9,26 @@
 #include "s_logger_god.h"
 
 
-#define ASSERT_UNILOC 0
+#define ASSERT_UNILOC false
 
 
 using namespace fmt::literals;
 
 
+// Konstants
+namespace {
+
+    constexpr size_t MAX_JOINTS_NUM = 30;
+
+}
+
+
+// Utils
 namespace {
 
     GLint getUniloc(const GLuint shader, const char* const id, const bool asserting = true) {
         const auto tmp = glGetUniformLocation(shader, id);
-#if ASSERT_UNILOC != 0
+#if ASSERT_UNILOC
         if ( asserting && -1 == tmp ) {
             dalWarn("Failed to find uniloc \'{}\' for shader {}."_format(id, shader));
         }
@@ -77,7 +86,7 @@ namespace dal {
         this->m_flagHas = flagHasLoc;
         this->m_unitIndex = unitIndex;
 
-#if ASSERT_UNILOC != 0
+#if ASSERT_UNILOC
         if ( flagAssert ) {
             if ( -1 == this->m_samplerLoc ) {
                 dalAbort("Sampler uniform location is -1.");
@@ -126,7 +135,7 @@ namespace dal {
 namespace dal {
 
     UniInterfGeometry::UniInterfGeometry(const GLuint shader) {
-#if ASSERT_UNILOC != 0
+#if ASSERT_UNILOC
         dalAssertm(0 == glGetAttribLocation(shader, "i_position"), "Uniloc i_position not found");
 #endif
         this->u_projMat = getUniloc(shader, "u_projMat");
@@ -155,7 +164,7 @@ namespace dal {
     UniInterfMesh::UniInterfMesh(const GLuint shader)
         : UniInterfGeometry(shader)
     {
-#if ASSERT_UNILOC != 0
+#if ASSERT_UNILOC
         dalAssertm(1 == glGetAttribLocation(shader, "i_texCoord"), "Uniloc i_texCoord not found");
         //dalAssertm(2 == glGetAttribLocation(shader, "i_normal"), "Uniloc i_normal not found");
 #endif
@@ -380,20 +389,25 @@ namespace dal {
 namespace dal {
 
     UniInterfAnime::UniInterfAnime(const GLuint shader) {
-#if ASSERT_UNILOC != 0
+#if ASSERT_UNILOC
         dalAssertm(3 == glGetAttribLocation(shader, "i_jointIDs"), "Uniloc i_jointIDs not found");
         dalAssertm(4 == glGetAttribLocation(shader, "i_weights"), "Uniloc i_weights not found");
 #endif
 
-        for ( unsigned int i = 0; i < this->k_maxNumJoints; ++i ) {
+        this->u_jointTransforms = getUniloc(shader, "u_jointTransforms[0]");
+
+        for ( unsigned int i = 1; i < MAX_JOINTS_NUM; ++i ) {
             const auto id = "u_jointTransforms[{}]"_format(i);
-            this->u_jointTransforms[i] = getUniloc(shader, id.c_str());
+            const auto loc = getUniloc(shader, id.c_str());
+            if ( loc != this->u_jointTransforms + i ) {
+                dalAbort("u_jointTransforms[] is not a continuous array.");
+            }
         }
     }
 
     void UniInterfAnime::jointTransforms(const unsigned int index, const glm::mat4& mat) const {
-        dalAssert(index < this->k_maxNumJoints);
-        sendMatrix(this->u_jointTransforms[index], mat);
+        dalAssert(index < MAX_JOINTS_NUM);
+        sendMatrix(this->u_jointTransforms + index, mat);
     }
 
 }
@@ -508,7 +522,7 @@ namespace dal {
 namespace dal {
 
     UnilocFScreen::UnilocFScreen(const GLuint shader) {
-#if ASSERT_UNILOC != 0
+#if ASSERT_UNILOC
         dalAssert(0 == glGetAttribLocation(shader, "iPosition"));
         dalAssert(1 == glGetAttribLocation(shader, "iTexCoord"));
 #endif

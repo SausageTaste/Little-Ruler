@@ -211,8 +211,7 @@ namespace dal {
     class UniInterfAnime {
 
     private:
-        static constexpr unsigned int k_maxNumJoints = 30;
-        GLint u_jointTransforms[k_maxNumJoints] = { -1 };
+        GLint u_jointTransforms;
 
     public:
         UniInterfAnime(const GLuint shader);
