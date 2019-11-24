@@ -6,7 +6,8 @@
 
 #include "s_logger_god.h"
 
-#define BLOCKY_TEXTURE
+
+#define DAL_BLOCKY_TEXTURE false
 
 
 using namespace fmt::literals;
@@ -167,7 +168,7 @@ namespace dal {
         this->genTexture("Texture::init_diffueMap");
         glBindTexture(GL_TEXTURE_2D, this->get());
 
-#ifdef BLOCKY_TEXTURE
+#if DAL_BLOCKY_TEXTURE
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 #else
@@ -175,20 +176,21 @@ namespace dal {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 #endif
 
-        if ( 1 == image.pixSize() ) {
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, image.width(), image.height(), 0, GL_RED, GL_UNSIGNED_BYTE, image.data());
-        }
-        else if ( 2 == image.pixSize() ) {
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RG, image.width(), image.height(), 0, GL_RG, GL_UNSIGNED_BYTE, image.data());
-        }
-        else if ( 3 == image.pixSize() ) {
+        switch ( image.pixSize() ) {
+
+        case 1:
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE, image.width(), image.height(), 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, image.data());
+            break;
+        case 3:
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, image.width(), image.height(), 0, GL_RGB, GL_UNSIGNED_BYTE, image.data());
-        }
-        else if ( 4 == image.pixSize() ) {
+            break;
+        case 4:
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image.width(), image.height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, image.data());
-        }
-        else {
-            dalAbort("Not supported pixel size: {}"_format(image.pixSize()));
+            break;
+        default:
+            dalError("Not supported pixel size: {}"_format(image.pixSize()));
+            return;
+
         }
 
         glGenerateMipmap(GL_TEXTURE_2D);
@@ -281,7 +283,7 @@ namespace dal {
         this->genTexture("CubeMap::init");
         glBindTexture(GL_TEXTURE_CUBE_MAP, this->get());
 
-#ifdef BLOCKY_TEXTURE
+#if DAL_BLOCKY_TEXTURE
         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 #else
@@ -291,14 +293,22 @@ namespace dal {
 
         for ( unsigned int i = 0; i < 6; i++ ) {
             const auto [buf, width, height, pixSize] = data.at(i);
-            if ( 3 == pixSize ) {
+
+            switch ( pixSize ) {
+
+            case 1:
+                glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_LUMINANCE, width, height, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, buf);
+                break;
+            case 3:
                 glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, buf);
-            }
-            else if ( 4 == pixSize ) {
+                break;
+            case 4:
                 glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, buf);
-            }
-            else {
-                dalAbort("Not supported pixel size: {}"_format(pixSize));
+                break;
+            default:
+                dalError("Not supported pixel size: {}"_format(pixSize));
+                return;
+
             }
         }
 
