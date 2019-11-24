@@ -6,8 +6,8 @@
 
 namespace dal {
 
-    float getTime_sec(void);
-    void sleepFor(const float v);
+    double getTime_sec(void);
+    void sleepFor(const double v);
 
 
     class Timer {
@@ -19,9 +19,9 @@ namespace dal {
         Timer(void);
 
         void check(void);
-        float getElapsed(void) const;
+        double getElapsed(void) const;
 
-        float checkGetElapsed(void);
+        double checkGetElapsed(void);
 
     protected:
         const std::chrono::steady_clock::time_point& getLastChecked(void) const;
@@ -37,9 +37,9 @@ namespace dal {
     public:
         TimerThatCaps(void);
 
-        bool hasElapsed(const float sec) const;
+        bool hasElapsed(const double sec) const;
 
-        float check_getElapsed_capFPS(void);
+        double check_getElapsed_capFPS(void);
 
         void setCapFPS(const uint32_t v);
 
