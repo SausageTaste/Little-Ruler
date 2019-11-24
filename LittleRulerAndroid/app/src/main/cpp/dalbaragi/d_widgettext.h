@@ -16,94 +16,75 @@ namespace dal {
     private:
         std::string m_text;
         glm::vec4 m_textColor;
-        glm::vec2 m_offset, m_lastTouchPos;
-        Timer m_cursorTimer;
-        size_t m_cursorPos;
+        glm::vec2 m_offset;
         unsigned int m_textSize;
         float m_lineSpacingRate;
         bool m_wordWrap;
-        touchID_t m_owning;
 
     public:
         TextRenderer(Widget2* const parent);
 
         virtual void render(const UnilocOverlay& uniloc, const float width, const float height) override;
-        virtual InputCtrlFlag onTouch(const TouchEvent& e) override;
 
-        const std::string& getText(void) const {
+        std::string& textbuf(void) {
             return this->m_text;
         }
-        void setText(const std::string& t) {
-            this->m_text = t;
-        }
-        void setText(std::string&& t) {
-            this->m_text = std::move(t);
+        const std::string& textbuf(void) const {
+            return this->m_text;
         }
 
-        void appendText(const std::string& t) {
-            this->m_text.append(t);
-        }
-        void appendText(const char c) {
-            this->m_text += c;
-        }
-        void popBackText(void) {
-            this->m_text.pop_back();
-        }
-
-        const glm::vec4& getTextColor(void) const {
+        glm::vec4& textColor(void) {
             return this->m_textColor;
         }
-        void setTextColor(const float x, const float y, const float z, const float w) {
-            this->m_textColor.x = x;
-            this->m_textColor.y = y;
-            this->m_textColor.z = z;
-            this->m_textColor.w = w;
-        }
-        void setTextColor(const glm::vec4& v) {
-            this->m_textColor = v;
+        const glm::vec4& textColor(void) const {
+            return this->m_textColor;
         }
 
-        const glm::vec2& getOffset(void) const {
+        glm::vec2& offset(void) {
             return this->m_offset;
         }
-        void setOffset(const float x, const float y) {
-            this->m_offset.x = x;
-            this->m_offset.y = y;
-        }
-        void setOffset(const glm::vec2& v) {
-            this->m_offset = v;
+        const glm::vec2& offset(void) const {
+            return this->m_offset;
         }
 
-        void setCursorPos(const size_t pos) {
-            this->m_cursorPos = pos;
-        }
-
-        unsigned int getTextSize(void) const {
+        unsigned& textSize(void) {
             return this->m_textSize;
         }
-        void setTextSize(const unsigned int v) {
-            this->m_textSize = v;
+        const unsigned& textSize(void) const {
+            return this->m_textSize;
         }
 
-        float getLineSpacingRate(void) const {
+        const float& lineSpacing(void) const {
             return this->m_lineSpacingRate;
         }
-        void setLineSpacingRate(const float v) {
-            this->m_lineSpacingRate = v;
+        float& lineSpacing(void) {
+            return this->m_lineSpacingRate;
         }
 
-        bool isWordWrap(void) const {
+        bool& wordWrap(void) {
             return this->m_wordWrap;
         }
-        void setWordWrap(const bool v) {
-            this->m_wordWrap = v;
+        const bool& wordWrap(void) const {
+            return this->m_wordWrap;
         }
 
     private:
-        bool canDrawCursor(void);
         CharPassFlag isCharQuadInside(glm::vec2& p1, glm::vec2& p2) const;
-        void makeOffsetApproch(void);
         std::pair<glm::vec2, glm::vec2> makeCutCharArea(glm::vec2 p1, glm::vec2 p2);
+
+    };
+
+
+    class TextScroll : public TextRenderer {
+
+    private:
+        glm::vec2 m_lastTouchPos;
+        touchID_t m_owning = -1;
+
+    public:
+        TextScroll(Widget2* const parent);
+
+        virtual InputCtrlFlag onTouch(const TouchEvent& e) override;
 
     };
 

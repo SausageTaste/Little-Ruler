@@ -377,7 +377,6 @@ namespace dal {
     TextRenderer::TextRenderer(Widget2* const parent)
         : Widget2(parent)
         , m_textColor(1.0f, 1.0f, 1.0f, 1.0f)
-        , m_cursorPos(cursorNullPos)
 #if defined(_WIN32)
         , m_textSize(15)
 #elif defined(__ANDROID__)
@@ -385,14 +384,11 @@ namespace dal {
 #endif
         , m_lineSpacingRate(1.3f)
         , m_wordWrap(false)
-        , m_owning(-1)
     {
 
     }
 
     void TextRenderer::render(const UnilocOverlay& uniloc, const float width, const float height) {
-        this->makeOffsetApproch();
-
         const auto parentP2 = this->getPoint11();
 
         const float xInit = this->m_wordWrap ? this->getPosX() : (this->getPosX() + this->m_offset.x);
@@ -475,17 +471,6 @@ namespace dal {
                 continue;
             }
 
-            if ( this->m_cursorPos == charCount && this->canDrawCursor() ) {
-                const auto bottomLeft = glm::vec2{ charQuad.second.x, charQuad.second.y };
-                const auto recSize = glm::vec2{ 1.f, static_cast<float>(this->m_textSize) };
-
-                QuadRenderInfo quadInfo;
-                quadInfo.m_bottomLeftNormalized = screen2device(bottomLeft, width, height);
-                quadInfo.m_rectSize = size2device(recSize, glm::vec2{ width, height });
-                quadInfo.m_color = this->m_textColor;
-                renderQuadOverlay(uniloc, quadInfo);
-            }
-
             {
                 const auto charQuadCut = this->makeCutCharArea(charQuad.first, charQuad.second);
                 QuadRenderInfo charQuadInfo;
@@ -517,57 +502,9 @@ namespace dal {
 
             xAdvance += (charInfo.advance >> 6);
         }
-
-        if ( this->m_cursorPos == charCount && this->canDrawCursor() ) {
-            const auto bottomLeft = glm::vec2{ xAdvance, yHeight };
-            const auto recSize = glm::vec2{ 1.f, static_cast<float>(this->m_textSize) };
-
-            QuadRenderInfo quadInfo;
-            quadInfo.m_bottomLeftNormalized = screen2device(bottomLeft, width, height);
-            quadInfo.m_rectSize = size2device(recSize, glm::vec2{ width, height });
-            quadInfo.m_color = this->m_textColor;
-            renderQuadOverlay(uniloc, quadInfo);
-        }
-    }
-
-    InputCtrlFlag TextRenderer::onTouch(const TouchEvent& e) {
-        if ( -1 != this->m_owning ) {
-            if ( e.m_id == this->m_owning ) {
-                if ( TouchActionType::move == e.m_actionType ) {
-                    const auto rel = e.m_pos - this->m_lastTouchPos;
-                    this->m_lastTouchPos = e.m_pos;
-                    this->m_offset += rel;
-                    return InputCtrlFlag::owned;
-                }
-                else if ( TouchActionType::up == e.m_actionType ) {
-                    const auto rel = e.m_pos - this->m_lastTouchPos;
-                    this->m_lastTouchPos = e.m_pos;
-                    this->m_offset += rel;
-
-                    this->m_owning = -1;
-                    return InputCtrlFlag::consumed;
-                }
-                // If else ignores.
-            }
-            // If else ignores.
-        }
-        else {
-            if ( TouchActionType::down == e.m_actionType ) {
-                this->m_lastTouchPos = e.m_pos;
-                this->m_owning = e.m_id;
-                return InputCtrlFlag::owned;
-            }
-            // If else ignores.
-        }
-
-        return InputCtrlFlag::ignored;
     }
 
     // Private
-
-    bool TextRenderer::canDrawCursor(void) {
-        return std::fmodf(this->m_cursorTimer.getElapsed(), 1.0f) >= 0.5f;
-    }
 
     TextRenderer::CharPassFlag TextRenderer::isCharQuadInside(glm::vec2& p1, glm::vec2& p2) const {
         const auto pp11 = this->getPoint11();
@@ -590,19 +527,6 @@ namespace dal {
         }
     }
 
-    void TextRenderer::makeOffsetApproch(void) {
-        if ( -1 != this->m_owning ) {
-            return;
-        }
-
-        if ( this->m_offset.x > 0 ) {
-            this->m_offset.x = this->m_offset.x * 0.9f;
-        }
-        if ( this->m_offset.y > 0 ) {
-            this->m_offset.y = this->m_offset.y * 0.9f;
-        }
-    }
-
     std::pair<glm::vec2, glm::vec2> TextRenderer::makeCutCharArea(glm::vec2 p1, glm::vec2 p2) {
         if ( p1.x < this->getPosX() ) {
             p1.x = this->getPosX();
@@ -621,6 +545,50 @@ namespace dal {
         }
 
         return std::make_pair(p1, p2);
+    }
+
+}
+
+
+namespace dal {
+
+    TextScroll::TextScroll(Widget2* const parent)
+        : TextRenderer(parent)
+    {
+
+    }
+
+    InputCtrlFlag TextScroll::onTouch(const TouchEvent& e) {
+        if ( -1 != this->m_owning ) {
+            if ( e.m_id == this->m_owning ) {
+                if ( TouchActionType::move == e.m_actionType ) {
+                    const auto rel = e.m_pos - this->m_lastTouchPos;
+                    this->m_lastTouchPos = e.m_pos;
+                    this->offset() += rel;
+                    return InputCtrlFlag::owned;
+                }
+                else if ( TouchActionType::up == e.m_actionType ) {
+                    const auto rel = e.m_pos - this->m_lastTouchPos;
+                    this->m_lastTouchPos = e.m_pos;
+                    this->offset() += rel;
+
+                    this->m_owning = -1;
+                    return InputCtrlFlag::consumed;
+                }
+                // If else ignores.
+            }
+            // If else ignores.
+        }
+        else {
+            if ( TouchActionType::down == e.m_actionType ) {
+                this->m_lastTouchPos = e.m_pos;
+                this->m_owning = e.m_id;
+                return InputCtrlFlag::owned;
+            }
+            // If else ignores.
+        }
+
+        return InputCtrlFlag::ignored;
     }
 
 }

@@ -135,13 +135,6 @@ namespace dal {
     }
 
     void LineEdit::render(const UnilocOverlay& uniloc, const float width, const float height) {
-        if ( this->m_onFocus ) {
-            this->getTextRenderer().setCursorPos(this->getText().size() - 1);
-        }
-        else {
-            this->getTextRenderer().setCursorPos(TextRenderer::cursorNullPos);
-        }
-
         Label2::render(uniloc, width, height);
     }
 
@@ -167,14 +160,14 @@ namespace dal {
                 this->onReturn();
                 break;
             case '\b':
-                if (!text.getText().empty() ) {
-                    text.popBackText();
+                if (!text.textbuf().empty() ) {
+                    text.textbuf().pop_back();
                 }
                 break;
             case '\0':
                 break;
             default:
-                text.appendText(c);
+                text.textbuf() += c;
                 break;
 
             }
@@ -219,7 +212,7 @@ namespace dal {
     void TextBox::render(const UnilocOverlay& uniloc, const float width, const float height) {
         if ( nullptr != this->m_strBuf ) {
             auto str = this->m_strBuf->data();
-            this->m_textRenderer.appendText(str);
+            this->m_textRenderer.textbuf() += str;
             this->m_strBuf->clear();
         }
 

@@ -15,7 +15,7 @@ namespace dal {
     class Label2 : public Widget2 {
 
     private:
-        TextRenderer m_textRenderer;
+        TextScroll m_textRenderer;
         glm::vec4 m_backgroundColor;
         touchID_t m_owningTouchID = -1;
 
@@ -25,13 +25,13 @@ namespace dal {
         virtual void render(const UnilocOverlay& uniloc, const float width, const float height) override;
 
         void setText(const std::string& t) {
-            this->m_textRenderer.setText(t);
+            this->m_textRenderer.textbuf() = t;
         }
         const std::string& getText(void) const {
-            return this->m_textRenderer.getText();
+            return this->m_textRenderer.textbuf();
         }
         void setTextColor(const glm::vec4 color) {
-            this->m_textRenderer.setTextColor(color);
+            this->m_textRenderer.textColor() = color;
         }
         void setBackgroundColor(const glm::vec4 color) {
             this->m_backgroundColor = color;
@@ -42,7 +42,7 @@ namespace dal {
 
     protected:
         virtual void onScrSpaceBoxUpdate(void) override;
-        TextRenderer& getTextRenderer(void) {
+        TextScroll& getTextRenderer(void) {
             return this->m_textRenderer;
         }
 
@@ -79,7 +79,7 @@ namespace dal {
     class TextBox : public Widget2 {
 
     private:
-        TextRenderer m_textRenderer;
+        TextScroll m_textRenderer;
         StringBufferBasic* m_strBuf;
 
     public:
