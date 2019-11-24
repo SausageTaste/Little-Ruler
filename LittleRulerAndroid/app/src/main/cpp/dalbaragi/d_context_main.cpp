@@ -41,7 +41,7 @@ namespace {
         void update(void) {
             ++this->m_frameAccum;
             const auto elapsedForFPS = this->m_timerForFPSReport.getElapsed();
-            if ( elapsedForFPS > 0.1f ) {
+            if ( elapsedForFPS > 0.05f ) {
                 const auto fps = static_cast<unsigned int>(static_cast<float>(this->m_frameAccum) / elapsedForFPS);
                 this->m_label.setText(std::to_string(fps));
                 this->m_timerForFPSReport.check();
@@ -55,7 +55,7 @@ namespace {
             this->m_label.setPos(this->getPos());
         };
 
-    };
+    } g_fcounter;
 
 
     class LuaConsole : public dal::Widget2 {
@@ -222,7 +222,6 @@ namespace {
         dal::IContext* m_cnxtPauseMenu;
 
         dal::PlayerControlWidget m_crtlWidget;
-        FPSCounter m_fcounter;
 
         unsigned m_winWidth, m_winHeight;
 
@@ -300,7 +299,7 @@ namespace {
                 auto& uniloc = this->m_shaders.useOverlay();
 
                 this->m_crtlWidget.render(uniloc, this->m_winWidth, this->m_winHeight);
-                this->m_fcounter.render(uniloc, this->m_winWidth, this->m_winHeight);
+                g_fcounter.render(uniloc, this->m_winWidth, this->m_winHeight);
             }
 
             return nextContext;
@@ -391,6 +390,7 @@ namespace {
             auto& uniloc = this->m_shaders.useOverlay();
             this->m_red.render(uniloc, this->m_winWidth, this->m_winHeight);
             this->m_luaConsole.render(uniloc, this->m_winWidth, this->m_winHeight);
+            g_fcounter.render(uniloc, this->m_winWidth, this->m_winHeight);
 
             return nextContext;
         }
@@ -458,7 +458,7 @@ namespace {
 
                     for ( unsigned int i = 0; i < tq.getSize(); i++ ) {
                         const auto& e = tq.at(i);
-                        if ( dal::TouchActionType::down == e.m_actionType ) {
+                        if ( dal::TouchActionType::down == e.m_actionType && this->m_timer.getElapsed() > 1.f ) {
                             nextContext = this->m_cnxtIngame;
                         }
                     }
@@ -473,7 +473,7 @@ namespace {
                     for ( unsigned int i = 0; i < kqSize; ++i ) {
                         const auto& e = kq.at(i);
 
-                        if ( dal::KeyActionType::down == e.m_actionType ) {
+                        if ( dal::KeyActionType::down == e.m_actionType && this->m_timer.getElapsed() > 1.f ) {
                             nextContext = this->m_cnxtIngame;
                         }
                     }
