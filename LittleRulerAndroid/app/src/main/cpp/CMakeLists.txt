@@ -83,10 +83,10 @@ target_include_directories(interface4jni PRIVATE ${library_dir}/freetype-2.10.0/
 
 
 # fmt
-add_library(lib_fmt SHARED IMPORTED)
+add_library(lib_fmt STATIC IMPORTED)
 set_target_properties(lib_fmt PROPERTIES IMPORTED_LOCATION
-        ${library_dir}/fmt-5.3.0/so/${ANDROID_ABI}/libfmt.so)
-target_include_directories(interface4jni PRIVATE ${library_dir}/fmt-5.3.0/include)
+        ${library_dir}/fmt-6.0.0/a/${ANDROID_ABI}/libfmt.a)
+target_include_directories(interface4jni PRIVATE ${library_dir}/fmt-6.0.0/include)
 
 
 # GLM
