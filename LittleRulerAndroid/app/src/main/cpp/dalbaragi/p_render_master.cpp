@@ -26,6 +26,78 @@ namespace {
 }
 
 
+namespace {
+
+    class CubeMapFbuf {
+
+    private:
+        GLuint m_fbo = 0;
+        std::shared_ptr<dal::CubeMap> m_cubemap;
+        inline static constexpr unsigned WIDTH = 256, HEIGHT = 256;
+
+    public:
+        void init(void) {
+            glGenFramebuffers(1, &this->m_fbo);
+            glBindFramebuffer(GL_FRAMEBUFFER, this->m_fbo);
+
+            this->m_cubemap.reset(new dal::CubeMap);
+            this->m_cubemap->initAttach_colorMap(this->WIDTH, this->HEIGHT);
+        }
+
+        void bindFbuf(void) {
+            glBindFramebuffer(GL_FRAMEBUFFER, this->m_fbo);
+            glViewport(0, 0, this->WIDTH, this->HEIGHT);
+        }
+
+        void unbindFbuf(const unsigned width, const unsigned height) {
+            glBindFramebuffer(GL_DRAW_FRAMEBUFFER, this->m_fbo);
+            glViewport(0, 0, width, height);
+        }
+
+        void clearFaces(void) {
+            for ( unsigned i = 0; i < 6; ++i ) {
+                glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, this->m_cubemap->get(), 0);
+                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            }
+        }
+
+        void readyFace(const unsigned faceIndex) {
+            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + faceIndex, this->m_cubemap->get(), 0);
+
+            GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+            if ( status != GL_FRAMEBUFFER_COMPLETE ) {
+                switch ( status ) {
+
+                case GL_FRAMEBUFFER_UNDEFINED:
+                    dalError("Framebuffer status error: GL_FRAMEBUFFER_UNDEFINED"); break;
+                case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT:
+                    dalError("Framebuffer status error: GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT"); break;
+                case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT:
+                    dalError("Framebuffer status error: GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT"); break;
+                case GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER:
+                    dalError("Framebuffer status error: GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER"); break;
+                case GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER:
+                    dalError("Framebuffer status error: GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER"); break;
+                case GL_FRAMEBUFFER_UNSUPPORTED:
+                    dalError("Framebuffer status error: GL_FRAMEBUFFER_UNSUPPORTED"); break;
+                case GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE:
+                    dalError("Framebuffer status error: GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE"); break;
+                case GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS:
+                    dalError("Framebuffer status error: GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS"); break;
+
+                }
+            }
+        }
+
+        auto& getCubemap(void) {
+            return this->m_cubemap;
+        }
+
+    } g_cubemap;
+
+}
+
+
 // Main Framebuffer
 namespace dal {
 
@@ -222,6 +294,8 @@ namespace dal {
         {
             const auto renderer = reinterpret_cast<const char*>(glGetString(GL_RENDERER));
             dalVerbose("Graphics device name: {}"_format(renderer));
+
+            g_cubemap.init();
         }
     }
 
@@ -352,6 +426,96 @@ namespace dal {
         glDisable(GL_CLIP_DISTANCE0);
 #endif
 
+        // Render on cube map
+        {
+            const auto lightPos = glm::vec3{ 6, 2, -5 };
+            std::vector<glm::mat4> viewMats = {
+                glm::lookAt(lightPos, lightPos + glm::vec3(1.0, 0.0, 0.0), glm::vec3(0.0, -1.0, 0.0)),
+                glm::lookAt(lightPos, lightPos + glm::vec3(-1.0, 0.0, 0.0), glm::vec3(0.0, -1.0, 0.0)),
+                glm::lookAt(lightPos, lightPos + glm::vec3(0.0, 1.0, 0.0), glm::vec3(0.0, 0.0, 1.0)),
+                glm::lookAt(lightPos, lightPos + glm::vec3(0.0, -1.0, 0.0), glm::vec3(0.0, 0.0, -1.0)),
+                glm::lookAt(lightPos, lightPos + glm::vec3(0.0, 0.0, 1.0), glm::vec3(0.0, -1.0, 0.0)),
+                glm::lookAt(lightPos, lightPos + glm::vec3(0.0, 0.0, -1.0), glm::vec3(0.0, -1.0, 0.0))
+            };
+            const auto projMat = glm::perspective(glm::radians(90.f), 1.f, 0.01f, 1000.f);
+
+            g_cubemap.bindFbuf();
+            g_cubemap.clearFaces();
+
+            {
+                const auto& uniloc = this->m_shader.useSkybox();
+
+                uniloc.m_geometry.projectMat(projMat);
+                uniloc.fogColor(this->m_skyColor);
+
+                for ( unsigned i = 0; i < 6; ++i ) {
+                    g_cubemap.readyFace(i);
+                    uniloc.m_geometry.viewMat(viewMats[i]);
+                    this->m_skybox.render(uniloc);
+                }
+            }
+
+            {
+                auto& uniloc = this->m_shader.useGeneral();
+
+                uniloc.m_planeClip.flagDoClip(true);
+                uniloc.m_lightedMesh.projectMat(projMat);
+                uniloc.m_lightedMesh.baseAmbient(this->m_baseAmbientColor);
+                uniloc.m_lightedMesh.fogMaxPoint(this->m_farPlaneDistance);
+                uniloc.m_lightedMesh.fogColor(this->m_skyColor);
+
+                this->m_skybox.sendUniform(uniloc.m_lightedMesh);
+
+                if ( this->m_flagDrawDlight1 ) {
+                    this->m_dlight1.sendUniform(uniloc.m_lightedMesh.u_dlights[0]);
+                    uniloc.m_lightedMesh.dlightCount(1);
+                }
+                else {
+                    uniloc.m_lightedMesh.dlightCount(0);
+                }
+
+                this->m_slight1.sendUniform(uniloc.m_lightedMesh.u_slights[0]);
+                uniloc.m_lightedMesh.slightCount(1);
+
+                for ( unsigned i = 0; i < 6; ++i ) {
+                    g_cubemap.readyFace(i);
+                    uniloc.m_lightedMesh.viewMat(viewMats[i]);
+                    this->m_scene.renderGeneral(uniloc);
+                }
+            }
+
+            {
+                auto& uniloc = this->m_shader.useAnimate();
+
+                uniloc.m_planeClip.flagDoClip(true);
+                uniloc.m_lightedMesh.projectMat(glm::perspective(glm::radians(90.f), 1.f, 0.01f, 1000.f));
+                uniloc.m_lightedMesh.baseAmbient(this->m_baseAmbientColor);
+                uniloc.m_lightedMesh.fogMaxPoint(this->m_farPlaneDistance);
+                uniloc.m_lightedMesh.fogColor(this->m_skyColor);
+
+                this->m_skybox.sendUniform(uniloc.m_lightedMesh);
+
+                if ( this->m_flagDrawDlight1 ) {
+                    this->m_dlight1.sendUniform(uniloc.m_lightedMesh.u_dlights[0]);
+                    uniloc.m_lightedMesh.dlightCount(1);
+                }
+                else {
+                    uniloc.m_lightedMesh.dlightCount(0);
+                }
+
+                this->m_slight1.sendUniform(uniloc.m_lightedMesh.u_slights[0]);
+                uniloc.m_lightedMesh.slightCount(1);
+
+                for ( unsigned i = 0; i < 6; ++i ) {
+                    g_cubemap.readyFace(i);
+                    uniloc.m_lightedMesh.viewMat(viewMats[i]);
+                    this->m_scene.renderAnimate(uniloc);
+                }
+            }
+
+            g_cubemap.unbindFbuf(this->m_winWidth, this->m_winHeight);
+        }
+
         // Render skybox on water
         {
             auto& uniloc = this->m_shader.useSkybox();
@@ -373,7 +537,8 @@ namespace dal {
             uniloc.m_lightedMesh.fogMaxPoint(this->m_farPlaneDistance);
             uniloc.m_lightedMesh.fogColor(this->m_skyColor);
 
-            this->m_skybox.sendUniform(uniloc.m_lightedMesh);
+            //this->m_skybox.sendUniform(uniloc.m_lightedMesh);
+            g_cubemap.getCubemap()->sendUniform(uniloc.m_lightedMesh.getEnvironmentMap());
 
             this->m_scene.renderGeneral(uniloc);
         }

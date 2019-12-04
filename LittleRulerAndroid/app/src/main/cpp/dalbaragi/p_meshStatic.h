@@ -255,6 +255,7 @@ namespace dal {
 
     public:
         void init(const CubeMapData& data);
+        void initAttach_colorMap(const unsigned width, const unsigned height);
 
         void sendUniform(const SamplerInterf& uniloc) const;
 

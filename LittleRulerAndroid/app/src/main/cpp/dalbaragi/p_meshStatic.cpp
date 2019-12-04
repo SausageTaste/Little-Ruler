@@ -317,6 +317,28 @@ namespace dal {
         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
     }
 
+    void CubeMap::initAttach_colorMap(const unsigned width, const unsigned height) {
+        this->genTexture("CubeMap::initAttach_colorMap");
+        glBindTexture(GL_TEXTURE_CUBE_MAP, this->get());
+
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_BASE_LEVEL, 0);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAX_LEVEL, 0);
+
+#if DAL_BLOCKY_TEXTURE
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+#else
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+#endif
+
+        for ( unsigned int i = 0; i < 6; i++ ) {
+            glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB16F, width, height, 0, GL_RGB, GL_FLOAT, nullptr);
+        }
+
+        glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+    }
+
     void CubeMap::sendUniform(const SamplerInterf& uniloc) const {
         if ( this->isReady() ) {
             uniloc.setFlagHas(true);
