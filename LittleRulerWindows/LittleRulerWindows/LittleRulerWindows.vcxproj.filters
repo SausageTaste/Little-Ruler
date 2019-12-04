@@ -338,6 +338,9 @@
     <None Include="..\..\Resource\asset\glsl\depth.frag">
       <Filter>GLSL</Filter>
     </None>
+    <None Include="..\..\Resource\asset\glsl\module_geometry.glsl">
+      <Filter>GLSL</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="icon.rc" />
