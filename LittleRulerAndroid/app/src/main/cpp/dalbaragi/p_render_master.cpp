@@ -74,16 +74,22 @@ namespace {
                     dalError("Framebuffer status error: GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT"); break;
                 case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT:
                     dalError("Framebuffer status error: GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT"); break;
-                case GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER:
-                    dalError("Framebuffer status error: GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER"); break;
-                case GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER:
-                    dalError("Framebuffer status error: GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER"); break;
                 case GL_FRAMEBUFFER_UNSUPPORTED:
                     dalError("Framebuffer status error: GL_FRAMEBUFFER_UNSUPPORTED"); break;
                 case GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE:
                     dalError("Framebuffer status error: GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE"); break;
+
+#ifdef _WIN32
+                case GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER:
+                    dalError("Framebuffer status error: GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER"); break;
+                case GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER:
+                    dalError("Framebuffer status error: GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER"); break;
                 case GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS:
                     dalError("Framebuffer status error: GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS"); break;
+#endif
+
+                default:
+                    dalError(fmt::format("Framebuffer status error: {}", status)); break;
 
                 }
             }
@@ -427,7 +433,7 @@ namespace dal {
 #endif
 
         // Render on cube map
-        {
+        /*{
             const auto lightPos = glm::vec3{ 6, 2, -5 };
             std::vector<glm::mat4> viewMats = {
                 glm::lookAt(lightPos, lightPos + glm::vec3(1.0, 0.0, 0.0), glm::vec3(0.0, -1.0, 0.0)),
@@ -514,7 +520,7 @@ namespace dal {
             }
 
             g_cubemap.unbindFbuf(this->m_winWidth, this->m_winHeight);
-        }
+        }*/
 
         // Render skybox on water
         {
