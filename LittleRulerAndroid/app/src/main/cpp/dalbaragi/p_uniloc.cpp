@@ -156,9 +156,34 @@ namespace dal {
         this->u_metallicMap.init(getUniloc(shader, "u_metallicMap"), getUniloc(shader, "u_hasMetallicMap"), g_texUnitReg["u_metallicMap"]);
     }
 
+    void UniInterf_Skeleton::set(const GLuint shader) {
+        this->u_jointTrans = getUniloc(shader, "u_jointTrans[0]");
+
+        for ( unsigned int i = 1; i < MAX_JOINTS_NUM; ++i ) {
+            const auto id = "u_jointTrans[{}]"_format(i);
+            const auto loc = getUniloc(shader, id.c_str());
+            if ( loc != this->u_jointTrans + i ) {
+                dalAbort("u_jointTrans[] is not a continuous array.");
+            }
+        }
+    }
+
+
     void UniRender_Static::set(const GLuint shader) {
         this->i_lighting.set(shader);
         this->i_lightmap.set(shader);
+
+        this->u_projMat = getUniloc(shader, "u_projMat");
+        this->u_viewMat = getUniloc(shader, "u_viewMat");
+        this->u_modelMat = getUniloc(shader, "u_modelMat");
+
+        this->u_viewPos = getUniloc(shader, "u_viewPos");
+    }
+
+    void UniRender_Animated::set(const GLuint shader) {
+        this->i_lighting.set(shader);
+        this->i_lightmap.set(shader);
+        this->i_skeleton.set(shader);
 
         this->u_projMat = getUniloc(shader, "u_projMat");
         this->u_viewMat = getUniloc(shader, "u_viewMat");

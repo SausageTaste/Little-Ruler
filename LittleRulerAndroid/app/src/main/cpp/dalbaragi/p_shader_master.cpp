@@ -511,8 +511,10 @@ namespace dal {
         , m_skyboxUniloc(m_skybox.get())
 
         , m_static(g_loader["r_static.vert"], g_loader["r_static.frag"])
+        , m_animated(g_loader["r_animated.vert"], g_loader["r_static.frag"])
     {
-        this->m_staticUniloc.set(this->m_static.get());
+        this->u_static.set(this->m_static.get());
+        this->u_animated.set(this->m_animated.get());
 
         g_loader.clear();
     }
@@ -569,7 +571,13 @@ namespace dal {
     const UniRender_Static& ShaderMaster::useStatic(void) const {
         setFor_generalRender();
         this->m_static.use();
-        return this->m_staticUniloc;
+        return this->u_static;
+    }
+
+    const UniRender_Animated& ShaderMaster::useAnimated(void) const {
+        setFor_generalRender();
+        this->m_animated.use();
+        return this->u_animated;
     }
 
 }

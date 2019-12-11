@@ -51,7 +51,10 @@ namespace dal {
         //
 
         ShaderProgram m_static;
-        UniRender_Static m_staticUniloc;
+        UniRender_Static u_static;
+
+        ShaderProgram m_animated;
+        UniRender_Animated u_animated;
 
     public:
         ShaderMaster(void);
@@ -66,6 +69,7 @@ namespace dal {
         const UnilocSkybox& useSkybox(void) const;
 
         const UniRender_Static& useStatic(void) const;
+        const UniRender_Animated& useAnimated(void) const;
 
     };
 
