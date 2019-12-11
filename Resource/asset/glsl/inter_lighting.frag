@@ -1,3 +1,6 @@
+#include <module_geometry.glsl>
+
+
 struct PointLight {
     vec3 m_pos;
     vec3 m_color;
@@ -66,6 +69,24 @@ vec3 getEnvColor(vec3 fragPos, vec3 fragNormal) {
     vec3 I = normalize(fragPos - uViewPos);
     vec3 R = reflect(I, fragNormal);
     return texture(u_environmentMap, R).rgb;
+}
+
+vec3 getEnvColor_test(vec3 fragPos, vec3 fragNormal) {
+    vec3 I = normalize(fragPos - uViewPos);
+    vec3 R = reflect(I, fragNormal);
+
+    Segment ray;
+    ray.m_pos = fragPos;
+    ray.m_rel = R * 100.0;
+
+    AABB aabb;
+    aabb.m_min = vec3(-10.0, -10.0, -10.0);
+    aabb.m_max = vec3(10.0, 10.0, 10.0);
+
+    vec4 result = interdect_seg_aabb(ray, aabb);
+    vec3 sampleray = result.xyz - vec3(6.0, 2.0, -5.0);
+
+    return texture(u_environmentMap, sampleray).rgb;
 }
 
 bool iserr(float v) {
