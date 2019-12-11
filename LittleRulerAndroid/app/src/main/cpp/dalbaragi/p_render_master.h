@@ -74,6 +74,12 @@ namespace dal {
 
         ICamera* replaceMainCamera(ICamera* camera);
 
+    private:
+        void render_onShadowmaps(void);
+        void render_onWater(entt::registry& reg);
+        void render_onCubemap(void);
+        void render_onFbuf(void);
+
     };
 
 }

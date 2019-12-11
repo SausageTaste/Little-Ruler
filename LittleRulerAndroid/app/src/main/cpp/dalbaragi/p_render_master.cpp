@@ -10,12 +10,15 @@
 #include "s_logger_god.h"
 
 
+#define DAL_RENDER_WATER false
+
+
 using namespace fmt::literals;
 
 
 namespace {
 
-	constexpr unsigned int MAX_SCREEN_RES = 720;
+    constexpr unsigned int MAX_SCREEN_RES = 720;
 
 #ifdef _WIN32
     void GLAPIENTRY glDebugCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam) {
@@ -330,7 +333,7 @@ namespace dal {
         {
             this->m_dlight1.m_color = { 10.0f, 4.f, 4.f };
             this->m_dlight1.setDirectin(0.26373626373626374f, -0.30726256983240224f, 1.f);
-            
+
             this->m_slight1.setColor(5.f, 5.f, 5.f);
             this->m_slight1.setPos(-3.f, 0.f, 0.f);
             this->m_slight1.setDirec(-1, -1, 0);
@@ -403,53 +406,102 @@ namespace dal {
     }
 
     void RenderMaster::render(entt::registry& reg) {
-        // Shadow map
+        this->render_onShadowmaps();
+#if DAL_RENDER_WATER
+        this->render_onWater(reg);
+#endif
+        this->render_onCubemap();
+        this->render_onFbuf();
+
+        // Render framebuffer to quad 
         {
-#ifdef _WIN32
-            glEnable(GL_DEPTH_CLAMP);
-#endif
-
-            // Dlight
-            {
-                this->m_dlight1.clearDepthBuffer();
-
-                {
-                    auto& uniloc = this->m_shader.useDepthMp();
-                    this->m_dlight1.startRenderShadowmap(uniloc.m_geometry);
-                    this->m_scene.renderDepthGeneral(uniloc);
-                }
-
-                {
-                    auto& uniloc = this->m_shader.useDepthAnime();
-                    this->m_dlight1.startRenderShadowmap(uniloc.m_geometry);
-                    this->m_scene.renderDepthAnimated(uniloc);
-                }
-
-                m_dlight1.finishRenderShadowmap();
-            }
-
-            // Slight
-            {
-                this->m_slight1.clearDepthBuffer();
-
-                {
-                    auto& uniloc = this->m_shader.useDepthMp();
-                    this->m_slight1.startRenderShadowmap(uniloc.m_geometry);
-                    this->m_scene.renderDepthGeneral(uniloc);
-                }
-                
-                {
-                    auto& uniloc = this->m_shader.useDepthAnime();
-                    this->m_slight1.startRenderShadowmap(uniloc.m_geometry);
-                    this->m_scene.renderDepthAnimated(uniloc);
-                }
-
-                this->m_slight1.finishRenderShadowmap();
-            }
-#ifdef _WIN32
-            glDisable(GL_DEPTH_CLAMP);
-#endif
+            glBindFramebuffer(GL_FRAMEBUFFER, 0);
+            glViewport(0, 0, this->m_winWidth, this->m_winHeight);
+            auto& uniloc = this->m_shader.useFScreen();
+            this->m_fbuffer.renderOnScreen(uniloc);
         }
+    }
+
+    void RenderMaster::resizeRenderScale(const float v) {
+        this->m_fbuffer.setRenderScale(v);
+        this->m_fbuffer.resizeFbuffer(this->m_winWidth, this->m_winHeight);
+    }
+
+    void RenderMaster::onWinResize(const unsigned int width, const unsigned int height) {
+        this->m_winWidth = width;
+        this->m_winHeight = height;
+
+        float radio = static_cast<float>(width) / static_cast<float>(height);
+        this->m_projectMat = glm::perspective(glm::radians(90.0f), radio, 0.01f, this->m_farPlaneDistance);
+
+        const auto shorter = this->m_winWidth < this->m_winHeight ? this->m_winWidth : this->m_winHeight;
+        if ( shorter > MAX_SCREEN_RES ) {
+            auto renderScale = static_cast<float>(MAX_SCREEN_RES) / static_cast<float>(shorter);
+            this->m_fbuffer.setRenderScale(renderScale);
+        }
+
+        this->m_fbuffer.resizeFbuffer(width, height);
+    }
+
+    ICamera* RenderMaster::replaceMainCamera(ICamera* camera) {
+        auto tmp = this->m_mainCamera;
+        this->m_mainCamera = camera;
+        return tmp;
+    }
+
+    // Private
+
+    void RenderMaster::render_onShadowmaps(void) {
+
+#ifdef _WIN32
+        glEnable(GL_DEPTH_CLAMP);
+#endif
+
+        // Dlight
+        {
+            this->m_dlight1.clearDepthBuffer();
+
+            {
+                auto& uniloc = this->m_shader.useDepthMp();
+                this->m_dlight1.startRenderShadowmap(uniloc.m_geometry);
+                this->m_scene.renderDepthGeneral(uniloc);
+            }
+
+            {
+                auto& uniloc = this->m_shader.useDepthAnime();
+                this->m_dlight1.startRenderShadowmap(uniloc.m_geometry);
+                this->m_scene.renderDepthAnimated(uniloc);
+            }
+
+            m_dlight1.finishRenderShadowmap();
+        }
+
+        // Slight
+        {
+            this->m_slight1.clearDepthBuffer();
+
+            {
+                auto& uniloc = this->m_shader.useDepthMp();
+                this->m_slight1.startRenderShadowmap(uniloc.m_geometry);
+                this->m_scene.renderDepthGeneral(uniloc);
+            }
+
+            {
+                auto& uniloc = this->m_shader.useDepthAnime();
+                this->m_slight1.startRenderShadowmap(uniloc.m_geometry);
+                this->m_scene.renderDepthAnimated(uniloc);
+            }
+
+            this->m_slight1.finishRenderShadowmap();
+        }
+
+#ifdef _WIN32
+        glDisable(GL_DEPTH_CLAMP);
+#endif
+
+    }
+
+    void RenderMaster::render_onWater(entt::registry& reg) {
 
 #ifdef _WIN32
         glEnable(GL_CLIP_DISTANCE0);
@@ -507,92 +559,94 @@ namespace dal {
         glDisable(GL_CLIP_DISTANCE0);
 #endif
 
-        // Render on cube map
-        /*{
-            const auto lightPos = glm::vec3{ 6, 2, -5 };
-            std::vector<glm::mat4> viewMats = {
-                glm::lookAt(lightPos, lightPos + glm::vec3(1.0, 0.0, 0.0), glm::vec3(0.0, -1.0, 0.0)),
-                glm::lookAt(lightPos, lightPos + glm::vec3(-1.0, 0.0, 0.0), glm::vec3(0.0, -1.0, 0.0)),
-                glm::lookAt(lightPos, lightPos + glm::vec3(0.0, 1.0, 0.0), glm::vec3(0.0, 0.0, 1.0)),
-                glm::lookAt(lightPos, lightPos + glm::vec3(0.0, -1.0, 0.0), glm::vec3(0.0, 0.0, -1.0)),
-                glm::lookAt(lightPos, lightPos + glm::vec3(0.0, 0.0, 1.0), glm::vec3(0.0, -1.0, 0.0)),
-                glm::lookAt(lightPos, lightPos + glm::vec3(0.0, 0.0, -1.0), glm::vec3(0.0, -1.0, 0.0))
-            };
-            const auto projMat = glm::perspective(glm::radians(90.f), 1.f, 0.01f, 1000.f);
+    }
 
-            g_cubemap.bindFbuf();
-            g_cubemap.clearFaces();
+    void RenderMaster::render_onCubemap(void) {
+        const auto lightPos = glm::vec3{ 6, 2, -5 };
+        std::vector<glm::mat4> viewMats = {
+            glm::lookAt(lightPos, lightPos + glm::vec3(1.0, 0.0, 0.0), glm::vec3(0.0, -1.0, 0.0)),
+            glm::lookAt(lightPos, lightPos + glm::vec3(-1.0, 0.0, 0.0), glm::vec3(0.0, -1.0, 0.0)),
+            glm::lookAt(lightPos, lightPos + glm::vec3(0.0, 1.0, 0.0), glm::vec3(0.0, 0.0, 1.0)),
+            glm::lookAt(lightPos, lightPos + glm::vec3(0.0, -1.0, 0.0), glm::vec3(0.0, 0.0, -1.0)),
+            glm::lookAt(lightPos, lightPos + glm::vec3(0.0, 0.0, 1.0), glm::vec3(0.0, -1.0, 0.0)),
+            glm::lookAt(lightPos, lightPos + glm::vec3(0.0, 0.0, -1.0), glm::vec3(0.0, -1.0, 0.0))
+        };
+        const auto projMat = glm::perspective(glm::radians(90.f), 1.f, 0.01f, 1000.f);
 
-            {
-                const auto& uniloc = this->m_shader.useSkybox();
+        g_cubemap.bindFbuf();
+        g_cubemap.clearFaces();
 
-                uniloc.m_geometry.projectMat(projMat);
-                uniloc.fogColor(this->m_skyColor);
+        {
+            const auto& uniloc = this->m_shader.useSkybox();
 
-                for ( unsigned i = 0; i < 6; ++i ) {
-                    g_cubemap.readyFace(i);
-                    uniloc.m_geometry.viewMat(viewMats[i]);
-                    g_skyRenderer.render(uniloc, *this->m_skyboxTex);
-                }
+            uniloc.m_geometry.projectMat(projMat);
+            uniloc.fogColor(this->m_skyColor);
+
+            for ( unsigned i = 0; i < 6; ++i ) {
+                g_cubemap.readyFace(i);
+                uniloc.m_geometry.viewMat(viewMats[i]);
+                g_skyRenderer.render(uniloc, *this->m_skyboxTex);
+            }
+        }
+
+        {
+            auto& uniloc = this->m_shader.useGeneral();
+
+            uniloc.m_planeClip.flagDoClip(true);
+            uniloc.m_lightedMesh.projectMat(projMat);
+            uniloc.m_lightedMesh.baseAmbient(this->m_baseAmbientColor);
+            uniloc.m_lightedMesh.fogMaxPoint(this->m_farPlaneDistance);
+            uniloc.m_lightedMesh.fogColor(this->m_skyColor);
+
+            if ( this->m_flagDrawDlight1 ) {
+                this->m_dlight1.sendUniform(uniloc.m_lightedMesh.u_dlights[0]);
+                uniloc.m_lightedMesh.dlightCount(1);
+            }
+            else {
+                uniloc.m_lightedMesh.dlightCount(0);
             }
 
-            {
-                auto& uniloc = this->m_shader.useGeneral();
+            this->m_slight1.sendUniform(uniloc.m_lightedMesh.u_slights[0]);
+            uniloc.m_lightedMesh.slightCount(1);
 
-                uniloc.m_planeClip.flagDoClip(true);
-                uniloc.m_lightedMesh.projectMat(projMat);
-                uniloc.m_lightedMesh.baseAmbient(this->m_baseAmbientColor);
-                uniloc.m_lightedMesh.fogMaxPoint(this->m_farPlaneDistance);
-                uniloc.m_lightedMesh.fogColor(this->m_skyColor);
+            for ( unsigned i = 0; i < 6; ++i ) {
+                g_cubemap.readyFace(i);
+                uniloc.m_lightedMesh.viewMat(viewMats[i]);
+                this->m_scene.renderGeneral(uniloc);
+            }
+        }
 
-                if ( this->m_flagDrawDlight1 ) {
-                    this->m_dlight1.sendUniform(uniloc.m_lightedMesh.u_dlights[0]);
-                    uniloc.m_lightedMesh.dlightCount(1);
-                }
-                else {
-                    uniloc.m_lightedMesh.dlightCount(0);
-                }
+        {
+            auto& uniloc = this->m_shader.useAnimate();
 
-                this->m_slight1.sendUniform(uniloc.m_lightedMesh.u_slights[0]);
-                uniloc.m_lightedMesh.slightCount(1);
+            uniloc.m_planeClip.flagDoClip(true);
+            uniloc.m_lightedMesh.projectMat(glm::perspective(glm::radians(90.f), 1.f, 0.01f, 1000.f));
+            uniloc.m_lightedMesh.baseAmbient(this->m_baseAmbientColor);
+            uniloc.m_lightedMesh.fogMaxPoint(this->m_farPlaneDistance);
+            uniloc.m_lightedMesh.fogColor(this->m_skyColor);
 
-                for ( unsigned i = 0; i < 6; ++i ) {
-                    g_cubemap.readyFace(i);
-                    uniloc.m_lightedMesh.viewMat(viewMats[i]);
-                    this->m_scene.renderGeneral(uniloc);
-                }
+            if ( this->m_flagDrawDlight1 ) {
+                this->m_dlight1.sendUniform(uniloc.m_lightedMesh.u_dlights[0]);
+                uniloc.m_lightedMesh.dlightCount(1);
+            }
+            else {
+                uniloc.m_lightedMesh.dlightCount(0);
             }
 
-            {
-                auto& uniloc = this->m_shader.useAnimate();
+            this->m_slight1.sendUniform(uniloc.m_lightedMesh.u_slights[0]);
+            uniloc.m_lightedMesh.slightCount(1);
 
-                uniloc.m_planeClip.flagDoClip(true);
-                uniloc.m_lightedMesh.projectMat(glm::perspective(glm::radians(90.f), 1.f, 0.01f, 1000.f));
-                uniloc.m_lightedMesh.baseAmbient(this->m_baseAmbientColor);
-                uniloc.m_lightedMesh.fogMaxPoint(this->m_farPlaneDistance);
-                uniloc.m_lightedMesh.fogColor(this->m_skyColor);
-
-                if ( this->m_flagDrawDlight1 ) {
-                    this->m_dlight1.sendUniform(uniloc.m_lightedMesh.u_dlights[0]);
-                    uniloc.m_lightedMesh.dlightCount(1);
-                }
-                else {
-                    uniloc.m_lightedMesh.dlightCount(0);
-                }
-
-                this->m_slight1.sendUniform(uniloc.m_lightedMesh.u_slights[0]);
-                uniloc.m_lightedMesh.slightCount(1);
-
-                for ( unsigned i = 0; i < 6; ++i ) {
-                    g_cubemap.readyFace(i);
-                    uniloc.m_lightedMesh.viewMat(viewMats[i]);
-                    this->m_scene.renderAnimate(uniloc);
-                }
+            for ( unsigned i = 0; i < 6; ++i ) {
+                g_cubemap.readyFace(i);
+                uniloc.m_lightedMesh.viewMat(viewMats[i]);
+                this->m_scene.renderAnimate(uniloc);
             }
+        }
 
-            g_cubemap.unbindFbuf(this->m_winWidth, this->m_winHeight);
-        }*/
+        g_cubemap.unbindFbuf(this->m_winWidth, this->m_winHeight);
+    }
 
+    void RenderMaster::render_onFbuf(void) {
         this->m_fbuffer.clearAndstartRenderOn();
 
         // Render to framebuffer 
@@ -636,6 +690,7 @@ namespace dal {
         }
 
         // Render water to framebuffer
+#if DAL_RENDER_WATER
         {
             auto& uniloc = this->m_shader.useWaterry();
 
@@ -659,6 +714,7 @@ namespace dal {
 
             this->m_scene.renderWater(uniloc);
         }
+#endif
 
         // Skybox
         {
@@ -671,42 +727,6 @@ namespace dal {
 
             g_skyRenderer.render(uniloc, *this->m_skyboxTex);
         }
-
-        // Render framebuffer to quad 
-        {
-            glBindFramebuffer(GL_FRAMEBUFFER, 0);
-            glViewport(0, 0, this->m_winWidth, this->m_winHeight);
-
-            auto& uniloc = this->m_shader.useFScreen();
-            this->m_fbuffer.renderOnScreen(uniloc);
-        }
-    }
-
-    void RenderMaster::resizeRenderScale(const float v) {
-        this->m_fbuffer.setRenderScale(v);
-        this->m_fbuffer.resizeFbuffer(this->m_winWidth, this->m_winHeight);
-    }
-
-    void RenderMaster::onWinResize(const unsigned int width, const unsigned int height) {
-        this->m_winWidth = width;
-        this->m_winHeight = height;
-
-        float radio = static_cast<float>(width) / static_cast<float>(height);
-        this->m_projectMat = glm::perspective(glm::radians(90.0f), radio, 0.01f, this->m_farPlaneDistance);
-
-        const auto shorter = this->m_winWidth < this->m_winHeight ? this->m_winWidth : this->m_winHeight;
-        if ( shorter > MAX_SCREEN_RES ) {
-            auto renderScale = static_cast<float>(MAX_SCREEN_RES) / static_cast<float>(shorter);
-            this->m_fbuffer.setRenderScale(renderScale);
-        }
-
-        this->m_fbuffer.resizeFbuffer(width, height);
-    }
-
-    ICamera* RenderMaster::replaceMainCamera(ICamera* camera) {
-        auto tmp = this->m_mainCamera;
-        this->m_mainCamera = camera;
-        return tmp;
     }
 
 }
