@@ -476,6 +476,21 @@ namespace dal {
         }
     }
 
+    void SceneGraph::render_animated(const UniRender_Animated& uniloc) {
+        for ( auto& map : this->m_mapChunks2 ) {
+            map.render_animated(uniloc);
+        }
+
+        const auto viewAnimated = this->m_entities.view<cpnt::Transform, cpnt::AnimatedModel>();
+        for ( const auto entity : viewAnimated ) {
+            auto& cpntTrans = viewAnimated.get<cpnt::Transform>(entity);
+            auto& cpntModel = viewAnimated.get<cpnt::AnimatedModel>(entity);
+
+            uniloc.modelMat(cpntTrans.getMat());
+            cpntModel.m_model->render(uniloc, cpntModel.m_animState.getTransformArray());
+        }
+    }
+
 
     void SceneGraph::renderOnWaterGeneral(const UnilocGeneral& uniloc, const ICamera& cam, entt::registry& reg) {
         for ( auto& map : this->m_mapChunks2 ) {

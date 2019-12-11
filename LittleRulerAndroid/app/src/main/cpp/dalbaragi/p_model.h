@@ -100,6 +100,9 @@ namespace dal {
 
         void render(const UniInterfLightedMesh& unilocLighted, const UniInterfLightmaps& unilocLightmaps, const UniInterfAnime& unilocAnime,
             const glm::mat4 modelMat, const JointTransformArray& transformArr) const;
+        void render(const UniRender_Animated uniloc, const JointTransformArray& transformArr) const;
+
+
         void renderDepth(const UniInterfGeometry& unilocGeometry, const UniInterfAnime& unilocAnime, const glm::mat4 modelMat,
             const JointTransformArray& transformArr) const;
 

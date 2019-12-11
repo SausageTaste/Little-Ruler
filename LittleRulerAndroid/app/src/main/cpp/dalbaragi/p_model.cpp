@@ -151,6 +151,24 @@ namespace dal {
         }
     }
 
+    void ModelAnimated::render(const UniRender_Animated uniloc, const JointTransformArray& transformArr) const {
+        if ( !this->isReady() ) {
+            return;
+        }
+
+        transformArr.sendUniform(uniloc.i_skeleton);
+
+        for ( auto& unit : this->m_renderUnits ) {
+            if ( !unit.m_mesh.isReady() ) {
+                continue;
+            }
+
+            unit.m_material.sendUniform(uniloc.i_lighting);
+            unit.m_material.sendUniform(uniloc.i_lightmap);
+            unit.m_mesh.draw();
+        }
+    }
+
     void ModelAnimated::renderDepth(const UniInterfGeometry& unilocGeometry, const UniInterfAnime& unilocAnime, const glm::mat4 modelMat,
         const JointTransformArray& transformArr) const {
         if ( !this->isReady() ) return;

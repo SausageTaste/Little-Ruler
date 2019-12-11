@@ -187,6 +187,12 @@ namespace dal {
         }
     }
 
+    void JointTransformArray::sendUniform(const UniInterf_Skeleton& uniloc) const {
+        for ( unsigned i = 0; i < this->m_array.size(); i++ ) {
+            uniloc.jointTrans(i, this->m_array[i]);
+        }
+    }
+
 }
 
 

@@ -617,17 +617,22 @@ namespace dal {
 
         // Render to framebuffer animated
         {
-            auto& uniloc = this->m_shader.useAnimate();
+            auto& uniloc = this->m_shader.useAnimated();
 
-            uniloc.m_lightedMesh.projectMat(this->m_projectMat);
-            uniloc.m_planeClip.flagDoClip(false);
-            uniloc.m_lightedMesh.viewMat(this->m_mainCamera->getViewMat());
-            uniloc.m_lightedMesh.viewPos(this->m_mainCamera->m_pos);
-            uniloc.m_lightedMesh.baseAmbient(this->m_baseAmbientColor);
-            uniloc.m_lightedMesh.fogMaxPoint(this->m_farPlaneDistance);
-            uniloc.m_lightedMesh.fogColor(this->m_skyColor);
+            uniloc.projMat(this->m_projectMat);
+            uniloc.viewMat(this->m_mainCamera->getViewMat());
+            uniloc.viewPos(this->m_mainCamera->m_pos);
+            uniloc.i_lighting.baseAmbient(this->m_baseAmbientColor);
 
-            this->m_scene.renderAnimate(uniloc);
+            if ( this->m_flagDrawDlight1 ) {
+                this->m_dlight1.sendUniform(0, uniloc.i_lighting);
+                uniloc.i_lighting.dlightCount(1);
+            }
+            else {
+                uniloc.i_lighting.dlightCount(0);
+            }
+
+            this->m_scene.render_animated(uniloc);
         }
 
         // Render water to framebuffer

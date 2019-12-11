@@ -458,6 +458,10 @@ namespace dal {
         }
     }
 
+    void MapChunk2::render_animated(const UniRender_Animated& uniloc) {
+
+    }
+
 
     int MapChunk2::sendLightUniforms(const UniInterfLightedMesh& uniloc, int startIndex) const {
         if ( startIndex >= 3 )
