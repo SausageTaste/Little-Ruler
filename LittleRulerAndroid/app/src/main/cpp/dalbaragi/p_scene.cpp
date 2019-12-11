@@ -482,12 +482,6 @@ namespace dal {
         }
     }
 
-    void SceneGraph::renderOnWaterSkybox(const UnilocSkybox& uniloc, const Skybox& skybox, const ICamera& cam) {
-        for ( auto& map : this->m_mapChunks2 ) {
-            map.renderOnWaterSkybox(uniloc, skybox, cam);
-        }
-    }
-
 
     void SceneGraph::applyCollision(const ICollider& inCol, cpnt::Transform& inTrans) {
         for ( auto& map : this->m_mapChunks2 ) {

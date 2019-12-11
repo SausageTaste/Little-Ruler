@@ -25,6 +25,29 @@ namespace dal {
 
     };
 
+}
+
+
+namespace dal {
+
+    class UniInterf_Envmap {
+
+    private:
+        SamplerInterf u_envmap;
+
+    public:
+        void set(const GLuint shader);
+
+        auto& envmap(void) const {
+            return this->u_envmap;
+        }
+
+    };
+
+}
+
+
+namespace dal {
 
     class UniInterfLightmaps {
 
@@ -174,8 +197,6 @@ namespace dal {
         GLint u_fogMaxPointInvSqr;
         GLint u_fogColor;
 
-        SamplerInterf u_environmentMap;
-
     public:
         SpotLight u_slights[k_maxSlight];
         DirecLight u_dlights[k_maxDlight];
@@ -202,8 +223,6 @@ namespace dal {
 
         void fogColor(const float x, const float y, const float z) const;
         void fogColor(const glm::vec3& v) const;
-
-        const SamplerInterf& getEnvironmentMap(void) const;
 
     };
 
@@ -241,6 +260,7 @@ namespace dal {
         UniInterfLightedMesh m_lightedMesh;
         UniInterfPlaneClip m_planeClip;
         UniInterfLightmaps m_lightmaps;
+        UniInterf_Envmap i_envmap;
 
     public:
         UnilocGeneral(const GLuint shader);

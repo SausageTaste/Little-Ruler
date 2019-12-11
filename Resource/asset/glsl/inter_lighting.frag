@@ -1,6 +1,3 @@
-#include <module_geometry.glsl>
-
-
 struct PointLight {
     vec3 m_pos;
     vec3 m_color;
@@ -43,8 +40,6 @@ uniform SpotLight  u_slights[3];
 uniform sampler2D  u_slightDepthMap[3];
 uniform highp mat4 u_slightProjViewMat[3];
 
-uniform samplerCube u_environmentMap;
-
 
 const float PI = 3.14159265;
 const float EPSILON = 0.0001;
@@ -63,30 +58,6 @@ float _getDitherValue(void) {
 
     int index = 4 * i + j;
     return ditherPattern[index];
-}
-
-vec3 getEnvColor(vec3 fragPos, vec3 fragNormal) {
-    vec3 I = normalize(fragPos - uViewPos);
-    vec3 R = reflect(I, fragNormal);
-    return texture(u_environmentMap, R).rgb;
-}
-
-vec3 getEnvColor_test(vec3 fragPos, vec3 fragNormal) {
-    vec3 I = normalize(fragPos - uViewPos);
-    vec3 R = reflect(I, fragNormal);
-
-    Segment ray;
-    ray.m_pos = fragPos;
-    ray.m_rel = R * 100.0;
-
-    AABB aabb;
-    aabb.m_min = vec3(-10.0, -10.0, -10.0);
-    aabb.m_max = vec3(10.0, 10.0, 10.0);
-
-    vec4 result = interdect_seg_aabb(ray, aabb);
-    vec3 sampleray = result.xyz - vec3(6.0, 2.0, -5.0);
-
-    return texture(u_environmentMap, sampleray).rgb;
 }
 
 bool iserr(float v) {

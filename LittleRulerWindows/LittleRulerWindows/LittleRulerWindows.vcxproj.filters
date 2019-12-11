@@ -94,9 +94,6 @@
     <ClCompile Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\p_model.cpp">
       <Filter>Presentation</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\p_skybox.cpp">
-      <Filter>Presentation</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\u_math.cpp">
       <Filter>Utility</Filter>
     </ClCompile>
@@ -252,9 +249,6 @@
       <Filter>Control</Filter>
     </ClInclude>
     <ClInclude Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\p_model.h">
-      <Filter>Presentation</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\p_skybox.h">
       <Filter>Presentation</Filter>
     </ClInclude>
     <ClInclude Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\u_math.h">

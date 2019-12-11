@@ -54,8 +54,5 @@ void main(void) {
     fColor.rgb = pbrL;
     fColor.a = texColor.a;
 
-    vec3 envcolor = getEnvColor_test(vFragPos, fragNormal);
-    fColor.rgb = mix(envcolor, fColor.rgb, roughness);
-
     fColor.rgb = calcFogMixedColor(fColor.rgb, vFragPos);
 }

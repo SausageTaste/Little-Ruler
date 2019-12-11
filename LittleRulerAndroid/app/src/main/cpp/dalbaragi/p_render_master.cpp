@@ -28,6 +28,82 @@ namespace {
 
 namespace {
 
+    class SkyboxRenderer {
+
+    private:
+        GLuint m_vao = 0, m_vbo = 0;
+
+    public:
+        void init(void) {
+            const float skyboxVertices[] = {
+                // positions
+                -1.0f,  1.0f, -1.0f,
+                -1.0f, -1.0f, -1.0f,
+                 1.0f, -1.0f, -1.0f,
+                 1.0f, -1.0f, -1.0f,
+                 1.0f,  1.0f, -1.0f,
+                -1.0f,  1.0f, -1.0f,
+
+                -1.0f, -1.0f,  1.0f,
+                -1.0f, -1.0f, -1.0f,
+                -1.0f,  1.0f, -1.0f,
+                -1.0f,  1.0f, -1.0f,
+                -1.0f,  1.0f,  1.0f,
+                -1.0f, -1.0f,  1.0f,
+
+                 1.0f, -1.0f, -1.0f,
+                 1.0f, -1.0f,  1.0f,
+                 1.0f,  1.0f,  1.0f,
+                 1.0f,  1.0f,  1.0f,
+                 1.0f,  1.0f, -1.0f,
+                 1.0f, -1.0f, -1.0f,
+
+                -1.0f, -1.0f,  1.0f,
+                -1.0f,  1.0f,  1.0f,
+                 1.0f,  1.0f,  1.0f,
+                 1.0f,  1.0f,  1.0f,
+                 1.0f, -1.0f,  1.0f,
+                -1.0f, -1.0f,  1.0f,
+
+                -1.0f,  1.0f, -1.0f,
+                 1.0f,  1.0f, -1.0f,
+                 1.0f,  1.0f,  1.0f,
+                 1.0f,  1.0f,  1.0f,
+                -1.0f,  1.0f,  1.0f,
+                -1.0f,  1.0f, -1.0f,
+
+                -1.0f, -1.0f, -1.0f,
+                -1.0f, -1.0f,  1.0f,
+                 1.0f, -1.0f, -1.0f,
+                 1.0f, -1.0f, -1.0f,
+                -1.0f, -1.0f,  1.0f,
+                 1.0f, -1.0f,  1.0f
+            };
+
+            glGenVertexArrays(1, &this->m_vao);
+            glGenBuffers(1, &this->m_vbo);
+            glBindVertexArray(this->m_vao);
+            glBindBuffer(GL_ARRAY_BUFFER, this->m_vbo);
+            glBufferData(GL_ARRAY_BUFFER, sizeof(skyboxVertices), &skyboxVertices, GL_STATIC_DRAW);
+            glEnableVertexAttribArray(0);
+            glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), nullptr);
+        }
+
+        void render(const dal::UnilocSkybox& uniloc, const dal::CubeMap& cubemap) const {
+            glDepthMask(GL_FALSE);
+            glDepthFunc(GL_LEQUAL);
+
+            glBindVertexArray(this->m_vao);
+            cubemap.sendUniform(uniloc.getSkyboxTexLoc());
+            glDrawArrays(GL_TRIANGLES, 0, 36);
+
+            glDepthMask(GL_TRUE);
+            glDepthFunc(GL_LESS);
+        }
+
+    } g_skyRenderer;
+
+
     class CubeMapFbuf {
 
     private:
@@ -280,8 +356,7 @@ namespace dal {
                 "asset::plane_blue_ft.tga",
                 "asset::plane_blue_bk.tga",
             };
-            auto tex = resMas.orderCubeMap(cubeMapImages, true);
-            this->m_skybox.setCubeMap(tex);
+            this->m_skyboxTex = resMas.orderCubeMap(cubeMapImages, true);
         }
 
         // Similar to on resize method
@@ -296,12 +371,16 @@ namespace dal {
             }
         }
 
+        // Init
+        {
+            g_cubemap.init();
+            g_skyRenderer.init();
+        }
+
         // Misc
         {
             const auto renderer = reinterpret_cast<const char*>(glGetString(GL_RENDERER));
             dalVerbose("Graphics device name: {}"_format(renderer));
-
-            g_cubemap.init();
         }
     }
 
@@ -386,8 +465,6 @@ namespace dal {
             uniloc.m_lightedMesh.fogMaxPoint(this->m_farPlaneDistance);
             uniloc.m_lightedMesh.fogColor(this->m_skyColor);
 
-            this->m_skybox.sendUniform(uniloc.m_lightedMesh);
-
             if ( this->m_flagDrawDlight1 ) {
                 this->m_dlight1.sendUniform(uniloc.m_lightedMesh.u_dlights[0]);
                 uniloc.m_lightedMesh.dlightCount(1);
@@ -411,8 +488,6 @@ namespace dal {
             uniloc.m_lightedMesh.baseAmbient(this->m_baseAmbientColor);
             uniloc.m_lightedMesh.fogMaxPoint(this->m_farPlaneDistance);
             uniloc.m_lightedMesh.fogColor(this->m_skyColor);
-
-            this->m_skybox.sendUniform(uniloc.m_lightedMesh);
 
             if ( this->m_flagDrawDlight1 ) {
                 this->m_dlight1.sendUniform(uniloc.m_lightedMesh.u_dlights[0]);
@@ -457,7 +532,7 @@ namespace dal {
                 for ( unsigned i = 0; i < 6; ++i ) {
                     g_cubemap.readyFace(i);
                     uniloc.m_geometry.viewMat(viewMats[i]);
-                    this->m_skybox.render(uniloc);
+                    g_skyRenderer.render(uniloc, *this->m_skyboxTex);
                 }
             }
 
@@ -469,8 +544,6 @@ namespace dal {
                 uniloc.m_lightedMesh.baseAmbient(this->m_baseAmbientColor);
                 uniloc.m_lightedMesh.fogMaxPoint(this->m_farPlaneDistance);
                 uniloc.m_lightedMesh.fogColor(this->m_skyColor);
-
-                this->m_skybox.sendUniform(uniloc.m_lightedMesh);
 
                 if ( this->m_flagDrawDlight1 ) {
                     this->m_dlight1.sendUniform(uniloc.m_lightedMesh.u_dlights[0]);
@@ -499,8 +572,6 @@ namespace dal {
                 uniloc.m_lightedMesh.fogMaxPoint(this->m_farPlaneDistance);
                 uniloc.m_lightedMesh.fogColor(this->m_skyColor);
 
-                this->m_skybox.sendUniform(uniloc.m_lightedMesh);
-
                 if ( this->m_flagDrawDlight1 ) {
                     this->m_dlight1.sendUniform(uniloc.m_lightedMesh.u_dlights[0]);
                     uniloc.m_lightedMesh.dlightCount(1);
@@ -522,13 +593,6 @@ namespace dal {
             g_cubemap.unbindFbuf(this->m_winWidth, this->m_winHeight);
         }
 
-        // Render skybox on water
-        {
-            auto& uniloc = this->m_shader.useSkybox();
-            uniloc.m_geometry.projectMat(this->m_projectMat);
-            this->m_scene.renderOnWaterSkybox(uniloc, this->m_skybox, *this->m_mainCamera);
-        }
-
         this->m_fbuffer.clearAndstartRenderOn();
 
         // Render to framebuffer 
@@ -542,9 +606,6 @@ namespace dal {
             uniloc.m_lightedMesh.baseAmbient(this->m_baseAmbientColor);
             uniloc.m_lightedMesh.fogMaxPoint(this->m_farPlaneDistance);
             uniloc.m_lightedMesh.fogColor(this->m_skyColor);
-
-            //this->m_skybox.sendUniform(uniloc.m_lightedMesh);
-            g_cubemap.getCubemap()->sendUniform(uniloc.m_lightedMesh.getEnvironmentMap());
 
             this->m_scene.renderGeneral(uniloc);
         }
@@ -560,8 +621,6 @@ namespace dal {
             uniloc.m_lightedMesh.baseAmbient(this->m_baseAmbientColor);
             uniloc.m_lightedMesh.fogMaxPoint(this->m_farPlaneDistance);
             uniloc.m_lightedMesh.fogColor(this->m_skyColor);
-
-            this->m_skybox.sendUniform(uniloc.m_lightedMesh);
 
             this->m_scene.renderAnimate(uniloc);
         }
@@ -600,7 +659,7 @@ namespace dal {
             uniloc.m_geometry.viewMat(skyview);
             uniloc.fogColor(this->m_skyColor);
 
-            this->m_skybox.render(uniloc);
+            g_skyRenderer.render(uniloc, *this->m_skyboxTex);
         }
 
         // Render framebuffer to quad 

@@ -119,6 +119,15 @@ namespace dal {
 }
 
 
+namespace dal {
+
+    void UniInterf_Envmap::set(const GLuint shader) {
+        this->u_envmap.init(getUniloc(shader, "u_envmap"), -2, g_texUnitReg["u_envmap"]);
+    }
+
+}
+
+
 // UniInterfLightmaps
 namespace dal {
 
@@ -312,8 +321,6 @@ namespace dal {
         this->u_fogMaxPointInvSqr = glGetUniformLocation(shader, "u_fogMaxPointInvSqr");
         this->u_fogColor = glGetUniformLocation(shader, "u_fogColor");
 
-        this->u_environmentMap.init(getUniloc(shader, "u_environmentMap"), -2, g_texUnitReg["u_environmentMap"], false);
-
         for ( unsigned int i = 0; i < this->k_maxSlight; ++i ) {
             this->u_slights[i].init(shader, i);
         }
@@ -378,10 +385,6 @@ namespace dal {
         this->fogColor(v.x, v.y, v.z);
     }
 
-    const SamplerInterf& UniInterfLightedMesh::getEnvironmentMap(void) const {
-        return this->u_environmentMap;
-    }
-
 }
 
 
@@ -444,7 +447,7 @@ namespace dal {
         , m_planeClip(shader)
         , m_lightmaps(shader)
     {
-        
+        this->i_envmap.set(shader);
     }
 
 }

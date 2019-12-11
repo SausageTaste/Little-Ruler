@@ -60,7 +60,7 @@ namespace dal {
         float m_farPlaneDistance;
         glm::vec3 m_baseAmbientColor;
 
-        Skybox m_skybox;
+        std::shared_ptr<const CubeMap> m_skyboxTex;
 
     public:
         RenderMaster(SceneGraph& scene, ShaderMaster& shader, ResourceMaster& resMas,
