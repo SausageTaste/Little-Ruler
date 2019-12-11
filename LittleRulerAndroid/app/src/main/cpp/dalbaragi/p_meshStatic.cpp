@@ -377,6 +377,7 @@ namespace dal {
             this->m_diffuseMap->sendUniform(samplerInterf);
         }
     }
+
     void Material::sendUniform(const UniInterfLightedMesh& unilocLight, const UniInterfLightmaps& unilocLightmaps) const {
         this->sendUniform(unilocLight, unilocLightmaps.getDiffuseMapLoc());
 
@@ -393,6 +394,25 @@ namespace dal {
         else {
             unilocLightmaps.getMetallicMapLoc().setFlagHas(false);
         }
+    }
+
+    void Material::sendUniform(const UniInterf_Lighting& uniloc) const {
+        uniloc.roughness(this->m_roughness);
+        uniloc.metallic(this->m_metallic);
+    }
+
+    void Material::sendUniform(const UniInterf_Lightmap& uniloc) const {
+        this->m_diffuseMap->sendUniform(uniloc.diffuseMap());
+
+        if ( this->m_roughnessMap )
+            this->m_roughnessMap->sendUniform(uniloc.roughnessMap());
+        else
+            uniloc.roughnessMap().setFlagHas(false);
+
+        if ( this->m_metallicMap )
+            this->m_metallicMap->sendUniform(uniloc.metallicMap());
+        else
+            uniloc.metallicMap().setFlagHas(false);
     }
 
 }

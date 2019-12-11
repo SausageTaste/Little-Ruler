@@ -565,4 +565,11 @@ namespace dal {
         return this->m_skyboxUniloc;
     }
 
+
+    const UniRender_Static& ShaderMaster::useStatic(void) const {
+        setFor_generalRender();
+        this->m_static.use();
+        return this->m_staticUniloc;
+    }
+
 }

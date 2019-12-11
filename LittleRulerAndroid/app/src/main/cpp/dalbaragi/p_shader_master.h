@@ -65,6 +65,8 @@ namespace dal {
         const UnilocDepthAnime& useDepthAnime(void) const;
         const UnilocSkybox& useSkybox(void) const;
 
+        const UniRender_Static& useStatic(void) const;
+
     };
 
 }

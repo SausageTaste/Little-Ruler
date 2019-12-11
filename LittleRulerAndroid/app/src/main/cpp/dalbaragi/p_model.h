@@ -77,6 +77,7 @@ namespace dal {
         bool isReady(void) const;
 
         void render(const UniInterfLightedMesh& unilocLighted, const UniInterfLightmaps& unilocLightmaps, const glm::mat4& modelMat) const;
+        void render(const UniRender_Static& uniloc) const;
         void renderDepth(const UniInterfGeometry& unilocGeometry, const glm::mat4& modelMat) const;
 
     };

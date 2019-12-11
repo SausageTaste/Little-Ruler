@@ -100,6 +100,7 @@ namespace dal {
 
     public:
         void sendUniform(const UniInterfLightedMesh::PointLight& uniloc) const;
+        void sendUniform(unsigned index, const UniInterf_Lighting& uniloc) const;
 
     };
 

@@ -177,6 +177,16 @@ namespace dal {
     public:
         void set(const GLuint shader);
 
+        auto& diffuseMap(void) const {
+            return u_diffuseMap;
+        }
+        auto& roughnessMap(void) const {
+            return u_roughnessMap;
+        }
+        auto& metallicMap(void) const {
+            return u_metallicMap;
+        }
+
     };
 
 }
@@ -199,6 +209,23 @@ namespace dal {
 
     public:
         void set(const GLuint shader);
+
+        void projMat(const glm::mat4& mat) const {
+            sendMatrix(this->u_projMat, mat);
+        }
+        void viewMat(const glm::mat4& mat) const {
+            sendMatrix(this->u_viewMat, mat);
+        }
+        void modelMat(const glm::mat4& mat) const {
+            sendMatrix(this->u_modelMat, mat);
+        }
+
+        void viewPos(const float x, const float y, const float z) const {
+            glUniform3f(this->u_viewPos, x, y, z);
+        }
+        void viewPos(const glm::vec3& v) const {
+            this->viewPos(v.x, v.y, v.z);
+        }
 
     };
 

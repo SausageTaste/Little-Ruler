@@ -442,6 +442,23 @@ namespace dal {
         }
     }
 
+
+    void MapChunk2::render_static(const UniRender_Static& uniloc) {
+        dalAssert(this->m_plights.size() <= 3);
+        uniloc.i_lighting.plightCount(this->m_plights.size());
+        for ( size_t i = 0; i < this->m_plights.size(); ++i ) {
+            this->m_plights[i].sendUniform(i, uniloc.i_lighting);
+        }
+
+        for ( const auto& [model, actors] : this->m_staticActors ) {
+            for ( const auto& actor : actors ) {
+                uniloc.modelMat(actor.m_transform.getMat());
+                model->render(uniloc);
+            }
+        }
+    }
+
+
     int MapChunk2::sendLightUniforms(const UniInterfLightedMesh& uniloc, int startIndex) const {
         if ( startIndex >= 3 )
             dalAbort("Too many point lights.");

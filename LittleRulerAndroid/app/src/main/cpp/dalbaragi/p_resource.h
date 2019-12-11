@@ -55,6 +55,8 @@ namespace dal {
         void renderOnWaterGeneral(const UnilocGeneral& uniloc, const ICamera& cam, entt::registry& reg);
         void renderOnWaterAnimated(const UnilocAnimate& uniloc, const ICamera& cam, entt::registry& reg);
 
+        void render_static(const UniRender_Static& uniloc);
+
         int sendLightUniforms(const UniInterfLightedMesh& uniloc, int startIndex) const;
 
     };

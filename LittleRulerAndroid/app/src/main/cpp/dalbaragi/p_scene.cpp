@@ -470,6 +470,13 @@ namespace dal {
     }
 
 
+    void SceneGraph::render_static(const UniRender_Static& uniloc) {
+        for ( auto& map : this->m_mapChunks2 ) {
+            map.render_static(uniloc);
+        }
+    }
+
+
     void SceneGraph::renderOnWaterGeneral(const UnilocGeneral& uniloc, const ICamera& cam, entt::registry& reg) {
         for ( auto& map : this->m_mapChunks2 ) {
             map.renderOnWaterGeneral(uniloc, cam, reg);

@@ -94,6 +94,8 @@ namespace dal {
         void renderDepthAnimated(const UnilocDepthAnime& uniloc);
         void renderWater(const UnilocWaterry& uniloc);
 
+        void render_static(const UniRender_Static& uniloc);
+
         void renderOnWaterGeneral(const UnilocGeneral& uniloc, const ICamera& cam, entt::registry& reg);
         void renderOnWaterAnimated(const UnilocAnimate& uniloc, const ICamera& cam, entt::registry& reg);
 

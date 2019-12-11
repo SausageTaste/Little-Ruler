@@ -63,6 +63,23 @@ namespace dal {
         }
     }
 
+    void ModelStatic::render(const UniRender_Static& uniloc) const {
+        if ( !this->isReady() ) {
+            return;
+        }
+
+        for ( const auto& unit : this->m_renderUnits ) {
+            if ( !unit.m_mesh.isReady() ) {
+                continue;
+            }
+
+            unit.m_material.sendUniform(uniloc.i_lighting);
+            unit.m_material.sendUniform(uniloc.i_lightmap);
+
+            unit.m_mesh.draw();
+        }
+    }
+
     void ModelStatic::renderDepth(const UniInterfGeometry& unilocGeometry, const glm::mat4& modelMat) const {
         if ( !this->isReady() ) {
             return;

@@ -144,6 +144,11 @@ namespace dal {
         uniloc.pos(this->mPos);
     }
 
+    void PointLight::sendUniform(unsigned index, const UniInterf_Lighting& uniloc) const {
+        uniloc.plight_color(index, this->m_color);
+        uniloc.plight_pos(index, this->mPos);
+    }
+
 }
 
 
