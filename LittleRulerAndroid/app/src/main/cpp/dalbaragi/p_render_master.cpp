@@ -508,7 +508,7 @@ namespace dal {
 #endif
 
         // Render on cube map
-        {
+        /*{
             const auto lightPos = glm::vec3{ 6, 2, -5 };
             std::vector<glm::mat4> viewMats = {
                 glm::lookAt(lightPos, lightPos + glm::vec3(1.0, 0.0, 0.0), glm::vec3(0.0, -1.0, 0.0)),
@@ -591,7 +591,7 @@ namespace dal {
             }
 
             g_cubemap.unbindFbuf(this->m_winWidth, this->m_winHeight);
-        }
+        }*/
 
         this->m_fbuffer.clearAndstartRenderOn();
 
