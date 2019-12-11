@@ -107,6 +107,13 @@ namespace dal {
         this->m_shadowMap.sendUniform(uniloc.getDepthMap());
     }
 
+    void DirectionalLight::sendUniform(const unsigned index, const UniInterf_Lighting& uniloc) const {
+        uniloc.dlight_color(index, this->m_color);
+        uniloc.dlight_direc(index, this->m_direction);
+        uniloc.dlight_projViewMat(index, this->makeProjMat() * this->makeViewMat());
+        this->m_shadowMap.sendUniform(uniloc.dlight_shadowmap(index));
+    }
+
     void DirectionalLight::clearDepthBuffer(void) {
         this->m_shadowMap.clearBuffer();
     }

@@ -77,6 +77,7 @@ namespace dal {
         }
 
         void sendUniform(const UniInterfLightedMesh::DirecLight& uniloc) const;
+        void sendUniform(const unsigned index, const UniInterf_Lighting& uniloc) const;
 
         void clearDepthBuffer(void);
         void startRenderShadowmap(const UniInterfGeometry& uniloc);

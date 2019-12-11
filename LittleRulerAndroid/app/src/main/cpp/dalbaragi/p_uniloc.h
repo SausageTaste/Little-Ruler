@@ -87,6 +87,9 @@ namespace dal {
         void baseAmbient(const float x, const float y, const float z) const {
             glUniform3f(this->u_baseAmbient, x, y, z);
         }
+        void baseAmbient(const glm::vec3& v) const {
+            this->baseAmbient(v.x, v.y, v.z);
+        }
 
         void roughness(const float x) const {
             glUniform1f(this->u_roughness, x);
