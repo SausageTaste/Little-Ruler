@@ -509,7 +509,11 @@ namespace dal {
         , m_depthAnimeUniloc(m_depthAnime.get())
         , m_skybox(g_loader["skybox.vert"], g_loader["skybox.frag"])
         , m_skyboxUniloc(m_skybox.get())
+
+        , m_static(g_loader["r_static.vert"], g_loader["r_static.frag"])
     {
+        this->m_staticUniloc.set(this->m_static.get());
+
         g_loader.clear();
     }
 

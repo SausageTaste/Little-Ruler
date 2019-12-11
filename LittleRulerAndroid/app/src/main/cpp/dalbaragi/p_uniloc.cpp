@@ -36,14 +36,6 @@ namespace {
         return tmp;
     }
 
-    inline void sendMatrix(const GLint loc, const glm::mat4& mat) {
-        glUniformMatrix4fv(loc, 1, GL_FALSE, &mat[0][0]);
-    }
-
-    inline void sendBool(const GLint loc, const bool x) {
-        glUniform1i(loc, x ? 1 : 0);
-    }
-
 }
 
 
@@ -123,6 +115,56 @@ namespace dal {
 
     void UniInterf_Envmap::set(const GLuint shader) {
         this->u_envmap.init(getUniloc(shader, "u_envmap"), -2, g_texUnitReg["u_envmap"]);
+    }
+
+    void UniInterf_Lighting::set(const GLuint shader) {
+        this->u_baseAmbient = getUniloc(shader, "u_baseAmbient");
+
+        this->u_roughness = getUniloc(shader, "u_roughness");
+        this->u_metallic = getUniloc(shader, "u_metallic");
+
+        this->u_dlightCount = getUniloc(shader, "u_dlightCount");
+        this->u_plightCount = getUniloc(shader, "u_plightCount");
+        this->u_slightCount = getUniloc(shader, "u_slightCount");
+
+        this->u_plight_poses = getUniloc(shader, "u_plight_poses");
+        this->u_plight_colors = getUniloc(shader, "u_plight_colors");
+
+        this->u_dlight_direcs = getUniloc(shader, "u_dlight_direcs");
+        this->u_dlight_colors = getUniloc(shader, "u_dlight_colors");
+        this->u_dlight_projViewMat = getUniloc(shader, "u_dlight_projViewMat");
+        for ( unsigned i = 0; i < 3; ++i ) {
+            const auto id = fmt::format("u_dlight_shadowmap[{}]", i);
+            this->u_dlight_shadowmap[i].init(getUniloc(shader, id.c_str()), -2, g_texUnitReg[id]);
+        }
+
+        this->u_slight_poses = getUniloc(shader, "u_slight_poses");
+        this->u_slight_direcs = getUniloc(shader, "u_slight_direcs");
+        this->u_slight_colors = getUniloc(shader, "u_slight_colors");
+        this->u_slight_fadeStart = getUniloc(shader, "u_slight_fadeStart");
+        this->u_slight_fadeEnd = getUniloc(shader, "u_slight_fadeEnd");
+        this->u_slight_projViewMat = getUniloc(shader, "u_slight_projViewMat");
+        for ( unsigned i = 0; i < 3; ++i ) {
+            const auto id = fmt::format("u_slight_shadowmap[{}]", i);
+            u_slight_shadowmap[i].init(getUniloc(shader, id.c_str()), -2, g_texUnitReg[id]);
+        }
+    }
+
+    void UniInterf_Lightmap::set(const GLuint shader) {
+        this->u_diffuseMap.init(getUniloc(shader, "u_diffuseMap"), -2, g_texUnitReg["u_diffuseMap"]);
+        this->u_roughnessMap.init(getUniloc(shader, "u_roughnessMap"), getUniloc(shader, "u_hasRoughnessMap"), g_texUnitReg["u_roughnessMap"]);
+        this->u_metallicMap.init(getUniloc(shader, "u_metallicMap"), getUniloc(shader, "u_hasMetallicMap"), g_texUnitReg["u_metallicMap"]);
+    }
+
+    void UniRender_Static::set(const GLuint shader) {
+        this->i_lighting.set(shader);
+        this->i_lightmap.set(shader);
+
+        this->u_projMat = getUniloc(shader, "u_projMat");
+        this->u_viewMat = getUniloc(shader, "u_viewMat");
+        this->u_modelMat = getUniloc(shader, "u_modelMat");
+
+        this->u_viewPos = getUniloc(shader, "u_viewPos");
     }
 
 }

@@ -48,6 +48,11 @@ namespace dal {
         ShaderProgram m_skybox;
         UnilocSkybox m_skyboxUniloc;
 
+        //
+
+        ShaderProgram m_static;
+        UniRender_Static m_staticUniloc;
+
     public:
         ShaderMaster(void);
 

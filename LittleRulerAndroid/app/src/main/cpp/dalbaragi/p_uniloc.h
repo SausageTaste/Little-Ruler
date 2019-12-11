@@ -7,6 +7,15 @@
 
 namespace dal {
 
+    inline void sendMatrix(const GLint loc, const glm::mat4& mat) {
+        glUniformMatrix4fv(loc, 1, GL_FALSE, &mat[0][0]);
+    }
+
+    inline void sendBool(const GLint loc, const bool x) {
+        glUniform1i(loc, x ? 1 : 0);
+    }
+
+
     class SamplerInterf {
 
     private:
@@ -41,6 +50,155 @@ namespace dal {
         auto& envmap(void) const {
             return this->u_envmap;
         }
+
+    };
+
+    class UniInterf_Lighting {
+
+    private:
+        GLint u_baseAmbient = -1;
+
+        GLint u_roughness = -1;
+        GLint u_metallic = -1;
+
+        GLint u_dlightCount = -1;
+        GLint u_plightCount = -1;
+        GLint u_slightCount = -1;
+
+        GLint u_plight_poses = -1;
+        GLint u_plight_colors = -1;
+
+        GLint u_dlight_direcs = -1;
+        GLint u_dlight_colors = -1;
+        GLint u_dlight_projViewMat = -1;
+        SamplerInterf u_dlight_shadowmap[3];
+
+        GLint u_slight_poses = -1;
+        GLint u_slight_direcs = -1;
+        GLint u_slight_colors = -1;
+        GLint u_slight_fadeStart = -1;
+        GLint u_slight_fadeEnd = -1;
+        GLint u_slight_projViewMat = -1;
+        SamplerInterf u_slight_shadowmap[3];
+
+    public:
+        void set(const GLuint shader);
+
+        void baseAmbient(const float x, const float y, const float z) const {
+            glUniform3f(this->u_baseAmbient, x, y, z);
+        }
+
+        void roughness(const float x) const {
+            glUniform1f(this->u_roughness, x);
+        }
+        void metallic(const float x) const {
+            glUniform1f(this->u_metallic, x);
+        }
+
+        void dlightCount(const int x) const {
+            glUniform1i(this->u_dlightCount, x);
+        }
+        void plightCount(const int x) const {
+            glUniform1i(this->u_plightCount, x);
+        }
+        void slightCount(const int x) const {
+            glUniform1i(this->u_slightCount, x);
+        }
+
+        void plight_pos(const unsigned i, const float x, const float y, const float z) const {
+            glUniform3f(this->u_plight_poses + i, x, y, z);
+        }
+        void plight_pos(const unsigned i, const glm::vec3& v) const {
+            this->plight_pos(i, v.x, v.y, v.z);
+        }
+        void plight_color(const unsigned i, const float x, const float y, const float z) const {
+            glUniform3f(this->u_plight_colors + i, x, y, z);
+        }
+        void plight_color(const unsigned i, const glm::vec3& v) const {
+            this->plight_color(i, v.x, v.y, v.z);
+        }
+
+        void dlight_direc(const unsigned i, const float x, const float y, const float z) const {
+            glUniform3f(this->u_dlight_direcs + i, x, y, z);
+        }
+        void dlight_direc(const unsigned i, const glm::vec3& v) const {
+            this->dlight_direc(i, v.x, v.y, v.z);
+        }
+        void dlight_color(const unsigned i, const float x, const float y, const float z) const {
+            glUniform3f(this->u_dlight_colors + i, x, y, z);
+        }
+        void dlight_color(const unsigned i, const glm::vec3& v) const {
+            this->dlight_color(i, v.x, v.y, v.z);
+        }
+        void dlight_projViewMat(const unsigned i, const glm::mat4& mat) const {
+            sendMatrix(this->u_dlight_projViewMat + i, mat);
+        }
+        auto& dlight_shadowmap(const unsigned i) const {
+            return this->u_dlight_shadowmap[i];
+        }
+
+        void slight_poses(const unsigned i, const float x, const float y, const float z) const {
+            glUniform3f(this->u_slight_poses + i, x, y, z);
+        }
+        void slight_poses(const unsigned i, const glm::vec3& v) const {
+            this->slight_poses(i, v.x, v.y, v.z);
+        }
+        void slight_direcs(const unsigned i, const float x, const float y, const float z) const {
+            glUniform3f(this->u_slight_direcs + i, x, y, z);
+        }
+        void slight_direcs(const unsigned i, const glm::vec3& v) const {
+            this->slight_direcs(i, v.x, v.y, v.z);
+        }
+        void slight_colors(const unsigned i, const float x, const float y, const float z) const {
+            glUniform3f(this->u_slight_colors + i, x, y, z);
+        }
+        void slight_colors(const unsigned i, const glm::vec3& v) const {
+            this->slight_colors(i, v.x, v.y, v.z);
+        }
+        void slight_fadeStart(const unsigned i, const float x) const {
+            glUniform1f(this->u_slight_fadeStart + i, x);
+        }
+        void slight_fadeEnd(const unsigned i, const float x) const {
+            glUniform1f(this->u_slight_fadeEnd + i, x);
+        }
+        void slight_projViewMat(const unsigned i, const glm::mat4& mat) const {
+            sendMatrix(this->u_slight_projViewMat + i, mat);
+        }
+        auto& slight_shadowmap(const unsigned i) const {
+            return this->u_slight_shadowmap[i];
+        }
+    };
+
+    class UniInterf_Lightmap {
+
+    private:
+        SamplerInterf u_diffuseMap, u_roughnessMap, u_metallicMap;
+
+    public:
+        void set(const GLuint shader);
+
+    };
+
+}
+
+
+namespace dal {
+
+    class UniRender_Static {
+
+    public:
+        UniInterf_Lighting i_lighting;
+        UniInterf_Lightmap i_lightmap;
+
+    private:
+        GLint u_projMat = -1;
+        GLint u_viewMat = -1;
+        GLint u_modelMat = -1;
+
+        GLint u_viewPos = -1;
+
+    public:
+        void set(const GLuint shader);
 
     };
 
