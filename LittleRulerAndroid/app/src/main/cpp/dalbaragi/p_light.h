@@ -81,6 +81,8 @@ namespace dal {
 
         void clearDepthBuffer(void);
         void startRenderShadowmap(const UniInterfGeometry& uniloc);
+        void startRenderShadowmap(const UniRender_StaticDepth& uniloc);
+        void startRenderShadowmap(const UniRender_AnimatedDepth& uniloc);
         void finishRenderShadowmap(void);
 
         glm::mat4 makeProjMat(void) const;

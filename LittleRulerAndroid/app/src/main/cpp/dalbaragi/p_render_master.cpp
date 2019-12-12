@@ -462,15 +462,15 @@ namespace dal {
             this->m_dlight1.clearDepthBuffer();
 
             {
-                auto& uniloc = this->m_shader.useDepthMp();
-                this->m_dlight1.startRenderShadowmap(uniloc.m_geometry);
-                this->m_scene.renderDepthGeneral(uniloc);
+                auto& uniloc = this->m_shader.useStaticDepth();
+                this->m_dlight1.startRenderShadowmap(uniloc);
+                this->m_scene.render_staticDepth(uniloc);
             }
 
             {
-                auto& uniloc = this->m_shader.useDepthAnime();
-                this->m_dlight1.startRenderShadowmap(uniloc.m_geometry);
-                this->m_scene.renderDepthAnimated(uniloc);
+                auto& uniloc = this->m_shader.useAnimatedDepth();
+                this->m_dlight1.startRenderShadowmap(uniloc);
+                this->m_scene.render_animatedDepth(uniloc);
             }
 
             m_dlight1.finishRenderShadowmap();

@@ -512,9 +512,13 @@ namespace dal {
 
         , m_static(g_loader["r_static.vert"], g_loader["r_static.frag"])
         , m_animated(g_loader["r_animated.vert"], g_loader["r_static.frag"])
+        , m_static_depth(g_loader["r_static_depth.vert"], g_loader["r_empty.frag"])
+        , m_animatedDepth(g_loader["r_animated_depth.vert"], g_loader["r_empty.frag"])
     {
         this->u_static.set(this->m_static.get());
         this->u_animated.set(this->m_animated.get());
+        this->u_static_depth.set(this->m_static_depth.get());
+        this->u_animatedDepth.set(this->m_animatedDepth.get());
 
         g_loader.clear();
     }
@@ -578,6 +582,18 @@ namespace dal {
         setFor_generalRender();
         this->m_animated.use();
         return this->u_animated;
+    }
+
+    const UniRender_StaticDepth& ShaderMaster::useStaticDepth(void) const {
+        setFor_shadowmap();
+        this->m_static_depth.use();
+        return this->u_static_depth;
+    }
+
+    const UniRender_AnimatedDepth& ShaderMaster::useAnimatedDepth(void) const {
+        setFor_shadowmap();
+        this->m_animatedDepth.use();
+        return this->u_animatedDepth;
     }
 
 }

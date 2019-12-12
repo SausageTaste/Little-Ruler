@@ -56,6 +56,12 @@ namespace dal {
         ShaderProgram m_animated;
         UniRender_Animated u_animated;
 
+        ShaderProgram m_static_depth;
+        UniRender_StaticDepth u_static_depth;
+
+        ShaderProgram m_animatedDepth;
+        UniRender_AnimatedDepth u_animatedDepth;
+
     public:
         ShaderMaster(void);
 
@@ -70,6 +76,8 @@ namespace dal {
 
         const UniRender_Static& useStatic(void) const;
         const UniRender_Animated& useAnimated(void) const;
+        const UniRender_StaticDepth& useStaticDepth(void) const;
+        const UniRender_AnimatedDepth& useAnimatedDepth(void) const;
 
     };
 

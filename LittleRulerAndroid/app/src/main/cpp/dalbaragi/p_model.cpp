@@ -63,6 +63,22 @@ namespace dal {
         }
     }
 
+    void ModelStatic::renderDepth(const UniInterfGeometry& unilocGeometry, const glm::mat4& modelMat) const {
+        if ( !this->isReady() ) {
+            return;
+        }
+
+        unilocGeometry.modelMat(modelMat);
+
+        for ( auto& unit : this->m_renderUnits ) {
+            if ( !unit.m_mesh.isReady() ) {
+                continue;
+            }
+            unit.m_mesh.draw();
+        }
+    }
+
+
     void ModelStatic::render(const UniRender_Static& uniloc) const {
         if ( !this->isReady() ) {
             return;
@@ -80,12 +96,10 @@ namespace dal {
         }
     }
 
-    void ModelStatic::renderDepth(const UniInterfGeometry& unilocGeometry, const glm::mat4& modelMat) const {
+    void ModelStatic::render(const UniRender_StaticDepth& uniloc) const {
         if ( !this->isReady() ) {
             return;
         }
-
-        unilocGeometry.modelMat(modelMat);
 
         for ( auto& unit : this->m_renderUnits ) {
             if ( !unit.m_mesh.isReady() ) {
@@ -151,6 +165,21 @@ namespace dal {
         }
     }
 
+    void ModelAnimated::renderDepth(const UniInterfGeometry& unilocGeometry, const UniInterfAnime& unilocAnime, const glm::mat4 modelMat,
+        const JointTransformArray& transformArr) const {
+        if ( !this->isReady() ) return;
+
+        transformArr.sendUniform(unilocAnime);
+
+        for ( auto& unit : this->m_renderUnits ) {
+            if ( !unit.m_mesh.isReady() ) continue;
+
+            unilocGeometry.modelMat(modelMat);
+            unit.m_mesh.draw();
+        }
+    }
+
+
     void ModelAnimated::render(const UniRender_Animated uniloc, const JointTransformArray& transformArr) const {
         if ( !this->isReady() ) {
             return;
@@ -169,16 +198,16 @@ namespace dal {
         }
     }
 
-    void ModelAnimated::renderDepth(const UniInterfGeometry& unilocGeometry, const UniInterfAnime& unilocAnime, const glm::mat4 modelMat,
-        const JointTransformArray& transformArr) const {
+    void ModelAnimated::render(const UniRender_AnimatedDepth& uniloc, const JointTransformArray& transformArr) const {
         if ( !this->isReady() ) return;
 
-        transformArr.sendUniform(unilocAnime);
+        transformArr.sendUniform(uniloc.i_skeleton);
 
         for ( auto& unit : this->m_renderUnits ) {
-            if ( !unit.m_mesh.isReady() ) continue;
+            if ( !unit.m_mesh.isReady() ) {
+                continue;
+            }
 
-            unilocGeometry.modelMat(modelMat);
             unit.m_mesh.draw();
         }
     }

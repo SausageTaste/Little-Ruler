@@ -77,8 +77,10 @@ namespace dal {
         bool isReady(void) const;
 
         void render(const UniInterfLightedMesh& unilocLighted, const UniInterfLightmaps& unilocLightmaps, const glm::mat4& modelMat) const;
-        void render(const UniRender_Static& uniloc) const;
         void renderDepth(const UniInterfGeometry& unilocGeometry, const glm::mat4& modelMat) const;
+
+        void render(const UniRender_Static& uniloc) const;
+        void render(const UniRender_StaticDepth& uniloc) const;
 
     };
 
@@ -100,11 +102,11 @@ namespace dal {
 
         void render(const UniInterfLightedMesh& unilocLighted, const UniInterfLightmaps& unilocLightmaps, const UniInterfAnime& unilocAnime,
             const glm::mat4 modelMat, const JointTransformArray& transformArr) const;
-        void render(const UniRender_Animated uniloc, const JointTransformArray& transformArr) const;
-
-
         void renderDepth(const UniInterfGeometry& unilocGeometry, const UniInterfAnime& unilocAnime, const glm::mat4 modelMat,
             const JointTransformArray& transformArr) const;
+
+        void render(const UniRender_Animated uniloc, const JointTransformArray& transformArr) const;
+        void render(const UniRender_AnimatedDepth& uniloc, const JointTransformArray& transformArr) const;
 
         const SkeletonInterface& getSkeletonInterf(void) const {
             return this->m_jointInterface;

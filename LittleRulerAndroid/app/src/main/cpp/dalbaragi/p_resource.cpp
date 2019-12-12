@@ -462,6 +462,19 @@ namespace dal {
 
     }
 
+    void MapChunk2::render_staticDepth(const UniRender_StaticDepth& uniloc) {
+        for ( const auto& [mdl, actors] : this->m_staticActors ) {
+            for ( const auto& actor : actors ) {
+                uniloc.modelMat(actor.m_transform.getMat());
+                mdl->render(uniloc);
+            }
+        }
+    }
+
+    void MapChunk2::render_animatedDepth(const UniRender_AnimatedDepth& uniloc) {
+
+    }
+
 
     int MapChunk2::sendLightUniforms(const UniInterfLightedMesh& uniloc, int startIndex) const {
         if ( startIndex >= 3 )

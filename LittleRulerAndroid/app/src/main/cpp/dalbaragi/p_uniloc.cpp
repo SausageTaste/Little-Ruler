@@ -192,6 +192,20 @@ namespace dal {
         this->u_viewPos = getUniloc(shader, "u_viewPos");
     }
 
+    void UniRender_StaticDepth::set(const GLuint shader) {
+        this->u_projMat = getUniloc(shader, "u_projMat");
+        this->u_viewMat = getUniloc(shader, "u_viewMat");
+        this->u_modelMat = getUniloc(shader, "u_modelMat");
+    }
+
+    void UniRender_AnimatedDepth::set(const GLuint shader) {
+        this->i_skeleton.set(shader);
+
+        this->u_projMat = getUniloc(shader, "u_projMat");
+        this->u_viewMat = getUniloc(shader, "u_viewMat");
+        this->u_modelMat = getUniloc(shader, "u_modelMat");
+    }
+
 }
 
 

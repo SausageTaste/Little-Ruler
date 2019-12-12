@@ -246,7 +246,6 @@ namespace dal {
 
     };
 
-
     class UniRender_Animated {
 
     public:
@@ -279,6 +278,53 @@ namespace dal {
         }
         void viewPos(const glm::vec3& v) const {
             this->viewPos(v.x, v.y, v.z);
+        }
+
+    };
+
+    class UniRender_StaticDepth {
+
+    private:
+        GLint u_projMat = -1;
+        GLint u_viewMat = -1;
+        GLint u_modelMat = -1;
+
+    public:
+        void set(const GLuint shader);
+
+        void projMat(const glm::mat4& mat) const {
+            sendMatrix(this->u_projMat, mat);
+        }
+        void viewMat(const glm::mat4& mat) const {
+            sendMatrix(this->u_viewMat, mat);
+        }
+        void modelMat(const glm::mat4& mat) const {
+            sendMatrix(this->u_modelMat, mat);
+        }
+
+    };
+
+    class UniRender_AnimatedDepth {
+
+    public:
+        UniInterf_Skeleton i_skeleton;
+
+    private:
+        GLint u_projMat = -1;
+        GLint u_viewMat = -1;
+        GLint u_modelMat = -1;
+
+    public:
+        void set(const GLuint shader);
+
+        void projMat(const glm::mat4& mat) const {
+            sendMatrix(this->u_projMat, mat);
+        }
+        void viewMat(const glm::mat4& mat) const {
+            sendMatrix(this->u_viewMat, mat);
+        }
+        void modelMat(const glm::mat4& mat) const {
+            sendMatrix(this->u_modelMat, mat);
         }
 
     };

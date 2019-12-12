@@ -124,6 +124,18 @@ namespace dal {
         this->m_shadowMap.startRender();
     }
 
+    void DirectionalLight::startRenderShadowmap(const UniRender_StaticDepth& uniloc) {
+        uniloc.projMat(this->makeProjMat());
+        uniloc.viewMat(this->makeViewMat());
+        this->m_shadowMap.startRender();
+    }
+
+    void DirectionalLight::startRenderShadowmap(const UniRender_AnimatedDepth& uniloc) {
+        uniloc.projMat(this->makeProjMat());
+        uniloc.viewMat(this->makeViewMat());
+        this->m_shadowMap.startRender();
+    }
+
     void DirectionalLight::finishRenderShadowmap(void) {
         this->m_shadowMap.finishRender();
     }
