@@ -138,8 +138,8 @@ namespace {
             if ( pattern.back() != '/' ) pattern.push_back('/');
             pattern.push_back('*');
 
-            WIN32_FIND_DATA data;
-            HANDLE hFind = FindFirstFile(pattern.c_str(), &data);
+            WIN32_FIND_DATAA data;
+            HANDLE hFind = FindFirstFileA(pattern.c_str(), &data);
             if ( INVALID_HANDLE_VALUE != hFind ) {
                 do {
                     const auto fileName = std::string{ data.cFileName };
@@ -151,7 +151,7 @@ namespace {
                         con.clear();
                         return 0;
                     }
-                } while ( FindNextFile(hFind, &data) != 0 );
+                } while ( FindNextFileA(hFind, &data) != 0 );
                 FindClose(hFind);
             }
 
