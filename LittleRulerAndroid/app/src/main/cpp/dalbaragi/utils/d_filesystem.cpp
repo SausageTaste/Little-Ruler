@@ -19,9 +19,6 @@
 #endif
 
 
-using namespace std;
-
-
 // Util funcs
 namespace {
 
@@ -134,6 +131,8 @@ namespace {
     namespace win {
 
         size_t listdir(std::string pattern, std::vector<std::string>& con) {
+            using namespace std::literals;
+
             con.clear();
 
             if ( pattern.back() != '/' ) pattern.push_back('/');
@@ -310,6 +309,8 @@ namespace {
         }
 
         size_t listdir_lambda(const char* const path, std::vector<std::string>& dirs, std::function<bool(dirent*)> checkFunc) {
+            using namespace std::literals;
+
             dirs.clear();
             const auto dir = opendir(path);
             if ( nullptr != dir ) {
@@ -800,6 +801,8 @@ namespace {
         }
 
         virtual bool open(const char* const path, const dal::FileMode2 mode) override {
+            using namespace std::literals;
+
             this->close();
 
             switch ( mode ) {
