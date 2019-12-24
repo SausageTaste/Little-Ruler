@@ -71,6 +71,8 @@
       <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <AdditionalIncludeDirectories>$(SolutionDir)..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\utils;$(SolutionDir)..\Library\glm-0.9.8.4\include;$(SolutionDir)..\Library\lodepng\include;$(SolutionDir)..\Library\tga\include;$(SolutionDir)..\Library\fmt-6.0.0\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OmitFramePointers>
+      </OmitFramePointers>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -88,6 +90,11 @@
       <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <AdditionalIncludeDirectories>$(SolutionDir)..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\utils;$(SolutionDir)..\Library\glm-0.9.8.4\include;$(SolutionDir)..\Library\lodepng\include;$(SolutionDir)..\Library\tga\include;$(SolutionDir)..\Library\fmt-6.0.0\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <OmitFramePointers>
+      </OmitFramePointers>
+      <WholeProgramOptimization>true</WholeProgramOptimization>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
