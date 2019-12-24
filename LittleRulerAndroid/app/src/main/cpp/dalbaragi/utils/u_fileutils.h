@@ -1,6 +1,8 @@
 #pragma once
 
-#include "u_loadinfo.h"
+#include <string>
+#include <vector>
+
 #include "u_imagebuf.h"
 
 

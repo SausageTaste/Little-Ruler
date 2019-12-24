@@ -70,7 +70,7 @@
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\utils;$(SolutionDir)..\Library\glm-0.9.8.4\include;$(SolutionDir)..\Library\lodepng\include;$(SolutionDir)..\Library\tga\include;$(SolutionDir)..\Library\fmt-6.0.0\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\Library\zlib-1.2.11\include;$(SolutionDir)..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\utils;$(SolutionDir)..\Library\glm-0.9.8.4\include;$(SolutionDir)..\Library\lodepng\include;$(SolutionDir)..\Library\tga\include;$(SolutionDir)..\Library\fmt-6.0.0\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <OmitFramePointers>
       </OmitFramePointers>
     </ClCompile>
@@ -78,8 +78,8 @@
       <SubSystem>Console</SubSystem>
       <OutputFile>$(OutDir)\$(ProjectName).exe</OutputFile>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)Utils\outputs\$(Platform)\$(Configuration)\;$(SolutionDir)..\Library\lodepng\lib\$(Platform)\$(Configuration)\;$(SolutionDir)..\Library\tga\lib\$(Platform)\$(Configuration)\;$(SolutionDir)..\Library\fmt-6.0.0\lib\$(Platform)\$(Configuration)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>lodepng.lib;fmt.lib;dalutils.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)..\Library\zlib-1.2.11\lib\$(Platform)\$(Configuration)\;$(SolutionDir)Utils\outputs\$(Platform)\$(Configuration)\;$(SolutionDir)..\Library\lodepng\lib\$(Platform)\$(Configuration)\;$(SolutionDir)..\Library\tga\lib\$(Platform)\$(Configuration)\;$(SolutionDir)..\Library\fmt-6.0.0\lib\$(Platform)\$(Configuration)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>lodepng.lib;fmt.lib;dalutils.lib;zlibstat.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -89,7 +89,7 @@
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\utils;$(SolutionDir)..\Library\glm-0.9.8.4\include;$(SolutionDir)..\Library\lodepng\include;$(SolutionDir)..\Library\tga\include;$(SolutionDir)..\Library\fmt-6.0.0\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\Library\zlib-1.2.11\include;$(SolutionDir)..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\utils;$(SolutionDir)..\Library\glm-0.9.8.4\include;$(SolutionDir)..\Library\lodepng\include;$(SolutionDir)..\Library\tga\include;$(SolutionDir)..\Library\fmt-6.0.0\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <OmitFramePointers>
@@ -100,8 +100,8 @@
       <SubSystem>Console</SubSystem>
       <OutputFile>$(OutDir)\$(ProjectName).exe</OutputFile>
       <GenerateDebugInformation>false</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)Utils\outputs\$(Platform)\$(Configuration)\;$(SolutionDir)..\Library\lodepng\lib\$(Platform)\$(Configuration)\;$(SolutionDir)..\Library\tga\lib\$(Platform)\$(Configuration)\;$(SolutionDir)..\Library\fmt-6.0.0\lib\$(Platform)\$(Configuration)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>lodepng.lib;fmt.lib;dalutils.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)..\Library\zlib-1.2.11\lib\$(Platform)\$(Configuration)\;$(SolutionDir)Utils\outputs\$(Platform)\$(Configuration)\;$(SolutionDir)..\Library\lodepng\lib\$(Platform)\$(Configuration)\;$(SolutionDir)..\Library\tga\lib\$(Platform)\$(Configuration)\;$(SolutionDir)..\Library\fmt-6.0.0\lib\$(Platform)\$(Configuration)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>lodepng.lib;fmt.lib;dalutils.lib;zlibstat.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>

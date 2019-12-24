@@ -100,7 +100,7 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)..\Library\fmt-6.0.0\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\Library\lodepng\include;$(SolutionDir)..\Library\tga\include;$(SolutionDir)..\Library\glm-0.9.8.4\include;$(SolutionDir)..\Library\zlib-1.2.11\include;$(SolutionDir)..\Library\fmt-6.0.0\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <OmitFramePointers>
       </OmitFramePointers>
     </ClCompile>
@@ -116,7 +116,7 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)..\Library\fmt-6.0.0\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\Library\lodepng\include;$(SolutionDir)..\Library\tga\include;$(SolutionDir)..\Library\glm-0.9.8.4\include;$(SolutionDir)..\Library\zlib-1.2.11\include;$(SolutionDir)..\Library\fmt-6.0.0\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <OmitFramePointers />
     </ClCompile>
     <Link>
@@ -133,7 +133,7 @@
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)..\Library\fmt-6.0.0\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\Library\lodepng\include;$(SolutionDir)..\Library\tga\include;$(SolutionDir)..\Library\glm-0.9.8.4\include;$(SolutionDir)..\Library\zlib-1.2.11\include;$(SolutionDir)..\Library\fmt-6.0.0\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <OmitFramePointers />
     </ClCompile>
@@ -153,7 +153,7 @@
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)..\Library\fmt-6.0.0\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\Library\lodepng\include;$(SolutionDir)..\Library\tga\include;$(SolutionDir)..\Library\glm-0.9.8.4\include;$(SolutionDir)..\Library\zlib-1.2.11\include;$(SolutionDir)..\Library\fmt-6.0.0\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <OmitFramePointers>
       </OmitFramePointers>
@@ -168,12 +168,23 @@
   <ItemGroup>
     <ClCompile Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\utils\d_filesystem.cpp" />
     <ClCompile Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\utils\d_logger.cpp" />
+    <ClCompile Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\utils\u_byteutils.cpp" />
+    <ClCompile Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\utils\u_fileutils.cpp" />
+    <ClCompile Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\utils\u_imagebuf.cpp" />
+    <ClCompile Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\utils\u_math.cpp" />
+    <ClCompile Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\utils\u_timer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\utils\d_filesystem.h" />
     <ClInclude Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\utils\d_logchannel.h" />
     <ClInclude Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\utils\d_logger.h" />
     <ClInclude Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\utils\d_pool.h" />
+    <ClInclude Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\utils\u_byteutils.h" />
+    <ClInclude Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\utils\u_fileutils.h" />
+    <ClInclude Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\utils\u_imagebuf.h" />
+    <ClInclude Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\utils\u_math.h" />
+    <ClInclude Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\utils\u_strbuf.h" />
+    <ClInclude Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\utils\u_timer.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

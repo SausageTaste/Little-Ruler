@@ -20,6 +20,11 @@ add_library( interface4jni SHARED
 
         dalbaragi/utils/d_logger.cpp
         dalbaragi/utils/d_filesystem.cpp
+        dalbaragi/utils/u_timer.cpp
+        dalbaragi/utils/u_byteutils.cpp
+        dalbaragi/utils/u_fileutils.cpp
+        dalbaragi/utils/u_imagebuf.cpp
+        dalbaragi/utils/u_math.cpp
 
         dalbaragi/c_input_apply.cpp
         dalbaragi/g_actor.cpp
@@ -46,15 +51,10 @@ add_library( interface4jni SHARED
         dalbaragi/u_loadinfo.cpp
         dalbaragi/u_luascript.cpp
         dalbaragi/u_objparser.cpp
-        dalbaragi/u_timer.cpp
-        dalbaragi/u_math.cpp
         dalbaragi/x_init_windows.cpp
         dalbaragi/x_mainloop.cpp
         dalbaragi/p_model.cpp
         dalbaragi/o_widgetcache.cpp
-        dalbaragi/u_byteutils.cpp
-        dalbaragi/u_fileutils.cpp
-        dalbaragi/u_imagebuf.cpp
         dalbaragi/d_context_main.cpp
         dalbaragi/d_widgettext.cpp
 )
