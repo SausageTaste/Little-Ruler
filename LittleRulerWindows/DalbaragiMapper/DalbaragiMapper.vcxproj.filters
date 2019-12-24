@@ -65,12 +65,6 @@
     <ClCompile Include="d_time.cpp">
       <Filter>Util</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\u_filesystem.cpp">
-      <Filter>Util</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\s_logger_god.cpp">
-      <Filter>Util</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtRcc Include="dalbaragimapper.qrc">
@@ -115,12 +109,6 @@
       <Filter>Model</Filter>
     </ClInclude>
     <ClInclude Include="d_time.h">
-      <Filter>Util</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\u_filesystem.h">
-      <Filter>Util</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\s_logger_god.h">
       <Filter>Util</Filter>
     </ClInclude>
   </ItemGroup>

@@ -14,7 +14,13 @@ set(library_dir ${CMAKE_CURRENT_SOURCE_DIR}/../../../../../Library)
 
 # Make main JNI library
 file(GLOB dalbaragiSrcFiles ./dalbaragi/*.cpp)
-add_library( interface4jni SHARED interface4jni.cpp javautil.cpp
+add_library( interface4jni SHARED
+        interface4jni.cpp
+        javautil.cpp
+
+        dalbaragi/utils/d_logger.cpp
+        dalbaragi/utils/d_filesystem.cpp
+
         dalbaragi/c_input_apply.cpp
         dalbaragi/g_actor.cpp
         dalbaragi/g_charastate.cpp
@@ -35,7 +41,6 @@ add_library( interface4jni SHARED interface4jni.cpp javautil.cpp
         dalbaragi/p_water.cpp
         dalbaragi/s_configs.cpp
         dalbaragi/s_input_queue.cpp
-        dalbaragi/s_logger_god.cpp
         dalbaragi/s_threader.cpp
         dalbaragi/u_dlbparser.cpp
         dalbaragi/u_loadinfo.cpp
@@ -48,13 +53,13 @@ add_library( interface4jni SHARED interface4jni.cpp javautil.cpp
         dalbaragi/p_model.cpp
         dalbaragi/o_widgetcache.cpp
         dalbaragi/u_byteutils.cpp
-        dalbaragi/u_filesystem.cpp
         dalbaragi/u_fileutils.cpp
         dalbaragi/u_imagebuf.cpp
         dalbaragi/d_context_main.cpp
         dalbaragi/d_widgettext.cpp
 )
 target_include_directories(interface4jni PRIVATE ./dalbaragi)
+target_include_directories(interface4jni PRIVATE ./dalbaragi/utils)
 
 
 ######## Import libraries ########

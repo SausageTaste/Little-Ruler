@@ -1,3 +1,8 @@
-/.vs
-/intermediates
-/outputs
+.vs/
+
+DalbaragiMapper/intermediates/
+DalbaragiMapper/outputs/
+LittleRulerWindows/intermediates/
+LittleRulerWindows/outputs/
+Utils/intermediates/
+Utils/outputs/

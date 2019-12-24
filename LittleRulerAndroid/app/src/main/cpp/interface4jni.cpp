@@ -12,7 +12,7 @@
 #include <android/asset_manager_jni.h>
 
 #include <x_mainloop.h>
-#include <s_logger_god.h>
+#include <d_logger.h>
 #include <s_input_queue.h>
 
 #include "javautil.h"

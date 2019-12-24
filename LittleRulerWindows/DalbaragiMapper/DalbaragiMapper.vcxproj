@@ -29,12 +29,12 @@
     <QtMsBuild>$(MSBuildProjectDirectory)\QtMsBuild</QtMsBuild>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <OutDir>$(SolutionDir)outputs\$(Platform)\$(Configuration)\</OutDir>
-    <IntDir>$(SolutionDir)intermediates\$(Platform)\$(Configuration)\</IntDir>
+    <OutDir>$(ProjectDir)outputs\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(ProjectDir)intermediates\$(Platform)\$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <OutDir>$(SolutionDir)outputs\$(Platform)\$(Configuration)\</OutDir>
-    <IntDir>$(SolutionDir)intermediates\$(Platform)\$(Configuration)\</IntDir>
+    <OutDir>$(ProjectDir)outputs\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(ProjectDir)intermediates\$(Platform)\$(Configuration)\</IntDir>
   </PropertyGroup>
   <Target Name="QtMsBuildNotFound" BeforeTargets="CustomBuild;ClCompile" Condition="!Exists('$(QtMsBuild)\qt.targets') or !Exists('$(QtMsBuild)\qt.props')">
     <Message Importance="High" Text="QtMsBuild: could not locate qt.targets, qt.props; project may not build correctly." />
@@ -70,14 +70,14 @@
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)..\Library\glm-0.9.8.4\include;$(SolutionDir)..\Library\lodepng\include;$(SolutionDir)..\Library\tga\include;$(SolutionDir)..\Library\fmt-6.0.0\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\utils;$(SolutionDir)..\Library\glm-0.9.8.4\include;$(SolutionDir)..\Library\lodepng\include;$(SolutionDir)..\Library\tga\include;$(SolutionDir)..\Library\fmt-6.0.0\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <OutputFile>$(OutDir)\$(ProjectName).exe</OutputFile>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)..\Library\lodepng\lib\$(Platform)\$(Configuration)\;$(SolutionDir)..\Library\tga\lib\$(Platform)\$(Configuration)\;$(SolutionDir)..\Library\fmt-6.0.0\lib\$(Platform)\$(Configuration)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>lodepng.lib;fmt.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)Utils\outputs\$(Platform)\$(Configuration)\;$(SolutionDir)..\Library\lodepng\lib\$(Platform)\$(Configuration)\;$(SolutionDir)..\Library\tga\lib\$(Platform)\$(Configuration)\;$(SolutionDir)..\Library\fmt-6.0.0\lib\$(Platform)\$(Configuration)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>lodepng.lib;fmt.lib;dalutils.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -87,19 +87,17 @@
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)..\Library\glm-0.9.8.4\include;$(SolutionDir)..\Library\lodepng\include;$(SolutionDir)..\Library\tga\include;$(SolutionDir)..\Library\fmt-6.0.0\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\utils;$(SolutionDir)..\Library\glm-0.9.8.4\include;$(SolutionDir)..\Library\lodepng\include;$(SolutionDir)..\Library\tga\include;$(SolutionDir)..\Library\fmt-6.0.0\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <OutputFile>$(OutDir)\$(ProjectName).exe</OutputFile>
       <GenerateDebugInformation>false</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)..\Library\lodepng\lib\$(Platform)\$(Configuration)\;$(SolutionDir)..\Library\tga\lib\$(Platform)\$(Configuration)\;$(SolutionDir)..\Library\fmt-6.0.0\lib\$(Platform)\$(Configuration)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>lodepng.lib;fmt.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)Utils\outputs\$(Platform)\$(Configuration)\;$(SolutionDir)..\Library\lodepng\lib\$(Platform)\$(Configuration)\;$(SolutionDir)..\Library\tga\lib\$(Platform)\$(Configuration)\;$(SolutionDir)..\Library\fmt-6.0.0\lib\$(Platform)\$(Configuration)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>lodepng.lib;fmt.lib;dalutils.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\s_logger_god.cpp" />
-    <ClCompile Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\u_filesystem.cpp" />
     <ClCompile Include="d_dalbaragimapper.cpp" />
     <ClCompile Include="d_graphics_view.cpp" />
     <ClCompile Include="d_meshgeo.cpp" />
@@ -123,8 +121,6 @@
     <ResourceCompile Include="DalbaragiMapper.rc" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\s_logger_god.h" />
-    <ClInclude Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\u_filesystem.h" />
     <ClInclude Include="d_daldef.h" />
     <ClInclude Include="d_meshgeo.h" />
     <ClInclude Include="d_opengl.h" />

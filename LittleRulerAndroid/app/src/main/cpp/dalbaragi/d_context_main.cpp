@@ -2,9 +2,10 @@
 
 #include <fmt/format.h>
 
+#include <d_logger.h>
+
 #include "p_render_master.h"
 #include "c_input_apply.h"
-#include "s_logger_god.h"
 #include "o_widget_textbox.h"
 #include "o_widget_texview.h"
 #include "o_widgetmanager.h"

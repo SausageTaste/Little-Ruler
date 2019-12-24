@@ -55,9 +55,6 @@
     <ClCompile Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\s_input_queue.cpp">
       <Filter>Singleton</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\s_logger_god.cpp">
-      <Filter>Singleton</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\s_threader.cpp">
       <Filter>Singleton</Filter>
     </ClCompile>
@@ -101,9 +98,6 @@
       <Filter>Overlay</Filter>
     </ClCompile>
     <ClCompile Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\u_byteutils.cpp">
-      <Filter>Utility</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\u_filesystem.cpp">
       <Filter>Utility</Filter>
     </ClCompile>
     <ClCompile Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\u_fileutils.cpp">
@@ -209,9 +203,6 @@
     <ClInclude Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\s_logchannel.h">
       <Filter>Singleton</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\s_logger_god.h">
-      <Filter>Singleton</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\s_threader.h">
       <Filter>Singleton</Filter>
     </ClInclude>
@@ -225,9 +216,6 @@
       <Filter>Utility</Filter>
     </ClInclude>
     <ClInclude Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\u_objparser.h">
-      <Filter>Utility</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\u_pool.h">
       <Filter>Utility</Filter>
     </ClInclude>
     <ClInclude Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\u_strbuf.h">
@@ -261,9 +249,6 @@
       <Filter>Utility</Filter>
     </ClInclude>
     <ClInclude Include="resource.h" />
-    <ClInclude Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\u_filesystem.h">
-      <Filter>Utility</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\u_fileutils.h">
       <Filter>Utility</Filter>
     </ClInclude>

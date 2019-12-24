@@ -1,9 +1,12 @@
 #include "d_opengl_state.h"
 
 #include <string>
+#include <iostream>
 
 #include <QOpenGLContext>
 #include <QOpenGLExtraFunctions>
+
+#include "d_filesystem.h"
 
 
 namespace {
@@ -133,6 +136,16 @@ namespace dal::gl {
 
             this->m_static.init(vert, frag);
             this->u_static.init(this->m_static);
+        }
+
+        auto file = dal::fileopen("asset::r_static.vert", FileMode2::read);
+        std::string buffer;
+        const auto success = file->readText(buffer);
+        if ( success ) {
+            std::cout << buffer << std::endl;
+        }
+        else {
+            std::cout << "FUck!" << std::endl;
         }
     }
 

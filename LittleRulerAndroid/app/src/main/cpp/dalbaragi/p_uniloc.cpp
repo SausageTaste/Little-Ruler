@@ -5,8 +5,9 @@
 
 #include <fmt/format.h>
 
+#include <d_logger.h>
+
 #include "p_dalopengl.h"
-#include "s_logger_god.h"
 
 
 #define ASSERT_UNILOC false

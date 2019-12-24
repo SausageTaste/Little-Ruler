@@ -1,8 +1,8 @@
 #include "p_light.h"
 
-#include "s_logger_god.h"
-
 #include <glm/gtc/matrix_transform.hpp>
+
+#include <d_logger.h>
 
 
 namespace {

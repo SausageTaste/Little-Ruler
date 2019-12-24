@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 
-#include "s_logchannel.h"
+#include "d_logchannel.h"
 
 
 #define ENABLE_ASSERT 1

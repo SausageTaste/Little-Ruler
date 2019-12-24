@@ -9,7 +9,8 @@ extern "C" {
 #include FT_CACHE_H
 }
 
-#include "s_logger_god.h"
+#include <d_logger.h>
+
 #include "u_fileutils.h"
 
 

@@ -1,4 +1,4 @@
-#include "s_logger_god.h"
+#include "d_logger.h"
 
 #include <atomic>
 #include <algorithm>
@@ -13,7 +13,7 @@
 #error "Unkown platform"
 #endif
 
-#include "u_pool.h"
+#include "d_pool.h"
 
 
 using namespace fmt::literals;

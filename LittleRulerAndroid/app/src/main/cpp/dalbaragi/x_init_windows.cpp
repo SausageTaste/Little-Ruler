@@ -1,13 +1,14 @@
 #ifdef _WIN32
 
 #include <SDL.h>
-#include <gl\glew.h>
+#include <gl/glew.h>
 #include <SDL_opengl.h>
 #include <fmt/format.h>
 
+#include <d_logger.h>
+
 #include "x_mainloop.h"
 #include "s_input_queue.h"
-#include "s_logger_god.h"
 
 
 using namespace fmt::literals;

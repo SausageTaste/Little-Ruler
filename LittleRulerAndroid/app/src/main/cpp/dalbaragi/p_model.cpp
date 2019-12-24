@@ -3,8 +3,8 @@
 #include <fmt/format.h>
 #include <glm/gtc/matrix_transform.hpp>
 
-#include "s_logger_god.h"
-#include "u_pool.h"
+#include <d_logger.h>
+#include <d_pool.h>
 
 
 using namespace fmt::literals;

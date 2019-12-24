@@ -1,6 +1,6 @@
 #include "javautil.h"
 
-#include "s_logger_god.h"
+#include <d_logger.h>
 
 
 // Global var

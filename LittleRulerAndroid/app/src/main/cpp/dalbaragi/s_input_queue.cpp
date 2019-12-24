@@ -2,8 +2,9 @@
 
 #include <fmt/format.h>
 
+#include <d_logger.h>
+
 #include "u_timer.h"
-#include "s_logger_god.h"
 
 
 using namespace fmt::literals;

@@ -2,9 +2,10 @@
 
 #include <fmt/format.h>
 
+#include <d_logger.h>
+
 #include "u_math.h"
 #include "p_scene.h"
-#include "s_logger_god.h"
 
 
 using namespace fmt::literals;

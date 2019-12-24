@@ -2,7 +2,8 @@
 
 #include <fmt/format.h>
 
-#include "s_logger_god.h"
+#include <d_logger.h>
+
 #include "s_configs.h"
 #include "g_charastate.h"
 #include "u_math.h"

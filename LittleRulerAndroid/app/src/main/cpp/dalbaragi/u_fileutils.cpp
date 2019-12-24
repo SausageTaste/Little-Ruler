@@ -9,8 +9,8 @@
 #include <lodepng.h>
 #include <fmt/format.h>
 
-#include "s_logger_god.h"
-#include "u_filesystem.h"
+#include <d_logger.h>
+#include <d_filesystem.h>
 
 
 // Image file type check
