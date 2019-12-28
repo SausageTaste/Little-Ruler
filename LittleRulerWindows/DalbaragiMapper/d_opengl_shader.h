@@ -43,6 +43,13 @@ namespace dal::gl::univar {
         void operator>>(const gl::int_t loc) {
             this->m_loc = loc;
         }
+        operator bool(void) const {
+            return -1 != this->loc();
+        }
+
+        void invalidate(void) {
+            this->m_loc = -1;
+        }
 
     protected:
         gl::int_t loc(void) const {
@@ -51,6 +58,13 @@ namespace dal::gl::univar {
 
     };
 
+
+    class Bool : public IUnivar {
+
+    public:
+        void operator<<(const bool x) const;
+
+    };
 
     class Int : public IUnivar {
 

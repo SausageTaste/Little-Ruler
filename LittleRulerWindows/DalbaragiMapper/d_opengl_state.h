@@ -13,7 +13,7 @@ namespace dal::gl {
         std::pair<gl::int_t, gl::int_t> m_viewportSize;
 
         Shader m_static;
-        Uniloc_Static u_static;
+        UniRender_Static u_static;
 
     public:
         void init(void);
@@ -23,7 +23,7 @@ namespace dal::gl {
             return this->m_viewportSize;
         }
 
-        const Uniloc_Static& use_static(void) const;
+        const UniRender_Static& use_static(void) const;
 
     };
 

@@ -6,7 +6,8 @@
 #include <QOpenGLContext>
 #include <QOpenGLExtraFunctions>
 
-#include "d_filesystem.h"
+#include <d_shaderProcessor.h>
+#include <d_filesystem.h>
 
 
 namespace {
@@ -130,22 +131,11 @@ void main(void) {
 namespace dal::gl {
 
     void State::init(void) {
+        dal::ShaderPreprocessor loader;
+
         {
-            const auto vert = glsl_header + glsl_static_v;
-            const auto frag = glsl_header + glsl_lights_i + glsl_static_f;
-
-            this->m_static.init(vert, frag);
+            this->m_static.init(loader["r_static.vert"], loader["r_static.frag"]);
             this->u_static.init(this->m_static);
-        }
-
-        auto file = dal::fileopen("asset::r_static.vert", FileMode2::read);
-        std::string buffer;
-        const auto success = file->readText(buffer);
-        if ( success ) {
-            std::cout << buffer << std::endl;
-        }
-        else {
-            std::cout << "FUck!" << std::endl;
         }
     }
 
@@ -157,7 +147,7 @@ namespace dal::gl {
     }
 
 
-    const Uniloc_Static& State::use_static(void) const {
+    const UniRender_Static& State::use_static(void) const {
         this->m_static.use();
         return this->u_static;
     }

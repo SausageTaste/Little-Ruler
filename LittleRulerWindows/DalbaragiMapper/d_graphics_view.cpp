@@ -128,9 +128,10 @@ namespace dal {
         gl::clear(gl::ClearMode::color);
 
         auto& uniloc = this->m_glstate.use_static();
-        uniloc.u_projMat << this->m_projMat * this->m_scene.activeCam().makeViewMat();
 
-        this->m_scene.render();
+        uniloc.u_projMat << this->m_projMat;
+
+        this->m_scene.render(uniloc);
 
         std::cout << "Painted " << this->m_timer.getElapsed() << '\n';
     }

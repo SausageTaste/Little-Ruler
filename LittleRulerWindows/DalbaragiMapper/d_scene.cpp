@@ -148,7 +148,26 @@ namespace dal {
         this->m_activeCamera = &this->m_cameras.emplace_back();
     }
 
-    void Scene::render(void) const {
+    void Scene::render(const gl::UniRender_Static& uniloc) const {
+        uniloc.i_lighting.u_baseAmbient.send(0.2f, 0.2f, 0.2f);
+        uniloc.i_lighting.u_roughness << 0.1f;
+        uniloc.i_lighting.u_metallic << 1.0f;
+
+        uniloc.i_lighting.u_dlightCount << 0;
+        uniloc.i_lighting.u_slightCount << 0;
+
+        uniloc.i_lighting.u_plightCount << 1;
+        uniloc.i_lighting.u_plight_colors[0].send(1, 1, 1);
+        uniloc.i_lighting.u_plight_poses[0].send(0, 0, 1);
+
+        uniloc.i_lightmap.u_diffuseMap.sendFlagHas(false);
+        uniloc.i_lightmap.u_roughnessMap.sendFlagHas(false);
+        uniloc.i_lightmap.u_metallicMap.sendFlagHas(false);
+
+        uniloc.u_viewMat << this->activeCam().makeViewMat();
+        uniloc.u_modelMat << glm::mat4{ 1.f };
+        uniloc.u_viewPos << this->activeCam().m_pos;
+
         for ( auto& [name, mesh] : this->m_meshes ) {
             mesh.m_glmesh.draw();
         }

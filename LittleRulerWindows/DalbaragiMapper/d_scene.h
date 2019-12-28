@@ -8,6 +8,7 @@
 
 #include "d_daldef.h"
 #include "d_opengl_renderunit.h"
+#include "d_uniloc.h"
 #include "d_meshgeo.h"
 
 
@@ -169,6 +170,9 @@ namespace dal {
         Camera& activeCam(void) {
             return *this->m_activeCamera;
         }
+        const Camera& activeCam(void) const {
+            return *this->m_activeCamera;
+        }
 
         MeshPack& addMesh(const std::string& name) {
             auto iter = this->m_meshes.emplace(name, MeshPack{});
@@ -179,7 +183,7 @@ namespace dal {
             this->m_meshes.clear();
         }
 
-        void render(void) const;
+        void render(const gl::UniRender_Static& uniloc) const;
 
     };
 

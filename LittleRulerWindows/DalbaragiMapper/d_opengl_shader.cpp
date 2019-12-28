@@ -178,6 +178,10 @@ namespace dal::gl {
 
 namespace dal::gl::univar {
 
+    void Bool::operator<<(const bool x) const {
+        glfunc()->glUniform1i(this->loc(), x ? 1 : 0);
+    }
+
     void Int::operator<<(const gl::int_t x) const {
         glfunc()->glUniform1i(this->loc(), x);
     }

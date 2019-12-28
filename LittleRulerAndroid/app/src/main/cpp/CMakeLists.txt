@@ -25,6 +25,7 @@ add_library( interface4jni SHARED
         dalbaragi/utils/u_fileutils.cpp
         dalbaragi/utils/u_imagebuf.cpp
         dalbaragi/utils/u_math.cpp
+        dalbaragi/utils/d_shaderProcessor.cpp
 
         dalbaragi/c_input_apply.cpp
         dalbaragi/g_actor.cpp
