@@ -137,8 +137,6 @@ namespace dal {
         }
 
         assert(gl::queryVersion().first >= 3);
-
-        
     }
 
     void GraphicsView::resizeGL(int w, int h) {

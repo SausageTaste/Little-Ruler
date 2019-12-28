@@ -27,11 +27,6 @@ namespace dal {
     public:
         MainWidget(QWidget* const parent);
 
-        virtual void mousePressEvent(QMouseEvent* e) override;
-        virtual void mouseReleaseEvent(QMouseEvent* e) override;
-        virtual void mouseDoubleClickEvent(QMouseEvent* e) override;
-        virtual void mouseMoveEvent(QMouseEvent* e) override;
-
     };
 
 

@@ -52,22 +52,6 @@ namespace dal {
         this->m_scene.activeCam().m_pos.z = 1;
     }
 
-    void MainWidget::mousePressEvent(QMouseEvent* e) {
-
-    }
-
-    void MainWidget::mouseReleaseEvent(QMouseEvent* e) {
-
-    }
-
-    void MainWidget::mouseDoubleClickEvent(QMouseEvent* e) {
-
-    }
-
-    void MainWidget::mouseMoveEvent(QMouseEvent* e) {
-
-    }
-
 }
 
 
