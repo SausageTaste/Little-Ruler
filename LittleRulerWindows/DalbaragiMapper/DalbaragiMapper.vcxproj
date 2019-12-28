@@ -112,6 +112,7 @@
     <ClCompile Include="d_opengl_renderunit.cpp" />
     <ClCompile Include="d_opengl_shader.cpp" />
     <ClCompile Include="d_opengl_state.cpp" />
+    <ClCompile Include="d_opengl_texture.cpp" />
     <ClCompile Include="d_scene.cpp" />
     <ClCompile Include="d_time.cpp" />
     <ClCompile Include="d_uniloc.cpp" />
@@ -135,6 +136,7 @@
     <ClInclude Include="d_opengl_renderunit.h" />
     <ClInclude Include="d_opengl_shader.h" />
     <ClInclude Include="d_opengl_state.h" />
+    <ClInclude Include="d_opengl_texture.h" />
     <ClInclude Include="d_property_view.h" />
     <ClInclude Include="d_scene.h" />
     <ClInclude Include="d_time.h" />

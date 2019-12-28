@@ -151,18 +151,18 @@ namespace dal {
     void Scene::render(const gl::UniRender_Static& uniloc) const {
         uniloc.i_lighting.u_baseAmbient.send(0.2f, 0.2f, 0.2f);
         uniloc.i_lighting.u_roughness << 0.1f;
-        uniloc.i_lighting.u_metallic << 1.0f;
+        uniloc.i_lighting.u_metallic << 0.0f;
 
         uniloc.i_lighting.u_dlightCount << 0;
         uniloc.i_lighting.u_slightCount << 0;
 
         uniloc.i_lighting.u_plightCount << 1;
-        uniloc.i_lighting.u_plight_colors[0].send(1, 1, 1);
+        uniloc.i_lighting.u_plight_colors[0].send(3, 3, 3);
         uniloc.i_lighting.u_plight_poses[0].send(0, 0, 1);
 
-        uniloc.i_lightmap.u_diffuseMap.sendFlagHas(false);
-        uniloc.i_lightmap.u_roughnessMap.sendFlagHas(false);
-        uniloc.i_lightmap.u_metallicMap.sendFlagHas(false);
+        this->m_albedo.sendUniform(uniloc.i_lightmap.u_diffuseMap);
+        this->m_roughness.sendUniform(uniloc.i_lightmap.u_roughnessMap);
+        this->m_metallic.sendUniform(uniloc.i_lightmap.u_metallicMap);
 
         uniloc.u_viewMat << this->activeCam().makeViewMat();
         uniloc.u_modelMat << glm::mat4{ 1.f };

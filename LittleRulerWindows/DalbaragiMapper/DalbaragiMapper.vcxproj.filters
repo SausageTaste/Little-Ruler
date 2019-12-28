@@ -65,6 +65,9 @@
     <ClCompile Include="d_time.cpp">
       <Filter>Util</Filter>
     </ClCompile>
+    <ClCompile Include="d_opengl_texture.cpp">
+      <Filter>Presentation</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtRcc Include="dalbaragimapper.qrc">
@@ -110,6 +113,9 @@
     </ClInclude>
     <ClInclude Include="d_time.h">
       <Filter>Util</Filter>
+    </ClInclude>
+    <ClInclude Include="d_opengl_texture.h">
+      <Filter>Presentation</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

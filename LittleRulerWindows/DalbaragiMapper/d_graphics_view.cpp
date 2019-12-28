@@ -6,6 +6,8 @@
 
 #include <glm/gtc/matrix_transform.hpp>
 
+#include <u_fileutils.h>
+
 #include "d_opengl.h"
 #include "d_meshgeo.h"
 #include "d_time.h"
@@ -111,6 +113,27 @@ namespace dal {
             mesh.m_meshdata.addQuad({ -a, a, 0 }, { -a, -a, 0 }, { a, -a, 0 }, { a, a, 0 });
             const auto build = mesh.m_meshdata.buildMesh();
             mesh.m_glmesh.initStatic(build.numVert(), build.vertices(), build.texcoords(), build.normals());
+        }
+
+        {
+            ImageData image;
+            const auto res = loadFileImage("asset::rustediron2_basecolor.png", image);
+            assert(res);
+            this->m_scene.m_albedo.init_image(image);
+        }
+
+        {
+            ImageData image;
+            const auto res = loadFileImage("asset::rustediron2_roughness.png", image);
+            assert(res);
+            this->m_scene.m_roughness.init_image(image);
+        }
+
+        {
+            ImageData image;
+            const auto res = loadFileImage("asset::rustediron2_metallic.png", image);
+            assert(res);
+            this->m_scene.m_metallic.init_image(image);
         }
 
         assert(gl::queryVersion().first >= 3);

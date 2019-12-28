@@ -8,6 +8,7 @@
 
 #include "d_daldef.h"
 #include "d_opengl_renderunit.h"
+#include "d_opengl_texture.h"
 #include "d_uniloc.h"
 #include "d_meshgeo.h"
 
@@ -163,6 +164,9 @@ namespace dal {
         std::unordered_map<std::string, MeshPack> m_meshes;
 
         Camera* m_activeCamera = nullptr;
+
+    public:
+        gl::Texture m_albedo, m_roughness, m_metallic;
 
     public:
         Scene(void);

@@ -19,7 +19,6 @@ void main(void) {
     vec3 fragNormal = normalize(v_normal);
 
     vec4 albedo = texture(u_diffuseMap, v_texCoord);
-    albedo = vec4(1.0);
     float roughness = u_hasRoughnessMap ? texture(u_roughnessMap, v_texCoord).r : u_roughness;
     float metallic = u_hasMetallicMap ? texture(u_metallicMap, v_texCoord).r : u_metallic;
 
