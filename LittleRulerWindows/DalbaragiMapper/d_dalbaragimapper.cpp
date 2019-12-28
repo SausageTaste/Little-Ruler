@@ -39,8 +39,8 @@ namespace dal {
     MainWidget::MainWidget(QWidget* const parent)
         : QWidget(parent)
         , m_layout(this)
-        , m_propertyView(this)
-        , m_graphicsView(this, m_glstate, m_scene)
+        , m_propertyView(this, m_scene, m_shared)
+        , m_graphicsView(this, m_glstate, m_scene, m_shared)
     {
         this->setLayout(&this->m_layout);
 

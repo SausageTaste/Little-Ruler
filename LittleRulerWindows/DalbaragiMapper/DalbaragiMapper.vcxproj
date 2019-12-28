@@ -114,6 +114,7 @@
     <ClCompile Include="d_opengl_state.cpp" />
     <ClCompile Include="d_opengl_texture.cpp" />
     <ClCompile Include="d_scene.cpp" />
+    <ClCompile Include="d_sharedinfo.cpp" />
     <ClCompile Include="d_time.cpp" />
     <ClCompile Include="d_uniloc.cpp" />
     <ClCompile Include="main.cpp" />
@@ -139,6 +140,7 @@
     <ClInclude Include="d_opengl_texture.h" />
     <ClInclude Include="d_property_view.h" />
     <ClInclude Include="d_scene.h" />
+    <ClInclude Include="d_sharedinfo.h" />
     <ClInclude Include="d_time.h" />
     <ClInclude Include="d_uniloc.h" />
     <ClInclude Include="Fixed.h" />

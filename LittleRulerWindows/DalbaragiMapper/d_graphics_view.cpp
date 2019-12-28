@@ -86,10 +86,11 @@ namespace {
 
 namespace dal {
 
-    GraphicsView::GraphicsView(QWidget* const parent, gl::State& glstate, Scene& scene)
+    GraphicsView::GraphicsView(QWidget* const parent, gl::State& glstate, Scene& scene, SharedInfo& shared)
         : QOpenGLWidget(parent)
         , m_glstate(glstate)
         , m_scene(scene)
+        , m_shared(shared)
         , m_timerID(-1)
         , m_projMat(1.f)
     {
@@ -113,6 +114,8 @@ namespace dal {
             mesh.m_meshdata.addQuad({ -a, a, 0 }, { -a, -a, 0 }, { a, -a, 0 }, { a, a, 0 });
             const auto build = mesh.m_meshdata.buildMesh();
             mesh.m_glmesh.initStatic(build.numVert(), build.vertices(), build.texcoords(), build.normals());
+
+            this->m_shared.m_active.m_trans = &mesh.m_trans;
         }
 
         {

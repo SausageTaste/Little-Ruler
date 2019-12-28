@@ -68,6 +68,9 @@
     <ClCompile Include="d_opengl_texture.cpp">
       <Filter>Presentation</Filter>
     </ClCompile>
+    <ClCompile Include="d_sharedinfo.cpp">
+      <Filter>Model</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtRcc Include="dalbaragimapper.qrc">
@@ -116,6 +119,9 @@
     </ClInclude>
     <ClInclude Include="d_opengl_texture.h">
       <Filter>Presentation</Filter>
+    </ClInclude>
+    <ClInclude Include="d_sharedinfo.h">
+      <Filter>Model</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

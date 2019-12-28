@@ -20,6 +20,7 @@ namespace dal {
 
         gl::State m_glstate;
         Scene m_scene;
+        SharedInfo m_shared;
 
         PropertyView m_propertyView;
         GraphicsView m_graphicsView;
