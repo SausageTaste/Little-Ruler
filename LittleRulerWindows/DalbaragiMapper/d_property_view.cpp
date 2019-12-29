@@ -36,7 +36,8 @@ namespace {
 
                 w.setMinimum(-DBL_MAX);
                 w.setSingleStep(0.01);
-                w.setDecimals(4);
+                w.setDecimals(3);
+                w.setSuffix(" m");
             }
         }
 

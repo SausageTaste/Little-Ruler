@@ -48,6 +48,7 @@ namespace dal {
 
         this->m_splitter.addWidget(&this->m_graphicsView);
         this->m_splitter.addWidget(&this->m_propertyView);
+        this->m_splitter.setStretchFactor(0, 1);
 
         this->m_scene.activeCam().m_pos.z = 1;
     }
