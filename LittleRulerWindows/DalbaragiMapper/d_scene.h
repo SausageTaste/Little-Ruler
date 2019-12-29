@@ -107,8 +107,11 @@ namespace dal {
             assert(iter.second);
             return iter.first->second;
         }
-        void clearMesh(void) {
+        void clearGL(void) {
             this->m_meshes.clear();
+            this->m_albedo.invalidate();
+            this->m_roughness.invalidate();
+            this->m_metallic.invalidate();
         }
 
         void render(const gl::UniRender_Static& uniloc) const;

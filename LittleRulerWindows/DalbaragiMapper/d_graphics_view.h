@@ -46,6 +46,9 @@ namespace dal {
     private:
         bool applyKeyMove(const double deltaTime);
 
+        void startLoop(void);
+        void killLoop(void);
+
     };
 
 }

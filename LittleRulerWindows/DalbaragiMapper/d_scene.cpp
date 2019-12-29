@@ -118,10 +118,10 @@ namespace dal {
         this->m_metallic.sendUniform(uniloc.i_lightmap.u_metallicMap);
 
         uniloc.u_viewMat << this->activeCam().makeViewMat();
-        uniloc.u_modelMat << glm::mat4{ 1.f };
         uniloc.u_viewPos << this->activeCam().m_pos;
 
         for ( auto& [name, mesh] : this->m_meshes ) {
+            uniloc.u_modelMat << mesh.m_trans.transformMat();
             mesh.m_glmesh.draw();
         }
     }

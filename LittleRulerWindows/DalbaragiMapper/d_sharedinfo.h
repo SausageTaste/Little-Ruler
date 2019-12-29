@@ -105,6 +105,7 @@ namespace dal {
 
     public:
         ActiveObject m_active;
+        bool m_needRedraw = false;
 
     };
 

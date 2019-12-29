@@ -66,6 +66,7 @@ namespace {
             for ( int i = 0; i < this->NUM_KEY_SPEC; ++i ) {
                 this->m_isDown[i] = false;
             }
+            std::cout << "Key states cleared.\n";
         }
 
         bool isDown(const KeySpec key) const {
@@ -99,7 +100,7 @@ namespace dal {
 
     GraphicsView::~GraphicsView(void) {
         this->makeCurrent();
-        this->m_scene.clearMesh();
+        this->m_scene.clearGL();
     }
 
 
@@ -138,6 +139,8 @@ namespace dal {
             assert(res);
             this->m_scene.m_metallic.init_image(image);
         }
+
+        this->startLoop();
 
         assert(gl::queryVersion().first >= 3);
     }
@@ -201,24 +204,26 @@ namespace dal {
 
     void GraphicsView::focusInEvent(QFocusEvent* event) {
         g_key.clearDowns();
-
-        if ( -1 == this->m_timerID ) {
-            constexpr double FPS = 60.0;
-            this->m_timerID = this->startTimer(1000.0 / FPS);
-            this->m_timer.check();
-        }
     }
 
     void GraphicsView::focusOutEvent(QFocusEvent* event) {
-        if ( -1 != this->m_timerID ) {
-            this->killTimer(this->m_timerID);
-            this->m_timerID = -1;
-        }
+        g_key.clearDowns();
     }
 
     void GraphicsView::timerEvent(QTimerEvent* event) {
+        bool needUpdate = false;
+
         const auto moved = this->applyKeyMove(this->m_timer.checkGetElapsed());
-        if ( moved )
+        if ( moved ) {
+            needUpdate = true;
+        }
+
+        if ( this->m_shared.m_needRedraw ) {
+            needUpdate = true;
+            this->m_shared.m_needRedraw = false;
+        }
+
+        if ( needUpdate )
             this->update();
     }
 
@@ -264,6 +269,21 @@ namespace dal {
         }
 
         return false;
+    }
+
+    void GraphicsView::startLoop(void) {
+        if ( -1 == this->m_timerID ) {
+            constexpr double FPS = 60.0;
+            this->m_timerID = this->startTimer(1000.0 / FPS);
+            this->m_timer.check();
+        }
+    }
+
+    void GraphicsView::killLoop(void) {
+        if ( -1 != this->m_timerID ) {
+            this->killTimer(this->m_timerID);
+            this->m_timerID = -1;
+        }
     }
 
 }
