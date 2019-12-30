@@ -43,18 +43,6 @@ namespace dal {
 }
 
 
-namespace dal {
-
-    class Actor {
-
-    public:
-        Transform m_trans;
-
-    };
-
-}
-
-
 // Scene
 namespace dal {
 
@@ -80,7 +68,7 @@ namespace dal {
         struct MeshPack {
             gl::Mesh m_glmesh;
             MeshData m_meshdata;
-            Transform m_trans;
+            Actor m_actor;
         };
 
     private:
@@ -105,6 +93,7 @@ namespace dal {
         MeshPack& addMesh(const std::string& name) {
             auto iter = this->m_meshes.emplace(name, MeshPack{});
             assert(iter.second);
+            iter.first->second.m_actor.m_name = name;
             return iter.first->second;
         }
         void clearGL(void) {

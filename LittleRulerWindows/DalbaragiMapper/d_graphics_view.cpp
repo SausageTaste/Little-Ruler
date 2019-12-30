@@ -7,6 +7,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 #include <u_fileutils.h>
+#include <d_logger.h>
 
 #include "d_opengl.h"
 #include "d_meshgeo.h"
@@ -116,7 +117,8 @@ namespace dal {
             const auto build = mesh.m_meshdata.buildMesh();
             mesh.m_glmesh.initStatic(build.numVert(), build.vertices(), build.texcoords(), build.normals());
 
-            this->m_shared.m_active.m_trans = &mesh.m_trans;
+            this->m_shared.m_active.m_actor = &mesh.m_actor;
+            this->notify_onSharedInfoUpdated();
         }
 
         {
@@ -283,6 +285,15 @@ namespace dal {
         if ( -1 != this->m_timerID ) {
             this->killTimer(this->m_timerID);
             this->m_timerID = -1;
+        }
+    }
+
+    void GraphicsView::notify_onSharedInfoUpdated(void) {
+        if ( this->m_funcOnSharedInfoUpdated ) {
+            this->m_funcOnSharedInfoUpdated();
+        }
+        else {
+            dalWarn("GraphicsView::m_funcOnSharedInfoUpdated is null.");
         }
     }
 

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <string>
 #include <optional>
 
 #include <glm/glm.hpp>
@@ -33,6 +34,9 @@ namespace dal {
         const glm::mat4& transformMat(void) const;
         const xvec3& pos(void) const noexcept {
             return this->m_pos;
+        }
+        const glm::quat& quat(void) const {
+            return this->m_quat;
         }
         float scale(void) const noexcept {
             return this->m_scale;
@@ -75,6 +79,9 @@ namespace dal {
             this->m_quat.y = y;
             this->m_quat.z = z;
             this->m_quat.w = w;
+
+            this->m_quat = glm::normalize(this->m_quat);
+
             this->onValueSet();
         }
         void rotate(const float v, const glm::vec3& selector);
@@ -96,11 +103,20 @@ namespace dal {
     };
 
 
+    class Actor {
+
+    public:
+        std::string m_name;
+        Transform m_trans;
+
+    };
+
+
     class SharedInfo {
 
     public:
         struct ActiveObject {
-            Transform* m_trans = nullptr;
+            Actor* m_actor = nullptr;
         };
 
     public:

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <functional>
+
 #include <QOpenGLWidget>
 #include <QMouseEvent>
 
@@ -18,6 +20,8 @@ namespace dal {
         Scene& m_scene;
         SharedInfo& m_shared;
 
+        std::function<void(void)> m_funcOnSharedInfoUpdated;
+
         Timer m_timer;
         int m_timerID;
         glm::mat4 m_projMat;
@@ -25,6 +29,10 @@ namespace dal {
     public:
         GraphicsView(QWidget* const parent, gl::State& glstate, Scene& scene, SharedInfo& shared);
         ~GraphicsView(void);
+
+        void register_onSharedInfoUpdated(std::function<void(void)> func) {
+            this->m_funcOnSharedInfoUpdated = func;
+        }
 
         virtual void initializeGL(void) override;
         virtual void resizeGL(int w, int h) override;
@@ -48,6 +56,8 @@ namespace dal {
 
         void startLoop(void);
         void killLoop(void);
+
+        void notify_onSharedInfoUpdated(void);
 
     };
 

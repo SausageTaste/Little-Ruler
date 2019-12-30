@@ -121,7 +121,7 @@ namespace dal {
         uniloc.u_viewPos << this->activeCam().m_pos;
 
         for ( auto& [name, mesh] : this->m_meshes ) {
-            uniloc.u_modelMat << mesh.m_trans.transformMat();
+            uniloc.u_modelMat << mesh.m_actor.m_trans.transformMat();
             mesh.m_glmesh.draw();
         }
     }

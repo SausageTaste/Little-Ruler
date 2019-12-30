@@ -51,6 +51,10 @@ namespace dal {
         this->m_splitter.setStretchFactor(0, 1);
 
         this->m_scene.activeCam().m_pos.z = 1;
+
+        this->m_graphicsView.register_onSharedInfoUpdated([this](void) {
+            this->m_propertyView.onSharedInfoUpdated();
+            });
     }
 
 }

@@ -17,6 +17,8 @@ namespace dal {
         PropertyView(QWidget* const parent, Scene& scene, SharedInfo& shared);
         ~PropertyView(void);
 
+        void onSharedInfoUpdated(void);
+
     };
 
 }
