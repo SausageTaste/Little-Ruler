@@ -1,7 +1,5 @@
 #include "d_geometrymath.h"
 
-#include <math.h>
-
 
 namespace {
 
@@ -127,6 +125,15 @@ namespace dal {
 
     Plane Triangle::plane(void) const {
         return Plane{ this->m_points[0], this->m_points[1], this->m_points[2] };
+    }
+
+    float Triangle::area(void) const {
+        const auto a = glm::distance(this->m_points[1], this->m_points[0]);
+        const auto b = glm::distance(this->m_points[2], this->m_points[1]);
+        const auto c = glm::distance(this->m_points[0], this->m_points[2]);
+
+        const auto s = (a + b + c) * 0.5f;
+        return sqrt(s * (s - a) * (s - b) * (s - c));
     }
 
 }

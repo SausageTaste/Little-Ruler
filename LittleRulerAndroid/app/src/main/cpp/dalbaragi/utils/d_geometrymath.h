@@ -71,6 +71,7 @@ namespace dal {
         }
         glm::vec3 normal(void) const;
         Plane plane(void) const;
+        float area(void) const;
 
     };
 
