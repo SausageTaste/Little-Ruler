@@ -39,6 +39,9 @@
     <ClCompile Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\utils\d_shaderProcessor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\utils\d_geometrymath.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\utils\d_logger.h">
@@ -75,6 +78,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\utils\d_fixednum.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\utils\d_geometrymath.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
