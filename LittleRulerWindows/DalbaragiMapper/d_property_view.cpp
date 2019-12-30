@@ -2,6 +2,7 @@
 
 #include <functional>
 
+#include <QLabel>
 #include <QGridLayout>
 #include <QDoubleSpinBox>
 
@@ -28,17 +29,33 @@ namespace {
             , m_grid(this)
         {
             this->setLayout(&this->m_grid);
+            this->m_grid.setAlignment(Qt::AlignLeft);
 
             for ( unsigned i = 0; i < _Size; ++i ) {
                 QDoubleSpinBox& w = this->m_spinboxes.construct(i, this);
-                this->m_grid.addWidget(&w, 0, i, 1, 1);
+                this->m_grid.addWidget(&w, i, 0, 1, 1);
                 const auto _ = connect(&w, static_cast<void(QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged), this, &VectorSpinBox::onValueChange);
+
+                w.setMinimumWidth(80);
 
                 w.setMinimum(-DBL_MAX);
                 w.setSingleStep(0.01);
                 w.setDecimals(3);
                 w.setSuffix(" m");
             }
+        }
+
+        template <unsigned _Index>
+        void setValue(const double v) {
+            static_assert(_Index < _Size);
+            QDoubleSpinBox& w = this->m_spinboxes[_Index];
+            w.setValue(v);
+        }
+        template <unsigned _Index>
+        double value(void) const {
+            static_assert(_Index < _Size);
+            QDoubleSpinBox& w = this->m_spinboxes[_Index];
+            return w.value();
         }
 
         void register_onValueChange(callbackOnValueChange_t func) {
@@ -64,33 +81,98 @@ namespace {
 
 namespace {
 
-    class DataView_Actor : public QWidget {
+    class PropertyPage : public QWidget {
 
-    private:
+    protected:
         dal::SharedInfo& m_shared;
-
         QGridLayout m_grid;
-        VectorSpinBox<3> m_field_pos;
 
     public:
-        DataView_Actor(QWidget* const parent, dal::SharedInfo& shared)
+        PropertyPage(const PropertyPage&) = delete;
+        PropertyPage& operator=(const PropertyPage&) = delete;
+
+    public:
+        PropertyPage(QWidget* const parent, dal::SharedInfo& shared)
             : QWidget(parent)
             , m_shared(shared)
             , m_grid(this)
+        {
+
+        }
+        virtual ~PropertyPage(void) = default;
+
+        virtual void onSharedInfoUpdated(void) {}
+
+    };
+
+
+    class DataView_Actor : public PropertyPage {
+
+    private:
+        QLabel m_label_pos;
+        VectorSpinBox<3> m_field_pos;
+
+        QLabel m_label_quat;
+        VectorSpinBox<4> m_field_quat;
+
+        QLabel m_label_scale;
+        VectorSpinBox<1> m_field_scale;
+
+    public:
+        DataView_Actor(QWidget* const parent, dal::SharedInfo& shared)
+            : PropertyPage(parent, shared)
+
+            , m_label_pos(this)
             , m_field_pos(this)
+            , m_label_quat(this)
+            , m_field_quat(this)
+            , m_label_scale(this)
+            , m_field_scale(this)
         {
             this->setLayout(&this->m_grid);
+            this->m_grid.setAlignment(Qt::AlignTop);
 
-            this->m_grid.addWidget(&this->m_field_pos);
+            // Pos
 
-            auto a = [this](const VectorSpinBox<3>::valueArray_t& arg) {
+            this->m_grid.addWidget(&this->m_label_pos, 0, 0, 1, 1);
+            this->m_label_pos.setText("Pos");
+
+            this->m_grid.addWidget(&this->m_field_pos, 0, 1, 1, 1);
+            this->m_field_pos.register_onValueChange([this](const VectorSpinBox<3>::valueArray_t& arg) {
                 auto trans = this->m_shared.m_active.m_trans;
                 if ( nullptr != trans ) {
                     trans->setPos(arg[0], arg[1], arg[2]);
                     this->m_shared.m_needRedraw = true;
                 }
-            };
-            this->m_field_pos.register_onValueChange(a);
+                });
+
+            // Quat
+
+            this->m_grid.addWidget(&this->m_label_quat, 1, 0, 1, 1);
+            this->m_label_quat.setText("Quat");
+
+            this->m_grid.addWidget(&this->m_field_quat, 1, 1, 1, 1);
+            this->m_field_quat.register_onValueChange([this](const VectorSpinBox<4>::valueArray_t& arg) {
+                auto trans = this->m_shared.m_active.m_trans;
+                if ( nullptr != trans ) {
+                    trans->setQuat(arg[0], arg[1], arg[2], arg[3]);
+                    this->m_shared.m_needRedraw = true;
+                }
+                });
+
+            // Scale
+
+            this->m_grid.addWidget(&this->m_label_scale, 2, 0, 1, 1);
+            this->m_label_scale.setText("Scale");
+
+            this->m_grid.addWidget(&this->m_field_scale, 2, 1, 1, 1);
+            this->m_field_scale.register_onValueChange([this](const VectorSpinBox<1>::valueArray_t& arg) {
+                auto trans = this->m_shared.m_active.m_trans;
+                if ( nullptr != trans ) {
+                    trans->setScale(arg[0]);
+                    this->m_shared.m_needRedraw = true;
+                }
+                });
         }
 
     };
