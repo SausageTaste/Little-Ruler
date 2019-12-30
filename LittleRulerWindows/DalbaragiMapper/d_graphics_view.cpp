@@ -1,9 +1,9 @@
 #include "d_graphics_view.h"
 
-#include <chrono>
-#include <iostream>
 #include <array>
+#include <chrono>
 
+#include <fmt/format.h>
 #include <glm/gtc/matrix_transform.hpp>
 
 #include <u_fileutils.h>
@@ -67,7 +67,8 @@ namespace {
             for ( int i = 0; i < this->NUM_KEY_SPEC; ++i ) {
                 this->m_isDown[i] = false;
             }
-            std::cout << "Key states cleared.\n";
+
+            dalInfo("Key states cleared");
         }
 
         bool isDown(const KeySpec key) const {
@@ -154,15 +155,15 @@ namespace dal {
     }
 
     void GraphicsView::paintGL(void) {
+        Timer timer;
+
         gl::clear(gl::ClearMode::color);
 
         auto& uniloc = this->m_glstate.use_static();
-
         uniloc.u_projMat << this->m_projMat;
-
         this->m_scene.render(uniloc);
 
-        std::cout << "Painted " << this->m_timer.getElapsed() << '\n';
+        dalInfo(fmt::format("Painted for {:.4f} ms", timer.getElapsed() * 1000.0));
     }
 
 
