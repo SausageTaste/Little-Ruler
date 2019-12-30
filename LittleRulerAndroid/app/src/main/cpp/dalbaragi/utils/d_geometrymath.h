@@ -1,14 +1,15 @@
 #pragma once
 
 #include <array>
+#include <optional>
 
 #include <glm/glm.hpp>
 
 
+#define DAL_PI 3.141592653589793238462643383279502884L
+
+
 namespace dal {
-
-    constexpr double PI = 3.141592653589793238462643383279502884L;
-
 
     class Segment {
 
@@ -21,6 +22,9 @@ namespace dal {
 
         const glm::vec3& pos(void) const;
         const glm::vec3& rel(void) const;
+        glm::vec3 endpoint(void) const {
+            return this->pos() + this->rel();
+        }
         float length(void) const;
         float lengthSqr(void) const;
 
@@ -126,10 +130,39 @@ namespace dal {
         }
         float volume(void) const;
 
+        bool isInside(const glm::vec3& p) const;
+
         void set(const glm::vec3& p0, const glm::vec3& p1);
 
         void upscaleToInclude(const glm::vec3& p);
 
     };
+
+}
+
+
+// Intersection check
+namespace dal {
+
+    bool isIntersecting(const Segment& seg, const Plane& plane);
+    bool isIntersecting(const Segment& seg, const Triangle& tri);
+    bool isIntersecting(const Segment& seg, const Sphere& sphere);
+    bool isIntersecting(const Segment& seg, const AABB& aabb);
+
+}
+
+
+// Calc intersection info
+namespace dal {
+
+    struct SegIntersecInfo {
+        float m_distance = 0;
+        bool m_isFromFront = false;
+    };
+
+    std::optional<SegIntersecInfo> findIntersection(const Segment& seg, const Plane& plane);
+    std::optional<SegIntersecInfo> findIntersection(const Segment& seg, const Triangle& tri);
+    //std::optional<SegIntersecInfo> findIntersection(const Segment& seg, const Sphere& sphere);
+    std::optional<SegIntersecInfo> findIntersection(const Segment& seg, const AABB& aabb);
 
 }
