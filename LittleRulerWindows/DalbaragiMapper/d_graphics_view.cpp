@@ -16,11 +16,39 @@
 
 namespace {
 
+    glm::ivec2 getGlobalPos(const QWidget& w) {
+        const auto p = w.mapToGlobal(QPoint(0, 0));
+        return glm::ivec2{ p.x(), p.y() };
+    }
+
+    glm::vec3 makeMouseRay(const float x, const float y, const float width, const float height, const glm::mat4& projMat, const glm::mat4& viewMat) {
+        const auto posInDevice = glm::vec2{ (x * 2.f) / width - 1.f, 1.f - (2.f * y) / height };
+        const auto rayInClip = glm::vec4{ posInDevice.x, posInDevice.y, -1, 1 };
+        const auto invertedByProj = glm::inverse(projMat) * rayInClip;
+        const auto rayInEye = glm::vec4(invertedByProj.x, invertedByProj.y, -1, 0);
+        const auto rayInWorld = glm::inverse(viewMat) * rayInEye;
+        return glm::normalize(glm::vec3{ rayInWorld });
+    }
+
+}
+
+
+namespace {
+
     class MouseState {
 
     public:
         bool m_holding = false;
+        bool m_moved = false;
         glm::ivec2 m_downPos{ 0 }, m_lastMovePos{ 0 };
+
+    public:
+        void clear(void) {
+            this->m_holding = false;
+            this->m_moved = false;
+            this->m_downPos = glm::ivec2{ 0 };
+            this->m_lastMovePos = glm::ivec2{ 0 };
+        }
 
     } g_mouse;
 
@@ -175,7 +203,16 @@ namespace dal {
     }
 
     void GraphicsView::mouseReleaseEvent(QMouseEvent* e) {
-        g_mouse.m_holding = false;
+        if ( !g_mouse.m_moved ) {
+            const auto rayInWorld = makeMouseRay(
+                e->pos().x(), e->pos().y(), this->width(), this->height(),
+                this->m_projMat, this->m_scene.activeCam().makeViewMat()
+            );
+
+            dalVerbose(fmt::format("vec3{{ {}, {}, {} }}", rayInWorld.x, rayInWorld.y, rayInWorld.z));
+        }
+
+        g_mouse.clear();
     }
 
     void GraphicsView::mouseDoubleClickEvent(QMouseEvent* e) {
@@ -191,6 +228,7 @@ namespace dal {
         this->m_scene.activeCam().rotateHorizontal(multiplier * rel.x);
         this->m_scene.activeCam().rotateVertical(multiplier * rel.y);
         g_mouse.m_lastMovePos = thisPos;
+        g_mouse.m_moved = true;
 
         this->update();
     }
