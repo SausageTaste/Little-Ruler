@@ -39,13 +39,12 @@ namespace {
 
     public:
         bool m_holding = false;
-        bool m_moved = false;
+        dal::Timer m_pressedTime;
         glm::ivec2 m_downPos{ 0 }, m_lastMovePos{ 0 };
 
     public:
         void clear(void) {
             this->m_holding = false;
-            this->m_moved = false;
             this->m_downPos = glm::ivec2{ 0 };
             this->m_lastMovePos = glm::ivec2{ 0 };
         }
@@ -200,16 +199,25 @@ namespace dal {
         g_mouse.m_downPos.x = e->globalX();
         g_mouse.m_downPos.y = e->globalY();
         g_mouse.m_lastMovePos = g_mouse.m_downPos;
+        g_mouse.m_pressedTime.check();
     }
 
     void GraphicsView::mouseReleaseEvent(QMouseEvent* e) {
-        if ( !g_mouse.m_moved ) {
+        if ( g_mouse.m_pressedTime.getElapsed() < 0.2 ) {
             const auto rayInWorld = makeMouseRay(
                 e->pos().x(), e->pos().y(), this->width(), this->height(),
                 this->m_projMat, this->m_scene.activeCam().makeViewMat()
             );
 
-            dalVerbose(fmt::format("vec3{{ {}, {}, {} }}", rayInWorld.x, rayInWorld.y, rayInWorld.z));
+            const Segment seg{ this->m_scene.activeCam().m_pos, rayInWorld * 1000.f };
+            const auto result = this->m_scene.castSegment(seg);
+
+            if ( nullptr != result ) {
+                dalVerbose(fmt::format("vec3{{ {:0.6f}, {:0.6f}, {:0.6f} }} -> {}", rayInWorld.x, rayInWorld.y, rayInWorld.z, result->m_actor.m_name));
+            }
+            else {
+                dalVerbose(fmt::format("vec3{{ {:0.6f}, {:0.6f}, {:0.6f} }} -> NULL", rayInWorld.x, rayInWorld.y, rayInWorld.z));
+            }
         }
 
         g_mouse.clear();
@@ -228,7 +236,6 @@ namespace dal {
         this->m_scene.activeCam().rotateHorizontal(multiplier * rel.x);
         this->m_scene.activeCam().rotateVertical(multiplier * rel.y);
         g_mouse.m_lastMovePos = thisPos;
-        g_mouse.m_moved = true;
 
         this->update();
     }

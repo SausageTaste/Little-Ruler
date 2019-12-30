@@ -5,7 +5,8 @@
 
 #include <glm/glm.hpp>
 
-#include <d_daldef.h>
+#include "d_daldef.h"
+#include "d_geometrymath.h"
 
 
 namespace dal {
@@ -51,8 +52,12 @@ namespace dal {
 
         void addQuad(const xvec3& p0, const xvec3& p1, const xvec3& p2, const xvec3& p3);
 
+        bool isIntersecting(const Segment& seg, const glm::mat4& transform) const;
+        std::optional<SegIntersecInfo> findIntersection(const Segment& seg, const glm::mat4& transform) const;
+
     private:
         xvec3 makeFaceNormal(const Face& face) const;
+        std::vector<glm::vec3> makeTransformedVert(const glm::mat4& transform) const;
 
     };
 

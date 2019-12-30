@@ -6,7 +6,6 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
 
-#include "d_daldef.h"
 #include "d_opengl_renderunit.h"
 #include "d_opengl_texture.h"
 #include "d_uniloc.h"
@@ -96,13 +95,13 @@ namespace dal {
             iter.first->second.m_actor.m_name = name;
             return iter.first->second;
         }
+        MeshPack* castSegment(const Segment& seg);
         void clearGL(void) {
             this->m_meshes.clear();
             this->m_albedo.invalidate();
             this->m_roughness.invalidate();
             this->m_metallic.invalidate();
         }
-
         void render(const gl::UniRender_Static& uniloc) const;
 
     };

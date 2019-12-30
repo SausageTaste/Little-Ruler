@@ -361,7 +361,7 @@ namespace dal {
         const auto absDistA = std::abs(distA);
         const auto distance = seg.length() * absDistA / (absDistA + std::abs(distB));
 
-        return SegIntersecInfo{ distA > distB, distance };
+        return SegIntersecInfo{ distance, distA > distB };
     }
 
     std::optional<SegIntersecInfo> findIntersection(const Segment& seg, const Triangle& tri) {

@@ -1,5 +1,7 @@
 #include "d_meshgeo.h"
 
+#include <limits>
+
 
 // MeshBuildData
 namespace dal {
@@ -86,6 +88,47 @@ namespace dal {
         }
     }
 
+    bool MeshData::isIntersecting(const Segment& seg, const glm::mat4& transform) const {
+        const auto transformed = this->makeTransformedVert(transform);
+
+        for ( const auto& face : this->m_faces ) {
+            const auto v0 = transformed[face.m_verts[0]];
+            const auto v1 = transformed[face.m_verts[1]];
+            const auto v2 = transformed[face.m_verts[2]];
+
+            const Triangle tri{ v0, v1, v2 };
+            if ( dal::isIntersecting(seg, tri) ) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    std::optional<SegIntersecInfo> MeshData::findIntersection(const Segment& seg, const glm::mat4& transform) const {
+        const auto transformed = this->makeTransformedVert(transform);
+
+        std::optional<SegIntersecInfo> result{ std::nullopt };
+        float dist = std::numeric_limits<float>::max();
+
+        for ( const auto& face : this->m_faces ) {
+            const auto v0 = transformed[face.m_verts[0]];
+            const auto v1 = transformed[face.m_verts[1]];
+            const auto v2 = transformed[face.m_verts[2]];
+
+            const Triangle tri{ v0, v1, v2 };
+            const auto col = dal::findIntersection(seg, tri);
+            if ( col && col->m_distance < dist ) {
+                dist = col->m_distance;
+                result = col;
+            }
+        }
+
+        return result;
+    }
+
+    // Private
+
     xvec3 MeshData::makeFaceNormal(const Face& face) const {
         auto& v0 = this->m_vertices[face.m_verts[0]];
         auto& v1 = this->m_vertices[face.m_verts[1]];
@@ -95,6 +138,17 @@ namespace dal {
         const glm::vec3 edge1 = v2 - v0;
 
         return glm::cross(edge0, edge1);
+    }
+
+    std::vector<glm::vec3> MeshData::makeTransformedVert(const glm::mat4& transform) const {
+        std::vector<glm::vec3> transformed;
+        transformed.reserve(this->m_vertices.size());
+        for ( const auto& vert : this->m_vertices ) {
+            const glm::vec3 tv = transform * glm::vec4{ vert, 1 };
+            transformed.push_back(tv);
+        }
+
+        return transformed;
     }
 
 }

@@ -1,5 +1,6 @@
 #include "d_scene.h"
 
+#include <limits>
 #include <iostream>
 
 #include <glm/gtc/matrix_transform.hpp>
@@ -99,6 +100,21 @@ namespace dal {
 
     Scene::Scene(void) {
         this->m_activeCamera = &this->m_cameras.emplace_back();
+    }
+
+    Scene::MeshPack* Scene::castSegment(const Segment& seg) {
+        MeshPack* result = nullptr;
+        float dist = std::numeric_limits<float>::max();
+
+        for ( auto& [name, mesh] : this->m_meshes ) {
+            const auto col = mesh.m_meshdata.findIntersection(seg, mesh.m_actor.m_trans.transformMat());
+            if ( col && col->m_distance < dist ) {
+                result = &mesh;
+                dist = col->m_distance;
+            }
+        }
+
+        return result;
     }
 
     void Scene::render(const gl::UniRender_Static& uniloc) const {
