@@ -2,12 +2,12 @@
 
 #include <glm/glm.hpp>
 #include <Fixed.h>
+#include <d_fixednum.h>
 
 
 namespace dal {
 
-    constexpr int FRAC_PART_SIZE = 7;
-    using fixed_t = numeric::Fixed<32 - FRAC_PART_SIZE, FRAC_PART_SIZE>;
+    using fixed_t = dal::Fixed<100>;
 
     using xvec2 = glm::tvec2<fixed_t>;
     using xvec3 = glm::tvec3<fixed_t>;
