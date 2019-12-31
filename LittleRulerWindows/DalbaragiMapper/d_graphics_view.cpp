@@ -140,19 +140,29 @@ namespace dal {
         {
             constexpr float a = 1.f;
 
-            auto& mesh = this->m_scene.addMesh("one");
+            const auto id = this->m_scene.m_entt.create();
+
+            auto& mesh = this->m_scene.m_entt.assign<Scene::MeshPack>(id);
             mesh.m_meshdata.addQuad({ -a, a, 0 }, { -a, -a, 0 }, { a, -a, 0 }, { a, a, 0 });
             const auto build = mesh.m_meshdata.buildMesh();
             mesh.m_glmesh.initStatic(build.numVert(), build.vertices(), build.texcoords(), build.normals());
+
+            auto& actor = this->m_scene.m_entt.assign<Actor>(id);
+            actor.m_name = "one";
         }
 
         {
             constexpr float a = 1.f;
 
-            auto& mesh = this->m_scene.addMesh("two");
+            const auto id = this->m_scene.m_entt.create();
+
+            auto& mesh = this->m_scene.m_entt.assign<Scene::MeshPack>(id);
             mesh.m_meshdata.addQuad({ -a, a, 0 }, { -a, -a, 0 }, { a, -a, 0 }, { a, a, 0 });
             const auto build = mesh.m_meshdata.buildMesh();
             mesh.m_glmesh.initStatic(build.numVert(), build.vertices(), build.texcoords(), build.normals());
+
+            auto& actor = this->m_scene.m_entt.assign<Actor>(id);
+            actor.m_name = "two";
         }
 
         {
@@ -218,12 +228,15 @@ namespace dal {
             const Segment seg{ this->m_scene.activeCam().m_pos, rayInWorld * 1000.f };
             const auto result = this->m_scene.castSegment(seg);
 
-            if ( nullptr != result ) {
-                dalVerbose(fmt::format("vec3{{ {:0.6f}, {:0.6f}, {:0.6f} }} -> {}", rayInWorld.x, rayInWorld.y, rayInWorld.z, result->m_actor.m_name));
-                this->m_shared.m_active.m_actor = &result->m_actor;
+            if ( result ) {
+                this->m_shared.m_active = *result;
                 this->notify_onSharedInfoUpdated();
+                auto& actor = this->m_scene.m_entt.get<Actor>(*result);
+                dalVerbose(fmt::format("vec3{{ {:0.6f}, {:0.6f}, {:0.6f} }} -> {}", rayInWorld.x, rayInWorld.y, rayInWorld.z, actor.m_name));
             }
             else {
+                this->m_shared.m_active = std::nullopt;
+                this->notify_onSharedInfoUpdated();
                 dalVerbose(fmt::format("vec3{{ {:0.6f}, {:0.6f}, {:0.6f} }} -> NULL", rayInWorld.x, rayInWorld.y, rayInWorld.z));
             }
         }

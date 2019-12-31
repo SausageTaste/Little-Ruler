@@ -1,8 +1,10 @@
 #pragma once
 
 #include <list>
+#include <optional>
 #include <unordered_map>
 
+#include <entt/entt.hpp>
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
 
@@ -67,12 +69,13 @@ namespace dal {
         struct MeshPack {
             gl::Mesh m_glmesh;
             MeshData m_meshdata;
-            Actor m_actor;
         };
+
+    public:
+        entt::registry m_entt;
 
     private:
         std::list<Camera> m_cameras;
-        std::unordered_map<std::string, MeshPack> m_meshes;
 
         Camera* m_activeCamera = nullptr;
 
@@ -89,19 +92,8 @@ namespace dal {
             return *this->m_activeCamera;
         }
 
-        MeshPack& addMesh(const std::string& name) {
-            auto iter = this->m_meshes.emplace(name, MeshPack{});
-            assert(iter.second);
-            iter.first->second.m_actor.m_name = name;
-            return iter.first->second;
-        }
-        MeshPack* castSegment(const Segment& seg);
-        void clearGL(void) {
-            this->m_meshes.clear();
-            this->m_albedo.invalidate();
-            this->m_roughness.invalidate();
-            this->m_metallic.invalidate();
-        }
+        std::optional<entt::entity> castSegment(const Segment& seg);
+        void clearGL(void);
         void render(const gl::UniRender_Static& uniloc) const;
 
     };

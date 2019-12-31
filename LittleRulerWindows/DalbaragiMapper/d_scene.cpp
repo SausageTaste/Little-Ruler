@@ -102,19 +102,34 @@ namespace dal {
         this->m_activeCamera = &this->m_cameras.emplace_back();
     }
 
-    Scene::MeshPack* Scene::castSegment(const Segment& seg) {
-        MeshPack* result = nullptr;
+    std::optional<entt::entity> Scene::castSegment(const Segment& seg) {
+        std::optional<entt::entity> result{ std::nullopt };
         float dist = std::numeric_limits<float>::max();
 
-        for ( auto& [name, mesh] : this->m_meshes ) {
-            const auto col = mesh.m_meshdata.findIntersection(seg, mesh.m_actor.m_trans.transformMat());
+        auto view = this->m_entt.view<MeshPack, Actor>();
+        for ( auto entity : view ) {
+            auto& mesh = view.get<MeshPack>(entity);
+            auto& actor = view.get<Actor>(entity);
+
+            const auto col = mesh.m_meshdata.findIntersection(seg, actor.m_trans.transformMat());
             if ( col && col->m_distance < dist ) {
-                result = &mesh;
+                result = entity;
                 dist = col->m_distance;
             }
         }
 
         return result;
+    }
+
+    void Scene::clearGL(void) {
+        this->m_albedo.invalidate();
+        this->m_roughness.invalidate();
+        this->m_metallic.invalidate();
+
+        const auto view = this->m_entt.view<MeshPack>();
+        for ( const auto id : view ) {
+            this->m_entt.remove<MeshPack>(id);
+        }
     }
 
     void Scene::render(const gl::UniRender_Static& uniloc) const {
@@ -136,8 +151,12 @@ namespace dal {
         uniloc.u_viewMat << this->activeCam().makeViewMat();
         uniloc.u_viewPos << this->activeCam().m_pos;
 
-        for ( auto& [name, mesh] : this->m_meshes ) {
-            uniloc.u_modelMat << mesh.m_actor.m_trans.transformMat();
+        auto view = this->m_entt.view<const MeshPack, const Actor>();
+        for ( auto entity : view ) {
+            auto& mesh = view.get<const MeshPack>(entity);
+            auto& actor = view.get<const Actor>(entity);
+
+            uniloc.u_modelMat << actor.m_trans.transformMat();
             mesh.m_glmesh.draw();
         }
     }

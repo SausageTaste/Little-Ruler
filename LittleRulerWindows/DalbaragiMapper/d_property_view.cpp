@@ -26,6 +26,7 @@ namespace {
 
         QGridLayout m_grid;
         dal::NoInitArray<QDoubleSpinBox, _Size> m_spinboxes;
+        dal::NoInitArray<QLabel, _Size> m_labels;
         callbackOnValueChange_t m_onValueChange;
 
     public:
@@ -38,19 +39,26 @@ namespace {
             this->m_grid.setMargin(0);
 
             for ( unsigned i = 0; i < _Size; ++i ) {
-                QDoubleSpinBox& w = this->m_spinboxes.construct(i, this);
-                this->m_grid.addWidget(&w, i, 0, 1, 1);
-                const auto _ = connect(&w, static_cast<void(QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged), this, &VectorSpinBox::onValueChange);
+                {
+                    QLabel& w = this->m_labels.construct(i, this);
+                    this->m_grid.addWidget(&w, i, 0, 1, 1);
+                }
 
-                w.setMinimumWidth(80);
-                w.setMaximumWidth(99999);
-                w.setSizePolicy(SIZE_POLICY);
+                {
+                    QDoubleSpinBox& w = this->m_spinboxes.construct(i, this);
+                    this->m_grid.addWidget(&w, i, 1, 1, 1);
+                    const auto _ = connect(&w, static_cast<void(QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged), this, &VectorSpinBox::onValueChange);
 
-                w.setMinimum(-DBL_MAX);
-                w.setMaximum(DBL_MAX);
-                w.setSingleStep(0.01);
-                w.setDecimals(3);
-                w.setSuffix(" m");
+                    w.setMinimumWidth(80);
+                    w.setMaximumWidth(99999);
+                    w.setSizePolicy(SIZE_POLICY);
+
+                    w.setMinimum(-DBL_MAX);
+                    w.setMaximum(DBL_MAX);
+                    w.setSingleStep(0.01);
+                    w.setDecimals(3);
+                    w.setSuffix(" m");
+                }
             }
         }
 
@@ -65,6 +73,23 @@ namespace {
             static_assert(_Index < _Size);
             QDoubleSpinBox& w = this->m_spinboxes[_Index];
             return w.value();
+        }
+        template <unsigned _Index>
+        void setText(const char* const str) {
+            static_assert(_Index < _Size);
+            QLabel& w = this->m_labels[_Index];
+            w.setText(str);
+        }
+
+        void enable(void) {
+            for ( unsigned i = 0; i < _Size; ++i ) {
+                this->m_spinboxes[i].setDisabled(false);
+            }
+        }
+        void disable(void) {
+            for ( unsigned i = 0; i < _Size; ++i ) {
+                this->m_spinboxes[i].setDisabled(true);
+            }
         }
 
         void register_onValueChange(callbackOnValueChange_t func) {
@@ -93,6 +118,7 @@ namespace {
     class PropertyPage : public QWidget {
 
     protected:
+        dal::Scene& m_scene;
         dal::SharedInfo& m_shared;
         QGridLayout m_grid;
 
@@ -101,8 +127,9 @@ namespace {
         PropertyPage& operator=(const PropertyPage&) = delete;
 
     public:
-        PropertyPage(QWidget* const parent, dal::SharedInfo& shared)
+        PropertyPage(QWidget* const parent, dal::Scene& scene, dal::SharedInfo& shared)
             : QWidget(parent)
+            , m_scene(scene)
             , m_shared(shared)
             , m_grid(this)
         {
@@ -133,8 +160,8 @@ namespace {
         VectorSpinBox<1> m_field_scale;
 
     public:
-        DataView_Actor(QWidget* const parent, dal::SharedInfo& shared)
-            : PropertyPage(parent, shared)
+        DataView_Actor(QWidget* const parent, dal::Scene& scene, dal::SharedInfo& shared)
+            : PropertyPage(parent, scene, shared)
 
             , m_label_name(this)
             , m_lineEdit_name(this)
@@ -174,12 +201,15 @@ namespace {
                     if ( this->m_isConnectedSlotDisabled )
                         return;
 
-                    auto actor = this->m_shared.m_active.m_actor;
+                    auto actor = this->findActiveActor();
                     if ( nullptr != actor ) {
                         actor->m_trans.setPos(arg[0], arg[1], arg[2]);
                         this->m_shared.m_needRedraw = true;
                     }
                     });
+                this->m_field_pos.setText<0>("x");
+                this->m_field_pos.setText<1>("y");
+                this->m_field_pos.setText<2>("z");
             }
 
             // Quat
@@ -192,12 +222,16 @@ namespace {
                     if ( this->m_isConnectedSlotDisabled )
                         return;
 
-                    auto actor = this->m_shared.m_active.m_actor;
+                    auto actor = this->findActiveActor();
                     if ( nullptr != actor ) {
                         actor->m_trans.setQuat(arg[1], arg[2], arg[3], arg[0]);
                         this->m_shared.m_needRedraw = true;
                     }
                     });
+                this->m_field_quat.setText<0>("w");
+                this->m_field_quat.setText<1>("x");
+                this->m_field_quat.setText<2>("y");
+                this->m_field_quat.setText<3>("z");
             }
 
             // Scale
@@ -210,7 +244,7 @@ namespace {
                     if ( this->m_isConnectedSlotDisabled )
                         return;
 
-                    auto actor = this->m_shared.m_active.m_actor;
+                    auto actor = this->findActiveActor();
                     if ( nullptr != actor ) {
                         actor->m_trans.setScale(arg[0]);
                         this->m_shared.m_needRedraw = true;
@@ -220,35 +254,67 @@ namespace {
         }
 
         virtual void onSharedInfoUpdated(void) override {
-            const auto actor = this->m_shared.m_active.m_actor;
-            if ( nullptr == actor )
+            auto ptr = this->findActiveActor();
+            if ( nullptr == ptr ) {
+                this->disable();
                 return;
+            }
+
+            this->enable();
+            auto& actor = *ptr;
 
             this->m_isConnectedSlotDisabled = true;
+            {
+                this->m_lineEdit_name.setText(actor.m_name.c_str());
 
-            this->m_lineEdit_name.setText(actor->m_name.c_str());
+                this->m_field_pos.setValue<0>(actor.m_trans.pos().x);
+                this->m_field_pos.setValue<1>(actor.m_trans.pos().y);
+                this->m_field_pos.setValue<2>(actor.m_trans.pos().z);
 
-            this->m_field_pos.setValue<0>(actor->m_trans.pos().x);
-            this->m_field_pos.setValue<1>(actor->m_trans.pos().y);
-            this->m_field_pos.setValue<2>(actor->m_trans.pos().z);
+                this->m_field_quat.setValue<0>(actor.m_trans.quat().w);
+                this->m_field_quat.setValue<1>(actor.m_trans.quat().x);
+                this->m_field_quat.setValue<2>(actor.m_trans.quat().y);
+                this->m_field_quat.setValue<3>(actor.m_trans.quat().z);
 
-            this->m_field_quat.setValue<0>(actor->m_trans.quat().w);
-            this->m_field_quat.setValue<1>(actor->m_trans.quat().x);
-            this->m_field_quat.setValue<2>(actor->m_trans.quat().y);
-            this->m_field_quat.setValue<3>(actor->m_trans.quat().z);
-
-            this->m_field_scale.setValue<0>(actor->m_trans.scale());
-
+                this->m_field_scale.setValue<0>(actor.m_trans.scale());
+            }
             this->m_isConnectedSlotDisabled = false;
         }
 
     private:
         void onNameEditted(const QString& str) {
-            const auto actor = this->m_shared.m_active.m_actor;
+            const auto actor = this->findActiveActor();
             if ( nullptr != actor ) {
                 actor->m_name = str.toStdString();
                 dalVerbose(actor->m_name);
             }
+        }
+
+        void enable(void) {
+            this->m_lineEdit_name.setDisabled(false);
+            this->m_field_pos.enable();
+            this->m_field_quat.enable();
+            this->m_field_scale.enable();
+        }
+        void disable(void) {
+            this->m_lineEdit_name.setDisabled(true);
+            this->m_field_pos.disable();
+            this->m_field_quat.disable();
+            this->m_field_scale.disable();
+        }
+
+        dal::Actor* findActiveActor(void) const {
+            if ( !this->m_shared.m_active ) {
+                return nullptr;
+            }
+
+            const auto id = *this->m_shared.m_active;
+            if ( !this->m_scene.m_entt.has<dal::Actor>(id) ) {
+                return nullptr;
+            }
+
+            auto& actor = this->m_scene.m_entt.get<dal::Actor>(id);
+            return &actor;
         }
 
     };
@@ -273,7 +339,7 @@ namespace dal {
             : m_scene(scene)
             , m_shared(shared)
             , m_grid(parent)
-            , m_view_actor(parent, shared)
+            , m_view_actor(parent, scene, shared)
         {
 
         }
@@ -286,8 +352,8 @@ namespace dal {
         , m_pimpl(new Impl{ this, scene, shared })
     {
         this->setLayout(&this->m_pimpl->m_grid);
-
         this->m_pimpl->m_grid.addWidget(&this->m_pimpl->m_view_actor);
+        this->onSharedInfoUpdated();
     }
 
     PropertyView::~PropertyView(void) {

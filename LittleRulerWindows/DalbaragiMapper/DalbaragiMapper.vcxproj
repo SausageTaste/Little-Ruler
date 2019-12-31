@@ -70,7 +70,7 @@
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)..\Library\zlib-1.2.11\include;$(SolutionDir)..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\utils;$(SolutionDir)..\Library\glm-0.9.8.4\include;$(SolutionDir)..\Library\lodepng\include;$(SolutionDir)..\Library\tga\include;$(SolutionDir)..\Library\fmt-6.0.0\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\Library\entt\include;$(SolutionDir)..\Library\zlib-1.2.11\include;$(SolutionDir)..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\utils;$(SolutionDir)..\Library\glm-0.9.8.4\include;$(SolutionDir)..\Library\lodepng\include;$(SolutionDir)..\Library\tga\include;$(SolutionDir)..\Library\fmt-6.0.0\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <OmitFramePointers>
       </OmitFramePointers>
     </ClCompile>
@@ -89,7 +89,7 @@
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)..\Library\zlib-1.2.11\include;$(SolutionDir)..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\utils;$(SolutionDir)..\Library\glm-0.9.8.4\include;$(SolutionDir)..\Library\lodepng\include;$(SolutionDir)..\Library\tga\include;$(SolutionDir)..\Library\fmt-6.0.0\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\Library\entt\include;$(SolutionDir)..\Library\zlib-1.2.11\include;$(SolutionDir)..\LittleRulerAndroid\app\src\main\cpp\dalbaragi\utils;$(SolutionDir)..\Library\glm-0.9.8.4\include;$(SolutionDir)..\Library\lodepng\include;$(SolutionDir)..\Library\tga\include;$(SolutionDir)..\Library\fmt-6.0.0\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <OmitFramePointers>

@@ -3,6 +3,7 @@
 #include <string>
 #include <optional>
 
+#include <entt/entt.hpp>
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
 
@@ -115,12 +116,7 @@ namespace dal {
     class SharedInfo {
 
     public:
-        struct ActiveObject {
-            Actor* m_actor = nullptr;
-        };
-
-    public:
-        ActiveObject m_active;
+        std::optional<entt::entity> m_active{ std::nullopt };
         bool m_needRedraw = false;
 
     };
