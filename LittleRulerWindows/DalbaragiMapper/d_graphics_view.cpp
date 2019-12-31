@@ -144,9 +144,15 @@ namespace dal {
             mesh.m_meshdata.addQuad({ -a, a, 0 }, { -a, -a, 0 }, { a, -a, 0 }, { a, a, 0 });
             const auto build = mesh.m_meshdata.buildMesh();
             mesh.m_glmesh.initStatic(build.numVert(), build.vertices(), build.texcoords(), build.normals());
+        }
 
-            this->m_shared.m_active.m_actor = &mesh.m_actor;
-            this->notify_onSharedInfoUpdated();
+        {
+            constexpr float a = 1.f;
+
+            auto& mesh = this->m_scene.addMesh("two");
+            mesh.m_meshdata.addQuad({ -a, a, 0 }, { -a, -a, 0 }, { a, -a, 0 }, { a, a, 0 });
+            const auto build = mesh.m_meshdata.buildMesh();
+            mesh.m_glmesh.initStatic(build.numVert(), build.vertices(), build.texcoords(), build.normals());
         }
 
         {
@@ -214,6 +220,8 @@ namespace dal {
 
             if ( nullptr != result ) {
                 dalVerbose(fmt::format("vec3{{ {:0.6f}, {:0.6f}, {:0.6f} }} -> {}", rayInWorld.x, rayInWorld.y, rayInWorld.z, result->m_actor.m_name));
+                this->m_shared.m_active.m_actor = &result->m_actor;
+                this->notify_onSharedInfoUpdated();
             }
             else {
                 dalVerbose(fmt::format("vec3{{ {:0.6f}, {:0.6f}, {:0.6f} }} -> NULL", rayInWorld.x, rayInWorld.y, rayInWorld.z));

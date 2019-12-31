@@ -118,6 +118,8 @@ namespace {
     class DataView_Actor : public PropertyPage {
 
     private:
+        bool m_isConnectedSlotDisabled = false;
+
         QLabel m_label_name;
         QLineEdit m_lineEdit_name;
 
@@ -169,6 +171,9 @@ namespace {
 
                 this->m_grid.addWidget(&this->m_field_pos, 1, 1, 1, 1);
                 this->m_field_pos.register_onValueChange([this](const VectorSpinBox<3>::valueArray_t& arg) {
+                    if ( this->m_isConnectedSlotDisabled )
+                        return;
+
                     auto actor = this->m_shared.m_active.m_actor;
                     if ( nullptr != actor ) {
                         actor->m_trans.setPos(arg[0], arg[1], arg[2]);
@@ -184,6 +189,9 @@ namespace {
 
                 this->m_grid.addWidget(&this->m_field_quat, 2, 1, 1, 1);
                 this->m_field_quat.register_onValueChange([this](const VectorSpinBox<4>::valueArray_t& arg) {
+                    if ( this->m_isConnectedSlotDisabled )
+                        return;
+
                     auto actor = this->m_shared.m_active.m_actor;
                     if ( nullptr != actor ) {
                         actor->m_trans.setQuat(arg[1], arg[2], arg[3], arg[0]);
@@ -199,6 +207,9 @@ namespace {
 
                 this->m_grid.addWidget(&this->m_field_scale, 3, 1, 1, 1);
                 this->m_field_scale.register_onValueChange([this](const VectorSpinBox<1>::valueArray_t& arg) {
+                    if ( this->m_isConnectedSlotDisabled )
+                        return;
+
                     auto actor = this->m_shared.m_active.m_actor;
                     if ( nullptr != actor ) {
                         actor->m_trans.setScale(arg[0]);
@@ -213,6 +224,8 @@ namespace {
             if ( nullptr == actor )
                 return;
 
+            this->m_isConnectedSlotDisabled = true;
+
             this->m_lineEdit_name.setText(actor->m_name.c_str());
 
             this->m_field_pos.setValue<0>(actor->m_trans.pos().x);
@@ -225,6 +238,8 @@ namespace {
             this->m_field_quat.setValue<3>(actor->m_trans.quat().z);
 
             this->m_field_scale.setValue<0>(actor->m_trans.scale());
+
+            this->m_isConnectedSlotDisabled = false;
         }
 
     private:
