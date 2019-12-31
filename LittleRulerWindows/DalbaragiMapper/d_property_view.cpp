@@ -1,11 +1,86 @@
 #include "d_property_view.h"
 
+#include <memory>
+
 #include <QLabel>
 #include <QLineEdit>
 #include <QGridLayout>
 #include <QDoubleSpinBox>
+#include <QScrollArea>
+#include <QComboBox>
 
 #include <d_pool.h>
+
+
+namespace {
+
+    // From https://stackoverflow.com/questions/5395266/removing-widgets-from-qgridlayout
+    class GridLayoutUtil {
+        /**
+         * Utility class to remove the contents of a QGridLayout row, column or
+         * cell. If the deleteWidgets parameter is true, then the widgets become
+         * not only removed from the layout, but also deleted. Note that we won't
+         * actually remove any row or column itself from the layout, as this isn't
+         * possible. So the rowCount() and columnCount() will always stay the same,
+         * but the contents of the row, column or cell will be removed.
+         */
+
+    public:
+        // Removes the contents of the given layout row.
+        static void removeRow(QGridLayout* layout, int row, bool deleteWidgets = true) {
+            remove(layout, row, -1, deleteWidgets);
+            layout->setRowMinimumHeight(row, 0);
+            layout->setRowStretch(row, 0);
+        }
+
+        // Removes the contents of the given layout column.
+        static void removeColumn(QGridLayout* layout, int column, bool deleteWidgets = true) {
+            remove(layout, -1, column, deleteWidgets);
+            layout->setColumnMinimumWidth(column, 0);
+            layout->setColumnStretch(column, 0);
+        }
+
+        // Removes the contents of the given layout cell.
+        static void removeCell(QGridLayout* layout, int row, int column, bool deleteWidgets = true) {
+            remove(layout, row, column, deleteWidgets);
+        }
+
+    private:
+        // Removes all layout items which span the given row and column.
+        static void remove(QGridLayout* layout, int row, int column, bool deleteWidgets) {
+            // We avoid usage of QGridLayout::itemAtPosition() here to improve performance.
+            for ( int i = layout->count() - 1; i >= 0; i-- ) {
+                int r, c, rs, cs;
+                layout->getItemPosition(i, &r, &c, &rs, &cs);
+                if (
+                    (row == -1 || (r <= row && r + rs > row)) &&
+                    (column == -1 || (c <= column && c + cs > column)) ) {
+                    // This layout item is subject to deletion.
+                    QLayoutItem* item = layout->takeAt(i);
+                    if ( deleteWidgets ) {
+                        deleteChildWidgets(item);
+                    }
+                    delete item;
+                }
+            }
+        }
+
+        // Deletes all child widgets of the given layout item.
+        static void deleteChildWidgets(QLayoutItem* item) {
+            QLayout* layout = item->layout();
+            if ( layout ) {
+                // Process all child items recursively.
+                int itemCount = layout->count();
+                for ( int i = 0; i < itemCount; i++ ) {
+                    deleteChildWidgets(layout->itemAt(i));
+                }
+            }
+            delete item->widget();
+        }
+
+    };
+
+}
 
 
 namespace {
@@ -28,14 +103,14 @@ namespace {
             , m_shared(shared)
             , m_grid(this)
         {
-
+            this->m_grid.setAlignment(Qt::AlignTop);
         }
         virtual ~PropertyPage(void) = default;
 
         virtual void onSharedInfoUpdated(void) {}
 
     };
-    
+
 
     class DataView_Actor : public PropertyPage {
 
@@ -60,7 +135,6 @@ namespace {
             , m_lineEdit_name(this)
         {
             this->setLayout(&this->m_grid);
-            this->m_grid.setAlignment(Qt::AlignTop);
 
             // Name
             {
@@ -215,7 +289,7 @@ namespace {
     private:
         void enable(void) {
             this->m_lineEdit_name.setDisabled(false);
-            
+
             for ( unsigned i = 0; i < NUM_DOUBLE_VALUE; ++i ) {
                 auto& w = this->m_dspinboxes[i];
                 w.setDisabled(false);
@@ -246,10 +320,73 @@ namespace {
 
     };
 
+
+    class DataView_Useless : public PropertyPage {
+
+    private:
+        static constexpr unsigned NUM = 20;
+        dal::NoInitArray<QLineEdit, NUM> m_lineedits;;
+
+    public:
+        DataView_Useless(QWidget* const parent, dal::Scene& scene, dal::SharedInfo& shared)
+            : PropertyPage(parent, scene, shared)
+        {
+            for ( unsigned i = 0; i < this->NUM; ++i ) {
+                auto& w = this->m_lineedits.construct(i, this);
+                this->m_grid.addWidget(&w);
+            }
+        }
+
+    };
+
 }
 
 
 namespace dal {
+
+    class SelectableWidget : public QWidget {
+
+    private:
+        QGridLayout m_grid;
+
+        DataView_Actor m_view_actor;
+        DataView_Useless m_view_useless;
+
+        PropertyPage* m_ptrs[2] = {
+            &m_view_actor,
+            &m_view_useless
+        };
+
+    public:
+        SelectableWidget(QWidget* const parent, Scene& scene, SharedInfo& shared)
+            : QWidget(parent)
+            , m_view_actor(this, scene, shared)
+            , m_view_useless(this, scene, shared)
+        {
+            this->setLayout(&this->m_grid);
+
+            this->m_grid.addWidget(&this->m_view_actor);
+            this->m_grid.addWidget(&this->m_view_useless);
+        }
+
+        void selectView(const unsigned index) {
+            for ( unsigned i = 0; i < 2; ++i ) {
+                if ( index == i ) {
+                    this->m_ptrs[i]->show();
+                }
+                else {
+                    this->m_ptrs[i]->hide();
+                }
+            }
+        }
+
+        void onSharedInfoUpdated(void) {
+            m_view_actor.onSharedInfoUpdated();
+            m_view_useless.onSharedInfoUpdated();
+        }
+
+    };
+
 
     class PropertyView::Impl {
 
@@ -258,15 +395,18 @@ namespace dal {
         SharedInfo& m_shared;
 
         QGridLayout m_grid;
-
-        DataView_Actor m_view_actor;
+        QComboBox m_viewSelector;
+        QScrollArea m_scrollArea;
+        SelectableWidget m_views;
 
     public:
         Impl(QWidget* const parent, Scene& scene, SharedInfo& shared)
             : m_scene(scene)
             , m_shared(shared)
             , m_grid(parent)
-            , m_view_actor(parent, scene, shared)
+            , m_viewSelector(parent)
+            , m_scrollArea(parent)
+            , m_views(parent, scene, shared)
         {
 
         }
@@ -278,8 +418,29 @@ namespace dal {
         : QWidget(parent)
         , m_pimpl(new Impl{ this, scene, shared })
     {
-        this->setLayout(&this->m_pimpl->m_grid);
-        this->m_pimpl->m_grid.addWidget(&this->m_pimpl->m_view_actor);
+        {
+            auto& w = this->m_pimpl->m_viewSelector;
+            w.addItem("Actor");
+            w.addItem("Useless");
+
+            auto _ = connect(
+                &w, static_cast<void(QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
+                this, [this](const int v) {
+                    this->m_pimpl->m_views.selectView(v);
+                }
+            );
+        }
+
+        {
+            this->setLayout(&this->m_pimpl->m_grid);
+            this->m_pimpl->m_grid.addWidget(&this->m_pimpl->m_viewSelector);
+            this->m_pimpl->m_grid.addWidget(&this->m_pimpl->m_scrollArea);
+
+            this->m_pimpl->m_scrollArea.setWidgetResizable(true);
+            this->m_pimpl->m_scrollArea.setAlignment(Qt::AlignTop);
+            this->m_pimpl->m_scrollArea.setWidget(&this->m_pimpl->m_views);
+        }
+
         this->onSharedInfoUpdated();
     }
 
@@ -289,7 +450,7 @@ namespace dal {
     }
 
     void PropertyView::onSharedInfoUpdated(void) {
-        this->m_pimpl->m_view_actor.onSharedInfoUpdated();
+        this->m_pimpl->m_views.onSharedInfoUpdated();
     }
 
 }
