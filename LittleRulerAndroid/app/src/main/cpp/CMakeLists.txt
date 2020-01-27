@@ -13,7 +13,6 @@ endif (${ANDROID_PLATFORM_LEVEL} LESS 18)
 set(library_dir ${CMAKE_CURRENT_SOURCE_DIR}/../../../../../Library)
 
 # Make main JNI library
-file(GLOB dalbaragiSrcFiles ./dalbaragi/*.cpp)
 add_library( interface4jni SHARED
         interface4jni.cpp
         javautil.cpp
