@@ -10,7 +10,7 @@
 #include <d_logger.h>
 
 
-#define DAL_RENDER_WATER false
+#define DAL_RENDER_WATER true
 
 
 using namespace fmt::literals;
