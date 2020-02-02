@@ -1,0 +1,164 @@
+{
+    "aabb": {
+        "min": "-0.348508, 0.0, -0.22516",
+        "max": "0.348508, 1.29189, 0.140299"
+    },
+    "render units size": 10,
+    "render units": [
+        {
+            "name": "chest.001",
+            "mesh": {
+                "vertices": 6480,
+                "texcoords": 4320,
+                "normals": 6480
+            },
+            "material": {
+                "roughness": 0.5,
+                "metallic": 0.0,
+                "diffuse map": "irin_body_albedo.png",
+                "roughness map": "",
+                "metallic map": ""
+            }
+        },
+        {
+            "name": "leg.001",
+            "mesh": {
+                "vertices": 2736,
+                "texcoords": 1824,
+                "normals": 2736
+            },
+            "material": {
+                "roughness": 0.5,
+                "metallic": 0.0,
+                "diffuse map": "irin_body_albedo.png",
+                "roughness map": "",
+                "metallic map": ""
+            }
+        },
+        {
+            "name": "pants.001",
+            "mesh": {
+                "vertices": 4752,
+                "texcoords": 3168,
+                "normals": 4752
+            },
+            "material": {
+                "roughness": 0.5,
+                "metallic": 0.0,
+                "diffuse map": "irin_body_albedo.png",
+                "roughness map": "",
+                "metallic map": ""
+            }
+        },
+        {
+            "name": "skirt.001",
+            "mesh": {
+                "vertices": 14112,
+                "texcoords": 9408,
+                "normals": 14112
+            },
+            "material": {
+                "roughness": 0.5,
+                "metallic": 0.0,
+                "diffuse map": "irin_body_albedo.png",
+                "roughness map": "",
+                "metallic map": ""
+            }
+        },
+        {
+            "name": "hand.001",
+            "mesh": {
+                "vertices": 22104,
+                "texcoords": 14736,
+                "normals": 22104
+            },
+            "material": {
+                "roughness": 0.5,
+                "metallic": 0.0,
+                "diffuse map": "irin_body_albedo.png",
+                "roughness map": "",
+                "metallic map": ""
+            }
+        },
+        {
+            "name": "lace chest.001",
+            "mesh": {
+                "vertices": 288,
+                "texcoords": 192,
+                "normals": 288
+            },
+            "material": {
+                "roughness": 0.5,
+                "metallic": 0.0,
+                "diffuse map": "irin_lace_albedo.png",
+                "roughness map": "",
+                "metallic map": ""
+            }
+        },
+        {
+            "name": "lace pants.001",
+            "mesh": {
+                "vertices": 360,
+                "texcoords": 240,
+                "normals": 360
+            },
+            "material": {
+                "roughness": 0.5,
+                "metallic": 0.0,
+                "diffuse map": "irin_lace_albedo.png",
+                "roughness map": "",
+                "metallic map": ""
+            }
+        },
+        {
+            "name": "head.001",
+            "mesh": {
+                "vertices": 15264,
+                "texcoords": 10176,
+                "normals": 15264
+            },
+            "material": {
+                "roughness": 0.5,
+                "metallic": 0.0,
+                "diffuse map": "irin_head_albedo.png",
+                "roughness map": "",
+                "metallic map": ""
+            }
+        },
+        {
+            "name": "ear.001",
+            "mesh": {
+                "vertices": 2592,
+                "texcoords": 1728,
+                "normals": 2592
+            },
+            "material": {
+                "roughness": 0.5,
+                "metallic": 0.0,
+                "diffuse map": "irin_head_albedo.png",
+                "roughness map": "",
+                "metallic map": ""
+            }
+        },
+        {
+            "name": "hair.001",
+            "mesh": {
+                "vertices": 64440,
+                "texcoords": 42960,
+                "normals": 64440
+            },
+            "material": {
+                "roughness": 0.5,
+                "metallic": 0.0,
+                "diffuse map": "irin_hair_albedo.png",
+                "roughness map": "",
+                "metallic map": ""
+            }
+        }
+    ],
+    "skeleton interface": {
+        "joints": [],
+        "joints_count": 0
+    },
+    "animations": []
+}
