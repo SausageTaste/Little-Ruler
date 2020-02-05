@@ -1,16 +1,18 @@
 {
     "aabb": {
         "min": "-0.348508, 0.0, -0.22516",
-        "max": "0.348508, 1.29189, 0.140299"
+        "max": "0.348508, 1.29189, 0.140154"
     },
     "render units size": 10,
     "render units": [
         {
             "name": "chest.001",
             "mesh": {
-                "vertices": 6480,
-                "texcoords": 4320,
-                "normals": 6480
+                "vertices": 5904,
+                "texcoords": 3936,
+                "normals": 5904,
+                "boneWeights": 5904,
+                "boneIndices": 5904
             },
             "material": {
                 "roughness": 0.5,
@@ -25,7 +27,9 @@
             "mesh": {
                 "vertices": 2736,
                 "texcoords": 1824,
-                "normals": 2736
+                "normals": 2736,
+                "boneWeights": 2736,
+                "boneIndices": 2736
             },
             "material": {
                 "roughness": 0.5,
@@ -40,7 +44,9 @@
             "mesh": {
                 "vertices": 4752,
                 "texcoords": 3168,
-                "normals": 4752
+                "normals": 4752,
+                "boneWeights": 4752,
+                "boneIndices": 4752
             },
             "material": {
                 "roughness": 0.5,
@@ -53,9 +59,11 @@
         {
             "name": "skirt.001",
             "mesh": {
-                "vertices": 14112,
-                "texcoords": 9408,
-                "normals": 14112
+                "vertices": 6084,
+                "texcoords": 4056,
+                "normals": 6084,
+                "boneWeights": 6084,
+                "boneIndices": 6084
             },
             "material": {
                 "roughness": 0.5,
@@ -70,7 +78,9 @@
             "mesh": {
                 "vertices": 22104,
                 "texcoords": 14736,
-                "normals": 22104
+                "normals": 22104,
+                "boneWeights": 22104,
+                "boneIndices": 22104
             },
             "material": {
                 "roughness": 0.5,
@@ -85,7 +95,9 @@
             "mesh": {
                 "vertices": 288,
                 "texcoords": 192,
-                "normals": 288
+                "normals": 288,
+                "boneWeights": 288,
+                "boneIndices": 288
             },
             "material": {
                 "roughness": 0.5,
@@ -100,7 +112,9 @@
             "mesh": {
                 "vertices": 360,
                 "texcoords": 240,
-                "normals": 360
+                "normals": 360,
+                "boneWeights": 360,
+                "boneIndices": 360
             },
             "material": {
                 "roughness": 0.5,
@@ -113,9 +127,11 @@
         {
             "name": "head.001",
             "mesh": {
-                "vertices": 15264,
-                "texcoords": 10176,
-                "normals": 15264
+                "vertices": 6570,
+                "texcoords": 4380,
+                "normals": 6570,
+                "boneWeights": 6570,
+                "boneIndices": 6570
             },
             "material": {
                 "roughness": 0.5,
@@ -130,7 +146,9 @@
             "mesh": {
                 "vertices": 2592,
                 "texcoords": 1728,
-                "normals": 2592
+                "normals": 2592,
+                "boneWeights": 2592,
+                "boneIndices": 2592
             },
             "material": {
                 "roughness": 0.5,
@@ -143,9 +161,11 @@
         {
             "name": "hair.001",
             "mesh": {
-                "vertices": 64440,
-                "texcoords": 42960,
-                "normals": 64440
+                "vertices": 58446,
+                "texcoords": 38964,
+                "normals": 58446,
+                "boneWeights": 58446,
+                "boneIndices": 58446
             },
             "material": {
                 "roughness": 0.5,
@@ -157,8 +177,252 @@
         }
     ],
     "skeleton interface": {
-        "joints": [],
-        "joints_count": 0
+        "joints": [
+            {
+                "name": "root",
+                "parent_name": ""
+            },
+            {
+                "name": "controller",
+                "parent_name": "root"
+            },
+            {
+                "name": "upperArm_L",
+                "parent_name": "controller"
+            },
+            {
+                "name": "lowerArm_L",
+                "parent_name": "upperArm_L"
+            },
+            {
+                "name": "hand_L",
+                "parent_name": "lowerArm_L"
+            },
+            {
+                "name": "upperArm_R",
+                "parent_name": "controller"
+            },
+            {
+                "name": "lowerArm_R",
+                "parent_name": "upperArm_R"
+            },
+            {
+                "name": "hand_R",
+                "parent_name": "lowerArm_R"
+            },
+            {
+                "name": "thigh_L",
+                "parent_name": "controller"
+            },
+            {
+                "name": "shin_L",
+                "parent_name": "thigh_L"
+            },
+            {
+                "name": "thigh_R",
+                "parent_name": "controller"
+            },
+            {
+                "name": "shin_R",
+                "parent_name": "thigh_R"
+            }
+        ],
+        "joints_count": 12
     },
-    "animations": []
+    "animations": [
+        {
+            "name": "running",
+            "joints_count": 12,
+            "joints": [
+                {
+                    "name": "root",
+                    "poses": [],
+                    "rotations": [],
+                    "scales": []
+                },
+                {
+                    "name": "controller",
+                    "poses": [
+                        "0.0 : ( x=-9.30608e-09, y=3.25713e-08, w=-0.0390325 )",
+                        "15.0 : ( x=-5.39487e-10, y=1.8882e-09, w=-0.00226277 )",
+                        "30.0 : ( x=-5.25996e-09, y=1.84099e-08, w=-0.0315948 )",
+                        "45.0 : ( x=1.82075e-09, y=-6.37263e-09, w=-0.00840413 )",
+                        "60.0 : ( x=-9.30608e-09, y=3.25713e-08, w=-0.0390325 )"
+                    ],
+                    "rotations": [],
+                    "scales": []
+                },
+                {
+                    "name": "upperArm_L",
+                    "poses": [],
+                    "rotations": [
+                        "0.0 : ( x=-0.255814, y=0.116966. z=0.240706, w=0.928945 )",
+                        "30.0 : ( x=-0.256867, y=-0.067673. z=-0.111179, w=0.957642 )",
+                        "60.0 : ( x=-0.255814, y=0.116966. z=0.240706, w=0.928945 )"
+                    ],
+                    "scales": []
+                },
+                {
+                    "name": "lowerArm_L",
+                    "poses": [],
+                    "rotations": [
+                        "0.0 : ( x=-0.00225388, y=-0.0987189. z=-0.347417, w=0.932497 )"
+                    ],
+                    "scales": []
+                },
+                {
+                    "name": "hand_L",
+                    "poses": [],
+                    "rotations": [
+                        "0.0 : ( x=-0.113167, y=0.189758. z=-0.0102097, w=0.975234 )"
+                    ],
+                    "scales": []
+                },
+                {
+                    "name": "upperArm_R",
+                    "poses": [],
+                    "rotations": [
+                        "0.0 : ( x=-0.249344, y=0.0739721. z=0.12158, w=0.957901 )",
+                        "30.0 : ( x=-0.247304, y=-0.134159. z=-0.268194, w=0.921365 )",
+                        "60.0 : ( x=-0.249344, y=0.0739721. z=0.12158, w=0.957901 )"
+                    ],
+                    "scales": []
+                },
+                {
+                    "name": "lowerArm_R",
+                    "poses": [],
+                    "rotations": [
+                        "0.0 : ( x=-0.00218672, y=0.0958203. z=0.319706, w=0.942657 )"
+                    ],
+                    "scales": []
+                },
+                {
+                    "name": "hand_R",
+                    "poses": [],
+                    "rotations": [
+                        "0.0 : ( x=-0.166328, y=-0.185558. z=0.066607, w=0.966161 )"
+                    ],
+                    "scales": []
+                },
+                {
+                    "name": "thigh_L",
+                    "poses": [],
+                    "rotations": [
+                        "0.0 : ( x=-0.247064, y=-0.00607576. z=0.0251951, w=0.968653 )",
+                        "30.0 : ( x=0.199375, y=0.00390942. z=0.0227725, w=0.979651 )",
+                        "60.0 : ( x=-0.247064, y=-0.00607576. z=0.0251951, w=0.968653 )"
+                    ],
+                    "scales": []
+                },
+                {
+                    "name": "shin_L",
+                    "poses": [],
+                    "rotations": [
+                        "0.0 : ( x=0.203137, y=0.000137939. z=0.000125685, w=0.97915 )"
+                    ],
+                    "scales": []
+                },
+                {
+                    "name": "thigh_R",
+                    "poses": [],
+                    "rotations": [
+                        "0.0 : ( x=0.210833, y=-0.00473899. z=-0.0256067, w=0.977175 )",
+                        "30.0 : ( x=-0.231202, y=0.00543206. z=-0.0241646, w=0.972591 )",
+                        "60.0 : ( x=0.210833, y=-0.00473899. z=-0.0256067, w=0.977175 )"
+                    ],
+                    "scales": []
+                },
+                {
+                    "name": "shin_R",
+                    "poses": [],
+                    "rotations": [
+                        "0.0 : ( x=0.136574, y=-9.27396e-05. z=-8.45012e-05, w=0.99063 )"
+                    ],
+                    "scales": []
+                }
+            ],
+            "tick_per_sec": 30.0,
+            "duration_tick": 60.0
+        },
+        {
+            "name": "standing",
+            "joints_count": 12,
+            "joints": [
+                {
+                    "name": "root",
+                    "poses": [],
+                    "rotations": [],
+                    "scales": []
+                },
+                {
+                    "name": "controller",
+                    "poses": [],
+                    "rotations": [],
+                    "scales": []
+                },
+                {
+                    "name": "upperArm_L",
+                    "poses": [],
+                    "rotations": [],
+                    "scales": []
+                },
+                {
+                    "name": "lowerArm_L",
+                    "poses": [],
+                    "rotations": [],
+                    "scales": []
+                },
+                {
+                    "name": "hand_L",
+                    "poses": [],
+                    "rotations": [],
+                    "scales": []
+                },
+                {
+                    "name": "upperArm_R",
+                    "poses": [],
+                    "rotations": [],
+                    "scales": []
+                },
+                {
+                    "name": "lowerArm_R",
+                    "poses": [],
+                    "rotations": [],
+                    "scales": []
+                },
+                {
+                    "name": "hand_R",
+                    "poses": [],
+                    "rotations": [],
+                    "scales": []
+                },
+                {
+                    "name": "thigh_L",
+                    "poses": [],
+                    "rotations": [],
+                    "scales": []
+                },
+                {
+                    "name": "shin_L",
+                    "poses": [],
+                    "rotations": [],
+                    "scales": []
+                },
+                {
+                    "name": "thigh_R",
+                    "poses": [],
+                    "rotations": [],
+                    "scales": []
+                },
+                {
+                    "name": "shin_R",
+                    "poses": [],
+                    "rotations": [],
+                    "scales": []
+                }
+            ],
+            "tick_per_sec": 30.0,
+            "duration_tick": 1.0
+        }
+    ]
 }
