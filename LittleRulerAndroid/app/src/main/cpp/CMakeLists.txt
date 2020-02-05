@@ -67,8 +67,6 @@ target_compile_features(interface4jni PUBLIC cxx_std_17)
 ######## Import libraries ########
 
 # Lodepng
-file(GLOB lodepngHeaders ${extern_dir}/lodepng/*.h)
-file(GLOB lodepngSources ${extern_dir}/lodepng/*.cpp)
 add_library(lib_lodepng STATIC
         ${extern_dir}/lodepng/lodepng.h
         ${extern_dir}/lodepng/lodepng.cpp
