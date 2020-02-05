@@ -476,7 +476,7 @@ namespace dal {
                 const auto charQuadCut = this->makeCutCharArea(charQuad.first, charQuad.second);
                 QuadRenderInfo charQuadInfo;
 
-                const auto bottomLeft = glm::vec2{ charQuadCut.first.x, charQuadCut.second.y };
+                const glm::vec2 bottomLeft{ charQuadCut.first.x, charQuadCut.second.y };
                 const auto recSize = glm::vec2{
                     charQuadCut.second.x - charQuadCut.first.x,
                     charQuadCut.second.y - charQuadCut.first.y
