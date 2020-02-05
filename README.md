@@ -1,3 +1,5 @@
+[한국어](README_kr.md)
+
 # Little Ruler
 
 * My own game engine project. Code once, build for both Windows and Android.
@@ -16,19 +18,24 @@
 
 <br>
 
-# Root Folders
+# Folders in Repo Root
 
-### LittleRulerAndroid folder
+### extern
+
+* Git submodules goes here.
+* You shouldn't touch anything inside it.
+
+### LittleRulerAndroid
 
 * Android Studio project to build apk to run on Android platform.
 * Like I said before, all the game engine codes are here in `{repo_root}/LittleRulerAndroid/app/src/main/cpp/`.
 
-### LittleRulerWindows folder
+### LittleRulerWindows
 
 * Visual Studio 2019 project to build exe for Windows.
 * It only has project configuration files, referencing game engine codes in Android Studio project folder.
 
-### Resource 폴더
+### Resource
 
 * Resource files such as 3D models, images, texts, fonts are here.
 
@@ -69,9 +76,17 @@
 
 # How to Build
 
-Seeking a way to make it easy to build for anyone.
-Before you build, all the necessary libraries need to be placed in the right directory.
-I'll provide with that later on.
+* Clone this repo with `--recurse-submodules` option like below.
+* `git clone --recurse-submodules -j8 https://github.com/SausageTaste/Little-Ruler`
+
+### Android
+
+* Open `{repo_root}/LittleRulerAndroid` folder in Android Studio and just click build.
+* All the necessary third party libs should be ready for duty if you cloned this repo correctly.
+
+### Windows
+
+* Currently studying CMake to make it easy for you to build on your own.
 
 <br>
 
@@ -119,8 +134,8 @@ I'll provide with that later on.
     </tr>
     <tr>
         <td>Filesystem</td>
-        <td>C++ std::fstream</td>
-        <td>Android Asset Manager 및 std::fstream</td>
+        <td>std::fstream</td>
+        <td>Android Asset Manager and std::fstream</td>
     </tr>
 </table>
 

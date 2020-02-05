@@ -1,3 +1,5 @@
+[English](README.md)
+
 # Little Ruler
 
 * 혼자서 진행하고 있는 게임 엔진입니다. 한 번의 코딩으로 안드로이드와 윈도우 모두에서 사용 가능한 엔진을 목표로 하고 있습니다.
@@ -16,19 +18,24 @@
 
 <br>
 
-# 내용물 설명
+# 깃 레포 첫 폴더 구성물
 
-### LittleRulerAndroid 폴더
+### extern
+
+* 깃 서브모듈 파일이 담기는 곳입니다.
+* 여기 있는 건 건드리지 마세요.
+
+### LittleRulerAndroid
 
 * 안드로이드 apk로 빌드 하기 위한 안드로이드 스튜디오 프로젝트입니다.
 * 제가 작성한 게임 엔진 코드들은 모두 다음 경로에 들어 있습니다. `{repo_root}/LittleRulerAndroid/app/src/main/cpp/`
 
-### LittleRulerWindows 폴더
+### LittleRulerWindows
 
 * 윈도우즈 exe로 빌드 하기 위한 비주얼스튜디오 2019 프로젝트입니다.
 * 프로젝트 구성 파일 외에는 없습니다. 소스는 안드로이드 프로젝트에 있는 파일을 참조하여 사용합니다.
 
-### Resource 폴더
+### Resource
 
 * 모델, 이미지, 텍스트, 폰트 등 모든 종류의 리소스들은 여기에 넣습니다.
 
@@ -37,7 +44,7 @@
 # 빌드된 프로그램 실행 방법
 
 * [구글 드라이브](https://drive.google.com/open?id=1xwQg17bW5f346rpXe2RFgifUFEycAm3t)에서 Windows용 exe와 Android용 apk를 다운로드할 수 있습니다.
-* 자주 업데이트 하지는 않습니다. 빌드된 프로그램이 너무 오래됐다 싶으면 직접 빌드하거나 제게 메일을 보내 주세요.
+* 자주 업데이트 하지는 않습니다. 귀찮아요~
 
 ### Windows
 
@@ -58,10 +65,7 @@
 
 * WASD : 수평 이동
 * 방향키 : 시점 조작
-* 마우스 클릭 및 드래그 : 안드로이드의 터치 조작과 동일
-* 화면상에 루아 코드를 실행할 수 있는 창이 있습니다. 창에서 한줄 입력창처럼 생긴 것을 마우스로 클릭하면 글자 입력이 가능합니다.
-
-![alt text](./screenshots/script.png)
+* 마우스 클릭 후 드래그 : 안드로이드의 터치 조작과 동일하게 시점 조작
 
 ### Android
 
@@ -72,7 +76,17 @@
 
 # 빌드 방법
 
-아래 외부 라이브러리에 적혀 있는 모든 라이브러리에 대한 링킹 설정을 직접 해주셔야 합니다. 새로운 컴퓨터에서 쉽게 빌드 할 수 있게 해주는 방법을 모릅니다. 좋은 공부 자료가 있으면 추천해 주세요. ㅜㅜ
+* 이 레포를 `--recurse-submodules` 옵션을 적용하여 클론 해 주세요. 아래 예시처럼요.
+* `git clone --recurse-submodules -j8 https://github.com/SausageTaste/Little-Ruler`
+
+### Android
+
+* `{repo_root}/LittleRulerAndroid` 폴더를 안드로이드 스튜디오로 열어서 빌드 버튼을 누르시면 됩니다.
+* 클론을 제대로 하셨다면 필요한 라이브러리 파일들은 준비가 되어 있을 겁니다.
+
+### Windows
+
+* CMake 공부 좀 해서 쉽게 빌드할 수 있도록 만들어 보겠습니다.
 
 <br>
 
@@ -100,7 +114,7 @@
 
 # 구현
 
-## 플랫폼별 구현
+## 플랫폼별
 
 <table>
     <tr>
@@ -120,7 +134,7 @@
     </tr>
     <tr>
         <td>파일 읽기</td>
-        <td>C++ std::fstream</td>
+        <td>std::fstream</td>
         <td>Android Asset Manager 및 std::fstream</td>
     </tr>
 </table>
