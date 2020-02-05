@@ -1,0 +1,23 @@
+[submodule "extern/fmt"]
+	path = extern/fmt
+	url = https://github.com/fmtlib/fmt
+[submodule "extern/glm"]
+	path = extern/glm
+	url = https://github.com/g-truc/glm
+[submodule "extern/freetype2"]
+	path = extern/freetype2
+	url = git://git.sv.nongnu.org/freetype/freetype2.git
+[submodule "extern/entt"]
+	path = extern/entt
+	url = https://github.com/skypjack/entt
+[submodule "extern/TGA"]
+	path = extern/TGA
+	url = https://github.com/ColumbusUtrigas/TGA
+[submodule "extern/lodepng"]
+	path = extern/lodepng
+	url = https://github.com/lvandeve/lodepng
+	branch = master
+[submodule "extern/lua"]
+	path = extern/lua
+	url = https://github.com/lua/lua
+	branch = master
