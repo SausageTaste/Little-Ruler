@@ -3,5 +3,7 @@
 /Library
 
 /*.bck
-/.vs
 *.xml___jb_tmp___
+
+.vs/
+out/
