@@ -20,6 +20,8 @@ add_library(dalbaragi_util
     d_pool.h
     d_shaderProcessor.cpp
     d_shaderProcessor.h
+    s_configs.cpp
+    s_configs.h
     u_byteutils.cpp
     u_byteutils.h
     u_fileutils.cpp

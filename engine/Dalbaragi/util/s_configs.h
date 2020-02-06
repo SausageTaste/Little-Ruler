@@ -5,7 +5,7 @@
 
 #include <glm/glm.hpp>
 
-#include "p_globalfsm.h"
+//#include "p_globalfsm.h"
 
 
 class AAssetManager;
@@ -67,7 +67,6 @@ namespace dal {
 
     private:
         unsigned int m_winWidth, m_winHeight;
-        GlobalGameState m_gameState;
         std::function<void(bool)> m_fullscreenToggleFunc;
 
         GlobalStateGod(void);
@@ -100,10 +99,6 @@ namespace dal {
         void setWinSize(const unsigned int width, const unsigned int height) noexcept {
             this->m_winWidth = width;
             this->m_winHeight = height;
-        }
-
-        GlobalGameState getGlobalGameState(void) const noexcept {
-            return this->m_gameState;
         }
 
     };

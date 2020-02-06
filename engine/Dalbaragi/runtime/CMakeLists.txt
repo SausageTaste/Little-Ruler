@@ -55,8 +55,6 @@ add_library(dalbaragi_runtime
     p_uniloc.h
     p_water.cpp
     p_water.h
-    s_configs.cpp
-    s_configs.h
     s_input_queue.cpp
     s_input_queue.h
     s_threader.cpp
@@ -85,19 +83,10 @@ set(extern_dir ${repoRoot_dir}/extern)
 set(externcpy_dir ${repoRoot_dir}/externcpy)
 set(externtool_dir ${repoRoot_dir}/externtool)
 
+
 # entt
 add_subdirectory(${extern_dir}/entt ${CMAKE_CURRENT_BINARY_DIR}/entt)
 target_link_libraries(dalbaragi_runtime PUBLIC EnTT::EnTT)
-
-# glew
-add_subdirectory(${externcpy_dir}/glew/build/cmake ${CMAKE_CURRENT_BINARY_DIR}/glew)
-target_link_libraries(dalbaragi_runtime PUBLIC glew_s)
-target_include_directories(dalbaragi_runtime PUBLIC ${externcpy_dir}/glew/include)
-
-# SDL2
-add_subdirectory(${externcpy_dir}/SDL2 ${CMAKE_CURRENT_BINARY_DIR}/SDL2)
-target_link_libraries(dalbaragi_runtime PUBLIC SDL2main SDL2-static)
-target_include_directories(dalbaragi_runtime PUBLIC ${externcpy_dir}/SDL2/include)
 
 # Freetype
 add_subdirectory(${extern_dir}/freetype2 ${CMAKE_CURRENT_BINARY_DIR}/freetype2)
@@ -106,6 +95,19 @@ target_link_libraries(dalbaragi_runtime PRIVATE freetype)
 # Lua
 add_subdirectory(${externtool_dir}/lua ${CMAKE_CURRENT_BINARY_DIR}/lua)
 target_link_libraries(dalbaragi_runtime PRIVATE lua_static)
+
+
+if (WIN32)
+    # glew
+    add_subdirectory(${externcpy_dir}/glew/build/cmake ${CMAKE_CURRENT_BINARY_DIR}/glew)
+    target_link_libraries(dalbaragi_runtime PUBLIC glew_s)
+    target_include_directories(dalbaragi_runtime PUBLIC ${externcpy_dir}/glew/include)
+
+    # SDL2
+    add_subdirectory(${externcpy_dir}/SDL2 ${CMAKE_CURRENT_BINARY_DIR}/SDL2)
+    target_link_libraries(dalbaragi_runtime PUBLIC SDL2main SDL2-static)
+    target_include_directories(dalbaragi_runtime PUBLIC ${externcpy_dir}/SDL2/include)
+endif (WIN32)
 
 
 # Dalbaragi utils

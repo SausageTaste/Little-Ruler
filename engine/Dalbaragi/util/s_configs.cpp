@@ -64,7 +64,6 @@ namespace dal {
 
     GlobalStateGod::GlobalStateGod(void)
         : m_winWidth(0), m_winHeight(0)
-        , m_gameState(GlobalGameState::game)
     {
 
     }
