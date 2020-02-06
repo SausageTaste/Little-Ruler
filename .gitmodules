@@ -21,10 +21,6 @@
 	path = extern/lua
 	url = https://github.com/lua/lua
 	branch = master
-[submodule "extern/glew"]
-	path = extern/glew
-	url = https://github.com/nigels-com/glew
-	branch = master
 [submodule "extern/zlib"]
 	path = extern/zlib
 	url = https://github.com/madler/zlib
