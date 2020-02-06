@@ -12,9 +12,7 @@ add_executable(little_ruler
     main.cpp
 )
 
-######## Import libraries ########
 
 # Dalbaragi Runtime
 add_subdirectory(../Dalbaragi/runtime ${CMAKE_CURRENT_BINARY_DIR}/dalbaragi_runtime)
 target_link_libraries(little_ruler PUBLIC dalbaragi_runtime)
-target_include_directories(little_ruler PUBLIC ../Dalbaragi/runtime)

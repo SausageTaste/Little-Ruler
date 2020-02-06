@@ -50,15 +50,10 @@ target_compile_features(dalmapper PUBLIC cxx_std_17)
 set(extern_dir ${CMAKE_CURRENT_SOURCE_DIR}/../../extern)
 set(lib_dir ${CMAKE_CURRENT_SOURCE_DIR}/../../lib)
 
+
 # entt
 add_subdirectory(${extern_dir}/entt ${CMAKE_CURRENT_BINARY_DIR}/entt)
 target_link_libraries(dalmapper EnTT::EnTT)
-
-# GLM
-#target_include_directories(dalmapper PRIVATE ${extern_dir}/glm)
-
-# TGA
-#target_include_directories(dalmapper PRIVATE ${extern_dir}/TGA)
 
 # Qt5
 set(CMAKE_AUTOMOC ON)
@@ -70,7 +65,7 @@ set(CMAKE_CXX_FLAGS_COVERAGE "${CMAKE_CXX_FLAGS_RELEASE} -fprofile-arcs -ftest-c
 set_target_properties(Qt5::Core PROPERTIES MAP_IMPORTED_CONFIG_COVERAGE "RELEASE")
 target_link_libraries(dalmapper Qt5::Widgets Qt5::Core)
 
+
 # Dalbaragi utils
 add_subdirectory(../Dalbaragi/util ${CMAKE_CURRENT_BINARY_DIR}/dalbaragi_util)
 target_link_libraries(dalmapper dalbaragi_util)
-target_include_directories(dalmapper PRIVATE ../Dalbaragi/util)

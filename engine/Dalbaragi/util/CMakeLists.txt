@@ -32,7 +32,7 @@ add_library(dalbaragi_util
     u_timer.cpp
     u_timer.h
 )
-target_include_directories(dalbaragi_util PRIVATE .)
+target_include_directories(dalbaragi_util PUBLIC .)
 target_compile_features(dalbaragi_util PUBLIC cxx_std_17)
 
 

@@ -74,7 +74,7 @@ add_library(dalbaragi_runtime
     x_mainloop.cpp
     x_mainloop.h
 )
-target_include_directories(dalbaragi_runtime PRIVATE .)
+target_include_directories(dalbaragi_runtime PUBLIC .)
 target_compile_features(dalbaragi_runtime PUBLIC cxx_std_17)
 
 
@@ -101,14 +101,13 @@ target_include_directories(dalbaragi_runtime PUBLIC ${externcpy_dir}/SDL2/includ
 
 # Freetype
 add_subdirectory(${extern_dir}/freetype2 ${CMAKE_CURRENT_BINARY_DIR}/freetype2)
-target_link_libraries(dalbaragi_runtime PUBLIC freetype)
+target_link_libraries(dalbaragi_runtime PRIVATE freetype)
 
 # Lua
 add_subdirectory(${externtool_dir}/lua ${CMAKE_CURRENT_BINARY_DIR}/lua)
-target_link_libraries(dalbaragi_runtime PUBLIC lua_static)
+target_link_libraries(dalbaragi_runtime PRIVATE lua_static)
 
 
 # Dalbaragi utils
 add_subdirectory(../util ${CMAKE_CURRENT_BINARY_DIR}/dalbaragi_util)
 target_link_libraries(dalbaragi_runtime PUBLIC dalbaragi_util)
-target_include_directories(dalbaragi_runtime PUBLIC ../util)
