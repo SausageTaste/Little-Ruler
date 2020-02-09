@@ -1,6 +1,7 @@
 #include <i_lighting.glsl>
 #include <i_lightmap.glsl>
 #include <f_pbr.glsl>
+#include <i_envmap.glsl>
 
 
 uniform highp vec3 u_viewPos;
@@ -48,4 +49,9 @@ void main(void) {
     }
     f_color.rgb = pbrL;
     f_color.a = albedo.a;
+
+    if ( u_hasEnvmap ) {
+        vec3 envcolor = getEnvColor(u_viewPos, v_fragPos, fragNormal);
+        f_color.xyz = mix(envcolor, f_color.xyz, roughness * 0.5 + 0.5);
+    }
 }

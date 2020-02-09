@@ -218,6 +218,7 @@ namespace dal {
     public:
         UniInterf_Lighting i_lighting;
         UniInterf_Lightmap i_lightmap;
+        UniInterf_Envmap i_envmap;
 
     private:
         GLint u_projMat = -1;

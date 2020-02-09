@@ -2,16 +2,17 @@
 
 
 uniform samplerCube u_envmap;
+uniform bool u_hasEnvmap;
 
 
-vec3 getEnvColor(vec3 fragPos, vec3 fragNormal) {
-    vec3 I = normalize(fragPos - uViewPos);
+vec3 getEnvColor(vec3 viewPos, vec3 fragPos, vec3 fragNormal) {
+    vec3 I = normalize(fragPos - viewPos);
     vec3 R = reflect(I, fragNormal);
     return texture(u_envmap, R).rgb;
 }
 
-vec3 getEnvColor_test(vec3 fragPos, vec3 fragNormal, AABB boundingVolume) {
-    vec3 I = normalize(fragPos - uViewPos);
+vec3 getEnvColor_test(vec3 viewPos, vec3 fragPos, vec3 fragNormal, AABB boundingVolume) {
+    vec3 I = normalize(fragPos - viewPos);
     vec3 R = reflect(I, fragNormal);
 
     Segment ray;

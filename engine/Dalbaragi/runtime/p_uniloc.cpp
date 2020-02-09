@@ -115,7 +115,7 @@ namespace dal {
 namespace dal {
 
     void UniInterf_Envmap::set(const GLuint shader) {
-        this->u_envmap.init(getUniloc(shader, "u_envmap"), -2, g_texUnitReg["u_envmap"]);
+        this->u_envmap.init(getUniloc(shader, "u_envmap"), getUniloc(shader, "u_hasEnvmap"), g_texUnitReg["u_envmap"]);
     }
 
     void UniInterf_Lighting::set(const GLuint shader) {
@@ -173,6 +173,7 @@ namespace dal {
     void UniRender_Static::set(const GLuint shader) {
         this->i_lighting.set(shader);
         this->i_lightmap.set(shader);
+        this->i_envmap.set(shader);
 
         this->u_projMat = getUniloc(shader, "u_projMat");
         this->u_viewMat = getUniloc(shader, "u_viewMat");

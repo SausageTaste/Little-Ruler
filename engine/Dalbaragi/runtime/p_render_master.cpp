@@ -10,7 +10,7 @@
 #include <d_logger.h>
 
 
-#define DAL_RENDER_WATER true
+#define DAL_RENDER_WATER false
 
 
 using namespace fmt::literals;
@@ -333,8 +333,8 @@ namespace dal {
             this->m_dlight1.setDirectin(0.26373626373626374f, -0.30726256983240224f, 1.f);
 
             this->m_slight1.setColor(5.f, 5.f, 5.f);
-            this->m_slight1.setPos(-3.f, 0.f, 0.f);
-            this->m_slight1.setDirec(-1, -1, 0);
+            this->m_slight1.setPos(13.f, 2.f, -2.f);
+            this->m_slight1.setDirec(-1, -0.5, -1);
             this->m_slight1.setEndFadeDegree(30.f);
             this->m_slight1.setStartFadeDegree(25.f);
         }
@@ -588,29 +588,28 @@ namespace dal {
         }
 
         {
-            auto& uniloc = this->m_shader.useGeneral();
+            auto& uniloc = this->m_shader.useStatic();
 
-            uniloc.m_planeClip.flagDoClip(true);
-            uniloc.m_lightedMesh.projectMat(projMat);
-            uniloc.m_lightedMesh.baseAmbient(this->m_baseAmbientColor);
-            uniloc.m_lightedMesh.fogMaxPoint(this->m_farPlaneDistance);
-            uniloc.m_lightedMesh.fogColor(this->m_skyColor);
+            uniloc.projMat(projMat);
+            uniloc.viewPos(lightPos);
+            uniloc.i_lighting.baseAmbient(this->m_baseAmbientColor);
+            uniloc.i_envmap.envmap().setFlagHas(false);
 
             if ( this->m_flagDrawDlight1 ) {
-                this->m_dlight1.sendUniform(uniloc.m_lightedMesh.u_dlights[0]);
-                uniloc.m_lightedMesh.dlightCount(1);
+                this->m_dlight1.sendUniform(0, uniloc.i_lighting);
+                uniloc.i_lighting.dlightCount(1);
             }
             else {
-                uniloc.m_lightedMesh.dlightCount(0);
+                uniloc.i_lighting.dlightCount(0);
             }
 
-            this->m_slight1.sendUniform(uniloc.m_lightedMesh.u_slights[0]);
-            uniloc.m_lightedMesh.slightCount(1);
+            this->m_slight1.sendUniform(uniloc.i_lighting, 0);
+            uniloc.i_lighting.slightCount(1);
 
             for ( unsigned i = 0; i < 6; ++i ) {
                 g_cubemap.readyFace(i);
-                uniloc.m_lightedMesh.viewMat(viewMats[i]);
-                this->m_scene.renderGeneral(uniloc);
+                uniloc.viewMat(viewMats[i]);
+                this->m_scene.render_static(uniloc);
             }
         }
 
@@ -655,6 +654,7 @@ namespace dal {
             uniloc.viewMat(this->m_mainCamera->getViewMat());
             uniloc.viewPos(this->m_mainCamera->m_pos);
             uniloc.i_lighting.baseAmbient(this->m_baseAmbientColor);
+            g_cubemap.getCubemap()->sendUniform(uniloc.i_envmap.envmap());
 
             if ( this->m_flagDrawDlight1 ) {
                 this->m_dlight1.sendUniform(0, uniloc.i_lighting);
@@ -663,6 +663,9 @@ namespace dal {
             else {
                 uniloc.i_lighting.dlightCount(0);
             }
+
+            this->m_slight1.sendUniform(uniloc.i_lighting, 0);
+            uniloc.i_lighting.slightCount(1);
 
             this->m_scene.render_static(uniloc);
         }
@@ -683,6 +686,9 @@ namespace dal {
             else {
                 uniloc.i_lighting.dlightCount(0);
             }
+
+            this->m_slight1.sendUniform(uniloc.i_lighting, 0);
+            uniloc.i_lighting.slightCount(1);
 
             this->m_scene.render_animated(uniloc);
         }

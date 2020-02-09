@@ -197,6 +197,19 @@ namespace dal {
         this->m_shadowMap.sendUniform(uniloc.getDepthMap());
     }
 
+    void SpotLight::sendUniform(const UniInterf_Lighting& uniloc, const unsigned index) const {
+        uniloc.slight_poses(index, this->m_pos);
+        uniloc.slight_direcs(index, this->m_direc);
+        uniloc.slight_colors(index, this->m_color);
+        uniloc.slight_fadeStart(index, this->m_startFade);
+        uniloc.slight_fadeEnd(index, this->m_endFade);
+
+        const auto projViewMat = this->makeProjMat() * this->makeViewMat();
+        uniloc.slight_projViewMat(index, projViewMat);
+
+        this->m_shadowMap.sendUniform(uniloc.slight_shadowmap(index));
+    }
+
     // Shadow mapping
 
     glm::mat4 SpotLight::makeProjMat(void) const {
