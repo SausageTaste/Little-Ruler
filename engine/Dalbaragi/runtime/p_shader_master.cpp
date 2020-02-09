@@ -210,16 +210,12 @@ namespace dal {
 namespace dal {
 
     ShaderMaster::ShaderMaster(void)
-        : m_depthmap(g_loader["depth.vert"], g_loader["depth.frag"])
-        , m_depthmapUniloc(m_depthmap.get())
-        , m_overlay(g_loader["overlay.vert"], g_loader["overlay.frag"])
+        : m_overlay(g_loader["overlay.vert"], g_loader["overlay.frag"])
         , m_overlayUniloc(m_overlay.get())
         , m_waterry(g_loader["water.vert"], g_loader["water.frag"])
         , m_waterryUniloc(m_waterry.get())
         , m_animate(g_loader["animated.vert"], g_loader["animated.frag"])
         , m_animateUniloc(m_animate.get())
-        , m_depthAnime(g_loader["depthanime.vert"], g_loader["depthanime.frag"])
-        , m_depthAnimeUniloc(m_depthAnime.get())
         , m_skybox(g_loader["skybox.vert"], g_loader["skybox.frag"])
         , m_skyboxUniloc(m_skybox.get())
     {
@@ -240,12 +236,6 @@ namespace dal {
         g_loader.clear();
     }
 
-    const UnilocDepthmp& ShaderMaster::useDepthMp(void) const {
-        setFor_shadowmap();
-        this->m_depthmap.use();
-        return this->m_depthmapUniloc;
-    }
-
     const UnilocOverlay& ShaderMaster::useOverlay(void) const {
         setFor_overlay();
         this->m_overlay.use();
@@ -262,12 +252,6 @@ namespace dal {
         setFor_generalRender();
         this->m_animate.use();
         return this->m_animateUniloc;
-    }
-
-    const UnilocDepthAnime& ShaderMaster::useDepthAnime(void) const {
-        setFor_shadowmap();
-        this->m_depthAnime.use();
-        return this->m_depthAnimeUniloc;
     }
 
     const UnilocSkybox& ShaderMaster::useSkybox(void) const {

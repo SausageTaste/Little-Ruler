@@ -160,8 +160,13 @@ namespace dal {
         void clearDepthBuffer(void) {
             this->m_shadowMap.clearBuffer();
         }
-        void startRenderShadowmap(const UniInterfGeometry& uniloc) {
-            uniloc.projectMat(this->makeProjMat());
+        void startRenderShadowmap(const UniRender_StaticDepth& uniloc) {
+            uniloc.projMat(this->makeProjMat());
+            uniloc.viewMat(this->makeViewMat());
+            this->m_shadowMap.startRender();
+        }
+        void startRenderShadowmap(const UniRender_AnimatedDepth& uniloc) {
+            uniloc.projMat(this->makeProjMat());
             uniloc.viewMat(this->makeViewMat());
             this->m_shadowMap.startRender();
         }

@@ -28,9 +28,6 @@ namespace dal {
     class ShaderMaster {
 
     private:
-        ShaderProgram m_depthmap;
-        UnilocDepthmp m_depthmapUniloc;
-
         ShaderProgram m_overlay;
         UnilocOverlay m_overlayUniloc;
 
@@ -39,9 +36,6 @@ namespace dal {
 
         ShaderProgram m_animate;
         UnilocAnimate m_animateUniloc;
-
-        ShaderProgram m_depthAnime;
-        UnilocDepthAnime m_depthAnimeUniloc;
 
         ShaderProgram m_skybox;
         UnilocSkybox m_skyboxUniloc;
@@ -69,11 +63,9 @@ namespace dal {
     public:
         ShaderMaster(void);
 
-        const UnilocDepthmp& useDepthMp(void) const;
         const UnilocOverlay& useOverlay(void) const;
         const UnilocWaterry& useWaterry(void) const;
         const UnilocAnimate& useAnimate(void) const;
-        const UnilocDepthAnime& useDepthAnime(void) const;
         const UnilocSkybox& useSkybox(void) const;
 
         const UniRender_Static& useStatic(void) const;
