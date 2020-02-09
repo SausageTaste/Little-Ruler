@@ -386,29 +386,6 @@ namespace dal {
 
 namespace dal {
 
-    class UniInterfLightmaps {
-
-    private:
-        SamplerInterf u_diffuseMap;
-        SamplerInterf u_roughnessMap;
-        SamplerInterf u_metallicMap;
-
-    public:
-        UniInterfLightmaps(const GLuint shader);
-
-        const SamplerInterf& getDiffuseMapLoc(void) const {
-            return this->u_diffuseMap;
-        }
-        const SamplerInterf& getRoughnessMapLoc(void) const {
-            return this->u_roughnessMap;
-        }
-        const SamplerInterf& getMetallicMapLoc(void) const {
-            return this->u_metallicMap;
-        }
-
-    };
-
-
     class UniInterfGeometry {
 
     private:
@@ -560,33 +537,6 @@ namespace dal {
 
         void fogColor(const float x, const float y, const float z) const;
         void fogColor(const glm::vec3& v) const;
-
-    };
-
-
-    class UniInterfAnime {
-
-    private:
-        GLint u_jointTransforms;
-
-    public:
-        UniInterfAnime(const GLuint shader);
-
-        void jointTransforms(const unsigned int index, const glm::mat4& mat) const;
-
-    };
-
-    class UniInterfPlaneClip {
-
-    private:
-        GLint u_doClip = -1, u_clipPlane = -1;
-
-    public:
-        UniInterfPlaneClip(const GLuint shader);
-
-        void flagDoClip(const bool x) const;
-        void clipPlane(const glm::vec4& plane) const;
-        void clipPlane(const float x, const float y, const float z, const float w) const;
 
     };
 

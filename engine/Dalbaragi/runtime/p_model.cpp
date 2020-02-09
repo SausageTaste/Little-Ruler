@@ -47,22 +47,6 @@ namespace dal {
         return true;
     }
 
-    void ModelStatic::render(const UniInterfLightedMesh& unilocLighted, const UniInterfLightmaps& unilocLightmaps, const glm::mat4& modelMat) const {
-        if ( !this->isReady() ) {
-            return;
-        }
-
-        unilocLighted.modelMat(modelMat);
-
-        for ( const auto& unit : this->m_renderUnits ) {
-            unit.m_material.sendUniform(unilocLighted, unilocLightmaps);
-            if ( !unit.m_mesh.isReady() ) {
-                continue;
-            }
-            unit.m_mesh.draw();
-        }
-    }
-
     void ModelStatic::renderDepth(const UniInterfGeometry& unilocGeometry, const glm::mat4& modelMat) const {
         if ( !this->isReady() ) {
             return;
@@ -146,37 +130,6 @@ namespace dal {
         }
 
         return true;
-    }
-
-
-    void ModelAnimated::render(const UniInterfLightedMesh& unilocLighted, const UniInterfLightmaps& unilocLightmaps,
-        const UniInterfAnime& unilocAnime, const glm::mat4 modelMat, const JointTransformArray& transformArr) const
-    {
-        if ( !this->isReady() ) return;
-
-        transformArr.sendUniform(unilocAnime);
-
-        for ( auto& unit : this->m_renderUnits ) {
-            unit.m_material.sendUniform(unilocLighted, unilocLightmaps);
-            if ( !unit.m_mesh.isReady() ) continue;
-
-            unilocLighted.modelMat(modelMat);
-            unit.m_mesh.draw();
-        }
-    }
-
-    void ModelAnimated::renderDepth(const UniInterfGeometry& unilocGeometry, const UniInterfAnime& unilocAnime, const glm::mat4 modelMat,
-        const JointTransformArray& transformArr) const {
-        if ( !this->isReady() ) return;
-
-        transformArr.sendUniform(unilocAnime);
-
-        for ( auto& unit : this->m_renderUnits ) {
-            if ( !unit.m_mesh.isReady() ) continue;
-
-            unilocGeometry.modelMat(modelMat);
-            unit.m_mesh.draw();
-        }
     }
 
 

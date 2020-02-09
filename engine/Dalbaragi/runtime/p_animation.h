@@ -74,7 +74,6 @@ namespace dal {
     public:
         void setSize(const jointID_t size);
         void setTransform(const jointID_t index, const glm::mat4& mat);
-        void sendUniform(const UniInterfAnime& uniloc) const;
         void sendUniform(const UniInterf_Skeleton& uniloc) const;
 
         jointID_t getSize(void) const {

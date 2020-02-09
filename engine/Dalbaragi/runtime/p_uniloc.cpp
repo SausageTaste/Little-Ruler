@@ -228,18 +228,6 @@ namespace dal {
 }
 
 
-// UniInterfLightmaps
-namespace dal {
-
-    UniInterfLightmaps::UniInterfLightmaps(const GLuint shader) {
-        this->u_diffuseMap.init(getUniloc(shader, "u_diffuseMap"), -2, g_texUnitReg["u_diffuseMap"]);
-        this->u_roughnessMap.init(getUniloc(shader, "u_roughnessMap"), getUniloc(shader, "u_hasRoughnessMap"), g_texUnitReg["u_roughnessMap"]);
-        this->u_metallicMap.init(getUniloc(shader, "u_metallicMap"), getUniloc(shader, "u_hasMetallicMap"), g_texUnitReg["u_metallicMap"]);
-    }
-
-}
-
-
 // UniInterfGeometry
 namespace dal {
 
@@ -483,57 +471,6 @@ namespace dal {
 
     void UniInterfLightedMesh::fogColor(const glm::vec3& v) const {
         this->fogColor(v.x, v.y, v.z);
-    }
-
-}
-
-
-// UniInterfAnime
-namespace dal {
-
-    UniInterfAnime::UniInterfAnime(const GLuint shader) {
-#if ASSERT_UNILOC
-        dalAssertm(3 == glGetAttribLocation(shader, "i_jointIDs"), "Uniloc i_jointIDs not found");
-        dalAssertm(4 == glGetAttribLocation(shader, "i_weights"), "Uniloc i_weights not found");
-#endif
-
-        this->u_jointTransforms = getUniloc(shader, "u_jointTransforms[0]");
-
-        for ( unsigned int i = 1; i < MAX_JOINTS_NUM; ++i ) {
-            const auto id = "u_jointTransforms[{}]"_format(i);
-            const auto loc = getUniloc(shader, id.c_str());
-            if ( loc != this->u_jointTransforms + i ) {
-                dalAbort("u_jointTransforms[] is not a continuous array.");
-            }
-        }
-    }
-
-    void UniInterfAnime::jointTransforms(const unsigned int index, const glm::mat4& mat) const {
-        dalAssert(index < MAX_JOINTS_NUM);
-        sendMatrix(this->u_jointTransforms + index, mat);
-    }
-
-}
-
-
-// UniInterfPlaneClip
-namespace dal {
-
-    UniInterfPlaneClip::UniInterfPlaneClip(const GLuint shader) {
-        this->u_doClip = getUniloc(shader, "u_doClip");
-        this->u_clipPlane = getUniloc(shader, "u_clipPlane");
-    }
-
-    void UniInterfPlaneClip::flagDoClip(const bool x) const {
-        glUniform1i(this->u_doClip, x ? 1 : 0);
-    }
-
-    void UniInterfPlaneClip::clipPlane(const glm::vec4& plane) const {
-        this->clipPlane(plane.x, plane.y, plane.z, plane.w);
-    }
-
-    void UniInterfPlaneClip::clipPlane(const float x, const float y, const float z, const float w) const {
-        glUniform4f(this->u_clipPlane, x, y, z, w);
     }
 
 }

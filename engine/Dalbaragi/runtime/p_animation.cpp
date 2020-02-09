@@ -181,12 +181,6 @@ namespace dal {
         this->m_array[index] = mat;
     }
 
-    void JointTransformArray::sendUniform(const UniInterfAnime& uniloc) const {
-        for ( unsigned i = 0; i < this->m_array.size(); i++ ) {
-            uniloc.jointTransforms(i, this->m_array[i]);
-        }
-    }
-
     void JointTransformArray::sendUniform(const UniInterf_Skeleton& uniloc) const {
         for ( unsigned i = 0; i < this->m_array.size(); i++ ) {
             uniloc.jointTrans(i, this->m_array[i]);
