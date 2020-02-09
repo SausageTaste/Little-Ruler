@@ -185,6 +185,7 @@ namespace dal {
     void UniRender_Animated::set(const GLuint shader) {
         this->i_lighting.set(shader);
         this->i_lightmap.set(shader);
+        this->i_envmap.set(shader);
         this->i_skeleton.set(shader);
 
         this->u_projMat = getUniloc(shader, "u_projMat");
@@ -210,6 +211,12 @@ namespace dal {
 
     void UniRender_StaticOnWater::set(const GLuint shader) {
         UniRender_Static::set(shader);
+
+        this->u_clipPlane = getUniloc(shader, "u_clipPlane");
+    }
+
+    void UniRender_AnimatedOnWater::set(const GLuint shader) {
+        UniRender_Animated::set(shader);
 
         this->u_clipPlane = getUniloc(shader, "u_clipPlane");
     }

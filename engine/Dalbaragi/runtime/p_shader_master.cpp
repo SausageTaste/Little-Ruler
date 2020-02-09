@@ -214,8 +214,6 @@ namespace dal {
         , m_overlayUniloc(m_overlay.get())
         , m_waterry(g_loader["water.vert"], g_loader["water.frag"])
         , m_waterryUniloc(m_waterry.get())
-        , m_animate(g_loader["animated.vert"], g_loader["animated.frag"])
-        , m_animateUniloc(m_animate.get())
         , m_skybox(g_loader["skybox.vert"], g_loader["skybox.frag"])
         , m_skyboxUniloc(m_skybox.get())
     {
@@ -224,6 +222,7 @@ namespace dal {
         this->m_static_depth.init(g_loader["r_static_depth.vert"], g_loader["r_empty.frag"]);
         this->m_animatedDepth.init(g_loader["r_animated_depth.vert"], g_loader["r_empty.frag"]);
         this->m_static_onWater.init(g_loader["r_static_onwater.vert"], g_loader["r_static_onwater.frag"]);
+        this->m_animated_onWater.init(g_loader["r_animated_onwater.vert"], g_loader["r_static_onwater.frag"]);
         this->m_fillScreen.init(g_loader["r_fillscreen.vert"], g_loader["r_fillscreen.frag"]);
 
         this->u_static.set(this->m_static.get());
@@ -231,6 +230,7 @@ namespace dal {
         this->u_static_depth.set(this->m_static_depth.get());
         this->u_animatedDepth.set(this->m_animatedDepth.get());
         this->u_static_onWater.set(this->m_static_onWater.get());
+        this->u_animated_onWater.set(this->m_animated_onWater.get());
         this->u_fillScreen.set(this->m_fillScreen.get());
 
         g_loader.clear();
@@ -246,12 +246,6 @@ namespace dal {
         setFor_water();
         this->m_waterry.use();
         return this->m_waterryUniloc;
-    }
-
-    const UnilocAnimate& ShaderMaster::useAnimate(void) const {
-        setFor_generalRender();
-        this->m_animate.use();
-        return this->m_animateUniloc;
     }
 
     const UnilocSkybox& ShaderMaster::useSkybox(void) const {
@@ -289,6 +283,12 @@ namespace dal {
         setFor_generalRender();
         this->m_static_onWater.use();
         return this->u_static_onWater;
+    }
+
+    const UniRender_AnimatedOnWater& ShaderMaster::useAnimatedOnWater(void) const {
+        setFor_generalRender();
+        this->m_animated_onWater.use();
+        return this->u_animated_onWater;
     }
 
     const UniRender_FillScreen& ShaderMaster::useFillScreen(void) const {

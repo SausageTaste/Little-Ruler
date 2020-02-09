@@ -34,9 +34,6 @@ namespace dal {
         ShaderProgram m_waterry;
         UnilocWaterry m_waterryUniloc;
 
-        ShaderProgram m_animate;
-        UnilocAnimate m_animateUniloc;
-
         ShaderProgram m_skybox;
         UnilocSkybox m_skyboxUniloc;
 
@@ -57,6 +54,9 @@ namespace dal {
         ShaderProgram m_static_onWater;
         UniRender_StaticOnWater u_static_onWater;
 
+        ShaderProgram m_animated_onWater;
+        UniRender_AnimatedOnWater u_animated_onWater;
+
         ShaderProgram m_fillScreen;
         UniRender_FillScreen u_fillScreen;
 
@@ -65,7 +65,6 @@ namespace dal {
 
         const UnilocOverlay& useOverlay(void) const;
         const UnilocWaterry& useWaterry(void) const;
-        const UnilocAnimate& useAnimate(void) const;
         const UnilocSkybox& useSkybox(void) const;
 
         const UniRender_Static& useStatic(void) const;
@@ -73,6 +72,7 @@ namespace dal {
         const UniRender_StaticDepth& useStaticDepth(void) const;
         const UniRender_AnimatedDepth& useAnimatedDepth(void) const;
         const UniRender_StaticOnWater& useStaticOnWater(void) const;
+        const UniRender_AnimatedOnWater& useAnimatedOnWater(void) const;
         const UniRender_FillScreen& useFillScreen(void) const;
 
     };

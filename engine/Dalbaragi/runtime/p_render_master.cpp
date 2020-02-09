@@ -18,7 +18,7 @@ using namespace fmt::literals;
 
 namespace {
 
-    constexpr unsigned int MAX_SCREEN_RES = 720;
+    constexpr unsigned int MAX_SCREEN_RES = 1080;
 
 #ifdef _WIN32
     void GLAPIENTRY glDebugCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam) {
@@ -295,6 +295,8 @@ namespace dal {
         glBindRenderbuffer(GL_RENDERBUFFER, this->m_mainRenderbuf);
         glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, this->m_bufWidth, this->m_bufHeight);
         glBindRenderbuffer(GL_RENDERBUFFER, 0);
+
+        dalInfo(fmt::format("In-game framebuffer resized to {} x {}.", this->m_bufWidth, this->m_bufHeight));
     }
 
     void RenderMaster::MainFramebuffer::clearAndstartRenderOn(void) {
@@ -544,7 +546,36 @@ namespace dal {
 
         // Render animated to water framebuffer
         {
-          
+            auto& uniloc = this->m_shader.useAnimatedOnWater();
+
+            uniloc.projMat(this->m_projectMat);
+            uniloc.viewMat(this->m_mainCamera->getViewMat());
+            uniloc.viewPos(this->m_mainCamera->m_pos);
+            uniloc.i_lighting.baseAmbient(this->m_baseAmbientColor);
+            g_cubemap.getCubemap()->sendUniform(uniloc.i_envmap.envmap());
+
+            if ( this->m_flagDrawDlight1 ) {
+                this->m_dlight1.sendUniform(0, uniloc.i_lighting);
+                uniloc.i_lighting.dlightCount(1);
+            }
+            else {
+                uniloc.i_lighting.dlightCount(0);
+            }
+
+            this->m_slight1.sendUniform(uniloc.i_lighting, 0);
+            uniloc.i_lighting.slightCount(1);
+
+            for ( auto water : waters ) {
+                {
+                    water->startRenderOnReflec(uniloc, *this->m_mainCamera);
+                    this->m_scene.render_animated(uniloc);
+                }
+
+                {
+                    water->startRenderOnRefrac(uniloc, *this->m_mainCamera);
+                    this->m_scene.render_animated(uniloc);
+                }
+            }
         }
 
 #ifdef _WIN32
@@ -608,29 +639,28 @@ namespace dal {
         }
 
         {
-            auto& uniloc = this->m_shader.useAnimate();
+            auto& uniloc = this->m_shader.useAnimated();
 
-            uniloc.m_planeClip.flagDoClip(true);
-            uniloc.m_lightedMesh.projectMat(glm::perspective(glm::radians(90.f), 1.f, 0.01f, 1000.f));
-            uniloc.m_lightedMesh.baseAmbient(this->m_baseAmbientColor);
-            uniloc.m_lightedMesh.fogMaxPoint(this->m_farPlaneDistance);
-            uniloc.m_lightedMesh.fogColor(this->m_skyColor);
+            uniloc.projMat(projMat);
+            uniloc.viewPos(lightPos);
+            uniloc.i_lighting.baseAmbient(this->m_baseAmbientColor);
+            uniloc.i_envmap.envmap().setFlagHas(false);
 
             if ( this->m_flagDrawDlight1 ) {
-                this->m_dlight1.sendUniform(uniloc.m_lightedMesh.u_dlights[0]);
-                uniloc.m_lightedMesh.dlightCount(1);
+                this->m_dlight1.sendUniform(0, uniloc.i_lighting);
+                uniloc.i_lighting.dlightCount(1);
             }
             else {
-                uniloc.m_lightedMesh.dlightCount(0);
+                uniloc.i_lighting.dlightCount(0);
             }
 
-            this->m_slight1.sendUniform(uniloc.m_lightedMesh.u_slights[0]);
-            uniloc.m_lightedMesh.slightCount(1);
+            this->m_slight1.sendUniform(uniloc.i_lighting, 0);
+            uniloc.i_lighting.slightCount(1);
 
             for ( unsigned i = 0; i < 6; ++i ) {
                 g_cubemap.readyFace(i);
-                uniloc.m_lightedMesh.viewMat(viewMats[i]);
-                this->m_scene.renderAnimate(uniloc);
+                uniloc.viewMat(viewMats[i]);
+                this->m_scene.render_animated(uniloc);
             }
         }
 
@@ -672,6 +702,7 @@ namespace dal {
             uniloc.viewMat(this->m_mainCamera->getViewMat());
             uniloc.viewPos(this->m_mainCamera->m_pos);
             uniloc.i_lighting.baseAmbient(this->m_baseAmbientColor);
+            g_cubemap.getCubemap()->sendUniform(uniloc.i_envmap.envmap());
 
             if ( this->m_flagDrawDlight1 ) {
                 this->m_dlight1.sendUniform(0, uniloc.i_lighting);
