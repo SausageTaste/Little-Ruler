@@ -303,11 +303,9 @@ namespace dal {
         glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
     }
 
-    void RenderMaster::MainFramebuffer::renderOnScreen(const UnilocFScreen& uniloc) {
+    void RenderMaster::MainFramebuffer::renderOnScreen(const UniRender_FillScreen& uniloc) {
         glBindVertexArray(m_vbo);
-
-        this->m_tex->sendUniform(uniloc.getTexture());
-
+        this->m_tex->sendUniform(uniloc.texture());
         glDrawArrays(GL_TRIANGLES, 0, 6);
     }
 
@@ -417,7 +415,7 @@ namespace dal {
         {
             glBindFramebuffer(GL_FRAMEBUFFER, 0);
             glViewport(0, 0, this->m_winWidth, this->m_winHeight);
-            auto& uniloc = this->m_shader.useFScreen();
+            auto& uniloc = this->m_shader.useFillScreen();
             this->m_fbuffer.renderOnScreen(uniloc);
         }
     }

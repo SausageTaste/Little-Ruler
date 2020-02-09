@@ -163,7 +163,12 @@ namespace {
 // ShaderProgram
 namespace dal {
 
-    ShaderProgram::ShaderProgram(const char* const vertSrc, const char* const fragSrc) {
+    ShaderProgram::ShaderProgram(const std::string& vertSrc, const std::string& fragSrc) {
+        this->init(vertSrc, fragSrc);
+    }
+
+    void ShaderProgram::init(const char* const vertSrc, const char* const fragSrc) {
+        dalAssert(0 == this->m_id);
         this->m_id = glCreateProgram();
         dalAssert(0 != this->m_id);
 
@@ -185,18 +190,17 @@ namespace dal {
         }
     }
 
-    ShaderProgram::ShaderProgram(const std::string& vertSrc, const std::string& fragSrc)
-        : ShaderProgram(vertSrc.c_str(), fragSrc.c_str())
-    {
-
+    void ShaderProgram::init(const std::string& vertSrc, const std::string& fragSrc) {
+        this->init(vertSrc.c_str(), fragSrc.c_str());
     }
 
-    GLuint ShaderProgram::get(void) {
+    GLuint ShaderProgram::get(void) const {
+        dalAssert(0 != this->m_id);
         return this->m_id;
     }
 
     void ShaderProgram::use(void) const {
-        glUseProgram(this->m_id);
+        glUseProgram(this->get());
     }
 
 }
@@ -208,8 +212,6 @@ namespace dal {
     ShaderMaster::ShaderMaster(void)
         : m_general(g_loader["general.vert"], g_loader["general.frag"])
         , m_generalUniloc(m_general.get())
-        , m_fscreen(g_loader["fillscreen.vert"], g_loader["fillscreen.frag"])
-        , m_fscreenUniloc(m_fscreen.get())
         , m_depthmap(g_loader["depth.vert"], g_loader["depth.frag"])
         , m_depthmapUniloc(m_depthmap.get())
         , m_overlay(g_loader["overlay.vert"], g_loader["overlay.frag"])
@@ -222,16 +224,18 @@ namespace dal {
         , m_depthAnimeUniloc(m_depthAnime.get())
         , m_skybox(g_loader["skybox.vert"], g_loader["skybox.frag"])
         , m_skyboxUniloc(m_skybox.get())
-
-        , m_static(g_loader["r_static.vert"], g_loader["r_static.frag"])
-        , m_animated(g_loader["r_animated.vert"], g_loader["r_static.frag"])
-        , m_static_depth(g_loader["r_static_depth.vert"], g_loader["r_empty.frag"])
-        , m_animatedDepth(g_loader["r_animated_depth.vert"], g_loader["r_empty.frag"])
     {
+        this->m_static.init(g_loader["r_static.vert"], g_loader["r_static.frag"]);
+        this->m_animated.init(g_loader["r_animated.vert"], g_loader["r_static.frag"]);
+        this->m_static_depth.init(g_loader["r_static_depth.vert"], g_loader["r_empty.frag"]);
+        this->m_animatedDepth.init(g_loader["r_animated_depth.vert"], g_loader["r_empty.frag"]);
+        this->m_fillScreen.init(g_loader["r_fillscreen.vert"], g_loader["r_fillscreen.frag"]);
+
         this->u_static.set(this->m_static.get());
         this->u_animated.set(this->m_animated.get());
         this->u_static_depth.set(this->m_static_depth.get());
         this->u_animatedDepth.set(this->m_animatedDepth.get());
+        this->u_fillScreen.set(this->m_fillScreen.get());
 
         g_loader.clear();
     }
@@ -246,12 +250,6 @@ namespace dal {
         setFor_shadowmap();
         this->m_depthmap.use();
         return this->m_depthmapUniloc;
-    }
-
-    const UnilocFScreen& ShaderMaster::useFScreen(void) const {
-        setFor_fillingScreen();
-        this->m_fscreen.use();
-        return this->m_fscreenUniloc;
     }
 
     const UnilocOverlay& ShaderMaster::useOverlay(void) const {
@@ -307,6 +305,12 @@ namespace dal {
         setFor_shadowmap();
         this->m_animatedDepth.use();
         return this->u_animatedDepth;
+    }
+
+    const UniRender_FillScreen& ShaderMaster::useFillScreen(void) const {
+        setFor_fillingScreen();
+        this->m_fillScreen.use();
+        return this->u_fillScreen;
     }
 
 }

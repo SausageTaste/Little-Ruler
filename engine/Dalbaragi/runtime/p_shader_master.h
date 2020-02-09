@@ -13,9 +13,13 @@ namespace dal {
         GLuint m_id = 0;
 
     public:
-        ShaderProgram(const char* const vertSrc, const char* const fragSrc);
+        ShaderProgram(void) = default;
         ShaderProgram(const std::string& vertSrc, const std::string& fragSrc);
-        GLuint get(void);
+
+        void init(const char* const vertSrc, const char* const fragSrc);
+        void init(const std::string& vertSrc, const std::string& fragSrc);
+
+        GLuint get(void) const;
         void use(void) const;
 
     };
@@ -26,9 +30,6 @@ namespace dal {
     private:
         ShaderProgram m_general;
         UnilocGeneral m_generalUniloc;
-
-        ShaderProgram m_fscreen;
-        UnilocFScreen m_fscreenUniloc;
 
         ShaderProgram m_depthmap;
         UnilocDepthmp m_depthmapUniloc;
@@ -62,12 +63,14 @@ namespace dal {
         ShaderProgram m_animatedDepth;
         UniRender_AnimatedDepth u_animatedDepth;
 
+        ShaderProgram m_fillScreen;
+        UniRender_FillScreen u_fillScreen;
+
     public:
         ShaderMaster(void);
 
         const UnilocGeneral& useGeneral(void) const;
         const UnilocDepthmp& useDepthMp(void) const;
-        const UnilocFScreen& useFScreen(void) const;
         const UnilocOverlay& useOverlay(void) const;
         const UnilocWaterry& useWaterry(void) const;
         const UnilocAnimate& useAnimate(void) const;
@@ -78,6 +81,7 @@ namespace dal {
         const UniRender_Animated& useAnimated(void) const;
         const UniRender_StaticDepth& useStaticDepth(void) const;
         const UniRender_AnimatedDepth& useAnimatedDepth(void) const;
+        const UniRender_FillScreen& useFillScreen(void) const;
 
     };
 

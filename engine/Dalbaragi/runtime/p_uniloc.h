@@ -37,6 +37,7 @@ namespace dal {
 }
 
 
+// Uniloc Interface
 namespace dal {
 
     class UniInterf_Envmap {
@@ -209,6 +210,7 @@ namespace dal {
 }
 
 
+// Uniloc Render
 namespace dal {
 
     class UniRender_Static {
@@ -325,6 +327,20 @@ namespace dal {
         }
         void modelMat(const glm::mat4& mat) const {
             sendMatrix(this->u_modelMat, mat);
+        }
+
+    };
+
+    class UniRender_FillScreen {
+
+    private:
+        SamplerInterf u_texture;
+
+    public:
+        void set(const GLuint shader);
+
+        auto& texture(void) const {
+            return this->u_texture;
         }
 
     };

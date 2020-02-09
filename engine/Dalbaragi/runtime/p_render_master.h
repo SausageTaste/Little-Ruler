@@ -37,7 +37,7 @@ namespace dal {
             void resizeFbuffer(const unsigned int w, const unsigned int h);
 
             void clearAndstartRenderOn(void);
-            void renderOnScreen(const UnilocFScreen& uniloc);
+            void renderOnScreen(const UniRender_FillScreen& uniloc);
 
         };
 

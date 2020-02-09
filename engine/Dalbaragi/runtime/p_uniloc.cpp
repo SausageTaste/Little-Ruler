@@ -207,6 +207,10 @@ namespace dal {
         this->u_modelMat = getUniloc(shader, "u_modelMat");
     }
 
+    void UniRender_FillScreen::set(const GLuint shader) {
+        this->u_texture.init(getUniloc(shader, "u_texture"), -2, g_texUnitReg["u_texture"]);
+    }
+
 }
 
 
