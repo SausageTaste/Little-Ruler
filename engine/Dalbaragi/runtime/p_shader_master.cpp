@@ -210,9 +210,7 @@ namespace dal {
 namespace dal {
 
     ShaderMaster::ShaderMaster(void)
-        : m_general(g_loader["general.vert"], g_loader["general.frag"])
-        , m_generalUniloc(m_general.get())
-        , m_depthmap(g_loader["depth.vert"], g_loader["depth.frag"])
+        : m_depthmap(g_loader["depth.vert"], g_loader["depth.frag"])
         , m_depthmapUniloc(m_depthmap.get())
         , m_overlay(g_loader["overlay.vert"], g_loader["overlay.frag"])
         , m_overlayUniloc(m_overlay.get())
@@ -229,21 +227,17 @@ namespace dal {
         this->m_animated.init(g_loader["r_animated.vert"], g_loader["r_static.frag"]);
         this->m_static_depth.init(g_loader["r_static_depth.vert"], g_loader["r_empty.frag"]);
         this->m_animatedDepth.init(g_loader["r_animated_depth.vert"], g_loader["r_empty.frag"]);
+        this->m_static_onWater.init(g_loader["r_static_onwater.vert"], g_loader["r_static_onwater.frag"]);
         this->m_fillScreen.init(g_loader["r_fillscreen.vert"], g_loader["r_fillscreen.frag"]);
 
         this->u_static.set(this->m_static.get());
         this->u_animated.set(this->m_animated.get());
         this->u_static_depth.set(this->m_static_depth.get());
         this->u_animatedDepth.set(this->m_animatedDepth.get());
+        this->u_static_onWater.set(this->m_static_onWater.get());
         this->u_fillScreen.set(this->m_fillScreen.get());
 
         g_loader.clear();
-    }
-
-    const UnilocGeneral& ShaderMaster::useGeneral(void) const {
-        setFor_generalRender();
-        this->m_general.use();
-        return this->m_generalUniloc;
     }
 
     const UnilocDepthmp& ShaderMaster::useDepthMp(void) const {
@@ -305,6 +299,12 @@ namespace dal {
         setFor_shadowmap();
         this->m_animatedDepth.use();
         return this->u_animatedDepth;
+    }
+
+    const UniRender_StaticOnWater& ShaderMaster::useStaticOnWater(void) const {
+        setFor_generalRender();
+        this->m_static_onWater.use();
+        return this->u_static_onWater;
     }
 
     const UniRender_FillScreen& ShaderMaster::useFillScreen(void) const {

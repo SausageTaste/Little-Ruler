@@ -332,6 +332,23 @@ namespace dal {
 
     };
 
+    class UniRender_StaticOnWater : public UniRender_Static {
+
+    private:
+        GLint u_clipPlane = -1;
+
+    public:
+        void set(const GLuint shader);
+
+        void clipPlane(const float x, const float y, const float z, const float w) const {
+            glUniform4f(this->u_clipPlane, x, y, z, w);
+        }
+        void clipPlane(const glm::vec4 plane) const {
+            this->clipPlane(plane.x, plane.y, plane.z, plane.w);
+        }
+
+    };
+
     class UniRender_FillScreen {
 
     private:

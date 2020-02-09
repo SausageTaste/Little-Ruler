@@ -304,14 +304,13 @@ namespace dal {
     }
 
 
-    void WaterRenderer::startRenderOnReflec(const UnilocGeneral& uniloc, const ICamera& cam) const {
-        uniloc.m_planeClip.flagDoClip(true);
-        uniloc.m_planeClip.clipPlane(0.f, 1.f, 0.f, -this->m_height + 0.1f);
+    void WaterRenderer::startRenderOnReflec(const UniRender_StaticOnWater& uniloc, const ICamera& cam) const {
+        uniloc.clipPlane(0.f, 1.f, 0.f, -this->m_height + 0.1f);
 
         auto [reflectedPos, reflectedMat] = cam.makeReflected(this->m_height);
 
-        uniloc.m_lightedMesh.viewMat(reflectedMat);
-        uniloc.m_lightedMesh.viewPos(reflectedPos);
+        uniloc.viewMat(reflectedMat);
+        uniloc.viewPos(reflectedPos);
 
         this->m_fbuffer.bindReflectionFrameBuffer();
     }
@@ -323,12 +322,11 @@ namespace dal {
         this->m_fbuffer.bindReflectionFrameBuffer();
     }
 
-    void WaterRenderer::startRenderOnRefrac(const UnilocGeneral& uniloc, const ICamera& cam) const {
-        uniloc.m_planeClip.flagDoClip(true);
-        uniloc.m_planeClip.clipPlane(0.f, -1.f, 0.f, this->m_height);
+    void WaterRenderer::startRenderOnRefrac(const UniRender_StaticOnWater& uniloc, const ICamera& cam) const {
+        uniloc.clipPlane(0.f, -1.f, 0.f, this->m_height);
 
-        uniloc.m_lightedMesh.viewMat(cam.getViewMat());
-        uniloc.m_lightedMesh.viewPos(cam.m_pos);
+        uniloc.viewMat(cam.getViewMat());
+        uniloc.viewPos(cam.m_pos);
 
         this->m_fbuffer.bindRefractionFrameBuffer();
     }

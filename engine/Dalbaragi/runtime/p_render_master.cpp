@@ -10,7 +10,7 @@
 #include <d_logger.h>
 
 
-#define DAL_RENDER_WATER false
+#define DAL_RENDER_WATER true
 
 
 using namespace fmt::literals;
@@ -500,57 +500,51 @@ namespace dal {
     }
 
     void RenderMaster::render_onWater(entt::registry& reg) {
-
 #ifdef _WIN32
         glEnable(GL_CLIP_DISTANCE0);
 #endif
 
+        auto& waters = this->m_scene.waters();
+
         // Render to water framebuffer
         {
-            auto& uniloc = this->m_shader.useGeneral();
+            auto& uniloc = this->m_shader.useStaticOnWater();
 
-            uniloc.m_planeClip.flagDoClip(true);
-            uniloc.m_lightedMesh.projectMat(this->m_projectMat);
-            uniloc.m_lightedMesh.baseAmbient(this->m_baseAmbientColor);
-            uniloc.m_lightedMesh.fogMaxPoint(this->m_farPlaneDistance);
-            uniloc.m_lightedMesh.fogColor(this->m_skyColor);
+            uniloc.projMat(this->m_projectMat);
+            uniloc.viewMat(this->m_mainCamera->getViewMat());
+            uniloc.viewPos(this->m_mainCamera->m_pos);
+            uniloc.i_lighting.baseAmbient(this->m_baseAmbientColor);
+            g_cubemap.getCubemap()->sendUniform(uniloc.i_envmap.envmap());
 
             if ( this->m_flagDrawDlight1 ) {
-                this->m_dlight1.sendUniform(uniloc.m_lightedMesh.u_dlights[0]);
-                uniloc.m_lightedMesh.dlightCount(1);
+                this->m_dlight1.sendUniform(0, uniloc.i_lighting);
+                uniloc.i_lighting.dlightCount(1);
             }
             else {
-                uniloc.m_lightedMesh.dlightCount(0);
+                uniloc.i_lighting.dlightCount(0);
             }
 
-            this->m_slight1.sendUniform(uniloc.m_lightedMesh.u_slights[0]);
-            uniloc.m_lightedMesh.slightCount(1);
+            this->m_slight1.sendUniform(uniloc.i_lighting, 0);
+            uniloc.i_lighting.slightCount(1);
 
-            this->m_scene.renderOnWaterGeneral(uniloc, *this->m_mainCamera, reg);
+            for ( auto water : waters ) {
+                {
+                    water->startRenderOnReflec(uniloc, *this->m_mainCamera);
+                    glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+                    this->m_scene.render_static(uniloc);
+                }
+
+                {
+                    water->startRenderOnRefrac(uniloc, *this->m_mainCamera);
+                    glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+                    this->m_scene.render_static(uniloc);
+                }
+            }
         }
 
         // Render animated to water framebuffer
         {
-            auto& uniloc = this->m_shader.useAnimate();
-
-            uniloc.m_planeClip.flagDoClip(true);
-            uniloc.m_lightedMesh.projectMat(this->m_projectMat);
-            uniloc.m_lightedMesh.baseAmbient(this->m_baseAmbientColor);
-            uniloc.m_lightedMesh.fogMaxPoint(this->m_farPlaneDistance);
-            uniloc.m_lightedMesh.fogColor(this->m_skyColor);
-
-            if ( this->m_flagDrawDlight1 ) {
-                this->m_dlight1.sendUniform(uniloc.m_lightedMesh.u_dlights[0]);
-                uniloc.m_lightedMesh.dlightCount(1);
-            }
-            else {
-                uniloc.m_lightedMesh.dlightCount(0);
-            }
-
-            this->m_slight1.sendUniform(uniloc.m_lightedMesh.u_slights[0]);
-            uniloc.m_lightedMesh.slightCount(1);
-
-            this->m_scene.renderOnWaterAnimated(uniloc, *this->m_mainCamera, reg);
+          
         }
 
 #ifdef _WIN32

@@ -272,6 +272,12 @@ namespace dal {
         this->m_waters.emplace_back(waterInfo, width, height);
     }
 
+    void MapChunk2::getWaters(std::vector<WaterRenderer*>& result) {
+        for ( auto& water : this->m_waters ) {
+            result.push_back(&water);
+        }
+    }
+
 
     void MapChunk2::applyCollision(const ICollider& inCol, cpnt::Transform& inTrans) {
         PhysicalProperty inPhysics, mdlPhysics;
@@ -381,6 +387,7 @@ namespace dal {
         }
     }
 
+    /*
     void MapChunk2::renderOnWaterGeneral(const UnilocGeneral& uniloc, const ICamera& cam, entt::registry& reg) {
         const auto view = reg.view<cpnt::Transform, cpnt::StaticModel>();
 
@@ -442,7 +449,7 @@ namespace dal {
             }
         }
     }
-
+    */
 
     void MapChunk2::render_static(const UniRender_Static& uniloc) {
         dalAssert(this->m_plights.size() <= 3);

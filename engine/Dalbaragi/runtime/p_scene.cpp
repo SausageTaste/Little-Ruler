@@ -517,16 +517,14 @@ namespace dal {
     }
 
 
-    void SceneGraph::renderOnWaterGeneral(const UnilocGeneral& uniloc, const ICamera& cam, entt::registry& reg) {
-        for ( auto& map : this->m_mapChunks2 ) {
-            map.renderOnWaterGeneral(uniloc, cam, reg);
-        }
-    }
+    std::vector<WaterRenderer*> SceneGraph::waters(void) {
+        std::vector<WaterRenderer*> result;
 
-    void SceneGraph::renderOnWaterAnimated(const UnilocAnimate& uniloc, const ICamera& cam, entt::registry& reg) {
         for ( auto& map : this->m_mapChunks2 ) {
-            map.renderOnWaterAnimated(uniloc, cam, reg);
+            map.getWaters(result);
         }
+
+        return result;
     }
 
 

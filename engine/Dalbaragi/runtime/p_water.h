@@ -123,9 +123,9 @@ namespace dal {
         WaterRenderer(const dlb::WaterPlane& info, const unsigned int winWidth, const unsigned int winHeight);
 
         void render(const UnilocWaterry& uniloc);
-        void startRenderOnReflec(const UnilocGeneral& uniloc, const ICamera& cam) const;
+        void startRenderOnReflec(const UniRender_StaticOnWater& uniloc, const ICamera& cam) const;
         void startRenderOnReflec(const UniInterfGeometry& uniloc, const ICamera& cam) const;
-        void startRenderOnRefrac(const UnilocGeneral& uniloc, const ICamera& cam) const;
+        void startRenderOnRefrac(const UniRender_StaticOnWater& uniloc, const ICamera& cam) const;
 
         void onWinResize(const unsigned int winWidth, const unsigned int winHeight) {
             this->m_fbuffer.onWinResize(winWidth, winHeight);

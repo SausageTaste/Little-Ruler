@@ -99,8 +99,7 @@ namespace dal {
         void render_staticDepth(const UniRender_StaticDepth& uniloc);
         void render_animatedDepth(const UniRender_AnimatedDepth& uniloc);
 
-        void renderOnWaterGeneral(const UnilocGeneral& uniloc, const ICamera& cam, entt::registry& reg);
-        void renderOnWaterAnimated(const UnilocAnimate& uniloc, const ICamera& cam, entt::registry& reg);
+        std::vector<WaterRenderer*> waters(void);
 
         void applyCollision(const ICollider& inCol, cpnt::Transform& inTrans);
         std::optional<RayCastingResult> doRayCasting(const Segment& ray);
