@@ -51,10 +51,8 @@ namespace dal {
     }
 
 
-    ICharaState::ICharaState(cpnt::Transform& transform, cpnt::AnimatedModel& model, dal::StrangeEulerCamera& camera, SceneGraph& scene)
-        : m_transform(transform)
-        , m_model(model)
-        , m_camera(camera)
+    ICharaState::ICharaState(dal::StrangeEulerCamera& camera, SceneGraph& scene)
+        : m_camera(camera)
         , m_scene(scene)
     {
 
@@ -155,6 +153,14 @@ namespace {
         transform.addPos(0.f, -floorDist, 0.f);
     }
 
+    dal::cpnt::Transform& getPlayerTransform(dal::SceneGraph& scene) {
+        return scene.m_entities.get<dal::cpnt::Transform>(scene.m_player);
+    }
+
+    dal::cpnt::AnimatedModel& getPlayerModel(dal::SceneGraph& scene) {
+        return scene.m_entities.get<dal::cpnt::AnimatedModel>(scene.m_player);
+    }
+
 }
 
 
@@ -164,16 +170,15 @@ namespace {
     class CharaIdleState : public dal::ICharaState {
 
     public:
-        CharaIdleState(dal::cpnt::Transform& transform, dal::cpnt::AnimatedModel& model, dal::StrangeEulerCamera& camera, dal::SceneGraph& scene)
-            : ICharaState(transform, model, camera, scene)
+        CharaIdleState(dal::StrangeEulerCamera& camera, dal::SceneGraph& scene)
+            : ICharaState(camera, scene)
         {
 
         }
 
         virtual void enter(void) override {
-            this->m_model.m_animState.setSelectedAnimeIndex(2);
-
-            dalVerbose("IDLE");
+            auto& model = this->m_scene.m_entities.get<dal::cpnt::AnimatedModel>(this->m_scene.m_player);
+            model.m_animState.setSelectedAnimeIndex(2);
         }
 
         virtual void exit(void) override {
@@ -181,8 +186,10 @@ namespace {
         }
 
         virtual void process(const float deltaTime, const dal::MoveInputInfo& info) override {
-            processCharaHeight(this->m_transform, this->m_scene);
-            applybindingCameraToModel(this->m_camera, deltaTime, info, this->m_transform.getPos(), this->m_transform.getPos());
+            auto& transform = getPlayerTransform(this->m_scene);
+
+            processCharaHeight(transform, this->m_scene);
+            applybindingCameraToModel(this->m_camera, deltaTime, info, transform.getPos(), transform.getPos());
         }
 
         virtual dal::ICharaState* exec(const float deltaTime, const dal::MoveInputInfo& info) override;
@@ -196,17 +203,18 @@ namespace {
         glm::vec3 m_lastPos;
 
     public:
-        CharaWalkState(dal::cpnt::Transform& transform, dal::cpnt::AnimatedModel& model, dal::StrangeEulerCamera& camera, dal::SceneGraph& scene)
-            : ICharaState(transform, model, camera, scene)
+        CharaWalkState(dal::StrangeEulerCamera& camera, dal::SceneGraph& scene)
+            : ICharaState(camera, scene)
         {
 
         }
 
         virtual void enter(void) override {
-            this->m_model.m_animState.setSelectedAnimeIndex(1);
-            this->m_lastPos = this->m_transform.getPos();
+            auto& model = getPlayerModel(this->m_scene);
+            auto& transform = getPlayerTransform(this->m_scene);
 
-            dalVerbose("WALK");
+            model.m_animState.setSelectedAnimeIndex(1);
+            this->m_lastPos = transform.getPos();
         }
 
         virtual void exit(void) override {
@@ -214,10 +222,13 @@ namespace {
         }
 
         virtual void process(const float deltaTime, const dal::MoveInputInfo& info) override {
-            applyMove(this->m_transform, this->m_model, this->m_camera, deltaTime, info);
-            processCharaHeight(this->m_transform, this->m_scene);
-            applybindingCameraToModel(this->m_camera, deltaTime, info, this->m_transform.getPos(), this->m_lastPos);
-            this->m_lastPos = this->m_transform.getPos();
+            auto& model = getPlayerModel(this->m_scene);
+            auto& transform = getPlayerTransform(this->m_scene);
+
+            applyMove(transform, model, this->m_camera, deltaTime, info);
+            processCharaHeight(transform, this->m_scene);
+            applybindingCameraToModel(this->m_camera, deltaTime, info, transform.getPos(), this->m_lastPos);
+            this->m_lastPos = transform.getPos();
         }
 
         virtual dal::ICharaState* exec(const float deltaTime, const dal::MoveInputInfo& info) override;
@@ -233,7 +244,7 @@ namespace {
     dal::ICharaState* CharaIdleState::exec(const float deltaTime, const dal::MoveInputInfo& info) {
         if ( info.hasMovement() ) {
             std::unique_ptr<CharaIdleState> byebye{ this };
-            auto newState = new CharaWalkState(this->m_transform, this->m_model, this->m_camera, this->m_scene);
+            auto newState = new CharaWalkState(this->m_camera, this->m_scene);
 
             this->exit();
             newState->enter();
@@ -250,7 +261,7 @@ namespace {
     dal::ICharaState* CharaWalkState::exec(const float deltaTime, const dal::MoveInputInfo& info) {
         if ( !info.hasMovement() ) {
             std::unique_ptr<CharaWalkState> byebye{ this };
-            auto newState = new CharaIdleState(this->m_transform, this->m_model, this->m_camera, this->m_scene);
+            auto newState = new CharaIdleState(this->m_camera, this->m_scene);
 
             this->exit();
             newState->enter();
@@ -270,7 +281,7 @@ namespace {
 namespace dal::cpnt {
 
     CharacterState::CharacterState(cpnt::Transform& transform, cpnt::AnimatedModel& model, dal::StrangeEulerCamera& camera, SceneGraph& scene)
-        : m_currentState(new CharaIdleState{ transform, model, camera, scene })
+        : m_currentState(new CharaIdleState{ camera, scene })
     {
 
     }

@@ -28,8 +28,6 @@ namespace dal {
         // Don't judge me. I love Undertale.
 
     protected:
-        cpnt::Transform& m_transform;
-        cpnt::AnimatedModel& m_model;
         StrangeEulerCamera& m_camera;
         SceneGraph& m_scene;
 
@@ -40,17 +38,13 @@ namespace dal {
         ICharaState& operator=(ICharaState&&) = delete;
 
     public:
-        ICharaState(cpnt::Transform& transform, cpnt::AnimatedModel& model, StrangeEulerCamera& camera, SceneGraph& scene);
+        ICharaState(StrangeEulerCamera& camera, SceneGraph& scene);
         virtual ~ICharaState(void) = default;
 
         virtual void enter(void) = 0;
         virtual void exit(void) = 0;
         virtual void process(const float deltaTime, const MoveInputInfo& info) = 0;
         virtual ICharaState* exec(const float deltaTime, const MoveInputInfo& info) = 0;
-
-        const cpnt::Transform& getTransformRef(void) const {
-            return this->m_transform;
-        }
 
     };
 
