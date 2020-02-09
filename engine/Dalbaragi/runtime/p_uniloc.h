@@ -591,19 +591,6 @@ namespace dal {
     };
 
 
-    class UnilocGeneral {
-
-    public:
-        UniInterfLightedMesh m_lightedMesh;
-        UniInterfPlaneClip m_planeClip;
-        UniInterfLightmaps m_lightmaps;
-        UniInterf_Envmap i_envmap;
-
-    public:
-        UnilocGeneral(const GLuint shader);
-
-    };
-
     class UnilocOverlay {
 
         //////// Vars ////////
@@ -638,32 +625,6 @@ namespace dal {
         void upsideDownDiffuseMap(const bool x) const;
         void upsideDownMaskMap(const bool x) const;
         void color(const glm::vec4& v) const;
-
-    };
-
-    class UnilocFScreen {
-
-        //////// Vars ////////
-
-    private:
-        SamplerInterf m_texture;
-
-        //////// Funcs ////////
-
-    public:
-        UnilocFScreen(const GLuint shader);
-
-        const SamplerInterf& getTexture(void) const;
-
-    };
-
-    class UnilocDepthmp {
-
-    public:
-        UniInterfGeometry m_geometry;
-
-    public:
-        UnilocDepthmp(const GLuint shader);
 
     };
 
@@ -704,29 +665,6 @@ namespace dal {
         const SamplerInterf& getDUDVMap(void) const;
         const SamplerInterf& getNormalMap(void) const;
         const SamplerInterf& getDepthMap(void) const;
-
-    };
-
-    class UnilocAnimate : public UnilocGeneral {
-
-        //////// Funcs ////////
-
-    public:
-        UniInterfAnime m_anime;
-
-    public:
-        UnilocAnimate(const GLuint shader);
-
-    };
-
-    class UnilocDepthAnime {
-
-    public:
-        UniInterfGeometry m_geometry;
-        UniInterfAnime m_anime;
-
-    public:
-        UnilocDepthAnime(const GLuint shader);
 
     };
 

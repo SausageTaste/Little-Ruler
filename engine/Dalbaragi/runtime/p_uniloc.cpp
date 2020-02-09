@@ -539,20 +539,6 @@ namespace dal {
 }
 
 
-// UnilocGeneral
-namespace dal {
-
-    UnilocGeneral::UnilocGeneral(const GLuint shader)
-        : m_lightedMesh(shader)
-        , m_planeClip(shader)
-        , m_lightmaps(shader)
-    {
-        this->i_envmap.set(shader);
-    }
-
-}
-
-
 // UnilocOverlay
 namespace dal {
 
@@ -616,25 +602,6 @@ namespace dal {
 
     const SamplerInterf& UnilocOverlay::getMaskMap(void) const {
         return this->m_maskMap;
-    }
-
-}
-
-
-// UnilocFScreen
-namespace dal {
-
-    UnilocFScreen::UnilocFScreen(const GLuint shader) {
-#if ASSERT_UNILOC
-        dalAssert(0 == glGetAttribLocation(shader, "iPosition"));
-        dalAssert(1 == glGetAttribLocation(shader, "iTexCoord"));
-#endif
-
-        this->m_texture.init(getUniloc(shader, "uTexture"), -2, g_texUnitReg["uTexture"]);
-    }
-
-    const SamplerInterf& UnilocFScreen::getTexture(void) const {
-        return this->m_texture;
     }
 
 }
@@ -706,19 +673,6 @@ namespace dal {
 }
 
 
-// UnilocDepthAnime
-namespace dal {
-
-    UnilocDepthAnime::UnilocDepthAnime(const GLuint shader)
-        : m_geometry(shader)
-        , m_anime(shader)
-    {
-
-    }
-
-}
-
-
 // UnilocSkybox
 namespace dal {
 
@@ -738,24 +692,6 @@ namespace dal {
 
     const SamplerInterf& UnilocSkybox::getSkyboxTexLoc(void) const {
         return this->u_skyboxTex;
-    }
-
-}
-
-
-namespace dal {
-
-    UnilocDepthmp::UnilocDepthmp(const GLuint shader)
-        : m_geometry(shader)
-    {
-
-    }
-
-    UnilocAnimate::UnilocAnimate(const GLuint shader)
-        : UnilocGeneral(shader)
-        , m_anime(shader)
-    {
-
     }
 
 }

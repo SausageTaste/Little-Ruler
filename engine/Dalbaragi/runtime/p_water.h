@@ -126,7 +126,6 @@ namespace dal {
 
         void startRenderOnReflec(const UniRender_StaticOnWater& uniloc, const ICamera& cam) const;
         void startRenderOnReflec(const UniRender_AnimatedOnWater& uniloc, const ICamera& cam) const;
-        void startRenderOnReflec(const UniInterfGeometry& uniloc, const ICamera& cam) const;
 
         void startRenderOnRefrac(const UniRender_StaticOnWater& uniloc, const ICamera& cam) const;
         void startRenderOnRefrac(const UniRender_AnimatedOnWater& uniloc, const ICamera& cam) const;

@@ -361,24 +361,6 @@ namespace dal {
     }
 
 
-    void MapChunk2::renderGeneral(const UnilocGeneral& uniloc) {
-        this->sendLightUniforms(uniloc.m_lightedMesh, 0);
-
-        for ( const auto& [model, actors] : this->m_staticActors ) {
-            for ( const auto& actor : actors ) {
-                model->render(uniloc.m_lightedMesh, uniloc.m_lightmaps, actor.m_transform.getMat());
-            }
-        }
-    }
-
-    void MapChunk2::renderDepthGeneral(const UnilocDepthmp& uniloc) {
-        for ( const auto& [mdl, actors] : this->m_staticActors ) {
-            for ( const auto& actor : actors ) {
-                mdl->renderDepth(uniloc.m_geometry, actor.m_transform.getMat());
-            }
-        }
-    }
-
     void MapChunk2::renderWater(const UnilocWaterry& uniloc) {
         this->sendLightUniforms(uniloc.m_lightedMesh, 0);
 
@@ -387,69 +369,6 @@ namespace dal {
         }
     }
 
-    /*
-    void MapChunk2::renderOnWaterGeneral(const UnilocGeneral& uniloc, const ICamera& cam, entt::registry& reg) {
-        const auto view = reg.view<cpnt::Transform, cpnt::StaticModel>();
-
-        for ( auto& water : this->m_waters ) {
-            {
-                water.startRenderOnReflec(uniloc, cam);
-                glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
-                this->renderGeneral(uniloc);
-
-                view.each(
-                    [&uniloc](const cpnt::Transform& trans, const cpnt::StaticModel& model) {
-                        model.m_model->render(uniloc.m_lightedMesh, uniloc.m_lightmaps, trans.getMat());
-                    }
-                );
-            }
-
-            {
-                water.startRenderOnRefrac(uniloc, cam);
-                glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
-                this->renderGeneral(uniloc);
-
-                view.each(
-                    [&uniloc](const cpnt::Transform& trans, const cpnt::StaticModel& model) {
-                        model.m_model->render(uniloc.m_lightedMesh, uniloc.m_lightmaps, trans.getMat());
-                    }
-                );
-            }
-        }
-    }
-
-    void MapChunk2::renderOnWaterAnimated(const UnilocAnimate& uniloc, const ICamera& cam, entt::registry& reg) {
-        const auto view = reg.view<cpnt::Transform, cpnt::AnimatedModel>();
-
-        for ( auto& water : this->m_waters ) {
-            {
-                water.startRenderOnReflec(uniloc, cam);
-                //this->renderAnimate(uniloc);
-
-                for ( const auto entity : view ) {
-                    auto& cpntTransform = view.get<cpnt::Transform>(entity);
-                    auto& cpntModel = view.get<cpnt::AnimatedModel>(entity);
-
-                    cpntModel.m_model->render(uniloc.m_lightedMesh, uniloc.m_lightmaps, uniloc.m_anime, cpntTransform.getMat(),
-                        cpntModel.m_animState.getTransformArray());
-                }
-            }
-
-            {
-                water.startRenderOnRefrac(uniloc, cam);
-                //this->renderAnimate(uniloc);
-
-                for ( const auto entity : view ) {
-                    auto& cpntTransform = view.get<cpnt::Transform>(entity);
-                    auto& cpntModel = view.get<cpnt::AnimatedModel>(entity);
-
-                    cpntModel.m_model->render(uniloc.m_lightedMesh, uniloc.m_lightmaps, uniloc.m_anime, cpntTransform.getMat(),
-                        cpntModel.m_animState.getTransformArray());
-                }
-            }
-        }
-    }
-    */
 
     void MapChunk2::render_static(const UniRender_Static& uniloc) {
         dalAssert(this->m_plights.size() <= 3);
