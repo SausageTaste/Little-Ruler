@@ -74,6 +74,7 @@ namespace dal {
         // Player
         {
             this->m_player = this->m_entities.create();
+            dalInfo(fmt::format("Player's entity id is {}.", this->m_player));
 
             auto& transform = this->m_entities.assign<cpnt::Transform>(this->m_player);
             //transform.setScale(1.5f);
@@ -115,6 +116,19 @@ namespace dal {
     }
 
 
+    entt::entity SceneGraph::addObj_static(const char* const resid) {
+        const auto entity = this->m_entities.create();
+
+        auto& transform = this->m_entities.assign<cpnt::Transform>(entity);
+
+        auto ptrModel = this->m_resMas.orderModelStatic(resid);
+        auto& renderable = this->m_entities.assign<cpnt::StaticModel>(entity);
+        renderable.m_model = ptrModel;
+
+        return entity;
+    }
+
+
     void SceneGraph::renderWater(const UnilocWaterry& uniloc) {
         for ( auto& map : m_mapChunks2 ) {
             map.renderWater(uniloc);
@@ -125,6 +139,15 @@ namespace dal {
     void SceneGraph::render_static(const UniRender_Static& uniloc) {
         for ( auto& map : this->m_mapChunks2 ) {
             map.render_static(uniloc);
+        }
+
+        const auto view = this->m_entities.view<cpnt::Transform, cpnt::StaticModel>();
+        for ( const auto entity : view ) {
+            auto& cpntTrans = view.get<cpnt::Transform>(entity);
+            auto& cpntModel = view.get<cpnt::StaticModel>(entity);
+
+            uniloc.modelMat(cpntTrans.getMat());
+            cpntModel.m_model->render(uniloc);
         }
     }
 

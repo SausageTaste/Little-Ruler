@@ -201,6 +201,10 @@ namespace dal {
         {
             this->m_timer.setCapFPS(0);
             assertUserdataFolder();
+
+            const auto entity = this->m_scene.addObj_static("asset::pbr_ball.dmd");
+            auto& transform = this->m_scene.m_entities.get<cpnt::Transform>(entity);
+            transform.setPos(0, 3, 0);
         }
 
         // Test

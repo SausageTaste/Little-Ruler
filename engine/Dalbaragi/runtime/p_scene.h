@@ -34,6 +34,8 @@ namespace dal {
 
         void update(const float deltaTime);
 
+        entt::entity addObj_static(const char* const resid);
+
         void renderWater(const UnilocWaterry& uniloc);
 
         void render_static(const UniRender_Static& uniloc);
