@@ -12,8 +12,6 @@ add_library(dalbaragi_util
     d_filesystem.cpp
     d_filesystem.h
     d_fixednum.h
-    d_geometrymath.cpp
-    d_geometrymath.h
     d_logchannel.h
     d_logger.cpp
     d_logger.h

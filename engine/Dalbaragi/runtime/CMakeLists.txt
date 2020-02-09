@@ -84,10 +84,6 @@ set(externcpy_dir ${repoRoot_dir}/externcpy)
 set(externtool_dir ${repoRoot_dir}/externtool)
 
 
-# entt
-add_subdirectory(${extern_dir}/entt ${CMAKE_CURRENT_BINARY_DIR}/entt)
-target_link_libraries(dalbaragi_runtime PUBLIC EnTT::EnTT)
-
 # Freetype
 add_subdirectory(${extern_dir}/freetype2 ${CMAKE_CURRENT_BINARY_DIR}/freetype2)
 target_link_libraries(dalbaragi_runtime PRIVATE freetype)
@@ -110,6 +106,10 @@ if (WIN32)
 endif (WIN32)
 
 
-# Dalbaragi utils
+# Dalbaragi util
 add_subdirectory(../util ${CMAKE_CURRENT_BINARY_DIR}/dalbaragi_util)
 target_link_libraries(dalbaragi_runtime PUBLIC dalbaragi_util)
+
+# Dalbaragi physics
+add_subdirectory(../physics ${CMAKE_CURRENT_BINARY_DIR}/dalbaragi_physics)
+target_link_libraries(dalbaragi_runtime PUBLIC dalbaragi_physics)
