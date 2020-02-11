@@ -26,6 +26,7 @@ namespace {
     }
     
     // Pass it container with size 0 and iterator to index of unsigned{ -1 }.
+    // WTF such a broken Engilsh that even I can't understand!!
     template <typename T>
     size_t findIndexToStartInterp(const std::vector<std::pair<float, T>>& container, const float criteria) {
         dalAssert(0 != container.size());
@@ -291,7 +292,7 @@ namespace dal {
     void updateAnimeState(AnimationState& state, const std::vector<Animation>& anims, const SkeletonInterface& skeletonInterf) {
         const auto selectedAnimIndex = state.getSelectedAnimeIndex();
         if ( selectedAnimIndex >= anims.size() ) {
-            dalError("Selected animation index out of range");
+            dalError(fmt::format("Selected animation's index is out of range: {}", selectedAnimIndex));
             return;
         }
 

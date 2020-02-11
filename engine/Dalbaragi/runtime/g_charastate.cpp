@@ -135,7 +135,7 @@ namespace {
                 animModel.m_animState.setTimeScale(0.0f);
             }
             else {
-                animModel.m_animState.setTimeScale(1.0f / animeSpeed);
+                animModel.m_animState.setTimeScale(2.0f / animeSpeed);
             }
         }
     }
@@ -182,7 +182,7 @@ namespace {
         }
 
         virtual void exit(void) override {
-            dalVerbose("idle");
+
         }
 
         virtual void process(const float deltaTime, const dal::MoveInputInfo& info) override {
@@ -218,7 +218,7 @@ namespace {
         }
 
         virtual void exit(void) override {
-            dalVerbose("walk");
+
         }
 
         virtual void process(const float deltaTime, const dal::MoveInputInfo& info) override {
