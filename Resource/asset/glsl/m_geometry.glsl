@@ -81,9 +81,9 @@ bool collision_seg_aabb(Segment seg, AABB aabb) {
     vec3 orig = seg.m_pos;
     vec3 invdir = 1.0 / seg.m_rel;
     int sign[3];
-    sign[0] = int(invdir.x < 0);
-    sign[1] = int(invdir.y < 0);
-    sign[2] = int(invdir.z < 0);
+    sign[0] = int(invdir.x < 0.0);
+    sign[1] = int(invdir.y < 0.0);
+    sign[2] = int(invdir.z < 0.0);
 
     float tmin = (bounds[sign[0]].x - orig.x) * invdir.x;
     float tmax = (bounds[1 - sign[0]].x - orig.x) * invdir.x;
