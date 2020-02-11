@@ -18,7 +18,7 @@ using namespace fmt::literals;
 
 namespace {
 
-    constexpr unsigned int MAX_SCREEN_RES = 1080;
+    constexpr unsigned MAX_SCREEN_RES = 720;
 
 #ifdef _WIN32
     void GLAPIENTRY glDebugCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam) {
