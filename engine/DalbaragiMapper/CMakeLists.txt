@@ -52,8 +52,10 @@ set(lib_dir ${CMAKE_CURRENT_SOURCE_DIR}/../../lib)
 
 
 # entt
-add_subdirectory(${extern_dir}/entt ${CMAKE_CURRENT_BINARY_DIR}/entt)
-target_link_libraries(dalmapper EnTT::EnTT)
+if (NOT TARGET EnTT::EnTT)
+    add_subdirectory(${extern_dir}/entt ${CMAKE_CURRENT_BINARY_DIR}/entt)
+    target_link_libraries(dalmapper EnTT::EnTT)
+endif()
 
 # Qt5
 set(CMAKE_AUTOMOC ON)
@@ -67,5 +69,13 @@ target_link_libraries(dalmapper Qt5::Widgets Qt5::Core)
 
 
 # Dalbaragi utils
-add_subdirectory(../Dalbaragi/util ${CMAKE_CURRENT_BINARY_DIR}/dalbaragi_util)
-target_link_libraries(dalmapper dalbaragi_util)
+if (NOT TARGET dalbaragi_util)
+    add_subdirectory(../Dalbaragi/util ${CMAKE_CURRENT_BINARY_DIR}/dalbaragi_util)
+    target_link_libraries(dalmapper dalbaragi_util)
+endif()
+
+# Dalbaragi physics
+if (NOT TARGET dalbaragi_physics)
+    add_subdirectory(../Dalbaragi/physics ${CMAKE_CURRENT_BINARY_DIR}/dalbaragi_physics)
+    target_link_libraries(dalmapper dalbaragi_physics)
+endif()

@@ -1,8 +1,7 @@
 cmake_minimum_required(VERSION 3.4.1)
 
-
 project(Dalbaragi-Physics
-    LANGUAGES      CXX
+    LANGUAGES CXX
 )
 
 
@@ -24,10 +23,10 @@ target_compile_features(dalbaragi_physics PUBLIC cxx_std_17)
 set(extern_dir ${CMAKE_CURRENT_SOURCE_DIR}/../../../extern)
 
 # entt
-#if (NOT TARGET EnTT::EnTT)
-add_subdirectory(${extern_dir}/entt ${CMAKE_CURRENT_BINARY_DIR}/entt)
-target_link_libraries(dalbaragi_physics PUBLIC EnTT::EnTT)
-#endif()
+if (NOT TARGET EnTT::EnTT)
+    add_subdirectory(${extern_dir}/entt ${CMAKE_CURRENT_BINARY_DIR}/entt)
+    target_link_libraries(dalbaragi_physics PUBLIC EnTT::EnTT)
+endif()
 
 # GLM
 target_include_directories(dalbaragi_physics PUBLIC ${extern_dir}/glm)

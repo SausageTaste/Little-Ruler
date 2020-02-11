@@ -1,10 +1,7 @@
 cmake_minimum_required(VERSION 3.4.1)
 
-
-project(Dalbaragi-Util 
-    VERSION        0.1.0
-    DESCRIPTION    ""
-    LANGUAGES      CXX
+project(Dalbaragi-Util
+    LANGUAGES CXX
 )
 
 
@@ -38,24 +35,30 @@ target_compile_features(dalbaragi_util PUBLIC cxx_std_17)
 
 ######## Import libraries ########
 
-set(extern_dir ${CMAKE_CURRENT_SOURCE_DIR}/../../../extern)
+set(repoRoot_dir ${CMAKE_CURRENT_SOURCE_DIR}/../../..)
+set(extern_dir ${repoRoot_dir}/extern)
+set(externcpy_dir ${repoRoot_dir}/externcpy)
+set(externtool_dir ${repoRoot_dir}/externtool)
+
 
 # Lodepng
-add_library(lib_lodepng STATIC
-        ${extern_dir}/lodepng/lodepng.h
-        ${extern_dir}/lodepng/lodepng.cpp
-)
-target_include_directories(lib_lodepng PUBLIC ${extern_dir}/lodepng)
-target_link_libraries(dalbaragi_util PRIVATE lib_lodepng)
+if (NOT TARGET lib_lodepng)
+    add_subdirectory(${externtool_dir}/lodepng ${CMAKE_CURRENT_BINARY_DIR}/lodepng)
+    target_link_libraries(dalbaragi_util PRIVATE lib_lodepng)
+endif()
 
 # fmt
-add_subdirectory(${extern_dir}/fmt ${CMAKE_CURRENT_BINARY_DIR}/fmt)
-target_link_libraries(dalbaragi_util PUBLIC fmt::fmt)
+if (NOT TARGET fmt::fmt)
+    add_subdirectory(${extern_dir}/fmt ${CMAKE_CURRENT_BINARY_DIR}/fmt)
+    target_link_libraries(dalbaragi_util PUBLIC fmt::fmt)
+endif()
 
 # zlib
-add_subdirectory(${extern_dir}/zlib ${CMAKE_CURRENT_BINARY_DIR}/zlib)
-target_link_libraries(dalbaragi_util PRIVATE zlibstatic)
-target_include_directories(dalbaragi_util PRIVATE ${extern_dir}/zlib ${CMAKE_CURRENT_BINARY_DIR}/zlib)
+if (NOT TARGET zlibstatic)
+    add_subdirectory(${extern_dir}/zlib ${CMAKE_CURRENT_BINARY_DIR}/zlib)
+    target_link_libraries(dalbaragi_util PRIVATE zlibstatic)
+    target_include_directories(dalbaragi_util PRIVATE ${extern_dir}/zlib ${CMAKE_CURRENT_BINARY_DIR}/zlib)
+endif()
 
 # GLM
 target_include_directories(dalbaragi_util PUBLIC ${extern_dir}/glm)

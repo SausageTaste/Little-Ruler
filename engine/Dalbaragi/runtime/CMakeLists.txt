@@ -1,10 +1,7 @@
 cmake_minimum_required(VERSION 3.4.1)
 
-
-project(Dalbaragi-Runtime 
-    VERSION        0.1.0
-    DESCRIPTION    ""
-    LANGUAGES      CXX
+project(Dalbaragi-Runtime
+    LANGUAGES CXX
 )
 
 
@@ -85,31 +82,43 @@ set(externtool_dir ${repoRoot_dir}/externtool)
 
 
 # Freetype
-add_subdirectory(${extern_dir}/freetype2 ${CMAKE_CURRENT_BINARY_DIR}/freetype2)
-target_link_libraries(dalbaragi_runtime PRIVATE freetype)
+if (NOT TARGET freetype)
+    add_subdirectory(${extern_dir}/freetype2 ${CMAKE_CURRENT_BINARY_DIR}/freetype2)
+    target_link_libraries(dalbaragi_runtime PRIVATE freetype)
+endif()
 
 # Lua
-add_subdirectory(${externtool_dir}/lua ${CMAKE_CURRENT_BINARY_DIR}/lua)
-target_link_libraries(dalbaragi_runtime PRIVATE lua_static)
+if (NOT TARGET lua_static)
+    add_subdirectory(${externtool_dir}/lua ${CMAKE_CURRENT_BINARY_DIR}/lua)
+    target_link_libraries(dalbaragi_runtime PRIVATE lua_static)
+endif()
 
 
 if (WIN32)
     # glew
-    add_subdirectory(${externcpy_dir}/glew/build/cmake ${CMAKE_CURRENT_BINARY_DIR}/glew)
-    target_link_libraries(dalbaragi_runtime PUBLIC glew_s)
-    target_include_directories(dalbaragi_runtime PUBLIC ${externcpy_dir}/glew/include)
+    if (NOT TARGET glew_s)
+        add_subdirectory(${externcpy_dir}/glew/build/cmake ${CMAKE_CURRENT_BINARY_DIR}/glew)
+        target_include_directories(dalbaragi_runtime PUBLIC ${externcpy_dir}/glew/include)
+        target_link_libraries(dalbaragi_runtime PUBLIC glew_s)
+    endif()
 
     # SDL2
-    add_subdirectory(${externcpy_dir}/SDL2 ${CMAKE_CURRENT_BINARY_DIR}/SDL2)
-    target_link_libraries(dalbaragi_runtime PUBLIC SDL2main SDL2-static)
-    target_include_directories(dalbaragi_runtime PUBLIC ${externcpy_dir}/SDL2/include)
+    if (NOT TARGET SDL2main)
+        add_subdirectory(${externcpy_dir}/SDL2 ${CMAKE_CURRENT_BINARY_DIR}/SDL2)
+        target_include_directories(dalbaragi_runtime PUBLIC ${externcpy_dir}/SDL2/include)
+        target_link_libraries(dalbaragi_runtime PUBLIC SDL2main SDL2-static)
+    endif()
 endif (WIN32)
 
 
 # Dalbaragi util
-add_subdirectory(../util ${CMAKE_CURRENT_BINARY_DIR}/dalbaragi_util)
-target_link_libraries(dalbaragi_runtime PUBLIC dalbaragi_util)
+if (NOT TARGET dalbaragi_util)
+    add_subdirectory(../util ${CMAKE_CURRENT_BINARY_DIR}/dalbaragi_util)
+    target_link_libraries(dalbaragi_runtime PUBLIC dalbaragi_util)
+endif()
 
 # Dalbaragi physics
-add_subdirectory(../physics ${CMAKE_CURRENT_BINARY_DIR}/dalbaragi_physics)
-target_link_libraries(dalbaragi_runtime PUBLIC dalbaragi_physics)
+if (NOT TARGET dalbaragi_physics)
+    add_subdirectory(../physics ${CMAKE_CURRENT_BINARY_DIR}/dalbaragi_physics)
+    target_link_libraries(dalbaragi_runtime PUBLIC dalbaragi_physics)
+endif()
