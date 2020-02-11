@@ -74,14 +74,16 @@ bool collision_seg_plane(Segment ray, Plane plane) {
 }
 
 bool collision_seg_aabb(Segment seg, AABB aabb) {
-    vec3 bounds[2] = { aabb.m_min, aabb.m_max };
+    vec3 bounds[2];
+    bounds[0] = aabb.m_min;
+    bounds[1] = aabb.m_max;
+
     vec3 orig = seg.m_pos;
     vec3 invdir = 1.0 / seg.m_rel;
-    int sign[3] = {
-        int(invdir.x < 0),
-        int(invdir.y < 0),
-        int(invdir.z < 0)
-    };
+    int sign[3];
+    sign[0] = int(invdir.x < 0);
+    sign[1] = int(invdir.y < 0);
+    sign[2] = int(invdir.z < 0);
 
     float tmin = (bounds[sign[0]].x - orig.x) * invdir.x;
     float tmax = (bounds[1 - sign[0]].x - orig.x) * invdir.x;
