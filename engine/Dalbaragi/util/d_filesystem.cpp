@@ -267,6 +267,7 @@ namespace {
                         { "texture", {
                                 {"rustediron1-alt2", {}},
                                 {"water", {}},
+                                {"irin", {}},
                                 {"skybox", {}}
                             }
                         },
