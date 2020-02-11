@@ -3,10 +3,6 @@
 #include <cassert>
 
 
-#define DAL_USE_FIXED_DT true
-#define DAL_FIXED_DELTA_TIME 1.0 / 30.0
-
-
 // MassValue
 namespace dal {
 
@@ -37,6 +33,9 @@ namespace dal {
 
 namespace dal {
 
+    constexpr float_t FREEZE_SPEED_THRESHOLD = 0.2;
+
+
     PositionParticle::PositionParticle(void) 
         : m_mass(1)
         , m_damping(0.9)
@@ -51,18 +50,15 @@ namespace dal {
     void PositionParticle::integrate(const float_t deltaTime) {
         if ( this->m_mass.isInfinie() ) return;
 
-#if DAL_USE_FIXED_DT
-        constexpr float_t dt = DAL_FIXED_DELTA_TIME;
-#else
-        const float_t dt = deltaTime;
-#endif
-
-        this->m_pos += this->m_vel * dt;
+        this->m_pos += this->m_vel * deltaTime;
 
         const auto acc = this->m_acc + this->m_forceAccum * this->m_mass.getMassInv();
 
-        this->m_vel += acc * dt;
-        this->m_vel *= dal::pow(this->m_damping, dt);
+        this->m_vel += acc * deltaTime;
+        this->m_vel *= dal::pow(this->m_damping, deltaTime);
+        if ( glm::length(this->m_vel) < FREEZE_SPEED_THRESHOLD ) {
+            this->m_vel = vec3_t{ 0 };
+        }
 
         this->m_forceAccum = vec3_t{ 0 };
     }

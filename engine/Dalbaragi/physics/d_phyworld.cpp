@@ -32,25 +32,39 @@ namespace dal {
 namespace dal {
 
     void PhysicsWorld::update(const float_t deltaTime) {
+#if DAL_USE_FIXED_DT
+        constexpr float_t dt = FIXED_DELTA_TIME;
+
+        this->m_dtAccum += deltaTime;
+        if ( this->m_dtAccum < FIXED_DELTA_TIME ) {
+            return;
+        }
+        else {
+            this->m_dtAccum = 0;
+        }
+#else
+        const float_t dt = deltaTime;
+#endif
+
         auto particleView = this->m_particles.view<PositionParticle>();
 
         // Apply modifiers
         {
             for ( auto& [modifier, entity] : this->m_unaryMod ) {
                 auto& particle = this->m_particles.get<PositionParticle>(entity);
-                modifier->apply(deltaTime, particle);
+                modifier->apply(dt, particle);
             }
 
             for ( auto& [modifier, entities] : this->m_binaryMod ) {
                 auto& one = this->m_particles.get<PositionParticle>(entities.first);
                 auto& two = this->m_particles.get<PositionParticle>(entities.second);
-                modifier->apply(deltaTime, one, two);
+                modifier->apply(dt, one, two);
             }
 
             static ParticleDrag drag;
             for ( const auto entity : particleView ) {
                 auto& particle = particleView.get(entity);
-                drag.apply(deltaTime, particle);
+                drag.apply(dt, particle);
             }
         }
 
@@ -58,7 +72,7 @@ namespace dal {
         {
             for ( const auto entity : particleView ) {
                 auto& particle = particleView.get(entity);
-                particle.integrate(deltaTime);
+                particle.integrate(dt);
             }
         }
     }

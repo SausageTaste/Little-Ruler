@@ -3,6 +3,8 @@
 #include <cmath>
 #include <glm/glm.hpp>
 
+#define DAL_USE_FIXED_DT true
+
 
 namespace dal {
 
@@ -16,5 +18,7 @@ namespace dal {
 
 
     float_t pow(const float_t base, const float_t exponent);
+
+    constexpr float_t FIXED_DELTA_TIME = 1.0 / 30.0;
 
 }

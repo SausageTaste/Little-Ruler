@@ -19,11 +19,22 @@ namespace dal {
 
     class FixedPointSpring : public BinaryPhyModifier {
 
-    private:
+    protected:
         float_t m_springConst, m_restLen;
 
     public:
         FixedPointSpring(void);
+        FixedPointSpring(float_t springConst, float_t restLen);
+
+        virtual void apply(const float_t deltaTime, PositionParticle& fixed, PositionParticle& moving) override;
+
+    };
+
+    class FixedPointSpringPulling : public FixedPointSpring {
+
+    public:
+        using FixedPointSpring::FixedPointSpring;
+
         virtual void apply(const float_t deltaTime, PositionParticle& fixed, PositionParticle& moving) override;
 
     };

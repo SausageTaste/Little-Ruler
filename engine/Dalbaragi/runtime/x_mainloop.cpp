@@ -142,54 +142,6 @@ namespace {
 
 namespace {
 
-    class EntityRotate : public dal::IEntityController {
-
-    private:
-        dal::Timer m_timer;
-        glm::vec3 m_centerPos{ 14, 1, 3 };
-        float m_radius = 3;
-        float m_speed = 0.5;
-
-    public:
-        virtual void apply(const entt::entity entity, entt::registry& reg) override {
-            auto& trans = reg.get<dal::cpnt::Transform>(entity);
-            const auto elapsed = this->m_timer.getElapsed();
-            trans.setPos(
-                this->m_radius * cos(elapsed * this->m_speed) + this->m_centerPos.x,
-                this->m_centerPos.y,
-                this->m_radius * sin(elapsed * this->m_speed) + this->m_centerPos.z
-            );
-        }
-
-    };
-
-    class EntityLessDistance : public dal::IEntityController {
-
-    public:
-        entt::entity m_hook;
-        float m_maxDist = 5;
-
-    public:
-        EntityLessDistance(const entt::entity hook)
-            : m_hook(hook)
-        {
-
-        }
-
-        virtual void apply(const entt::entity entity, entt::registry& reg) override {
-            auto& hookTrans = reg.get<dal::cpnt::Transform>(this->m_hook);
-            auto& followerTrans = reg.get<dal::cpnt::Transform>(entity);
-
-            const auto hookToFollower = followerTrans.getPos() - hookTrans.getPos();
-            const auto distance = glm::length(hookToFollower);
-            if ( distance > this->m_maxDist ) {
-                const auto newPos = hookToFollower * this->m_maxDist / distance + hookTrans.getPos();
-                followerTrans.setPos(newPos);
-            }
-        }
-
-    };
-
     class EntityToParticle : public dal::IEntityController {
 
     private:
@@ -208,21 +160,17 @@ namespace {
             auto& particle = this->m_phyworld.getParticle(this->m_particleEntt);
             auto& trans = reg.get<dal::cpnt::Transform>(entity);
             trans.setPos(particle.m_pos);
-
-            dalDebug(fmt::format(
-                "Sphere pos: {}, {}, {}",
-                trans.getPos().x, trans.getPos().y, trans.getPos().z
-            ));
         }
 
     };
-
 
     class ParticleToEntity : public dal::UnaryPhyModifier {
 
     private:
         entt::entity m_entity;
         entt::registry& m_registry;
+
+        glm::vec3 m_offset{ 0, 0.8, 0 };
 
     public:
         ParticleToEntity(entt::entity entity, entt::registry& registry)
@@ -234,7 +182,7 @@ namespace {
 
         virtual void apply(const dal::float_t deltaTime, dal::PositionParticle& particle) override {
             auto& trans = this->m_registry.get<dal::cpnt::Transform>(this->m_entity);
-            particle.m_pos = trans.getPos();
+            particle.m_pos = trans.getPos() + this->m_offset;
         }
 
     };
@@ -310,11 +258,13 @@ namespace dal {
 
             const auto entity = this->m_scene.addObj_static("asset::pbr_ball.dmd");
             auto& transform = this->m_scene.m_entities.get<cpnt::Transform>(entity);
-            transform.setPos(0, 3, 0);
+            transform.setScale(0.6);
 
             auto enttParticle = this->m_phyworld.newParticleEntity();
+            auto& particle = this->m_phyworld.getParticle(enttParticle);
+            particle.m_pos = glm::vec3{ 0, 3, 0 };
             this->m_phyworld.registerBinaryMod(
-                std::shared_ptr<BinaryPhyModifier>{new FixedPointSpring},
+                std::shared_ptr<BinaryPhyModifier>{ new FixedPointSpringPulling{ 5, 3 } },
                 playerParticle, enttParticle
             );
 

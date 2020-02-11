@@ -60,6 +60,10 @@ namespace dal {
         std::vector<unaryModPair_t> m_unaryMod;
         std::vector<binaryModPair_t> m_binaryMod;
 
+#if DAL_USE_FIXED_DT
+        float_t m_dtAccum = 0;
+#endif
+
     public:
         void update(const float_t deltaTime);
 

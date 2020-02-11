@@ -24,6 +24,9 @@ namespace dal {
 
 namespace dal {
 
+    constexpr float_t SPRING_MIN_REST_DIST = 0.001;
+
+
     FixedPointSpring::FixedPointSpring(void)
         : m_springConst(5)
         , m_restLen(2)
@@ -31,16 +34,34 @@ namespace dal {
 
     }
 
-    void FixedPointSpring::apply(const float_t deltaTime, PositionParticle& fixed, PositionParticle& moving) {
-        auto force = moving.m_pos;
-        force -= fixed.m_pos;
-        auto magnitude = glm::length(force);
-        if ( magnitude < 0.0001 ) return;
-        magnitude = (this->m_restLen - magnitude) * this->m_springConst;
+    FixedPointSpring::FixedPointSpring(float_t springConst, float_t restLen)
+        : m_springConst(springConst)
+        , m_restLen(restLen)
+    {
 
-        const auto forceDirection = glm::normalize(force);
-        const auto forceResized = forceDirection * magnitude;
-        moving.addForce(forceResized);
+    }
+
+    void FixedPointSpring::apply(const float_t deltaTime, PositionParticle& fixed, PositionParticle& moving) {
+        const auto fixedToMoving = moving.m_pos - fixed.m_pos;
+        const auto distance = glm::length(fixedToMoving);
+        if ( distance < SPRING_MIN_REST_DIST ) return;
+
+        const auto magnitude = (this->m_restLen - distance) * this->m_springConst;
+        const auto forceDirection = glm::normalize(fixedToMoving);
+        moving.addForce(forceDirection * magnitude);
+    }
+
+
+    void FixedPointSpringPulling::apply(const float_t deltaTime, PositionParticle& fixed, PositionParticle& moving) {
+        assert(this->m_restLen >= SPRING_MIN_REST_DIST);
+
+        const auto fixedToMoving = moving.m_pos - fixed.m_pos;
+        const auto distance = glm::length(fixedToMoving);
+        if ( distance < this->m_restLen ) return;
+
+        const auto magnitude = (this->m_restLen - distance) * this->m_springConst;
+        const auto forceDirection = glm::normalize(fixedToMoving);
+        moving.addForce(forceDirection * magnitude);
     }
 
 }
