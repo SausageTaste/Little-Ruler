@@ -14,6 +14,27 @@
 
 namespace dal {
 
+    class IEntityController {
+
+    public:
+        virtual ~IEntityController(void) = default;
+        virtual void apply(const entt::entity entity, entt::registry& reg) = 0;
+
+    };
+
+    namespace cpnt {
+
+        struct EntityCtrl {
+            std::shared_ptr<IEntityController> m_ctrler;
+        };
+
+    }
+
+}
+
+
+namespace dal {
+
     class SceneGraph {
 
         //////// Attribs ////////

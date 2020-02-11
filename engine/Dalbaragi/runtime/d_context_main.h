@@ -12,11 +12,12 @@ namespace dal {
     class RenderMaster;
     class SceneGraph;
     class TaskMaster;
+    class PhysicsWorld;
 
 
     std::vector<std::unique_ptr<IContext>> initContexts(
         const unsigned width, const unsigned height,
-        ShaderMaster& shaders, RenderMaster& renMas, SceneGraph& scene, TaskMaster& taskMas
+        ShaderMaster& shaders, RenderMaster& renMas, SceneGraph& scene, TaskMaster& taskMas, PhysicsWorld& phyworld
     );
 
 }

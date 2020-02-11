@@ -3,6 +3,7 @@
 #include <cassert>
 
 
+// MassValue
 namespace dal {
 
     float_t MassValue::getMassInv(void) const noexcept {
@@ -25,6 +26,35 @@ namespace dal {
 
     void MassValue::setMassInv(const float_t v) noexcept {
         this->m_massInv = v;
+    }
+
+}
+
+
+namespace dal {
+
+    PositionParticle::PositionParticle(void) 
+        : m_mass(1)
+        , m_damping(0.9)
+    {
+
+    }
+
+    void PositionParticle::addForce(const vec3_t force) {
+        this->m_forceAccum += force;
+    }
+
+    void PositionParticle::integrate(const float_t deltaTime) {
+        if ( this->m_mass.isInfinie() ) return;
+
+        this->m_pos += this->m_vel * deltaTime;
+
+        const auto acc = this->m_acc + this->m_forceAccum * this->m_mass.getMassInv();
+
+        this->m_vel += acc * deltaTime;
+        this->m_vel *= dal::pow(this->m_damping, deltaTime);
+
+        this->m_forceAccum = vec3_t{ 0 };
     }
 
 }

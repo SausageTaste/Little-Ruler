@@ -1,5 +1,6 @@
 #pragma once
 
+#include <d_phyworld.h>
 
 #include "p_render_master.h"
 #include "c_input_apply.h"
@@ -20,6 +21,7 @@ namespace dal {
         TaskMaster m_task;
         ShaderMaster m_shader;
         ResourceMaster m_resMas;
+        PhysicsWorld m_phyworld;
         SceneGraph m_scene;
         RenderMaster m_renderMan;
 

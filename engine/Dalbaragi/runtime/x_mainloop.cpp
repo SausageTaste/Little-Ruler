@@ -6,6 +6,7 @@
 
 #include <d_logger.h>
 #include <d_filesystem.h>
+#include <d_modifiers.h>
 
 #include "s_configs.h"
 #include "o_widget_textbox.h"
@@ -139,6 +140,108 @@ namespace {
 }
 
 
+namespace {
+
+    class EntityRotate : public dal::IEntityController {
+
+    private:
+        dal::Timer m_timer;
+        glm::vec3 m_centerPos{ 14, 1, 3 };
+        float m_radius = 3;
+        float m_speed = 0.5;
+
+    public:
+        virtual void apply(const entt::entity entity, entt::registry& reg) override {
+            auto& trans = reg.get<dal::cpnt::Transform>(entity);
+            const auto elapsed = this->m_timer.getElapsed();
+            trans.setPos(
+                this->m_radius * cos(elapsed * this->m_speed) + this->m_centerPos.x,
+                this->m_centerPos.y,
+                this->m_radius * sin(elapsed * this->m_speed) + this->m_centerPos.z
+            );
+        }
+
+    };
+
+    class EntityLessDistance : public dal::IEntityController {
+
+    public:
+        entt::entity m_hook;
+        float m_maxDist = 5;
+
+    public:
+        EntityLessDistance(const entt::entity hook)
+            : m_hook(hook)
+        {
+
+        }
+
+        virtual void apply(const entt::entity entity, entt::registry& reg) override {
+            auto& hookTrans = reg.get<dal::cpnt::Transform>(this->m_hook);
+            auto& followerTrans = reg.get<dal::cpnt::Transform>(entity);
+
+            const auto hookToFollower = followerTrans.getPos() - hookTrans.getPos();
+            const auto distance = glm::length(hookToFollower);
+            if ( distance > this->m_maxDist ) {
+                const auto newPos = hookToFollower * this->m_maxDist / distance + hookTrans.getPos();
+                followerTrans.setPos(newPos);
+            }
+        }
+
+    };
+
+    class EntityToParticle : public dal::IEntityController {
+
+    private:
+        dal::PhysicsWorld& m_phyworld;
+        dal::ParticleEntity m_particleEntt;
+
+    public:
+        EntityToParticle(dal::ParticleEntity&& particleEntt, dal::PhysicsWorld& phyworld)
+            : m_phyworld(phyworld)
+            , m_particleEntt(std::move(particleEntt))
+        {
+
+        }
+
+        virtual void apply(const entt::entity entity, entt::registry& reg) override {
+            auto& particle = this->m_phyworld.getParticle(this->m_particleEntt);
+            auto& trans = reg.get<dal::cpnt::Transform>(entity);
+            trans.setPos(particle.m_pos);
+
+            dalDebug(fmt::format(
+                "Sphere pos: {}, {}, {}",
+                trans.getPos().x, trans.getPos().y, trans.getPos().z
+            ));
+        }
+
+    };
+
+
+    class ParticleToEntity : public dal::UnaryPhyModifier {
+
+    private:
+        entt::entity m_entity;
+        entt::registry& m_registry;
+
+    public:
+        ParticleToEntity(entt::entity entity, entt::registry& registry)
+            : m_entity(entity)
+            , m_registry(registry)
+        {
+
+        }
+
+        virtual void apply(const dal::float_t deltaTime, dal::PositionParticle& particle) override {
+            auto& trans = this->m_registry.get<dal::cpnt::Transform>(this->m_entity);
+            particle.m_pos = trans.getPos();
+        }
+
+    };
+
+}
+
+
 // Test codes
 namespace {
 
@@ -170,7 +273,7 @@ namespace dal {
         , m_scene(m_resMas, winWidth, winHeight)
         , m_renderMan(m_scene, m_shader, m_resMas, &m_scene.m_playerCam, winWidth, winHeight)
         // Contexts
-        , m_contexts(initContexts(winWidth, winHeight, m_shader, m_renderMan, m_scene, m_task))
+        , m_contexts(initContexts(winWidth, winHeight, m_shader, m_renderMan, m_scene, m_task, m_phyworld))
         , m_currentContext(m_contexts.front().get())
         // Misc
         , m_flagQuit(false)
@@ -197,14 +300,32 @@ namespace dal {
             LuaState::giveDependencies(this, &this->m_renderMan);
         }
 
-        // Misc
+        // Test ball
         {
-            this->m_timer.setCapFPS(0);
-            assertUserdataFolder();
+            auto playerParticle = this->m_phyworld.newParticleEntity();
+            this->m_phyworld.registerUnaryMod(
+                std::shared_ptr<dal::UnaryPhyModifier>{new ParticleToEntity{ this->m_scene.m_player, this->m_scene.m_entities }},
+                playerParticle
+            );
 
             const auto entity = this->m_scene.addObj_static("asset::pbr_ball.dmd");
             auto& transform = this->m_scene.m_entities.get<cpnt::Transform>(entity);
             transform.setPos(0, 3, 0);
+
+            auto enttParticle = this->m_phyworld.newParticleEntity();
+            this->m_phyworld.registerBinaryMod(
+                std::shared_ptr<BinaryPhyModifier>{new FixedPointSpring},
+                playerParticle, enttParticle
+            );
+
+            auto& enttCtrl = this->m_scene.m_entities.assign<cpnt::EntityCtrl>(entity);
+            enttCtrl.m_ctrler.reset(new EntityToParticle{ std::move(enttParticle), this->m_phyworld });
+        }
+
+        // Misc
+        {
+            this->m_timer.setCapFPS(0);
+            assertUserdataFolder();
         }
 
         // Test

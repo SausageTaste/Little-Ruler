@@ -6,13 +6,12 @@ project(Dalbaragi-Physics
 
 
 add_library(dalbaragi_physics
-    d_precision.h
-    d_geometrymath.h
-    d_geometrymath.cpp
-    d_particle.h
-    d_particle.cpp
-    d_phyworld.h
-    d_phyworld.cpp
+    d_precision.h    d_precision.cpp
+    d_geometrymath.h d_geometrymath.cpp
+    d_particle.h     d_particle.cpp
+    d_phyworld.h     d_phyworld.cpp
+    d_modifierabc.h
+    d_modifiers.h    d_modifiers.cpp
 )
 target_include_directories(dalbaragi_physics PUBLIC .)
 target_compile_features(dalbaragi_physics PUBLIC cxx_std_17)

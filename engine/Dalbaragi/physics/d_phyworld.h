@@ -1,10 +1,13 @@
 #pragma once
 
+#include <vector>
+#include <memory>
 #include <optional>
 
 #include <entt/entity/registry.hpp>
 
 #include "d_particle.h"
+#include "d_modifierabc.h"
 
 
 namespace dal {
@@ -48,11 +51,23 @@ namespace dal {
     class PhysicsWorld {
 
     private:
+        using unaryModPair_t = std::pair< std::shared_ptr<UnaryPhyModifier>, entt::entity >;
+        using binaryModPair_t = std::pair< std::shared_ptr<BinaryPhyModifier>, std::pair<entt::entity, entt::entity> >;
+
+    private:
         entt::registry m_particles;
 
+        std::vector<unaryModPair_t> m_unaryMod;
+        std::vector<binaryModPair_t> m_binaryMod;
+
     public:
+        void update(const float_t deltaTime);
+
         ParticleEntity newParticleEntity(void);
         PositionParticle& getParticle(const ParticleEntity& entity);
+
+        void registerUnaryMod(std::shared_ptr<UnaryPhyModifier> mod, const ParticleEntity& particle);
+        void registerBinaryMod(std::shared_ptr<BinaryPhyModifier> mod, const ParticleEntity& one, const ParticleEntity& two);
 
     };
 

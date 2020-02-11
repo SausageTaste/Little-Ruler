@@ -3,6 +3,7 @@
 #include <fmt/format.h>
 
 #include <d_logger.h>
+#include <d_phyworld.h>
 
 #include "p_render_master.h"
 #include "c_input_apply.h"
@@ -218,6 +219,7 @@ namespace {
         dal::RenderMaster& m_renMas;
         dal::SceneGraph& m_scene;
         dal::TaskMaster& m_task;
+        dal::PhysicsWorld& m_phyworld;
 
         // Contexts
         dal::IContext* m_cnxtPauseMenu;
@@ -229,12 +231,13 @@ namespace {
     public:
         InGameCxt(
             const unsigned width, const unsigned height,
-            dal::ShaderMaster& shaders, dal::RenderMaster& renMas, dal::SceneGraph& scene, dal::TaskMaster& taskMas
+            dal::ShaderMaster& shaders, dal::RenderMaster& renMas, dal::SceneGraph& scene, dal::TaskMaster& taskMas, dal::PhysicsWorld& phyworld
         )
             : m_shaders(shaders)
             , m_renMas(renMas)
             , m_scene(scene)
             , m_task(taskMas)
+            , m_phyworld(phyworld)
             , m_cnxtPauseMenu(nullptr)
             , m_crtlWidget(static_cast<float>(width), static_cast<float>(height))
             , m_winWidth(width)
@@ -291,6 +294,7 @@ namespace {
 
             this->m_task.update();
 
+            this->m_phyworld.update(deltaTime);
             this->m_scene.update(deltaTime);
             this->m_renMas.update(deltaTime);
             this->m_renMas.render(this->m_scene.m_entities);
@@ -513,12 +517,12 @@ namespace {
 namespace dal {
 
     std::vector <std::unique_ptr<IContext>> initContexts(const unsigned width, const unsigned height,
-        ShaderMaster& shaders, RenderMaster& renMas, SceneGraph& scene, TaskMaster& taskMas)
+        ShaderMaster& shaders, RenderMaster& renMas, SceneGraph& scene, TaskMaster& taskMas, PhysicsWorld& phyworld)
     {
         std::vector <std::unique_ptr<IContext>> result;
 
         std::unique_ptr<TitleScreen> title{ new TitleScreen{ width, height, shaders, taskMas } };
-        std::unique_ptr<InGameCxt> ingame{ new InGameCxt{ width, height, shaders, renMas, scene, taskMas } };
+        std::unique_ptr<InGameCxt> ingame{ new InGameCxt{ width, height, shaders, renMas, scene, taskMas, phyworld } };
         std::unique_ptr<PauseMenu> pause{ new PauseMenu{ width, height, shaders, taskMas } };
 
         title->registerContexts(ingame.get());

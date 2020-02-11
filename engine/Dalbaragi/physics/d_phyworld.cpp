@@ -29,6 +29,31 @@ namespace dal {
 
 namespace dal {
 
+    void PhysicsWorld::update(const float_t deltaTime) {
+        // Apply modifiers
+        {
+            for ( auto& [modifier, entity] : this->m_unaryMod ) {
+                auto& particle = this->m_particles.get<PositionParticle>(entity);
+                modifier->apply(deltaTime, particle);
+            }
+
+            for ( auto& [modifier, entities] : this->m_binaryMod ) {
+                auto& one = this->m_particles.get<PositionParticle>(entities.first);
+                auto& two = this->m_particles.get<PositionParticle>(entities.second);
+                modifier->apply(deltaTime, one, two);
+            }
+        }
+
+        // Integrate
+        {
+            auto view = this->m_particles.view<PositionParticle>();
+            for ( const auto entity : view ) {
+                auto& particle = view.get(entity);
+                particle.integrate(deltaTime);
+            }
+        }
+    }
+
     ParticleEntity PhysicsWorld::newParticleEntity(void) {
         ParticleEntity entity{ this->m_particles.create(), this->m_particles };
         auto& posparticle = this->m_particles.assign<PositionParticle>(entity.get());
@@ -38,6 +63,14 @@ namespace dal {
     PositionParticle& PhysicsWorld::getParticle(const ParticleEntity& entity) {
         assert(this->m_particles.has<PositionParticle>(entity.get()));
         return this->m_particles.get<PositionParticle>(entity.get());
+    }
+
+    void PhysicsWorld::registerUnaryMod(std::shared_ptr<UnaryPhyModifier> mod, const ParticleEntity& particle) {
+        this->m_unaryMod.emplace_back(mod, particle.get());
+    }
+
+    void PhysicsWorld::registerBinaryMod(std::shared_ptr<BinaryPhyModifier> mod, const ParticleEntity& one, const ParticleEntity& two) {
+        this->m_binaryMod.emplace_back(mod, std::pair(one.get(), two.get()));
     }
 
 }

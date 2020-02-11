@@ -91,6 +91,15 @@ namespace dal {
 
 
     void SceneGraph::update(const float deltaTime) {
+        // Apply entity controllers
+        {
+            auto view = this->m_entities.view<cpnt::EntityCtrl>();
+            for ( const auto entity : view ) {
+                auto& enttCtrl = view.get(entity);
+                enttCtrl.m_ctrler->apply(entity, this->m_entities);
+            }
+        }
+
         // Resolve collisions
         {
             auto& trans = this->m_entities.get<cpnt::Transform>(this->m_player);
