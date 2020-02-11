@@ -5,6 +5,18 @@
 
 namespace dal {
 
+    class ParticleDrag : public UnaryPhyModifier {
+
+    private:
+        float_t m_k1, m_k2;
+
+    public:
+        ParticleDrag(void);
+        virtual void apply(const float_t deltaTime, PositionParticle& particle) override;
+
+    };
+
+
     class FixedPointSpring : public BinaryPhyModifier {
 
     private:

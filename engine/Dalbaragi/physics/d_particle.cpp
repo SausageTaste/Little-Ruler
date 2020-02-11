@@ -3,6 +3,10 @@
 #include <cassert>
 
 
+#define DAL_USE_FIXED_DT true
+#define DAL_FIXED_DELTA_TIME 1.0 / 30.0
+
+
 // MassValue
 namespace dal {
 
@@ -47,12 +51,18 @@ namespace dal {
     void PositionParticle::integrate(const float_t deltaTime) {
         if ( this->m_mass.isInfinie() ) return;
 
-        this->m_pos += this->m_vel * deltaTime;
+#if DAL_USE_FIXED_DT
+        constexpr float_t dt = DAL_FIXED_DELTA_TIME;
+#else
+        const float_t dt = deltaTime;
+#endif
+
+        this->m_pos += this->m_vel * dt;
 
         const auto acc = this->m_acc + this->m_forceAccum * this->m_mass.getMassInv();
 
-        this->m_vel += acc * deltaTime;
-        this->m_vel *= dal::pow(this->m_damping, deltaTime);
+        this->m_vel += acc * dt;
+        this->m_vel *= dal::pow(this->m_damping, dt);
 
         this->m_forceAccum = vec3_t{ 0 };
     }

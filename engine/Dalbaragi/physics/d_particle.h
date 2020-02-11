@@ -44,6 +44,10 @@ namespace dal {
     public:
         PositionParticle(void);
 
+        const vec3_t& velocity(void) const {
+            return this->m_vel;
+        }
+
         void addForce(const vec3_t force);
         void integrate(const float_t deltaTime);
 

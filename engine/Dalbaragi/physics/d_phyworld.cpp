@@ -1,5 +1,7 @@
 #include "d_phyworld.h"
 
+#include "d_modifiers.h"
+
 
 namespace dal {
 
@@ -30,6 +32,8 @@ namespace dal {
 namespace dal {
 
     void PhysicsWorld::update(const float_t deltaTime) {
+        auto particleView = this->m_particles.view<PositionParticle>();
+
         // Apply modifiers
         {
             for ( auto& [modifier, entity] : this->m_unaryMod ) {
@@ -42,13 +46,18 @@ namespace dal {
                 auto& two = this->m_particles.get<PositionParticle>(entities.second);
                 modifier->apply(deltaTime, one, two);
             }
+
+            static ParticleDrag drag;
+            for ( const auto entity : particleView ) {
+                auto& particle = particleView.get(entity);
+                drag.apply(deltaTime, particle);
+            }
         }
 
         // Integrate
         {
-            auto view = this->m_particles.view<PositionParticle>();
-            for ( const auto entity : view ) {
-                auto& particle = view.get(entity);
+            for ( const auto entity : particleView ) {
+                auto& particle = particleView.get(entity);
                 particle.integrate(deltaTime);
             }
         }
