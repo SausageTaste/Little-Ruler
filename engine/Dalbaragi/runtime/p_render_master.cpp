@@ -506,7 +506,7 @@ namespace dal {
         glEnable(GL_CLIP_DISTANCE0);
 #endif
 
-        auto& waters = this->m_scene.waters();
+        auto waters = this->m_scene.waters();
 
         // Render to water framebuffer
         {
