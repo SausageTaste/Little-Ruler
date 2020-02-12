@@ -43,10 +43,18 @@ namespace dal {
     class UniInterf_Envmap {
 
     private:
+        GLint u_envmapPos = -1;
         SamplerInterf u_envmap;
 
     public:
         void set(const GLuint shader);
+
+        void envmapPos(const float x, const float y, const float z) const {
+            glUniform3f(this->u_envmapPos, x, y, z);
+        }
+        void envmapPos(const glm::vec3& v) const {
+            this->envmapPos(v.x, v.y, v.z);
+        }
 
         auto& envmap(void) const {
             return this->u_envmap;

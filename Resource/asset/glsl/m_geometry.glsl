@@ -21,7 +21,7 @@ Plane makePlane_fromNormalPoint(vec3 normal, vec3 point) {
     Plane plane;
 
     plane.m_normal = normalize(normal);
-    plane.m_d = dot(plane.m_normal, point);
+    plane.m_d = -dot(plane.m_normal, point);
 
     return plane;
 }

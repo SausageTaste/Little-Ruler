@@ -1,6 +1,7 @@
 #include <m_geometry.glsl>
 
 
+uniform vec3 u_envmapPos;
 uniform samplerCube u_envmap;
 uniform bool u_hasEnvmap;
 
@@ -19,8 +20,7 @@ vec3 getEnvColor_test(vec3 viewPos, vec3 fragPos, vec3 fragNormal, AABB bounding
     ray.m_pos = fragPos;
     ray.m_rel = R * 100.0;
 
-    vec4 result = interdect_seg_aabb(ray, boundingVolume);
-    vec3 sampleray = result.xyz - vec3(6.0, 2.0, -5.0);
-
-    return texture(u_envmap, sampleray).rgb;
+    vec4 intersection = interdect_seg_aabb(ray, boundingVolume);
+    vec3 sampleRay = intersection.xyz - u_envmapPos;
+    return texture(u_envmap, sampleRay).rgb;
 }

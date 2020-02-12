@@ -10,7 +10,7 @@
 #include <d_logger.h>
 
 
-#define DAL_RENDER_WATER true
+#define DAL_RENDER_WATER false
 
 
 using namespace fmt::literals;
@@ -179,6 +179,8 @@ namespace {
         }
 
     } g_cubemap;
+
+    const glm::vec3 ENVMAP_POS{ 6, 2, -5 };
 
 }
 
@@ -585,14 +587,13 @@ namespace dal {
     }
 
     void RenderMaster::render_onCubemap(void) {
-        const auto lightPos = glm::vec3{ 6, 2, -5 };
         std::vector<glm::mat4> viewMats = {
-            glm::lookAt(lightPos, lightPos + glm::vec3(1.0, 0.0, 0.0), glm::vec3(0.0, -1.0, 0.0)),
-            glm::lookAt(lightPos, lightPos + glm::vec3(-1.0, 0.0, 0.0), glm::vec3(0.0, -1.0, 0.0)),
-            glm::lookAt(lightPos, lightPos + glm::vec3(0.0, 1.0, 0.0), glm::vec3(0.0, 0.0, 1.0)),
-            glm::lookAt(lightPos, lightPos + glm::vec3(0.0, -1.0, 0.0), glm::vec3(0.0, 0.0, -1.0)),
-            glm::lookAt(lightPos, lightPos + glm::vec3(0.0, 0.0, 1.0), glm::vec3(0.0, -1.0, 0.0)),
-            glm::lookAt(lightPos, lightPos + glm::vec3(0.0, 0.0, -1.0), glm::vec3(0.0, -1.0, 0.0))
+            glm::lookAt(ENVMAP_POS, ENVMAP_POS + glm::vec3(1.0, 0.0, 0.0), glm::vec3(0.0, -1.0, 0.0)),
+            glm::lookAt(ENVMAP_POS, ENVMAP_POS + glm::vec3(-1.0, 0.0, 0.0), glm::vec3(0.0, -1.0, 0.0)),
+            glm::lookAt(ENVMAP_POS, ENVMAP_POS + glm::vec3(0.0, 1.0, 0.0), glm::vec3(0.0, 0.0, 1.0)),
+            glm::lookAt(ENVMAP_POS, ENVMAP_POS + glm::vec3(0.0, -1.0, 0.0), glm::vec3(0.0, 0.0, -1.0)),
+            glm::lookAt(ENVMAP_POS, ENVMAP_POS + glm::vec3(0.0, 0.0, 1.0), glm::vec3(0.0, -1.0, 0.0)),
+            glm::lookAt(ENVMAP_POS, ENVMAP_POS + glm::vec3(0.0, 0.0, -1.0), glm::vec3(0.0, -1.0, 0.0))
         };
         const auto projMat = glm::perspective(glm::radians(90.f), 1.f, 0.01f, 1000.f);
 
@@ -616,7 +617,7 @@ namespace dal {
             auto& uniloc = this->m_shader.useStatic();
 
             uniloc.projMat(projMat);
-            uniloc.viewPos(lightPos);
+            uniloc.viewPos(ENVMAP_POS);
             uniloc.i_lighting.baseAmbient(this->m_baseAmbientColor);
             uniloc.i_envmap.envmap().setFlagHas(false);
 
@@ -642,7 +643,7 @@ namespace dal {
             auto& uniloc = this->m_shader.useAnimated();
 
             uniloc.projMat(projMat);
-            uniloc.viewPos(lightPos);
+            uniloc.viewPos(ENVMAP_POS);
             uniloc.i_lighting.baseAmbient(this->m_baseAmbientColor);
             uniloc.i_envmap.envmap().setFlagHas(false);
 
@@ -679,6 +680,7 @@ namespace dal {
             uniloc.viewPos(this->m_mainCamera->m_pos);
             uniloc.i_lighting.baseAmbient(this->m_baseAmbientColor);
             g_cubemap.getCubemap()->sendUniform(uniloc.i_envmap.envmap());
+            uniloc.i_envmap.envmapPos(ENVMAP_POS);
 
             if ( this->m_flagDrawDlight1 ) {
                 this->m_dlight1.sendUniform(0, uniloc.i_lighting);
@@ -703,6 +705,7 @@ namespace dal {
             uniloc.viewPos(this->m_mainCamera->m_pos);
             uniloc.i_lighting.baseAmbient(this->m_baseAmbientColor);
             g_cubemap.getCubemap()->sendUniform(uniloc.i_envmap.envmap());
+            uniloc.i_envmap.envmapPos(ENVMAP_POS);
 
             if ( this->m_flagDrawDlight1 ) {
                 this->m_dlight1.sendUniform(0, uniloc.i_lighting);

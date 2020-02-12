@@ -115,6 +115,7 @@ namespace dal {
 namespace dal {
 
     void UniInterf_Envmap::set(const GLuint shader) {
+        this->u_envmapPos = getUniloc(shader, "u_envmapPos");
         this->u_envmap.init(getUniloc(shader, "u_envmap"), getUniloc(shader, "u_hasEnvmap"), g_texUnitReg["u_envmap"]);
     }
 
