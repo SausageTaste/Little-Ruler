@@ -61,7 +61,11 @@ void main(void) {
     f_color.a = albedo.a;
 
     if ( u_hasEnvmap ) {
-        vec3 envcolor = getEnvColor(u_viewPos, v_fragPos, fragNormal);
+        AABB aabb;
+        aabb.m_min = vec3(-10.0, -2.0, -10.0);
+        aabb.m_max = vec3(10.0, 10.0, 10.0);
+
+        vec3 envcolor = getEnvColor_test(u_viewPos, v_fragPos, fragNormal, aabb);
         f_color.xyz = mix(envcolor, f_color.xyz, roughness * 0.5 + 0.5);
     }
 }

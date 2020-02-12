@@ -519,6 +519,7 @@ namespace dal {
             uniloc.viewPos(this->m_mainCamera->m_pos);
             uniloc.i_lighting.baseAmbient(this->m_baseAmbientColor);
             g_cubemap.getCubemap()->sendUniform(uniloc.i_envmap.envmap());
+            uniloc.i_envmap.envmapPos(ENVMAP_POS);
 
             if ( this->m_flagDrawDlight1 ) {
                 this->m_dlight1.sendUniform(0, uniloc.i_lighting);
@@ -555,6 +556,7 @@ namespace dal {
             uniloc.viewPos(this->m_mainCamera->m_pos);
             uniloc.i_lighting.baseAmbient(this->m_baseAmbientColor);
             g_cubemap.getCubemap()->sendUniform(uniloc.i_envmap.envmap());
+            uniloc.i_envmap.envmapPos(ENVMAP_POS);
 
             if ( this->m_flagDrawDlight1 ) {
                 this->m_dlight1.sendUniform(0, uniloc.i_lighting);
