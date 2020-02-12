@@ -331,7 +331,7 @@ namespace dal {
 
                 hairJointIDs.emplace(i);
                 const auto& addedLocalPos = localPoses.emplace(i, dal::decomposeTransform(jointInfo.m_boneOffset).first);
-                auto& addedParticle = particles.emplace(i, this->m_phyworld.newParticleEntity()); dalAssert(addedParticle.second);
+                auto addedParticle = particles.emplace(i, this->m_phyworld.newParticleEntity()); dalAssert(addedParticle.second);
 
                 const auto thisLocalPos = addedLocalPos.first->second;
 
@@ -347,7 +347,7 @@ namespace dal {
                     );
                 }
                 else {
-                    auto& parentParticle = particles.find(parentID); dalAssert(particles.end() != parentParticle);
+                    auto parentParticle = particles.find(parentID); dalAssert(particles.end() != parentParticle);
                     const auto parentLocalPos = localPoses.at(parentID);
 
                     this->m_phyworld.registerBinaryMod(
