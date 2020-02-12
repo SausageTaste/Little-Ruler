@@ -7,7 +7,8 @@
 
 namespace {
 
-    constexpr unsigned int DEPTHMAP_RES = 1024 * 1;
+    constexpr unsigned DLIGHT_SHADOW_DIMENSION = 1024 * 4;
+    constexpr unsigned SLIGHT_SHADOW_DIMENSION = 512;
 
 }
 
@@ -15,9 +16,9 @@ namespace {
 // DepthmapForLights
 namespace dal {
 
-    DepthmapForLights::DepthmapForLights(void)
-        : m_width(DEPTHMAP_RES)
-        , m_height(DEPTHMAP_RES)
+    DepthmapForLights::DepthmapForLights(const unsigned width, const unsigned height)
+        : m_width(width)
+        , m_height(height)
     {
         this->m_depthTex.init_depthMap(this->m_width, this->m_height);
 
@@ -92,6 +93,7 @@ namespace dal {
 
     DirectionalLight::DirectionalLight(void)
         : m_halfProjBoxEdgeLen(30.0f)
+        , m_shadowMap(DLIGHT_SHADOW_DIMENSION, DLIGHT_SHADOW_DIMENSION)
     {
         this->m_direction = glm::normalize(this->m_direction);
     }
@@ -180,6 +182,7 @@ namespace dal {
         , m_endFadeRadians(glm::radians(45.f))
         , m_startFade(cos(glm::radians(40.f)))
         , m_endFade(cos(m_endFadeRadians))
+        , m_shadowMap(SLIGHT_SHADOW_DIMENSION, SLIGHT_SHADOW_DIMENSION)
     {
 
     }

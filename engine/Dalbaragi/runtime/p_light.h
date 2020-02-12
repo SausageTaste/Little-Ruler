@@ -22,7 +22,7 @@ namespace dal {
         DepthmapForLights& operator=(const DepthmapForLights&) = delete;
 
     public:
-        DepthmapForLights(void);
+        DepthmapForLights(const unsigned width, const unsigned height);
         ~DepthmapForLights(void);
         DepthmapForLights(DepthmapForLights&& other) noexcept;
         DepthmapForLights& operator=(DepthmapForLights&&) noexcept;

@@ -290,6 +290,18 @@ namespace dal {
                     mat.m_roughnessMap = "::" + mat.m_roughnessMap;
                 }
             }
+
+            // Apply texcoords resizing.
+            for ( auto& unit : info.m_model.m_renderUnits ) {
+                const auto scale = unit.m_material.m_texScale;
+                auto& texcoords = unit.m_mesh.m_texcoords;
+
+                const auto numTexcoords = texcoords.size() / 2;
+                for ( unsigned i = 0; i < numTexcoords; ++i ) {
+                    texcoords[2 * i + 0] *= scale.x;
+                    texcoords[2 * i + 1] *= scale.y;
+                }
+            }
         }
 
         return true;
