@@ -1,4 +1,4 @@
-uniform mat4 u_jointTrans[30];
+uniform mat4 u_jointTrans[130];
 
 
 mat4 makeJointTransform(ivec3 jointIDs, vec3 weights) {
