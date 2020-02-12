@@ -18,23 +18,17 @@ namespace dal {
         std::optional<entt::entity> m_id;
 
     public:
-        PhysicsEntity(const PhysicsEntity&) = delete;
-        PhysicsEntity& operator=(const PhysicsEntity&) = delete;
-
-    public:
         PhysicsEntity(void)
             : m_id(static_cast<entt::entity>(0))
         {
 
         }
-        PhysicsEntity(const entt::entity id, entt::registry& registry)
+        PhysicsEntity(const entt::entity id)
             : m_id(id)
         {
 
         }
-        PhysicsEntity(PhysicsEntity&&) noexcept;
-        PhysicsEntity& operator=(PhysicsEntity&&) noexcept;
-
+      
         entt::entity get(void) const;
         entt::entity operator*(void) const;
 

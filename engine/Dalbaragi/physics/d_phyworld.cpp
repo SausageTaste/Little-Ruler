@@ -5,18 +5,6 @@
 
 namespace dal {
 
-    PhysicsEntity::PhysicsEntity(PhysicsEntity&& other) noexcept
-        : m_id(std::move(other.m_id))
-    {
-        other.m_id.reset();
-    }
-
-    PhysicsEntity& PhysicsEntity::operator=(PhysicsEntity&& other) noexcept {
-        this->m_id = std::move(other.m_id);
-        other.m_id.reset();
-        return *this;
-    }
-
     entt::entity PhysicsEntity::get(void) const {
         assert(this->m_id.has_value());
         return this->m_id.value();
@@ -78,7 +66,7 @@ namespace dal {
     }
 
     ParticleEntity PhysicsWorld::newParticleEntity(void) {
-        ParticleEntity entity{ this->m_particles.create(), this->m_particles };
+        ParticleEntity entity{ this->m_particles.create() };
         auto& posparticle = this->m_particles.assign<PositionParticle>(entity.get());
         return entity;
     }

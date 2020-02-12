@@ -3,6 +3,23 @@
 
 namespace dal {
 
+    ParticleGravity::ParticleGravity(void)
+        : m_g(9.8)
+    {
+
+    }
+
+    ParticleGravity::ParticleGravity(const float_t gravityAcc)
+        : m_g(gravityAcc)
+    {
+
+    }
+
+    void ParticleGravity::apply(const float_t deltaTime, PositionParticle& particle) {
+        particle.addForce(vec3_t{ 0, -this->m_g, 0 });
+    }
+
+
     ParticleDrag::ParticleDrag(void)
         : m_k1(0.5)
         , m_k2(0.5)

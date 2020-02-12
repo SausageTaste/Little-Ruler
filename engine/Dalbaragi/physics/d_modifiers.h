@@ -5,6 +5,19 @@
 
 namespace dal {
 
+    class ParticleGravity : public UnaryPhyModifier {
+
+    private:
+        float_t m_g;
+
+    public:
+        ParticleGravity(void);
+        ParticleGravity(const float_t gravityAcc);
+
+        virtual void apply(const float_t deltaTime, PositionParticle& particle) override;
+
+    };
+
     class ParticleDrag : public UnaryPhyModifier {
 
     private:

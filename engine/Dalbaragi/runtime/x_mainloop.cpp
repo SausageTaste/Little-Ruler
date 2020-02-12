@@ -1,6 +1,7 @@
 ﻿#include "x_mainloop.h"
 
 #include <time.h>
+#include <unordered_set>
 
 #include <fmt/format.h>
 #include <glm/gtc/matrix_transform.hpp>
@@ -8,6 +9,7 @@
 #include <d_logger.h>
 #include <d_filesystem.h>
 #include <d_modifiers.h>
+#include <u_math.h>
 
 #include "s_configs.h"
 #include "o_widget_textbox.h"
@@ -150,9 +152,9 @@ namespace {
         dal::ParticleEntity m_particleEntt;
 
     public:
-        EntityToParticle(dal::ParticleEntity&& particleEntt, dal::PhysicsWorld& phyworld)
+        EntityToParticle(const dal::ParticleEntity& particleEntt, dal::PhysicsWorld& phyworld)
             : m_phyworld(phyworld)
-            , m_particleEntt(std::move(particleEntt))
+            , m_particleEntt(particleEntt)
         {
 
         }
@@ -170,20 +172,27 @@ namespace {
     private:
         entt::entity m_entity;
         entt::registry& m_registry;
-
-        glm::vec3 m_offset{ 0, 0.8, 0 };
+        glm::mat4 m_offset;
 
     public:
-        ParticleToEntity(entt::entity entity, entt::registry& registry)
+        ParticleToEntity(const entt::entity entity, entt::registry& registry)
             : m_entity(entity)
             , m_registry(registry)
+            , m_offset(1.f)
+        {
+
+        }
+        ParticleToEntity(const entt::entity entity, entt::registry& registry, const glm::mat4& offset)
+            : m_entity(entity)
+            , m_registry(registry)
+            , m_offset(offset)
         {
 
         }
 
         virtual void apply(const dal::float_t deltaTime, dal::PositionParticle& particle) override {
             auto& trans = this->m_registry.get<dal::cpnt::Transform>(this->m_entity);
-            particle.m_pos = trans.getPos() + this->m_offset;
+            particle.m_pos = trans.getMat() * this->m_offset * glm::vec4{ 0, 0, 0, 1 };
         }
 
     };
@@ -194,6 +203,37 @@ namespace {
         virtual glm::mat4 makeTransform(const float elapsed, const dal::jointID_t jid, const dal::SkeletonInterface& skeleton) override {
             const glm::vec3 offset{ cos(elapsed), 0, sin(elapsed) };
             return glm::translate(glm::mat4{ 1.f }, offset);
+        }
+
+    };
+
+    class HairJointPhysics : public dal::IJointModifier {
+
+    private:
+        dal::PhysicsWorld& m_phyworld;
+        dal::ParticleEntity m_particleEntt;
+
+        entt::entity m_entity;
+        entt::registry& m_registry;
+
+    public:
+        HairJointPhysics(const dal::ParticleEntity& particleEntt, dal::PhysicsWorld& phyworld, const entt::entity entity, entt::registry& registry)
+            : m_phyworld(phyworld)
+            , m_particleEntt(std::move(particleEntt))
+            , m_entity(entity)
+            , m_registry(registry)
+        {
+
+        }
+
+        virtual glm::mat4 makeTransform(const float elapsed, const dal::jointID_t jid, const dal::SkeletonInterface& skeleton) override {
+            auto& particle = this->m_phyworld.getParticle(this->m_particleEntt);
+            auto& trans = this->m_registry.get<dal::cpnt::Transform>(this->m_entity);
+            const auto& jointInfo = skeleton.at(jid);
+            const auto decomposed = dal::decomposeTransform(jointInfo.m_boneOffset);
+
+            const auto jointToParticle = glm::vec3{ particle.m_pos } -(decomposed.first + trans.getPos());
+            return glm::translate(glm::mat4{ 1.f }, jointToParticle);
         }
 
     };
@@ -262,17 +302,75 @@ namespace dal {
         // Animation modifier
         {
             auto& animModel = this->m_scene.m_entities.get<cpnt::AnimatedModel>(this->m_scene.m_player);
+            const auto& trans = this->m_scene.m_entities.get<cpnt::Transform>(this->m_scene.m_player);
             const auto& skeleton = animModel.m_model->getSkeletonInterf();
 
             while ( skeleton.isEmpty() ) {
                 this->m_task.update();
             }
 
-            for ( int i = 0; i < skeleton.getSize(); ++i ) {
-                if ( 1 == skeleton.at(i).m_boneType ) {
-                    animModel.m_animState.addModifier(i, std::shared_ptr<IJointModifier>{ new RotateJoint });
-                    dalVerbose("Found!");
+            std::unordered_set<jointID_t> hairJointIDs;
+            std::unordered_map<jointID_t, ParticleEntity> particles;
+            std::unordered_map<jointID_t, glm::vec3> localPoses;
+
+            const auto hairRootIndex = [&](void) {
+                for ( int i = 0; i < skeleton.getSize(); ++i ) {
+                    if ( 1 == skeleton.at(i).m_boneType ) {
+                        return i;
+                    }
+                }
+                dalAbort("Failed to find hair root joint.");
+            }();
+            hairJointIDs.emplace(hairRootIndex);
+
+            for ( jointID_t i = hairRootIndex + 1; ; ++i ) {
+                const auto& jointInfo = animModel.m_model->getSkeletonInterf().at(i);
+                const auto parentID = jointInfo.m_parentIndex;
+                if ( hairJointIDs.end() == hairJointIDs.find(parentID) )
                     break;
+
+                hairJointIDs.emplace(i);
+                const auto& addedLocalPos = localPoses.emplace(i, dal::decomposeTransform(jointInfo.m_boneOffset).first);
+                auto& addedParticle = particles.emplace(i, this->m_phyworld.newParticleEntity()); dalAssert(addedParticle.second);
+
+                const auto thisLocalPos = addedLocalPos.first->second;
+
+                // POTENTIAL BUG!!
+                // The z value jointInfo.m_boneOffset is minus of what it should be.
+                if ( hairRootIndex == parentID ) {
+                    this->m_phyworld.registerUnaryMod(
+                        std::shared_ptr<dal::UnaryPhyModifier>{new ParticleToEntity{
+                            this->m_scene.m_player, this->m_scene.m_entities,
+                            glm::translate(glm::mat4{1.f}, glm::vec3{thisLocalPos.x, thisLocalPos.y, -thisLocalPos.z})
+                        }},
+                        addedParticle.first->second
+                    );
+                }
+                else {
+                    auto& parentParticle = particles.find(parentID); dalAssert(particles.end() != parentParticle);
+                    const auto parentLocalPos = localPoses.at(parentID);
+
+                    this->m_phyworld.registerBinaryMod(
+                        std::shared_ptr<dal::BinaryPhyModifier>{new FixedPointSpringPulling{ 10, glm::distance(parentLocalPos, thisLocalPos) / 10.0 }},
+                        parentParticle->second, addedParticle.first->second
+                    );
+
+                    animModel.m_animState.addModifier(i, std::shared_ptr<dal::IJointModifier>{new HairJointPhysics{
+                        addedParticle.first->second, this->m_phyworld, this->m_scene.m_player, this->m_scene.m_entities
+                        }});
+
+                    std::shared_ptr<UnaryPhyModifier> gravity{ new ParticleGravity{3} };
+                    this->m_phyworld.registerUnaryMod(gravity, addedParticle.first->second);
+                }
+
+                // Draw balls to debug.
+                {
+                    const auto entity = this->m_scene.addObj_static("asset::pbr_ball.dmd");
+                    auto& transform = this->m_scene.m_entities.get<cpnt::Transform>(entity);
+                    transform.setScale(0.02);
+
+                    auto& enttCtrl = this->m_scene.m_entities.assign<cpnt::EntityCtrl>(entity);
+                    enttCtrl.m_ctrler.reset(new EntityToParticle{ addedParticle.first->second, this->m_phyworld });
                 }
             }
         }
@@ -298,7 +396,7 @@ namespace dal {
             );
 
             auto& enttCtrl = this->m_scene.m_entities.assign<cpnt::EntityCtrl>(entity);
-            enttCtrl.m_ctrler.reset(new EntityToParticle{ std::move(enttParticle), this->m_phyworld });
+            enttCtrl.m_ctrler.reset(new EntityToParticle{ enttParticle, this->m_phyworld });
         }
 
         // Misc
