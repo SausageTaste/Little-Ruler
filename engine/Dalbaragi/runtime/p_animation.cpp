@@ -242,7 +242,8 @@ namespace dal {
         }
     }
 
-    void Animation::sample2(const float animTick, const SkeletonInterface& interf, JointTransformArray& transformArr) const {
+    void Animation::sample2(const float elapsed, const float animTick, const SkeletonInterface& interf,
+        JointTransformArray& transformArr, const jointModifierRegistry_t& modifiers) const {
         static const auto k_spaceAnim2Model = glm::rotate(glm::mat4{ 1.f }, glm::radians(-90.f), glm::vec3{ 1.f, 0.f, 0.f });
         static const auto k_spaceModel2Anim = glm::inverse(k_spaceAnim2Model);
 
@@ -252,7 +253,13 @@ namespace dal {
         std::vector<glm::mat4> boneTransforms(numBones);
         dalAssert(numBones == this->m_joints.size());
         for ( int i = 0; i < numBones; ++i ) {
-            boneTransforms[i] = this->m_joints[i].makeTransform(animTick);
+            const auto found = modifiers.find(i);
+            if ( modifiers.end() != found ) {
+                boneTransforms[i] = found->second->makeTransform(elapsed, i, interf);
+            }
+            else {
+                boneTransforms[i] = this->m_joints[i].makeTransform(animTick);
+            }
         }
 
         for ( dal::jointID_t i = 0; i < numBones; ++i ) {
@@ -286,6 +293,40 @@ namespace dal {
 }  // namespace dal
 
 
+namespace dal {
+
+    float AnimationState::getElapsed(void) {
+        const auto deltaTime = this->m_localTimer.checkGetElapsed();
+        this->m_localTimeAccumulator += deltaTime * this->m_timeScale;
+        return this->m_localTimeAccumulator;
+    }
+
+    JointTransformArray& AnimationState::getTransformArray(void) {
+        return this->m_finalTransform;
+    }
+
+    unsigned int AnimationState::getSelectedAnimeIndex(void) const {
+        return this->m_selectedAnimIndex;
+    }
+
+    void AnimationState::setSelectedAnimeIndex(const unsigned int index) {
+        if ( this->m_selectedAnimIndex != index ) {
+            this->m_selectedAnimIndex = index;
+            this->m_localTimeAccumulator = 0.0f;
+        }
+    }
+
+    void AnimationState::setTimeScale(const float scale) {
+        this->m_timeScale = scale;
+    }
+
+    void AnimationState::addModifier(const jointID_t jid, std::shared_ptr<IJointModifier> mod) {
+        this->m_modifiers.emplace(jid, std::move(mod));
+    }
+
+}
+
+
 // Functions
 namespace dal {
 
@@ -299,7 +340,7 @@ namespace dal {
         const auto& anim = anims[selectedAnimIndex];
         const auto elapsed = state.getElapsed();
         const auto animTick = anim.calcAnimTick(elapsed);
-        anim.sample2(animTick, skeletonInterf, state.getTransformArray());
+        anim.sample2(elapsed, animTick, skeletonInterf, state.getTransformArray(), state.getModifiers());
     }
 
 }

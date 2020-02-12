@@ -63,6 +63,8 @@ namespace dal {
         return result;
     }
 
+    std::pair<glm::vec3, glm::quat> decomposeTransform(const glm::mat4& mat);
+
 }
 
 

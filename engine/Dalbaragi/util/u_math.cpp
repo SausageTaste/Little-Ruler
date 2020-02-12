@@ -3,6 +3,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 
+// Geometry
 namespace dal {
 
     glm::quat rotateQuat(const glm::quat& q, const float radians, const glm::vec3& selector) {
@@ -41,6 +42,19 @@ namespace dal {
 
     float getSignedDistance_point2Plane(const glm::vec3& v, const glm::vec4& p) {
         return abs(p.x * v.x + p.y * v.y + p.z * v.z + p.w) * glm::inversesqrt(p.x * p.x + p.y * p.y + p.z + p.z);
+    }
+
+}
+
+
+// Utils
+namespace dal {
+
+    std::pair<glm::vec3, glm::quat> decomposeTransform(const glm::mat4& mat) {
+        return std::pair<glm::vec3, glm::quat>{
+            glm::vec3(mat[3]),
+                glm::quat_cast(mat)
+        };
     }
 
 }

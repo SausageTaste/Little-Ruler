@@ -1,8 +1,10 @@
 #pragma once
 
 #include <map>
+#include <memory>
 #include <string>
 #include <vector>
+#include <unordered_map>
 
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
@@ -18,7 +20,7 @@ namespace dal {
 
     class SkeletonInterface {
 
-    private:
+    public:
         struct BoneInfo {
             glm::mat4 m_boneOffset;
             glm::mat4 m_spaceToParent;
@@ -82,6 +84,17 @@ namespace dal {
         }
 
     };
+
+
+    class IJointModifier {
+
+    public:
+        virtual ~IJointModifier(void) = default;
+        virtual glm::mat4 makeTransform(const float deltaTime, const jointID_t jid, const dal::SkeletonInterface& skeleton) = 0;
+
+    };
+
+    using jointModifierRegistry_t = std::unordered_map<jointID_t, std::shared_ptr<IJointModifier>>;
 
 
     class Animation {
@@ -164,7 +177,8 @@ namespace dal {
             return this->m_durationInTick;
         }
 
-        void sample2(const float animTick, const SkeletonInterface& interf, JointTransformArray& transformArr) const;
+        void sample2(const float elapsed, const float animTick, const SkeletonInterface& interf,
+            JointTransformArray& transformArr, const jointModifierRegistry_t& modifiers) const;
         float calcAnimTick(const float seconds) const;
 
     };
@@ -175,31 +189,22 @@ namespace dal {
     private:
         Timer m_localTimer;
         JointTransformArray m_finalTransform;
+        jointModifierRegistry_t m_modifiers;
         unsigned int m_selectedAnimIndex = 0;
         float m_timeScale = 1.0f;
         float m_localTimeAccumulator = 0.0f;
 
     public:
-        float getElapsed(void) {
-            const auto deltaTime = this->m_localTimer.checkGetElapsed();
-            this->m_localTimeAccumulator += deltaTime * this->m_timeScale;
-            return this->m_localTimeAccumulator;
-        }
-        JointTransformArray& getTransformArray(void) {
-            return this->m_finalTransform;
-        }
-        unsigned int getSelectedAnimeIndex(void) const {
-            return this->m_selectedAnimIndex;
-        }
+        float getElapsed(void);
+        JointTransformArray& getTransformArray(void);
+        unsigned int getSelectedAnimeIndex(void) const;
 
-        void setSelectedAnimeIndex(const unsigned int index) {
-            if ( this->m_selectedAnimIndex != index ) {
-                this->m_selectedAnimIndex = index;
-                this->m_localTimeAccumulator = 0.0f;
-            }
-        }
-        void setTimeScale(const float scale) {
-            this->m_timeScale = scale;
+        void setSelectedAnimeIndex(const unsigned int index);
+        void setTimeScale(const float scale);
+
+        void addModifier(const jointID_t jid, std::shared_ptr<IJointModifier> mod);
+        const jointModifierRegistry_t& getModifiers(void) const {
+            return this->m_modifiers;
         }
 
     };

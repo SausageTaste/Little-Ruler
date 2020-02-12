@@ -3,6 +3,7 @@
 #include <time.h>
 
 #include <fmt/format.h>
+#include <glm/gtc/matrix_transform.hpp>
 
 #include <d_logger.h>
 #include <d_filesystem.h>
@@ -187,6 +188,16 @@ namespace {
 
     };
 
+    class RotateJoint : public dal::IJointModifier {
+
+    public:
+        virtual glm::mat4 makeTransform(const float elapsed, const dal::jointID_t jid, const dal::SkeletonInterface& skeleton) override {
+            const glm::vec3 offset{ cos(elapsed), 0, sin(elapsed) };
+            return glm::translate(glm::mat4{ 1.f }, offset);
+        }
+
+    };
+
 }
 
 
@@ -248,7 +259,25 @@ namespace dal {
             LuaState::giveDependencies(this, &this->m_renderMan);
         }
 
-        // Test ball
+        // Animation modifier
+        {
+            auto& animModel = this->m_scene.m_entities.get<cpnt::AnimatedModel>(this->m_scene.m_player);
+            const auto& skeleton = animModel.m_model->getSkeletonInterf();
+
+            while ( skeleton.isEmpty() ) {
+                this->m_task.update();
+            }
+
+            for ( int i = 0; i < skeleton.getSize(); ++i ) {
+                if ( 1 == skeleton.at(i).m_boneType ) {
+                    animModel.m_animState.addModifier(i, std::shared_ptr<IJointModifier>{ new RotateJoint });
+                    dalVerbose("Found!");
+                    break;
+                }
+            }
+        }
+
+        // Test physics
         {
             auto playerParticle = this->m_phyworld.newParticleEntity();
             this->m_phyworld.registerUnaryMod(
