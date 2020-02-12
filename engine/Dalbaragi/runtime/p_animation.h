@@ -23,6 +23,7 @@ namespace dal {
             glm::mat4 m_boneOffset;
             glm::mat4 m_spaceToParent;
             jointID_t m_parentIndex = -1;
+            int m_boneType = 0;
         };
 
     private:

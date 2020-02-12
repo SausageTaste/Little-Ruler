@@ -72,10 +72,12 @@ namespace {
             const std::string boneName = reinterpret_cast<const char*>(header);
             header += boneName.size() + 1;
             const auto parentIndex = dal::makeInt4(header); header += 4;
+            const auto boneTypeIndex = dal::makeInt4(header); header += 4;
 
             const auto result = skeleton.getOrMakeIndexOf(boneName);
             dalAssert(result == i);
             skeleton.at(result).m_parentIndex = parentIndex;
+            skeleton.at(result).m_boneType = boneTypeIndex;
             header = parse_mat4(header, end, skeleton.at(result).m_boneOffset);
         }
 
