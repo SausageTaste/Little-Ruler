@@ -148,6 +148,37 @@ namespace {
 }
 
 
+// Hair
+namespace {
+
+    class HairMaster {
+
+    private:
+        dal::PhysicsWorld m_phyworld;
+
+    public:
+        HairMaster(const entt::entity entity, entt::registry& reg) {
+            auto& animModel = reg.get<dal::cpnt::AnimatedModel>(entity);
+            const auto& trans = reg.get<dal::cpnt::Transform>(entity);
+            const auto& skeleton = animModel.m_model->getSkeletonInterf();
+        }
+
+    private:
+        static dal::jointID_t findHairRoot(const dal::SkeletonInterface& skeleton) {
+            for ( int i = 0; i < skeleton.getSize(); ++i ) {
+                if ( 1 == skeleton.at(i).jointType() ) {
+                    return i;
+                }
+            }
+
+            dalAbort("Failed to find hair root joint.");
+        }
+
+    };
+
+}
+
+
 // SceneGraph
 namespace dal {
 
