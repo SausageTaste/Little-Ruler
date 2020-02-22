@@ -18,19 +18,65 @@ namespace dal {
     using jointID_t = int32_t;
 
 
-    class SkeletonInterface {
+    class JointInfo {
+
+    private:
+        std::string m_name;
+        glm::mat4 m_jointOffset;
+        glm::mat4 m_jointOffsetInv;
+        glm::mat4 m_spaceToParent;
+        jointID_t m_parentIndex = -1;
+        int m_jointType = 0;
 
     public:
-        struct BoneInfo {
-            glm::mat4 m_boneOffset;
-            glm::mat4 m_spaceToParent;
-            jointID_t m_parentIndex = -1;
-            int m_boneType = 0;
-        };
+        const std::string& name(void) const {
+            return this->m_name;
+        }
+        const glm::mat4& offset(void) const {
+            return this->m_jointOffset;
+        }
+        const glm::mat4& offsetInv(void) const {
+            return this->m_jointOffsetInv;
+        }
+        const glm::mat4& toParent(void) const {
+            return this->m_spaceToParent;
+        }
+        jointID_t parentIndex(void) const {
+            return this->m_parentIndex;
+        }
+        int jointType(void) const {
+            return this->m_jointType;
+        }
+
+        glm::vec3 localPos(void) const;
+
+        void setName(const std::string& name) {
+            this->m_name = name;
+        }
+        void setName(std::string&& name) {
+            this->m_name = std::move(name);
+        }
+        void setOffset(const glm::mat4& mat);
+        void setParentMat(const glm::mat4& mat) {
+            this->m_spaceToParent = mat;
+        }
+        void setParentMat(const JointInfo& parent) {
+            this->setParentMat(parent.offsetInv() * this->offset());
+        }
+        void setParentIndex(const jointID_t id) {
+            this->m_parentIndex = id;
+        }
+        void setType(const int type) {
+            this->m_jointType = type;
+        }
+
+    };
+
+    class SkeletonInterface {
 
     private:
         std::map<std::string, jointID_t> m_map;
-        std::vector<BoneInfo> m_boneInfo;
+        std::vector<JointInfo> m_boneInfo;
         jointID_t m_lastMadeIndex = -1;
 
     public:
@@ -45,9 +91,8 @@ namespace dal {
         jointID_t getIndexOf(const std::string& jointName) const;
         jointID_t getOrMakeIndexOf(const std::string& jointName);
 
-        BoneInfo& at(const jointID_t index);
-        const BoneInfo& at(const jointID_t index) const;
-        const std::string& getName(const jointID_t index) const;
+        JointInfo& at(const jointID_t index);
+        const JointInfo& at(const jointID_t index) const;
 
         jointID_t getSize(void) const;
         bool isEmpty(void) const;

@@ -55,7 +55,7 @@ namespace dal {
         : m_springConst(springConst)
         , m_restLen(restLen)
     {
-
+        assert(this->m_restLen >= SPRING_MIN_REST_DIST);
     }
 
     void FixedPointSpring::apply(const float_t deltaTime, PositionParticle& fixed, PositionParticle& moving) {

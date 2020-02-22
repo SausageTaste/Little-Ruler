@@ -230,7 +230,7 @@ namespace {
             auto& particle = this->m_phyworld.getParticle(this->m_particleEntt);
             auto& trans = this->m_registry.get<dal::cpnt::Transform>(this->m_entity);
             const auto& jointInfo = skeleton.at(jid);
-            const auto decomposed = dal::decomposeTransform(jointInfo.m_boneOffset);
+            const auto decomposed = dal::decomposeTransform(jointInfo.offsetInv());
 
             const auto jointToParticle = glm::vec3{ particle.m_pos } -(decomposed.first + trans.getPos());
             return glm::translate(glm::mat4{ 1.f }, jointToParticle);
@@ -315,7 +315,7 @@ namespace dal {
 
             const auto hairRootIndex = [&](void) {
                 for ( int i = 0; i < skeleton.getSize(); ++i ) {
-                    if ( 1 == skeleton.at(i).m_boneType ) {
+                    if ( 1 == skeleton.at(i).jointType() ) {
                         return i;
                     }
                 }
@@ -325,12 +325,12 @@ namespace dal {
 
             for ( jointID_t i = hairRootIndex + 1; ; ++i ) {
                 const auto& jointInfo = animModel.m_model->getSkeletonInterf().at(i);
-                const auto parentID = jointInfo.m_parentIndex;
+                const auto parentID = jointInfo.parentIndex();
                 if ( hairJointIDs.end() == hairJointIDs.find(parentID) )
                     break;
 
                 hairJointIDs.emplace(i);
-                const auto& addedLocalPos = localPoses.emplace(i, dal::decomposeTransform(jointInfo.m_boneOffset).first);
+                const auto& addedLocalPos = localPoses.emplace(i, jointInfo.localPos());
                 auto addedParticle = particles.emplace(i, this->m_phyworld.newParticleEntity()); dalAssert(addedParticle.second);
 
                 const auto thisLocalPos = addedLocalPos.first->second;
