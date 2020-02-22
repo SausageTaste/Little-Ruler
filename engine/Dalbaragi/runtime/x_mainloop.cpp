@@ -149,10 +149,10 @@ namespace {
 
     private:
         dal::PhysicsWorld& m_phyworld;
-        dal::ParticleEntity m_particleEntt;
+        dal::PhysicsEntity m_particleEntt;
 
     public:
-        EntityToParticle(const dal::ParticleEntity& particleEntt, dal::PhysicsWorld& phyworld)
+        EntityToParticle(const dal::PhysicsEntity& particleEntt, dal::PhysicsWorld& phyworld)
             : m_phyworld(phyworld)
             , m_particleEntt(particleEntt)
         {
@@ -160,7 +160,7 @@ namespace {
         }
 
         virtual void apply(const entt::entity entity, entt::registry& reg) override {
-            auto& particle = this->m_phyworld.getParticle(this->m_particleEntt);
+            auto& particle = this->m_phyworld.getParticleOf(this->m_particleEntt);
             auto& trans = reg.get<dal::cpnt::Transform>(entity);
             trans.setPos(particle.m_pos);
         }
@@ -211,15 +211,15 @@ namespace {
 
     private:
         dal::PhysicsWorld& m_phyworld;
-        dal::ParticleEntity m_particleEntt;
+        dal::PhysicsEntity m_particleEntt;
 
         entt::entity m_entity;
         entt::registry& m_registry;
 
     public:
-        HairJointPhysics(const dal::ParticleEntity& particleEntt, dal::PhysicsWorld& phyworld, const entt::entity entity, entt::registry& registry)
+        HairJointPhysics(const dal::PhysicsEntity& particleEntt, dal::PhysicsWorld& phyworld, const entt::entity entity, entt::registry& registry)
             : m_phyworld(phyworld)
-            , m_particleEntt(std::move(particleEntt))
+            , m_particleEntt(particleEntt)
             , m_entity(entity)
             , m_registry(registry)
         {
@@ -227,7 +227,7 @@ namespace {
         }
 
         virtual glm::mat4 makeTransform(const float elapsed, const dal::jointID_t jid, const dal::SkeletonInterface& skeleton) override {
-            auto& particle = this->m_phyworld.getParticle(this->m_particleEntt);
+            auto& particle = this->m_phyworld.getParticleOf(this->m_particleEntt);
             auto& trans = this->m_registry.get<dal::cpnt::Transform>(this->m_entity);
             const auto& jointInfo = skeleton.at(jid);
             const auto decomposed = dal::decomposeTransform(jointInfo.offsetInv());
@@ -310,7 +310,7 @@ namespace dal {
             }
 
             std::unordered_set<jointID_t> hairJointIDs;
-            std::unordered_map<jointID_t, ParticleEntity> particles;
+            std::unordered_map<jointID_t, PhysicsEntity> particles;
             std::unordered_map<jointID_t, glm::vec3> localPoses;
 
             const auto hairRootIndex = [&](void) {
@@ -331,7 +331,7 @@ namespace dal {
 
                 hairJointIDs.emplace(i);
                 const auto& addedLocalPos = localPoses.emplace(i, jointInfo.localPos());
-                auto addedParticle = particles.emplace(i, this->m_phyworld.newParticleEntity()); dalAssert(addedParticle.second);
+                auto addedParticle = particles.emplace(i, this->m_phyworld.newParticle()); dalAssert(addedParticle.second);
 
                 const auto thisLocalPos = addedLocalPos.first->second;
 
@@ -341,7 +341,7 @@ namespace dal {
                     this->m_phyworld.registerUnaryMod(
                         std::shared_ptr<dal::UnaryPhyModifier>{new ParticleToEntity{
                             this->m_scene.m_player, this->m_scene.m_entities,
-                            glm::translate(glm::mat4{1.f}, glm::vec3{thisLocalPos.x, thisLocalPos.y, -thisLocalPos.z})
+                            glm::translate(glm::mat4{1.f}, thisLocalPos)
                         }},
                         addedParticle.first->second
                     );
@@ -377,7 +377,7 @@ namespace dal {
 
         // Test physics
         {
-            auto playerParticle = this->m_phyworld.newParticleEntity();
+            auto playerParticle = this->m_phyworld.newParticle();
             this->m_phyworld.registerUnaryMod(
                 std::shared_ptr<dal::UnaryPhyModifier>{new ParticleToEntity{ this->m_scene.m_player, this->m_scene.m_entities }},
                 playerParticle
@@ -387,8 +387,8 @@ namespace dal {
             auto& transform = this->m_scene.m_entities.get<cpnt::Transform>(entity);
             transform.setScale(0.6);
 
-            auto enttParticle = this->m_phyworld.newParticleEntity();
-            auto& particle = this->m_phyworld.getParticle(enttParticle);
+            auto enttParticle = this->m_phyworld.newParticle();
+            auto& particle = this->m_phyworld.getParticleOf(enttParticle);
             particle.m_pos = glm::vec3{ 0, 3, 0 };
             this->m_phyworld.registerBinaryMod(
                 std::shared_ptr<BinaryPhyModifier>{ new FixedPointSpringPulling{ 5, 3 } },

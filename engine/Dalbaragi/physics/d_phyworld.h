@@ -34,13 +34,6 @@ namespace dal {
 
     };
 
-    class ParticleEntity : public PhysicsEntity {
-    
-    public:
-        using PhysicsEntity::PhysicsEntity;
-
-    };
-
 
     class PhysicsWorld {
 
@@ -49,7 +42,7 @@ namespace dal {
         using binaryModPair_t = std::pair< std::shared_ptr<BinaryPhyModifier>, std::pair<entt::entity, entt::entity> >;
 
     private:
-        entt::registry m_particles;
+        entt::registry m_reg;
 
         std::vector<unaryModPair_t> m_unaryMod;
         std::vector<binaryModPair_t> m_binaryMod;
@@ -61,11 +54,21 @@ namespace dal {
     public:
         void update(const float_t deltaTime);
 
-        ParticleEntity newParticleEntity(void);
-        PositionParticle& getParticle(const ParticleEntity& entity);
+        PhysicsEntity newEntity(void);
 
-        void registerUnaryMod(std::shared_ptr<UnaryPhyModifier> mod, const ParticleEntity& particle);
-        void registerBinaryMod(std::shared_ptr<BinaryPhyModifier> mod, const ParticleEntity& one, const ParticleEntity& two);
+        void buildParticle(const PhysicsEntity& entity);
+
+        PhysicsEntity newParticle(void) {
+            auto entity = this->newEntity();
+            this->buildParticle(entity);
+            return entity;
+        }
+
+        PositionParticle* tryParticleOf(const PhysicsEntity& entity);
+        PositionParticle& getParticleOf(const PhysicsEntity& entity);
+
+        void registerUnaryMod(std::shared_ptr<UnaryPhyModifier> mod, const PhysicsEntity& particle);
+        void registerBinaryMod(std::shared_ptr<BinaryPhyModifier> mod, const PhysicsEntity& one, const PhysicsEntity& two);
 
     };
 

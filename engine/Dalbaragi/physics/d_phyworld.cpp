@@ -34,18 +34,18 @@ namespace dal {
         const float_t dt = deltaTime;
 #endif
 
-        auto particleView = this->m_particles.view<PositionParticle>();
+        auto particleView = this->m_reg.view<PositionParticle>();
 
         // Apply modifiers
         {
             for ( auto& [modifier, entity] : this->m_unaryMod ) {
-                auto& particle = this->m_particles.get<PositionParticle>(entity);
+                auto& particle = this->m_reg.get<PositionParticle>(entity);
                 modifier->apply(dt, particle);
             }
 
             for ( auto& [modifier, entities] : this->m_binaryMod ) {
-                auto& one = this->m_particles.get<PositionParticle>(entities.first);
-                auto& two = this->m_particles.get<PositionParticle>(entities.second);
+                auto& one = this->m_reg.get<PositionParticle>(entities.first);
+                auto& two = this->m_reg.get<PositionParticle>(entities.second);
                 modifier->apply(dt, one, two);
             }
 
@@ -65,22 +65,34 @@ namespace dal {
         }
     }
 
-    ParticleEntity PhysicsWorld::newParticleEntity(void) {
-        ParticleEntity entity{ this->m_particles.create() };
-        auto& posparticle = this->m_particles.assign<PositionParticle>(entity.get());
-        return entity;
+    PhysicsEntity PhysicsWorld::newEntity(void) {
+        return PhysicsEntity{ this->m_reg.create() };
     }
 
-    PositionParticle& PhysicsWorld::getParticle(const ParticleEntity& entity) {
-        assert(this->m_particles.has<PositionParticle>(entity.get()));
-        return this->m_particles.get<PositionParticle>(entity.get());
+    void PhysicsWorld::buildParticle(const PhysicsEntity& entity) {
+        auto& posparticle = this->m_reg.assign<PositionParticle>(entity.get());
     }
 
-    void PhysicsWorld::registerUnaryMod(std::shared_ptr<UnaryPhyModifier> mod, const ParticleEntity& particle) {
+    PositionParticle* PhysicsWorld::tryParticleOf(const PhysicsEntity& entity) {
+        if ( this->m_reg.has<PositionParticle>(entity.get()) ) {
+            return &this->m_reg.get<PositionParticle>(entity.get());
+        }
+        else {
+            return nullptr;
+        }
+    }
+
+    PositionParticle& PhysicsWorld::getParticleOf(const PhysicsEntity& entity) {
+        auto result = this->tryParticleOf(entity);
+        assert(nullptr != result);
+        return *result;
+    }
+
+    void PhysicsWorld::registerUnaryMod(std::shared_ptr<UnaryPhyModifier> mod, const PhysicsEntity& particle) {
         this->m_unaryMod.emplace_back(mod, particle.get());
     }
 
-    void PhysicsWorld::registerBinaryMod(std::shared_ptr<BinaryPhyModifier> mod, const ParticleEntity& one, const ParticleEntity& two) {
+    void PhysicsWorld::registerBinaryMod(std::shared_ptr<BinaryPhyModifier> mod, const PhysicsEntity& one, const PhysicsEntity& two) {
         this->m_binaryMod.emplace_back(mod, std::pair(one.get(), two.get()));
     }
 
