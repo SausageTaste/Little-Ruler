@@ -1,8 +1,10 @@
 #include "p_scene.h"
 
 #include <fmt/format.h>
+#include <glm/gtc/matrix_transform.hpp>
 
 #include <d_logger.h>
+#include <d_modifiers.h>
 
 #include "s_configs.h"
 #include "g_charastate.h"
@@ -56,10 +58,102 @@ namespace {
 }
 
 
+// Modifiers
+namespace {
+
+    class EntityToParticle : public dal::IEntityController {
+
+    private:
+        dal::PhysicsWorld& m_phyworld;
+        dal::PhysicsEntity m_particleEntt;
+
+    public:
+        EntityToParticle(const dal::PhysicsEntity& particleEntt, dal::PhysicsWorld& phyworld)
+            : m_phyworld(phyworld)
+            , m_particleEntt(particleEntt)
+        {
+
+        }
+
+        virtual void apply(const entt::entity entity, entt::registry& reg) override {
+            auto& particle = this->m_phyworld.getParticleOf(this->m_particleEntt);
+            auto& trans = reg.get<dal::cpnt::Transform>(entity);
+            trans.setPos(particle.m_pos);
+        }
+
+    };
+
+    class ParticleToEntity : public dal::UnaryPhyModifier {
+
+    private:
+        entt::entity m_entity;
+        entt::registry& m_registry;
+        glm::mat4 m_offset;
+
+    public:
+        ParticleToEntity(const entt::entity entity, entt::registry& registry)
+            : m_entity(entity)
+            , m_registry(registry)
+            , m_offset(1.f)
+        {
+
+        }
+        ParticleToEntity(const entt::entity entity, entt::registry& registry, const glm::mat4& offset)
+            : m_entity(entity)
+            , m_registry(registry)
+            , m_offset(offset)
+        {
+
+        }
+
+        virtual void apply(const dal::float_t deltaTime, dal::PositionParticle& particle) override {
+            auto& trans = this->m_registry.get<dal::cpnt::Transform>(this->m_entity);
+            particle.m_pos = trans.getMat() * this->m_offset * glm::vec4{ 0, 0, 0, 1 };
+        }
+
+    };
+
+
+    class HairJointPhysics : public dal::IJointModifier {
+
+    private:
+        dal::PhysicsWorld& m_phyworld;
+        dal::PhysicsEntity m_particleEntt;
+
+        entt::entity m_entity;
+        entt::registry& m_registry;
+
+    public:
+        HairJointPhysics(const dal::PhysicsEntity& particleEntt, dal::PhysicsWorld& phyworld, const entt::entity entity, entt::registry& registry)
+            : m_phyworld(phyworld)
+            , m_particleEntt(particleEntt)
+            , m_entity(entity)
+            , m_registry(registry)
+        {
+
+        }
+
+        virtual glm::mat4 makeTransform(const float elapsed, const dal::jointID_t jid, const dal::SkeletonInterface& skeleton) override {
+            auto& particle = this->m_phyworld.getParticleOf(this->m_particleEntt);
+            auto& trans = this->m_registry.get<dal::cpnt::Transform>(this->m_entity);
+            const auto& jointInfo = skeleton.at(jid);
+            const auto decomposed = dal::decomposeTransform(jointInfo.offsetInv());
+
+            const auto jointToParticle = glm::vec3{ particle.m_pos } -(decomposed.first + trans.getPos());
+            return glm::translate(glm::mat4{ 1.f }, jointToParticle);
+        }
+
+    };
+
+}
+
+
+// SceneGraph
 namespace dal {
 
-    SceneGraph::SceneGraph(ResourceMaster& resMas, const unsigned int winWidth, const unsigned int winHeight)
+    SceneGraph::SceneGraph(ResourceMaster& resMas, PhysicsWorld& phyworld, const unsigned int winWidth, const unsigned int winHeight)
         : m_resMas(resMas)
+        , m_phyworld(phyworld)
     {
         // This is needed by Water objects
         {
@@ -86,6 +180,30 @@ namespace dal {
             this->m_entities.assign<cpnt::CharacterState>(this->m_player, transform, renderable, this->m_playerCam, *this);
 
             this->m_entities.assign<cpnt::PhysicsObj>(this->m_player);
+        }
+
+        // Test physics
+        {
+            auto playerParticle = this->m_phyworld.newParticle();
+            this->m_phyworld.registerUnaryMod(
+                std::shared_ptr<dal::UnaryPhyModifier>{new ParticleToEntity{ this->m_player, this->m_entities }},
+                playerParticle
+            );
+
+            const auto entity = this->addObj_static("asset::pbr_ball.dmd");
+            auto& transform = this->m_entities.get<cpnt::Transform>(entity);
+            transform.setScale(0.6);
+
+            auto enttParticle = this->m_phyworld.newParticle();
+            auto& particle = this->m_phyworld.getParticleOf(enttParticle);
+            particle.m_pos = glm::vec3{ 0, 3, 0 };
+            this->m_phyworld.registerBinaryMod(
+                std::shared_ptr<BinaryPhyModifier>{ new FixedPointSpringPulling{ 5, 3 } },
+                playerParticle, enttParticle
+            );
+
+            auto& enttCtrl = this->m_entities.assign<cpnt::EntityCtrl>(entity);
+            enttCtrl.m_ctrler.reset(new EntityToParticle{ enttParticle, this->m_phyworld });
         }
     }
 

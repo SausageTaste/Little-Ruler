@@ -6,6 +6,8 @@
 
 #include <entt/entity/registry.hpp>
 
+#include <d_phyworld.h>
+
 #include "p_uniloc.h"
 #include "u_loadinfo.h"
 #include "p_resource.h"
@@ -41,6 +43,8 @@ namespace dal {
 
     private:
         ResourceMaster& m_resMas;
+        PhysicsWorld& m_phyworld;
+
         std::list<MapChunk2> m_mapChunks2;
 
     public:
@@ -51,7 +55,7 @@ namespace dal {
         //////// Methods ////////
 
     public:
-        SceneGraph(ResourceMaster& resMas, const unsigned int winWidth, const unsigned int winHeight);
+        SceneGraph(ResourceMaster& resMas, PhysicsWorld& phyworld, const unsigned int winWidth, const unsigned int winHeight);
 
         void update(const float deltaTime);
 

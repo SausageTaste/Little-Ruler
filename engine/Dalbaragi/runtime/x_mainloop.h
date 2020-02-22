@@ -1,7 +1,5 @@
 #pragma once
 
-#include <d_phyworld.h>
-
 #include "p_render_master.h"
 #include "c_input_apply.h"
 #include "u_timer.h"
