@@ -551,6 +551,7 @@ namespace dal {
 }
 
 
+// TextScroll
 namespace dal {
 
     TextScroll::TextScroll(Widget2* const parent)
@@ -590,6 +591,89 @@ namespace dal {
         }
 
         return InputCtrlFlag::ignored;
+    }
+
+}
+
+
+// StrBlock
+namespace dal {
+
+    void TextRenderer2::StrBlock::pushChar(const char c) {
+        static_assert(sizeof(StrBlock) == BLOCK_SIZE);
+        static_assert(MAX_UTF8_CODE_SIZE <= BUF_SIZE);
+
+        dalAssert('\0' != c);
+        dalAssert(0 != this->remainingCap());
+
+        this->m_buf[this->m_filledSize] = c;
+        ++this->m_filledSize;
+        this->m_buf[this->m_filledSize] = '\0';
+    }
+
+    bool TextRenderer2::StrBlock::pushStr(const char* const str, size_t size) {
+        if (this->remainingCap() < size) {
+            return false;
+        }
+        
+        for (unsigned i = 0; i < size; ++i) {
+            this->pushChar(str[i]);
+        }
+
+        return true;
+    }
+
+}
+
+
+// TextRenderer2
+namespace dal {
+
+    TextRenderer2::TextRenderer2(Widget2* const parent)
+        : Widget2(parent)
+        , m_color(1, 1, 1, 1)
+        , m_textSize(15)
+        , m_lineSpacingRate(1.3)
+        , m_wordWrap(false)
+    {
+        this->m_blocks.emplace_back();
+    }
+
+    void TextRenderer2::addStr(const char* const str) {
+        const char* iter = str;
+
+        while ('\0' != *iter) {
+            const auto c = *iter;
+            const auto codeSize = utf8_codepoint_size(c);
+            
+            if (1 == codeSize) {
+                if ('\n' == c) {
+                    auto& added = this->m_blocks.emplace_back();
+                    added.setType(StrBlock::FollowingType::carriage_return);
+                }
+                else {
+                    // Ensure last block has at least 1 capacity.
+                    if (0 == this->m_blocks.back().remainingCap()) {
+                        this->m_blocks.emplace_back();
+                    }
+
+                    this->m_blocks.back().pushChar(c);
+                }
+            }
+            else if (0 == codeSize) {
+                dalError("Code size if 0, which is not supposed to happen.");
+            }
+            else {
+                // Ensure last block has enough capacity.
+                if (this->m_blocks.back().remainingCap() < codeSize) {
+                    this->m_blocks.emplace_back();
+                }
+
+                this->m_blocks.back().pushStr(iter, codeSize);
+            }
+
+            iter += codeSize;
+        }
     }
 
 }

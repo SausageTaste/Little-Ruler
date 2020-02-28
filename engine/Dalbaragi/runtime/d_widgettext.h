@@ -1,5 +1,7 @@
 #pragma once
 
+#include <list>
+
 #include "o_widgetbase.h"
 
 
@@ -85,6 +87,64 @@ namespace dal {
         TextScroll(Widget2* const parent);
 
         virtual InputCtrlFlag onTouch(const TouchEvent& e) override;
+
+    };
+
+}
+
+
+namespace dal {
+
+    class TextRenderer2 : public Widget2 {
+
+    private:
+        class StrBlock {
+
+        public:
+            enum class FollowingType{ concat, carriage_return };
+            static constexpr size_t BLOCK_SIZE = 64;
+            static constexpr size_t BUF_SIZE = BLOCK_SIZE - sizeof(FollowingType) - sizeof(unsigned);
+
+        private:
+            char m_buf[BUF_SIZE] = { '\0' };
+            unsigned m_filledSize = 0;
+            FollowingType m_type = FollowingType::concat;
+
+        public:
+            static unsigned capacity(void) {
+                return BUF_SIZE - 1;
+            }
+            unsigned size(void) const {
+                return this->m_filledSize;
+            }
+            unsigned remainingCap(void) const {
+                return this->capacity() - this->size();
+            }
+            FollowingType type(void) const {
+                return this->m_type;
+            }
+
+            void pushChar(const char c);
+            bool pushStr(const char* const str, size_t size);
+            void setType(const FollowingType t) {
+                this->m_type = t;
+            }
+
+        };
+
+    private:
+        std::list<StrBlock> m_blocks;
+
+        glm::vec4 m_color;
+        glm::vec2 m_offset;
+        unsigned int m_textSize;
+        float m_lineSpacingRate;
+        bool m_wordWrap;
+
+    public:
+        TextRenderer2(Widget2* const parent);
+
+        void addStr(const char* const str);
 
     };
 

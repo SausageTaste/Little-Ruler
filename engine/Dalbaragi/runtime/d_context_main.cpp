@@ -225,6 +225,7 @@ namespace {
         dal::IContext* m_cnxtPauseMenu;
 
         dal::PlayerControlWidget m_crtlWidget;
+        dal::TextRenderer2 m_testText;
 
         unsigned m_winWidth, m_winHeight;
 
@@ -240,10 +241,14 @@ namespace {
             , m_phyworld(phyworld)
             , m_cnxtPauseMenu(nullptr)
             , m_crtlWidget(static_cast<float>(width), static_cast<float>(height))
+            , m_testText(nullptr)
             , m_winWidth(width)
             , m_winHeight(height)
         {
-
+            this->m_testText.setPos(30, 60);
+            this->m_testText.setSize(128, 128);
+            this->m_testText.addStr("alsjfaosjfoajdfdasfaasfasdfasdfasfasfdsfasdfasfasfasdfasfsadfasdfsadfasdfasdfasdfasdfsadfassfasdfasflasjflasfdas\nasdfjasldfjasdfasfdasfdasfaslasjflasjdflasjfa\nlasdjflajsflsdalkfasdfasdfjajfljasl");
+            return;
         }
 
         virtual ~InGameCxt(void) override {
@@ -304,6 +309,7 @@ namespace {
                 auto& uniloc = this->m_shaders.useOverlay();
 
                 this->m_crtlWidget.render(uniloc, this->m_winWidth, this->m_winHeight);
+                this->m_testText.render(uniloc, this->m_winWidth, this->m_winHeight);
                 g_fcounter.render(uniloc, this->m_winWidth, this->m_winHeight);
             }
 
