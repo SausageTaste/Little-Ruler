@@ -154,12 +154,52 @@ namespace {
     class HairMaster {
 
     private:
+        class HairPullingForce : public dal::BinaryPhyModifier {
+
+        private:
+            dal::float_t m_restLen;
+
+        public:
+            HairPullingForce(const dal::float_t restLen)
+                : m_restLen(restLen)
+            {
+
+            }
+
+            virtual void apply(const dal::float_t deltaTime, dal::PositionParticle& one, dal::PositionParticle& two) override {
+                const auto one2two = two.m_pos - one.m_pos;
+                const auto dist = glm::length(one2two);
+
+                if ( dist > this->m_restLen ) {
+                    const auto one2two_n = one2two / dist;
+                    const auto newOffset = one2two_n * this->m_restLen;
+                    two.m_pos = one.m_pos + newOffset;
+                }
+            }
+
+        };
+
+        class HairStructure {
+
+        };
+
+    private:
         dal::PhysicsWorld m_phyworld;
 
+        const entt::entity m_targetEntity;
+        entt::registry& m_reg;
+
     public:
-        HairMaster(const entt::entity entity, entt::registry& reg) {
-            auto& animModel = reg.get<dal::cpnt::AnimatedModel>(entity);
-            const auto& trans = reg.get<dal::cpnt::Transform>(entity);
+        HairMaster(const entt::entity entity, entt::registry& reg)
+            : m_targetEntity(entity)
+            , m_reg(reg)
+        {
+
+        }
+
+        void update(void) {
+            auto& animModel = this->m_reg.get<dal::cpnt::AnimatedModel>(this->m_targetEntity);
+            const auto& trans = this->m_reg.get<dal::cpnt::Transform>(this->m_targetEntity);
             const auto& skeleton = animModel.m_model->getSkeletonInterf();
         }
 
@@ -175,6 +215,8 @@ namespace {
         }
 
     };
+
+    std::unique_ptr<HairMaster> g_hairMas;
 
 }
 
@@ -211,6 +253,8 @@ namespace dal {
             this->m_entities.assign<cpnt::CharacterState>(this->m_player, transform, renderable, this->m_playerCam, *this);
 
             this->m_entities.assign<cpnt::PhysicsObj>(this->m_player);
+
+            g_hairMas.reset(new HairMaster{ this->m_player, this->m_entities });
         }
 
         // Test physics
