@@ -101,7 +101,9 @@ namespace dal {
         class StrBlock {
 
         public:
-            enum class FollowingType{ concat, carriage_return };
+            enum class FollowingType{ concat, carriage_return, enter_fmt, exit_fmt };
+
+        private:
             static constexpr size_t BLOCK_SIZE = 64;
             static constexpr size_t BUF_SIZE = BLOCK_SIZE - sizeof(FollowingType) - sizeof(unsigned);
 
@@ -111,9 +113,10 @@ namespace dal {
             FollowingType m_type = FollowingType::concat;
 
         public:
-            static unsigned capacity(void) {
+            static constexpr unsigned capacity(void) {
                 return BUF_SIZE - 1;
             }
+
             unsigned size(void) const {
                 return this->m_filledSize;
             }
@@ -123,9 +126,14 @@ namespace dal {
             FollowingType type(void) const {
                 return this->m_type;
             }
+            const char* buffer(void) const {
+                return this->m_buf;
+            }
 
+            void clearBuf(void);
             void pushChar(const char c);
             bool pushStr(const char* const str, size_t size);
+
             void setType(const FollowingType t) {
                 this->m_type = t;
             }

@@ -599,6 +599,11 @@ namespace dal {
 // StrBlock
 namespace dal {
 
+    void TextRenderer2::StrBlock::clearBuf(void) {
+        this->m_filledSize = 0;
+        this->m_buf[this->m_filledSize] = '\0';
+    }
+
     void TextRenderer2::StrBlock::pushChar(const char c) {
         static_assert(sizeof(StrBlock) == BLOCK_SIZE);
         static_assert(MAX_UTF8_CODE_SIZE <= BUF_SIZE);
@@ -615,11 +620,11 @@ namespace dal {
         if (this->remainingCap() < size) {
             return false;
         }
-        
-        for (unsigned i = 0; i < size; ++i) {
-            this->pushChar(str[i]);
-        }
 
+        std::memcpy(this->m_buf + this->m_filledSize, str, size);
+        this->m_filledSize += size;
+        this->m_buf[this->m_filledSize] = '\0';
+        
         return true;
     }
 
