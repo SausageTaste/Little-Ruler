@@ -596,8 +596,39 @@ namespace dal {
 }
 
 
-// StrBlock
+// StrBlock and its iterator
 namespace dal {
+
+    TextRenderer2::StrBlock::Iterator::Iterator(const char* const buf)
+        : m_buf(buf)
+    {
+
+    }
+
+    bool TextRenderer2::StrBlock::Iterator::operator!=(const Iterator& other) const {
+        return this->m_buf != other.m_buf;
+    }
+
+    uint32_t TextRenderer2::StrBlock::Iterator::operator*(void) const {
+        const auto ch = static_cast<uint8_t>(*this->m_buf);
+        const auto codeSize = utf8_codepoint_size(ch);
+        dalAssert(codeSize <= MAX_UTF8_CODE_SIZE);
+
+        if (codeSize > 1) {
+            return convertUTF8to32(reinterpret_cast<const uint8_t*>(this->m_buf));
+        }
+        else {
+            return ch;
+        }
+    }
+
+    TextRenderer2::StrBlock::Iterator& TextRenderer2::StrBlock::Iterator::operator++(void) {
+        const auto ch = static_cast<uint8_t>(*this->m_buf);
+        const auto codeSize = utf8_codepoint_size(ch);
+        this->m_buf += codeSize;
+        return *this;
+    }
+
 
     void TextRenderer2::StrBlock::clearBuf(void) {
         this->m_filledSize = 0;
@@ -624,7 +655,7 @@ namespace dal {
         std::memcpy(this->m_buf + this->m_filledSize, str, size);
         this->m_filledSize += size;
         this->m_buf[this->m_filledSize] = '\0';
-        
+
         return true;
     }
 
@@ -644,13 +675,21 @@ namespace dal {
         this->m_blocks.emplace_back();
     }
 
+    void TextRenderer2::render(const UnilocOverlay& uniloc, const float width, const float height) {
+        for (auto& block : this->m_blocks) {
+            for (const auto c : block) {
+
+            }
+        }
+    }
+
     void TextRenderer2::addStr(const char* const str) {
         const char* iter = str;
 
         while ('\0' != *iter) {
             const auto c = *iter;
             const auto codeSize = utf8_codepoint_size(c);
-            
+
             if (1 == codeSize) {
                 if ('\n' == c) {
                     auto& added = this->m_blocks.emplace_back();

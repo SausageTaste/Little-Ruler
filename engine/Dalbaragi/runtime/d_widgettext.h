@@ -103,6 +103,22 @@ namespace dal {
         public:
             enum class FollowingType{ concat, carriage_return, enter_fmt, exit_fmt };
 
+            class Iterator {
+
+            private:
+                const char* m_buf = nullptr;
+
+            public:
+                Iterator(void) = default;
+                Iterator(const char* const buf);
+
+                bool operator!=(const Iterator& other) const;
+                uint32_t operator*(void) const;
+
+                Iterator& operator++(void);
+
+            };
+
         private:
             static constexpr size_t BLOCK_SIZE = 64;
             static constexpr size_t BUF_SIZE = BLOCK_SIZE - sizeof(FollowingType) - sizeof(unsigned);
@@ -130,6 +146,13 @@ namespace dal {
                 return this->m_buf;
             }
 
+            auto begin(void) const {
+                return Iterator{ this->m_buf };
+            }
+            auto end(void) const {
+                return Iterator{ this->m_buf + this->m_filledSize };
+            }
+
             void clearBuf(void);
             void pushChar(const char c);
             bool pushStr(const char* const str, size_t size);
@@ -151,6 +174,8 @@ namespace dal {
 
     public:
         TextRenderer2(Widget2* const parent);
+
+        virtual void render(const UnilocOverlay& uniloc, const float width, const float height) override;
 
         void addStr(const char* const str);
 

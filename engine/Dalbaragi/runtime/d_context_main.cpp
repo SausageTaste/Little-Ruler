@@ -248,7 +248,6 @@ namespace {
             this->m_testText.setPos(30, 60);
             this->m_testText.setSize(128, 128);
             this->m_testText.addStr("alsjfaosjfoajdfdasfaasfasdfasdfasfasfdsfasdfasfasfasdfasfsadfasdfsadfasdfasdfasdfasdfsadfassfasdfasflasjflasfdas\nasdfjasldfjasdfasfdasfdasfaslasjflasjdflasjfa\nlasdjflajsflsdalkfasdfasdfjajfljasl");
-            return;
         }
 
         virtual ~InGameCxt(void) override {
