@@ -177,7 +177,26 @@ namespace dal {
 
         virtual void render(const UnilocOverlay& uniloc, const float width, const float height) override;
 
+        const glm::vec4& textColor(void) const {
+            return this->m_color;
+        }
+        const glm::vec2& offset(void) const {
+            return this->m_offset;
+        }
+        unsigned textSize(void) const {
+            return this->m_textSize;
+        }
+        float lineSpacing(void) const {
+            return this->m_lineSpacingRate;
+        }
+        bool wordWrap(void) const {
+            return this->m_wordWrap;
+        }
+
         void addStr(const char* const str);
+
+    private:
+        void render_noWrap(const UnilocOverlay& uniloc, const float width, const float height) const;
 
     };
 

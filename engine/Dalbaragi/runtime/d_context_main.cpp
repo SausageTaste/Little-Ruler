@@ -246,7 +246,7 @@ namespace {
             , m_winHeight(height)
         {
             this->m_testText.setPos(30, 60);
-            this->m_testText.setSize(128, 128);
+            this->m_testText.setSize(256, 128);
             this->m_testText.addStr("alsjfaosjfoajdfdasfaasfasdfasdfasfasfdsfasdfasfasfasdfasfsadfasdfsadfasdfasdfasdfasdfsadfassfasdfasflasjflasfdas\nasdfjasldfjasdfasfdasfdasfaslasjflasjdflasjfa\nlasdjflajsflsdalkfasdfasdfjajfljasl");
         }
 

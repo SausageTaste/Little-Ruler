@@ -662,6 +662,60 @@ namespace dal {
 }
 
 
+namespace {
+
+    enum class CharSkipFlag{ skip, dont_skip, finish, carriage_return };
+
+    CharSkipFlag checkCharSkip(const dal::Widget2& w, const glm::vec2& p1, const glm::vec2& p2) {
+        const auto pp11 = w.getPoint11();
+
+        if (p1.x > pp11.x) {
+            // This shouldn't happen because carriage return already dealt in render function body.
+            return CharSkipFlag::carriage_return;
+        }
+        else if (p1.y > pp11.y) {
+            return CharSkipFlag::skip;
+        }
+        else if (p2.x < w.getPosX()) {
+            return CharSkipFlag::skip;
+        }
+        else if (p2.y < w.getPosY()) {
+            return CharSkipFlag::skip;
+        }
+        else {
+            return CharSkipFlag::dont_skip;
+        }
+    }
+
+    std::pair<glm::vec2, glm::vec2> makeCutCharArea(const dal::Widget2& w, glm::vec2 p1, glm::vec2 p2) {
+        {
+            const auto p00 = w.getPoint00();
+
+            if (p1.x < p00.x) {
+                p1.x = p00.x;
+            }
+            if (p1.y < p00.y) {
+                p1.y = p00.y;
+            }
+        }
+
+        {
+            const auto pp11 = w.getPoint11();
+
+            if (p2.x > pp11.x) {
+                p2.x = pp11.x;
+            }
+            if (p2.y > pp11.y) {
+                p2.y = pp11.y;
+            }
+        }
+
+        return std::make_pair(p1, p2);
+    }
+
+}
+
+
 // TextRenderer2
 namespace dal {
 
@@ -676,11 +730,7 @@ namespace dal {
     }
 
     void TextRenderer2::render(const UnilocOverlay& uniloc, const float width, const float height) {
-        for (auto& block : this->m_blocks) {
-            for (const auto c : block) {
-
-            }
-        }
+        this->render_noWrap(uniloc, width, height);
     }
 
     void TextRenderer2::addStr(const char* const str) {
@@ -717,6 +767,103 @@ namespace dal {
             }
 
             iter += codeSize;
+        }
+    }
+
+    // Private
+
+    void TextRenderer2::render_noWrap(const UnilocOverlay& uniloc, const float width, const float height) const {
+        const auto p11 = this->getPoint11();
+        const auto leftMostPos = this->getPosX() + this->m_offset.x;
+
+        glm::vec2 currentPos{ leftMostPos, this->getPosY() + static_cast<float>(this->m_textSize) + this->m_offset.y };
+        bool skipUntilNewLine = false;
+
+        for (auto& block : this->m_blocks) {
+            if (skipUntilNewLine) {
+                if (StrBlock::FollowingType::carriage_return != block.type())
+                    continue;
+                else
+                    skipUntilNewLine = false;
+            }
+
+            if (StrBlock::FollowingType::carriage_return == block.type()) {
+                currentPos.x = leftMostPos;
+                currentPos.y += static_cast<float>(this->m_textSize)* this->m_lineSpacingRate;
+            }
+
+            // For each char
+            for (const auto c : block) {
+                // Process control char
+                {
+                    if (' ' == c) {
+                        currentPos.x += g_charCache.at(c, this->m_textSize).advance >> 6;
+                        continue;
+                    }
+                    else if ('\t' == c) {
+                        currentPos.x += TAP_CHAR_WIDTH;
+                        continue;
+                    }
+                }
+
+                auto& charInfo = g_charCache.at(c, this->m_textSize);
+
+                // Skip to next line if current line is full.
+                if (currentPos.x >= p11.x) {
+                    skipUntilNewLine = true;
+                    continue;
+                }
+
+                std::pair<glm::vec2, glm::vec2> charQuad;
+                {
+                    charQuad.first.x = roundf(currentPos.x + charInfo.bearing.x);
+                    charQuad.first.y = roundf(currentPos.y - charInfo.bearing.y);
+                    charQuad.second.x = charQuad.first.x + static_cast<float>(charInfo.size.x);
+                    charQuad.second.y = charQuad.first.y + static_cast<float>(charInfo.size.y);
+                }
+
+                switch (checkCharSkip(*this, charQuad.first, charQuad.second)) {
+
+                case CharSkipFlag::finish:
+                    return;
+                case CharSkipFlag::skip:
+                    currentPos.x += (charInfo.advance >> 6);
+                    continue;
+                case CharSkipFlag::carriage_return:
+                    skipUntilNewLine = true;
+                    continue;
+
+                }
+
+                {
+                    const auto charQuadCut = makeCutCharArea(*this, charQuad.first, charQuad.second);
+                    QuadRenderInfo charQuadInfo;
+
+                    const glm::vec2 bottomLeft{ charQuadCut.first.x, charQuadCut.second.y };
+                    const auto recSize = glm::vec2{
+                        charQuadCut.second.x - charQuadCut.first.x,
+                        charQuadCut.second.y - charQuadCut.first.y
+                    };
+
+                    charQuadInfo.m_bottomLeftNormalized = screen2device(bottomLeft, width, height);
+                    charQuadInfo.m_rectSize = size2device(recSize, glm::vec2{ width, height });
+
+                    charQuadInfo.m_color = this->m_color;
+                    charQuadInfo.m_maskMap = &charInfo.tex;
+                    charQuadInfo.m_upsideDown_mask = true;
+
+                    if (charQuadCut.first != charQuad.first || charQuadCut.second != charQuad.second) {
+                        const auto [scale, offset] = calcScaleOffset(charQuad, charQuadCut);
+
+                        charQuadInfo.m_texScale = scale;
+                        charQuadInfo.m_texOffset = offset;
+                    }
+
+                    renderQuadOverlay(uniloc, charQuadInfo);
+                }
+
+                currentPos.x += (charInfo.advance >> 6);
+            }
         }
     }
 
