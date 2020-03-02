@@ -1,11 +1,5 @@
 #include "u_byteutils.h"
 
-#define ZLIB_WINAPI
-#include <zlib.h>
-#include <fmt/format.h>
-
-#include "d_logger.h"
-
 
 namespace dal {
 
@@ -45,32 +39,6 @@ namespace dal {
 
     int32_t makeInt4(const uint8_t* begin) {
         return assemble4Bytes<int32_t>(begin);
-    }
-
-    size_t unzip(uint8_t* const dst, const size_t dstSize, const uint8_t* const src, const size_t srcSize) {
-        static_assert(sizeof(Bytef) == sizeof(uint8_t));
-
-        uLongf decomBufSize = dstSize;
-
-        const auto res = uncompress(dst, &decomBufSize, src, srcSize);
-        switch ( res ) {
-
-        case Z_OK:
-            return decomBufSize;
-        case Z_BUF_ERROR:
-            dalError("Zlib fail: buffer is not large enough");
-            return 0;
-        case Z_MEM_ERROR:
-            dalError("Zlib fail: Insufficient memory");
-            return 0;
-        case Z_DATA_ERROR:
-            dalError("Zlib fail: Corrupted data");
-            return 0;
-        default:
-            dalError(fmt::format("Zlib fail: Unknown reason ({})", res));
-            return 0;
-
-        }
     }
 
 }

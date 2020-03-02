@@ -12,13 +12,10 @@ add_library(dalbaragi_util
     d_logchannel.h
     d_logger.cpp
     d_logger.h
-    d_pool.h
     d_shaderProcessor.cpp
     d_shaderProcessor.h
     s_configs.cpp
     s_configs.h
-    u_byteutils.cpp
-    u_byteutils.h
     u_fileutils.cpp
     u_fileutils.h
     u_imagebuf.cpp
@@ -53,15 +50,15 @@ if (NOT TARGET fmt::fmt)
     target_link_libraries(dalbaragi_util PUBLIC fmt::fmt)
 endif()
 
-# zlib
-if (NOT TARGET zlibstatic)
-    add_subdirectory(${extern_dir}/zlib ${CMAKE_CURRENT_BINARY_DIR}/zlib)
-    target_link_libraries(dalbaragi_util PRIVATE zlibstatic)
-    target_include_directories(dalbaragi_util PRIVATE ${extern_dir}/zlib ${CMAKE_CURRENT_BINARY_DIR}/zlib)
-endif()
-
 # GLM
 target_include_directories(dalbaragi_util PUBLIC ${extern_dir}/glm)
 
 # TGA
 target_include_directories(dalbaragi_util PRIVATE ${extern_dir}/TGA)
+
+
+# Dalbaragi Lightweight
+if (NOT TARGET dalbaragi_lightweight)
+    add_subdirectory(../lightweight ${CMAKE_CURRENT_BINARY_DIR}/dalbaragi_lightweight)
+    target_link_libraries(dalbaragi_util PUBLIC dalbaragi_lightweight)
+endif()

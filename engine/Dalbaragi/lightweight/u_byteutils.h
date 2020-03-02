@@ -42,7 +42,4 @@ namespace dal {
         return src;
     }
 
-    // Returns 0 on fail.
-    size_t unzip(uint8_t* const dst, const size_t dstSize, const uint8_t* const src, const size_t srcSize);
-
 }

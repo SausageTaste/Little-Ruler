@@ -30,3 +30,10 @@ endif()
 
 # GLM
 target_include_directories(dalbaragi_resparser PUBLIC ${extern_dir}/glm)
+
+
+# Dalbaragi Lightweight
+if (NOT TARGET dalbaragi_lightweight)
+    add_subdirectory(../lightweight ${CMAKE_CURRENT_BINARY_DIR}/dalbaragi_lightweight)
+    target_link_libraries(dalbaragi_resparser PUBLIC dalbaragi_lightweight)
+endif()

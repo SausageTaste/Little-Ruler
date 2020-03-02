@@ -38,7 +38,7 @@ namespace dal::v1 {
 
     struct ModelEmbedded {
         std::string m_name;
-        std::vector<RenderUnit> m_renderUnit;
+        std::vector<RenderUnit> m_renderUnits;
         std::vector<StaticActor> m_staticActors;
         bool m_detailedCollider, m_hasRotatingActor;
     };
@@ -50,7 +50,7 @@ namespace dal::v1 {
     };
 
     struct WaterPlane {
-        glm::vec3 m_pos, m_color;
+        glm::vec3 m_pos, m_deepColor;
         float m_width, m_height, m_flowSpeed, m_waveStrength;
         float m_darkestDepth, m_reflectance;
     };
