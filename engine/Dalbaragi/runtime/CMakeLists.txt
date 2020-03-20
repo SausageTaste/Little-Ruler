@@ -129,3 +129,9 @@ if (NOT TARGET dalbaragi_physics)
     add_subdirectory(../physics ${CMAKE_CURRENT_BINARY_DIR}/dalbaragi_physics)
     target_link_libraries(dalbaragi_runtime PUBLIC dalbaragi_physics)
 endif()
+
+# Dalbaragi resparser
+if (NOT TARGET dalbaragi_resparser)
+    add_subdirectory(../resparser ${CMAKE_CURRENT_BINARY_DIR}/dalbaragi_resparser)
+    target_link_libraries(dalbaragi_runtime PUBLIC dalbaragi_resparser)
+endif()

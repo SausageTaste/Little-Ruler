@@ -141,11 +141,13 @@ namespace {
 }
 
 
+#include <d_mapparser.h>
+
 // Test codes
 namespace {
 
     void test(const float deltaTime) {
-      
+        dal::testJson();
     }
 
 }

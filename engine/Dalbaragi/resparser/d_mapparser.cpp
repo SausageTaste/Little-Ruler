@@ -1,4 +1,4 @@
-#include "d_dlbparser.h"
+#include "d_mapparser.h"
 
 #include <memory>
 
@@ -40,7 +40,7 @@ namespace {
     std::pair<std::unique_ptr<uint8_t[]>, size_t> uncompressMap(const uint8_t* const buf, const size_t bufSize) {
         const auto allocatedSize = static_cast<size_t>(1.01 * dal::makeInt4(buf));  // Just to ensure that buffer never lacks.
         std::unique_ptr<uint8_t[]> decomBuf{ new uint8_t[allocatedSize] };
-        const auto unzippedSize = dal::unzip(decomBuf.get(), allocatedSize, buf + 4, bufSize - 4);
+        const auto unzippedSize = unzip(decomBuf.get(), allocatedSize, buf + 4, bufSize - 4);
 
         if ( 0 != unzippedSize ) {
             return std::make_pair(std::move(decomBuf), static_cast<size_t>(unzippedSize));
@@ -316,6 +316,9 @@ namespace {
 }
 
 
+#include <iostream>
+#include <nlohmann/json.hpp>
+
 namespace dal {
 
     std::optional<v1::MapChunkInfo> parseDLB_v1(const uint8_t* const buf, const size_t bufSize) {
@@ -401,6 +404,21 @@ namespace dal {
         }
 
         return info;
+    }
+
+    void testJson(void) {
+        using json = nlohmann::json;
+
+        json j;
+
+        j["list"] = { 2, 4, "32" };
+        j["nothing"] = nullptr;
+        j["level1"]["level2"] = 44.5;
+
+        const auto str = j.dump();
+        const auto re = json::parse(str);
+
+        std::cout << re.dump(4) << std::endl;
     }
 
 }
