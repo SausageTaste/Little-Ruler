@@ -214,4 +214,21 @@ namespace dal::v2 {
 
     };
 
+
+    // Map
+
+    class MapChunk {
+
+    public:
+        std::vector<ModelEmbeded> m_modelEmbeded;
+        std::vector<ModelImported> m_modelImported;
+
+        std::vector<StaticModelActor> m_staticModelActors;
+        std::vector<DynamicActor> m_dynamicActors;
+
+        std::vector<WaterPlane> m_waters;
+        std::vector<PointLight> m_plights;
+
+    };
+
 }
