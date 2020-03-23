@@ -7,5 +7,7 @@
 *.xml___jb_tmp___
 
 .vs/
+.vscode/
 out/
+build/
 CMakeSettings.json
