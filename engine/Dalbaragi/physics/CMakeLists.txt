@@ -24,8 +24,8 @@ set(extern_dir ${CMAKE_CURRENT_SOURCE_DIR}/../../../extern)
 # entt
 if (NOT TARGET EnTT::EnTT)
     add_subdirectory(${extern_dir}/entt ${CMAKE_CURRENT_BINARY_DIR}/entt)
-    target_link_libraries(dalbaragi_physics PUBLIC EnTT::EnTT)
 endif()
+target_link_libraries(dalbaragi_physics PUBLIC EnTT::EnTT)
 
 # GLM
 target_include_directories(dalbaragi_physics PUBLIC ${extern_dir}/glm)

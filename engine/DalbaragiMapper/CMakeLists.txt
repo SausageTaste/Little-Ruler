@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.4.1)
 
 # Set this value to your local Qt5 installation path.
-set (CMAKE_PREFIX_PATH "C:/Qt/5.12.1/msvc2017_64")
+set (CMAKE_PREFIX_PATH "C:/Qt/5.14.1/msvc2017_64")
 
 project(DalbaragiMapper 
     VERSION        0.1.0
@@ -54,8 +54,8 @@ set(lib_dir ${CMAKE_CURRENT_SOURCE_DIR}/../../lib)
 # entt
 if (NOT TARGET EnTT::EnTT)
     add_subdirectory(${extern_dir}/entt ${CMAKE_CURRENT_BINARY_DIR}/entt)
-    target_link_libraries(dalmapper EnTT::EnTT)
 endif()
+target_link_libraries(dalmapper EnTT::EnTT)
 
 # Qt5
 set(CMAKE_AUTOMOC ON)
