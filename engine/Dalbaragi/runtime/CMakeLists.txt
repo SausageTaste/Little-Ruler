@@ -106,12 +106,13 @@ if (WIN32)
     if (NOT TARGET glfw)
         add_subdirectory(${externcpy_dir}/glfw-3.3.2 ${CMAKE_CURRENT_BINARY_DIR}/glfw)
     endif()
-    target_link_libraries(dalbaragi_runtime PUBLIC glfw)
-    target_include_directories(dalbaragi_runtime PRIVATE ${externcpy_dir}/glfw-3.3.2/include)
+    target_link_libraries(dalbaragi_runtime PRIVATE glfw)
 
     # GLaD
-    add_subdirectory(${externcpy_dir}/glad-0.1.33 ${CMAKE_CURRENT_BINARY_DIR}/glad)
-    target_link_libraries(dalbaragi_runtime PUBLIC glad)
+    if (NOT TARGET glad)
+        add_subdirectory(${externcpy_dir}/glad-0.1.33 ${CMAKE_CURRENT_BINARY_DIR}/glad)
+    endif()
+    target_link_libraries(dalbaragi_runtime PRIVATE glad)
 endif (WIN32)
 
 
