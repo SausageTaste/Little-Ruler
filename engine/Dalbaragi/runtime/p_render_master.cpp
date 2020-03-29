@@ -346,9 +346,6 @@ namespace dal {
         // OpenGL global switch
         {
             glClearColor(m_skyColor.x, m_skyColor.y, m_skyColor.z, 1.0f);
-#ifdef _WIN32
-            glDebugMessageCallback(glDebugCallback, nullptr);
-#endif
         }
 
         // Skybox
