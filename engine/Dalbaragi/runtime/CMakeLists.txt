@@ -112,7 +112,6 @@ if (WIN32)
     # GLaD
     add_subdirectory(${externcpy_dir}/glad-0.1.33 ${CMAKE_CURRENT_BINARY_DIR}/glad)
     target_link_libraries(dalbaragi_runtime PUBLIC glad)
-    target_include_directories(dalbaragi_runtime PUBLIC ${CMAKE_CURRENT_BINARY_DIR}/glad/include)
 endif (WIN32)
 
 

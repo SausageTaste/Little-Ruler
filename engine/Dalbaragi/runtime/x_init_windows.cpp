@@ -1,6 +1,7 @@
 #ifdef _WIN32
 
-#include <glad/gl.h>
+#include <glad/glad.h>
+#define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
 #include <fmt/format.h>
 
@@ -24,6 +25,8 @@ namespace {
     constexpr unsigned int INIT_WIN_HEIGHT = 720;
     constexpr bool FULLSCREEN = false;
 #endif
+
+    dal::Mainloop* g_engine = nullptr;
 
 
     dal::KeySpec mapKeySpec(const int sdlKey) {
@@ -114,7 +117,7 @@ namespace {
     */
 
 
-    void errorCallbackGLFW(int error, const char* description) {
+    void callback_error(int error, const char* description) {
         dalError(fmt::format("Error: {}\n", description));
     }
 
@@ -136,11 +139,28 @@ namespace {
 
         }
 
-        if ( key == GLFW_KEY_ESCAPE && action == GLFW_PRESS ) {
-            glfwSetWindowShouldClose(window, GLFW_TRUE);
+        dal::KeyboardEvtQueueGod::getinst().emplaceBack(mapKeySpec(key), actionType);
+    }
+
+    void callback_cursorPos(GLFWwindow* window, double xpos, double ypos) {
+        dal::TouchEvtQueueGod::getinst().emplaceBack(xpos, ypos, dal::TouchActionType::move, 0);
+    }
+
+    void callback_mouseButton(GLFWwindow* window, int button, int action, int mods) {
+        double xpos, ypos;
+        glfwGetCursorPos(window, &xpos, &ypos);
+
+        if ( button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS ) {
+            dal::TouchEvtQueueGod::getinst().emplaceBack(xpos, ypos, dal::TouchActionType::down, 0);
         }
-        else {
-            dal::KeyboardEvtQueueGod::getinst().emplaceBack(mapKeySpec(key), actionType);
+        else if ( button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE ) {
+            dal::TouchEvtQueueGod::getinst().emplaceBack(xpos, ypos, dal::TouchActionType::up, 0);
+        }
+    }
+
+    void callback_resizeFbuf(GLFWwindow* window, int width, int height) {
+        if ( nullptr != g_engine ) {
+            g_engine->onResize(width, height);
         }
     }
 
@@ -156,7 +176,7 @@ namespace {
 
     public:
         WindowSDL(const char* const title, int winWidth, int winHeight, bool fullscreen) {
-            glfwSetErrorCallback(errorCallbackGLFW);
+            glfwSetErrorCallback(callback_error);
 
             if (GLFW_FALSE == glfwInit()) {
                 dalAbort("failed to initialize GLFW");
@@ -170,8 +190,16 @@ namespace {
             }
 
             glfwSetKeyCallback(this->m_window, callback_keyEvent);
+            glfwSetCursorPosCallback(this->m_window, callback_cursorPos);
+            glfwSetMouseButtonCallback(this->m_window, callback_mouseButton);
+            glfwSetFramebufferSizeCallback(this->m_window, callback_resizeFbuf);
+
+            glfwSetWindowSizeLimits(this->m_window, 640, 480, GLFW_DONT_CARE, GLFW_DONT_CARE);
+
             glfwMakeContextCurrent(this->m_window);
-            gladLoadGL(glfwGetProcAddress);
+            if ( 0 == gladLoadGLLoader((GLADloadproc)glfwGetProcAddress) ) {
+                dalAbort("failed to load OpenGL functions");
+            }
             glfwSwapInterval(1);
         }
 
@@ -198,6 +226,12 @@ namespace {
             int w, h;
             glfwGetFramebufferSize(this->m_window, &w, &h);
             return std::pair<size_t, size_t>(w, h);
+        }
+
+        std::pair<double, double> getMousePos(void) {
+            double xpos, ypos;
+            glfwGetCursorPos(this->m_window, &xpos, &ypos);
+            return { xpos, ypos };
         }
 
     };
@@ -227,12 +261,16 @@ namespace dal {
         }
 
         std::unique_ptr<Mainloop> engine{ new Mainloop{ INIT_WIN_WIDTH, INIT_WIN_HEIGHT } };
+        g_engine = engine.get();
 
         while ( !window.needToClose() ) {
             glfwPollEvents();
             engine->update();
             window.swap();
         }
+
+        g_engine = nullptr;
+        return 0;
     }
 
 }
