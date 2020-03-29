@@ -102,19 +102,17 @@ endif()
 
 
 if (WIN32)
-    # glew
-    if (NOT TARGET glew_s)
-        add_subdirectory(${externcpy_dir}/glew/build/cmake ${CMAKE_CURRENT_BINARY_DIR}/glew)
-        target_include_directories(dalbaragi_runtime PUBLIC ${externcpy_dir}/glew/include)
-        target_link_libraries(dalbaragi_runtime PUBLIC glew_s)
+    # GLFW
+    if (NOT TARGET glfw)
+        add_subdirectory(${externcpy_dir}/glfw-3.3.2 ${CMAKE_CURRENT_BINARY_DIR}/glfw)
     endif()
+    target_link_libraries(dalbaragi_runtime PUBLIC glfw)
+    target_include_directories(dalbaragi_runtime PRIVATE ${externcpy_dir}/glfw-3.3.2/include)
 
-    # SDL2
-    if (NOT TARGET SDL2main)
-        add_subdirectory(${externcpy_dir}/SDL2 ${CMAKE_CURRENT_BINARY_DIR}/SDL2)
-        target_include_directories(dalbaragi_runtime PUBLIC ${externcpy_dir}/SDL2/include)
-        target_link_libraries(dalbaragi_runtime PUBLIC SDL2main SDL2-static)
-    endif()
+    # GLaD
+    add_subdirectory(${externcpy_dir}/glad-0.1.33 ${CMAKE_CURRENT_BINARY_DIR}/glad)
+    target_link_libraries(dalbaragi_runtime PUBLIC glad)
+    target_include_directories(dalbaragi_runtime PUBLIC ${CMAKE_CURRENT_BINARY_DIR}/glad/include)
 endif (WIN32)
 
 

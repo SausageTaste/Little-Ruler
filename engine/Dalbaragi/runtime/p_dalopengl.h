@@ -3,12 +3,11 @@
 #include <string>
 
 #if defined(_WIN32)
-	#include <gl\glew.h>
-	#include <SDL_opengl.h>
+#include <glad/gl.h>
 #elif defined(__ANDROID__)
-	#include <GLES3/gl3.h>
+#include <GLES3/gl3.h>
 #else
-	#error "Unkown platform"
+#error "Unkown platform"
 #endif
 
 #define dalGLWarn(void) dal::_logGLError(__LINE__, __func__, __FILE__)

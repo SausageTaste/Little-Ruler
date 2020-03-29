@@ -1,8 +1,7 @@
 #ifdef _WIN32
 
-#include <SDL.h>
-#include <gl/glew.h>
-#include <SDL_opengl.h>
+#include <glad/gl.h>
+#include <GLFW/glfw3.h>
 #include <fmt/format.h>
 
 #include <d_logger.h>
@@ -27,45 +26,45 @@ namespace {
 #endif
 
 
-    dal::KeySpec mapKeySpec(uint32_t sdlKey) {
-        if ( SDLK_a <= sdlKey && sdlKey <= SDLK_z ) {
-            auto index = sdlKey - SDLK_a + int(dal::KeySpec::a);
+    dal::KeySpec mapKeySpec(const int sdlKey) {
+        if ( GLFW_KEY_A <= sdlKey && sdlKey <= GLFW_KEY_Z ) {
+            auto index = sdlKey - GLFW_KEY_A + int(dal::KeySpec::a);
             return dal::KeySpec(index);
         }
-        else if ( SDLK_0 <= sdlKey && sdlKey <= SDLK_9 ) {
-            auto index = sdlKey - SDLK_0 + int(dal::KeySpec::n0);
+        else if ( GLFW_KEY_0 <= sdlKey && sdlKey <= GLFW_KEY_9 ) {
+            auto index = sdlKey - GLFW_KEY_0 + int(dal::KeySpec::n0);
             return dal::KeySpec(index);
         }
         else {
             static const std::unordered_map<uint32_t, dal::KeySpec> map{
-                {SDLK_BACKQUOTE, dal::KeySpec::backquote},
-                {SDLK_MINUS, dal::KeySpec::minus},
-                {SDLK_EQUALS, dal::KeySpec::equal},
-                {SDLK_LEFTBRACKET, dal::KeySpec::lbracket},
-                {SDLK_RIGHTBRACKET, dal::KeySpec::rbracket},
-                {SDLK_BACKSLASH, dal::KeySpec::backslash},
-                {SDLK_SEMICOLON, dal::KeySpec::semicolon},
-                {SDLK_QUOTE, dal::KeySpec::quote},
-                {SDLK_COMMA, dal::KeySpec::comma},
-                {SDLK_PERIOD, dal::KeySpec::period},
-                {SDLK_SLASH, dal::KeySpec::slash},
+                {GLFW_KEY_GRAVE_ACCENT, dal::KeySpec::backquote},
+                {GLFW_KEY_MINUS, dal::KeySpec::minus},
+                {GLFW_KEY_EQUAL, dal::KeySpec::equal},
+                {GLFW_KEY_LEFT_BRACKET, dal::KeySpec::lbracket},
+                {GLFW_KEY_RIGHT_BRACKET, dal::KeySpec::rbracket},
+                {GLFW_KEY_BACKSLASH, dal::KeySpec::backslash},
+                {GLFW_KEY_SEMICOLON, dal::KeySpec::semicolon},
+                {GLFW_KEY_APOSTROPHE, dal::KeySpec::quote},
+                {GLFW_KEY_COMMA, dal::KeySpec::comma},
+                {GLFW_KEY_PERIOD, dal::KeySpec::period},
+                {GLFW_KEY_SLASH, dal::KeySpec::slash},
 
-                {SDLK_SPACE, dal::KeySpec::space},
-                {SDLK_RETURN, dal::KeySpec::enter},
-                {SDLK_BACKSPACE, dal::KeySpec::backspace},
-                {SDLK_TAB, dal::KeySpec::tab},
+                {GLFW_KEY_SPACE, dal::KeySpec::space},
+                {GLFW_KEY_ENTER, dal::KeySpec::enter},
+                {GLFW_KEY_BACKSPACE, dal::KeySpec::backspace},
+                {GLFW_KEY_TAB, dal::KeySpec::tab},
 
-                {SDLK_ESCAPE, dal::KeySpec::escape},
-                {SDLK_LSHIFT, dal::KeySpec::lshfit},
-                {SDLK_RSHIFT, dal::KeySpec::rshfit},
-                {SDLK_LCTRL, dal::KeySpec::lctrl},
-                {SDLK_RCTRL, dal::KeySpec::rctrl},
-                {SDLK_LALT, dal::KeySpec::lalt},
-                {SDLK_RALT, dal::KeySpec::ralt},
-                {SDLK_UP, dal::KeySpec::up},
-                {SDLK_DOWN, dal::KeySpec::down},
-                {SDLK_LEFT, dal::KeySpec::left},
-                {SDLK_RIGHT, dal::KeySpec::right},
+                {GLFW_KEY_ESCAPE, dal::KeySpec::escape},
+                {GLFW_KEY_LEFT_SHIFT, dal::KeySpec::lshfit},
+                {GLFW_KEY_RIGHT_SHIFT, dal::KeySpec::rshfit},
+                {GLFW_KEY_LEFT_CONTROL, dal::KeySpec::lctrl},
+                {GLFW_KEY_RIGHT_CONTROL, dal::KeySpec::rctrl},
+                {GLFW_KEY_LEFT_ALT, dal::KeySpec::lalt},
+                {GLFW_KEY_RIGHT_ALT, dal::KeySpec::ralt},
+                {GLFW_KEY_UP, dal::KeySpec::up},
+                {GLFW_KEY_DOWN, dal::KeySpec::down},
+                {GLFW_KEY_LEFT, dal::KeySpec::left},
+                {GLFW_KEY_RIGHT, dal::KeySpec::right},
             };
 
             auto res = map.find(sdlKey);
@@ -80,6 +79,7 @@ namespace {
 
     enum class InputOrder { nothing, quit };
 
+    /*
     InputOrder pullEventSDL(dal::Mainloop& engine) {
         SDL_Event e;
 
@@ -111,6 +111,38 @@ namespace {
 
         return InputOrder::nothing;
     }
+    */
+
+
+    void errorCallbackGLFW(int error, const char* description) {
+        dalError(fmt::format("Error: {}\n", description));
+    }
+
+    void callback_keyEvent(GLFWwindow* window, int key, int scancode, int action, int mods) {
+        dal::KeyActionType actionType;
+        switch ( action ) {
+
+        case GLFW_PRESS:
+            actionType = dal::KeyActionType::down;
+            break;
+        case GLFW_REPEAT:
+            actionType = dal::KeyActionType::down;
+            break;
+        case GLFW_RELEASE:
+            actionType = dal::KeyActionType::up;
+            break;
+        default:
+            dalAbort("wtf");
+
+        }
+
+        if ( key == GLFW_KEY_ESCAPE && action == GLFW_PRESS ) {
+            glfwSetWindowShouldClose(window, GLFW_TRUE);
+        }
+        else {
+            dal::KeyboardEvtQueueGod::getinst().emplaceBack(mapKeySpec(key), actionType);
+        }
+    }
 
 }
 
@@ -120,83 +152,52 @@ namespace {
     class WindowSDL {
 
     private:
-        SDL_Window* mWindow;
-        SDL_GLContext mContext;
+        GLFWwindow* m_window = nullptr;
 
     public:
         WindowSDL(const char* const title, int winWidth, int winHeight, bool fullscreen) {
-            // Init window
-            {
-                if ( SDL_Init(SDL_INIT_VIDEO) < 0 ) {
-                    dalAbort("Failed to initiate SDL.");
-                }
+            glfwSetErrorCallback(errorCallbackGLFW);
 
-                SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-                SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
-                SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-                SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-
-                if ( fullscreen ) {
-                    this->mWindow = SDL_CreateWindow(
-                        title, 50, 50, winWidth, winHeight,
-                        SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_FULLSCREEN
-                    );
-                }
-                else {
-                    this->mWindow = SDL_CreateWindow(
-                        title, 50, 50, winWidth, winHeight,
-                        SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE
-                    );
-
-                }
-
-                if ( nullptr == this->mWindow ) {
-                    dalAbort("Creating window failed, SDL Error: {}"_format(SDL_GetError()));
-                }
+            if (GLFW_FALSE == glfwInit()) {
+                dalAbort("failed to initialize GLFW");
             }
 
-            // Create context
-            this->mContext = SDL_GL_CreateContext(this->mWindow);
-            if ( nullptr == this->mContext ) {
-                dalAbort("Creating OpenGL context failed, SDL Error: {}"_format(SDL_GetError()));
+            glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+            glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
+            this->m_window = glfwCreateWindow(winWidth, winHeight, title, NULL, NULL);
+            if ( nullptr == this->m_window ) {
+                dalAbort("failed to create window");
             }
 
-            if ( SDL_GL_SetSwapInterval(0) < 0 ) {
-                dalError("Unable to disable VSync, SDL Error: {}"_format(SDL_GetError()));
-            }
-
-            this->initGLew();
+            glfwSetKeyCallback(this->m_window, callback_keyEvent);
+            glfwMakeContextCurrent(this->m_window);
+            gladLoadGL(glfwGetProcAddress);
+            glfwSwapInterval(1);
         }
 
         ~WindowSDL(void) {
-            SDL_DestroyWindow(mWindow);
-            mWindow = nullptr;
+            glfwDestroyWindow(this->m_window);
+            this->m_window = nullptr;
 
-            SDL_Quit();
+            glfwTerminate();
         }
 
         void swap(void) {
-            SDL_GL_SwapWindow(this->mWindow);
+            glfwSwapBuffers(this->m_window);
+        }
+
+        bool needToClose(void) {
+            return glfwWindowShouldClose(this->m_window);
         }
 
         void setFullscreen(const bool yes) {
-            SDL_SetWindowFullscreen(this->mWindow, yes ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0);
+            dalAbort("not implemented");
         }
 
         std::pair<unsigned, unsigned> getWinSize(void) {
             int w, h;
-            SDL_GetWindowSize(this->mWindow, &w, &h);
+            glfwGetFramebufferSize(this->m_window, &w, &h);
             return std::pair<size_t, size_t>(w, h);
-        }
-
-    private:
-        static void initGLew(void) {
-            glewExperimental = GL_TRUE;
-            const GLenum glewError = glewInit();
-            if ( GLEW_OK != glewError ) {
-                const auto glewErrMsg = reinterpret_cast<const char*>(glewGetErrorString(glewError));
-                dalAbort("Initializing GLEW failed, glew error: {}"_format(glewErrMsg));
-            }
         }
 
     };
@@ -227,16 +228,8 @@ namespace dal {
 
         std::unique_ptr<Mainloop> engine{ new Mainloop{ INIT_WIN_WIDTH, INIT_WIN_HEIGHT } };
 
-        while ( true ) {
-            switch ( pullEventSDL(*engine.get()) ) {
-
-            case InputOrder::quit:
-                return 0;
-            default:
-                break;
-
-            }
-
+        while ( !window.needToClose() ) {
+            glfwPollEvents();
             engine->update();
             window.swap();
         }
