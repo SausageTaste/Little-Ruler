@@ -384,7 +384,8 @@ namespace dal {
     }
 
     void Material::sendUniform(const UniInterf_Lightmap& uniloc) const {
-        this->m_diffuseMap->sendUniform(uniloc.diffuseMap());
+        if ( this->m_diffuseMap )
+            this->m_diffuseMap->sendUniform(uniloc.diffuseMap());
 
         if ( this->m_roughnessMap )
             this->m_roughnessMap->sendUniform(uniloc.roughnessMap());
