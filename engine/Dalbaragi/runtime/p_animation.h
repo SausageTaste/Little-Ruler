@@ -18,6 +18,8 @@ namespace dal {
     using jointID_t = int32_t;
 
 
+    enum class JointType { basic = 0, hair_root = 1, skirt_root = 2 };
+
     class JointInfo {
 
     private:
@@ -26,7 +28,7 @@ namespace dal {
         glm::mat4 m_jointOffsetInv;
         glm::mat4 m_spaceToParent;
         jointID_t m_parentIndex = -1;
-        int m_jointType = 0;
+        JointType m_jointType = JointType::basic;
 
     public:
         const std::string& name(void) const {
@@ -44,7 +46,7 @@ namespace dal {
         jointID_t parentIndex(void) const {
             return this->m_parentIndex;
         }
-        int jointType(void) const {
+        JointType jointType(void) const {
             return this->m_jointType;
         }
 
@@ -66,7 +68,7 @@ namespace dal {
         void setParentIndex(const jointID_t id) {
             this->m_parentIndex = id;
         }
-        void setType(const int type) {
+        void setType(const JointType type) {
             this->m_jointType = type;
         }
 

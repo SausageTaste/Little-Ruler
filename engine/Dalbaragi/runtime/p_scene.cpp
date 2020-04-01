@@ -206,7 +206,7 @@ namespace {
     private:
         static dal::jointID_t findHairRoot(const dal::SkeletonInterface& skeleton) {
             for ( int i = 0; i < skeleton.getSize(); ++i ) {
-                if ( 1 == skeleton.at(i).jointType() ) {
+                if ( dal::JointType::hair_root == skeleton.at(i).jointType() ) {
                     return i;
                 }
             }

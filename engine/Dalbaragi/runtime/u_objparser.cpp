@@ -110,8 +110,23 @@ namespace {
             auto& jointInfo = skeleton.at(jid);
 
             jointInfo.setParentIndex(parentIndex);
-            jointInfo.setType(boneTypeIndex);
             jointInfo.setOffset(offsetMat);
+
+            switch ( boneTypeIndex ) {
+
+            case 0:
+                jointInfo.setType(dal::JointType::basic);
+                break;
+            case 1:
+                jointInfo.setType(dal::JointType::hair_root);
+                break;
+            case 2:
+                jointInfo.setType(dal::JointType::skirt_root);
+                break;
+            default:
+                dalAbort(std::string{ "Unkown joint type index: " } +std::to_string(boneTypeIndex));
+
+            }
         }
 
         if ( skeleton.getSize() > 0 ) {
