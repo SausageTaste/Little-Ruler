@@ -5,8 +5,9 @@
 layout (location = 0) in vec3 i_position;
 layout (location = 1) in vec2 i_texCoord;
 layout (location = 2) in vec3 i_normal;
-layout (location = 3) in ivec3 i_jointIDs;
-layout (location = 4) in vec3 i_weights;
+layout (location = 3) in vec3 i_tangent;
+layout (location = 4) in ivec3 i_jointIDs;
+layout (location = 5) in vec3 i_weights;
 
 
 uniform mat4 u_projMat;
@@ -19,6 +20,15 @@ out vec2 v_texCoord;
 out vec3 v_normal;
 out vec4 v_fragPos_dlight[3];
 out vec4 v_fragPos_slight[3];
+out mat3 v_tbn;
+
+
+mat3 makeTBN(vec3 normal) {
+	vec3 tangentInWorld = normalize(vec3(u_modelMat * vec4(i_tangent, 0.0)));
+	tangentInWorld = normalize(tangentInWorld - dot(tangentInWorld, normal) * normal);
+	vec3 bitangent = cross(normal, tangentInWorld);
+	return mat3(tangentInWorld, bitangent, normal);
+}
 
 
 void main(void) {
@@ -29,6 +39,7 @@ void main(void) {
 	v_fragPos = vec3(worldPos);
 	v_texCoord = i_texCoord;
 	v_normal = normalize(vec3(u_modelMat * boneMat * vec4(i_normal, 0.0)));
+	v_tbn = makeTBN(v_normal);
 
 	for (int i = 0; i < u_dlightCount; i++) {
 		v_fragPos_dlight[i] = u_dlight_projViewMat[i] * worldPos;

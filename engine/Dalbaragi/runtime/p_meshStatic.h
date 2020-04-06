@@ -10,7 +10,7 @@
 #include "u_imagebuf.h"
 
 
-#define DAL_NORMAL_MAPPING false
+#define DAL_NORMAL_MAPPING true
 
 
 // Meshes
@@ -21,7 +21,7 @@ namespace dal {
 
     private:
         GLuint m_vao = 0;
-        GLuint m_buffers[_NumBuffs] = { 0 };  // vertices, texcoords, normals, bone ids, weights
+        GLuint m_buffers[_NumBuffs] = { 0 };  // vertices, texcoords, normals, tangents, bone ids, weights
         size_t m_numVertices = 0;
 
     public:
@@ -93,17 +93,17 @@ namespace dal {
             this->m_numVertices = v;
         }
 
-        void createBuffers(void) {
+        template <unsigned _Index>
+        void generateBuffer(void) {
+            glGenBuffers(1, this->m_buffers + _Index);
+            if ( 0 == this->m_buffers[_Index] ) {
+                throw std::runtime_error{ "Failed to generate beffer." };
+            }
+        }
+        void generateVertArray(void) {
             glGenVertexArrays(1, &this->m_vao);
             if ( this->m_vao <= 0 ) {
                 throw std::runtime_error{ "Failed to generate vertex array." };
-            }
-
-            glGenBuffers(_NumBuffs, this->m_buffers);
-            for ( int i = 0; i < _NumBuffs; i++ ) {
-                if ( 0 == this->m_buffers[i] ) {
-                    throw std::runtime_error{ "Failed to generate beffer." };
-                }
             }
         }
         void invalidate(void) {
@@ -139,7 +139,7 @@ namespace dal {
     };
 
 
-    class MeshStatic : public IMesh<3> {
+    class MeshStatic : public IMesh<4> {
 
     public:
         int buildData(const float* const vertices, const float* const texcoords, const float* const normals, const size_t numVertices);
@@ -147,7 +147,7 @@ namespace dal {
     };
 
 
-    class MeshAnimated : public IMesh<5> {
+    class MeshAnimated : public IMesh<6> {
 
     public:
         void buildData(const float* const vertices, const float* const texcoords, const float* const normals,

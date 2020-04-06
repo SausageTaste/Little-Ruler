@@ -2,8 +2,8 @@
 
 
 layout (location = 0) in vec3 i_position;
-layout (location = 3) in ivec3 i_jointIDs;
-layout (location = 4) in vec3 i_weights;
+layout (location = 4) in ivec3 i_jointIDs;
+layout (location = 5) in vec3 i_weights;
 
 
 uniform mat4 u_projMat;
