@@ -17,7 +17,13 @@ out vec4 f_color;
 
 void main(void) {
     vec3 viewDir = normalize(u_viewPos - v_fragPos);
+
     vec3 fragNormal = normalize(v_normal);
+    if ( u_hasNormalMap ) {
+        vec3 normSample = texture(u_normalMap, v_texCoord).xyz;
+        vec3 normalOffset = vec3(normSample.x, normSample.z, -normSample.y) * 2.0 - 1.0;
+        fragNormal = normalOffset;
+    }
 
     vec4 albedo = texture(u_diffuseMap, v_texCoord);
     float roughness = u_hasRoughnessMap ? texture(u_roughnessMap, v_texCoord).r : u_roughness;
