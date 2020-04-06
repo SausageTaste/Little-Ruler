@@ -184,7 +184,7 @@ namespace dal {
     class UniInterf_Lightmap {
 
     private:
-        SamplerInterf u_diffuseMap, u_roughnessMap, u_metallicMap;
+        SamplerInterf u_diffuseMap, u_roughnessMap, u_metallicMap, u_normalMap;
 
     public:
         void set(const GLuint shader);
@@ -197,6 +197,9 @@ namespace dal {
         }
         auto& metallicMap(void) const {
             return u_metallicMap;
+        }
+        auto& normalMap(void) const {
+            return this->u_normalMap;
         }
 
     };

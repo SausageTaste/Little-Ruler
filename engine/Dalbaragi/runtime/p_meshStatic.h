@@ -274,7 +274,7 @@ namespace dal {
         float m_metallic;
 
         glm::vec2 m_texScale;
-        std::shared_ptr<const Texture> m_diffuseMap, m_roughnessMap, m_metallicMap;
+        std::shared_ptr<const Texture> m_diffuseMap, m_roughnessMap, m_metallicMap, m_normalMap;
 
     public:
         Material(void);

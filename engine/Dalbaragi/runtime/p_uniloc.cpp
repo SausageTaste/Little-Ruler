@@ -156,6 +156,7 @@ namespace dal {
         this->u_diffuseMap.init(getUniloc(shader, "u_diffuseMap"), -2, g_texUnitReg["u_diffuseMap"]);
         this->u_roughnessMap.init(getUniloc(shader, "u_roughnessMap"), getUniloc(shader, "u_hasRoughnessMap"), g_texUnitReg["u_roughnessMap"]);
         this->u_metallicMap.init(getUniloc(shader, "u_metallicMap"), getUniloc(shader, "u_hasMetallicMap"), g_texUnitReg["u_metallicMap"]);
+        this->u_normalMap.init(getUniloc(shader, "u_normalMap"), getUniloc(shader, "u_hasNormalMap"), g_texUnitReg["u_normalMap"]);
     }
 
     void UniInterf_Skeleton::set(const GLuint shader) {

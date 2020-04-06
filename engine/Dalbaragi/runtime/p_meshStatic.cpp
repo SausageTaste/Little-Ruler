@@ -396,6 +396,11 @@ namespace dal {
             this->m_metallicMap->sendUniform(uniloc.metallicMap());
         else
             uniloc.metallicMap().setFlagHas(false);
+
+        if ( this->m_normalMap )
+            this->m_normalMap->sendUniform(uniloc.normalMap());
+        else
+            uniloc.normalMap().setFlagHas(false);
     }
 
 }
