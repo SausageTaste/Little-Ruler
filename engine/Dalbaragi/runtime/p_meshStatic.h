@@ -95,16 +95,14 @@ namespace dal {
 
         template <unsigned _Index>
         void generateBuffer(void) {
+            assert(0 == this->m_buffers[_Index]);
             glGenBuffers(1, this->m_buffers + _Index);
-            if ( 0 == this->m_buffers[_Index] ) {
-                throw std::runtime_error{ "Failed to generate beffer." };
-            }
+            assert(0 != this->m_buffers[_Index]);
         }
         void generateVertArray(void) {
+            assert(0 == this->m_vao);
             glGenVertexArrays(1, &this->m_vao);
-            if ( this->m_vao <= 0 ) {
-                throw std::runtime_error{ "Failed to generate vertex array." };
-            }
+            assert(0 != this->m_vao);
         }
         void invalidate(void) {
             if ( !this->isReady() ) {
