@@ -10,7 +10,7 @@
 #include "u_imagebuf.h"
 
 
-#define DAL_NORMAL_MAPPING true
+#define DAL_NORMAL_MAPPING false
 
 
 // Meshes
