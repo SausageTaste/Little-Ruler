@@ -397,10 +397,14 @@ namespace dal {
         else
             uniloc.metallicMap().setFlagHas(false);
 
+#if DAL_NORMAL_MAPPING
         if ( this->m_normalMap )
             this->m_normalMap->sendUniform(uniloc.normalMap());
         else
             uniloc.normalMap().setFlagHas(false);
+#else
+        uniloc.normalMap().setFlagHas(false);
+#endif
     }
 
 }

@@ -10,6 +10,9 @@
 #include "u_imagebuf.h"
 
 
+#define DAL_NORMAL_MAPPING false
+
+
 // Meshes
 namespace dal {
 
@@ -274,7 +277,10 @@ namespace dal {
         float m_metallic;
 
         glm::vec2 m_texScale;
-        std::shared_ptr<const Texture> m_diffuseMap, m_roughnessMap, m_metallicMap, m_normalMap;
+        std::shared_ptr<const Texture> m_diffuseMap, m_roughnessMap, m_metallicMap;
+#if DAL_NORMAL_MAPPING
+        std::shared_ptr<const Texture> m_normalMap;
+#endif
 
     public:
         Material(void);

@@ -250,6 +250,8 @@ namespace {
                 dst.m_metallicMap = resMas.orderTexture(src.m_metallicMap.c_str(), false);
             }
         }
+
+#if DAL_NORMAL_MAPPING
         if ( !src.m_normalMap.empty() ) {
             if ( ':' == src.m_normalMap.front() ) {
                 dst.m_normalMap = resMas.orderTexture((packageName + src.m_normalMap).c_str(), false);
@@ -258,6 +260,7 @@ namespace {
                 dst.m_normalMap = resMas.orderTexture(src.m_normalMap.c_str(), false);
             }
         }
+#endif
     }
 
 }
