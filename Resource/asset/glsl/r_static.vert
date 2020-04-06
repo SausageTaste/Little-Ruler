@@ -18,8 +18,8 @@ out vec4 v_fragPos_slight[3];
 out mat3 v_tbn;
 
 
-mat3 makeTBN(vec3 normal) {
-	vec3 tangentInWorld = normalize(vec3(u_modelMat * vec4(i_tangent, 0.0)));
+mat3 makeTBN(vec3 normal, mat4 modelMat) {
+	vec3 tangentInWorld = normalize(vec3(modelMat * vec4(i_tangent, 0.0)));
 	tangentInWorld = normalize(tangentInWorld - dot(tangentInWorld, normal) * normal);
 	vec3 bitangent = cross(normal, tangentInWorld);
 	return mat3(tangentInWorld, bitangent, normal);
@@ -33,7 +33,7 @@ void main(void) {
 	v_fragPos = vec3(worldPos);
 	v_texCoord = i_texCoord;
 	v_normal = normalize(vec3(u_modelMat * vec4(i_normal, 0.0)));
-	v_tbn = makeTBN(v_normal);
+	v_tbn = makeTBN(v_normal, u_modelMat);
 
 	for (int i = 0; i < u_dlightCount; i++) {
 		v_fragPos_dlight[i] = u_dlight_projViewMat[i] * worldPos;

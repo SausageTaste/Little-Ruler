@@ -28,8 +28,8 @@ out float v_clipDistance;
 #endif
 
 
-mat3 makeTBN(vec3 normal) {
-	vec3 tangentInWorld = normalize(vec3(u_modelMat * vec4(i_tangent, 0.0)));
+mat3 makeTBN(vec3 normal, mat4 modelMat) {
+	vec3 tangentInWorld = normalize(vec3(modelMat * vec4(i_tangent, 0.0)));
 	tangentInWorld = normalize(tangentInWorld - dot(tangentInWorld, normal) * normal);
 	vec3 bitangent = cross(normal, tangentInWorld);
 	return mat3(tangentInWorld, bitangent, normal);
@@ -37,8 +37,8 @@ mat3 makeTBN(vec3 normal) {
 
 
 void main(void) {
-	mat4 boneMat = makeJointTransform(i_jointIDs, i_weights);
-	vec4 worldPos = u_modelMat * boneMat * vec4(i_position, 1.0);
+	mat4 modelJointMat = u_modelMat * makeJointTransform(i_jointIDs, i_weights);
+	vec4 worldPos = modelJointMat * vec4(i_position, 1.0);
 
 #ifdef GL_ES
 	v_clipDistance = dot(worldPos, u_clipPlane);
@@ -49,8 +49,8 @@ void main(void) {
 	gl_Position = u_projMat * u_viewMat * worldPos;
 	v_fragPos = vec3(worldPos);
 	v_texCoord = i_texCoord;
-	v_normal = normalize(vec3(u_modelMat * boneMat * vec4(i_normal, 0.0)));
-	v_tbn = makeTBN(v_normal);
+	v_normal = normalize(vec3(modelJointMat * vec4(i_normal, 0.0)));
+	v_tbn = makeTBN(v_normal, modelJointMat);
 
 	for (int i = 0; i < u_dlightCount; i++) {
 		v_fragPos_dlight[i] = u_dlight_projViewMat[i] * worldPos;
