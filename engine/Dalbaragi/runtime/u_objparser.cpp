@@ -229,6 +229,9 @@ namespace {
         material.m_metallicMap = reinterpret_cast<const char*>(header);
         header += material.m_metallicMap.size() + 1;
 
+        material.m_normalMap = reinterpret_cast<const char*>(header);
+        header += material.m_normalMap.size() + 1;
+
         return header;
     }
 
