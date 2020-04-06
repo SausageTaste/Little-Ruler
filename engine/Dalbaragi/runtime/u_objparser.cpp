@@ -339,6 +339,9 @@ namespace dal {
                 if ( !mat.m_roughnessMap.empty() ) {
                     mat.m_roughnessMap = "::" + mat.m_roughnessMap;
                 }
+                if ( !mat.m_normalMap.empty() ) {
+                    mat.m_normalMap = "::" + mat.m_normalMap;
+                }
             }
 
             // Apply texcoords resizing.

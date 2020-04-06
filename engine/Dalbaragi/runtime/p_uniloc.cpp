@@ -10,7 +10,7 @@
 #include "p_dalopengl.h"
 
 
-#define ASSERT_UNILOC false
+#define ASSERT_UNILOC true
 
 
 using namespace fmt::literals;
