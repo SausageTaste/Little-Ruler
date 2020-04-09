@@ -95,10 +95,12 @@ if (NOT TARGET lua_static)
 endif()
 
 # zlib
-if (NOT TARGET zlibstatic)
+if (WIN32)
     add_subdirectory(${extern_dir}/zlib ${CMAKE_CURRENT_BINARY_DIR}/zlib)
     target_link_libraries(dalbaragi_runtime PRIVATE zlibstatic)
     target_include_directories(dalbaragi_runtime PRIVATE ${extern_dir}/zlib ${CMAKE_CURRENT_BINARY_DIR}/zlib)
+else()
+    target_link_libraries(dalbaragi_runtime PRIVATE z)
 endif()
 
 

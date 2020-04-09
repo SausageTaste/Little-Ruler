@@ -22,9 +22,13 @@ set(externtool_dir ${repoRoot_dir}/externtool)
 
 
 # zlib
-add_subdirectory(${extern_dir}/zlib ${CMAKE_CURRENT_BINARY_DIR}/zlib)
-target_link_libraries(dalbaragi_resparser PRIVATE zlibstatic)
-target_include_directories(dalbaragi_resparser PRIVATE ${extern_dir}/zlib ${CMAKE_CURRENT_BINARY_DIR}/zlib)
+if (WIN32)
+    add_subdirectory(${extern_dir}/zlib ${CMAKE_CURRENT_BINARY_DIR}/zlib)
+    target_link_libraries(dalbaragi_resparser PRIVATE zlibstatic)
+    target_include_directories(dalbaragi_resparser PRIVATE ${extern_dir}/zlib ${CMAKE_CURRENT_BINARY_DIR}/zlib)
+else()
+    target_link_libraries(dalbaragi_resparser PRIVATE z)
+endif()
 
 # GLM
 target_include_directories(dalbaragi_resparser PUBLIC ${extern_dir}/glm)
