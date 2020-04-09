@@ -8,6 +8,7 @@
 #include "p_uniloc.h"
 #include "u_loadinfo.h"
 #include "u_imagebuf.h"
+#include "d_global_macro.h"
 
 
 // Meshes
@@ -18,7 +19,7 @@ namespace dal {
 
     private:
         GLuint m_vao = 0;
-        GLuint m_buffers[_NumBuffs] = { 0 };  // vertices, texcoords, normals, bone ids, weights
+        GLuint m_buffers[_NumBuffs] = { 0 };  // vertices, texcoords, normals, tangents, bone ids, weights
         size_t m_numVertices = 0;
 
     public:
@@ -90,18 +91,16 @@ namespace dal {
             this->m_numVertices = v;
         }
 
-        void createBuffers(void) {
+        template <unsigned _Index>
+        void generateBuffer(void) {
+            assert(0 == this->m_buffers[_Index]);
+            glGenBuffers(1, this->m_buffers + _Index);
+            assert(0 != this->m_buffers[_Index]);
+        }
+        void generateVertArray(void) {
+            assert(0 == this->m_vao);
             glGenVertexArrays(1, &this->m_vao);
-            if ( this->m_vao <= 0 ) {
-                throw std::runtime_error{ "Failed to generate vertex array." };
-            }
-
-            glGenBuffers(_NumBuffs, this->m_buffers);
-            for ( int i = 0; i < _NumBuffs; i++ ) {
-                if ( 0 == this->m_buffers[i] ) {
-                    throw std::runtime_error{ "Failed to generate beffer." };
-                }
-            }
+            assert(0 != this->m_vao);
         }
         void invalidate(void) {
             if ( !this->isReady() ) {
@@ -136,7 +135,7 @@ namespace dal {
     };
 
 
-    class MeshStatic : public IMesh<3> {
+    class MeshStatic : public IMesh<4> {
 
     public:
         int buildData(const float* const vertices, const float* const texcoords, const float* const normals, const size_t numVertices);
@@ -144,7 +143,7 @@ namespace dal {
     };
 
 
-    class MeshAnimated : public IMesh<5> {
+    class MeshAnimated : public IMesh<6> {
 
     public:
         void buildData(const float* const vertices, const float* const texcoords, const float* const normals,
@@ -275,6 +274,9 @@ namespace dal {
 
         glm::vec2 m_texScale;
         std::shared_ptr<const Texture> m_diffuseMap, m_roughnessMap, m_metallicMap;
+#if DAL_NORMAL_MAPPING
+        std::shared_ptr<const Texture> m_normalMap;
+#endif
 
     public:
         Material(void);

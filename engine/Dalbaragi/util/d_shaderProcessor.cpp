@@ -256,20 +256,15 @@ namespace dal {
         }
 
         {
-            const auto head = text.find("#ifdef GL_ES");
-            if ( std::string::npos != head ) return Defined::ignore_this;
-        }
-        {
-            const auto head = text.find("#endif");
-            if ( std::string::npos != head ) return Defined::ignore_this;
-        }
-        {
-            const auto head = text.find("#else");
-            if ( std::string::npos != head ) return Defined::ignore_this;
-        }
-        {
-            const auto head = text.find("#ifndef GL_ES");
-            if ( std::string::npos != head ) return Defined::ignore_this;
+            std::vector<std::string> ignoreList{
+                "#ifdef GL_ES", "#endif", "#else", "#ifndef GL_ES", "#ifndef GL_ES", "#ifdef DAL_NORMAL_MAPPING"
+            };
+
+            for ( const auto& toIgnore : ignoreList ) {
+                const auto head = text.find(toIgnore);
+                if ( std::string::npos != head )
+                    return Defined::ignore_this;
+            }
         }
 
         dalError("Unknown define in shader: {}"_format(text));
@@ -320,6 +315,8 @@ namespace dal {
                 fileHeader += "precision {} {};\n"_format(pstr, x);
             }
         }
+
+        fileHeader += "\n#define DAL_NORMAL_MAPPING\n\n";
 
         return fileHeader;
     }

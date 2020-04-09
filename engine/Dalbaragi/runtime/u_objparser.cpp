@@ -229,6 +229,9 @@ namespace {
         material.m_metallicMap = reinterpret_cast<const char*>(header);
         header += material.m_metallicMap.size() + 1;
 
+        material.m_normalMap = reinterpret_cast<const char*>(header);
+        header += material.m_normalMap.size() + 1;
+
         return header;
     }
 
@@ -335,6 +338,9 @@ namespace dal {
                 }
                 if ( !mat.m_roughnessMap.empty() ) {
                     mat.m_roughnessMap = "::" + mat.m_roughnessMap;
+                }
+                if ( !mat.m_normalMap.empty() ) {
+                    mat.m_normalMap = "::" + mat.m_normalMap;
                 }
             }
 

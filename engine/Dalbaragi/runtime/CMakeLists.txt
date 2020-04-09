@@ -68,6 +68,7 @@ add_library(dalbaragi_runtime
     x_init_windows.h
     x_mainloop.cpp
     x_mainloop.h
+    d_global_macro.h
 )
 target_include_directories(dalbaragi_runtime PUBLIC .)
 target_compile_features(dalbaragi_runtime PUBLIC cxx_std_17)
@@ -94,10 +95,12 @@ if (NOT TARGET lua_static)
 endif()
 
 # zlib
-if (NOT TARGET zlibstatic)
+if (WIN32)
     add_subdirectory(${extern_dir}/zlib ${CMAKE_CURRENT_BINARY_DIR}/zlib)
     target_link_libraries(dalbaragi_runtime PRIVATE zlibstatic)
     target_include_directories(dalbaragi_runtime PRIVATE ${extern_dir}/zlib ${CMAKE_CURRENT_BINARY_DIR}/zlib)
+else()
+    target_link_libraries(dalbaragi_runtime PRIVATE z)
 endif()
 
 

@@ -13,6 +13,73 @@
 using namespace fmt::literals;
 
 
+namespace {
+
+    constexpr unsigned BUF_ATTRIB_VERTEX = 0;
+    constexpr unsigned BUF_ATTRIB_TEXCOORD = 1;
+    constexpr unsigned BUF_ATTRIB_NORMAL = 2;
+#if DAL_NORMAL_MAPPING
+    constexpr unsigned BUF_ATTRIB_TANGENT = 3;
+#endif
+    constexpr unsigned BUF_ATTRIB_JOINTID = 4;
+    constexpr unsigned BUF_ATTRIB_WEIGHT = 5;
+
+
+    std::vector<float> generateTangents(const size_t numVertices, const float* const vertices, const float* const texcoords, const float* const normals) {
+        dalAssert(0 == numVertices % 3);
+
+        std::vector<float> result;
+        result.reserve(numVertices * 3);
+
+        const auto triangleCount = numVertices / 3;
+
+        for ( size_t i = 0; i < triangleCount; ++i ) {
+            const glm::vec3 p0{ vertices[9 * i + 0], vertices[9 * i + 1], vertices[9 * i + 2] };
+            const glm::vec3 p1{ vertices[9 * i + 3], vertices[9 * i + 4], vertices[9 * i + 5] };
+            const glm::vec3 p2{ vertices[9 * i + 6], vertices[9 * i + 7], vertices[9 * i + 8] };
+
+            const glm::vec2 u0{ texcoords[6 * i + 0], texcoords[6 * i + 1] };
+            const glm::vec2 u1{ texcoords[6 * i + 2], texcoords[6 * i + 3] };
+            const glm::vec2 u2{ texcoords[6 * i + 4], texcoords[6 * i + 5] };
+
+            const glm::vec3 n0{ normals[9 * i + 0], normals[9 * i + 1], normals[9 * i + 2] };
+            const glm::vec3 n1{ normals[9 * i + 3], normals[9 * i + 4], normals[9 * i + 5] };
+            const glm::vec3 n2{ normals[9 * i + 6], normals[9 * i + 7], normals[9 * i + 8] };
+
+            glm::vec3 edge1 = p1 - p0;
+            glm::vec3 edge2 = p2 - p0;
+            glm::vec2 deltaUV1 = u1 - u0;
+            glm::vec2 deltaUV2 = u2 - u0;
+
+            float f = 1.0f / (deltaUV1.x * deltaUV2.y - deltaUV2.x * deltaUV1.y);
+
+            glm::vec3 tangent1;
+            tangent1.x = f * (deltaUV2.y * edge1.x - deltaUV1.y * edge2.x);
+            tangent1.y = f * (deltaUV2.y * edge1.y - deltaUV1.y * edge2.y);
+            tangent1.z = f * (deltaUV2.y * edge1.z - deltaUV1.y * edge2.z);
+            tangent1 = glm::normalize(tangent1);
+
+            for ( int j = 0; j < 3; ++j ) {
+                result.push_back(tangent1.x);
+                result.push_back(tangent1.y);
+                result.push_back(tangent1.z);
+            }
+
+            /*
+            bitangent1.x = f * (-deltaUV2.x * edge1.x + deltaUV1.x * edge2.x);
+            bitangent1.y = f * (-deltaUV2.x * edge1.y + deltaUV1.x * edge2.y);
+            bitangent1.z = f * (-deltaUV2.x * edge1.z + deltaUV1.x * edge2.z);
+            bitangent1 = glm::normalize(bitangent1);
+            */
+        }
+
+        dalAssert(result.size() == numVertices * 3);
+        return result;
+    }
+
+}
+
+
 namespace dal {
 
     int MeshStatic::buildData(const float* const vertices, const float* const texcoords, const float* const normals, const size_t numVertices) {
@@ -24,26 +91,39 @@ namespace dal {
             }
         }
 
-        this->createBuffers();
+        this->generateVertArray();
         this->bindVAO();
 
         // Vertices
         {
+            this->generateBuffer<BUF_ATTRIB_VERTEX>();
             const auto arraySize = numVertices * sizeof(float) * 3;
-            this->fillBufferData<0, GL_FLOAT>(vertices, arraySize, 3);
+            this->fillBufferData<BUF_ATTRIB_VERTEX, GL_FLOAT>(vertices, arraySize, 3);
         }
 
         // Tex coords
         {
+            this->generateBuffer<BUF_ATTRIB_TEXCOORD>();
             const auto arraySize = numVertices * sizeof(float) * 2;
-            this->fillBufferData<1, GL_FLOAT>(texcoords, arraySize, 2);
+            this->fillBufferData<BUF_ATTRIB_TEXCOORD, GL_FLOAT>(texcoords, arraySize, 2);
         }
 
         // Normals
         {
+            this->generateBuffer<BUF_ATTRIB_NORMAL>();
             const auto arraySize = numVertices * sizeof(float) * 3;
-            this->fillBufferData<2, GL_FLOAT>(normals, arraySize, 3);
+            this->fillBufferData<BUF_ATTRIB_NORMAL, GL_FLOAT>(normals, arraySize, 3);
         }
+
+#if DAL_NORMAL_MAPPING
+        // Tangents
+        {
+            this->generateBuffer<BUF_ATTRIB_TANGENT>();
+            const auto tangents = generateTangents(numVertices, vertices, texcoords, normals);
+            const auto arraySize = numVertices * sizeof(float) * 3;
+            this->fillBufferData<BUF_ATTRIB_TANGENT, GL_FLOAT>(tangents.data(), arraySize, 3);
+        }
+#endif
 
         /* Finish */
         {
@@ -60,37 +140,52 @@ namespace dal {
             dalAbort("MeshStatic's data already built.");
         }
 
-        this->createBuffers();
+        this->generateVertArray();
         this->bindVAO();
 
         // Vertices
         {
+            this->generateBuffer<BUF_ATTRIB_VERTEX>();
             const auto arraySize = numVertices * sizeof(float) * 3;
-            this->fillBufferData<0, GL_FLOAT>(vertices, arraySize, 3);
+            this->fillBufferData<BUF_ATTRIB_VERTEX, GL_FLOAT>(vertices, arraySize, 3);
         }
 
         // Tex coords
         {
+            this->generateBuffer<BUF_ATTRIB_TEXCOORD>();
             const auto arraySize = numVertices * sizeof(float) * 2;
-            this->fillBufferData<1, GL_FLOAT>(texcoords, arraySize, 2);
+            this->fillBufferData<BUF_ATTRIB_TEXCOORD, GL_FLOAT>(texcoords, arraySize, 2);
         }
 
         // Normals
         {
+            this->generateBuffer<BUF_ATTRIB_NORMAL>();
             const auto arraySize = numVertices * sizeof(float) * 3;
-            this->fillBufferData<2, GL_FLOAT>(normals, arraySize, 3);
+            this->fillBufferData<BUF_ATTRIB_NORMAL, GL_FLOAT>(normals, arraySize, 3);
         }
+
+#if DAL_NORMAL_MAPPING
+        // Tangents
+        {
+            this->generateBuffer<BUF_ATTRIB_TANGENT>();
+            const auto tangents = generateTangents(numVertices, vertices, texcoords, normals);
+            const auto arraySize = numVertices * sizeof(float) * 3;
+            this->fillBufferData<BUF_ATTRIB_TANGENT, GL_FLOAT>(tangents.data(), arraySize, 3);
+        }
+#endif
 
         // bone ids
         {
+            this->generateBuffer<BUF_ATTRIB_JOINTID>();
             const auto arraySize = numVertices * sizeof(int32_t) * 3;
-            this->fillBufferData<3, GL_INT>(boneids, arraySize, 3);
+            this->fillBufferData<BUF_ATTRIB_JOINTID, GL_INT>(boneids, arraySize, 3);
         }
 
         // weights
         {
+            this->generateBuffer<BUF_ATTRIB_WEIGHT>();
             const auto arraySize = numVertices * sizeof(float) * 3;
-            this->fillBufferData<4, GL_FLOAT>(weights, arraySize, 3);
+            this->fillBufferData<BUF_ATTRIB_WEIGHT, GL_FLOAT>(weights, arraySize, 3);
         }
 
         /* Finish */
@@ -396,6 +491,15 @@ namespace dal {
             this->m_metallicMap->sendUniform(uniloc.metallicMap());
         else
             uniloc.metallicMap().setFlagHas(false);
+
+#if DAL_NORMAL_MAPPING
+        if ( this->m_normalMap )
+            this->m_normalMap->sendUniform(uniloc.normalMap());
+        else
+            uniloc.normalMap().setFlagHas(false);
+#else
+        uniloc.normalMap().setFlagHas(false);
+#endif
     }
 
 }

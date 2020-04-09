@@ -266,6 +266,7 @@ namespace {
                         { "model", {}},
                         { "texture", {
                                 {"rustediron1-alt2", {}},
+                                {"metalgrid2-dx", {}},
                                 {"water", {}},
                                 {"irin", {}},
                                 {"skybox", {}}

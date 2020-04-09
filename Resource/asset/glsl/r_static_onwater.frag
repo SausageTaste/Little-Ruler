@@ -12,11 +12,33 @@ in vec3 v_normal;
 in vec4 v_fragPos_dlight[3];
 in vec4 v_fragPos_slight[3];
 
+#ifdef DAL_NORMAL_MAPPING
+in mat3 v_tbn;
+#endif
+
 #ifdef GL_ES
 in float v_clipDistance;
 #endif
 
 out vec4 f_color;
+
+
+vec3 makeNormal() {
+
+#ifdef DAL_NORMAL_MAPPING
+    if ( u_hasNormalMap ) {
+        vec3 normal = texture(u_normalMap, v_texCoord).rgb;
+        normal = normal * 2.0 - 1.0;   
+        return normalize(v_tbn * normal); 
+    }
+    else {
+        return v_normal;
+    }
+#else
+    return v_normal;
+#endif
+
+}
 
 
 void main(void) {
@@ -27,7 +49,7 @@ void main(void) {
 #endif
 
     vec3 viewDir = normalize(u_viewPos - v_fragPos);
-    vec3 fragNormal = normalize(v_normal);
+    vec3 fragNormal = makeNormal();
 
     vec4 albedo = texture(u_diffuseMap, v_texCoord);
     float roughness = u_hasRoughnessMap ? texture(u_roughnessMap, v_texCoord).r : u_roughness;
