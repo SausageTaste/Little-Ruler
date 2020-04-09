@@ -68,6 +68,7 @@ add_library(dalbaragi_runtime
     x_init_windows.h
     x_mainloop.cpp
     x_mainloop.h
+    d_global_macro.h
 )
 target_include_directories(dalbaragi_runtime PUBLIC .)
 target_compile_features(dalbaragi_runtime PUBLIC cxx_std_17)

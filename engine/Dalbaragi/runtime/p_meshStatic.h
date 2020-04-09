@@ -8,9 +8,7 @@
 #include "p_uniloc.h"
 #include "u_loadinfo.h"
 #include "u_imagebuf.h"
-
-
-#define DAL_NORMAL_MAPPING true
+#include "d_global_macro.h"
 
 
 // Meshes
