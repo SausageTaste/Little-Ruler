@@ -11,12 +11,17 @@ in vec2 v_texCoord;
 in vec3 v_normal;
 in vec4 v_fragPos_dlight[3];
 in vec4 v_fragPos_slight[3];
+
+#ifdef DAL_NORMAL_MAPPING
 in mat3 v_tbn;
+#endif
 
 out vec4 f_color;
 
 
 vec3 makeNormal() {
+
+#ifdef DAL_NORMAL_MAPPING
     if ( u_hasNormalMap ) {
         vec3 normal = texture(u_normalMap, v_texCoord).rgb;
         normal = normal * 2.0 - 1.0;   
@@ -25,6 +30,10 @@ vec3 makeNormal() {
     else {
         return v_normal;
     }
+#else
+    return v_normal;
+#endif
+
 }
 
 

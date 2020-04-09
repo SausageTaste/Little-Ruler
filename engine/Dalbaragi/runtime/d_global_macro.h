@@ -1,4 +1,4 @@
 #pragma once
 
 
-#define DAL_NORMAL_MAPPING true
+#define DAL_NORMAL_MAPPING false
