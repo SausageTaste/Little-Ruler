@@ -7,8 +7,6 @@
 
 namespace dal {
 
-    std::optional<v1::MapChunkInfo> parseDLB_v1(const uint8_t* const buf, const size_t bufSize);
-
-    void testJson(void);
+    std::optional<v1::MapChunk> parseMapChunk_v1(const uint8_t* const buf, const size_t bufSize);
 
 }

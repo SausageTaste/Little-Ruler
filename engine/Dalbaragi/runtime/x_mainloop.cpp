@@ -147,7 +147,11 @@ namespace {
 namespace {
 
     void test(const float deltaTime) {
-        dal::testJson();
+        auto file = dal::fileopen("asset::demo_dal_map-main.dmc", dal::FileMode2::bread);
+        std::vector<uint8_t> buffer(file->getSize());
+        file->read(buffer.data(), buffer.size());
+        const auto map = dal::parseMapChunk_v1(buffer.data(), buffer.size());
+        return;
     }
 
 }
