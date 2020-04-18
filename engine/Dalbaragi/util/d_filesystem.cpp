@@ -255,7 +255,7 @@ namespace {
         enum class WinDirType { error, file, folder };
 
         WinDirType getDirType(const char* const path) {
-            const auto flags = GetFileAttributesA(path);
+            const auto flags = GetFileAttributesW(utf8_to_utf16(path)->c_str());
 
             if ( INVALID_FILE_ATTRIBUTES == flags ) {
                 return WinDirType::error;
@@ -270,29 +270,27 @@ namespace {
             }
         }
 
-        std::string findResourceFolderPath(void) {
-            std::vector<std::string> folders;
-            std::string pattern("./");
-
-            while ( listdir(pattern.c_str(), folders) > 0 ) {
-                const auto found = [&folders](void) -> bool {
-                    for ( auto& item : folders ) {
-                        if ( item == RESOURCE_FOLDER_NAME ) 
-                            return true;
-                    }
-                    return false;
-                }();
-
-                if ( found ) {
-                    return pattern + RESOURCE_FOLDER_NAME + '/';
-                }
-
-                pattern.append("../");
-            }
-        }
-
         const std::string& getResFolderPath(void) {
-            static auto path = findResourceFolderPath();
+            static auto path = [](void) -> std::string {
+                std::vector<std::string> folders;
+                std::string pattern("./");
+
+                while ( listdir(pattern.c_str(), folders) > 0 ) {
+                    const auto found = [&folders](void) -> bool {
+                        for ( auto& item : folders ) {
+                            if ( item == RESOURCE_FOLDER_NAME )
+                                return true;
+                        }
+                        return false;
+                    }();
+
+                    if ( found ) {
+                        return pattern + RESOURCE_FOLDER_NAME + '/';
+                    }
+
+                    pattern.append("../");
+                }
+            }();
             return path;
         }
 
