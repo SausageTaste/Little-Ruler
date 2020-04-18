@@ -1,5 +1,6 @@
 #include "d_mapparser.h"
 
+#include <array>
 #include <memory>
 
 #define ZLIB_WINAPI
@@ -165,6 +166,27 @@ namespace {
         return begin;
     }
 
+    const uint8_t* parseStaticActor(dal::v1::StaticActor& info, const uint8_t* begin, const uint8_t* const end) {
+        // Name
+        {
+            info.m_name = reinterpret_cast<const char*>(begin);
+            begin += info.m_name.size() + 1;
+        }
+        
+        // Transform
+        {
+            constexpr int FBUF_SIZE = 8;
+            float fbuf[FBUF_SIZE];
+            begin = dal::assemble4BytesArray<float>(begin, fbuf, FBUF_SIZE);
+
+            info.m_trans.m_pos = { fbuf[0], fbuf[1], fbuf[2] };
+            info.m_trans.m_quat = { fbuf[3], fbuf[4], fbuf[5], fbuf[6] };
+            info.m_trans.m_scale = fbuf[7];
+        }
+
+        return begin;
+    }
+
 }
 
 
@@ -193,6 +215,15 @@ namespace dal {
                 info.m_renderUnits.resize(num_units);
                 for ( int32_t i = 0; i < num_units; ++i ) {
                     header = parseRenderUnit(info.m_renderUnits[i], header, end);
+                }
+            }
+
+            {
+                const auto num_static_actors = dal::makeInt4(header); header += 4;
+                info.m_staticActors.resize(num_static_actors);
+                for ( int32_t i = 0; i < num_static_actors; ++i ) {
+                    header = parseStaticActor(info.m_staticActors[i], header, end);
+                    info.m_staticActors[i].m_modelIndex = dal::makeInt4(header); header += 4;
                 }
             }
         }

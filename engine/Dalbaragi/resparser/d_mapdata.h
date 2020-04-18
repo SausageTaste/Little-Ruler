@@ -98,11 +98,11 @@ namespace dal::v1 {
         cpnt::Model
     >;
 
-    class StaticModelActor {
+    class StaticActor {
 
     public:
         std::string m_name;
-        cpnt::Model m_modelName;
+        int32_t m_modelIndex = -1;
         cpnt::Transform m_trans;
 
     };
@@ -146,6 +146,7 @@ namespace dal::v1 {
 
     public:
         std::vector<RenderUnit> m_renderUnits;
+        std::vector<StaticActor> m_staticActors;
 
     };
 
