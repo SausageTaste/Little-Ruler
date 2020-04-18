@@ -130,6 +130,59 @@ namespace {
 
     namespace win {
 
+        std::optional<std::wstring> utf8_to_utf16(std::string& src) {
+            static_assert(2 == sizeof(std::wstring::value_type));
+
+            if ( src.empty() )
+                return std::nullopt;
+            if ( src.length() > static_cast<size_t>((std::numeric_limits<int>::max)()) )  // windows.h defines min, max macro
+                return std::nullopt;
+
+            constexpr DWORD kFlags = MB_ERR_INVALID_CHARS;
+
+            const int srcLength = static_cast<int>(src.length());
+
+            const int utf16Length = ::MultiByteToWideChar(CP_UTF8, kFlags, src.data(), srcLength, nullptr, 0);
+            if ( 0 == utf16Length ) {
+                return std::nullopt;
+            }
+
+            std::wstring result;
+            result.resize(utf16Length);
+            // There's a reason to use &result[0] instead of result.data()
+            const int convertResult = ::MultiByteToWideChar(CP_UTF8, kFlags, src.data(), srcLength, &result[0], utf16Length);
+            if ( 0 == convertResult )
+                return std::nullopt;
+
+            return result;
+        }
+
+        std::optional<std::string> utf16_to_utf8(std::wstring& src) {
+            static_assert(1 == sizeof(std::string::value_type));
+
+            if ( src.empty() )
+                return std::nullopt;
+            if ( src.length() > static_cast<size_t>((std::numeric_limits<int>::max)()) )  // windows.h defines min, max macro
+                return std::nullopt;
+
+            constexpr DWORD kFlags = MB_ERR_INVALID_CHARS;
+
+            const int srcLength = static_cast<int>(src.length());
+
+            const int utf16Length = ::WideCharToMultiByte(CP_UTF8, kFlags, src.data(), srcLength, nullptr, 0, nullptr, nullptr);
+            if ( 0 == utf16Length )
+                return std::nullopt;
+
+            std::string result;
+            result.resize(utf16Length);
+            const int convertResult = ::WideCharToMultiByte(CP_UTF8, kFlags, src.data(), srcLength, &result[0], utf16Length, nullptr, nullptr);
+            if ( 0 == convertResult )
+                return std::nullopt;
+
+            return result;
+        }
+
+
         size_t listdir(std::string pattern, std::vector<std::string>& con) {
             using namespace std::literals;
 
