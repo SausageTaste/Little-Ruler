@@ -187,13 +187,57 @@ namespace {
         return begin;
     }
 
+
+    const uint8_t* parseMapChunkInfo(dal::v1::LevelData::ChunkData& info, const uint8_t* begin) {
+        {
+            info.m_name = reinterpret_cast<const char*>(begin);
+            begin += info.m_name.size() + 1;
+        }
+
+        {
+            constexpr int FBUF_SIZE = 6 + 3;
+            float fbuf[FBUF_SIZE];
+            begin = dal::assemble4BytesArray<float>(begin, fbuf, FBUF_SIZE);
+
+            info.m_aabb.m_min = { fbuf[0], fbuf[1], fbuf[2] };
+            info.m_aabb.m_max = { fbuf[3], fbuf[4], fbuf[5] };
+            info.m_offsetPos = { fbuf[6], fbuf[7], fbuf[8] };
+        }
+
+        return begin;
+    }
+
 }
 
 
 namespace dal {
 
+    std::optional<v1::LevelData> parseLevel_v1(const uint8_t* const buf, const size_t bufSize) {
+        constexpr char* const magicBits = "dallvl";
+        if ( 0 != std::memcmp(buf, magicBits, 6) ) {
+            return std::nullopt;
+        }
+
+        const uint8_t* header = buf + 6;
+        const uint8_t* const end = buf + bufSize;
+
+        v1::LevelData info;
+
+        {
+            const auto num_chunks = dal::makeInt4(header); header += 4;
+            info.m_chunks.resize(num_chunks);
+            for ( int32_t i = 0; i < num_chunks; ++i ) {
+                header = parseMapChunkInfo(info.m_chunks[i], header);
+            }
+        }
+
+        assert(header == end);
+
+        return info;
+    }
+
     std::optional<v1::MapChunk> parseMapChunk_v1(const uint8_t* const buf, const size_t bufSize) {
-        const char* const magicBits = "dalchk";
+        constexpr char* const magicBits = "dalchk";
         if ( 0 != std::memcmp(buf, magicBits, 6) ) {
             //dalError("Given datablock does not start with magic numbers.");
             return std::nullopt;

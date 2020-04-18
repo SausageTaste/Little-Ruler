@@ -142,6 +142,20 @@ namespace dal::v1 {
 
     // Map
 
+    class LevelData {
+
+    public:
+        struct ChunkData {
+            std::string m_name;
+            AABB m_aabb;
+            glm::vec3 m_offsetPos;
+        };
+
+    public:
+        std::vector<ChunkData> m_chunks;
+
+    };
+
     class MapChunk {
 
     public:
