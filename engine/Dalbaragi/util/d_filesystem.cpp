@@ -130,7 +130,33 @@ namespace {
 
     namespace win {
 
-        std::optional<std::wstring> utf8_to_utf16(std::string& src) {
+        void handleConvertError(const DWORD errcode) {
+
+#if true == DAL_PRINT_ERR
+            switch ( errcode ) {
+
+            case ERROR_INSUFFICIENT_BUFFER:
+                std::cout << "ERROR_INSUFFICIENT_BUFFER" << std::endl;
+                break;
+            case ERROR_INVALID_FLAGS:
+                std::cout << "ERROR_INVALID_FLAGS" << std::endl;
+                break;
+            case ERROR_INVALID_PARAMETER:
+                std::cout << "ERROR_INVALID_PARAMETER" << std::endl;
+                break;
+            case ERROR_NO_UNICODE_TRANSLATION:
+                std::cout << "ERROR_NO_UNICODE_TRANSLATION" << std::endl;
+                break;
+            default:
+                std::cout << "UNKNOWN" << std::endl;
+                break;
+
+            }
+#endif
+
+        }
+
+        std::optional<std::wstring> utf8_to_utf16(const std::string& src) {
             static_assert(2 == sizeof(std::wstring::value_type));
 
             if ( src.empty() )
@@ -157,7 +183,7 @@ namespace {
             return result;
         }
 
-        std::optional<std::string> utf16_to_utf8(std::wstring& src) {
+        std::optional<std::string> utf16_to_utf8(const std::wstring& src) {
             static_assert(1 == sizeof(std::string::value_type));
 
             if ( src.empty() )
@@ -165,46 +191,61 @@ namespace {
             if ( src.length() > static_cast<size_t>((std::numeric_limits<int>::max)()) )  // windows.h defines min, max macro
                 return std::nullopt;
 
-            constexpr DWORD kFlags = MB_ERR_INVALID_CHARS;
+            constexpr DWORD kFlags = WC_ERR_INVALID_CHARS;
 
             const int srcLength = static_cast<int>(src.length());
 
-            const int utf16Length = ::WideCharToMultiByte(CP_UTF8, kFlags, src.data(), srcLength, nullptr, 0, nullptr, nullptr);
-            if ( 0 == utf16Length )
+            const int utf8Length = ::WideCharToMultiByte(CP_UTF8, kFlags, src.data(), srcLength, nullptr, 0, nullptr, nullptr);
+            if ( 0 == utf8Length ) {
+                handleConvertError(::GetLastError());
                 return std::nullopt;
+            }
 
-            std::string result;
-            result.resize(utf16Length);
-            const int convertResult = ::WideCharToMultiByte(CP_UTF8, kFlags, src.data(), srcLength, &result[0], utf16Length, nullptr, nullptr);
-            if ( 0 == convertResult )
+            std::string result(utf8Length, 0);
+            const int convertResult = ::WideCharToMultiByte(CP_UTF8, kFlags, src.data(), srcLength, &result[0], utf8Length, nullptr, nullptr);
+            if ( 0 == convertResult ) {
+                handleConvertError(::GetLastError());
                 return std::nullopt;
+            }
 
             return result;
         }
 
 
-        size_t listdir(std::string pattern, std::vector<std::string>& con) {
+        size_t listdir(const std::string& path, std::vector<std::string>& con) {
             using namespace std::literals;
 
             con.clear();
 
-            if ( pattern.back() != '/' ) pattern.push_back('/');
-            pattern.push_back('*');
+            auto pattern = utf8_to_utf16(path);
+            if ( !pattern ) {
+                return 0;
+            }
 
-            WIN32_FIND_DATAA data;
-            HANDLE hFind = FindFirstFileA(pattern.c_str(), &data);
+            if ( pattern->back() != L'/' ) pattern->push_back('/');
+            pattern->push_back('*');
+
+            WIN32_FIND_DATAW data;
+            HANDLE hFind = FindFirstFileW(pattern->c_str(), &data);
             if ( INVALID_HANDLE_VALUE != hFind ) {
                 do {
-                    const auto fileName = std::string{ data.cFileName };
-                    if ( fileName == "."s ) continue;
-                    if ( ".."s == fileName ) continue;
+                    const auto fileName = std::wstring{ data.cFileName };
+                    if ( fileName == L"." )
+                        continue;
+                    if ( fileName == L".." )
+                        continue;
 
-                    con.push_back(data.cFileName);
+                    const auto filename_utf8 = utf16_to_utf8(fileName);
+                    if ( !filename_utf8 ) {
+                        continue;
+                    }
+
+                    con.push_back(filename_utf8.value());
                     if ( con.back() == "System Volume Information"s ) {
                         con.clear();
                         return 0;
                     }
-                } while ( FindNextFileA(hFind, &data) != 0 );
+                } while ( FindNextFileW(hFind, &data) != 0 );
                 FindClose(hFind);
             }
 
