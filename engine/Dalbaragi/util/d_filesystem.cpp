@@ -1298,30 +1298,4 @@ namespace dal {
 
     }
 
-    void testFile(void) {
-        using namespace std::string_literals;
-
-        for ( auto& x : dal::listfile("hangul::") ) {
-            dalVerbose(x);
-
-            const auto resolved = resolvePath("hangul", "", x);
-            const auto winPath = win::makeWinResPath(*resolved);
-            const auto winPath16 = *win::utf8_to_utf16(winPath.c_str());
-
-            std::string buffer;
-            {
-                win::FileRead file;
-                file.open(winPath.c_str(), dal::FileMode2::read);
-                file.readText(buffer);
-                dalVerbose(buffer);
-            }
-
-            {
-                win::FileCreated file;
-                file.open("shit.txt", FileMode2::write);
-                file.write(buffer);
-            }
-        }
-    }
-
 }

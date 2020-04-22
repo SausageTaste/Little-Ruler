@@ -145,18 +145,7 @@ namespace {
 namespace {
 
     void test(const float deltaTime) {
-        auto file = dal::fileopen(u8"한글::텍스트.txt", dal::FileMode2::read);
-        if ( file ) {
-            std::string buffer;
-            const auto result = file->readText(buffer);
-            dalAssert(result);
-            dalVerbose(buffer);
-        }
-        else {
-            dalError(u8"Failed to open file: \"한글::텍스트.txt\"");
-        }
 
-        dal::testFile();
     }
 
 }
