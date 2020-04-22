@@ -78,4 +78,6 @@ namespace dal {
     
     std::unique_ptr<IFileStream> fileopen(const char* const resPath, const FileMode2 mode);
 
+    void testFile(void);
+
 }

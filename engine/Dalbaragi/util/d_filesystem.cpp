@@ -7,15 +7,26 @@
 #include "d_logger.h"
 
 #if defined(_WIN32)
+
+#ifndef UNICODE
+#define UNICODE
+#endif
+#ifndef _UNICODE
+#define _UNICODE
+#endif
+
 #include <windows.h>
 #include <direct.h>  // mkdir
+
 #elif defined(__ANDROID__)
+
 #include <dirent.h>
 #include <sys/stat.h>
 
 #include <android/asset_manager.h>
 
 #include "s_configs.h"
+
 #endif
 
 
@@ -226,7 +237,7 @@ namespace {
             pattern->push_back('*');
 
             WIN32_FIND_DATAW data;
-            HANDLE hFind = FindFirstFileW(pattern->c_str(), &data);
+            HANDLE hFind = FindFirstFile(pattern->c_str(), &data);
             if ( INVALID_HANDLE_VALUE != hFind ) {
                 do {
                     const auto fileName = std::wstring{ data.cFileName };
@@ -245,7 +256,7 @@ namespace {
                         con.clear();
                         return 0;
                     }
-                } while ( FindNextFileW(hFind, &data) != 0 );
+                } while ( FindNextFile(hFind, &data) != 0 );
                 FindClose(hFind);
             }
 
@@ -255,7 +266,7 @@ namespace {
         enum class WinDirType { error, file, folder };
 
         WinDirType getDirType(const char* const path) {
-            const auto flags = GetFileAttributesW(utf8_to_utf16(path)->c_str());
+            const auto flags = GetFileAttributes(utf8_to_utf16(path)->c_str());
 
             if ( INVALID_FILE_ATTRIBUTES == flags ) {
                 return WinDirType::error;
@@ -301,10 +312,203 @@ namespace {
             else if ( LOG_FOLDER_NAME == resPathInfo.m_package ) {
                 return fmt::format("{}{}/{}{}", win::getResFolderPath(), LOG_FOLDER_NAME, resPathInfo.m_intermPath, resPathInfo.m_finalPath);
             }
+            else if ( resPathInfo.m_package.empty() ) {
+                return fmt::format("{}{}/{}{}", win::getResFolderPath(), USERDATA_FOLDER_NAME, resPathInfo.m_intermPath, resPathInfo.m_finalPath);
+            }
             else {
                 return fmt::format("{}{}/{}/{}{}", win::getResFolderPath(), USERDATA_FOLDER_NAME, resPathInfo.m_package, resPathInfo.m_intermPath, resPathInfo.m_finalPath);
             }
         }
+
+
+        class FileCreated : public dal::IFileStream {
+
+        private:
+            HANDLE m_fileHandle = nullptr;
+
+        public:
+            virtual ~FileCreated(void) {
+                this->close();
+            }
+
+            virtual bool open(const char* const path, const dal::FileMode2 mode) {
+                const auto path16 = win::utf8_to_utf16(path);
+                if ( !path16 )
+                    return false;
+
+                this->close();
+
+                this->m_fileHandle = CreateFileW(
+                    path16->c_str(),        // name of the write
+                    GENERIC_WRITE,          // open for writing
+                    0,                      // do not share
+                    nullptr,                // default security
+                    CREATE_NEW,             // create new file only
+                    FILE_ATTRIBUTE_NORMAL,  // normal file
+                    nullptr                 // no attr. template
+                );
+
+                if ( INVALID_HANDLE_VALUE == this->m_fileHandle ) {
+                    this->m_fileHandle = nullptr;
+                    return false;
+                }
+                else {
+                    return true;
+                }
+            }
+            virtual void close(void) {
+                if ( this->isOpen() ) {
+                    CloseHandle(this->m_fileHandle);
+                    this->m_fileHandle = nullptr;
+                }
+            }
+
+            virtual size_t read(uint8_t* const buf, const size_t bufSize) {
+                dalAbort("Not implemented");
+            }
+            virtual bool readText(std::string& buffer) {
+                dalAbort("Not implemented");
+            }
+
+            virtual bool write(const uint8_t* const buf, const size_t bufSize) {
+                if ( 0 == bufSize )
+                    return 0;
+                if ( !this->isOpen() )
+                    return 0;
+
+                DWORD bytesWritten = 0;
+
+                const auto bErrorFlag = WriteFile(
+                    this->m_fileHandle,   // open file handle
+                    buf,                  // start of data to write
+                    bufSize,              // number of bytes to write
+                    &bytesWritten,        // number of bytes that were written
+                    nullptr               // no overlapped structure
+                );
+
+                if ( FALSE == bErrorFlag ) {
+                    return 0;
+                }
+                else {
+                    return bytesWritten;
+                }
+            }
+            virtual bool write(const char* const str) {
+                return this->write(reinterpret_cast<const uint8_t*>(str), std::strlen(str));
+            }
+            virtual bool write(const std::string& str) {
+                return this->write(reinterpret_cast<const uint8_t*>(str.data()), str.size());
+            }
+
+            virtual size_t getSize(void) {
+                dalAbort("Not sensible");
+            }
+            virtual bool isOpen(void) {
+                return nullptr != this->m_fileHandle;
+            }
+            virtual bool seek(const size_t offset, const dal::Whence2 whence = dal::Whence2::beg) {
+                dalAbort("Not implemented");
+            }
+            virtual size_t tell(void) {
+                dalAbort("Not implemented");
+            }
+
+        };
+
+        class FileRead : public dal::IFileStream {
+
+        private:
+            HANDLE m_fileHandle = nullptr;
+
+        public:
+            ~FileRead(void) {
+                this->close();
+            }
+
+            virtual bool open(const char* const path, const dal::FileMode2 mode) {
+                const auto path16 = win::utf8_to_utf16(path);
+                if ( !path16 )
+                    return false;
+
+                this->close();
+
+                this->m_fileHandle = CreateFile(
+                    path16->c_str(),                              // file to open
+                    GENERIC_READ,                                 // open for reading
+                    FILE_SHARE_READ,                              // share for reading
+                    nullptr,                                      // default security
+                    OPEN_EXISTING,                                // existing file only
+                    FILE_ATTRIBUTE_NORMAL | FILE_FLAG_OVERLAPPED, // normal file
+                    nullptr                                       // no attr. template
+                );
+
+                if ( INVALID_HANDLE_VALUE == this->m_fileHandle ) {
+                    this->m_fileHandle = nullptr;
+                    return false;
+                }
+                else {
+                    return true;
+                }
+            }
+            virtual void close(void) {
+                if ( this->isOpen() ) {
+                    CloseHandle(this->m_fileHandle);
+                    this->m_fileHandle = nullptr;
+                }
+            }
+
+            virtual size_t read(uint8_t* const buf, const size_t bufSize) {
+                if ( nullptr == this->m_fileHandle )
+                    return 0;
+
+                OVERLAPPED ol = { 0 };
+                DWORD bytesRead = 0;
+
+                if ( FALSE == ReadFile(this->m_fileHandle, buf, bufSize, &bytesRead, &ol) ) {
+                    return 0;
+                }
+
+                return bytesRead;
+            }
+            virtual bool readText(std::string& buffer) {
+                const auto fileSize = this->getSize();
+                buffer.resize(fileSize);
+
+                const auto result = this->read(reinterpret_cast<uint8_t*>(buffer.data()), buffer.size());
+
+                return fileSize == result;
+            }
+
+            virtual bool write(const uint8_t* const buf, const size_t bufSize) {
+                dalAbort("not implemented");
+            }
+            virtual bool write(const char* const str) {
+                dalAbort("not implemented");
+        }
+            virtual bool write(const std::string& str) {
+                dalAbort("not implemented");
+            }
+
+            virtual size_t getSize(void) {
+                LARGE_INTEGER size;
+                if ( !GetFileSizeEx(this->m_fileHandle, &size) ) {
+                    return 0;
+                }
+                else {
+                    return size.QuadPart;
+                }
+            }
+            virtual bool isOpen(void) {
+                return nullptr != this->m_fileHandle;
+            }
+            virtual bool seek(const size_t offset, const dal::Whence2 whence = dal::Whence2::beg) {
+                dalAbort("Not implemented");
+            }
+            virtual size_t tell(void) {
+                dalAbort("Not implemented");
+            }
+
+        };
 
     }
 
@@ -1058,7 +1262,7 @@ namespace dal {
         else if ( pathinfo.m_package.empty() ) {
             return { nullptr };
         }
-      
+
 #if defined(_WIN32)
         return fileopen_general<STDFileStream, win::makeWinResPath>(pathinfo, mode);
 #elif defined(__ANDROID__)
@@ -1070,6 +1274,32 @@ namespace dal {
         }
 #endif
 
+    }
+
+    void testFile(void) {
+        using namespace std::string_literals;
+
+        for ( auto& x : dal::listfile("hangul::") ) {
+            dalVerbose(x);
+
+            const auto resolved = resolvePath("hangul", "", x);
+            const auto winPath = win::makeWinResPath(*resolved);
+            const auto winPath16 = *win::utf8_to_utf16(winPath.c_str());
+
+            std::string buffer;
+            {
+                win::FileRead file;
+                file.open(winPath.c_str(), dal::FileMode2::read);
+                file.readText(buffer);
+                dalVerbose(buffer);
+            }
+
+            {
+                win::FileCreated file;
+                file.open("shit.txt", FileMode2::write);
+                file.write(buffer);
+            }
+        }
     }
 
 }

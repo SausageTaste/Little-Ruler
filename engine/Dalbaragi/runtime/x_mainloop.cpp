@@ -155,6 +155,8 @@ namespace {
         else {
             dalError(u8"Failed to open file: \"한글::텍스트.txt\"");
         }
+
+        dal::testFile();
     }
 
 }
