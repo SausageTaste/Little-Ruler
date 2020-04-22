@@ -338,18 +338,23 @@ namespace {
 
                 this->close();
 
+                auto openMode = GENERIC_WRITE;
+                if ( mode == dal::FileMode2::append || mode == dal::FileMode2::bappend )
+                    openMode = FILE_APPEND_DATA;
+
                 this->m_fileHandle = CreateFileW(
                     path16->c_str(),        // name of the write
-                    GENERIC_WRITE,          // open for writing
+                    openMode,               // open for writing
                     0,                      // do not share
                     nullptr,                // default security
-                    CREATE_NEW,             // create new file only
+                    OPEN_ALWAYS,            // open or create
                     FILE_ATTRIBUTE_NORMAL,  // normal file
                     nullptr                 // no attr. template
                 );
 
                 if ( INVALID_HANDLE_VALUE == this->m_fileHandle ) {
                     this->m_fileHandle = nullptr;
+                    const auto err = GetLastError();
                     return false;
                 }
                 else {
@@ -438,7 +443,7 @@ namespace {
                     FILE_SHARE_READ,                              // share for reading
                     nullptr,                                      // default security
                     OPEN_EXISTING,                                // existing file only
-                    FILE_ATTRIBUTE_NORMAL | FILE_FLAG_OVERLAPPED, // normal file
+                    FILE_ATTRIBUTE_NORMAL, // normal file
                     nullptr                                       // no attr. template
                 );
 
@@ -464,7 +469,8 @@ namespace {
                 OVERLAPPED ol = { 0 };
                 DWORD bytesRead = 0;
 
-                if ( FALSE == ReadFile(this->m_fileHandle, buf, bufSize, &bytesRead, &ol) ) {
+                if ( FALSE == ReadFile(this->m_fileHandle, buf, bufSize, &bytesRead, nullptr) ) {
+                    const auto err = GetLastError();
                     return 0;
                 }
 
@@ -1264,6 +1270,22 @@ namespace dal {
         }
 
 #if defined(_WIN32)
+        switch ( mode ) {
+
+        case FileMode2::read:
+        case FileMode2::bread:
+            return fileopen_general<win::FileRead, win::makeWinResPath>(pathinfo, mode);
+
+        case FileMode2::write:
+        case FileMode2::bwrite:
+        case FileMode2::append:
+        case FileMode2::bappend:
+            return fileopen_general<win::FileCreated, win::makeWinResPath>(pathinfo, mode);
+
+        default:
+            return nullptr;
+
+        }
         return fileopen_general<STDFileStream, win::makeWinResPath>(pathinfo, mode);
 #elif defined(__ANDROID__)
         if ( PACKAGE_NAME_ASSET == pathinfo.m_package ) {
