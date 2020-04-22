@@ -141,29 +141,11 @@ namespace {
 }
 
 
-#include <d_mapparser.h>
-
 // Test codes
 namespace {
 
     void test(const float deltaTime) {
-        {
-            auto file = dal::fileopen("asset::demo_dal_map.dlb", dal::FileMode2::bread);
-            std::vector<uint8_t> buffer(file->getSize());
-            file->read(buffer.data(), buffer.size());
-            const auto map = dal::parseLevel_v1(buffer.data(), buffer.size());
-            dalVerbose("Done loading level");
-        }
 
-        {
-            auto file = dal::fileopen("asset::demo_dal_map-main.dmc", dal::FileMode2::bread);
-            std::vector<uint8_t> buffer(file->getSize());
-            file->read(buffer.data(), buffer.size());
-            const auto map = dal::parseMapChunk_v1(buffer.data(), buffer.size());
-            dalVerbose("Done loading map chunk");
-        }
-
-        return;
     }
 
 }
@@ -297,6 +279,10 @@ namespace dal {
         {
             this->m_timer.setCapFPS(0);
             assertUserdataFolder();
+
+#ifdef _WIN32
+            system("chcp 65001");
+#endif
         }
 
         // Test

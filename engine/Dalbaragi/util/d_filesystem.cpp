@@ -7,15 +7,26 @@
 #include "d_logger.h"
 
 #if defined(_WIN32)
+
+#ifndef UNICODE
+#define UNICODE
+#endif
+#ifndef _UNICODE
+#define _UNICODE
+#endif
+
 #include <windows.h>
 #include <direct.h>  // mkdir
+
 #elif defined(__ANDROID__)
+
 #include <dirent.h>
 #include <sys/stat.h>
 
 #include <android/asset_manager.h>
 
 #include "s_configs.h"
+
 #endif
 
 
@@ -130,28 +141,122 @@ namespace {
 
     namespace win {
 
-        size_t listdir(std::string pattern, std::vector<std::string>& con) {
+        void handleConvertError(const DWORD errcode) {
+
+#if true == DAL_PRINT_ERR
+            switch ( errcode ) {
+
+            case ERROR_INSUFFICIENT_BUFFER:
+                std::cout << "ERROR_INSUFFICIENT_BUFFER" << std::endl;
+                break;
+            case ERROR_INVALID_FLAGS:
+                std::cout << "ERROR_INVALID_FLAGS" << std::endl;
+                break;
+            case ERROR_INVALID_PARAMETER:
+                std::cout << "ERROR_INVALID_PARAMETER" << std::endl;
+                break;
+            case ERROR_NO_UNICODE_TRANSLATION:
+                std::cout << "ERROR_NO_UNICODE_TRANSLATION" << std::endl;
+                break;
+            default:
+                std::cout << "UNKNOWN" << std::endl;
+                break;
+
+            }
+#endif
+
+        }
+
+        std::optional<std::wstring> utf8_to_utf16(const std::string& src) {
+            static_assert(2 == sizeof(std::wstring::value_type));
+
+            if ( src.empty() )
+                return std::nullopt;
+            if ( src.length() > static_cast<size_t>((std::numeric_limits<int>::max)()) )  // windows.h defines min, max macro
+                return std::nullopt;
+
+            constexpr DWORD kFlags = MB_ERR_INVALID_CHARS;
+
+            const int srcLength = static_cast<int>(src.length());
+
+            const int utf16Length = ::MultiByteToWideChar(CP_UTF8, kFlags, src.data(), srcLength, nullptr, 0);
+            if ( 0 == utf16Length ) {
+                return std::nullopt;
+            }
+
+            std::wstring result;
+            result.resize(utf16Length);
+            // There's a reason to use &result[0] instead of result.data()
+            const int convertResult = ::MultiByteToWideChar(CP_UTF8, kFlags, src.data(), srcLength, &result[0], utf16Length);
+            if ( 0 == convertResult )
+                return std::nullopt;
+
+            return result;
+        }
+
+        std::optional<std::string> utf16_to_utf8(const std::wstring& src) {
+            static_assert(1 == sizeof(std::string::value_type));
+
+            if ( src.empty() )
+                return std::nullopt;
+            if ( src.length() > static_cast<size_t>((std::numeric_limits<int>::max)()) )  // windows.h defines min, max macro
+                return std::nullopt;
+
+            constexpr DWORD kFlags = WC_ERR_INVALID_CHARS;
+
+            const int srcLength = static_cast<int>(src.length());
+
+            const int utf8Length = ::WideCharToMultiByte(CP_UTF8, kFlags, src.data(), srcLength, nullptr, 0, nullptr, nullptr);
+            if ( 0 == utf8Length ) {
+                handleConvertError(::GetLastError());
+                return std::nullopt;
+            }
+
+            std::string result(utf8Length, 0);
+            const int convertResult = ::WideCharToMultiByte(CP_UTF8, kFlags, src.data(), srcLength, &result[0], utf8Length, nullptr, nullptr);
+            if ( 0 == convertResult ) {
+                handleConvertError(::GetLastError());
+                return std::nullopt;
+            }
+
+            return result;
+        }
+
+
+        size_t listdir(const std::string& path, std::vector<std::string>& con) {
             using namespace std::literals;
 
             con.clear();
 
-            if ( pattern.back() != '/' ) pattern.push_back('/');
-            pattern.push_back('*');
+            auto pattern = utf8_to_utf16(path);
+            if ( !pattern ) {
+                return 0;
+            }
 
-            WIN32_FIND_DATAA data;
-            HANDLE hFind = FindFirstFileA(pattern.c_str(), &data);
+            if ( pattern->back() != L'/' ) pattern->push_back('/');
+            pattern->push_back('*');
+
+            WIN32_FIND_DATAW data;
+            HANDLE hFind = FindFirstFile(pattern->c_str(), &data);
             if ( INVALID_HANDLE_VALUE != hFind ) {
                 do {
-                    const auto fileName = std::string{ data.cFileName };
-                    if ( fileName == "."s ) continue;
-                    if ( ".."s == fileName ) continue;
+                    const auto fileName = std::wstring{ data.cFileName };
+                    if ( fileName == L"." )
+                        continue;
+                    if ( fileName == L".." )
+                        continue;
 
-                    con.push_back(data.cFileName);
+                    const auto filename_utf8 = utf16_to_utf8(fileName);
+                    if ( !filename_utf8 ) {
+                        continue;
+                    }
+
+                    con.push_back(filename_utf8.value());
                     if ( con.back() == "System Volume Information"s ) {
                         con.clear();
                         return 0;
                     }
-                } while ( FindNextFileA(hFind, &data) != 0 );
+                } while ( FindNextFile(hFind, &data) != 0 );
                 FindClose(hFind);
             }
 
@@ -161,7 +266,7 @@ namespace {
         enum class WinDirType { error, file, folder };
 
         WinDirType getDirType(const char* const path) {
-            const auto flags = GetFileAttributesA(path);
+            const auto flags = GetFileAttributes(utf8_to_utf16(path)->c_str());
 
             if ( INVALID_FILE_ATTRIBUTES == flags ) {
                 return WinDirType::error;
@@ -176,29 +281,27 @@ namespace {
             }
         }
 
-        std::string findResourceFolderPath(void) {
-            std::vector<std::string> folders;
-            std::string pattern("./");
-
-            while ( listdir(pattern.c_str(), folders) > 0 ) {
-                const auto found = [&folders](void) -> bool {
-                    for ( auto& item : folders ) {
-                        if ( item == RESOURCE_FOLDER_NAME ) 
-                            return true;
-                    }
-                    return false;
-                }();
-
-                if ( found ) {
-                    return pattern + RESOURCE_FOLDER_NAME + '/';
-                }
-
-                pattern.append("../");
-            }
-        }
-
         const std::string& getResFolderPath(void) {
-            static auto path = findResourceFolderPath();
+            static auto path = [](void) -> std::string {
+                std::vector<std::string> folders;
+                std::string pattern("./");
+
+                while ( listdir(pattern.c_str(), folders) > 0 ) {
+                    const auto found = [&folders](void) -> bool {
+                        for ( auto& item : folders ) {
+                            if ( item == RESOURCE_FOLDER_NAME )
+                                return true;
+                        }
+                        return false;
+                    }();
+
+                    if ( found ) {
+                        return pattern + RESOURCE_FOLDER_NAME + '/';
+                    }
+
+                    pattern.append("../");
+                }
+            }();
             return path;
         }
 
@@ -209,10 +312,209 @@ namespace {
             else if ( LOG_FOLDER_NAME == resPathInfo.m_package ) {
                 return fmt::format("{}{}/{}{}", win::getResFolderPath(), LOG_FOLDER_NAME, resPathInfo.m_intermPath, resPathInfo.m_finalPath);
             }
+            else if ( resPathInfo.m_package.empty() ) {
+                return fmt::format("{}{}/{}{}", win::getResFolderPath(), USERDATA_FOLDER_NAME, resPathInfo.m_intermPath, resPathInfo.m_finalPath);
+            }
             else {
                 return fmt::format("{}{}/{}/{}{}", win::getResFolderPath(), USERDATA_FOLDER_NAME, resPathInfo.m_package, resPathInfo.m_intermPath, resPathInfo.m_finalPath);
             }
         }
+
+
+        class FileCreated : public dal::IFileStream {
+
+        private:
+            HANDLE m_fileHandle = nullptr;
+
+        public:
+            virtual ~FileCreated(void) {
+                this->close();
+            }
+
+            virtual bool open(const char* const path, const dal::FileMode2 mode) {
+                const auto path16 = win::utf8_to_utf16(path);
+                if ( !path16 )
+                    return false;
+
+                this->close();
+
+                auto openMode = GENERIC_WRITE;
+                if ( mode == dal::FileMode2::append || mode == dal::FileMode2::bappend )
+                    openMode = FILE_APPEND_DATA;
+
+                this->m_fileHandle = CreateFileW(
+                    path16->c_str(),        // name of the write
+                    openMode,               // open for writing
+                    0,                      // do not share
+                    nullptr,                // default security
+                    OPEN_ALWAYS,            // open or create
+                    FILE_ATTRIBUTE_NORMAL,  // normal file
+                    nullptr                 // no attr. template
+                );
+
+                if ( INVALID_HANDLE_VALUE == this->m_fileHandle ) {
+                    this->m_fileHandle = nullptr;
+                    const auto err = GetLastError();
+                    return false;
+                }
+                else {
+                    return true;
+                }
+            }
+            virtual void close(void) {
+                if ( this->isOpen() ) {
+                    CloseHandle(this->m_fileHandle);
+                    this->m_fileHandle = nullptr;
+                }
+            }
+
+            virtual size_t read(uint8_t* const buf, const size_t bufSize) {
+                dalAbort("Not implemented");
+            }
+            virtual bool readText(std::string& buffer) {
+                dalAbort("Not implemented");
+            }
+
+            virtual bool write(const uint8_t* const buf, const size_t bufSize) {
+                if ( 0 == bufSize )
+                    return 0;
+                if ( !this->isOpen() )
+                    return 0;
+
+                DWORD bytesWritten = 0;
+
+                const auto bErrorFlag = WriteFile(
+                    this->m_fileHandle,   // open file handle
+                    buf,                  // start of data to write
+                    bufSize,              // number of bytes to write
+                    &bytesWritten,        // number of bytes that were written
+                    nullptr               // no overlapped structure
+                );
+
+                if ( FALSE == bErrorFlag ) {
+                    return 0;
+                }
+                else {
+                    return bytesWritten;
+                }
+            }
+            virtual bool write(const char* const str) {
+                return this->write(reinterpret_cast<const uint8_t*>(str), std::strlen(str));
+            }
+            virtual bool write(const std::string& str) {
+                return this->write(reinterpret_cast<const uint8_t*>(str.data()), str.size());
+            }
+
+            virtual size_t getSize(void) {
+                dalAbort("Not sensible");
+            }
+            virtual bool isOpen(void) {
+                return nullptr != this->m_fileHandle;
+            }
+            virtual bool seek(const size_t offset, const dal::Whence2 whence = dal::Whence2::beg) {
+                dalAbort("Not implemented");
+            }
+            virtual size_t tell(void) {
+                dalAbort("Not implemented");
+            }
+
+        };
+
+        class FileRead : public dal::IFileStream {
+
+        private:
+            HANDLE m_fileHandle = nullptr;
+
+        public:
+            ~FileRead(void) {
+                this->close();
+            }
+
+            virtual bool open(const char* const path, const dal::FileMode2 mode) {
+                const auto path16 = win::utf8_to_utf16(path);
+                if ( !path16 )
+                    return false;
+
+                this->close();
+
+                this->m_fileHandle = CreateFile(
+                    path16->c_str(),                              // file to open
+                    GENERIC_READ,                                 // open for reading
+                    FILE_SHARE_READ,                              // share for reading
+                    nullptr,                                      // default security
+                    OPEN_EXISTING,                                // existing file only
+                    FILE_ATTRIBUTE_NORMAL, // normal file
+                    nullptr                                       // no attr. template
+                );
+
+                if ( INVALID_HANDLE_VALUE == this->m_fileHandle ) {
+                    this->m_fileHandle = nullptr;
+                    return false;
+                }
+                else {
+                    return true;
+                }
+            }
+            virtual void close(void) {
+                if ( this->isOpen() ) {
+                    CloseHandle(this->m_fileHandle);
+                    this->m_fileHandle = nullptr;
+                }
+            }
+
+            virtual size_t read(uint8_t* const buf, const size_t bufSize) {
+                if ( nullptr == this->m_fileHandle )
+                    return 0;
+
+                OVERLAPPED ol = { 0 };
+                DWORD bytesRead = 0;
+
+                if ( FALSE == ReadFile(this->m_fileHandle, buf, bufSize, &bytesRead, nullptr) ) {
+                    const auto err = GetLastError();
+                    return 0;
+                }
+
+                return bytesRead;
+            }
+            virtual bool readText(std::string& buffer) {
+                const auto fileSize = this->getSize();
+                buffer.resize(fileSize);
+
+                const auto result = this->read(reinterpret_cast<uint8_t*>(buffer.data()), buffer.size());
+
+                return fileSize == result;
+            }
+
+            virtual bool write(const uint8_t* const buf, const size_t bufSize) {
+                dalAbort("not implemented");
+            }
+            virtual bool write(const char* const str) {
+                dalAbort("not implemented");
+        }
+            virtual bool write(const std::string& str) {
+                dalAbort("not implemented");
+            }
+
+            virtual size_t getSize(void) {
+                LARGE_INTEGER size;
+                if ( !GetFileSizeEx(this->m_fileHandle, &size) ) {
+                    return 0;
+                }
+                else {
+                    return size.QuadPart;
+                }
+            }
+            virtual bool isOpen(void) {
+                return nullptr != this->m_fileHandle;
+            }
+            virtual bool seek(const size_t offset, const dal::Whence2 whence = dal::Whence2::beg) {
+                dalAbort("Not implemented");
+            }
+            virtual size_t tell(void) {
+                dalAbort("Not implemented");
+            }
+
+        };
 
     }
 
@@ -966,8 +1268,24 @@ namespace dal {
         else if ( pathinfo.m_package.empty() ) {
             return { nullptr };
         }
-      
+
 #if defined(_WIN32)
+        switch ( mode ) {
+
+        case FileMode2::read:
+        case FileMode2::bread:
+            return fileopen_general<win::FileRead, win::makeWinResPath>(pathinfo, mode);
+
+        case FileMode2::write:
+        case FileMode2::bwrite:
+        case FileMode2::append:
+        case FileMode2::bappend:
+            return fileopen_general<win::FileCreated, win::makeWinResPath>(pathinfo, mode);
+
+        default:
+            return nullptr;
+
+        }
         return fileopen_general<STDFileStream, win::makeWinResPath>(pathinfo, mode);
 #elif defined(__ANDROID__)
         if ( PACKAGE_NAME_ASSET == pathinfo.m_package ) {
