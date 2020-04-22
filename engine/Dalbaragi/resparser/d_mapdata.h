@@ -123,7 +123,7 @@ namespace dal::v1 {
     public:
         glm::vec3 m_centerPos{ 0 };
         glm::vec3 m_deepColor{ 0 };
-        float m_width = 1.f, height = 1.f;
+        float m_width = 1.f, m_height = 1.f;
         float m_flowSpeed;
         float m_waveStreng;
         float m_darkestDepth;
@@ -161,6 +161,7 @@ namespace dal::v1 {
     public:
         std::vector<RenderUnit> m_renderUnits;
         std::vector<StaticActor> m_staticActors;
+        std::vector<WaterPlane> m_waters;
 
     };
 

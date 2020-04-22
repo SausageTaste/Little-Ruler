@@ -187,6 +187,26 @@ namespace {
         return begin;
     }
 
+    const uint8_t* parseWaterPlane(dal::v1::WaterPlane& info, const uint8_t* begin, const uint8_t* const end) {
+        constexpr int FBUF_SIZE = 12;
+        float fbuf[FBUF_SIZE];
+        begin = dal::assemble4BytesArray<float>(begin, fbuf, FBUF_SIZE);
+
+        info.m_centerPos = glm::vec3{ fbuf[0], fbuf[1], fbuf[2] };
+        info.m_deepColor = glm::vec3{ fbuf[3], fbuf[4], fbuf[5] };
+
+        info.m_width = fbuf[6];
+        info.m_height = fbuf[7];
+
+        info.m_flowSpeed = fbuf[8];
+        info.m_waveStreng = fbuf[9];
+        info.m_darkestDepth = fbuf[10];
+        info.m_reflectance = fbuf[11];
+
+        return begin;
+    }
+
+
 
     const uint8_t* parseMapChunkInfo(dal::v1::LevelData::ChunkData& info, const uint8_t* begin) {
         {
@@ -268,6 +288,14 @@ namespace dal {
                 for ( int32_t i = 0; i < num_static_actors; ++i ) {
                     header = parseStaticActor(info.m_staticActors[i], header, end);
                     info.m_staticActors[i].m_modelIndex = dal::makeInt4(header); header += 4;
+                }
+            }
+
+            {
+                const auto num_waters = dal::makeInt4(header); header += 4;
+                info.m_waters.resize(num_waters);
+                for ( int32_t i = 0; i < num_waters; ++i ) {
+                    header = parseWaterPlane(info.m_waters[i], header, end);
                 }
             }
         }

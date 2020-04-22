@@ -901,6 +901,23 @@ namespace dal {
             copyTransform(modelActor.m_actors.back().m_transform, sactorInfo.m_trans);
         }
 
+        const auto win_width = GlobalStateGod::getinst().getWinWidth();
+        const auto win_height = GlobalStateGod::getinst().getWinHeight();
+
+        for ( auto& waterInfo : mapInfo->m_waters ) {
+            dal::WaterRenderer::BuildInfo buildInfo;
+            buildInfo.m_centerPos = waterInfo.m_centerPos;
+            buildInfo.m_deepColor = waterInfo.m_deepColor;
+            buildInfo.m_width = waterInfo.m_width;
+            buildInfo.m_height = waterInfo.m_height;
+            buildInfo.m_flowSpeed = waterInfo.m_flowSpeed;
+            buildInfo.m_waveStreng = waterInfo.m_waveStreng;
+            buildInfo.m_darkestDepth = waterInfo.m_darkestDepth;
+            buildInfo.m_reflectance = waterInfo.m_reflectance;
+
+            map.m_waters.emplace_back(buildInfo, win_width, win_height);
+        }
+
         return map;
     }
 
