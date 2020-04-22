@@ -85,8 +85,9 @@ set(externtool_dir ${repoRoot_dir}/externtool)
 # Freetype
 if (NOT TARGET freetype)
     add_subdirectory(${extern_dir}/freetype2 ${CMAKE_CURRENT_BINARY_DIR}/freetype2)
-    target_link_libraries(dalbaragi_runtime PRIVATE freetype)
 endif()
+target_link_libraries(dalbaragi_runtime PRIVATE freetype)
+target_include_directories(dalbaragi_runtime PRIVATE ${extern_dir}/freetype2/include)
 
 # Lua
 if (NOT TARGET lua_static)
