@@ -279,6 +279,10 @@ namespace dal {
         {
             this->m_timer.setCapFPS(0);
             assertUserdataFolder();
+
+#ifdef _WIN32
+            system("chcp 65001");
+#endif
         }
 
         // Test
