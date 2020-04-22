@@ -8,6 +8,7 @@
 #include <d_logger.h>
 #include <d_pool.h>
 #include <d_filesystem.h>
+#include <d_mapparser.h>
 
 #include "u_objparser.h"
 #include "s_configs.h"
@@ -261,6 +262,54 @@ namespace {
             }
         }
 #endif
+    }
+
+    void copyMaterial(dal::Material& dst, const dal::v1::Material& src, dal::ResourceMaster& resMas, const std::string& packageName) {
+        dst.m_roughness = src.m_roughness;
+        dst.m_metallic = src.m_metallic;
+        dst.m_texScale = glm::vec2{ 1, 1 };
+
+        if ( !src.m_albedoMap.empty() ) {
+            if ( ':' == src.m_albedoMap.front() ) {
+                dst.m_diffuseMap = resMas.orderTexture((packageName + src.m_albedoMap).c_str(), true);
+            }
+            else {
+                dst.m_diffuseMap = resMas.orderTexture(src.m_albedoMap.c_str(), true);
+            }
+        }
+        if ( !src.m_roughnessMap.empty() ) {
+            if ( ':' == src.m_roughnessMap.front() ) {
+                dst.m_roughnessMap = resMas.orderTexture((packageName + src.m_roughnessMap).c_str(), false);
+            }
+            else {
+                dst.m_roughnessMap = resMas.orderTexture(src.m_roughnessMap.c_str(), false);
+            }
+        }
+        if ( !src.m_metallicMap.empty() ) {
+            if ( ':' == src.m_metallicMap.front() ) {
+                dst.m_metallicMap = resMas.orderTexture((packageName + src.m_metallicMap).c_str(), false);
+            }
+            else {
+                dst.m_metallicMap = resMas.orderTexture(src.m_metallicMap.c_str(), false);
+            }
+        }
+
+#if DAL_NORMAL_MAPPING
+        if ( !src.m_normalMap.empty() ) {
+            if ( ':' == src.m_normalMap.front() ) {
+                dst.m_normalMap = resMas.orderTexture((packageName + src.m_normalMap).c_str(), false);
+            }
+            else {
+                dst.m_normalMap = resMas.orderTexture(src.m_normalMap.c_str(), false);
+            }
+        }
+#endif
+    }
+
+    void copyTransform(dal::Transform& dst, const dal::v1::cpnt::Transform src) {
+        dst.setPos(src.m_pos);
+        dst.setQuat(src.m_quat);
+        dst.setScale(src.m_scale);
     }
 
 }
@@ -808,6 +857,48 @@ namespace dal {
             mapLight.mPos = light.m_pos;
             mapLight.m_color = light.m_color;
             mapLight.mMaxDistance = light.m_maxDist;
+        }
+
+        return map;
+    }
+
+    MapChunk2 ResourceMaster::loadChunk(const char* const respath) {
+        const auto respathParsed = parseResPath(respath);
+
+        std::vector<uint8_t> buffer;
+        const auto loadResult = loadFileBuffer(respath, buffer);
+        dalAssert(loadResult);
+
+        auto mapInfo = parseMapChunk_v1(buffer.data(), buffer.size());
+        if ( !mapInfo ) {
+            dalAbort(fmt::format("failed to parse map chunk: {}", respath));
+        }
+
+        MapChunk2 map;
+
+        for ( auto& unitInfo : mapInfo->m_renderUnits ) {
+            auto model = std::make_shared<ModelStatic>();
+
+            auto& unit = model->newRenderUnit();
+            unit.m_mesh.buildData(
+                unitInfo.m_mesh.m_vertices.data(),
+                unitInfo.m_mesh.m_uvcoords.data(),
+                unitInfo.m_mesh.m_normals.data(),
+                unitInfo.m_mesh.m_vertices.size() / 3
+            );
+
+            copyMaterial(unit.m_material, unitInfo.m_material, *this, respathParsed.m_package);
+            model->setBounding(std::unique_ptr<ICollider>{new ColAABB{ unitInfo.m_aabb.m_min, unitInfo.m_aabb.m_max }});
+
+            map.m_staticActors.emplace_back(model);
+        }
+
+        for ( auto& sactorInfo : mapInfo->m_staticActors ) {
+            auto& modelActor = map.m_staticActors[sactorInfo.m_modelIndex];
+            modelActor.m_actors.emplace_back();
+
+            modelActor.m_actors.back().m_name = sactorInfo.m_name;
+            copyTransform(modelActor.m_actors.back().m_transform, sactorInfo.m_trans);
         }
 
         return map;

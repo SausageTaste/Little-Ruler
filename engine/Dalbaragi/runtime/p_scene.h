@@ -37,6 +37,38 @@ namespace dal {
 
 namespace dal {
 
+    class LevelData {
+
+    public:
+        struct ChunkData {
+            std::string m_name;
+            AABB m_aabb;
+            glm::vec3 m_offsetPos;
+        };
+
+    private:
+        std::vector<ChunkData> m_chunks;
+
+        std::string m_respath;
+
+    public:
+        ChunkData& at(const size_t index) {
+            return this->m_chunks.at(index);
+        }
+        ChunkData& newChunk(void);
+        void clear(void);
+        size_t size(void) const;
+        void reserve(const size_t s);
+
+
+        const std::string& respath(void) const {
+            return this->m_respath;
+        }
+        void setRespath(const std::string& respath);
+
+    };
+
+
     class SceneGraph {
 
         //////// Attribs ////////
@@ -45,6 +77,7 @@ namespace dal {
         ResourceMaster& m_resMas;
         PhysicsWorld& m_phyworld;
 
+        LevelData m_activeLevel;
         std::list<MapChunk2> m_mapChunks2;
 
     public:
@@ -74,6 +107,10 @@ namespace dal {
         std::optional<RayCastingResult> doRayCasting(const Segment& ray);
 
         void onResize(const unsigned int width, const unsigned int height);
+
+    private:
+        void openLevel(const char* const respath);
+        void openChunk(const char* const respath);
 
     };
 

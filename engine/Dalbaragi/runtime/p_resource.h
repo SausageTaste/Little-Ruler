@@ -22,6 +22,11 @@ namespace dal {
             std::shared_ptr<const ModelStatic> m_model;
             std::vector<ActorInfo> m_actors;
 
+            StaticModelActor(std::shared_ptr<const ModelStatic>&& model) 
+                : m_model(std::move(model)) 
+            {
+
+            }
             StaticModelActor(std::shared_ptr<const ModelStatic>&& model, std::vector<ActorInfo>&& actors)
                 : m_model(std::move(model))
                 , m_actors(std::move(actors))
@@ -30,7 +35,7 @@ namespace dal {
             }
         };
 
-    private:
+    public:
         std::vector<StaticModelActor> m_staticActors;
         std::vector<WaterRenderer> m_waters;
         std::vector<PointLight> m_plights;
@@ -130,6 +135,7 @@ namespace dal {
         std::shared_ptr<const CubeMap> orderCubeMap(const std::array<std::string, 6>& respathes, const bool gammaCorrect);
 
         MapChunk2 loadMap(const char* const respath);
+        MapChunk2 loadChunk(const char* const respath);
 
     private:
         Package& orderPackage(const std::string& packName);

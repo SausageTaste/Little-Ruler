@@ -5,6 +5,8 @@
 
 #include <d_logger.h>
 #include <d_modifiers.h>
+#include <d_filesystem.h>
+#include <d_mapparser.h>
 
 #include "s_configs.h"
 #include "g_charastate.h"
@@ -221,6 +223,32 @@ namespace {
 }
 
 
+//
+namespace dal {
+
+    LevelData::ChunkData& LevelData::newChunk(void) {
+        return this->m_chunks.emplace_back();
+    }
+
+    void LevelData::clear(void) {
+        this->m_chunks.clear();
+    }
+
+    size_t LevelData::size(void) const {
+        return this->m_chunks.size();
+    }
+
+    void LevelData::reserve(const size_t s) {
+        this->m_chunks.reserve(s);
+    }
+
+    void LevelData::setRespath(const std::string& respath) {
+        this->m_respath = respath;
+    }
+
+}
+
+
 // SceneGraph
 namespace dal {
 
@@ -233,10 +261,19 @@ namespace dal {
             GlobalStateGod::getinst().setWinSize(winWidth, winHeight);
         }
 
-        //this->loadMap("asset::map/water_bowl.dlb");
+        // Old map
+        {
+            //auto map = this->m_resMas.loadMap("asset::map/water_n_slope.dlb");
+            //this->m_mapChunks2.push_back(std::move(map));
+        }
 
-        auto map = this->m_resMas.loadMap("asset::map/water_n_slope.dlb");
-        this->m_mapChunks2.push_back(std::move(map));
+        // New map
+        {
+            this->openLevel("asset::demo_dal_map.dlb");
+            const auto respath = parseResPath(this->m_activeLevel.respath());
+            const auto chunkPath = respath.m_package + "::" + respath.m_intermPath + this->m_activeLevel.at(0).m_name + ".dmc";
+            this->openChunk(chunkPath.c_str());
+        }
 
         // Player
         {
@@ -431,6 +468,38 @@ namespace dal {
         for ( auto& map : m_mapChunks2 ) {
             map.onWinResize(width, height);
         }
+    }
+
+    // Private
+
+    void SceneGraph::openLevel(const char* const respath) {
+        std::vector<uint8_t> buffer;
+        {
+            auto file = dal::fileopen(respath, dal::FileMode2::bread);
+            dalAssertm(file, "failed to open file: {}"_format(respath));
+            buffer.resize(file->getSize());
+            const auto readSize = file->read(buffer.data(), buffer.size());
+            dalAssert(0 != readSize);
+        }
+
+        const auto map = dal::parseLevel_v1(buffer.data(), buffer.size());
+        dalAssertm(map, "failed to load level: {}"_format(respath));
+
+        this->m_activeLevel.setRespath(respath);
+        this->m_activeLevel.clear();
+        this->m_activeLevel.reserve(map->m_chunks.size());
+        for ( const auto& chunkInfo : map->m_chunks ) {
+            auto& chunk = this->m_activeLevel.newChunk();
+
+            chunk.m_aabb.set(chunkInfo.m_aabb.m_min, chunkInfo.m_aabb.m_max);
+            chunk.m_name = chunkInfo.m_name;
+            chunk.m_offsetPos = chunkInfo.m_offsetPos;
+        }
+    }
+
+    void SceneGraph::openChunk(const char* const respath) {
+        auto map = this->m_resMas.loadChunk(respath);
+        this->m_mapChunks2.push_back(std::move(map));
     }
 
 }

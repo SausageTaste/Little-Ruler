@@ -12,69 +12,14 @@
 
 namespace dal::v1 {
 
-    struct Mesh {
-        std::vector<float> m_vertices, m_uvCoords, m_normals;
+    // Model
+
+    class AABB {
+
+    public:
+        glm::vec3 m_min, m_max;
+
     };
-
-    struct Material {
-        std::string m_diffuseMap, m_roughnessMap, m_metallicMap;
-        glm::vec2 m_texScale;
-        float m_roughness, m_metallic;
-    };
-
-    struct RenderUnit {
-        Material m_material;
-        Mesh m_mesh;
-    };
-
-    struct Transform {
-        glm::vec3 m_pos;
-        glm::quat m_rot;
-        float m_scale;
-    };
-
-    struct StaticActor {
-        std::string m_name;
-        Transform m_trans;
-    };
-
-    struct ModelEmbedded {
-        std::string m_name;
-        std::vector<RenderUnit> m_renderUnits;
-        std::vector<StaticActor> m_staticActors;
-        bool m_detailedCollider, m_hasRotatingActor;
-    };
-
-    struct ModelImported {
-        std::string m_resID;
-        std::vector<StaticActor> m_staticActors;
-        bool m_detailedCollider;
-    };
-
-    struct WaterPlane {
-        glm::vec3 m_pos, m_deepColor;
-        float m_width, m_height, m_flowSpeed, m_waveStrength;
-        float m_darkestDepth, m_reflectance;
-    };
-
-    struct PointLight {
-        glm::vec3 m_color, m_pos;
-        float m_maxDistance;
-    };
-
-    struct MapChunkInfo {
-        std::vector<ModelEmbedded> m_embeddedModels;
-        std::vector<ModelImported> m_importedModels;
-        std::vector<WaterPlane> m_waterPlanes;
-        std::vector<PointLight> m_plights;
-    };
-
-}
-
-
-namespace dal::v2 {
-
-    // Render info
 
     class Material {
 
@@ -82,33 +27,19 @@ namespace dal::v2 {
         std::string m_albedoMap;
         std::string m_roughnessMap;
         std::string m_metallicMap;
+        std::string m_normalMap;
         float m_roughness = 0.5f;
         float m_metallic = 1.f;
 
     };
 
-    class IMesh {
-
-    public:
-        virtual ~IMesh(void) = default;
-
-        virtual size_t numVertices(void) const = 0;
-        virtual const float* vertices(void) const = 0;  // Size is 3 * numVertices();
-        virtual const float* uvcoords(void) const = 0;  // Size is 2 * numVertices();
-        virtual const float* normals(void) const = 0;   // Size is 3 * numVertices();
-
-    };
-
-    class MeshRaw : IMesh {
+    class Mesh {
 
     public:
         std::vector<float> m_vertices, m_uvcoords, m_normals;
 
     public:
-        virtual size_t numVertices(void) const override;
-        virtual const float* vertices(void) const override;
-        virtual const float* uvcoords(void) const override;
-        virtual const float* normals(void) const override;
+        size_t numVertices(void) const;
 
     private:
         bool checkSizeValidity(void) const;
@@ -118,16 +49,9 @@ namespace dal::v2 {
     class RenderUnit {
 
     public:
-        std::unique_ptr<IMesh> m_mesh;
+        Mesh m_mesh;
         Material m_material;
-
-    };
-
-    class RenderUnitRaw {
-
-    public:
-        MeshRaw m_mesh;
-        Material m_material;
+        AABB m_aabb;
 
     };
 
@@ -141,6 +65,7 @@ namespace dal::v2 {
 
     class ModelImported {
 
+    public:
         std::string m_resourceID;
 
     };
@@ -173,11 +98,11 @@ namespace dal::v2 {
         cpnt::Model
     >;
 
-    class StaticModelActor {
+    class StaticActor {
 
     public:
         std::string m_name;
-        cpnt::Model m_modelName;
+        int32_t m_modelIndex = -1;
         cpnt::Transform m_trans;
 
     };
@@ -217,17 +142,25 @@ namespace dal::v2 {
 
     // Map
 
+    class LevelData {
+
+    public:
+        struct ChunkData {
+            std::string m_name;
+            AABB m_aabb;
+            glm::vec3 m_offsetPos;
+        };
+
+    public:
+        std::vector<ChunkData> m_chunks;
+
+    };
+
     class MapChunk {
 
     public:
-        std::vector<ModelEmbeded> m_modelEmbeded;
-        std::vector<ModelImported> m_modelImported;
-
-        std::vector<StaticModelActor> m_staticModelActors;
-        std::vector<DynamicActor> m_dynamicActors;
-
-        std::vector<WaterPlane> m_waters;
-        std::vector<PointLight> m_plights;
+        std::vector<RenderUnit> m_renderUnits;
+        std::vector<StaticActor> m_staticActors;
 
     };
 
