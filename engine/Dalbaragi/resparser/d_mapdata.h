@@ -131,12 +131,23 @@ namespace dal::v1 {
 
     };
 
+    struct ILight {
+        std::string m_name;
+        glm::vec3 m_color{ 1, 1, 1 };
+        float m_intensity = 1000;
+        bool m_hasShadow = false;
+    };
+
     class PointLight {
 
     public:
         glm::vec3 m_pos{ 0 }, m_color{ 0 };
         float m_maxDist = 5.f;
 
+    };
+
+    struct DirectionalLight : public ILight {
+        glm::vec3 m_direction{ 0, -1, 0 };
     };
 
 
@@ -153,6 +164,7 @@ namespace dal::v1 {
 
     public:
         std::vector<ChunkData> m_chunks;
+        std::vector<DirectionalLight> m_dlights;
 
     };
 

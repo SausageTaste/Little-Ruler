@@ -207,6 +207,38 @@ namespace {
     }
 
 
+    const uint8_t* parseLight(dal::v1::ILight& info, const uint8_t* begin, const uint8_t* const end) {
+        info.m_name = reinterpret_cast<const char*>(begin);
+        begin += info.m_name.size() + 1;
+
+        info.m_hasShadow = dal::makeBool1(begin); begin += 1;
+
+        {
+            constexpr int FBUF_SIZE = 4;
+            float fbuf[FBUF_SIZE];
+            begin = dal::assemble4BytesArray<float>(begin, fbuf, FBUF_SIZE);
+
+            info.m_color = glm::vec3{ fbuf[0], fbuf[1], fbuf[2] };
+            info.m_intensity = fbuf[3];
+        }
+
+        return begin;
+    }
+
+    const uint8_t* parseDlight(dal::v1::DirectionalLight& info, const uint8_t* begin, const uint8_t* const end) {
+        begin = parseLight(info, begin, end);
+
+        {
+            constexpr int FBUF_SIZE = 3;
+            float fbuf[FBUF_SIZE];
+            begin = dal::assemble4BytesArray<float>(begin, fbuf, FBUF_SIZE);
+
+            info.m_direction = glm::vec3{ fbuf[0], fbuf[1], fbuf[2] };
+        }
+
+        return begin;
+    }
+
 
     const uint8_t* parseMapChunkInfo(dal::v1::LevelData::ChunkData& info, const uint8_t* begin) {
         {
@@ -242,6 +274,14 @@ namespace dal {
         const uint8_t* const end = buf + bufSize;
 
         v1::LevelData info;
+
+        {
+            const auto num_dlights = dal::makeInt4(header); header += 4;
+            info.m_dlights.resize(num_dlights);
+            for ( int32_t i = 0; i < num_dlights; ++i ) {
+                header = parseDlight(info.m_dlights[i], header, end);
+            }
+        }
 
         {
             const auto num_chunks = dal::makeInt4(header); header += 4;
