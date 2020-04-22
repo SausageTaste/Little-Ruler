@@ -239,6 +239,22 @@ namespace {
         return begin;
     }
 
+    const uint8_t* parsePlight(dal::v1::PointLight& info, const uint8_t* begin, const uint8_t* const end) {
+        begin = parseLight(info, begin, end);
+
+        {
+            constexpr int FBUF_SIZE = 5;
+            float fbuf[FBUF_SIZE];
+            begin = dal::assemble4BytesArray<float>(begin, fbuf, FBUF_SIZE);
+
+            info.m_pos = glm::vec3{ fbuf[0], fbuf[1], fbuf[2] };
+            info.m_maxDist = fbuf[3];
+            info.m_halfIntenseDist = fbuf[4];
+        }
+
+        return begin;
+    }
+
 
     const uint8_t* parseMapChunkInfo(dal::v1::LevelData::ChunkData& info, const uint8_t* begin) {
         {
@@ -336,6 +352,14 @@ namespace dal {
                 info.m_waters.resize(num_waters);
                 for ( int32_t i = 0; i < num_waters; ++i ) {
                     header = parseWaterPlane(info.m_waters[i], header, end);
+                }
+            }
+
+            {
+                const auto num_plights = dal::makeInt4(header); header += 4;
+                info.m_plights.resize(num_plights);
+                for ( int32_t i = 0; i < num_plights; ++i ) {
+                    header = parsePlight(info.m_plights[i], header, end);
                 }
             }
         }

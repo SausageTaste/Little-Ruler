@@ -138,12 +138,10 @@ namespace dal::v1 {
         bool m_hasShadow = false;
     };
 
-    class PointLight {
-
-    public:
-        glm::vec3 m_pos{ 0 }, m_color{ 0 };
-        float m_maxDist = 5.f;
-
+    struct PointLight : public ILight {
+        glm::vec3 m_pos{ 0 };
+        float m_maxDist = 5;
+        float m_halfIntenseDist = 0;
     };
 
     struct DirectionalLight : public ILight {
@@ -174,6 +172,7 @@ namespace dal::v1 {
         std::vector<RenderUnit> m_renderUnits;
         std::vector<StaticActor> m_staticActors;
         std::vector<WaterPlane> m_waters;
+        std::vector<PointLight> m_plights;
 
     };
 
