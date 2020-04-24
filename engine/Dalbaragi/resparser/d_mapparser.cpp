@@ -255,6 +255,26 @@ namespace {
         return begin;
     }
 
+    const uint8_t* parseSlight(dal::v1::SpotLight& info, const uint8_t* begin, const uint8_t* const end) {
+        begin = parseLight(info, begin, end);
+
+        {
+            // 2 vec3, 4 float
+            std::array<float, 2 * 3 + 4> fbuf;
+            begin = dal::assemble4BytesArray<float>(begin, fbuf.data(), fbuf.size());
+
+            info.m_pos = glm::vec3{ fbuf[0], fbuf[1], fbuf[2] };
+            info.m_maxDist = fbuf[3];
+            info.m_halfIntenseDist = fbuf[4];
+
+            info.m_direction = glm::vec3{ fbuf[5], fbuf[6], fbuf[7] };
+            info.m_spotDegree = fbuf[8];
+            info.m_spotBlend = fbuf[9];
+        }
+
+        return begin;
+    }
+
 
     const uint8_t* parseMapChunkInfo(dal::v1::LevelData::ChunkData& info, const uint8_t* begin) {
         {
@@ -360,6 +380,14 @@ namespace dal {
                 info.m_plights.resize(num_plights);
                 for ( int32_t i = 0; i < num_plights; ++i ) {
                     header = parsePlight(info.m_plights[i], header, end);
+                }
+            }
+
+            {
+                const auto num_slights = dal::makeInt4(header); header += 4;
+                info.m_slights.resize(num_slights);
+                for ( int32_t i = 0; i < num_slights; ++i ) {
+                    header = parseSlight(info.m_slights[i], header, end);
                 }
             }
         }

@@ -148,6 +148,12 @@ namespace dal::v1 {
         glm::vec3 m_direction{ 0, -1, 0 };
     };
 
+    struct SpotLight : public ILight {
+        glm::vec3 m_pos{ 0 }, m_direction{ 0, -1, 0 };
+        float m_maxDist, m_halfIntenseDist;
+        float m_spotDegree, m_spotBlend;
+    };
+
 
     // Map
 
@@ -172,7 +178,9 @@ namespace dal::v1 {
         std::vector<RenderUnit> m_renderUnits;
         std::vector<StaticActor> m_staticActors;
         std::vector<WaterPlane> m_waters;
+
         std::vector<PointLight> m_plights;
+        std::vector<SpotLight> m_slights;
 
     };
 
