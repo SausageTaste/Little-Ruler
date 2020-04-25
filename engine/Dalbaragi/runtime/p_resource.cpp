@@ -505,6 +505,10 @@ namespace dal {
                     auto& cubemap = this->m_envmap[actor.m_envmapIndex];
                     cubemap.getCubemap()->sendUniform(uniloc.i_envmap.envmap());
                     uniloc.i_envmap.envmapPos(cubemap.m_pos);
+                    uniloc.i_envmap.numPlanes(cubemap.m_volume.size());
+                    for ( size_t i = 0; i < cubemap.m_volume.size(); ++i ) {
+                        uniloc.i_envmap.plane(i, cubemap.m_volume[i].getCoeff());
+                    }
                 }
                 else {
                     uniloc.i_envmap.envmap().setFlagHas(false);

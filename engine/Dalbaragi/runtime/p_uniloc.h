@@ -46,6 +46,9 @@ namespace dal {
         GLint u_envmapPos = -1;
         SamplerInterf u_envmap;
 
+        GLint u_numPlanes = -1;
+        GLint u_planes = -1;
+
     public:
         void set(const GLuint shader);
 
@@ -58,6 +61,16 @@ namespace dal {
 
         auto& envmap(void) const {
             return this->u_envmap;
+        }
+
+        void numPlanes(const int x) const {
+            glUniform1i(this->u_numPlanes, x);
+        }
+        void plane(const int index, const float x, const float y, const float z, const float w) const {
+            glUniform4f(this->u_planes, x, y, z, w);
+        }
+        void plane(const int index, const glm::vec4& v) const {
+            this->plane(this->u_planes, v.x, v.y, v.z, v.w);
         }
 
     };
