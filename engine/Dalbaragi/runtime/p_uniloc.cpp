@@ -131,6 +131,7 @@ namespace dal {
 
         this->u_plight_poses = getUniloc(shader, "u_plight_poses");
         this->u_plight_colors = getUniloc(shader, "u_plight_colors");
+        this->u_plight_maxDists = getUniloc(shader, "u_plight_maxDist");
 
         this->u_dlight_direcs = getUniloc(shader, "u_dlight_direcs");
         this->u_dlight_colors = getUniloc(shader, "u_dlight_colors");

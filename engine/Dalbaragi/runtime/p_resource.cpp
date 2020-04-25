@@ -918,6 +918,14 @@ namespace dal {
             map.m_waters.emplace_back(buildInfo, win_width, win_height);
         }
 
+        for ( auto& plightInfo : mapInfo->m_plights ) {
+            auto& plight = map.m_plights.emplace_back();
+
+            plight.mPos = plightInfo.m_pos;
+            plight.m_color = plightInfo.m_color * plightInfo.m_intensity;
+            plight.mMaxDistance = plightInfo.m_maxDist;
+        }
+
         return map;
     }
 

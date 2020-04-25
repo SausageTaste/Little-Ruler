@@ -9,6 +9,7 @@ uniform highp int       u_slightCount;
 
 uniform       vec3      u_plight_poses[3];
 uniform       vec3      u_plight_colors[3];
+uniform       float     u_plight_maxDist[3];
 
 uniform       vec3      u_dlight_direcs[3];
 uniform       vec3      u_dlight_colors[3];
@@ -28,6 +29,17 @@ uniform       sampler2D u_slight_shadowmap[3];
 
 float _calcDistAttenu(float fragDist, float constant, float linear, float quadratic) {
     return 1.0 / (constant + linear * fragDist + quadratic * (fragDist * fragDist));
+}
+
+float _calcHalfDistAttenu(float fragDist, float halfIntensityDist) {
+    float quadratic = 1.0 / (halfIntensityDist * halfIntensityDist);
+    return _calcDistAttenu(fragDist, 1.0, 0.0, quadratic);
+}
+
+float _calcMaxDistFactor(float fragDist, float maxDist) {
+    // Light starts to disapear from (maxDist - BLEND_LEN).
+    const float BLEND_LEN = 0.5;
+    return clamp( (maxDist - fragDist) / BLEND_LEN, 0.0, 1.0 );
 }
 
 
@@ -84,7 +96,8 @@ vec3 calcToLight_dlight(int i) {
 // Point
 
 vec3 calcRadiance_plight(int i, vec3 fragPos) {
-    float attenFactor = _calcDistAttenu(distance(fragPos, u_plight_poses[i]), 1.0, 0.09, 0.032);
+    float fragDist = distance(fragPos, u_plight_poses[i]);
+    float attenFactor = _calcMaxDistFactor(fragDist, u_plight_maxDist[i]) * _calcDistAttenu(distance(fragPos, u_plight_poses[i]), 1.0, 0.0, 1.0);
     return u_plight_colors[i] * attenFactor;
 }
 

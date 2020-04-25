@@ -76,6 +76,7 @@ namespace dal {
 
         GLint u_plight_poses = -1;
         GLint u_plight_colors = -1;
+        GLint u_plight_maxDists = -1;
 
         GLint u_dlight_direcs = -1;
         GLint u_dlight_colors = -1;
@@ -128,6 +129,9 @@ namespace dal {
         }
         void plight_color(const unsigned i, const glm::vec3& v) const {
             this->plight_color(i, v.x, v.y, v.z);
+        }
+        void plight_maxDist(const unsigned i, const float x) const {
+            glUniform1f(this->u_plight_maxDists + i, x);
         }
 
         void dlight_direc(const unsigned i, const float x, const float y, const float z) const {
