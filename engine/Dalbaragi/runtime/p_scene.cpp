@@ -395,26 +395,9 @@ namespace dal {
     void SceneGraph::render_animated(const UniRender_Animated& uniloc) {
         this->sendDlightUniform(uniloc.i_lighting);
 
-        for ( auto& map : this->m_mapChunks2 ) {
-            map.render_animated(uniloc);
-        }
-
         if ( !this->m_mapChunks2.empty()  ) {
-            if ( this->m_mapChunks2.back().m_plights.size() <= 3 ) {
-                const auto& plights = this->m_mapChunks2.back().m_plights;
-                uniloc.i_lighting.plightCount(plights.size());
-                for ( size_t i = 0; i < plights.size(); ++i ) {
-                    plights[i].sendUniform(i, uniloc.i_lighting);
-                }
-            }
-
-            if ( this->m_mapChunks2.back().m_slights.size() <= 3 ) {
-                const auto& slights = this->m_mapChunks2.back().m_slights;
-                uniloc.i_lighting.slightCount(slights.size());
-                for ( size_t i = 0; i < slights.size(); ++i ) {
-                    slights[i].sendUniform(i, uniloc.i_lighting);
-                }
-            }
+            this->m_mapChunks2.back().sendPlightUniforms(uniloc.i_lighting);
+            this->m_mapChunks2.back().sendSlightUniforms(uniloc.i_lighting);
         }
 
         const auto viewAnimated = this->m_entities.view<cpnt::Transform, cpnt::AnimatedModel>();
