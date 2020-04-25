@@ -501,6 +501,15 @@ namespace dal {
 
         for ( const auto& [model, actors] : this->m_staticActors ) {
             for ( const auto& actor : actors ) {
+                if ( -1 != actor.m_envmapIndex ) {
+                    auto& cubemap = this->m_envmap[actor.m_envmapIndex];
+                    cubemap.getCubemap()->sendUniform(uniloc.i_envmap.envmap());
+                    uniloc.i_envmap.envmapPos(cubemap.m_pos);
+                }
+                else {
+                    uniloc.i_envmap.envmap().setFlagHas(false);
+                }
+
                 uniloc.modelMat(actor.m_transform.getMat());
                 model->render(uniloc);
             }
@@ -985,6 +994,7 @@ namespace dal {
 
             modelActor.m_actors.back().m_name = sactorInfo.m_name;
             copyTransform(modelActor.m_actors.back().m_transform, sactorInfo.m_trans);
+            modelActor.m_actors.back().m_envmapIndex = sactorInfo.m_envmapIndex;
         }
 
         const auto win_width = GlobalStateGod::getinst().getWinWidth();

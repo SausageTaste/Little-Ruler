@@ -2,6 +2,7 @@
 
 #include <string>
 #include <vector>
+#include <array>
 #include <memory>
 
 #include <fmt/format.h>
@@ -178,9 +179,7 @@ namespace {
             return this->m_cubemap;
         }
 
-    } g_cubemap;
-
-    const glm::vec3 ENVMAP_POS{ 6, 2, -5 };
+    };
 
 }
 
@@ -362,7 +361,6 @@ namespace dal {
 
         // Init
         {
-            g_cubemap.init();
             g_skyRenderer.init();
         }
 
@@ -501,8 +499,7 @@ namespace dal {
             uniloc.viewMat(this->m_mainCamera->getViewMat());
             uniloc.viewPos(this->m_mainCamera->m_pos);
             uniloc.i_lighting.baseAmbient(this->m_baseAmbientColor);
-            g_cubemap.getCubemap()->sendUniform(uniloc.i_envmap.envmap());
-            uniloc.i_envmap.envmapPos(ENVMAP_POS);
+            uniloc.i_envmap.envmap().setFlagHas(false);
 
             for ( auto water : waters ) {
                 {
@@ -527,8 +524,7 @@ namespace dal {
             uniloc.viewMat(this->m_mainCamera->getViewMat());
             uniloc.viewPos(this->m_mainCamera->m_pos);
             uniloc.i_lighting.baseAmbient(this->m_baseAmbientColor);
-            g_cubemap.getCubemap()->sendUniform(uniloc.i_envmap.envmap());
-            uniloc.i_envmap.envmapPos(ENVMAP_POS);
+            uniloc.i_envmap.envmap().setFlagHas(false);
 
             for ( auto water : waters ) {
                 {
@@ -550,63 +546,69 @@ namespace dal {
     }
 
     void RenderMaster::render_onCubemap(void) {
-        std::vector<glm::mat4> viewMats = {
-            glm::lookAt(ENVMAP_POS, ENVMAP_POS + glm::vec3(1.0, 0.0, 0.0), glm::vec3(0.0, -1.0, 0.0)),
-            glm::lookAt(ENVMAP_POS, ENVMAP_POS + glm::vec3(-1.0, 0.0, 0.0), glm::vec3(0.0, -1.0, 0.0)),
-            glm::lookAt(ENVMAP_POS, ENVMAP_POS + glm::vec3(0.0, 1.0, 0.0), glm::vec3(0.0, 0.0, 1.0)),
-            glm::lookAt(ENVMAP_POS, ENVMAP_POS + glm::vec3(0.0, -1.0, 0.0), glm::vec3(0.0, 0.0, -1.0)),
-            glm::lookAt(ENVMAP_POS, ENVMAP_POS + glm::vec3(0.0, 0.0, 1.0), glm::vec3(0.0, -1.0, 0.0)),
-            glm::lookAt(ENVMAP_POS, ENVMAP_POS + glm::vec3(0.0, 0.0, -1.0), glm::vec3(0.0, -1.0, 0.0))
-        };
-        const auto projMat = glm::perspective(glm::radians(90.f), 1.f, 0.01f, 1000.f);
+        for ( auto& m : this->m_scene.m_mapChunks2 ) {
+            for ( auto& e : m.m_envmap ) {
+                std::array<glm::mat4, 6> viewMats = {
+                    glm::lookAt(e.m_pos, e.m_pos + glm::vec3(1.0, 0.0, 0.0), glm::vec3(0.0, -1.0, 0.0)),
+                    glm::lookAt(e.m_pos, e.m_pos + glm::vec3(-1.0, 0.0, 0.0), glm::vec3(0.0, -1.0, 0.0)),
+                    glm::lookAt(e.m_pos, e.m_pos + glm::vec3(0.0, 1.0, 0.0), glm::vec3(0.0, 0.0, 1.0)),
+                    glm::lookAt(e.m_pos, e.m_pos + glm::vec3(0.0, -1.0, 0.0), glm::vec3(0.0, 0.0, -1.0)),
+                    glm::lookAt(e.m_pos, e.m_pos + glm::vec3(0.0, 0.0, 1.0), glm::vec3(0.0, -1.0, 0.0)),
+                    glm::lookAt(e.m_pos, e.m_pos + glm::vec3(0.0, 0.0, -1.0), glm::vec3(0.0, -1.0, 0.0))
+                };
+                const auto projMat = glm::perspective(glm::radians(90.f), 1.f, 0.01f, 1000.f);
 
-        g_cubemap.bindFbuf();
-        g_cubemap.clearFaces();
+                e.bindFbuf();
+                e.clearFaces();
 
-        {
-            const auto& uniloc = this->m_shader.useSkybox();
+                {
+                    const auto& uniloc = this->m_shader.useSkybox();
 
-            uniloc.m_geometry.projectMat(projMat);
-            uniloc.fogColor(this->m_skyColor);
+                    uniloc.m_geometry.projectMat(projMat);
+                    uniloc.fogColor(this->m_skyColor);
 
-            for ( unsigned i = 0; i < 6; ++i ) {
-                g_cubemap.readyFace(i);
-                uniloc.m_geometry.viewMat(viewMats[i]);
-                g_skyRenderer.render(uniloc, *this->m_skyboxTex);
+                    for ( unsigned i = 0; i < 6; ++i ) {
+                        e.readyFace(i);
+                        uniloc.m_geometry.viewMat(viewMats[i]);
+                        g_skyRenderer.render(uniloc, *this->m_skyboxTex);
+                    }
+                }
+
+                {
+                    auto& uniloc = this->m_shader.useStatic();
+
+                    uniloc.projMat(projMat);
+                    uniloc.viewPos(e.m_pos);
+                    uniloc.i_lighting.baseAmbient(this->m_baseAmbientColor);
+                    uniloc.i_envmap.envmap().setFlagHas(false);
+
+                    for ( unsigned i = 0; i < 6; ++i ) {
+                        e.readyFace(i);
+                        uniloc.viewMat(viewMats[i]);
+                        this->m_scene.render_static(uniloc);
+                    }
+                }
+
+                {
+                    auto& uniloc = this->m_shader.useAnimated();
+
+                    uniloc.projMat(projMat);
+                    uniloc.viewPos(e.m_pos);
+                    uniloc.i_lighting.baseAmbient(this->m_baseAmbientColor);
+                    uniloc.i_envmap.envmap().setFlagHas(false);
+
+                    for ( unsigned i = 0; i < 6; ++i ) {
+                        e.readyFace(i);
+                        uniloc.viewMat(viewMats[i]);
+                        this->m_scene.render_animated(uniloc);
+                    }
+                }
+
+                e.unbindFbuf(this->m_winWidth, this->m_winHeight);
             }
         }
 
-        {
-            auto& uniloc = this->m_shader.useStatic();
-
-            uniloc.projMat(projMat);
-            uniloc.viewPos(ENVMAP_POS);
-            uniloc.i_lighting.baseAmbient(this->m_baseAmbientColor);
-            uniloc.i_envmap.envmap().setFlagHas(false);
-
-            for ( unsigned i = 0; i < 6; ++i ) {
-                g_cubemap.readyFace(i);
-                uniloc.viewMat(viewMats[i]);
-                this->m_scene.render_static(uniloc);
-            }
-        }
-
-        {
-            auto& uniloc = this->m_shader.useAnimated();
-
-            uniloc.projMat(projMat);
-            uniloc.viewPos(ENVMAP_POS);
-            uniloc.i_lighting.baseAmbient(this->m_baseAmbientColor);
-            uniloc.i_envmap.envmap().setFlagHas(false);
-
-            for ( unsigned i = 0; i < 6; ++i ) {
-                g_cubemap.readyFace(i);
-                uniloc.viewMat(viewMats[i]);
-                this->m_scene.render_animated(uniloc);
-            }
-        }
-
-        g_cubemap.unbindFbuf(this->m_winWidth, this->m_winHeight);
+       
     }
 
     void RenderMaster::render_onFbuf(void) {
@@ -620,8 +622,7 @@ namespace dal {
             uniloc.viewMat(this->m_mainCamera->getViewMat());
             uniloc.viewPos(this->m_mainCamera->m_pos);
             uniloc.i_lighting.baseAmbient(this->m_baseAmbientColor);
-            g_cubemap.getCubemap()->sendUniform(uniloc.i_envmap.envmap());
-            uniloc.i_envmap.envmapPos(ENVMAP_POS);
+            uniloc.i_envmap.envmap().setFlagHas(false);
 
             this->m_scene.render_static(uniloc);
         }
@@ -634,8 +635,7 @@ namespace dal {
             uniloc.viewMat(this->m_mainCamera->getViewMat());
             uniloc.viewPos(this->m_mainCamera->m_pos);
             uniloc.i_lighting.baseAmbient(this->m_baseAmbientColor);
-            g_cubemap.getCubemap()->sendUniform(uniloc.i_envmap.envmap());
-            uniloc.i_envmap.envmapPos(ENVMAP_POS);
+            uniloc.i_envmap.envmap().setFlagHas(false);
 
             this->m_scene.render_animated(uniloc);
         }

@@ -163,8 +163,6 @@ namespace {
         begin = parseVec3(info.m_aabb.m_min, begin);
         begin = parseVec3(info.m_aabb.m_max, begin);
 
-        info.m_envmapIndex = dal::makeInt4(begin); begin += 4;
-
         return begin;
     }
 
@@ -392,6 +390,7 @@ namespace dal {
                 for ( int32_t i = 0; i < num_static_actors; ++i ) {
                     header = parseStaticActor(info.m_staticActors[i], header, end);
                     info.m_staticActors[i].m_modelIndex = dal::makeInt4(header); header += 4;
+                    info.m_staticActors[i].m_envmapIndex = dal::makeInt4(header); header += 4;
                 }
             }
 
