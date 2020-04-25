@@ -395,6 +395,15 @@ namespace dal {
             map.render_animated(uniloc);
         }
 
+        if ( !this->m_mapChunks2.empty() && this->m_mapChunks2.back().m_plights.size() <= 3 ) {
+            const auto& plights = this->m_mapChunks2.back().m_plights;
+
+            uniloc.i_lighting.plightCount(plights.size());
+            for ( size_t i = 0; i < plights.size(); ++i ) {
+                plights[i].sendUniform(i, uniloc.i_lighting);
+            }
+        }
+
         const auto viewAnimated = this->m_entities.view<cpnt::Transform, cpnt::AnimatedModel>();
         for ( const auto entity : viewAnimated ) {
             auto& cpntTrans = viewAnimated.get<cpnt::Transform>(entity);
