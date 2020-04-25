@@ -12,14 +12,14 @@
 
 namespace dal::v1 {
 
-    // Model
-
     class AABB {
 
     public:
         glm::vec3 m_min, m_max;
 
     };
+
+    // Model
 
     class Material {
 
@@ -52,6 +52,7 @@ namespace dal::v1 {
         Mesh m_mesh;
         Material m_material;
         AABB m_aabb;
+        int m_envmapIndex = -1;
 
     };
 
@@ -131,6 +132,14 @@ namespace dal::v1 {
 
     };
 
+    struct EnvMap {
+        glm::vec3 m_pos;
+        std::vector<glm::vec4> m_volume;
+    };
+
+
+    // Lights
+
     struct ILight {
         std::string m_name;
         glm::vec3 m_color{ 1, 1, 1 };
@@ -178,6 +187,7 @@ namespace dal::v1 {
         std::vector<RenderUnit> m_renderUnits;
         std::vector<StaticActor> m_staticActors;
         std::vector<WaterPlane> m_waters;
+        std::vector<EnvMap> m_envmaps;
 
         std::vector<PointLight> m_plights;
         std::vector<SpotLight> m_slights;
