@@ -928,7 +928,7 @@ namespace dal {
             auto& plight = map.m_plights.emplace_back();
 
             plight.mPos = plightInfo.m_pos;
-            plight.m_color = plightInfo.m_color * plightInfo.m_intensity;
+            plight.m_color = plightInfo.m_color * plightInfo.m_intensity * 0.25f;
             plight.mMaxDistance = plightInfo.m_maxDist;
         }
 
@@ -937,10 +937,10 @@ namespace dal {
 
             slight.setPos(slightInfo.m_pos);
             slight.setDirec(slightInfo.m_direction);
-            slight.setColor(slightInfo.m_color * slightInfo.m_intensity);
+            slight.setColor(slightInfo.m_color * slightInfo.m_intensity * 0.25f);
             slight.setMaxDist(slightInfo.m_maxDist);
             slight.setEndFadeDegree(slightInfo.m_spotDegree * 0.5f);
-            slight.setStartFadeDegree(slightInfo.m_spotDegree * slightInfo.m_spotBlend * 0.5f);
+            slight.setStartFadeDegree(slightInfo.m_spotDegree * slightInfo.m_spotBlend * 0.3f);
         }
 
         return map;

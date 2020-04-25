@@ -376,6 +376,8 @@ namespace dal {
 
 
     void SceneGraph::render_static(const UniRender_Static& uniloc) {
+        this->sendDlightUniform(uniloc.i_lighting);
+
         for ( auto& map : this->m_mapChunks2 ) {
             map.render_static(uniloc);
         }
@@ -391,21 +393,27 @@ namespace dal {
     }
 
     void SceneGraph::render_animated(const UniRender_Animated& uniloc) {
+        this->sendDlightUniform(uniloc.i_lighting);
+
         for ( auto& map : this->m_mapChunks2 ) {
             map.render_animated(uniloc);
         }
 
-        if ( !this->m_mapChunks2.empty() && this->m_mapChunks2.back().m_plights.size() <= 3 ) {
-            const auto& plights = this->m_mapChunks2.back().m_plights;
-            uniloc.i_lighting.plightCount(plights.size());
-            for ( size_t i = 0; i < plights.size(); ++i ) {
-                plights[i].sendUniform(i, uniloc.i_lighting);
+        if ( !this->m_mapChunks2.empty()  ) {
+            if ( this->m_mapChunks2.back().m_plights.size() <= 3 ) {
+                const auto& plights = this->m_mapChunks2.back().m_plights;
+                uniloc.i_lighting.plightCount(plights.size());
+                for ( size_t i = 0; i < plights.size(); ++i ) {
+                    plights[i].sendUniform(i, uniloc.i_lighting);
+                }
             }
 
-            const auto& slights = this->m_mapChunks2.back().m_plights;
-            uniloc.i_lighting.plightCount(slights.size());
-            for ( size_t i = 0; i < slights.size(); ++i ) {
-                slights[i].sendUniform(i, uniloc.i_lighting);
+            if ( this->m_mapChunks2.back().m_slights.size() <= 3 ) {
+                const auto& slights = this->m_mapChunks2.back().m_slights;
+                uniloc.i_lighting.slightCount(slights.size());
+                for ( size_t i = 0; i < slights.size(); ++i ) {
+                    slights[i].sendUniform(i, uniloc.i_lighting);
+                }
             }
         }
 
@@ -440,6 +448,15 @@ namespace dal {
 
             uniloc.modelMat(cpntTrans.getMat());
             cpntModel.m_model->render(uniloc, cpntModel.m_animState.getTransformArray());
+        }
+    }
+
+
+    void SceneGraph::sendDlightUniform(const UniInterf_Lighting& uniloc) {
+        uniloc.dlightCount(this->m_dlights.size());
+
+        for ( size_t i = 0; i < this->m_dlights.size(); ++i ) {
+            this->m_dlights[i].sendUniform(i, uniloc);
         }
     }
 
@@ -508,6 +525,16 @@ namespace dal {
             chunk.m_aabb.set(chunkInfo.m_aabb.m_min, chunkInfo.m_aabb.m_max);
             chunk.m_name = chunkInfo.m_name;
             chunk.m_offsetPos = chunkInfo.m_offsetPos;
+        }
+
+        this->m_dlights.clear();
+        this->m_dlights.reserve(map->m_dlights.size());
+        for ( const auto& dlightInfo : map->m_dlights ) {
+            auto& dlight = this->m_dlights.emplace_back();
+
+            dlight.m_color = dlightInfo.m_color * dlightInfo.m_intensity * 2.f;
+            dlight.m_name = dlightInfo.m_name;
+            dlight.setDirectin(dlightInfo.m_direction);
         }
     }
 

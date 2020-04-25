@@ -78,6 +78,6 @@ void main(void) {
         aabb.m_max = vec3(10.0, 10.0, 10.0);
 
         vec3 envcolor = getEnvColor_test(u_viewPos, v_fragPos, fragNormal, aabb);
-        f_color.xyz = mix(envcolor, f_color.xyz, roughness * 0.5 + 0.5);
+        //f_color.xyz = mix(envcolor, f_color.xyz, roughness * 0.5 + 0.5);
     }
 }
