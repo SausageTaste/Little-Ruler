@@ -205,6 +205,7 @@ namespace dal {
         uniloc.slight_poses(index, this->m_pos);
         uniloc.slight_direcs(index, this->m_direc);
         uniloc.slight_colors(index, this->m_color);
+        uniloc.slight_maxDist(index, this->m_maxDist);
         uniloc.slight_fadeStart(index, this->m_startFade);
         uniloc.slight_fadeEnd(index, this->m_endFade);
 
@@ -217,7 +218,7 @@ namespace dal {
     // Shadow mapping
 
     glm::mat4 SpotLight::makeProjMat(void) const {
-        return glm::perspective(this->m_endFadeRadians * 2.f, 1.f, 1.f, 100.f);
+        return glm::perspective(this->m_endFadeRadians * 2.f, 1.f, 1.f, this->m_maxDist);
     }
 
     glm::mat4 SpotLight::makeViewMat(void) const {

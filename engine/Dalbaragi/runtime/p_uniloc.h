@@ -86,6 +86,7 @@ namespace dal {
         GLint u_slight_poses = -1;
         GLint u_slight_direcs = -1;
         GLint u_slight_colors = -1;
+        GLint u_slight_maxDists = -1;
         GLint u_slight_fadeStart = -1;
         GLint u_slight_fadeEnd = -1;
         GLint u_slight_projViewMat = -1;
@@ -170,6 +171,9 @@ namespace dal {
         }
         void slight_colors(const unsigned i, const glm::vec3& v) const {
             this->slight_colors(i, v.x, v.y, v.z);
+        }
+        void slight_maxDist(const unsigned i, const float x) const {
+            glUniform1f(this->u_slight_maxDists + i, x);
         }
         void slight_fadeStart(const unsigned i, const float x) const {
             glUniform1f(this->u_slight_fadeStart + i, x);

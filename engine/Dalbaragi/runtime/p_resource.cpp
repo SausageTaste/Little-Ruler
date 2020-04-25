@@ -937,7 +937,8 @@ namespace dal {
 
             slight.setPos(slightInfo.m_pos);
             slight.setDirec(slightInfo.m_direction);
-            slight.setColor(slightInfo.m_color);
+            slight.setColor(slightInfo.m_color * slightInfo.m_intensity);
+            slight.setMaxDist(slightInfo.m_maxDist);
             slight.setEndFadeDegree(slightInfo.m_spotDegree * 0.5f);
             slight.setStartFadeDegree(slightInfo.m_spotDegree * slightInfo.m_spotBlend * 0.5f);
         }

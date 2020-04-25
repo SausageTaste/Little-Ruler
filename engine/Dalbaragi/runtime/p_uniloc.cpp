@@ -144,6 +144,7 @@ namespace dal {
         this->u_slight_poses = getUniloc(shader, "u_slight_poses");
         this->u_slight_direcs = getUniloc(shader, "u_slight_direcs");
         this->u_slight_colors = getUniloc(shader, "u_slight_colors");
+        this->u_slight_maxDists = getUniloc(shader, "u_slight_maxDists");
         this->u_slight_fadeStart = getUniloc(shader, "u_slight_fadeStart");
         this->u_slight_fadeEnd = getUniloc(shader, "u_slight_fadeEnd");
         this->u_slight_projViewMat = getUniloc(shader, "u_slight_projViewMat");

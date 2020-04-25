@@ -114,6 +114,7 @@ namespace dal {
         glm::vec3 m_pos;
         glm::vec3 m_direc;
         glm::vec3 m_color;
+        float m_maxDist;
         float m_endFadeRadians;
         float m_startFade, m_endFade;
 
@@ -141,6 +142,9 @@ namespace dal {
             this->m_color = v;
         }
 
+        void setMaxDist(const float v) {
+            this->m_maxDist = v;
+        }
         void setStartFadeDegree(const float degree) {
             this->m_startFade = cos(glm::radians(degree));
         }
