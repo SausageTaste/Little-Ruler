@@ -123,7 +123,7 @@ namespace dal::v1 {
     public:
         glm::vec3 m_centerPos{ 0 };
         glm::vec3 m_deepColor{ 0 };
-        float m_width = 1.f, height = 1.f;
+        float m_width = 1.f, m_height = 1.f;
         float m_flowSpeed;
         float m_waveStreng;
         float m_darkestDepth;
@@ -131,12 +131,27 @@ namespace dal::v1 {
 
     };
 
-    class PointLight {
+    struct ILight {
+        std::string m_name;
+        glm::vec3 m_color{ 1, 1, 1 };
+        float m_intensity = 1000;
+        bool m_hasShadow = false;
+    };
 
-    public:
-        glm::vec3 m_pos{ 0 }, m_color{ 0 };
-        float m_maxDist = 5.f;
+    struct PointLight : public ILight {
+        glm::vec3 m_pos{ 0 };
+        float m_maxDist = 5;
+        float m_halfIntenseDist = 0;
+    };
 
+    struct DirectionalLight : public ILight {
+        glm::vec3 m_direction{ 0, -1, 0 };
+    };
+
+    struct SpotLight : public ILight {
+        glm::vec3 m_pos{ 0 }, m_direction{ 0, -1, 0 };
+        float m_maxDist, m_halfIntenseDist;
+        float m_spotDegree, m_spotBlend;
     };
 
 
@@ -153,6 +168,7 @@ namespace dal::v1 {
 
     public:
         std::vector<ChunkData> m_chunks;
+        std::vector<DirectionalLight> m_dlights;
 
     };
 
@@ -161,6 +177,10 @@ namespace dal::v1 {
     public:
         std::vector<RenderUnit> m_renderUnits;
         std::vector<StaticActor> m_staticActors;
+        std::vector<WaterPlane> m_waters;
+
+        std::vector<PointLight> m_plights;
+        std::vector<SpotLight> m_slights;
 
     };
 

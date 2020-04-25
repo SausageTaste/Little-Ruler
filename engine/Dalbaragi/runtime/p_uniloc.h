@@ -76,6 +76,7 @@ namespace dal {
 
         GLint u_plight_poses = -1;
         GLint u_plight_colors = -1;
+        GLint u_plight_maxDists = -1;
 
         GLint u_dlight_direcs = -1;
         GLint u_dlight_colors = -1;
@@ -85,6 +86,7 @@ namespace dal {
         GLint u_slight_poses = -1;
         GLint u_slight_direcs = -1;
         GLint u_slight_colors = -1;
+        GLint u_slight_maxDists = -1;
         GLint u_slight_fadeStart = -1;
         GLint u_slight_fadeEnd = -1;
         GLint u_slight_projViewMat = -1;
@@ -129,6 +131,9 @@ namespace dal {
         void plight_color(const unsigned i, const glm::vec3& v) const {
             this->plight_color(i, v.x, v.y, v.z);
         }
+        void plight_maxDist(const unsigned i, const float x) const {
+            glUniform1f(this->u_plight_maxDists + i, x);
+        }
 
         void dlight_direc(const unsigned i, const float x, const float y, const float z) const {
             glUniform3f(this->u_dlight_direcs + i, x, y, z);
@@ -166,6 +171,9 @@ namespace dal {
         }
         void slight_colors(const unsigned i, const glm::vec3& v) const {
             this->slight_colors(i, v.x, v.y, v.z);
+        }
+        void slight_maxDist(const unsigned i, const float x) const {
+            glUniform1f(this->u_slight_maxDists + i, x);
         }
         void slight_fadeStart(const unsigned i, const float x) const {
             glUniform1f(this->u_slight_fadeStart + i, x);

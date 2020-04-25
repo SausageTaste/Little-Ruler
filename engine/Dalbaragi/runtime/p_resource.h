@@ -39,6 +39,7 @@ namespace dal {
         std::vector<StaticModelActor> m_staticActors;
         std::vector<WaterRenderer> m_waters;
         std::vector<PointLight> m_plights;
+        std::vector<SpotLight> m_slights;
 
     public:
         void onWinResize(const unsigned int winWidth, const unsigned int winHeight);
@@ -63,6 +64,8 @@ namespace dal {
         void render_animatedDepth(const UniRender_AnimatedDepth& uniloc);
 
         int sendLightUniforms(const UniInterfLightedMesh& uniloc, int startIndex) const;
+        int sendPlightUniforms(const UniInterf_Lighting& uniloc) const;
+        int sendSlightUniforms(const UniInterf_Lighting& uniloc) const;
 
     };
 

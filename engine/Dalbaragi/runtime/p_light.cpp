@@ -168,6 +168,7 @@ namespace dal {
     void PointLight::sendUniform(unsigned index, const UniInterf_Lighting& uniloc) const {
         uniloc.plight_color(index, this->m_color);
         uniloc.plight_pos(index, this->mPos);
+        uniloc.plight_maxDist(index, this->mMaxDistance);
     }
 
 }
@@ -200,10 +201,11 @@ namespace dal {
         this->m_shadowMap.sendUniform(uniloc.getDepthMap());
     }
 
-    void SpotLight::sendUniform(const UniInterf_Lighting& uniloc, const unsigned index) const {
+    void SpotLight::sendUniform(const unsigned index, const UniInterf_Lighting& uniloc) const {
         uniloc.slight_poses(index, this->m_pos);
         uniloc.slight_direcs(index, this->m_direc);
         uniloc.slight_colors(index, this->m_color);
+        uniloc.slight_maxDist(index, this->m_maxDist);
         uniloc.slight_fadeStart(index, this->m_startFade);
         uniloc.slight_fadeEnd(index, this->m_endFade);
 
@@ -216,7 +218,7 @@ namespace dal {
     // Shadow mapping
 
     glm::mat4 SpotLight::makeProjMat(void) const {
-        return glm::perspective(this->m_endFadeRadians * 2.f, 1.f, 1.f, 100.f);
+        return glm::perspective(this->m_endFadeRadians * 2.f, 1.f, 1.f, this->m_maxDist);
     }
 
     glm::mat4 SpotLight::makeViewMat(void) const {

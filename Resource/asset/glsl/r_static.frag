@@ -68,6 +68,7 @@ void main(void) {
         bool isInShadow = isInShadow_dlight(i, v_fragPos_dlight[i]);
 
         pbrL += isInShadow ? vec3(0.0) : integratePBR(fragNormal, viewDir, F0, L, albedo.rgb, roughness, metallic) * radiance;
+        pbrL += calcScatterColor_dlight(i, v_fragPos, u_viewPos);
     }
     f_color.rgb = pbrL;
     f_color.a = albedo.a;
@@ -78,6 +79,6 @@ void main(void) {
         aabb.m_max = vec3(10.0, 10.0, 10.0);
 
         vec3 envcolor = getEnvColor_test(u_viewPos, v_fragPos, fragNormal, aabb);
-        f_color.xyz = mix(envcolor, f_color.xyz, roughness * 0.5 + 0.5);
+        //f_color.xyz = mix(envcolor, f_color.xyz, roughness * 0.5 + 0.5);
     }
 }

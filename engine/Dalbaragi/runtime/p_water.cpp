@@ -281,6 +281,28 @@ namespace dal {
         this->m_material.m_texScale = glm::vec2{ info.m_width * TEX_SCALE_FACTOR, info.m_height * TEX_SCALE_FACTOR };
     }
 
+    WaterRenderer::WaterRenderer(const WaterRenderer::BuildInfo& info, const unsigned int winWidth, const unsigned int winHeight)
+        : m_fbuffer(winWidth, winHeight)
+        , m_depthColor(info.m_deepColor)
+        , m_height(info.m_centerPos.y)
+        , m_moveSpeed(info.m_flowSpeed)
+        , m_waveStreng(info.m_waveStreng)
+        , m_darkestDepthPoint(info.m_darkestDepth)
+        , m_reflectivity(info.m_reflectance)
+        , m_moveFactor(0.0f)
+        , m_dudvMap(getDUDVMap())
+        , m_normalMap(getWaterNormalMap()) 
+    {
+        constexpr float TEX_SCALE_FACTOR = 0.05f;
+
+        glm::vec2 size{ info.m_width, info.m_height };
+        this->initMesh(info.m_centerPos, size);
+
+        this->m_material.m_roughness = 0.2f;
+        this->m_material.m_metallic = 0.f;
+        this->m_material.m_texScale = glm::vec2{ info.m_width * TEX_SCALE_FACTOR, info.m_height * TEX_SCALE_FACTOR };
+    }
+
 
     void WaterRenderer::render(const UnilocWaterry& uniloc) {
         const auto deltaTime = this->m_localTimer.checkGetElapsed();

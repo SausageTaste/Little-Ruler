@@ -50,10 +50,6 @@ namespace dal {
         unsigned int m_winWidth, m_winHeight;
         glm::mat4 m_projectMat;
 
-        DirectionalLight m_dlight1;
-        bool m_flagDrawDlight1;
-        SpotLight m_slight1;
-
         glm::vec3 m_skyColor;
         ICamera* m_mainCamera;
 

@@ -103,6 +103,13 @@ namespace dal {
 
     class WaterRenderer {
 
+    public:
+        struct BuildInfo {
+            glm::vec3 m_centerPos, m_deepColor;
+            float m_width, m_height;
+            float m_flowSpeed, m_waveStreng, m_darkestDepth, m_reflectance;
+        };
+
     private:
         Material m_material;
         MeshStatic m_mesh;
@@ -121,6 +128,7 @@ namespace dal {
 
     public:
         WaterRenderer(const dlb::WaterPlane& info, const unsigned int winWidth, const unsigned int winHeight);
+        WaterRenderer(const BuildInfo& info, const unsigned int winWidth, const unsigned int winHeight);
 
         void render(const UnilocWaterry& uniloc);
 

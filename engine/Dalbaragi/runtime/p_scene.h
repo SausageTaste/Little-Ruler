@@ -77,10 +77,11 @@ namespace dal {
         ResourceMaster& m_resMas;
         PhysicsWorld& m_phyworld;
 
+    public:
         LevelData m_activeLevel;
         std::list<MapChunk2> m_mapChunks2;
+        std::vector<DirectionalLight> m_dlights;
 
-    public:
         entt::registry m_entities;
         entt::entity m_player;
         StrangeEulerCamera m_playerCam;
@@ -100,6 +101,8 @@ namespace dal {
         void render_animated(const UniRender_Animated& uniloc);
         void render_staticDepth(const UniRender_StaticDepth& uniloc);
         void render_animatedDepth(const UniRender_AnimatedDepth& uniloc);
+
+        void sendDlightUniform(const UniInterf_Lighting& uniloc);
 
         std::vector<WaterRenderer*> waters(void);
 

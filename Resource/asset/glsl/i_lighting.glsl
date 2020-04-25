@@ -9,6 +9,7 @@ uniform highp int       u_slightCount;
 
 uniform       vec3      u_plight_poses[3];
 uniform       vec3      u_plight_colors[3];
+uniform       float     u_plight_maxDist[3];
 
 uniform       vec3      u_dlight_direcs[3];
 uniform       vec3      u_dlight_colors[3];
@@ -18,6 +19,7 @@ uniform highp sampler2D u_dlight_shadowmap[3];
 uniform       vec3      u_slight_poses[3];
 uniform       vec3      u_slight_direcs[3];
 uniform       vec3      u_slight_colors[3];
+uniform       float     u_slight_maxDists[3];
 uniform       float     u_slight_fadeStart[3];
 uniform       float     u_slight_fadeEnd[3];
 uniform highp mat4      u_slight_projViewMat[3];
@@ -28,6 +30,45 @@ uniform       sampler2D u_slight_shadowmap[3];
 
 float _calcDistAttenu(float fragDist, float constant, float linear, float quadratic) {
     return 1.0 / (constant + linear * fragDist + quadratic * (fragDist * fragDist));
+}
+
+float _calcHalfDistAttenu(float fragDist, float halfIntensityDist) {
+    float quadratic = 1.0 / (halfIntensityDist * halfIntensityDist);
+    return _calcDistAttenu(fragDist, 1.0, 0.0, quadratic);
+}
+
+float _calcMaxDistFactor(float fragDist, float maxDist) {
+    // Light starts to disapear from (maxDist - BLEND_LEN).
+    const float BLEND_LEN = 0.5;
+    return clamp( (maxDist - fragDist) / BLEND_LEN, 0.0, 1.0 );
+}
+
+float _calcTotalAttenu(float fragDist, float maxDist) {
+    return _calcMaxDistFactor(fragDist, maxDist) * _calcDistAttenu(fragDist, 1.0, 0.0, 1.0);
+}
+
+float _computeScattering(float lightDotView) {
+    const float PI = 3.14159265;
+    const float G_SCATTERING = 10.0;
+
+    float result = 1.0 - G_SCATTERING * G_SCATTERING;
+    result /= (4.0 * PI * pow(1.0 + G_SCATTERING * G_SCATTERING - (2.0 * G_SCATTERING) *  lightDotView, 1.5));
+    return result;
+}
+
+float _getDitherValue(void) {
+    float ditherPattern[16] = float[](
+        0.0   , 0.5   , 0.125 , 0.625 ,
+        0.75  , 0.22  , 0.875 , 0.375 ,
+        0.1875, 0.6875, 0.0625, 0.5625,
+        0.9375, 0.4375, 0.8125, 0.3125
+    );
+
+    int i = int(gl_FragCoord.x) % 4;
+    int j = int(gl_FragCoord.y) % 4;
+
+    int index = 4 * i + j;
+    return ditherPattern[index];
 }
 
 
@@ -80,11 +121,43 @@ vec3 calcToLight_dlight(int i) {
     return -u_dlight_direcs[i];
 }
 
+vec3 calcScatterColor_dlight(int index, vec3 fragPos, vec3 viewPos) {
+    const int NUM_STEPS = 5;
+    const float INTENSITY = 0.05;
+
+    vec3 toFragFromView = fragPos - viewPos;
+    vec3 toFargDirec = normalize(toFragFromView);
+    vec3 toLightDirec = normalize(-u_dlight_direcs[index]);
+    vec3 rayStep = toFragFromView / float(NUM_STEPS);
+    float scatterFactor = _computeScattering(dot(toFargDirec, toLightDirec));
+
+    vec3 curPos = viewPos;
+    float accumFactor = 0.0;
+
+    for (int i = 0; i < NUM_STEPS; ++i) {
+        vec4 curPosInDlight = u_dlight_projViewMat[index] * vec4(curPos, 1.0);
+        vec3 projCoords = curPosInDlight.xyz / curPosInDlight.w;
+        projCoords = projCoords * 0.5 + 0.5;
+
+        float depthFromMap = _sampleDlightDepth(index, projCoords.xy);
+        float curDepth = projCoords.z;
+
+        if (depthFromMap > curDepth) {
+            accumFactor += 1.0;
+        }
+
+        curPos += rayStep * _getDitherValue();
+    }
+
+    accumFactor *= INTENSITY / float(NUM_STEPS);
+    return accumFactor * u_dlight_colors[index];
+}
+
 
 // Point
 
 vec3 calcRadiance_plight(int i, vec3 fragPos) {
-    float attenFactor = _calcDistAttenu(distance(fragPos, u_plight_poses[i]), 1.0, 0.09, 0.032);
+    float attenFactor = _calcTotalAttenu(distance(fragPos, u_plight_poses[i]), u_plight_maxDist[i]);
     return u_plight_colors[i] * attenFactor;
 }
 
@@ -99,8 +172,9 @@ float _calcSlightAtten(int i, vec3 fragPos) {
     vec3 fragToLight_n = normalize(u_slight_poses[i] - fragPos);
     float theta        = dot(-fragToLight_n, u_slight_direcs[i]);
     float epsilon      = u_slight_fadeStart[i] - u_slight_fadeEnd[i];
+    float attenFactor  = _calcTotalAttenu(distance(fragPos, u_slight_poses[i]), u_slight_maxDists[i]);
 
-    return clamp((theta - u_slight_fadeEnd[i]) / epsilon, 0.0, 1.0);
+    return clamp((theta - u_slight_fadeEnd[i]) / epsilon * attenFactor, 0.0, 1.0);
 }
 
 float _sampleSlightTexture(int index, vec2 coord) {

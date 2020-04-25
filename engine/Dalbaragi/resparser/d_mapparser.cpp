@@ -187,6 +187,94 @@ namespace {
         return begin;
     }
 
+    const uint8_t* parseWaterPlane(dal::v1::WaterPlane& info, const uint8_t* begin, const uint8_t* const end) {
+        constexpr int FBUF_SIZE = 12;
+        float fbuf[FBUF_SIZE];
+        begin = dal::assemble4BytesArray<float>(begin, fbuf, FBUF_SIZE);
+
+        info.m_centerPos = glm::vec3{ fbuf[0], fbuf[1], fbuf[2] };
+        info.m_deepColor = glm::vec3{ fbuf[3], fbuf[4], fbuf[5] };
+
+        info.m_width = fbuf[6];
+        info.m_height = fbuf[7];
+
+        info.m_flowSpeed = fbuf[8];
+        info.m_waveStreng = fbuf[9];
+        info.m_darkestDepth = fbuf[10];
+        info.m_reflectance = fbuf[11];
+
+        return begin;
+    }
+
+
+    const uint8_t* parseLight(dal::v1::ILight& info, const uint8_t* begin, const uint8_t* const end) {
+        info.m_name = reinterpret_cast<const char*>(begin);
+        begin += info.m_name.size() + 1;
+
+        info.m_hasShadow = dal::makeBool1(begin); begin += 1;
+
+        {
+            constexpr int FBUF_SIZE = 4;
+            float fbuf[FBUF_SIZE];
+            begin = dal::assemble4BytesArray<float>(begin, fbuf, FBUF_SIZE);
+
+            info.m_color = glm::vec3{ fbuf[0], fbuf[1], fbuf[2] };
+            info.m_intensity = fbuf[3];
+        }
+
+        return begin;
+    }
+
+    const uint8_t* parseDlight(dal::v1::DirectionalLight& info, const uint8_t* begin, const uint8_t* const end) {
+        begin = parseLight(info, begin, end);
+
+        {
+            constexpr int FBUF_SIZE = 3;
+            float fbuf[FBUF_SIZE];
+            begin = dal::assemble4BytesArray<float>(begin, fbuf, FBUF_SIZE);
+
+            info.m_direction = glm::vec3{ fbuf[0], fbuf[1], fbuf[2] };
+        }
+
+        return begin;
+    }
+
+    const uint8_t* parsePlight(dal::v1::PointLight& info, const uint8_t* begin, const uint8_t* const end) {
+        begin = parseLight(info, begin, end);
+
+        {
+            constexpr int FBUF_SIZE = 5;
+            float fbuf[FBUF_SIZE];
+            begin = dal::assemble4BytesArray<float>(begin, fbuf, FBUF_SIZE);
+
+            info.m_pos = glm::vec3{ fbuf[0], fbuf[1], fbuf[2] };
+            info.m_maxDist = fbuf[3];
+            info.m_halfIntenseDist = fbuf[4];
+        }
+
+        return begin;
+    }
+
+    const uint8_t* parseSlight(dal::v1::SpotLight& info, const uint8_t* begin, const uint8_t* const end) {
+        begin = parseLight(info, begin, end);
+
+        {
+            // 2 vec3, 4 float
+            std::array<float, 2 * 3 + 4> fbuf;
+            begin = dal::assemble4BytesArray<float>(begin, fbuf.data(), fbuf.size());
+
+            info.m_pos = glm::vec3{ fbuf[0], fbuf[1], fbuf[2] };
+            info.m_maxDist = fbuf[3];
+            info.m_halfIntenseDist = fbuf[4];
+
+            info.m_direction = glm::vec3{ fbuf[5], fbuf[6], fbuf[7] };
+            info.m_spotDegree = fbuf[8];
+            info.m_spotBlend = fbuf[9];
+        }
+
+        return begin;
+    }
+
 
     const uint8_t* parseMapChunkInfo(dal::v1::LevelData::ChunkData& info, const uint8_t* begin) {
         {
@@ -222,6 +310,14 @@ namespace dal {
         const uint8_t* const end = buf + bufSize;
 
         v1::LevelData info;
+
+        {
+            const auto num_dlights = dal::makeInt4(header); header += 4;
+            info.m_dlights.resize(num_dlights);
+            for ( int32_t i = 0; i < num_dlights; ++i ) {
+                header = parseDlight(info.m_dlights[i], header, end);
+            }
+        }
 
         {
             const auto num_chunks = dal::makeInt4(header); header += 4;
@@ -268,6 +364,30 @@ namespace dal {
                 for ( int32_t i = 0; i < num_static_actors; ++i ) {
                     header = parseStaticActor(info.m_staticActors[i], header, end);
                     info.m_staticActors[i].m_modelIndex = dal::makeInt4(header); header += 4;
+                }
+            }
+
+            {
+                const auto num_waters = dal::makeInt4(header); header += 4;
+                info.m_waters.resize(num_waters);
+                for ( int32_t i = 0; i < num_waters; ++i ) {
+                    header = parseWaterPlane(info.m_waters[i], header, end);
+                }
+            }
+
+            {
+                const auto num_plights = dal::makeInt4(header); header += 4;
+                info.m_plights.resize(num_plights);
+                for ( int32_t i = 0; i < num_plights; ++i ) {
+                    header = parsePlight(info.m_plights[i], header, end);
+                }
+            }
+
+            {
+                const auto num_slights = dal::makeInt4(header); header += 4;
+                info.m_slights.resize(num_slights);
+                for ( int32_t i = 0; i < num_slights; ++i ) {
+                    header = parseSlight(info.m_slights[i], header, end);
                 }
             }
         }

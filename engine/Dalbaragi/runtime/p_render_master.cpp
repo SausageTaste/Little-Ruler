@@ -325,24 +325,11 @@ namespace dal {
         , m_shader(shader)
         , m_fbuffer(winWidth, winHeight)
         , m_winWidth(winWidth), m_winHeight(winHeight)
-        , m_flagDrawDlight1(true)
         , m_skyColor(1.0f, 0.3f, 0.3f)
         , m_mainCamera(camera)
         , m_farPlaneDistance(100.0f)
-        , m_baseAmbientColor(0.3f, 0.3f, 0.3f)
+        , m_baseAmbientColor(0.1f)
     {
-        // Lights
-        {
-            this->m_dlight1.m_color = { 10.0f, 4.f, 4.f };
-            this->m_dlight1.setDirectin(0.26373626373626374f, -0.30726256983240224f, 1.f);
-
-            this->m_slight1.setColor(5.f, 5.f, 5.f);
-            this->m_slight1.setPos(13.f, 2.f, -2.f);
-            this->m_slight1.setDirec(-1, -0.5, -1);
-            this->m_slight1.setEndFadeDegree(30.f);
-            this->m_slight1.setStartFadeDegree(25.f);
-        }
-
         // OpenGL global switch
         {
             glClearColor(m_skyColor.x, m_skyColor.y, m_skyColor.z, 1.0f);
@@ -387,9 +374,6 @@ namespace dal {
     }
 
     void RenderMaster::update(const float deltaTime) {
-        const glm::ivec3 intPos{ this->m_mainCamera->m_pos };
-        this->m_dlight1.setPos(intPos);
-
         /*
         const auto mat = glm::rotate(glm::mat4{ 1.0f }, deltaTime * 0.3f, glm::vec3{ 1.0f, 0.5f, 0.0f });
         const glm::vec4 direcBefore{ this->m_dlight1.getDirection(), 0.0f };
@@ -456,42 +440,44 @@ namespace dal {
         glEnable(GL_DEPTH_CLAMP);
 #endif
 
-        // Dlight
         {
-            this->m_dlight1.clearDepthBuffer();
+            std::vector<SpotLight*> slights;
+            for ( auto& map : this->m_scene.m_mapChunks2 ) {
+                for ( auto& l : map.m_slights ) {
+                    slights.push_back(&l);
+                }
+            }
+
+            for ( auto s : slights ) {
+                s->clearDepthBuffer();
+            }
+            for ( auto& d : this->m_scene.m_dlights ) {
+                d.clearDepthBuffer();
+            }
 
             {
                 auto& uniloc = this->m_shader.useStaticDepth();
-                this->m_dlight1.startRenderShadowmap(uniloc);
-                this->m_scene.render_staticDepth(uniloc);
+                for ( auto s : slights ) {
+                    s->startRenderShadowmap(uniloc);
+                    this->m_scene.render_staticDepth(uniloc);
+                }
+                for ( auto& d : this->m_scene.m_dlights ) {
+                    d.startRenderShadowmap(uniloc);
+                    this->m_scene.render_staticDepth(uniloc);
+                }
             }
-
+          
             {
                 auto& uniloc = this->m_shader.useAnimatedDepth();
-                this->m_dlight1.startRenderShadowmap(uniloc);
-                this->m_scene.render_animatedDepth(uniloc);
+                for ( auto s : slights ) {
+                    s->startRenderShadowmap(uniloc);
+                    this->m_scene.render_animatedDepth(uniloc);
+                }
+                for ( auto& d : this->m_scene.m_dlights ) {
+                    d.startRenderShadowmap(uniloc);
+                    this->m_scene.render_animatedDepth(uniloc);
+                }
             }
-
-            m_dlight1.finishRenderShadowmap();
-        }
-
-        // Slight
-        {
-            this->m_slight1.clearDepthBuffer();
-
-            {
-                auto& uniloc = this->m_shader.useStaticDepth();
-                this->m_slight1.startRenderShadowmap(uniloc);
-                this->m_scene.render_staticDepth(uniloc);
-            }
-
-            {
-                auto& uniloc = this->m_shader.useAnimatedDepth();
-                this->m_slight1.startRenderShadowmap(uniloc);
-                this->m_scene.render_animatedDepth(uniloc);
-            }
-
-            this->m_slight1.finishRenderShadowmap();
         }
 
 #ifdef _WIN32
@@ -518,17 +504,6 @@ namespace dal {
             g_cubemap.getCubemap()->sendUniform(uniloc.i_envmap.envmap());
             uniloc.i_envmap.envmapPos(ENVMAP_POS);
 
-            if ( this->m_flagDrawDlight1 ) {
-                this->m_dlight1.sendUniform(0, uniloc.i_lighting);
-                uniloc.i_lighting.dlightCount(1);
-            }
-            else {
-                uniloc.i_lighting.dlightCount(0);
-            }
-
-            this->m_slight1.sendUniform(uniloc.i_lighting, 0);
-            uniloc.i_lighting.slightCount(1);
-
             for ( auto water : waters ) {
                 {
                     water->startRenderOnReflec(uniloc, *this->m_mainCamera);
@@ -554,17 +529,6 @@ namespace dal {
             uniloc.i_lighting.baseAmbient(this->m_baseAmbientColor);
             g_cubemap.getCubemap()->sendUniform(uniloc.i_envmap.envmap());
             uniloc.i_envmap.envmapPos(ENVMAP_POS);
-
-            if ( this->m_flagDrawDlight1 ) {
-                this->m_dlight1.sendUniform(0, uniloc.i_lighting);
-                uniloc.i_lighting.dlightCount(1);
-            }
-            else {
-                uniloc.i_lighting.dlightCount(0);
-            }
-
-            this->m_slight1.sendUniform(uniloc.i_lighting, 0);
-            uniloc.i_lighting.slightCount(1);
 
             for ( auto water : waters ) {
                 {
@@ -620,17 +584,6 @@ namespace dal {
             uniloc.i_lighting.baseAmbient(this->m_baseAmbientColor);
             uniloc.i_envmap.envmap().setFlagHas(false);
 
-            if ( this->m_flagDrawDlight1 ) {
-                this->m_dlight1.sendUniform(0, uniloc.i_lighting);
-                uniloc.i_lighting.dlightCount(1);
-            }
-            else {
-                uniloc.i_lighting.dlightCount(0);
-            }
-
-            this->m_slight1.sendUniform(uniloc.i_lighting, 0);
-            uniloc.i_lighting.slightCount(1);
-
             for ( unsigned i = 0; i < 6; ++i ) {
                 g_cubemap.readyFace(i);
                 uniloc.viewMat(viewMats[i]);
@@ -645,17 +598,6 @@ namespace dal {
             uniloc.viewPos(ENVMAP_POS);
             uniloc.i_lighting.baseAmbient(this->m_baseAmbientColor);
             uniloc.i_envmap.envmap().setFlagHas(false);
-
-            if ( this->m_flagDrawDlight1 ) {
-                this->m_dlight1.sendUniform(0, uniloc.i_lighting);
-                uniloc.i_lighting.dlightCount(1);
-            }
-            else {
-                uniloc.i_lighting.dlightCount(0);
-            }
-
-            this->m_slight1.sendUniform(uniloc.i_lighting, 0);
-            uniloc.i_lighting.slightCount(1);
 
             for ( unsigned i = 0; i < 6; ++i ) {
                 g_cubemap.readyFace(i);
@@ -681,17 +623,6 @@ namespace dal {
             g_cubemap.getCubemap()->sendUniform(uniloc.i_envmap.envmap());
             uniloc.i_envmap.envmapPos(ENVMAP_POS);
 
-            if ( this->m_flagDrawDlight1 ) {
-                this->m_dlight1.sendUniform(0, uniloc.i_lighting);
-                uniloc.i_lighting.dlightCount(1);
-            }
-            else {
-                uniloc.i_lighting.dlightCount(0);
-            }
-
-            this->m_slight1.sendUniform(uniloc.i_lighting, 0);
-            uniloc.i_lighting.slightCount(1);
-
             this->m_scene.render_static(uniloc);
         }
 
@@ -705,17 +636,6 @@ namespace dal {
             uniloc.i_lighting.baseAmbient(this->m_baseAmbientColor);
             g_cubemap.getCubemap()->sendUniform(uniloc.i_envmap.envmap());
             uniloc.i_envmap.envmapPos(ENVMAP_POS);
-
-            if ( this->m_flagDrawDlight1 ) {
-                this->m_dlight1.sendUniform(0, uniloc.i_lighting);
-                uniloc.i_lighting.dlightCount(1);
-            }
-            else {
-                uniloc.i_lighting.dlightCount(0);
-            }
-
-            this->m_slight1.sendUniform(uniloc.i_lighting, 0);
-            uniloc.i_lighting.slightCount(1);
 
             this->m_scene.render_animated(uniloc);
         }
@@ -731,17 +651,6 @@ namespace dal {
             uniloc.m_lightedMesh.baseAmbient(this->m_baseAmbientColor);
             uniloc.m_lightedMesh.fogMaxPoint(this->m_farPlaneDistance);
             uniloc.m_lightedMesh.fogColor(this->m_skyColor);
-
-            if ( this->m_flagDrawDlight1 ) {
-                this->m_dlight1.sendUniform(uniloc.m_lightedMesh.u_dlights[0]);
-                uniloc.m_lightedMesh.dlightCount(1);
-            }
-            else {
-                uniloc.m_lightedMesh.dlightCount(0);
-            }
-
-            this->m_slight1.sendUniform(uniloc.m_lightedMesh.u_slights[0]);
-            uniloc.m_lightedMesh.slightCount(1);
 
             this->m_scene.renderWater(uniloc);
         }
