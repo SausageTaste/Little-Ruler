@@ -201,7 +201,7 @@ namespace dal {
         this->m_shadowMap.sendUniform(uniloc.getDepthMap());
     }
 
-    void SpotLight::sendUniform(const UniInterf_Lighting& uniloc, const unsigned index) const {
+    void SpotLight::sendUniform(const unsigned index, const UniInterf_Lighting& uniloc) const {
         uniloc.slight_poses(index, this->m_pos);
         uniloc.slight_direcs(index, this->m_direc);
         uniloc.slight_colors(index, this->m_color);

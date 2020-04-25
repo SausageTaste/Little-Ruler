@@ -150,7 +150,7 @@ namespace dal {
         }
 
         void sendUniform(const UniInterfLightedMesh::SpotLight& uniloc) const;
-        void sendUniform(const UniInterf_Lighting& uniloc, const unsigned index) const;
+        void sendUniform(const unsigned index, const UniInterf_Lighting& uniloc) const;
 
         // Shadow mapping
 

@@ -335,12 +335,6 @@ namespace dal {
         {
             this->m_dlight1.m_color = { 10.0f, 4.f, 4.f };
             this->m_dlight1.setDirectin(0.26373626373626374f, -0.30726256983240224f, 1.f);
-
-            this->m_slight1.setColor(5.f, 5.f, 5.f);
-            this->m_slight1.setPos(13.f, 2.f, -2.f);
-            this->m_slight1.setDirec(-1, -0.5, -1);
-            this->m_slight1.setEndFadeDegree(30.f);
-            this->m_slight1.setStartFadeDegree(25.f);
         }
 
         // OpenGL global switch
@@ -475,23 +469,33 @@ namespace dal {
             m_dlight1.finishRenderShadowmap();
         }
 
-        // Slight
         {
-            this->m_slight1.clearDepthBuffer();
+            std::vector<SpotLight*> slights;
+            for ( auto& map : this->m_scene.m_mapChunks2 ) {
+                for ( auto& l : map.m_slights ) {
+                    slights.push_back(&l);
+                }
+            }
+
+            for ( auto s : slights ) {
+                s->clearDepthBuffer();
+            }
 
             {
                 auto& uniloc = this->m_shader.useStaticDepth();
-                this->m_slight1.startRenderShadowmap(uniloc);
-                this->m_scene.render_staticDepth(uniloc);
+                for ( auto s : slights ) {
+                    s->startRenderShadowmap(uniloc);
+                    this->m_scene.render_staticDepth(uniloc);
+                }
             }
-
+          
             {
                 auto& uniloc = this->m_shader.useAnimatedDepth();
-                this->m_slight1.startRenderShadowmap(uniloc);
-                this->m_scene.render_animatedDepth(uniloc);
+                for ( auto s : slights ) {
+                    s->startRenderShadowmap(uniloc);
+                    this->m_scene.render_animatedDepth(uniloc);
+                }
             }
-
-            this->m_slight1.finishRenderShadowmap();
         }
 
 #ifdef _WIN32
@@ -526,9 +530,6 @@ namespace dal {
                 uniloc.i_lighting.dlightCount(0);
             }
 
-            this->m_slight1.sendUniform(uniloc.i_lighting, 0);
-            uniloc.i_lighting.slightCount(1);
-
             for ( auto water : waters ) {
                 {
                     water->startRenderOnReflec(uniloc, *this->m_mainCamera);
@@ -562,9 +563,6 @@ namespace dal {
             else {
                 uniloc.i_lighting.dlightCount(0);
             }
-
-            this->m_slight1.sendUniform(uniloc.i_lighting, 0);
-            uniloc.i_lighting.slightCount(1);
 
             for ( auto water : waters ) {
                 {
@@ -628,9 +626,6 @@ namespace dal {
                 uniloc.i_lighting.dlightCount(0);
             }
 
-            this->m_slight1.sendUniform(uniloc.i_lighting, 0);
-            uniloc.i_lighting.slightCount(1);
-
             for ( unsigned i = 0; i < 6; ++i ) {
                 g_cubemap.readyFace(i);
                 uniloc.viewMat(viewMats[i]);
@@ -653,9 +648,6 @@ namespace dal {
             else {
                 uniloc.i_lighting.dlightCount(0);
             }
-
-            this->m_slight1.sendUniform(uniloc.i_lighting, 0);
-            uniloc.i_lighting.slightCount(1);
 
             for ( unsigned i = 0; i < 6; ++i ) {
                 g_cubemap.readyFace(i);
@@ -689,9 +681,6 @@ namespace dal {
                 uniloc.i_lighting.dlightCount(0);
             }
 
-            this->m_slight1.sendUniform(uniloc.i_lighting, 0);
-            uniloc.i_lighting.slightCount(1);
-
             this->m_scene.render_static(uniloc);
         }
 
@@ -713,9 +702,6 @@ namespace dal {
             else {
                 uniloc.i_lighting.dlightCount(0);
             }
-
-            this->m_slight1.sendUniform(uniloc.i_lighting, 0);
-            uniloc.i_lighting.slightCount(1);
 
             this->m_scene.render_animated(uniloc);
         }
@@ -739,9 +725,6 @@ namespace dal {
             else {
                 uniloc.m_lightedMesh.dlightCount(0);
             }
-
-            this->m_slight1.sendUniform(uniloc.m_lightedMesh.u_slights[0]);
-            uniloc.m_lightedMesh.slightCount(1);
 
             this->m_scene.renderWater(uniloc);
         }

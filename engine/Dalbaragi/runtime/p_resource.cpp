@@ -437,6 +437,12 @@ namespace dal {
             this->m_plights[i].sendUniform(i, uniloc.i_lighting);
         }
 
+        dalAssert(this->m_slights.size() <= 3);
+        uniloc.i_lighting.slightCount(this->m_slights.size());
+        for ( size_t i = 0; i < this->m_slights.size(); ++i ) {
+            this->m_slights[i].sendUniform(i, uniloc.i_lighting);
+        }
+
         for ( const auto& [model, actors] : this->m_staticActors ) {
             for ( const auto& actor : actors ) {
                 uniloc.modelMat(actor.m_transform.getMat());
@@ -924,6 +930,16 @@ namespace dal {
             plight.mPos = plightInfo.m_pos;
             plight.m_color = plightInfo.m_color * plightInfo.m_intensity;
             plight.mMaxDistance = plightInfo.m_maxDist;
+        }
+
+        for ( auto& slightInfo : mapInfo->m_slights ) {
+            auto& slight = map.m_slights.emplace_back();
+
+            slight.setPos(slightInfo.m_pos);
+            slight.setDirec(slightInfo.m_direction);
+            slight.setColor(slightInfo.m_color);
+            slight.setEndFadeDegree(slightInfo.m_spotDegree * 0.5f);
+            slight.setStartFadeDegree(slightInfo.m_spotDegree * slightInfo.m_spotBlend * 0.5f);
         }
 
         return map;

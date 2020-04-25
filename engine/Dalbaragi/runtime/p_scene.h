@@ -77,10 +77,10 @@ namespace dal {
         ResourceMaster& m_resMas;
         PhysicsWorld& m_phyworld;
 
+    public:
         LevelData m_activeLevel;
         std::list<MapChunk2> m_mapChunks2;
 
-    public:
         entt::registry m_entities;
         entt::entity m_player;
         StrangeEulerCamera m_playerCam;

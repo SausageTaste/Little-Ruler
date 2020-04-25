@@ -397,10 +397,15 @@ namespace dal {
 
         if ( !this->m_mapChunks2.empty() && this->m_mapChunks2.back().m_plights.size() <= 3 ) {
             const auto& plights = this->m_mapChunks2.back().m_plights;
-
             uniloc.i_lighting.plightCount(plights.size());
             for ( size_t i = 0; i < plights.size(); ++i ) {
                 plights[i].sendUniform(i, uniloc.i_lighting);
+            }
+
+            const auto& slights = this->m_mapChunks2.back().m_plights;
+            uniloc.i_lighting.plightCount(slights.size());
+            for ( size_t i = 0; i < slights.size(); ++i ) {
+                slights[i].sendUniform(i, uniloc.i_lighting);
             }
         }
 

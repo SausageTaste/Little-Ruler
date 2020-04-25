@@ -39,6 +39,7 @@ namespace dal {
         std::vector<StaticModelActor> m_staticActors;
         std::vector<WaterRenderer> m_waters;
         std::vector<PointLight> m_plights;
+        std::vector<SpotLight> m_slights;
 
     public:
         void onWinResize(const unsigned int winWidth, const unsigned int winHeight);
