@@ -15,6 +15,34 @@
 
 namespace dal {
 
+    class EnvMap {
+
+    private:
+        inline static constexpr unsigned WIDTH = 256, HEIGHT = 256;
+
+        GLuint m_fbo = 0;
+        std::shared_ptr<dal::CubeMap> m_cubemap;
+
+    public:
+        glm::vec3 m_pos{ 0 };
+        std::vector<Plane> m_volume;
+
+    public:
+        void init(void);
+
+        void bindFbuf(void);
+        void unbindFbuf(const unsigned width, const unsigned height);
+
+        void clearFaces(void);
+        void readyFace(const unsigned faceIndex);
+
+        auto& getCubemap(void) {
+            return this->m_cubemap;
+        }
+
+    };
+
+
     class MapChunk2 {
 
     private:
@@ -38,6 +66,8 @@ namespace dal {
     public:
         std::vector<StaticModelActor> m_staticActors;
         std::vector<WaterRenderer> m_waters;
+        std::vector<EnvMap> m_envmap;
+
         std::vector<PointLight> m_plights;
         std::vector<SpotLight> m_slights;
 

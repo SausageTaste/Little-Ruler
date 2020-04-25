@@ -315,6 +315,71 @@ namespace {
 }
 
 
+// EnvMap
+namespace dal {
+
+    void EnvMap::init(void) {
+        glGenFramebuffers(1, &this->m_fbo);
+        glBindFramebuffer(GL_FRAMEBUFFER, this->m_fbo);
+
+        this->m_cubemap.reset(new dal::CubeMap);
+        this->m_cubemap->initAttach_colorMap(this->WIDTH, this->HEIGHT);
+    }
+
+    void EnvMap::bindFbuf(void) {
+        glBindFramebuffer(GL_FRAMEBUFFER, this->m_fbo);
+        glViewport(0, 0, this->WIDTH, this->HEIGHT);
+    }
+
+    void EnvMap::unbindFbuf(const unsigned width, const unsigned height) {
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, this->m_fbo);
+        glViewport(0, 0, width, height);
+    }
+
+    void EnvMap::clearFaces(void) {
+        for ( unsigned i = 0; i < 6; ++i ) {
+            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, this->m_cubemap->get(), 0);
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        }
+    }
+
+    void EnvMap::readyFace(const unsigned faceIndex) {
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + faceIndex, this->m_cubemap->get(), 0);
+
+        GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+        if ( status != GL_FRAMEBUFFER_COMPLETE ) {
+            switch ( status ) {
+
+            case GL_FRAMEBUFFER_UNDEFINED:
+                dalError("Framebuffer status error: GL_FRAMEBUFFER_UNDEFINED"); break;
+            case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT:
+                dalError("Framebuffer status error: GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT"); break;
+            case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT:
+                dalError("Framebuffer status error: GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT"); break;
+            case GL_FRAMEBUFFER_UNSUPPORTED:
+                dalError("Framebuffer status error: GL_FRAMEBUFFER_UNSUPPORTED"); break;
+            case GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE:
+                dalError("Framebuffer status error: GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE"); break;
+
+#ifdef _WIN32
+            case GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER:
+                dalError("Framebuffer status error: GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER"); break;
+            case GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER:
+                dalError("Framebuffer status error: GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER"); break;
+            case GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS:
+                dalError("Framebuffer status error: GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS"); break;
+#endif
+
+            default:
+                dalError(fmt::format("Framebuffer status error: {}", status)); break;
+
+            }
+        }
+    }
+
+}
+
+
 // Map chunk 2
 namespace dal {
 
@@ -937,6 +1002,17 @@ namespace dal {
             buildInfo.m_reflectance = waterInfo.m_reflectance;
 
             map.m_waters.emplace_back(buildInfo, win_width, win_height);
+        }
+
+        for ( auto& envmapInfo : mapInfo->m_envmaps ) {
+            auto& envmap = map.m_envmap.emplace_back();
+
+            envmap.init();
+
+            envmap.m_pos = envmapInfo.m_pos;
+            for ( auto& p : envmapInfo.m_volume ) {
+                envmap.m_volume.emplace_back(p.x, p.y, p.z, p.w);
+            }
         }
 
         for ( auto& plightInfo : mapInfo->m_plights ) {
