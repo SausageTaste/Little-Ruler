@@ -1060,6 +1060,42 @@ namespace dal {
             slight.setStartFadeDegree(slightInfo.m_spotDegree * slightInfo.m_spotBlend * 0.3f);
         }
 
+        const auto win_width = GlobalStateGod::getinst().getWinWidth();
+        const auto win_height = GlobalStateGod::getinst().getWinHeight();
+
+        for ( auto& waterInfo : mapInfo->m_waters ) {
+            dal::WaterRenderer::BuildInfo buildInfo;
+            buildInfo.m_centerPos = waterInfo.m_centerPos;
+            buildInfo.m_deepColor = waterInfo.m_deepColor;
+            buildInfo.m_width = waterInfo.m_width;
+            buildInfo.m_height = waterInfo.m_height;
+            buildInfo.m_flowSpeed = waterInfo.m_flowSpeed;
+            buildInfo.m_waveStreng = waterInfo.m_waveStreng;
+            buildInfo.m_darkestDepth = waterInfo.m_darkestDepth;
+            buildInfo.m_reflectance = waterInfo.m_reflectance;
+
+            map.m_waters.emplace_back(buildInfo, win_width, win_height);
+        }
+
+        for ( auto& plightInfo : mapInfo->m_plights ) {
+            auto& plight = map.m_plights.emplace_back();
+
+            plight.mPos = plightInfo.m_pos;
+            plight.m_color = plightInfo.m_color * plightInfo.m_intensity * 0.25f;
+            plight.mMaxDistance = plightInfo.m_maxDist;
+        }
+
+        for ( auto& slightInfo : mapInfo->m_slights ) {
+            auto& slight = map.m_slights.emplace_back();
+
+            slight.setPos(slightInfo.m_pos);
+            slight.setDirec(slightInfo.m_direction);
+            slight.setColor(slightInfo.m_color * slightInfo.m_intensity * 0.25f);
+            slight.setMaxDist(slightInfo.m_maxDist);
+            slight.setEndFadeDegree(slightInfo.m_spotDegree * 0.5f);
+            slight.setStartFadeDegree(slightInfo.m_spotDegree * slightInfo.m_spotBlend * 0.3f);
+        }
+
         return map;
     }
 
