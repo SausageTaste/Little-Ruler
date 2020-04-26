@@ -206,6 +206,32 @@ namespace {
         return begin;
     }
 
+    const uint8_t* parseEnvMap(dal::v1::EnvMap& info, const uint8_t* begin, const uint8_t* const end) {
+        {
+            constexpr int FBUF_SIZE = 3;
+            float fbuf[FBUF_SIZE];
+            begin = dal::assemble4BytesArray<float>(begin, fbuf, FBUF_SIZE);
+
+            info.m_pos = glm::vec3{ fbuf[0], fbuf[1], fbuf[2] };
+        }
+
+        {
+            const auto planeSize = dal::makeInt4(begin); begin += 4;
+            info.m_volume.resize(planeSize);
+            std::vector<float> fbuffer(planeSize * 4);
+            begin = dal::assemble4BytesArray<float>(begin, fbuffer.data(), fbuffer.size());
+
+            for ( size_t i = 0; i < planeSize; ++i ) {
+                info.m_volume[i].x = fbuffer[4 * i + 0];
+                info.m_volume[i].y = fbuffer[4 * i + 1];
+                info.m_volume[i].z = fbuffer[4 * i + 2];
+                info.m_volume[i].w = fbuffer[4 * i + 3];
+            }
+        }
+
+        return begin;
+    }
+
 
     const uint8_t* parseLight(dal::v1::ILight& info, const uint8_t* begin, const uint8_t* const end) {
         info.m_name = reinterpret_cast<const char*>(begin);
@@ -364,6 +390,7 @@ namespace dal {
                 for ( int32_t i = 0; i < num_static_actors; ++i ) {
                     header = parseStaticActor(info.m_staticActors[i], header, end);
                     info.m_staticActors[i].m_modelIndex = dal::makeInt4(header); header += 4;
+                    info.m_staticActors[i].m_envmapIndex = dal::makeInt4(header); header += 4;
                 }
             }
 
@@ -372,6 +399,14 @@ namespace dal {
                 info.m_waters.resize(num_waters);
                 for ( int32_t i = 0; i < num_waters; ++i ) {
                     header = parseWaterPlane(info.m_waters[i], header, end);
+                }
+            }
+
+            {
+                const auto size = dal::makeInt4(header); header += 4;
+                info.m_envmaps.resize(size);
+                for ( int32_t i = 0; i < size; ++i ) {
+                    header = parseEnvMap(info.m_envmaps[i], header, end);
                 }
             }
 

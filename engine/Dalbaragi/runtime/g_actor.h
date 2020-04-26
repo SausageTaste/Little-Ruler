@@ -76,6 +76,7 @@ namespace dal {
     public:
         Transform m_transform;
         std::string m_name;
+        int m_envmapIndex = -1;
 
     public:
         ActorInfo(void) = default;
