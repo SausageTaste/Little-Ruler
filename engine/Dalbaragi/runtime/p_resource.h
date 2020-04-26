@@ -39,6 +39,9 @@ namespace dal {
         auto& getCubemap(void) {
             return this->m_cubemap;
         }
+        auto& getCubemap(void) const {
+            return this->m_cubemap;
+        }
 
     };
 

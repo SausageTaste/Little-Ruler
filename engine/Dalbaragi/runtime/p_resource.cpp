@@ -17,6 +17,7 @@
 
 
 #define BLOCKY_TEXTURE 0
+#define DAL_PARALLAX_CORRECTED_CUBEMAP false
 
 
 using namespace fmt::literals;
@@ -312,6 +313,22 @@ namespace {
         dst.setScale(src.m_scale);
     }
 
+
+    void sendEnvmapUniform(const dal::EnvMap& cubemap, const dal::UniInterf_Envmap& uniloc) {
+        cubemap.getCubemap()->sendUniform(uniloc.envmap());
+        uniloc.envmapPos(cubemap.m_pos);
+
+#if DAL_PARALLAX_CORRECTED_CUBEMAP == true
+        uniloc.numPlanes(cubemap.m_volume.size());
+        for ( size_t i = 0; i < cubemap.m_volume.size(); ++i ) {
+            uniloc.plane(i, cubemap.m_volume[i].getCoeff());
+        }
+#else
+        uniloc.numPlanes(0);
+#endif
+
+    }
+
 }
 
 
@@ -503,12 +520,7 @@ namespace dal {
             for ( const auto& actor : actors ) {
                 if ( -1 != actor.m_envmapIndex ) {
                     auto& cubemap = this->m_envmap[actor.m_envmapIndex];
-                    cubemap.getCubemap()->sendUniform(uniloc.i_envmap.envmap());
-                    uniloc.i_envmap.envmapPos(cubemap.m_pos);
-                    uniloc.i_envmap.numPlanes(cubemap.m_volume.size());
-                    for ( size_t i = 0; i < cubemap.m_volume.size(); ++i ) {
-                        uniloc.i_envmap.plane(i, cubemap.m_volume[i].getCoeff());
-                    }
+                    sendEnvmapUniform(cubemap, uniloc.i_envmap);
                 }
                 else {
                     uniloc.i_envmap.envmap().setFlagHas(false);
