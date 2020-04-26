@@ -33,13 +33,6 @@ endif()
 # GLM
 target_include_directories(dalbaragi_resparser PUBLIC ${extern_dir}/glm)
 
-# json
-if (NOT TARGET nlohmann_json::nlohmann_json)
-    set(JSON_BuildTests OFF CACHE INTERNAL "")
-    add_subdirectory(${extern_dir}/json ${CMAKE_CURRENT_BINARY_DIR}/json)
- endif()
- target_link_libraries(dalbaragi_resparser PRIVATE nlohmann_json::nlohmann_json)
-
 
 # Dalbaragi Lightweight
 if (NOT TARGET dalbaragi_lightweight)
