@@ -1,32 +1,32 @@
-#include <inter_lighting.frag>
+#include <i_lighting.glsl>
+#include <f_pbr.glsl>
 
 
-// Interf - Geometry
+uniform highp vec3 u_viewPos;
 uniform highp mat4 u_projMat;
 uniform highp mat4 u_viewMat;
 
-uniform sampler2D u_bansaTex;
-uniform sampler2D u_gooljulTex;
-uniform sampler2D u_dudvMap;
-uniform sampler2D u_normalMap;
+uniform       sampler2D u_bansaImg;
+uniform       sampler2D u_gooljulImg;
+uniform       sampler2D u_dudvMap;
+uniform       sampler2D u_normalMap;
 uniform highp sampler2D u_depthMap;
 
 uniform float u_dudvMoveFactor;
 uniform float u_waveStrength;
 uniform float u_darkestDepthPoint;
-uniform float u_reflectivity;
-uniform vec3 u_deepColor; // 0.07, 0.07, 0.15
+uniform float u_reflectance;
+uniform vec3  u_deepColor;
 
 
-in vec3 vFragPos;
-in vec2 vTexCoord;
-in vec3 vNormalVec;
-in vec4 vFragPosInDlight[3];
-in vec4 v_fragPosInSlight[3];
+in       vec3 v_fragPos;
+in       vec2 v_texCoord;
+in       vec4 v_fragPos_dlight[3];
+in       vec4 v_fragPos_slight[3];
 in highp vec4 v_clipSpace;
-in vec3 v_toCamera;
+in       vec3 v_toCamera;
 
-out vec4 fColor;
+out vec4 f_color;
 
 
 const float NEAR = 0.01;
@@ -36,8 +36,8 @@ const float WATER_SAMPLER_OFFSET_INV = 1.0 - WATER_SAMPLER_OFFSET;
 
 
 vec2 getDistortedCoords(void) {
-    vec2 distoredTexCoords = texture(u_dudvMap, vec2(vTexCoord.x + u_dudvMoveFactor, vTexCoord.y)).rg * 0.1;
-    return vTexCoord + vec2(distoredTexCoords.x, distoredTexCoords.y + u_dudvMoveFactor);
+    vec2 distoredTexCoords = texture(u_dudvMap, vec2(v_texCoord.x + u_dudvMoveFactor, v_texCoord.y)).rg * 0.1;
+    return v_texCoord + vec2(distoredTexCoords.x, distoredTexCoords.y + u_dudvMoveFactor);
 }
 
 vec3 makeFragNormal(vec2 distortedCoords) {
@@ -78,8 +78,8 @@ vec3 getWorldPosFromDepth(float depth, vec2 TexCoord) {
 float makeWaterDepth_actualDistance(vec2 refractionCoords) {
     float sampled = texture(u_depthMap, refractionCoords).r;
     vec3 refractionWorldPos = getWorldPosFromDepth(sampled, refractionCoords);
-    float floorDistance = distance(uViewPos, refractionWorldPos);
-    float waterDistance = distance(uViewPos, vFragPos);
+    float floorDistance = distance(u_viewPos, refractionWorldPos);
+    float waterDistance = distance(u_viewPos, v_fragPos);
 
     return floorDistance - waterDistance;
 }
@@ -118,8 +118,8 @@ vec4 calculateWater(vec3 fragNormal, vec2 distortedCoords) {
     waterDepth = makeWaterDepth_actualDistance(gooljulCoord);
 #endif
 
-    vec4 bansaColor = texture(u_bansaTex, bansaCoord);
-    vec4 gooljulColor = texture(u_gooljulTex, gooljulCoord);
+    vec4 bansaColor = texture(u_bansaImg, bansaCoord);
+    vec4 gooljulColor = texture(u_gooljulImg, gooljulCoord);
 #ifdef GL_ES
     float depthFactor = makeDepthFactor_linear(waterDepth);
 #else
@@ -128,7 +128,7 @@ vec4 calculateWater(vec3 fragNormal, vec2 distortedCoords) {
     gooljulColor = mix(gooljulColor, vec4(u_deepColor, 1.0), depthFactor);
 
     vec3 viewVec = normalize(v_toCamera);
-    float refractiveFactor = pow(max(dot(viewVec, fragNormal), 0.0), u_reflectivity);
+    float refractiveFactor = pow(max(dot(viewVec, fragNormal), 0.0), u_reflectance);
 
     vec4 outColor = mix(bansaColor, gooljulColor, refractiveFactor);
     outColor.a = clamp(waterDepth / 0.5, 0.0, 1.0);
@@ -139,7 +139,7 @@ vec4 calculateWater(vec3 fragNormal, vec2 distortedCoords) {
 
 void main(void) {
     // Needed values
-    vec3 viewDir = normalize(uViewPos - vFragPos);
+    vec3 viewDir = normalize(u_viewPos - v_fragPos);
     vec2 distoredTexCoords = getDistortedCoords();
     vec3 fragNormal = makeFragNormal(distoredTexCoords);
 
@@ -150,27 +150,30 @@ void main(void) {
     // Lighting
     vec3 F0 = vec3(0.04);
     F0 = mix(F0, texColor.rgb, u_metallic);
-    vec3 pbrL = uBaseAmbient * texColor.rgb;
-    for ( int i = 0; i < uPlightCount; ++i ) {
-        vec3 radiance = calcPlightRadiance(i, vFragPos);
-        vec3 L = normalize(u_plights[i].m_pos - vFragPos);
-        pbrL += lightingIntegrateStep(fragNormal, viewDir, F0, L, texColor.rgb, u_roughness, u_metallic) * radiance;
+    vec3 pbrL = u_baseAmbient * texColor.rgb;
+    for ( int i = 0; i < u_plightCount; ++i ) {
+        vec3 radiance = calcRadiance_plight(i, v_fragPos);
+        vec3 L        = calcToLight_plight(i, v_fragPos);
+
+        pbrL += integratePBR(fragNormal, viewDir, F0, L, texColor.rgb, u_roughness, u_metallic) * radiance;
     }
     for ( int i = 0; i < u_slightCount; ++i ) {
-        vec3 radiance = calcSlightRadiance(i, vFragPos);
-        vec3 L = normalize(u_slights[i].m_pos - vFragPos);
-        bool isInShadow = isPointInSlightShadow(i, v_fragPosInSlight[i]);
-        pbrL += isInShadow ? vec3(0.0) : lightingIntegrateStep(fragNormal, viewDir, F0, L, texColor.rgb, u_roughness, u_metallic) * radiance;
+        vec3 radiance   = calcRadiance_slight(i, v_fragPos);
+        vec3 L          = calcToLight_slight(i, v_fragPos);
+        bool isInShadow = isInShadow_slight(i, v_fragPos_slight[i]);
+
+        pbrL += isInShadow ? vec3(0.0) : integratePBR(fragNormal, viewDir, F0, L, texColor.rgb, u_roughness, u_metallic) * radiance;
     }
-    for ( int i = 0; i < uDlightCount; ++i ) {
-        vec3 radiance = u_dlights[i].m_color;
-        vec3 L = normalize(-u_dlights[i].m_direc);
-        bool isInShadow = isPointInDlightShadow(i, vFragPosInDlight[i]);
-        pbrL += isInShadow ? vec3(0.0) : lightingIntegrateStep(fragNormal, viewDir, F0, L, texColor.rgb, u_roughness, u_metallic) * radiance;
+    for ( int i = 0; i < u_dlightCount; ++i ) {
+        vec3 radiance   = calcRadiance_dlight(i);
+        vec3 L          = calcToLight_dlight(i);
+        bool isInShadow = isInShadow_dlight(i, v_fragPos_dlight[i]);
+
+        pbrL += isInShadow ? vec3(0.0) : integratePBR(fragNormal, viewDir, F0, L, texColor.rgb, u_roughness, u_metallic) * radiance;
+        pbrL += calcScatterColor_dlight(i, v_fragPos, u_viewPos);
     }
 
     // Final color
-    fColor.rgb = mix(waterImage.rgb, pbrL, 0.5);
-    fColor.rgb = calcFogMixedColor(fColor.rgb, vFragPos);
-    fColor.a = 1.0;
+    f_color.rgb = mix(waterImage.rgb, pbrL, 0.5);
+    f_color.a = 1.0;
 }

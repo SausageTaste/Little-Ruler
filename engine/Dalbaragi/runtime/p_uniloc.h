@@ -413,6 +413,96 @@ namespace dal {
 
     };
 
+    class UniRender_Water {
+
+    public:
+        UniInterf_Lighting i_lighting;
+
+    private:
+        GLint u_viewPos = -1;
+
+        GLint u_projMat = -1;
+        GLint u_viewMat = -1;
+        GLint u_modelMat = -1;
+
+        GLint u_texScale = -1;
+
+        SamplerInterf u_bansaImg;
+        SamplerInterf u_gooljulImg;
+        SamplerInterf u_dudvMap;
+        SamplerInterf u_normalMap;
+        SamplerInterf u_depthMap;
+
+        GLint u_dudvMoveFactor = -1;
+        GLint u_waveStrength = -1;
+        GLint u_darkestDepthPoint = -1;
+        GLint u_reflectance = -1;
+        GLint u_deepColor = -1;
+
+    public:
+        void set(const GLuint shader);
+
+        void viewPos(const float x, const float y, const float z) const {
+            glUniform3f(this->u_viewPos, x, y, z);
+        }
+        void viewPos(const glm::vec3& v) const {
+            this->viewPos(v.x, v.y, v.z);
+        }
+
+        void projMat(const glm::mat4& mat) const {
+            sendMatrix(this->u_projMat, mat);
+        }
+        void viewMat(const glm::mat4& mat) const {
+            sendMatrix(this->u_viewMat, mat);
+        }
+        void modelMat(const glm::mat4& mat) const {
+            sendMatrix(this->u_modelMat, mat);
+        }
+
+        void texScale(const float x, const float y) const {
+            glUniform2f(this->u_texScale, x, y);
+        }
+        void texScale(const glm::vec2& v) const {
+            this->texScale(v.x, v.y);
+        }
+
+        auto& reflectionImage(void) const {
+            return this->u_bansaImg;
+        }
+        auto& refractionImage(void) const {
+            return this->u_gooljulImg;
+        }
+        auto& dudvMap(void) const {
+            return this->u_dudvMap;
+        }
+        auto& normalMap(void) const {
+            return this->u_normalMap;
+        }
+        auto& depthMap(void) const {
+            return this->u_depthMap;
+        }
+
+        void dudvMoveFactor(const float v) const {
+            glUniform1f(this->u_dudvMoveFactor, v);
+        }
+        void waveStrength(const float v) const {
+            glUniform1f(this->u_waveStrength, v);
+        }
+        void darkestDepthPoint(const float v) const {
+            glUniform1f(this->u_darkestDepthPoint, v);
+        }
+        void reflectance(const float v) const {
+            glUniform1f(this->u_reflectance, v);
+        }
+        void deepColor(const float x, const float y, const float z) const {
+            glUniform3f(this->u_deepColor, x, y, z);
+        }
+        void deepColor(const glm::vec3& v) const {
+            this->deepColor(v.x, v.y, v.z);
+        }
+
+    };
+
 }
 
 
@@ -433,144 +523,6 @@ namespace dal {
         void modelMat(const glm::mat4& mat) const;
 
      };
-
-    class UniInterfMesh : public UniInterfGeometry {
-
-    private:
-        GLint u_texScale = -1;
-
-    public:
-        UniInterfMesh(const GLuint shader);
-
-        void texScale(const float x, const float y) const;
-        void texScale(const glm::vec2& v) const;
-
-    };
-
-    class UniInterfLightedMesh : public UniInterfMesh {
-
-    public:
-        class SpotLight {
-
-        private:
-            GLint m_pos = -1;
-            GLint m_direc = -1;
-            GLint m_color = -1;
-            GLint m_startFade = -1;
-            GLint m_endFade = -1;
-
-            GLint u_projViewMat = -1;
-            SamplerInterf m_depthMap;
-
-        public:
-            void init(const GLuint shader, const unsigned int index);
-
-            void pos(const float x, const float y, const float z) const;
-            void pos(const glm::vec3& v) const;
-
-            void direc(const float x, const float y, const float z) const;
-            void direc(const glm::vec3& v) const;
-
-            void color(const float x, const float y, const float z) const;
-            void color(const glm::vec3& v) const;
-
-            void startFade(const float v) const;
-            void endFade(const float v) const;
-
-            void projViewMat(const glm::mat4& mat) const;
-            const SamplerInterf& getDepthMap(void) const {
-                return this->m_depthMap;
-            }
-
-        };
-
-        class DirecLight {
-
-        private:
-            GLint m_direc = -1;
-            GLint m_color = -1;
-
-            GLint u_projViewMat = -1;
-            SamplerInterf m_depthMap;
-
-        public:
-            void init(const GLuint shader, const unsigned int index);
-
-            void direc(const float x, const float y, const float z) const;
-            void direc(const glm::vec3& v) const;
-
-            void color(const float x, const float y, const float z) const;
-            void color(const glm::vec3& v) const;
-
-            void projViewMat(const glm::mat4& mat) const;
-            const SamplerInterf& getDepthMap(void) const {
-                return this->m_depthMap;
-            }
-
-        };
-
-        class PointLight {
-
-        private:
-            GLint m_pos = -1;
-            GLint m_color = -1;
-
-        public:
-            void init(const GLuint shader, const unsigned int index);
-
-            void pos(const float x, const float y, const float z) const;
-            void pos(const glm::vec3& v) const;
-
-            void color(const float x, const float y, const float z) const;
-            void color(const glm::vec3& v) const;
-
-        };
-
-    private:
-        static constexpr auto k_maxDlight = 3;
-        static constexpr auto k_maxPlight = 3;
-        static constexpr auto k_maxSlight = 3;
-
-        GLint uViewPos;
-        GLint uBaseAmbient;
-        GLint uDlightCount;
-        GLint uPlightCount;
-        GLint u_slightCount;
-
-        GLint u_roughness;
-        GLint u_metallic;
-
-        GLint u_fogMaxPointInvSqr;
-        GLint u_fogColor;
-
-    public:
-        SpotLight u_slights[k_maxSlight];
-        DirecLight u_dlights[k_maxDlight];
-        PointLight u_plights[k_maxPlight];
-
-    public:
-        UniInterfLightedMesh(const GLuint shader);
-
-        void viewPos(const float x, const float y, const float z) const;
-        void viewPos(const glm::vec3& v) const;
-
-        void baseAmbient(const float x, const float y, const float z) const;
-        void baseAmbient(const glm::vec3& v) const;
-
-        void dlightCount(const unsigned int x) const;
-        void plightCount(const unsigned int x) const;
-        void slightCount(const unsigned int x) const;
-
-        void roughness(const float v) const;
-        void metallic(const float v) const;
-
-        void fogMaxPoint(const float x) const;
-        void fogMaxPointAsInfinity(void) const;
-
-        void fogColor(const float x, const float y, const float z) const;
-        void fogColor(const glm::vec3& v) const;
-
-    };
 
 
     class UnilocOverlay {
@@ -607,46 +559,6 @@ namespace dal {
         void upsideDownDiffuseMap(const bool x) const;
         void upsideDownMaskMap(const bool x) const;
         void color(const glm::vec4& v) const;
-
-    };
-
-    class UnilocWaterry {
-
-        //////// Vars ////////
-
-    public:
-        UniInterfLightedMesh m_lightedMesh;
-
-    private:
-        SamplerInterf m_bansaTex;
-        SamplerInterf m_gooljulTex;
-        SamplerInterf m_dudvMap;
-        SamplerInterf m_normalMap;
-        SamplerInterf m_depthMap;
-
-        GLint u_dudvMoveFactor;
-        GLint u_waveStrength;
-        GLint u_darkestDepthPoint;
-        GLint u_reflectivity;
-        GLint u_deepColor;
-
-        //////// Funcs ////////
-
-    public:
-        UnilocWaterry(const GLuint shader);
-
-        void dudvFactor(const float x) const;
-        void waveStrength(const float x) const;
-        void darkestDepthPoint(const float x) const;
-        void reflectivity(const float x) const;
-        void deepColor(const float x, const float y, const float z) const;
-        void deepColor(const glm::vec3& v) const;
-
-        const SamplerInterf& getReflectionTex(void) const;
-        const SamplerInterf& getRefractionTex(void) const;
-        const SamplerInterf& getDUDVMap(void) const;
-        const SamplerInterf& getNormalMap(void) const;
-        const SamplerInterf& getDepthMap(void) const;
 
     };
 

@@ -489,7 +489,12 @@ namespace dal {
         glEnable(GL_CLIP_DISTANCE0);
 #endif
 
-        auto waters = this->m_scene.waters();
+        std::vector<WaterRenderer*> waters;
+        for ( auto& m : this->m_scene.m_mapChunks2 ) {
+            for ( auto& w : m.m_waters ) {
+                waters.push_back(&w);
+            }
+        }
 
         // Render to water framebuffer
         {
@@ -643,16 +648,17 @@ namespace dal {
         // Render water to framebuffer
 #if DAL_RENDER_WATER
         {
-            auto& uniloc = this->m_shader.useWaterry();
+            auto& uniloc = this->m_shader.useWater();
 
-            uniloc.m_lightedMesh.projectMat(this->m_projectMat);
-            uniloc.m_lightedMesh.viewMat(this->m_mainCamera->getViewMat());
-            uniloc.m_lightedMesh.viewPos(this->m_mainCamera->m_pos);
-            uniloc.m_lightedMesh.baseAmbient(this->m_baseAmbientColor);
-            uniloc.m_lightedMesh.fogMaxPoint(this->m_farPlaneDistance);
-            uniloc.m_lightedMesh.fogColor(this->m_skyColor);
+            uniloc.projMat(this->m_projectMat);
+            uniloc.viewMat(this->m_mainCamera->getViewMat());
+            uniloc.viewPos(this->m_mainCamera->m_pos);
+            uniloc.i_lighting.baseAmbient(this->m_baseAmbientColor);
+            this->m_scene.sendDlightUniform(uniloc.i_lighting);
 
-            this->m_scene.renderWater(uniloc);
+            for ( auto& m : this->m_scene.m_mapChunks2 ) {
+                m.renderWater(uniloc);
+            }
         }
 #endif
 

@@ -76,7 +76,6 @@ namespace dal {
             return this->m_direction;
         }
 
-        void sendUniform(const UniInterfLightedMesh::DirecLight& uniloc) const;
         void sendUniform(const unsigned index, const UniInterf_Lighting& uniloc) const;
 
         void clearDepthBuffer(void);
@@ -102,7 +101,6 @@ namespace dal {
         float mMaxDistance = 5.0f;
 
     public:
-        void sendUniform(const UniInterfLightedMesh::PointLight& uniloc) const;
         void sendUniform(unsigned index, const UniInterf_Lighting& uniloc) const;
 
     };
@@ -153,7 +151,6 @@ namespace dal {
             this->m_endFade = cos(this->m_endFadeRadians);
         }
 
-        void sendUniform(const UniInterfLightedMesh::SpotLight& uniloc) const;
         void sendUniform(const unsigned index, const UniInterf_Lighting& uniloc) const;
 
         // Shadow mapping

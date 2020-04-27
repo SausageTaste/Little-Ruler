@@ -95,16 +95,12 @@ namespace dal {
 
         entt::entity addObj_static(const char* const resid);
 
-        void renderWater(const UnilocWaterry& uniloc);
-
         void render_static(const UniRender_Static& uniloc);
         void render_animated(const UniRender_Animated& uniloc);
         void render_staticDepth(const UniRender_StaticDepth& uniloc);
         void render_animatedDepth(const UniRender_AnimatedDepth& uniloc);
 
         void sendDlightUniform(const UniInterf_Lighting& uniloc);
-
-        std::vector<WaterRenderer*> waters(void);
 
         void applyCollision(const ICollider& inCol, cpnt::Transform& inTrans);
         std::optional<RayCastingResult> doRayCasting(const Segment& ray);

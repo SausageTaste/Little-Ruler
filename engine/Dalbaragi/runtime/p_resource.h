@@ -89,14 +89,13 @@ namespace dal {
         void applyCollision(const ICollider& inCol, cpnt::Transform& inTrans);
         std::optional<RayCastingResult> castRayToClosest(const Segment& ray) const;
 
-        void renderWater(const UnilocWaterry& uniloc);
+        void renderWater(const UniRender_Water& uniloc);
 
         void render_static(const UniRender_Static& uniloc);
         void render_animated(const UniRender_Animated& uniloc);
         void render_staticDepth(const UniRender_StaticDepth& uniloc);
         void render_animatedDepth(const UniRender_AnimatedDepth& uniloc);
 
-        int sendLightUniforms(const UniInterfLightedMesh& uniloc, int startIndex) const;
         int sendPlightUniforms(const UniInterf_Lighting& uniloc) const;
         int sendSlightUniforms(const UniInterf_Lighting& uniloc) const;
 

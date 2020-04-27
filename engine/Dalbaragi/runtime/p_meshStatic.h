@@ -281,8 +281,6 @@ namespace dal {
     public:
         Material(void);
 
-        void sendUniform(const UniInterfLightedMesh& uniloc) const;
-        void sendUniform(const UniInterfLightedMesh& unilocLight, const SamplerInterf& samplerInterf) const;
         void sendUniform(const UniInterf_Lighting& uniloc) const;
         void sendUniform(const UniInterf_Lightmap& uniloc) const;
 

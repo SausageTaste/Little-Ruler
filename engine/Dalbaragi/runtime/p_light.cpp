@@ -102,13 +102,6 @@ namespace dal {
         this->m_direction = glm::normalize(v);
     }
 
-    void DirectionalLight::sendUniform(const UniInterfLightedMesh::DirecLight& uniloc) const {
-        uniloc.color(this->m_color);
-        uniloc.direc(this->m_direction);
-        uniloc.projViewMat(this->makeProjMat() * this->makeViewMat());
-        this->m_shadowMap.sendUniform(uniloc.getDepthMap());
-    }
-
     void DirectionalLight::sendUniform(const unsigned index, const UniInterf_Lighting& uniloc) const {
         uniloc.dlight_color(index, this->m_color);
         uniloc.dlight_direc(index, this->m_direction);
@@ -160,11 +153,6 @@ namespace dal {
 // PointLight
 namespace dal {
 
-    void PointLight::sendUniform(const UniInterfLightedMesh::PointLight& uniloc) const {
-        uniloc.color(this->m_color);
-        uniloc.pos(this->mPos);
-    }
-
     void PointLight::sendUniform(unsigned index, const UniInterf_Lighting& uniloc) const {
         uniloc.plight_color(index, this->m_color);
         uniloc.plight_pos(index, this->mPos);
@@ -186,19 +174,6 @@ namespace dal {
         , m_shadowMap(SLIGHT_SHADOW_DIMENSION, SLIGHT_SHADOW_DIMENSION)
     {
 
-    }
-
-    void SpotLight::sendUniform(const UniInterfLightedMesh::SpotLight& uniloc) const {
-        uniloc.pos(this->m_pos);
-        uniloc.direc(this->m_direc);
-        uniloc.color(this->m_color);
-        uniloc.startFade(this->m_startFade);
-        uniloc.endFade(this->m_endFade);
-
-        auto projViewMat = this->makeProjMat() * this->makeViewMat();
-        uniloc.projViewMat(projViewMat);
-
-        this->m_shadowMap.sendUniform(uniloc.getDepthMap());
     }
 
     void SpotLight::sendUniform(const unsigned index, const UniInterf_Lighting& uniloc) const {

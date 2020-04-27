@@ -503,8 +503,9 @@ namespace dal {
     }
 
 
-    void MapChunk2::renderWater(const UnilocWaterry& uniloc) {
-        this->sendLightUniforms(uniloc.m_lightedMesh, 0);
+    void MapChunk2::renderWater(const UniRender_Water& uniloc) {
+        this->sendPlightUniforms(uniloc.i_lighting);
+        this->sendSlightUniforms(uniloc.i_lighting);
 
         for ( auto& water : this->m_waters ) {
             water.render(uniloc);
@@ -549,25 +550,6 @@ namespace dal {
 
     }
 
-
-    int MapChunk2::sendLightUniforms(const UniInterfLightedMesh& uniloc, int startIndex) const {
-        if ( startIndex >= 3 )
-            dalAbort("Too many point lights.");
-        if ( startIndex + this->m_plights.size() > 3 )
-            dalAbort("Too many point lights.");
-
-        uniloc.plightCount(startIndex + this->m_plights.size());
-        for ( size_t i = 0; i < this->m_plights.size(); i++ ) {
-            if ( i >= 3 ) {
-                break;
-            }
-            else {
-                this->m_plights.at(i).sendUniform(uniloc.u_plights[startIndex + i]);
-            }
-        }
-
-        return startIndex + this->m_plights.size();
-    }
 
     int MapChunk2::sendPlightUniforms(const UniInterf_Lighting& uniloc) const {
         dalAssert(this->m_plights.size() <= 3);
