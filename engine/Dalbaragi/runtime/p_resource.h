@@ -96,7 +96,6 @@ namespace dal {
         void render_staticDepth(const UniRender_StaticDepth& uniloc);
         void render_animatedDepth(const UniRender_AnimatedDepth& uniloc);
 
-        int sendLightUniforms(const UniInterfLightedMesh& uniloc, int startIndex) const;
         int sendPlightUniforms(const UniInterf_Lighting& uniloc) const;
         int sendSlightUniforms(const UniInterf_Lighting& uniloc) const;
 

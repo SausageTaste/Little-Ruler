@@ -459,20 +459,6 @@ namespace dal {
 
     }
 
-    void Material::sendUniform(const UniInterfLightedMesh& uniloc) const {
-        uniloc.texScale(this->m_texScale);
-        uniloc.roughness(this->m_roughness);
-        uniloc.metallic(this->m_metallic);
-    }
-
-    void Material::sendUniform(const UniInterfLightedMesh& unilocLight, const SamplerInterf& samplerInterf) const {
-        this->sendUniform(unilocLight);
-
-        if ( this->m_diffuseMap ) {
-            this->m_diffuseMap->sendUniform(samplerInterf);
-        }
-    }
-
     void Material::sendUniform(const UniInterf_Lighting& uniloc) const {
         uniloc.roughness(this->m_roughness);
         uniloc.metallic(this->m_metallic);
