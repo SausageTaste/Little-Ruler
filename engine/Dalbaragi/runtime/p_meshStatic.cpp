@@ -277,10 +277,10 @@ namespace dal {
             glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE, image.width(), image.height(), 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, image.data());
             break;
         case 3:
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, image.width(), image.height(), 0, GL_RGB, GL_UNSIGNED_BYTE, image.data());
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB565, image.width(), image.height(), 0, GL_RGB, GL_UNSIGNED_BYTE, image.data());
             break;
         case 4:
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image.width(), image.height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, image.data());
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA4, image.width(), image.height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, image.data());
             break;
         default:
             dalError("Not supported pixel size: {}"_format(image.pixSize()));
@@ -328,7 +328,7 @@ namespace dal {
         this->genTexture("Texture::initAttach_colorMap");
 
         glBindTexture(GL_TEXTURE_2D, this->get());
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA4, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
 
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -339,7 +339,7 @@ namespace dal {
 
     void Texture::resize_colorMap(const unsigned int width, const unsigned int height) {
         glBindTexture(GL_TEXTURE_2D, this->get());
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA4, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
         glBindTexture(GL_TEXTURE_2D, 0);
     }
 
@@ -395,10 +395,10 @@ namespace dal {
                 glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_LUMINANCE, width, height, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, buf);
                 break;
             case 3:
-                glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, buf);
+                glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB565, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, buf);
                 break;
             case 4:
-                glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, buf);
+                glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGBA4, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, buf);
                 break;
             default:
                 dalError("Not supported pixel size: {}"_format(pixSize));
