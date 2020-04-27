@@ -503,8 +503,9 @@ namespace dal {
     }
 
 
-    void MapChunk2::renderWater(const UnilocWaterry& uniloc) {
-        this->sendLightUniforms(uniloc.m_lightedMesh, 0);
+    void MapChunk2::renderWater(const UniRender_Water& uniloc) {
+        this->sendPlightUniforms(uniloc.i_lighting);
+        this->sendSlightUniforms(uniloc.i_lighting);
 
         for ( auto& water : this->m_waters ) {
             water.render(uniloc);

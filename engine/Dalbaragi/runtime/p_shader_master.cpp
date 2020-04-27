@@ -212,8 +212,6 @@ namespace dal {
     ShaderMaster::ShaderMaster(void)
         : m_overlay(g_loader["overlay.vert"], g_loader["overlay.frag"])
         , m_overlayUniloc(m_overlay.get())
-        , m_waterry(g_loader["water.vert"], g_loader["water.frag"])
-        , m_waterryUniloc(m_waterry.get())
         , m_skybox(g_loader["skybox.vert"], g_loader["skybox.frag"])
         , m_skyboxUniloc(m_skybox.get())
     {
@@ -224,6 +222,7 @@ namespace dal {
         this->m_static_onWater.init(g_loader["r_static_onwater.vert"], g_loader["r_static_onwater.frag"]);
         this->m_animated_onWater.init(g_loader["r_animated_onwater.vert"], g_loader["r_static_onwater.frag"]);
         this->m_fillScreen.init(g_loader["r_fillscreen.vert"], g_loader["r_fillscreen.frag"]);
+        this->m_water.init(g_loader["r_water.vert"], g_loader["r_water.frag"]);
 
         this->u_static.set(this->m_static.get());
         this->u_animated.set(this->m_animated.get());
@@ -232,6 +231,7 @@ namespace dal {
         this->u_static_onWater.set(this->m_static_onWater.get());
         this->u_animated_onWater.set(this->m_animated_onWater.get());
         this->u_fillScreen.set(this->m_fillScreen.get());
+        this->u_water.set(this->m_water.get());
 
         g_loader.clear();
     }
@@ -240,12 +240,6 @@ namespace dal {
         setFor_overlay();
         this->m_overlay.use();
         return this->m_overlayUniloc;
-    }
-
-    const UnilocWaterry& ShaderMaster::useWaterry(void) const {
-        setFor_water();
-        this->m_waterry.use();
-        return this->m_waterryUniloc;
     }
 
     const UnilocSkybox& ShaderMaster::useSkybox(void) const {
@@ -295,6 +289,12 @@ namespace dal {
         setFor_fillingScreen();
         this->m_fillScreen.use();
         return this->u_fillScreen;
+    }
+
+    const UniRender_Water& ShaderMaster::useWater(void) const {
+        setFor_water();
+        this->m_water.use();
+        return this->u_water;
     }
 
 }

@@ -88,7 +88,7 @@ namespace dal {
     public:
         WaterFramebuffer(const unsigned int winWidth, const unsigned int winHeight);
 
-        void sendUniform(const UnilocWaterry& uniloc) const;
+        void sendUniform(const UniRender_Water& uniloc) const;
         void bindReflectionFrameBuffer(void) const;
         void bindRefractionFrameBuffer(void) const;
 
@@ -130,7 +130,7 @@ namespace dal {
         WaterRenderer(const dlb::WaterPlane& info, const unsigned int winWidth, const unsigned int winHeight);
         WaterRenderer(const BuildInfo& info, const unsigned int winWidth, const unsigned int winHeight);
 
-        void render(const UnilocWaterry& uniloc);
+        void render(const UniRender_Water& uniloc);
 
         void startRenderOnReflec(const UniRender_StaticOnWater& uniloc, const ICamera& cam) const;
         void startRenderOnReflec(const UniRender_AnimatedOnWater& uniloc, const ICamera& cam) const;

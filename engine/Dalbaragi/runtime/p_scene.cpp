@@ -368,13 +368,6 @@ namespace dal {
     }
 
 
-    void SceneGraph::renderWater(const UnilocWaterry& uniloc) {
-        for ( auto& map : m_mapChunks2 ) {
-            map.renderWater(uniloc);
-        }
-    }
-
-
     void SceneGraph::render_static(const UniRender_Static& uniloc) {
         this->sendDlightUniform(uniloc.i_lighting);
 
@@ -441,17 +434,6 @@ namespace dal {
         for ( size_t i = 0; i < this->m_dlights.size(); ++i ) {
             this->m_dlights[i].sendUniform(i, uniloc);
         }
-    }
-
-
-    std::vector<WaterRenderer*> SceneGraph::waters(void) {
-        std::vector<WaterRenderer*> result;
-
-        for ( auto& map : this->m_mapChunks2 ) {
-            map.getWaters(result);
-        }
-
-        return result;
     }
 
 

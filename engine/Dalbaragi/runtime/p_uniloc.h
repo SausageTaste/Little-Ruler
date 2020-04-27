@@ -413,6 +413,96 @@ namespace dal {
 
     };
 
+    class UniRender_Water {
+
+    public:
+        UniInterf_Lighting i_lighting;
+
+    private:
+        GLint u_viewPos = -1;
+
+        GLint u_projMat = -1;
+        GLint u_viewMat = -1;
+        GLint u_modelMat = -1;
+
+        GLint u_texScale = -1;
+
+        SamplerInterf u_bansaImg;
+        SamplerInterf u_gooljulImg;
+        SamplerInterf u_dudvMap;
+        SamplerInterf u_normalMap;
+        SamplerInterf u_depthMap;
+
+        GLint u_dudvMoveFactor = -1;
+        GLint u_waveStrength = -1;
+        GLint u_darkestDepthPoint = -1;
+        GLint u_reflectance = -1;
+        GLint u_deepColor = -1;
+
+    public:
+        void set(const GLuint shader);
+
+        void viewPos(const float x, const float y, const float z) const {
+            glUniform3f(this->u_viewPos, x, y, z);
+        }
+        void viewPos(const glm::vec3& v) const {
+            this->viewPos(v.x, v.y, v.z);
+        }
+
+        void projMat(const glm::mat4& mat) const {
+            sendMatrix(this->u_projMat, mat);
+        }
+        void viewMat(const glm::mat4& mat) const {
+            sendMatrix(this->u_viewMat, mat);
+        }
+        void modelMat(const glm::mat4& mat) const {
+            sendMatrix(this->u_modelMat, mat);
+        }
+
+        void texScale(const float x, const float y) const {
+            glUniform2f(this->u_texScale, x, y);
+        }
+        void texScale(const glm::vec2& v) const {
+            this->texScale(v.x, v.y);
+        }
+
+        auto& reflectionImage(void) const {
+            return this->u_bansaImg;
+        }
+        auto& refractionImage(void) const {
+            return this->u_gooljulImg;
+        }
+        auto& dudvMap(void) const {
+            return this->u_dudvMap;
+        }
+        auto& normalMap(void) const {
+            return this->u_normalMap;
+        }
+        auto& depthMap(void) const {
+            return this->u_depthMap;
+        }
+
+        void dudvMoveFactor(const float v) const {
+            glUniform1f(this->u_dudvMoveFactor, v);
+        }
+        void waveStrength(const float v) const {
+            glUniform1f(this->u_waveStrength, v);
+        }
+        void darkestDepthPoint(const float v) const {
+            glUniform1f(this->u_darkestDepthPoint, v);
+        }
+        void reflectance(const float v) const {
+            glUniform1f(this->u_reflectance, v);
+        }
+        void deepColor(const float x, const float y, const float z) const {
+            glUniform3f(this->u_deepColor, x, y, z);
+        }
+        void deepColor(const glm::vec3& v) const {
+            this->deepColor(v.x, v.y, v.z);
+        }
+
+    };
+
 }
 
 

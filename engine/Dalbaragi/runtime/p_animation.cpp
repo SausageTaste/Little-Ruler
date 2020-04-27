@@ -332,7 +332,7 @@ namespace dal {
     void updateAnimeState(AnimationState& state, const std::vector<Animation>& anims, const SkeletonInterface& skeletonInterf) {
         const auto selectedAnimIndex = state.getSelectedAnimeIndex();
         if ( selectedAnimIndex >= anims.size() ) {
-            dalError(fmt::format("Selected animation's index is out of range: {}", selectedAnimIndex));
+            //dalError(fmt::format("Selected animation's index is out of range: {}", selectedAnimIndex));
             return;
         }
 

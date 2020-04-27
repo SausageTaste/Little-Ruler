@@ -171,10 +171,10 @@ namespace dal {
     }
 
 
-    void WaterFramebuffer::sendUniform(const UnilocWaterry& uniloc) const {
-        this->m_reflectionTexture.sendUniform(uniloc.getReflectionTex());
-        this->m_refractionTexture.sendUniform(uniloc.getRefractionTex());
-        this->m_refractionDepthTexture.sendUniform(uniloc.getDepthMap());
+    void WaterFramebuffer::sendUniform(const UniRender_Water& uniloc) const {
+        this->m_reflectionTexture.sendUniform(uniloc.reflectionImage());
+        this->m_refractionTexture.sendUniform(uniloc.refractionImage());
+        this->m_refractionDepthTexture.sendUniform(uniloc.depthMap());
     }
 
     void WaterFramebuffer::bindReflectionFrameBuffer(void) const {  //call before rendering to this FBO
@@ -238,7 +238,7 @@ namespace dal {
             this->m_reflectionFrameBuffer.reset(genFramebuffer());
             this->m_reflectionTexture.initAttach_colorMap(reflecWidth, reflecHeight);
             this->m_reflectionDepthBuffer.reset(genDepthBufferAttachment(reflecWidth, reflecHeight));
-        }
+        } dalGLWarn();
 
         if ( !checkFramebuffer() ) dalError("Framebuffer creation failed for reflection.");
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -304,24 +304,24 @@ namespace dal {
     }
 
 
-    void WaterRenderer::render(const UnilocWaterry& uniloc) {
+    void WaterRenderer::render(const UniRender_Water& uniloc) {
         const auto deltaTime = this->m_localTimer.checkGetElapsed();
         this->m_moveFactor += this->m_moveSpeed * deltaTime;
         this->m_moveFactor = fmod(this->m_moveFactor, 1.0f);
-        uniloc.dudvFactor(this->m_moveFactor);
+        uniloc.dudvMoveFactor(this->m_moveFactor);
 
         uniloc.waveStrength(this->m_waveStreng);
         uniloc.deepColor(this->m_depthColor);
         uniloc.darkestDepthPoint(this->m_darkestDepthPoint);
-        uniloc.reflectivity(this->m_reflectivity);
+        uniloc.reflectance(this->m_reflectivity);
 
-        this->m_material.sendUniform(uniloc.m_lightedMesh);
+        this->m_material.sendUniform(uniloc.i_lighting);
+        uniloc.texScale(this->m_material.m_texScale);
 
         this->m_fbuffer.sendUniform(uniloc);
-        this->m_dudvMap->sendUniform(uniloc.getDUDVMap());
-        this->m_normalMap->sendUniform(uniloc.getNormalMap());
+        this->m_dudvMap->sendUniform(uniloc.dudvMap());
+        this->m_normalMap->sendUniform(uniloc.normalMap());
 
-        uniloc.m_lightedMesh.modelMat(glm::mat4{ 1.0f });
         this->m_mesh.draw();
     }
 

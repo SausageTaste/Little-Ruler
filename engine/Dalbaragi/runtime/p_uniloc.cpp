@@ -232,6 +232,30 @@ namespace dal {
         this->u_texture.init(getUniloc(shader, "u_texture"), -2, g_texUnitReg["u_texture"]);
     }
 
+    void UniRender_Water::set(const GLuint shader) {
+        this->i_lighting.set(shader);
+
+        this->u_viewPos = getUniloc(shader, "u_viewPos");
+
+        this->u_projMat = getUniloc(shader, "u_projMat");
+        this->u_viewMat = getUniloc(shader, "u_viewMat");
+        this->u_modelMat = getUniloc(shader, "u_modelMat");
+
+        this->u_texScale = getUniloc(shader, "u_texScale");
+
+        this->u_bansaImg.init(getUniloc(shader, "u_bansaImg"), -2, g_texUnitReg["u_bansaImg"]);
+        this->u_gooljulImg.init(getUniloc(shader, "u_gooljulImg"), -2, g_texUnitReg["u_gooljulImg"]);
+        this->u_dudvMap.init(getUniloc(shader, "u_dudvMap"), -2, g_texUnitReg["u_dudvMap"]);
+        this->u_normalMap.init(getUniloc(shader, "u_normalMap"), -2, g_texUnitReg["u_normalMap"]);
+        this->u_depthMap.init(getUniloc(shader, "u_depthMap"), -2, g_texUnitReg["u_depthMap"]);
+
+        this->u_dudvMoveFactor = getUniloc(shader, "u_dudvMoveFactor");
+        this->u_waveStrength = getUniloc(shader, "u_waveStrength");
+        this->u_darkestDepthPoint = getUniloc(shader, "u_darkestDepthPoint");
+        this->u_reflectance = getUniloc(shader, "u_reflectance");
+        this->u_deepColor = getUniloc(shader, "u_deepColor");
+    }
+
 }
 
 
