@@ -505,11 +505,15 @@ namespace dal {
 
     class UniRender_Skybox {
 
+    public:
+        UniInterf_Lighting i_lighting;
+
     private:
         GLint u_projViewMat = -1;
         GLint u_modelMat = -1;
 
         GLint u_viewPos = -1;
+        GLint u_viewPosActual = -1;
         SamplerInterf u_skyboxTex;
 
     public:
@@ -527,6 +531,12 @@ namespace dal {
         }
         void viewPos(const glm::vec3& v) const {
             this->viewPos(v.x, v.y, v.z);
+        }
+        void viewPosActual(const float x, const float y, const float z) const {
+            glUniform3f(this->u_viewPosActual, x, y, z);
+        }
+        void viewPosActual(const glm::vec3& v) const {
+            this->viewPosActual(v.x, v.y, v.z);
         }
         auto& skyboxTex(void) const {
             return this->u_skyboxTex;

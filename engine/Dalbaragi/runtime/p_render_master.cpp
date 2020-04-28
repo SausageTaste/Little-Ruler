@@ -678,6 +678,8 @@ namespace dal {
             const float sqrt2 = sqrt(1.0 / 3.0);
 
             this->m_skyboxTex->sendUniform(uniloc.skyboxTex());
+            this->m_scene.sendDlightUniform(uniloc.i_lighting);
+            uniloc.viewPosActual(this->m_mainCamera->m_pos);
 
             uniloc.projViewMat(this->m_projectMat * glm::mat4(glm::mat3(this->m_mainCamera->getViewMat())));
             uniloc.modelMat(glm::scale(glm::mat4{ 1 }, glm::vec3{ sqrt2 * this->m_farPlaneDistance }));
