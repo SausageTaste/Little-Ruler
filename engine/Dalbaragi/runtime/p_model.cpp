@@ -65,7 +65,7 @@ namespace dal {
         }
     }
 
-    void ModelStatic::render(const UniRender_StaticDepth& uniloc) const {
+    void ModelStatic::render(void) const {
         if ( !this->isReady() ) {
             return;
         }

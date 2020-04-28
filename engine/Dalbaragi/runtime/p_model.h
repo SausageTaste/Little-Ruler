@@ -77,7 +77,7 @@ namespace dal {
         bool isReady(void) const;
 
         void render(const UniRender_Static& uniloc) const;
-        void render(const UniRender_StaticDepth& uniloc) const;
+        void render(void) const;
 
     };
 

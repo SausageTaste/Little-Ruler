@@ -411,7 +411,7 @@ namespace dal {
         this->m_entities.view<cpnt::Transform, cpnt::StaticModel>().each(
             [&uniloc](const cpnt::Transform& trans, const cpnt::StaticModel& model) {
                 uniloc.modelMat(trans.getMat());
-                model.m_model->render(uniloc);
+                model.m_model->render();
             }
         );
     }

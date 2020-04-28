@@ -541,7 +541,7 @@ namespace dal {
         for ( const auto& [mdl, actors] : this->m_staticActors ) {
             for ( const auto& actor : actors ) {
                 uniloc.modelMat(actor.m_transform.getMat());
-                mdl->render(uniloc);
+                mdl->render();
             }
         }
     }
