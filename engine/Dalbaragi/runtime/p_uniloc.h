@@ -539,23 +539,6 @@ namespace dal {
 
 namespace dal {
 
-    class UniInterfGeometry {
-
-    private:
-        GLint u_projMat = -1;
-        GLint u_viewMat = -1;
-        GLint u_modelMat = -1;
-
-    public:
-        UniInterfGeometry(const GLuint shader);
-
-        void projectMat(const glm::mat4& mat) const;
-        void viewMat(const glm::mat4& mat) const;
-        void modelMat(const glm::mat4& mat) const;
-
-     };
-
-
     class UnilocOverlay {
 
         //////// Vars ////////
@@ -590,28 +573,6 @@ namespace dal {
         void upsideDownDiffuseMap(const bool x) const;
         void upsideDownMaskMap(const bool x) const;
         void color(const glm::vec4& v) const;
-
-    };
-
-    class UnilocSkybox {
-
-    public:
-        UniInterfGeometry m_geometry;
-
-    private:
-        GLint u_fogColor;
-        GLint u_viewPos;
-        SamplerInterf u_skyboxTex;
-
-    public:
-        UnilocSkybox(const GLuint shader);
-
-        void fogColor(const float x, const float y, const float z) const;
-        void fogColor(const glm::vec3& v) const;
-        void viewPos(const float x, const float y, const float z) const;
-        void viewPos(const glm::vec3& v) const;
-
-        const SamplerInterf& getSkyboxTexLoc(void) const;
 
     };
 

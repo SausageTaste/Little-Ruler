@@ -113,12 +113,6 @@ namespace dal {
         this->m_shadowMap.clearBuffer();
     }
 
-    void DirectionalLight::startRenderShadowmap(const UniInterfGeometry& uniloc) {
-        uniloc.projectMat(this->makeProjMat());
-        uniloc.viewMat(this->makeViewMat());
-        this->m_shadowMap.startRender();
-    }
-
     void DirectionalLight::startRenderShadowmap(const UniRender_StaticDepth& uniloc) {
         uniloc.projMat(this->makeProjMat());
         uniloc.viewMat(this->makeViewMat());

@@ -267,33 +267,6 @@ namespace dal {
 }
 
 
-// UniInterfGeometry
-namespace dal {
-
-    UniInterfGeometry::UniInterfGeometry(const GLuint shader) {
-#if ASSERT_UNILOC
-        dalAssertm(0 == glGetAttribLocation(shader, "i_position"), "Uniloc i_position not found");
-#endif
-        this->u_projMat = getUniloc(shader, "u_projMat");
-        this->u_viewMat = getUniloc(shader, "u_viewMat");
-        this->u_modelMat = getUniloc(shader, "u_modelMat");
-    }
-
-    void UniInterfGeometry::projectMat(const glm::mat4& mat) const {
-        sendMatrix(this->u_projMat, mat);
-    }
-
-    void UniInterfGeometry::viewMat(const glm::mat4& mat) const {
-        sendMatrix(this->u_viewMat, mat);
-    }
-
-    void UniInterfGeometry::modelMat(const glm::mat4& mat) const {
-        sendMatrix(this->u_modelMat, mat);
-    }
-
-}
-
-
 // UnilocOverlay
 namespace dal {
 
@@ -357,38 +330,6 @@ namespace dal {
 
     const SamplerInterf& UnilocOverlay::getMaskMap(void) const {
         return this->m_maskMap;
-    }
-
-}
-
-
-// UnilocSkybox
-namespace dal {
-
-    UnilocSkybox::UnilocSkybox(const GLuint shader)
-        : m_geometry(shader) 
-    {
-        this->u_fogColor = getUniloc(shader, "u_fogColor");
-        this->u_viewPos = getUniloc(shader, "u_viewPos");
-        this->u_skyboxTex.init(getUniloc(shader, "u_skyboxTex"), -2, g_texUnitReg["u_skyboxTex"]);
-    }
-
-    void UnilocSkybox::fogColor(const float x, const float y, const float z) const {
-        glUniform3f(this->u_fogColor, x, y, z);
-    }
-    void UnilocSkybox::fogColor(const glm::vec3& v) const {
-        this->fogColor(v.x, v.y, v.z);
-    }
-
-    void UnilocSkybox::viewPos(const float x, const float y, const float z) const {
-        glUniform3f(this->u_viewPos, x, y, z);
-    }
-    void UnilocSkybox::viewPos(const glm::vec3& v) const {
-        this->viewPos(v.x, v.y, v.z);
-    }
-
-    const SamplerInterf& UnilocSkybox::getSkyboxTexLoc(void) const {
-        return this->u_skyboxTex;
     }
 
 }

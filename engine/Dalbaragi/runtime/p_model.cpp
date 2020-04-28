@@ -47,21 +47,6 @@ namespace dal {
         return true;
     }
 
-    void ModelStatic::renderDepth(const UniInterfGeometry& unilocGeometry, const glm::mat4& modelMat) const {
-        if ( !this->isReady() ) {
-            return;
-        }
-
-        unilocGeometry.modelMat(modelMat);
-
-        for ( auto& unit : this->m_renderUnits ) {
-            if ( !unit.m_mesh.isReady() ) {
-                continue;
-            }
-            unit.m_mesh.draw();
-        }
-    }
-
 
     void ModelStatic::render(const UniRender_Static& uniloc) const {
         if ( !this->isReady() ) {
@@ -81,19 +66,6 @@ namespace dal {
     }
 
     void ModelStatic::render(const UniRender_StaticDepth& uniloc) const {
-        if ( !this->isReady() ) {
-            return;
-        }
-
-        for ( auto& unit : this->m_renderUnits ) {
-            if ( !unit.m_mesh.isReady() ) {
-                continue;
-            }
-            unit.m_mesh.draw();
-        }
-    }
-
-    void ModelStatic::render(const UnilocSkybox& uniloc) const {
         if ( !this->isReady() ) {
             return;
         }
