@@ -337,12 +337,12 @@ namespace dal {
         // Skybox
         {
             std::array<std::string, 6> cubeMapImages{
-                "asset::plane_blue_rt.tga",
-                "asset::plane_blue_lf.tga",
-                "asset::plane_blue_up.tga",
-                "asset::plane_blue_dn.tga",
-                "asset::plane_blue_ft.tga",
-                "asset::plane_blue_bk.tga",
+                "asset::rainbow_rt.png",
+                "asset::rainbow_lf.png",
+                "asset::rainbow_up.png",
+                "asset::rainbow_dn.png",
+                "asset::rainbow_ft.png",
+                "asset::rainbow_bk.png",
             };
             this->m_skyboxTex = resMas.orderCubeMap(cubeMapImages, true);
         }
