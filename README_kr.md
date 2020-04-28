@@ -88,7 +88,7 @@
     </tr>
     <tr>
         <td>렌더링</td>
-        <td>OpenGL 3.3</td>
+        <td>OpenGL 3.0</td>
         <td>OpenGL ES 3.0</td>
     </tr>
     <tr>
