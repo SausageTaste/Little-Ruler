@@ -256,6 +256,14 @@ namespace dal {
         this->u_deepColor = getUniloc(shader, "u_deepColor");
     }
 
+    void UniRender_Skybox::set(const GLuint shader) {
+        this->u_projViewMat = getUniloc(shader, "u_projViewMat");
+        this->u_modelMat = getUniloc(shader, "u_modelMat");
+
+        this->u_viewPos = getUniloc(shader, "u_viewPos");
+        this->u_skyboxTex.init(getUniloc(shader, "u_skyboxTex"), -2, g_texUnitReg["u_skyboxTex"]);
+    }
+
 }
 
 
@@ -361,6 +369,7 @@ namespace dal {
         : m_geometry(shader) 
     {
         this->u_fogColor = getUniloc(shader, "u_fogColor");
+        this->u_viewPos = getUniloc(shader, "u_viewPos");
         this->u_skyboxTex.init(getUniloc(shader, "u_skyboxTex"), -2, g_texUnitReg["u_skyboxTex"]);
     }
 
@@ -369,6 +378,13 @@ namespace dal {
     }
     void UnilocSkybox::fogColor(const glm::vec3& v) const {
         this->fogColor(v.x, v.y, v.z);
+    }
+
+    void UnilocSkybox::viewPos(const float x, const float y, const float z) const {
+        glUniform3f(this->u_viewPos, x, y, z);
+    }
+    void UnilocSkybox::viewPos(const glm::vec3& v) const {
+        this->viewPos(v.x, v.y, v.z);
     }
 
     const SamplerInterf& UnilocSkybox::getSkyboxTexLoc(void) const {

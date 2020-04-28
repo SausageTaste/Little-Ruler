@@ -93,16 +93,9 @@ namespace {
             glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), nullptr);
         }
 
-        void render(const dal::UnilocSkybox& uniloc, const dal::CubeMap& cubemap) const {
-            glDepthMask(GL_FALSE);
-            glDepthFunc(GL_LEQUAL);
-
+        void draw(void) const {
             glBindVertexArray(this->m_vao);
-            cubemap.sendUniform(uniloc.getSkyboxTexLoc());
             glDrawArrays(GL_TRIANGLES, 0, 36);
-
-            glDepthMask(GL_TRUE);
-            glDepthFunc(GL_LESS);
         }
 
     } g_skyRenderer;
@@ -303,7 +296,7 @@ namespace dal {
     void RenderMaster::MainFramebuffer::clearAndstartRenderOn(void) {
         glBindFramebuffer(GL_FRAMEBUFFER, m_mainFbuf);
         glViewport(0, 0, m_bufWidth, m_bufHeight);
-        glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+        glClear(GL_DEPTH_BUFFER_BIT);
     }
 
     void RenderMaster::MainFramebuffer::renderOnScreen(const UniRender_FillScreen& uniloc) {
@@ -548,6 +541,21 @@ namespace dal {
         glDisable(GL_CLIP_DISTANCE0);
 #endif
 
+        {
+            const auto& uniloc = this->m_shader.useSkybox();
+            const float sqrt2 = sqrt(1.0 / 3.0);
+
+            this->m_skyboxTex->sendUniform(uniloc.skyboxTex());
+
+            uniloc.modelMat(glm::scale(glm::mat4{ 1 }, glm::vec3{ sqrt2 * this->m_farPlaneDistance }));
+            uniloc.viewPos(0, 0, 0);
+
+            for ( auto water : waters ) {
+                water->startRenderOnReflec(uniloc, *this->m_mainCamera, this->m_projectMat);
+                g_skyRenderer.draw();
+            }
+        }
+
     }
 
     void RenderMaster::render_onCubemap(void) {
@@ -568,14 +576,16 @@ namespace dal {
 
                 {
                     const auto& uniloc = this->m_shader.useSkybox();
+                    const float sqrt2 = sqrt(1.0 / 3.0);
 
-                    uniloc.m_geometry.projectMat(projMat);
-                    uniloc.fogColor(this->m_skyColor);
+                    uniloc.modelMat(glm::scale(glm::mat4{ 1 }, glm::vec3{ sqrt2 * this->m_farPlaneDistance }));
+                    uniloc.viewPos(0, 0, 0);
+                    this->m_skyboxTex->sendUniform(uniloc.skyboxTex());
 
                     for ( unsigned i = 0; i < 6; ++i ) {
                         e.readyFace(i);
-                        uniloc.m_geometry.viewMat(viewMats[i]);
-                        g_skyRenderer.render(uniloc, *this->m_skyboxTex);
+                        uniloc.projViewMat(projMat * glm::mat4{ glm::mat3{ viewMats[i] } });
+                        g_skyRenderer.draw();
                     }
                 }
 
@@ -665,13 +675,21 @@ namespace dal {
         // Skybox
         {
             const auto& uniloc = this->m_shader.useSkybox();
+            const float sqrt2 = sqrt(1.0 / 3.0);
 
-            uniloc.m_geometry.projectMat(this->m_projectMat);
-            const auto skyview = glm::mat4(glm::mat3(this->m_mainCamera->getViewMat()));
-            uniloc.m_geometry.viewMat(skyview);
-            uniloc.fogColor(this->m_skyColor);
+            this->m_skyboxTex->sendUniform(uniloc.skyboxTex());
 
-            g_skyRenderer.render(uniloc, *this->m_skyboxTex);
+            uniloc.projViewMat(this->m_projectMat * glm::mat4(glm::mat3(this->m_mainCamera->getViewMat())));
+            uniloc.modelMat(glm::scale(glm::mat4{ 1 }, glm::vec3{ sqrt2 * this->m_farPlaneDistance }));
+            uniloc.viewPos(0, 0, 0);
+
+            g_skyRenderer.draw();
+
+            //glDepthMask(GL_FALSE);
+            //glDepthFunc(GL_LEQUAL);
+
+            //glDepthMask(GL_TRUE);
+            //glDepthFunc(GL_LESS);
         }
     }
 

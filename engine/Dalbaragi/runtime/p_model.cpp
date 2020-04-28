@@ -93,6 +93,19 @@ namespace dal {
         }
     }
 
+    void ModelStatic::render(const UnilocSkybox& uniloc) const {
+        if ( !this->isReady() ) {
+            return;
+        }
+
+        for ( auto& unit : this->m_renderUnits ) {
+            if ( !unit.m_mesh.isReady() ) {
+                continue;
+            }
+            unit.m_mesh.draw();
+        }
+    }
+
 }
 
 

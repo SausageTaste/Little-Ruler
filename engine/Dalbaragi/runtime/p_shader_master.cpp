@@ -59,7 +59,7 @@ namespace {
 
     void setFor_skybox(void) {
         glEnable(GL_DEPTH_TEST);
-        glDisable(GL_CULL_FACE);
+        glEnable(GL_CULL_FACE);
         glDisable(GL_BLEND);
         glDisable(GL_POLYGON_OFFSET_FILL);
         //glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
@@ -212,8 +212,6 @@ namespace dal {
     ShaderMaster::ShaderMaster(void)
         : m_overlay(g_loader["overlay.vert"], g_loader["overlay.frag"])
         , m_overlayUniloc(m_overlay.get())
-        , m_skybox(g_loader["skybox.vert"], g_loader["skybox.frag"])
-        , m_skyboxUniloc(m_skybox.get())
     {
         this->m_static.init(g_loader["r_static.vert"], g_loader["r_static.frag"]);
         this->m_animated.init(g_loader["r_animated.vert"], g_loader["r_static.frag"]);
@@ -223,6 +221,7 @@ namespace dal {
         this->m_animated_onWater.init(g_loader["r_animated_onwater.vert"], g_loader["r_static_onwater.frag"]);
         this->m_fillScreen.init(g_loader["r_fillscreen.vert"], g_loader["r_fillscreen.frag"]);
         this->m_water.init(g_loader["r_water.vert"], g_loader["r_water.frag"]);
+        this->m_skybox.init(g_loader["r_skybox.vert"], g_loader["r_skybox.frag"]);
 
         this->u_static.set(this->m_static.get());
         this->u_animated.set(this->m_animated.get());
@@ -232,6 +231,7 @@ namespace dal {
         this->u_animated_onWater.set(this->m_animated_onWater.get());
         this->u_fillScreen.set(this->m_fillScreen.get());
         this->u_water.set(this->m_water.get());
+        this->u_skybox.set(this->m_skybox.get());
 
         g_loader.clear();
     }
@@ -240,12 +240,6 @@ namespace dal {
         setFor_overlay();
         this->m_overlay.use();
         return this->m_overlayUniloc;
-    }
-
-    const UnilocSkybox& ShaderMaster::useSkybox(void) const {
-        setFor_skybox();
-        this->m_skybox.use();
-        return this->m_skyboxUniloc;
     }
 
 
@@ -295,6 +289,12 @@ namespace dal {
         setFor_water();
         this->m_water.use();
         return this->u_water;
+    }
+
+    const UniRender_Skybox& ShaderMaster::useSkybox(void) const {
+        setFor_skybox();
+        this->m_skybox.use();
+        return this->u_skybox;
     }
 
 }

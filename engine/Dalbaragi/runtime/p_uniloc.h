@@ -503,6 +503,37 @@ namespace dal {
 
     };
 
+    class UniRender_Skybox {
+
+    private:
+        GLint u_projViewMat = -1;
+        GLint u_modelMat = -1;
+
+        GLint u_viewPos = -1;
+        SamplerInterf u_skyboxTex;
+
+    public:
+        void set(const GLuint shader);
+
+        void projViewMat(const glm::mat4& mat) const {
+            sendMatrix(this->u_projViewMat, mat);
+        }
+        void modelMat(const glm::mat4& mat) const {
+            sendMatrix(this->u_modelMat, mat);
+        }
+
+        void viewPos(const float x, const float y, const float z) const {
+            glUniform3f(this->u_viewPos, x, y, z);
+        }
+        void viewPos(const glm::vec3& v) const {
+            this->viewPos(v.x, v.y, v.z);
+        }
+        auto& skyboxTex(void) const {
+            return this->u_skyboxTex;
+        }
+
+    };
+
 }
 
 
@@ -569,6 +600,7 @@ namespace dal {
 
     private:
         GLint u_fogColor;
+        GLint u_viewPos;
         SamplerInterf u_skyboxTex;
 
     public:
@@ -576,6 +608,8 @@ namespace dal {
 
         void fogColor(const float x, const float y, const float z) const;
         void fogColor(const glm::vec3& v) const;
+        void viewPos(const float x, const float y, const float z) const;
+        void viewPos(const glm::vec3& v) const;
 
         const SamplerInterf& getSkyboxTexLoc(void) const;
 
