@@ -61,6 +61,7 @@ void main(void) {
     F0 = mix(F0, albedo.rgb, u_metallic);
     vec3 pbrL = u_baseAmbient * albedo.rgb;
 
+#ifdef DAL_ON_WATER_POSITION_LIGHT
     for ( int i = 0; i < u_plightCount; ++i ) {
         vec3 radiance = calcRadiance_plight(i, v_fragPos);
         vec3 L        = calcToLight_plight(i, v_fragPos);
@@ -71,13 +72,15 @@ void main(void) {
         vec3 radiance   = calcRadiance_slight(i, v_fragPos);
         vec3 L          = calcToLight_slight(i, v_fragPos);
 
-#ifdef DAL_SHADOW_ON_WATER_IMAGE
+# ifdef DAL_SHADOW_ON_WATER_IMAGE
         bool isInShadow = isInShadow_slight(i, v_fragPos_slight[i]);
         pbrL += isInShadow ? vec3(0.0) : integratePBR(fragNormal, viewDir, F0, L, albedo.rgb, roughness, metallic) * radiance;
-#else
+# else
         pbrL += integratePBR(fragNormal, viewDir, F0, L, albedo.rgb, roughness, metallic) * radiance;
-#endif
+# endif
     }
+#endif
+
     for ( int i = 0; i < u_dlightCount; ++i ) {
         vec3 radiance   = calcRadiance_dlight(i);
         vec3 L          = calcToLight_dlight(i);

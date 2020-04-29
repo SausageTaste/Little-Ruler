@@ -257,7 +257,7 @@ namespace dal {
 
         {
             std::vector<std::string> ignoreList{
-                "#endif", "#else", "#ifndef", "#ifdef"
+                "endif", "else", "ifndef", "ifdef"
             };
 
             for ( const auto& toIgnore : ignoreList ) {
