@@ -92,9 +92,6 @@ void main(void) {
         pbrL += integratePBR(fragNormal, viewDir, F0, L, albedo.rgb, roughness, metallic) * radiance;
 #endif
 
-#ifdef DAL_VOLUMETRIC_LIGHT
-        pbrL += calcScatterColor_dlight(i, v_fragPos, u_viewPos);
-#endif
     }
 
     f_color.rgb = pbrL;
