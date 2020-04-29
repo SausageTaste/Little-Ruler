@@ -1,7 +1,6 @@
 #include <i_lighting.glsl>
 #include <i_lightmap.glsl>
 #include <f_pbr.glsl>
-#include <i_envmap.glsl>
 
 
 uniform highp vec3 u_viewPos;

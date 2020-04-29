@@ -427,6 +427,41 @@ namespace dal {
         }
     }
 
+    void SceneGraph::render_staticOnWater(const UniRender_StaticOnWater& uniloc) {
+        this->sendDlightUniform(uniloc.i_lighting);
+
+        for ( auto& map : this->m_mapChunks2 ) {
+            map.render_staticOnWater(uniloc);
+        }
+
+        const auto view = this->m_entities.view<cpnt::Transform, cpnt::StaticModel>();
+        for ( const auto entity : view ) {
+            auto& cpntTrans = view.get<cpnt::Transform>(entity);
+            auto& cpntModel = view.get<cpnt::StaticModel>(entity);
+
+            uniloc.modelMat(cpntTrans.getMat());
+            cpntModel.m_model->render(uniloc);
+        }
+    }
+
+    void SceneGraph::render_animatedOnWater(const UniRender_AnimatedOnWater& uniloc) {
+        this->sendDlightUniform(uniloc.i_lighting);
+
+        if ( !this->m_mapChunks2.empty() ) {
+            this->m_mapChunks2.back().sendPlightUniforms(uniloc.i_lighting);
+            this->m_mapChunks2.back().sendSlightUniforms(uniloc.i_lighting);
+        }
+
+        const auto viewAnimated = this->m_entities.view<cpnt::Transform, cpnt::AnimatedModel>();
+        for ( const auto entity : viewAnimated ) {
+            auto& cpntTrans = viewAnimated.get<cpnt::Transform>(entity);
+            auto& cpntModel = viewAnimated.get<cpnt::AnimatedModel>(entity);
+
+            uniloc.modelMat(cpntTrans.getMat());
+            cpntModel.m_model->render(uniloc, cpntModel.m_animState.getTransformArray());
+        }
+    }
+
 
     void SceneGraph::sendDlightUniform(const UniInterf_Lighting& uniloc) {
         uniloc.dlightCount(this->m_dlights.size());

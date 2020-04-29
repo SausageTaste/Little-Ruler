@@ -65,6 +65,23 @@ namespace dal {
         }
     }
 
+    void ModelStatic::render(const UniRender_StaticOnWater& uniloc) const {
+        if ( !this->isReady() ) {
+            return;
+        }
+
+        for ( const auto& unit : this->m_renderUnits ) {
+            if ( !unit.m_mesh.isReady() ) {
+                continue;
+            }
+
+            unit.m_material.sendUniform(uniloc.i_lighting);
+            unit.m_material.sendUniform(uniloc.i_lightmap);
+
+            unit.m_mesh.draw();
+        }
+    }
+
     void ModelStatic::render(void) const {
         if ( !this->isReady() ) {
             return;
@@ -146,6 +163,24 @@ namespace dal {
                 continue;
             }
 
+            unit.m_mesh.draw();
+        }
+    }
+
+    void ModelAnimated::render(const UniRender_AnimatedOnWater& uniloc, const JointTransformArray& transformArr) const {
+        if ( !this->isReady() ) {
+            return;
+        }
+
+        transformArr.sendUniform(uniloc.i_skeleton);
+
+        for ( auto& unit : this->m_renderUnits ) {
+            if ( !unit.m_mesh.isReady() ) {
+                continue;
+            }
+
+            unit.m_material.sendUniform(uniloc.i_lighting);
+            unit.m_material.sendUniform(uniloc.i_lightmap);
             unit.m_mesh.draw();
         }
     }

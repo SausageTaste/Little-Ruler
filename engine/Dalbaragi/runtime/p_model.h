@@ -77,6 +77,7 @@ namespace dal {
         bool isReady(void) const;
 
         void render(const UniRender_Static& uniloc) const;
+        void render(const UniRender_StaticOnWater& uniloc) const;
         void render(void) const;
 
     };
@@ -99,6 +100,7 @@ namespace dal {
 
         void render(const UniRender_Animated uniloc, const JointTransformArray& transformArr) const;
         void render(const UniRender_AnimatedDepth& uniloc, const JointTransformArray& transformArr) const;
+        void render(const UniRender_AnimatedOnWater& uniloc, const JointTransformArray& transformArr) const;
 
         const SkeletonInterface& getSkeletonInterf(void) const {
             return this->m_jointInterface;

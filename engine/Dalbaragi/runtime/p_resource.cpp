@@ -550,6 +550,22 @@ namespace dal {
 
     }
 
+    void MapChunk2::render_staticOnWater(const UniRender_StaticOnWater& uniloc) {
+        this->sendPlightUniforms(uniloc.i_lighting);
+        this->sendSlightUniforms(uniloc.i_lighting);
+
+        for ( const auto& [model, actors] : this->m_staticActors ) {
+            for ( const auto& actor : actors ) {
+                uniloc.modelMat(actor.m_transform.getMat());
+                model->render(uniloc);
+            }
+        }
+    }
+
+    void MapChunk2::render_animatedOnWater(const UniRender_AnimatedOnWater& uniloc) {
+
+    }
+
 
     int MapChunk2::sendPlightUniforms(const UniInterf_Lighting& uniloc) const {
         dalAssert(this->m_plights.size() <= 3);

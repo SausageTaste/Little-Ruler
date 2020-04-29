@@ -497,19 +497,18 @@ namespace dal {
             uniloc.viewMat(this->m_mainCamera->getViewMat());
             uniloc.viewPos(this->m_mainCamera->m_pos);
             uniloc.i_lighting.baseAmbient(this->m_baseAmbientColor);
-            uniloc.i_envmap.envmap().setFlagHas(false);
 
             for ( auto water : waters ) {
                 {
                     water->startRenderOnReflec(uniloc, *this->m_mainCamera);
                     glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
-                    this->m_scene.render_static(uniloc);
+                    this->m_scene.render_staticOnWater(uniloc);
                 }
 
                 {
                     water->startRenderOnRefrac(uniloc, *this->m_mainCamera);
                     glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
-                    this->m_scene.render_static(uniloc);
+                    this->m_scene.render_staticOnWater(uniloc);
                 }
             }
         }
@@ -522,17 +521,16 @@ namespace dal {
             uniloc.viewMat(this->m_mainCamera->getViewMat());
             uniloc.viewPos(this->m_mainCamera->m_pos);
             uniloc.i_lighting.baseAmbient(this->m_baseAmbientColor);
-            uniloc.i_envmap.envmap().setFlagHas(false);
 
             for ( auto water : waters ) {
                 {
                     water->startRenderOnReflec(uniloc, *this->m_mainCamera);
-                    this->m_scene.render_animated(uniloc);
+                    this->m_scene.render_animatedOnWater(uniloc);
                 }
 
                 {
                     water->startRenderOnRefrac(uniloc, *this->m_mainCamera);
-                    this->m_scene.render_animated(uniloc);
+                    this->m_scene.render_animatedOnWater(uniloc);
                 }
             }
         }
