@@ -46,6 +46,9 @@ namespace dal {
     };
 
 
+    void sendEnvmapUniform(const dal::EnvMap& cubemap, const dal::UniInterf_Envmap& uniloc);
+
+
     class MapChunk2 {
 
     private:
@@ -81,10 +84,12 @@ namespace dal {
             this->m_staticActors.emplace_back(std::move(model), std::move(actors));
         }
         void addWaterPlane(const dlb::WaterPlane& waterInfo);
-        void getWaters(std::vector<WaterRenderer*>& result);
         PointLight& newPlight(void) {
             return this->m_plights.emplace_back();
         }
+
+        void getWaters(std::vector<WaterRenderer*>& result);
+        const EnvMap* getClosestEnvMap(const glm::vec3& worldPos) const;
 
         void applyCollision(const ICollider& inCol, cpnt::Transform& inTrans);
         std::optional<RayCastingResult> castRayToClosest(const Segment& ray) const;

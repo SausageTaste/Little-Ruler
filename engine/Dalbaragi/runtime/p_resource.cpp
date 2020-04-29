@@ -313,22 +313,6 @@ namespace {
         dst.setScale(src.m_scale);
     }
 
-
-    void sendEnvmapUniform(const dal::EnvMap& cubemap, const dal::UniInterf_Envmap& uniloc) {
-        cubemap.getCubemap()->sendUniform(uniloc.envmap());
-        uniloc.envmapPos(cubemap.m_pos);
-
-#if DAL_PARALLAX_CORRECTED_CUBEMAP == true
-        uniloc.numPlanes(cubemap.m_volume.size());
-        for ( size_t i = 0; i < cubemap.m_volume.size(); ++i ) {
-            uniloc.plane(i, cubemap.m_volume[i].getCoeff());
-        }
-#else
-        uniloc.numPlanes(0);
-#endif
-
-    }
-
 }
 
 
@@ -394,6 +378,22 @@ namespace dal {
         }
     }
 
+
+    void sendEnvmapUniform(const dal::EnvMap& cubemap, const dal::UniInterf_Envmap& uniloc) {
+        cubemap.getCubemap()->sendUniform(uniloc.envmap());
+        uniloc.envmapPos(cubemap.m_pos);
+
+#if DAL_PARALLAX_CORRECTED_CUBEMAP == true
+        uniloc.numPlanes(cubemap.m_volume.size());
+        for ( size_t i = 0; i < cubemap.m_volume.size(); ++i ) {
+            uniloc.plane(i, cubemap.m_volume[i].getCoeff());
+        }
+#else
+        uniloc.numPlanes(0);
+#endif
+
+    }
+
 }
 
 
@@ -418,6 +418,21 @@ namespace dal {
         for ( auto& water : this->m_waters ) {
             result.push_back(&water);
         }
+    }
+
+    const EnvMap* MapChunk2::getClosestEnvMap(const glm::vec3& worldPos) const {
+        const EnvMap* result = nullptr;
+        float resultDist = std::numeric_limits<float>::max();
+
+        for ( auto& e : this->m_envmap ) {
+            const auto dist = glm::distance(e.m_pos, worldPos);
+            if ( resultDist > dist ) {
+                result = &e;
+                resultDist = dist;
+            }
+        }
+
+        return result;
     }
 
 

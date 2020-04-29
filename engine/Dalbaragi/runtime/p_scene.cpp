@@ -380,6 +380,14 @@ namespace dal {
             auto& cpntTrans = view.get<cpnt::Transform>(entity);
             auto& cpntModel = view.get<cpnt::StaticModel>(entity);
 
+            auto envmap = this->m_mapChunks2.back().getClosestEnvMap(cpntTrans.getPos());
+            if ( nullptr != envmap ) {
+                sendEnvmapUniform(*envmap, uniloc.i_envmap);
+            }
+            else {
+                uniloc.i_envmap.envmap().setFlagHas(false);
+            }
+
             uniloc.modelMat(cpntTrans.getMat());
             cpntModel.m_model->render(uniloc);
         }
@@ -397,6 +405,14 @@ namespace dal {
         for ( const auto entity : viewAnimated ) {
             auto& cpntTrans = viewAnimated.get<cpnt::Transform>(entity);
             auto& cpntModel = viewAnimated.get<cpnt::AnimatedModel>(entity);
+
+            auto envmap = this->m_mapChunks2.back().getClosestEnvMap(cpntTrans.getPos());
+            if ( nullptr != envmap ) {
+                sendEnvmapUniform(*envmap, uniloc.i_envmap);
+            }
+            else {
+                uniloc.i_envmap.envmap().setFlagHas(false);
+            }
 
             uniloc.modelMat(cpntTrans.getMat());
             cpntModel.m_model->render(uniloc, cpntModel.m_animState.getTransformArray());
