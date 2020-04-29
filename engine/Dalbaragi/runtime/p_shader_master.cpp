@@ -206,6 +206,7 @@ namespace dal {
         dal::ShaderPreprocessor g_loader;
         {
             g_loader.m_defines.emplace_back("DAL_NORMAL_MAPPING");
+            g_loader.m_defines.emplace_back("DAL_VOLUMETRIC_LIGHT");
 
             //g_loader.m_defines.emplace_back("DAL_SHADOW_ON_WATER_IMAGE");
             //g_loader.m_defines.emplace_back("DAL_ON_WATER_NORMAL_MAPPING");
