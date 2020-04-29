@@ -204,6 +204,9 @@ namespace dal {
 
     ShaderMaster::ShaderMaster(void) {
         dal::ShaderPreprocessor g_loader;
+        {
+            g_loader.m_defines.emplace_back("DAL_NORMAL_MAPPING");
+        }
 
         this->m_static.init(g_loader["r_static.vert"], g_loader["r_static.frag"]);
         this->m_animated.init(g_loader["r_animated.vert"], g_loader["r_static.frag"]);

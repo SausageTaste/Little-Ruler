@@ -19,6 +19,9 @@ namespace dal {
         std::unordered_map<std::string, std::string> m_soures;
 
     public:
+        std::vector<std::string> m_defines;
+
+    public:
         std::string operator[](const std::string& key);
         void clear(void);
 
@@ -29,7 +32,7 @@ namespace dal {
         // Static
         static Defined parseDefine(const std::string& text, std::vector<std::string>& results);
         static ShaderType determineShaderType(const std::string& fileName);
-        static std::string makeHeader(const Precision precision);
+        static std::string makeHeader(const Precision precision, const std::vector<std::string>& defines);
 
     };
 
