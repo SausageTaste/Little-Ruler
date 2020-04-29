@@ -384,7 +384,12 @@ namespace dal {
 #if DAL_RENDER_WATER
         this->render_onWater(reg);
 #endif
-        this->render_onCubemap();
+
+        if ( this->m_envmapTimer.getElapsed() >= 1.f ) {
+            this->m_envmapTimer.check();
+            this->render_onCubemap();
+        }
+
         this->render_onFbuf();
 
         // Render framebuffer to quad 
