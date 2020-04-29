@@ -15,7 +15,7 @@ namespace dal {
     public:
         TextureView(Widget2* parent, const Texture* const tex = nullptr);
 
-        virtual void render(const UnilocOverlay& uniloc, const float width, const float height) override;
+        virtual void render(const UniRender_Overlay& uniloc, const float width, const float height) override;
 
         void setTexture(Texture* const tex);
         void setUpsideDown(const bool v);
@@ -31,7 +31,7 @@ namespace dal {
     public:
         ColoredTile(Widget2* const parent, const float r, const float g, const float b, const float a);
 
-        virtual void render(const UnilocOverlay& uniloc, const float width, const float height) override;
+        virtual void render(const UniRender_Overlay& uniloc, const float width, const float height) override;
 
         void setColor(const float r, const float g, const float b, const float a);
 

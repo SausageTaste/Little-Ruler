@@ -544,45 +544,71 @@ namespace dal {
 
     };
 
-}
-
-
-namespace dal {
-
-    class UnilocOverlay {
-
-        //////// Vars ////////
+    class UniRender_Overlay {
 
     private:
-        GLint u_bottLeft;
+        GLint u_bottomLeft;
         GLint u_rectSize;
-
-        GLint u_upsideDown_maskMap;
-        GLint u_upsideDown_diffuseMap;
 
         GLint u_texOffset;
         GLint u_texScale;
 
-        GLint u_color;
+        GLint u_yFlip_colorMap;
+        GLint u_yFlip_maskMap;
 
-        SamplerInterf m_diffuseMap, m_maskMap;
+        GLint u_colorDefault;
+
+        SamplerInterf u_colorMap, u_maskMap;
 
     public:
-        UnilocOverlay(const GLuint shader);
+        void set(const GLuint shader);
 
-        const SamplerInterf& getDiffuseMap(void) const;
-        const SamplerInterf& getMaskMap(void) const;
+        void bottomLeft(const float x, const float y) const {
+            glUniform2f(this->u_bottomLeft, x, y);
+        }
+        void bottomLeft(const glm::vec2& v) const {
+            this->bottomLeft(v.x, v.y);
+        }
+        void rectSize(const float x, const float y) const {
+            glUniform2f(this->u_rectSize, x, y);
+        }
+        void rectSize(const glm::vec2& v) const {
+            this->rectSize(v.x, v.y);
+        }
 
-        void texOffset(const float x, const float y) const;
-        void texOffset(const glm::vec2& v) const;
-        void texScale(const float x, const float y) const;
-        void texScale(const glm::vec2& v) const;
+        void texOffset(const float x, const float y) const {
+            glUniform2f(this->u_texOffset, x, y);
+        }
+        void texOffset(const glm::vec2& v) const {
+            this->texOffset(v.x, v.y);
+        }
+        void texScale(const float x, const float y) const {
+            glUniform2f(this->u_texScale, x, y);
+        }
+        void texScale(const glm::vec2& v) const {
+            this->texScale(v.x, v.y);
+        }
 
-        void bottomLeft(const glm::vec2& v) const;
-        void rectSize(const glm::vec2& v) const;
-        void upsideDownDiffuseMap(const bool x) const;
-        void upsideDownMaskMap(const bool x) const;
-        void color(const glm::vec4& v) const;
+        void yFlip_colorMap(const bool v) const {
+            sendBool(this->u_yFlip_colorMap, v);
+        }
+        void yFlip_maskMap(const bool v) const {
+            sendBool(this->u_yFlip_maskMap, v);
+        }
+
+        void colorDefault(const float r, const float g, const float b, const float a) const {
+            glUniform4f(this->u_colorDefault, r, g, b, a);
+        }
+        void colorDefault(const glm::vec4& v) const {
+            this->colorDefault(v.x, v.y, v.z, v.w);
+        }
+
+        auto& colorMap(void) const {
+            return this->u_colorMap;
+        }
+        auto& maskMap(void) const {
+            return this->u_maskMap;
+        }
 
     };
 

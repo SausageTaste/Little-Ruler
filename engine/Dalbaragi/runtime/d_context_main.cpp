@@ -34,7 +34,7 @@ namespace {
             this->setSize(50.0f, 20.0f);
         }
 
-        virtual void render(const dal::UnilocOverlay& uniloc, const float width, const float height) override {
+        virtual void render(const dal::UniRender_Overlay& uniloc, const float width, const float height) override {
             this->update();
             this->m_label.render(uniloc, width, height);
         }
@@ -143,7 +143,7 @@ namespace {
             dal::LoggerGod::getinst().deleteChannel(&this->m_stream);
         }
 
-        virtual void render(const dal::UnilocOverlay& uniloc, const float width, const float height) override {
+        virtual void render(const dal::UniRender_Overlay& uniloc, const float width, const float height) override {
             dal::QuadRenderInfo info;
             std::tie(info.m_bottomLeftNormalized, info.m_rectSize) = this->makePosSize(width, height);
             info.m_color = this->m_bgColor;

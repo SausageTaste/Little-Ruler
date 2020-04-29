@@ -389,7 +389,7 @@ namespace dal {
 
     }
 
-    void TextRenderer::render(const UnilocOverlay& uniloc, const float width, const float height) {
+    void TextRenderer::render(const UniRender_Overlay& uniloc, const float width, const float height) {
         const auto parentP2 = this->getPoint11();
 
         const float xInit = this->m_wordWrap ? this->getPosX() : (this->getPosX() + this->m_offset.x);
@@ -729,7 +729,7 @@ namespace dal {
         this->m_blocks.emplace_back();
     }
 
-    void TextRenderer2::render(const UnilocOverlay& uniloc, const float width, const float height) {
+    void TextRenderer2::render(const UniRender_Overlay& uniloc, const float width, const float height) {
         this->render_noWrap(uniloc, width, height);
     }
 
@@ -772,7 +772,7 @@ namespace dal {
 
     // Private
 
-    void TextRenderer2::render_noWrap(const UnilocOverlay& uniloc, const float width, const float height) const {
+    void TextRenderer2::render_noWrap(const UniRender_Overlay& uniloc, const float width, const float height) const {
         const auto p11 = this->getPoint11();
         const auto leftMostPos = this->getPosX() + this->m_offset.x;
 

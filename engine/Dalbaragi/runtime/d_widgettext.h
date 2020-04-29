@@ -26,7 +26,7 @@ namespace dal {
     public:
         TextRenderer(Widget2* const parent);
 
-        virtual void render(const UnilocOverlay& uniloc, const float width, const float height) override;
+        virtual void render(const UniRender_Overlay& uniloc, const float width, const float height) override;
 
         std::string& textbuf(void) {
             return this->m_text;
@@ -175,7 +175,7 @@ namespace dal {
     public:
         TextRenderer2(Widget2* const parent);
 
-        virtual void render(const UnilocOverlay& uniloc, const float width, const float height) override;
+        virtual void render(const UniRender_Overlay& uniloc, const float width, const float height) override;
 
         const glm::vec4& textColor(void) const {
             return this->m_color;
@@ -196,7 +196,7 @@ namespace dal {
         void addStr(const char* const str);
 
     private:
-        void render_noWrap(const UnilocOverlay& uniloc, const float width, const float height) const;
+        void render_noWrap(const UniRender_Overlay& uniloc, const float width, const float height) const;
 
     };
 

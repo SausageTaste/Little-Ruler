@@ -92,36 +92,36 @@ namespace dal {
     }
 
 
-    void renderQuadOverlay(const UnilocOverlay& uniloc, const glm::vec2& bottomLeft, const glm::vec2& rectSize, const glm::vec4& color,
+    void renderQuadOverlay(const UniRender_Overlay& uniloc, const glm::vec2& bottomLeft, const glm::vec2& rectSize, const glm::vec4& color,
         const Texture* const diffuseMap, const Texture* const maskMap, const bool upsideDown_diffuseMap, const bool upsideDown_maskMap,
         const glm::vec2& texOffset, const glm::vec2& texScale)
     {
         uniloc.bottomLeft(bottomLeft);
         uniloc.rectSize(rectSize);
-        uniloc.color(color);
-        uniloc.upsideDownDiffuseMap(upsideDown_diffuseMap);
-        uniloc.upsideDownMaskMap(upsideDown_maskMap);
+        uniloc.colorDefault(color);
+        uniloc.yFlip_colorMap(upsideDown_diffuseMap);
+        uniloc.yFlip_maskMap(upsideDown_maskMap);
         uniloc.texOffset(texOffset);
         uniloc.texScale(texScale);
 
         if ( nullptr != diffuseMap ) {
-            diffuseMap->sendUniform(uniloc.getDiffuseMap());
+            diffuseMap->sendUniform(uniloc.colorMap());
         }
         else {
-            uniloc.getDiffuseMap().setFlagHas(false);
+            uniloc.colorMap().setFlagHas(false);
         }
 
         if ( nullptr != maskMap ) {
-            maskMap->sendUniform(uniloc.getMaskMap());
+            maskMap->sendUniform(uniloc.maskMap());
         }
         else {
-            uniloc.getMaskMap().setFlagHas(false);
+            uniloc.maskMap().setFlagHas(false);
         }
 
         RealQuadRenderer2::getinst().drawArray();
     }
 
-    void renderQuadOverlay(const UnilocOverlay& uniloc, const QuadRenderInfo& info) {
+    void renderQuadOverlay(const UniRender_Overlay& uniloc, const QuadRenderInfo& info) {
         renderQuadOverlay(uniloc, info.m_bottomLeftNormalized, info.m_rectSize, info.m_color, info.m_diffuseMap, info.m_maskMap,
             info.m_upsideDown_diffuse, info.m_upsideDown_mask, info.m_texOffset, info.m_texScale);
     }

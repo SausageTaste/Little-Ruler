@@ -11,7 +11,7 @@ namespace dal {
 
     }
 
-    void TextureView::render(const UnilocOverlay& uniloc, const float width, const float height) {
+    void TextureView::render(const UniRender_Overlay& uniloc, const float width, const float height) {
         QuadRenderInfo info;
 
         std::tie(info.m_bottomLeftNormalized, info.m_rectSize) = this->makePosSize(width, height);
@@ -41,7 +41,7 @@ namespace dal {
         this->setColor(r, g, b, a);
     }
 
-    void ColoredTile::render(const UnilocOverlay& uniloc, const float width, const float height) {
+    void ColoredTile::render(const UniRender_Overlay& uniloc, const float width, const float height) {
         QuadRenderInfo info;
 
         std::tie(info.m_bottomLeftNormalized, info.m_rectSize) = this->makePosSize(width, height);

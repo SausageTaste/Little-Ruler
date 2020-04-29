@@ -29,7 +29,7 @@ namespace dal {
         public:
             MoveDPad(dal::Widget2* const parent, const float winWidth, const float winHeight);
 
-            virtual void render(const dal::UnilocOverlay& uniloc, const float width, const float height) override;
+            virtual void render(const dal::UniRender_Overlay& uniloc, const float width, const float height) override;
             virtual dal::InputCtrlFlag onTouch(const dal::TouchEvent& e) override;
             virtual void onParentResize(const float width, const float height) override;
 
@@ -57,7 +57,7 @@ namespace dal {
     public:
         PlayerControlWidget(const float winWidth, const float winHeight);
 
-        virtual void render(const dal::UnilocOverlay& uniloc, const float width, const float height) override;
+        virtual void render(const dal::UniRender_Overlay& uniloc, const float width, const float height) override;
         virtual dal::InputCtrlFlag onTouch(const dal::TouchEvent& e) override;
         virtual InputCtrlFlag onKeyInput(const KeyboardEvent& e, const KeyStatesRegistry& keyStates) override;
         virtual void onParentResize(const float width, const float height) override;

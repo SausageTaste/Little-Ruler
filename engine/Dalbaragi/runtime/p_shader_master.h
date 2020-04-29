@@ -28,11 +28,6 @@ namespace dal {
     class ShaderMaster {
 
     private:
-        ShaderProgram m_overlay;
-        UnilocOverlay m_overlayUniloc;
-
-        //
-
         ShaderProgram m_static;
         UniRender_Static u_static;
 
@@ -60,10 +55,12 @@ namespace dal {
         ShaderProgram m_skybox;
         UniRender_Skybox u_skybox;
 
+        ShaderProgram m_overlay;
+        UniRender_Overlay u_overlay;
+
     public:
         ShaderMaster(void);
 
-        const UnilocOverlay& useOverlay(void) const;
 
         const UniRender_Static& useStatic(void) const;
         const UniRender_Animated& useAnimated(void) const;
@@ -74,6 +71,7 @@ namespace dal {
         const UniRender_FillScreen& useFillScreen(void) const;
         const UniRender_Water& useWater(void) const;
         const UniRender_Skybox& useSkybox(void) const;
+        const UniRender_Overlay& useOverlay(void) const;
 
     };
 
