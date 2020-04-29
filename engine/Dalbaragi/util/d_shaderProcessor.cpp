@@ -257,7 +257,7 @@ namespace dal {
 
         {
             std::vector<std::string> ignoreList{
-                "#ifdef GL_ES", "#endif", "#else", "#ifndef GL_ES", "#ifndef GL_ES", "#ifdef DAL_NORMAL_MAPPING"
+                "#endif", "#else", "#ifndef", "#ifdef"
             };
 
             for ( const auto& toIgnore : ignoreList ) {

@@ -8,10 +8,13 @@ uniform highp vec3 u_viewPos;
 in vec3 v_fragPos;
 in vec2 v_texCoord;
 in vec3 v_normal;
+
+#ifdef DAL_SHADOW_ON_WATER_IMAGE
 in vec4 v_fragPos_dlight[3];
 in vec4 v_fragPos_slight[3];
+#endif
 
-#ifdef DAL_NORMAL_MAPPING
+#ifdef DAL_ON_WATER_NORMAL_MAPPING
 in mat3 v_tbn;
 #endif
 
@@ -24,7 +27,7 @@ out vec4 f_color;
 
 vec3 makeNormal() {
 
-#ifdef DAL_NORMAL_MAPPING
+#ifdef DAL_ON_WATER_NORMAL_MAPPING
     if ( u_hasNormalMap ) {
         vec3 normal = texture(u_normalMap, v_texCoord).rgb;
         normal = normal * 2.0 - 1.0;   
@@ -67,17 +70,26 @@ void main(void) {
     for ( int i = 0; i < u_slightCount; ++i ) {
         vec3 radiance   = calcRadiance_slight(i, v_fragPos);
         vec3 L          = calcToLight_slight(i, v_fragPos);
-        bool isInShadow = isInShadow_slight(i, v_fragPos_slight[i]);
 
+#ifdef DAL_SHADOW_ON_WATER_IMAGE
+        bool isInShadow = isInShadow_slight(i, v_fragPos_slight[i]);
         pbrL += isInShadow ? vec3(0.0) : integratePBR(fragNormal, viewDir, F0, L, albedo.rgb, roughness, metallic) * radiance;
+#else
+        pbrL += integratePBR(fragNormal, viewDir, F0, L, albedo.rgb, roughness, metallic) * radiance;
+#endif
     }
     for ( int i = 0; i < u_dlightCount; ++i ) {
         vec3 radiance   = calcRadiance_dlight(i);
         vec3 L          = calcToLight_dlight(i);
-        bool isInShadow = isInShadow_dlight(i, v_fragPos_dlight[i]);
 
+#ifdef DAL_SHADOW_ON_WATER_IMAGE
+        bool isInShadow = isInShadow_dlight(i, v_fragPos_dlight[i]);
         pbrL += isInShadow ? vec3(0.0) : integratePBR(fragNormal, viewDir, F0, L, albedo.rgb, roughness, metallic) * radiance;
+#else
+        pbrL += integratePBR(fragNormal, viewDir, F0, L, albedo.rgb, roughness, metallic) * radiance;
+#endif
     }
+
     f_color.rgb = pbrL;
     f_color.a = albedo.a;
 }
