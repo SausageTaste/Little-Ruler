@@ -1,9 +1,12 @@
 #include <i_lighting.glsl>
+#include <f_scattering.glsl>
 
 
 uniform vec3 u_viewPos;
 uniform vec3 u_viewPosActual;
 uniform samplerCube u_skyboxTex;
+
+uniform vec3 u_dlight_direc;
 
 
 in vec3 v_worldPos;
@@ -22,4 +25,5 @@ void main() {
     }
 #endif
 
+    f_color.xyz = skyColor(u_viewPos, normalize(v_worldPos) * 50.0, u_dlight_direc);
 }

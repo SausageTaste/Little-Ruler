@@ -571,6 +571,8 @@ namespace dal {
         GLint u_viewPosActual = -1;
         SamplerInterf u_skyboxTex;
 
+        GLint u_dlight_direc = -1;
+
     public:
         void set(const GLuint shader);
 
@@ -595,6 +597,13 @@ namespace dal {
         }
         auto& skyboxTex(void) const {
             return this->u_skyboxTex;
+        }
+
+        void dlight_direc(const float x, const float y, const float z) const {
+            glUniform3f(this->u_dlight_direc, x, y, z);
+        }
+        void dlight_direc(const glm::vec3& v) const {
+            this->dlight_direc(v.x, v.y, v.z);
         }
 
     };

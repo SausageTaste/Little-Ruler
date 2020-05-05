@@ -365,18 +365,14 @@ namespace dal {
     }
 
     void RenderMaster::update(const float deltaTime) {
-        /*
-        const auto mat = glm::rotate(glm::mat4{ 1.0f }, deltaTime * 0.3f, glm::vec3{ 1.0f, 0.5f, 0.0f });
-        const glm::vec4 direcBefore{ this->m_dlight1.getDirection(), 0.0f };
-        const auto newDirec = glm::normalize(glm::vec3{ mat * direcBefore });
-        this->m_dlight1.setDirectin(newDirec);
+        if ( !this->m_scene.m_dlights.empty() ) {
+            auto& dlight = this->m_scene.m_dlights.back();
 
-        const auto diff = glm::dot(newDirec, glm::vec3{ 0.0f, -1.0f, 0.0f });
-        m_skyColor = glm::vec3{ 0.5f, 0.5f, 0.8f } *glm::max(diff, 0.0f) + glm::vec3{ 0.1f, 0.1f, 0.2f };
-        glClearColor(m_skyColor.x, m_skyColor.y, m_skyColor.z, 1.0f);
-
-        this->m_flagDrawDlight1 = -0.3f < diff;
-        */
+            const auto mat = glm::rotate(glm::mat4{ 1.0f }, deltaTime * 0.3f, glm::vec3{ 1.0f, 0.5f, 0.0f });
+            const glm::vec4 direcBefore{ dlight.getDirection(), 0.0f };
+            const auto newDirec = glm::normalize(glm::vec3{ mat * direcBefore });
+            dlight.setDirectin(newDirec);
+        }
     }
 
     void RenderMaster::render(entt::registry& reg) {
@@ -687,6 +683,11 @@ namespace dal {
             uniloc.projViewMat(this->m_projectMat * glm::mat4(glm::mat3(this->m_mainCamera->getViewMat())));
             uniloc.modelMat(glm::scale(glm::mat4{ 1 }, glm::vec3{ sqrt2 * this->m_farPlaneDistance }));
             uniloc.viewPos(0, 0, 0);
+
+            if ( !this->m_scene.m_dlights.empty() ) {
+                const auto direc = this->m_scene.m_dlights.back().getDirection();
+                uniloc.dlight_direc(direc);
+            }
 
             g_skyRenderer.draw();
 

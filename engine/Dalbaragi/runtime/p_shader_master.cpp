@@ -177,8 +177,8 @@ namespace dal {
         glGetProgramiv(this->m_id, GL_LINK_STATUS, &programSuccess);
         if ( programSuccess != GL_TRUE ) {
             GLsizei length = 0;
-            char log[100];
-            glGetProgramInfoLog(this->m_id, 100, &length, log);
+            char log[1024];
+            glGetProgramInfoLog(this->m_id, 1024, &length, log);
             dalAbort("ShaderProgram linking error occured. Here's log:\n{}"_format(log));
         }
     }

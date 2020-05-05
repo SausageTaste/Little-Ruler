@@ -280,6 +280,8 @@ namespace dal {
         this->u_viewPos = getUniloc(shader, "u_viewPos");
         this->u_viewPosActual = getUniloc(shader, "u_viewPosActual");
         this->u_skyboxTex.init(getUniloc(shader, "u_skyboxTex"), -2, g_texUnitReg["u_skyboxTex"]);
+
+        this->u_dlight_direc = getUniloc(shader, "u_dlight_direc");
     }
 
     void UniRender_Overlay::set(const GLuint shader) {
