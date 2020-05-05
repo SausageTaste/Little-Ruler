@@ -96,16 +96,16 @@ namespace dal {
             switch ( shaderType ) {
             case ShaderType::vertex:
 #if defined(_WIN32)
-                buffer = makeHeader(Precision::nodef);
+                buffer = makeHeader(Precision::nodef, this->m_defines);
 #elif defined(__ANDROID__)
-                buffer = makeHeader(Precision::nodef);
+                buffer = makeHeader(Precision::nodef, this->m_defines);
 #endif
                 break;
             case ShaderType::fragment:
 #if defined(_WIN32)
-                buffer = makeHeader(Precision::nodef);
+                buffer = makeHeader(Precision::nodef, this->m_defines);
 #elif defined(__ANDROID__)
-                buffer = makeHeader(Precision::mediump);
+                buffer = makeHeader(Precision::mediump, this->m_defines);
 #endif
                 break;
             }
@@ -257,7 +257,7 @@ namespace dal {
 
         {
             std::vector<std::string> ignoreList{
-                "#ifdef GL_ES", "#endif", "#else", "#ifndef GL_ES", "#ifndef GL_ES", "#ifdef DAL_NORMAL_MAPPING"
+                "endif", "else", "ifndef", "ifdef"
             };
 
             for ( const auto& toIgnore : ignoreList ) {
@@ -283,7 +283,7 @@ namespace dal {
         }
     }
 
-    std::string ShaderPreprocessor::makeHeader(const Precision precision) {
+    std::string ShaderPreprocessor::makeHeader(const Precision precision, const std::vector<std::string>& defines) {
         static const auto types = {
             "float", "sampler2D"
         };
@@ -316,7 +316,11 @@ namespace dal {
             }
         }
 
-        fileHeader += "\n#define DAL_NORMAL_MAPPING\n\n";
+        fileHeader += '\n';
+        for ( const auto& def : defines ) {
+            fileHeader += "#define " + def + "\n";
+        }
+        fileHeader += '\n';
 
         return fileHeader;
     }

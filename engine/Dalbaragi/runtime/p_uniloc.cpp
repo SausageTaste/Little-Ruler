@@ -217,13 +217,28 @@ namespace dal {
     }
 
     void UniRender_StaticOnWater::set(const GLuint shader) {
-        UniRender_Static::set(shader);
+        this->i_lighting.set(shader);
+        this->i_lightmap.set(shader);
+
+        this->u_projMat = getUniloc(shader, "u_projMat");
+        this->u_viewMat = getUniloc(shader, "u_viewMat");
+        this->u_modelMat = getUniloc(shader, "u_modelMat");
+
+        this->u_viewPos = getUniloc(shader, "u_viewPos");
 
         this->u_clipPlane = getUniloc(shader, "u_clipPlane");
     }
 
     void UniRender_AnimatedOnWater::set(const GLuint shader) {
-        UniRender_Animated::set(shader);
+        this->i_lighting.set(shader);
+        this->i_lightmap.set(shader);
+        this->i_skeleton.set(shader);
+
+        this->u_projMat = getUniloc(shader, "u_projMat");
+        this->u_viewMat = getUniloc(shader, "u_viewMat");
+        this->u_modelMat = getUniloc(shader, "u_modelMat");
+
+        this->u_viewPos = getUniloc(shader, "u_viewPos");
 
         this->u_clipPlane = getUniloc(shader, "u_clipPlane");
     }
@@ -256,123 +271,31 @@ namespace dal {
         this->u_deepColor = getUniloc(shader, "u_deepColor");
     }
 
-}
+    void UniRender_Skybox::set(const GLuint shader) {
+        this->i_lighting.set(shader);
 
-
-// UniInterfGeometry
-namespace dal {
-
-    UniInterfGeometry::UniInterfGeometry(const GLuint shader) {
-#if ASSERT_UNILOC
-        dalAssertm(0 == glGetAttribLocation(shader, "i_position"), "Uniloc i_position not found");
-#endif
-        this->u_projMat = getUniloc(shader, "u_projMat");
-        this->u_viewMat = getUniloc(shader, "u_viewMat");
+        this->u_projViewMat = getUniloc(shader, "u_projViewMat");
         this->u_modelMat = getUniloc(shader, "u_modelMat");
+
+        this->u_viewPos = getUniloc(shader, "u_viewPos");
+        this->u_viewPosActual = getUniloc(shader, "u_viewPosActual");
+        this->u_skyboxTex.init(getUniloc(shader, "u_skyboxTex"), -2, g_texUnitReg["u_skyboxTex"]);
     }
 
-    void UniInterfGeometry::projectMat(const glm::mat4& mat) const {
-        sendMatrix(this->u_projMat, mat);
-    }
-
-    void UniInterfGeometry::viewMat(const glm::mat4& mat) const {
-        sendMatrix(this->u_viewMat, mat);
-    }
-
-    void UniInterfGeometry::modelMat(const glm::mat4& mat) const {
-        sendMatrix(this->u_modelMat, mat);
-    }
-
-}
-
-
-// UnilocOverlay
-namespace dal {
-
-    UnilocOverlay::UnilocOverlay(const GLuint shader) {
-        this->u_bottLeft = getUniloc(shader, "u_bottLeft");
+    void UniRender_Overlay::set(const GLuint shader) {
+        this->u_bottomLeft = getUniloc(shader, "u_bottomLeft");
         this->u_rectSize = getUniloc(shader, "u_rectSize");
-
-        this->u_upsideDown_maskMap = getUniloc(shader, "u_upsideDown_maskMap");
-        this->u_upsideDown_diffuseMap = getUniloc(shader, "m_upsideDown_diffuseMap");
 
         this->u_texOffset = getUniloc(shader, "u_texOffset");
         this->u_texScale = getUniloc(shader, "u_texScale");
 
-        // Fragment shader
+        this->u_yFlip_colorMap = getUniloc(shader, "u_yFlip_colorMap");
+        this->u_yFlip_maskMap = getUniloc(shader, "u_yFlip_maskMap");
 
-        this->u_color = getUniloc(shader, "u_color");
+        this->u_colorDefault = getUniloc(shader, "u_colorDefault");
 
-        this->m_diffuseMap.init(getUniloc(shader, "u_diffuseMap"), getUniloc(shader, "u_hasDiffuseMap"), g_texUnitReg["u_diffuseMap"]);
-        this->m_maskMap.init(getUniloc(shader, "u_maskMap"), getUniloc(shader, "u_hasMaskMap"), g_texUnitReg["u_maskMap"]);
-    }
-
-    void UnilocOverlay::texOffset(const float x, const float y) const {
-        glUniform2f(this->u_texOffset, x, y);
-    }
-
-    void UnilocOverlay::texOffset(const glm::vec2& v) const {
-        this->texOffset(v.x, v.y);
-    }
-
-    void UnilocOverlay::texScale(const float x, const float y) const {
-        glUniform2f(this->u_texScale, x, y);
-    }
-
-    void UnilocOverlay::texScale(const glm::vec2& v) const {
-        this->texScale(v.x, v.y);
-    }
-
-    void UnilocOverlay::bottomLeft(const glm::vec2& v) const {
-        glUniform2f(this->u_bottLeft, v.x, v.y);
-    }
-
-    void UnilocOverlay::rectSize(const glm::vec2& v) const {
-        glUniform2f(this->u_rectSize, v.x, v.y);
-    }
-
-    void UnilocOverlay::upsideDownDiffuseMap(const bool x) const {
-        sendBool(this->u_upsideDown_diffuseMap, x);
-    }
-
-    void UnilocOverlay::upsideDownMaskMap(const bool x) const {
-        sendBool(this->u_upsideDown_maskMap, x);
-    }
-
-    void UnilocOverlay::color(const glm::vec4& v) const {
-        glUniform4f(this->u_color, v.x, v.y, v.z, v.w);
-    }
-
-    const SamplerInterf& UnilocOverlay::getDiffuseMap(void) const {
-        return this->m_diffuseMap;
-    }
-
-    const SamplerInterf& UnilocOverlay::getMaskMap(void) const {
-        return this->m_maskMap;
-    }
-
-}
-
-
-// UnilocSkybox
-namespace dal {
-
-    UnilocSkybox::UnilocSkybox(const GLuint shader)
-        : m_geometry(shader) 
-    {
-        this->u_fogColor = getUniloc(shader, "u_fogColor");
-        this->u_skyboxTex.init(getUniloc(shader, "u_skyboxTex"), -2, g_texUnitReg["u_skyboxTex"]);
-    }
-
-    void UnilocSkybox::fogColor(const float x, const float y, const float z) const {
-        glUniform3f(this->u_fogColor, x, y, z);
-    }
-    void UnilocSkybox::fogColor(const glm::vec3& v) const {
-        this->fogColor(v.x, v.y, v.z);
-    }
-
-    const SamplerInterf& UnilocSkybox::getSkyboxTexLoc(void) const {
-        return this->u_skyboxTex;
+        this->u_colorMap.init(getUniloc(shader, "u_colorMap"), getUniloc(shader, "u_hasColorMap"), g_texUnitReg["u_colorMap"]);
+        this->u_maskMap.init(getUniloc(shader, "u_maskMap"), getUniloc(shader, "u_hasMaskMap"), g_texUnitReg["u_maskMap"]);
     }
 
 }

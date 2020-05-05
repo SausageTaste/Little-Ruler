@@ -56,6 +56,8 @@ namespace dal {
         float m_farPlaneDistance;
         glm::vec3 m_baseAmbientColor;
 
+        dal::Timer m_envmapTimer;
+
         std::shared_ptr<const CubeMap> m_skyboxTex;
 
     public:

@@ -365,13 +365,40 @@ namespace dal {
 
     };
 
-    class UniRender_StaticOnWater : public UniRender_Static {
+    class UniRender_StaticOnWater {
+
+    public:
+        UniInterf_Lighting i_lighting;
+        UniInterf_Lightmap i_lightmap;
 
     private:
+        GLint u_projMat = -1;
+        GLint u_viewMat = -1;
+        GLint u_modelMat = -1;
+
+        GLint u_viewPos = -1;
+
         GLint u_clipPlane = -1;
 
     public:
         void set(const GLuint shader);
+
+        void projMat(const glm::mat4& mat) const {
+            sendMatrix(this->u_projMat, mat);
+        }
+        void viewMat(const glm::mat4& mat) const {
+            sendMatrix(this->u_viewMat, mat);
+        }
+        void modelMat(const glm::mat4& mat) const {
+            sendMatrix(this->u_modelMat, mat);
+        }
+
+        void viewPos(const float x, const float y, const float z) const {
+            glUniform3f(this->u_viewPos, x, y, z);
+        }
+        void viewPos(const glm::vec3& v) const {
+            this->viewPos(v.x, v.y, v.z);
+        }
 
         void clipPlane(const float x, const float y, const float z, const float w) const {
             glUniform4f(this->u_clipPlane, x, y, z, w);
@@ -382,13 +409,41 @@ namespace dal {
 
     };
 
-    class UniRender_AnimatedOnWater : public UniRender_Animated {
+    class UniRender_AnimatedOnWater {
+
+    public:
+        UniInterf_Lighting i_lighting;
+        UniInterf_Lightmap i_lightmap;
+        UniInterf_Skeleton i_skeleton;
 
     private:
+        GLint u_projMat = -1;
+        GLint u_viewMat = -1;
+        GLint u_modelMat = -1;
+
+        GLint u_viewPos = -1;
+
         GLint u_clipPlane = -1;
 
     public:
         void set(const GLuint shader);
+
+        void projMat(const glm::mat4& mat) const {
+            sendMatrix(this->u_projMat, mat);
+        }
+        void viewMat(const glm::mat4& mat) const {
+            sendMatrix(this->u_viewMat, mat);
+        }
+        void modelMat(const glm::mat4& mat) const {
+            sendMatrix(this->u_modelMat, mat);
+        }
+
+        void viewPos(const float x, const float y, const float z) const {
+            glUniform3f(this->u_viewPos, x, y, z);
+        }
+        void viewPos(const glm::vec3& v) const {
+            this->viewPos(v.x, v.y, v.z);
+        }
 
         void clipPlane(const float x, const float y, const float z, const float w) const {
             glUniform4f(this->u_clipPlane, x, y, z, w);
@@ -503,81 +558,112 @@ namespace dal {
 
     };
 
-}
-
-
-namespace dal {
-
-    class UniInterfGeometry {
-
-    private:
-        GLint u_projMat = -1;
-        GLint u_viewMat = -1;
-        GLint u_modelMat = -1;
+    class UniRender_Skybox {
 
     public:
-        UniInterfGeometry(const GLuint shader);
-
-        void projectMat(const glm::mat4& mat) const;
-        void viewMat(const glm::mat4& mat) const;
-        void modelMat(const glm::mat4& mat) const;
-
-     };
-
-
-    class UnilocOverlay {
-
-        //////// Vars ////////
+        UniInterf_Lighting i_lighting;
 
     private:
-        GLint u_bottLeft;
-        GLint u_rectSize;
+        GLint u_projViewMat = -1;
+        GLint u_modelMat = -1;
 
-        GLint u_upsideDown_maskMap;
-        GLint u_upsideDown_diffuseMap;
+        GLint u_viewPos = -1;
+        GLint u_viewPosActual = -1;
+        SamplerInterf u_skyboxTex;
+
+    public:
+        void set(const GLuint shader);
+
+        void projViewMat(const glm::mat4& mat) const {
+            sendMatrix(this->u_projViewMat, mat);
+        }
+        void modelMat(const glm::mat4& mat) const {
+            sendMatrix(this->u_modelMat, mat);
+        }
+
+        void viewPos(const float x, const float y, const float z) const {
+            glUniform3f(this->u_viewPos, x, y, z);
+        }
+        void viewPos(const glm::vec3& v) const {
+            this->viewPos(v.x, v.y, v.z);
+        }
+        void viewPosActual(const float x, const float y, const float z) const {
+            glUniform3f(this->u_viewPosActual, x, y, z);
+        }
+        void viewPosActual(const glm::vec3& v) const {
+            this->viewPosActual(v.x, v.y, v.z);
+        }
+        auto& skyboxTex(void) const {
+            return this->u_skyboxTex;
+        }
+
+    };
+
+    class UniRender_Overlay {
+
+    private:
+        GLint u_bottomLeft;
+        GLint u_rectSize;
 
         GLint u_texOffset;
         GLint u_texScale;
 
-        GLint u_color;
+        GLint u_yFlip_colorMap;
+        GLint u_yFlip_maskMap;
 
-        SamplerInterf m_diffuseMap, m_maskMap;
+        GLint u_colorDefault;
 
-    public:
-        UnilocOverlay(const GLuint shader);
-
-        const SamplerInterf& getDiffuseMap(void) const;
-        const SamplerInterf& getMaskMap(void) const;
-
-        void texOffset(const float x, const float y) const;
-        void texOffset(const glm::vec2& v) const;
-        void texScale(const float x, const float y) const;
-        void texScale(const glm::vec2& v) const;
-
-        void bottomLeft(const glm::vec2& v) const;
-        void rectSize(const glm::vec2& v) const;
-        void upsideDownDiffuseMap(const bool x) const;
-        void upsideDownMaskMap(const bool x) const;
-        void color(const glm::vec4& v) const;
-
-    };
-
-    class UnilocSkybox {
+        SamplerInterf u_colorMap, u_maskMap;
 
     public:
-        UniInterfGeometry m_geometry;
+        void set(const GLuint shader);
 
-    private:
-        GLint u_fogColor;
-        SamplerInterf u_skyboxTex;
+        void bottomLeft(const float x, const float y) const {
+            glUniform2f(this->u_bottomLeft, x, y);
+        }
+        void bottomLeft(const glm::vec2& v) const {
+            this->bottomLeft(v.x, v.y);
+        }
+        void rectSize(const float x, const float y) const {
+            glUniform2f(this->u_rectSize, x, y);
+        }
+        void rectSize(const glm::vec2& v) const {
+            this->rectSize(v.x, v.y);
+        }
 
-    public:
-        UnilocSkybox(const GLuint shader);
+        void texOffset(const float x, const float y) const {
+            glUniform2f(this->u_texOffset, x, y);
+        }
+        void texOffset(const glm::vec2& v) const {
+            this->texOffset(v.x, v.y);
+        }
+        void texScale(const float x, const float y) const {
+            glUniform2f(this->u_texScale, x, y);
+        }
+        void texScale(const glm::vec2& v) const {
+            this->texScale(v.x, v.y);
+        }
 
-        void fogColor(const float x, const float y, const float z) const;
-        void fogColor(const glm::vec3& v) const;
+        void yFlip_colorMap(const bool v) const {
+            sendBool(this->u_yFlip_colorMap, v);
+        }
+        void yFlip_maskMap(const bool v) const {
+            sendBool(this->u_yFlip_maskMap, v);
+        }
 
-        const SamplerInterf& getSkyboxTexLoc(void) const;
+        void colorDefault(const float r, const float g, const float b, const float a) const {
+            glUniform4f(this->u_colorDefault, r, g, b, a);
+        }
+        void colorDefault(const glm::vec4& v) const {
+            this->colorDefault(v.x, v.y, v.z, v.w);
+        }
+
+        auto& colorMap(void) const {
+            return this->u_colorMap;
+        }
+        auto& maskMap(void) const {
+            return this->u_maskMap;
+        }
 
     };
 

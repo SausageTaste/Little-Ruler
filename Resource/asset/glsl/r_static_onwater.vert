@@ -15,10 +15,13 @@ uniform vec4 u_clipPlane;
 out vec3 v_fragPos;
 out vec2 v_texCoord;
 out vec3 v_normal;
+
+#ifdef DAL_SHADOW_ON_WATER_IMAGE
 out vec4 v_fragPos_dlight[3];
 out vec4 v_fragPos_slight[3];
+#endif
 
-#ifdef DAL_NORMAL_MAPPING
+#ifdef DAL_ON_WATER_NORMAL_MAPPING
 out mat3 v_tbn;
 #endif
 
@@ -48,14 +51,17 @@ void main(void) {
 	v_fragPos = vec3(worldPos);
 	v_texCoord = i_texCoord;
 	v_normal = normalize(vec3(u_modelMat * vec4(i_normal, 0.0)));
-#ifdef DAL_NORMAL_MAPPING
+#ifdef DAL_ON_WATER_NORMAL_MAPPING
 	v_tbn = makeTBN(v_normal, u_modelMat);
 #endif
 
+#ifdef DAL_SHADOW_ON_WATER_IMAGE
 	for (int i = 0; i < u_dlightCount; i++) {
 		v_fragPos_dlight[i] = u_dlight_projViewMat[i] * worldPos;
 	}
 	for (int i = 0; i < u_slightCount; ++i) {
 		v_fragPos_slight[i] = u_slight_projViewMat[i] * worldPos;
 	}
+#endif
+
 }

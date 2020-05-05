@@ -134,6 +134,7 @@ namespace dal {
 
         void startRenderOnReflec(const UniRender_StaticOnWater& uniloc, const ICamera& cam) const;
         void startRenderOnReflec(const UniRender_AnimatedOnWater& uniloc, const ICamera& cam) const;
+        void startRenderOnReflec(const UniRender_Skybox& uniloc, const ICamera& cam, const glm::mat4& projMat) const;
 
         void startRenderOnRefrac(const UniRender_StaticOnWater& uniloc, const ICamera& cam) const;
         void startRenderOnRefrac(const UniRender_AnimatedOnWater& uniloc, const ICamera& cam) const;

@@ -32,7 +32,7 @@ namespace dal {
         bool m_upsideDown_mask = false;
     };
 
-    void renderQuadOverlay(const UnilocOverlay& uniloc, const QuadRenderInfo& info);
+    void renderQuadOverlay(const UniRender_Overlay& uniloc, const QuadRenderInfo& info);
 
 
     enum class InputCtrlFlag { ignored, consumed, owned };
@@ -159,7 +159,7 @@ namespace dal {
             return this->m_parent;
         }
 
-        virtual void render(const UnilocOverlay& uniloc, const float width, const float height) {}
+        virtual void render(const UniRender_Overlay& uniloc, const float width, const float height) {}
         virtual InputCtrlFlag onTouch(const TouchEvent& e) {
             return InputCtrlFlag::ignored;
         }

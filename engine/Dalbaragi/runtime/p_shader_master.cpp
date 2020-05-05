@@ -59,7 +59,7 @@ namespace {
 
     void setFor_skybox(void) {
         glEnable(GL_DEPTH_TEST);
-        glDisable(GL_CULL_FACE);
+        glEnable(GL_CULL_FACE);
         glDisable(GL_BLEND);
         glDisable(GL_POLYGON_OFFSET_FILL);
         //glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
@@ -153,13 +153,6 @@ namespace {
 }
 
 
-namespace {
-
-    dal::ShaderPreprocessor g_loader;
-
-}
-
-
 // ShaderProgram
 namespace dal {
 
@@ -209,12 +202,17 @@ namespace dal {
 // Shader Master
 namespace dal {
 
-    ShaderMaster::ShaderMaster(void)
-        : m_overlay(g_loader["overlay.vert"], g_loader["overlay.frag"])
-        , m_overlayUniloc(m_overlay.get())
-        , m_skybox(g_loader["skybox.vert"], g_loader["skybox.frag"])
-        , m_skyboxUniloc(m_skybox.get())
-    {
+    ShaderMaster::ShaderMaster(void) {
+        dal::ShaderPreprocessor g_loader;
+        {
+            g_loader.m_defines.emplace_back("DAL_NORMAL_MAPPING");
+            g_loader.m_defines.emplace_back("DAL_VOLUMETRIC_LIGHT");
+
+            //g_loader.m_defines.emplace_back("DAL_SHADOW_ON_WATER_IMAGE");
+            //g_loader.m_defines.emplace_back("DAL_ON_WATER_NORMAL_MAPPING");
+            //g_loader.m_defines.emplace_back("DAL_ON_WATER_POSITION_LIGHT");
+        }
+
         this->m_static.init(g_loader["r_static.vert"], g_loader["r_static.frag"]);
         this->m_animated.init(g_loader["r_animated.vert"], g_loader["r_static.frag"]);
         this->m_static_depth.init(g_loader["r_static_depth.vert"], g_loader["r_empty.frag"]);
@@ -223,6 +221,8 @@ namespace dal {
         this->m_animated_onWater.init(g_loader["r_animated_onwater.vert"], g_loader["r_static_onwater.frag"]);
         this->m_fillScreen.init(g_loader["r_fillscreen.vert"], g_loader["r_fillscreen.frag"]);
         this->m_water.init(g_loader["r_water.vert"], g_loader["r_water.frag"]);
+        this->m_skybox.init(g_loader["r_skybox.vert"], g_loader["r_skybox.frag"]);
+        this->m_overlay.init(g_loader["r_overlay.vert"], g_loader["r_overlay.frag"]);
 
         this->u_static.set(this->m_static.get());
         this->u_animated.set(this->m_animated.get());
@@ -232,20 +232,10 @@ namespace dal {
         this->u_animated_onWater.set(this->m_animated_onWater.get());
         this->u_fillScreen.set(this->m_fillScreen.get());
         this->u_water.set(this->m_water.get());
+        this->u_skybox.set(this->m_skybox.get());
+        this->u_overlay.set(this->m_overlay.get());
 
         g_loader.clear();
-    }
-
-    const UnilocOverlay& ShaderMaster::useOverlay(void) const {
-        setFor_overlay();
-        this->m_overlay.use();
-        return this->m_overlayUniloc;
-    }
-
-    const UnilocSkybox& ShaderMaster::useSkybox(void) const {
-        setFor_skybox();
-        this->m_skybox.use();
-        return this->m_skyboxUniloc;
     }
 
 
@@ -295,6 +285,18 @@ namespace dal {
         setFor_water();
         this->m_water.use();
         return this->u_water;
+    }
+
+    const UniRender_Skybox& ShaderMaster::useSkybox(void) const {
+        setFor_skybox();
+        this->m_skybox.use();
+        return this->u_skybox;
+    }
+
+    const UniRender_Overlay& ShaderMaster::useOverlay(void) const {
+        setFor_overlay();
+        this->m_overlay.use();
+        return this->u_overlay;
     }
 
 }

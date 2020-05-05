@@ -22,7 +22,7 @@ namespace dal {
     public:
         Label2(Widget2* const parent);
 
-        virtual void render(const UnilocOverlay& uniloc, const float width, const float height) override;
+        virtual void render(const UniRender_Overlay& uniloc, const float width, const float height) override;
 
         void setText(const std::string& t) {
             this->m_textRenderer.textbuf() = t;
@@ -58,7 +58,7 @@ namespace dal {
     public:
         LineEdit(Widget2* const parent);
 
-        virtual void render(const UnilocOverlay& uniloc, const float width, const float height) override;
+        virtual void render(const UniRender_Overlay& uniloc, const float width, const float height) override;
         virtual InputCtrlFlag onTouch(const TouchEvent& e) override;
         virtual InputCtrlFlag onKeyInput(const KeyboardEvent& e, const KeyStatesRegistry& keyStates) override;
         virtual void onFocusChange(const bool v) override;
@@ -85,7 +85,7 @@ namespace dal {
     public:
         TextBox(Widget2* const parent);
 
-        virtual void render(const UnilocOverlay& uniloc, const float width, const float height) override;
+        virtual void render(const UniRender_Overlay& uniloc, const float width, const float height) override;
         virtual InputCtrlFlag onTouch(const TouchEvent& e) override;
 
         StringBufferBasic* replaceBuffer(StringBufferBasic* const buffer);

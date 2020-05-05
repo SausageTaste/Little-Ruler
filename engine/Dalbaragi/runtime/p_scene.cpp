@@ -380,6 +380,14 @@ namespace dal {
             auto& cpntTrans = view.get<cpnt::Transform>(entity);
             auto& cpntModel = view.get<cpnt::StaticModel>(entity);
 
+            auto envmap = this->m_mapChunks2.back().getClosestEnvMap(cpntTrans.getPos());
+            if ( nullptr != envmap ) {
+                sendEnvmapUniform(*envmap, uniloc.i_envmap);
+            }
+            else {
+                uniloc.i_envmap.envmap().setFlagHas(false);
+            }
+
             uniloc.modelMat(cpntTrans.getMat());
             cpntModel.m_model->render(uniloc);
         }
@@ -398,6 +406,14 @@ namespace dal {
             auto& cpntTrans = viewAnimated.get<cpnt::Transform>(entity);
             auto& cpntModel = viewAnimated.get<cpnt::AnimatedModel>(entity);
 
+            auto envmap = this->m_mapChunks2.back().getClosestEnvMap(cpntTrans.getPos());
+            if ( nullptr != envmap ) {
+                sendEnvmapUniform(*envmap, uniloc.i_envmap);
+            }
+            else {
+                uniloc.i_envmap.envmap().setFlagHas(false);
+            }
+
             uniloc.modelMat(cpntTrans.getMat());
             cpntModel.m_model->render(uniloc, cpntModel.m_animState.getTransformArray());
         }
@@ -411,12 +427,47 @@ namespace dal {
         this->m_entities.view<cpnt::Transform, cpnt::StaticModel>().each(
             [&uniloc](const cpnt::Transform& trans, const cpnt::StaticModel& model) {
                 uniloc.modelMat(trans.getMat());
-                model.m_model->render(uniloc);
+                model.m_model->render();
             }
         );
     }
 
     void SceneGraph::render_animatedDepth(const UniRender_AnimatedDepth& uniloc) {
+        const auto viewAnimated = this->m_entities.view<cpnt::Transform, cpnt::AnimatedModel>();
+        for ( const auto entity : viewAnimated ) {
+            auto& cpntTrans = viewAnimated.get<cpnt::Transform>(entity);
+            auto& cpntModel = viewAnimated.get<cpnt::AnimatedModel>(entity);
+
+            uniloc.modelMat(cpntTrans.getMat());
+            cpntModel.m_model->render(uniloc, cpntModel.m_animState.getTransformArray());
+        }
+    }
+
+    void SceneGraph::render_staticOnWater(const UniRender_StaticOnWater& uniloc) {
+        this->sendDlightUniform(uniloc.i_lighting);
+
+        for ( auto& map : this->m_mapChunks2 ) {
+            map.render_staticOnWater(uniloc);
+        }
+
+        const auto view = this->m_entities.view<cpnt::Transform, cpnt::StaticModel>();
+        for ( const auto entity : view ) {
+            auto& cpntTrans = view.get<cpnt::Transform>(entity);
+            auto& cpntModel = view.get<cpnt::StaticModel>(entity);
+
+            uniloc.modelMat(cpntTrans.getMat());
+            cpntModel.m_model->render(uniloc);
+        }
+    }
+
+    void SceneGraph::render_animatedOnWater(const UniRender_AnimatedOnWater& uniloc) {
+        this->sendDlightUniform(uniloc.i_lighting);
+
+        if ( !this->m_mapChunks2.empty() ) {
+            this->m_mapChunks2.back().sendPlightUniforms(uniloc.i_lighting);
+            this->m_mapChunks2.back().sendSlightUniforms(uniloc.i_lighting);
+        }
+
         const auto viewAnimated = this->m_entities.view<cpnt::Transform, cpnt::AnimatedModel>();
         for ( const auto entity : viewAnimated ) {
             auto& cpntTrans = viewAnimated.get<cpnt::Transform>(entity);

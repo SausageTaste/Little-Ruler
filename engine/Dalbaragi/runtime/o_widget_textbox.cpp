@@ -31,7 +31,7 @@ namespace dal {
 
     }
 
-    void Label2::render(const UnilocOverlay& uniloc, const float width, const float height) {
+    void Label2::render(const UniRender_Overlay& uniloc, const float width, const float height) {
         QuadRenderInfo info;
         std::tie(info.m_bottomLeftNormalized, info.m_rectSize) = this->makePosSize(width, height);
         info.m_color = this->m_backgroundColor;
@@ -59,7 +59,7 @@ namespace dal {
 
     }
 
-    void LineEdit::render(const UnilocOverlay& uniloc, const float width, const float height) {
+    void LineEdit::render(const UniRender_Overlay& uniloc, const float width, const float height) {
         Label2::render(uniloc, width, height);
     }
 
@@ -134,7 +134,7 @@ namespace dal {
 
     }
 
-    void TextBox::render(const UnilocOverlay& uniloc, const float width, const float height) {
+    void TextBox::render(const UniRender_Overlay& uniloc, const float width, const float height) {
         if ( nullptr != this->m_strBuf ) {
             auto str = this->m_strBuf->data();
             this->m_textRenderer.textbuf() += str;

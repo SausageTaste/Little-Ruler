@@ -27,7 +27,7 @@ namespace dal {
         this->m_touchedPoint.setSize(RENDERED_POINT_EDGE_LEN_HALF * 2.0f, RENDERED_POINT_EDGE_LEN_HALF * 2.0f);
     }
 
-    void PlayerControlWidget::MoveDPad::render(const UnilocOverlay& uniloc, const float width, const float height) {
+    void PlayerControlWidget::MoveDPad::render(const UniRender_Overlay& uniloc, const float width, const float height) {
         this->m_fixedCenterPoint.render(uniloc, width, height);
 
         if ( -1 != this->m_owning ) {
@@ -132,7 +132,7 @@ namespace dal {
         this->setSize(winWidth, winHeight);
     }
 
-    void PlayerControlWidget::render(const UnilocOverlay& uniloc, const float width, const float height) {
+    void PlayerControlWidget::render(const UniRender_Overlay& uniloc, const float width, const float height) {
         this->m_dpad.render(uniloc, width, height);
     }
 
