@@ -372,6 +372,8 @@ namespace dal {
             const glm::vec4 direcBefore{ dlight.getDirection(), 0.0f };
             const auto newDirec = glm::normalize(glm::vec3{ mat * direcBefore });
             dlight.setDirectin(newDirec);
+
+            //dlight.setDirectin(0, -1, 0);
         }
     }
 

@@ -295,7 +295,7 @@ namespace dal {
     {
         constexpr float TEX_SCALE_FACTOR = 0.05f;
 
-        glm::vec2 size{ info.m_width, info.m_height };
+        glm::vec2 size{ info.m_width * 0.1, info.m_height * 0.1 };
         this->initMesh(info.m_centerPos, size);
 
         this->m_material.m_roughness = 0.2f;

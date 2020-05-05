@@ -221,9 +221,5 @@ vec4 intersect_seg_sphere(Segment seg, Sphere sphere) {
     }
 
     float distTilAtmostEnd = sqrt(distTilAtmostEndSqr);
-    vec3 segRel = normalize(seg.m_rel) * distTilAtmostEnd;
-    vec3 endpoint1 = nearestPoint + segRel;
-    vec3 endpoint2 = nearestPoint - segRel;
-
-    return vec4(dot(seg.m_rel, endpoint1) > 0.0 ? endpoint1 : endpoint2, 1.0);
+    return vec4(nearestPoint + normalize(seg.m_rel) * distTilAtmostEnd, 1.0);
 }
