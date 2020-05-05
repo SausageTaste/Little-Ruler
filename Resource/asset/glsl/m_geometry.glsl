@@ -225,5 +225,5 @@ vec4 intersect_seg_sphere(Segment seg, Sphere sphere) {
     vec3 endpoint1 = nearestPoint + segRel;
     vec3 endpoint2 = nearestPoint - segRel;
 
-    return dot(seg.m_rel, endpoint1) > 0.0 ? endpoint1 : endpoint2;
+    return vec4(dot(seg.m_rel, endpoint1) > 0.0 ? endpoint1 : endpoint2, 1.0);
 }

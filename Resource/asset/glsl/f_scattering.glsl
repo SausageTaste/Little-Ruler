@@ -64,7 +64,8 @@ float transmittance_mie(vec3 a, vec3 b) {
 }
 
 float phase_rayleigh(float cosTheta) {
-    return 3.0 / (16.0 * 3.14159265) * (1.0 + cosTheta * cosTheta);
+    const float PI = 3.14159265;
+    return 3.0 / (16.0 * PI) * (1.0 + cosTheta * cosTheta);
 }
 
 float phase_mie(float cosTheta, float g) {
@@ -74,19 +75,25 @@ float phase_mie(float cosTheta, float g) {
     return numer / denom;
 }
 
-vec3 skyColor(vec3 viewPos, vec3 viewDirec_n, vec3 dlight_direc) {
-    const vec3 DLIGHT_COLOR = vec3(200.0);
-    const int SAMPLE_COUNT = 10;
 
+vec3 calcSunLightPos(vec3 viewPos, vec3 samplePoint, vec3 direc) {
     Segment seg;
-    seg.m_pos = viewPos;
-    seg.m_rel = viewDirec_n * 50.0;
+    seg.m_pos = samplePoint;
+    seg.m_rel = direc * 500.0;
 
     Sphere atmos;
     atmos.m_center = vec3(viewPos.x, -RADIUS_EARTH, viewPos.z);
     atmos.m_radius = RADIUS_ATMOS;
 
-    vec4 endpoint = intersect_seg_sphere(seg, atmos);
+    vec4 intersection = intersect_seg_sphere(seg, atmos);
+    return intersection.xyz;
+}
+
+vec3 skyColor(vec3 viewPos, vec3 viewDirec_n, vec3 dlight_direc) {
+    const vec3 DLIGHT_COLOR = vec3(200.0);
+    const int SAMPLE_COUNT = 10;
+
+    vec3 endpoint = calcSunLightPos(viewPos, viewPos, viewDirec_n);
 
     float dist = distance(viewPos, endpoint.xyz);
     float deltaDist = dist / float(SAMPLE_COUNT);
@@ -96,11 +103,10 @@ vec3 skyColor(vec3 viewPos, vec3 viewDirec_n, vec3 dlight_direc) {
 
     for ( int i = 1 ; i <= SAMPLE_COUNT; ++i ) {
         vec3 samplePoint = viewPos + sampleDirec * deltaDist * float(i);
-        vec3 sampleDlightPos = samplePoint - dlight_direc * 50.0;
-        sampleDlightPos.y = RADIUS_ATMOS - RADIUS_EARTH;
+        vec3 sampleDlightPos = calcSunLightPos(viewPos, samplePoint, -dlight_direc);
 
-        float cosTheta = dot(normalize(-dlight_direc), sampleDirec);
-        vec3 light_rayleigh = DLIGHT_COLOR * transmittance_rayleigh(samplePoint, sampleDlightPos);// * phase_rayleigh(cosTheta) * SCATT_COEF_AT_SEA_LVL_RAYLEIGH * densityRatio_rayleigh(samplePoint.y);
+        float cosTheta = dot(normalize(-dlight_direc), -sampleDirec);
+        vec3 light_rayleigh = DLIGHT_COLOR * transmittance_rayleigh(samplePoint, sampleDlightPos) * phase_rayleigh(cosTheta) * SCATT_COEF_AT_SEA_LVL_RAYLEIGH * densityRatio_rayleigh(samplePoint.y);
         vec3 light_mie      = DLIGHT_COLOR * transmittance_mie(samplePoint, sampleDlightPos) * phase_mie(cosTheta, 0.99) * SCATT_COEF_AT_SEA_LVL_MIE * densityRatio_mie(samplePoint.y);
         result += light_rayleigh * transmittance_rayleigh(samplePoint, viewPos) * deltaDist;
         //result += light_mie * transmittance_mie(samplePoint, viewPos) * deltaDist;
