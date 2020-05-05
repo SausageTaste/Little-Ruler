@@ -24,15 +24,6 @@ float densityRatio_mie(float height) {
     return exp(-height / 1200.0);
 }
 
-float scatteringCoefAt0_rayleigh(float wavelength) {
-    const float PI = 3.14159265;
-
-    float numer = 8.0 * PI*PI*PI * (REFRACTIVE_INDEX_SQR-1)*(REFRACTIVE_INDEX_SQR-1);
-    float denom = 3.0 * wavelength*wavelength*wavelength*wavelength * NUM_OF_MODELCULARS_AT_SEA_LEVEL;
-
-    return numer / denom;
-}
-
 vec3 transmittance_rayleigh(vec3 a, vec3 b) {
     const int SAMPLE_COUNT = 10;
 
