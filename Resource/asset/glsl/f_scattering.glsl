@@ -1,3 +1,5 @@
+#include <m_geometry.glsl>
+
 
 const float RADIUS_EARTH = 6360000;
 const float RADIUS_ATMOS = 6420000;
@@ -72,14 +74,23 @@ float phase_mie(float cosTheta, float g) {
     return numer / denom;
 }
 
-vec3 skyColor(vec3 viewPos, vec3 endPoint, vec3 dlight_direc) {
-    vec3 DLIGHT_COLOR = vec3(200.0);
-
+vec3 skyColor(vec3 viewPos, vec3 viewDirec_n, vec3 dlight_direc) {
+    const vec3 DLIGHT_COLOR = vec3(200.0);
     const int SAMPLE_COUNT = 10;
 
-    float dist = distance(viewPos, endPoint);
+    Segment seg;
+    seg.m_pos = viewPos;
+    seg.m_rel = viewDirec_n * 50.0;
+
+    Sphere atmos;
+    atmos.m_center = vec3(viewPos.x, -RADIUS_EARTH, viewPos.z);
+    atmos.m_radius = RADIUS_ATMOS;
+
+    vec4 endpoint = intersect_seg_sphere(seg, atmos);
+
+    float dist = distance(viewPos, endpoint.xyz);
     float deltaDist = dist / float(SAMPLE_COUNT);
-    vec3 sampleDirec = normalize(endPoint - viewPos);
+    vec3 sampleDirec = normalize(endpoint.xyz - viewPos);
 
     vec3 result = vec3(0.0);
 
