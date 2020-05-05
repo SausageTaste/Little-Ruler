@@ -1,5 +1,6 @@
 #include <i_lighting.glsl>
 #include <f_scattering.glsl>
+#include <m_geometry.glsl>
 
 
 uniform vec3 u_viewPos;
@@ -25,5 +26,14 @@ void main() {
     }
 #endif
 
-    f_color.xyz = skyColor(u_viewPos, normalize(v_worldPos) * 50.0, u_dlight_direc);
+    Segment seg;
+    seg.m_pos = u_viewPos;
+    seg.m_rel = normalize(v_worldPos) * 50.0;
+
+    Sphere atmos;
+    atmos.m_center = vec3(u_viewPos.x, -RADIUS_EARTH, u_viewPos.z);
+    atmos.m_radius = RADIUS_ATMOS;
+
+    vec4 intersection = intersect_seg_sphere(seg, atmos);
+    f_color.xyz = skyColor(u_viewPos, intersection.xyz, u_dlight_direc);
 }

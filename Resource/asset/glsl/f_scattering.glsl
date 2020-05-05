@@ -10,8 +10,8 @@ const float WAVELENGTH_RED   = 680.0e-9;
 const float WAVELENGTH_GREEN = 550.0e-9;
 const float WAVELENGTH_BLUE  = 440.0e-9;
 
-const vec3 SCATT_COEF_AT_SEA_LVL_RAYLEIGH = vec3(0.0000051967317359, 0.0000121426979269, 0.0000296452586105);
-const float SCATT_COEF_AT_SEA_LVL_MIE = 210.0e-5;
+const vec3 SCATT_COEF_AT_SEA_LVL_RAYLEIGH = vec3(3.8e-6, 13.5e-6, 33.1e-6);
+const float SCATT_COEF_AT_SEA_LVL_MIE = 21.0e-6;
 
 
 float densityRatio_rayleigh(float height) {
@@ -34,11 +34,7 @@ float scatteringCoefAt0_rayleigh(float wavelength) {
 vec3 transmittance_rayleigh(vec3 a, vec3 b) {
     const int SAMPLE_COUNT = 10;
 
-    vec3 scattCoef = vec3(
-        scatteringCoefAt0_rayleigh(WAVELENGTH_RED),
-        scatteringCoefAt0_rayleigh(WAVELENGTH_GREEN),
-        scatteringCoefAt0_rayleigh(WAVELENGTH_BLUE)
-    );
+    vec3 scattCoef = SCATT_COEF_AT_SEA_LVL_RAYLEIGH;
 
     float deltaHeight = (b.y - a.y) / float(SAMPLE_COUNT);
     float opticalDepth = 0.0;
@@ -77,7 +73,7 @@ float phase_mie(float cosTheta, float g) {
 }
 
 vec3 skyColor(vec3 viewPos, vec3 endPoint, vec3 dlight_direc) {
-    vec3 DLIGHT_COLOR = vec3(1000.0);
+    vec3 DLIGHT_COLOR = vec3(200.0);
 
     const int SAMPLE_COUNT = 10;
 
@@ -90,11 +86,13 @@ vec3 skyColor(vec3 viewPos, vec3 endPoint, vec3 dlight_direc) {
     for ( int i = 1 ; i <= SAMPLE_COUNT; ++i ) {
         vec3 samplePoint = viewPos + sampleDirec * deltaDist * float(i);
         vec3 sampleDlightPos = samplePoint - dlight_direc * 50.0;
+        sampleDlightPos.y = RADIUS_ATMOS - RADIUS_EARTH;
+
         float cosTheta = dot(normalize(-dlight_direc), sampleDirec);
-        vec3 light_rayleigh = DLIGHT_COLOR * transmittance_rayleigh(samplePoint, sampleDlightPos) * phase_rayleigh(cosTheta) * SCATT_COEF_AT_SEA_LVL_RAYLEIGH * densityRatio_rayleigh(samplePoint.y);
+        vec3 light_rayleigh = DLIGHT_COLOR * transmittance_rayleigh(samplePoint, sampleDlightPos);// * phase_rayleigh(cosTheta) * SCATT_COEF_AT_SEA_LVL_RAYLEIGH * densityRatio_rayleigh(samplePoint.y);
         vec3 light_mie      = DLIGHT_COLOR * transmittance_mie(samplePoint, sampleDlightPos) * phase_mie(cosTheta, 0.99) * SCATT_COEF_AT_SEA_LVL_MIE * densityRatio_mie(samplePoint.y);
         result += light_rayleigh * transmittance_rayleigh(samplePoint, viewPos) * deltaDist;
-        result += light_mie * transmittance_mie(samplePoint, viewPos) * deltaDist;
+        //result += light_mie * transmittance_mie(samplePoint, viewPos) * deltaDist;
     }
 
     return result;

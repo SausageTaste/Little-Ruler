@@ -12,9 +12,37 @@ struct Triangle {
     vec3 m_p1, m_p2, m_p3;
 };
 
+struct Sphere {
+    vec3 m_center;
+    float m_radius;
+};
+
 struct AABB {
     vec3 m_min, m_max;
 };
+
+
+vec3 projectPointOnSeg(Segment seg, vec3 p) {
+    const float EPSILON = 1.0e-06;
+
+    vec3 rhs = p - seg.m_pos;
+    float magnitude = length(seg.m_rel);
+    vec3 lhs = magnitude > EPSILON ? (seg.m_rel / magnitude) : seg.m_rel;
+    float num2 = clamp(dot(lhs, rhs), 0.0, magnitude);
+
+    return seg.m_pos + (lhs * num2);
+}
+
+vec3 projectPointOnLine(Segment seg, vec3 p) {
+    const float EPSILON = 1.0e-06;
+
+    vec3 rhs = p - seg.m_pos;
+    float magnitude = length(seg.m_rel);
+    vec3 lhs = magnitude > EPSILON ? (seg.m_rel / magnitude) : seg.m_rel;
+    float num2 = dot(lhs, rhs);
+
+    return seg.m_pos + (lhs * num2);
+}
 
 
 Plane makePlane_fromNormalPoint(vec3 normal, vec3 point) {
@@ -182,4 +210,20 @@ vec4 interdect_seg_aabb(Segment seg, AABB aabb) {
     }
 
     return vec4(colpoint, 1.0);
+}
+
+vec4 intersect_seg_sphere(Segment seg, Sphere sphere) {
+    vec3 nearestPoint = projectPointOnLine(seg, sphere.m_center);
+    float nearestDist = distance(sphere.m_center, nearestPoint);
+    float distTilAtmostEndSqr = sphere.m_radius*sphere.m_radius - nearestDist*nearestDist;
+    if ( distTilAtmostEndSqr <= 0.0 ) {
+        return vec4(0.0);
+    }
+
+    float distTilAtmostEnd = sqrt(distTilAtmostEndSqr);
+    vec3 segRel = normalize(seg.m_rel) * distTilAtmostEnd;
+    vec3 endpoint1 = nearestPoint + segRel;
+    vec3 endpoint2 = nearestPoint - segRel;
+
+    return dot(seg.m_rel, endpoint1) > 0.0 ? endpoint1 : endpoint2;
 }
