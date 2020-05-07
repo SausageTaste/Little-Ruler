@@ -47,12 +47,13 @@ float _getDitherValue(void) {
 vec3 calcScattering(int index, vec3 fragPos, vec3 viewPos) {
     const int NUM_STEPS = 5;
     const float INTENSITY = 2.0;
+    const float MAX_SAMPLE_DIST = 100.0;
 
-    vec3 toFragFromView = fragPos - viewPos;
-    vec3 toFargDirec = normalize(toFragFromView);
-    vec3 toLightDirec = normalize(-u_dlight_direcs[index]);
-    vec3 rayStep = toFragFromView / float(NUM_STEPS);
-    float scatterFactor = phase_mie(dot(toFargDirec, toLightDirec));
+    vec3 toFrag = fragPos - viewPos;
+    float toFragDist = length(toFrag);
+    vec3 toFarg_n = toFrag / toFragDist;
+    vec3 sampleVec = toFragDist > MAX_SAMPLE_DIST ? toFarg_n * MAX_SAMPLE_DIST : toFrag;
+    vec3 rayStep = sampleVec / float(NUM_STEPS);
 
     vec3 curPos = viewPos;
     float accumFactor = 0.0;
@@ -73,7 +74,33 @@ vec3 calcScattering(int index, vec3 fragPos, vec3 viewPos) {
     }
 
     accumFactor *= INTENSITY / float(NUM_STEPS);
-    return accumFactor * u_dlight_colors[index] * scatterFactor;
+    return accumFactor * u_dlight_colors[index] * phase_mie(dot(toFarg_n, normalize(-u_dlight_direcs[index])));
+}
+
+vec3 calcScattering_slight(int index, vec3 fragPos, vec3 viewPos) {
+    const int NUM_STEPS = 5;
+    const float INTENSITY = 0.3;
+    const float MAX_SAMPLE_DIST = 5.0;
+
+    vec3 toFrag = fragPos - viewPos;
+    float toFragDist = length(toFrag);
+    vec3 toFarg_n = toFrag / toFragDist;
+    vec3 sampleVec = toFragDist > MAX_SAMPLE_DIST ? toFarg_n * MAX_SAMPLE_DIST : toFrag;
+    vec3 rayStep = sampleVec / float(NUM_STEPS);
+
+    vec3 curPos = viewPos;
+    float accumFactor = 0.0;
+
+    for (int i = 0; i < NUM_STEPS; ++i) {
+        vec4 curPosInLight = u_slight_projViewMat[index] * vec4(curPos, 1.0);
+        bool isInShadow = isInShadow_slight(index, curPosInLight);
+        accumFactor += isInShadow ? 0.0 : _calcSlightAtten(index, fragPos);
+
+        curPos += rayStep * _getDitherValue();
+    }
+
+    accumFactor *= INTENSITY / float(NUM_STEPS);
+    return accumFactor * u_slight_colors[index];
 }
 
 vec3 fixColor(vec3 color) {
@@ -96,6 +123,9 @@ void main() {
 #ifdef DAL_VOLUMETRIC_LIGHT
     for ( int i = 0; i < u_dlightCount; ++i ) {
         f_color.xyz += calcScattering(i, worldPos, u_viewPos);
+    }
+    for ( int i = 0; i < u_slightCount; ++i ) {
+        //f_color.xyz += calcScattering_slight(i, worldPos, u_viewPos);
     }
 #endif
 

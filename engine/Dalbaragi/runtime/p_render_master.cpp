@@ -408,6 +408,7 @@ namespace dal {
             uniloc.viewMat(this->m_mainCamera->getViewMat());
             uniloc.viewPos(this->m_mainCamera->m_pos);
             this->m_scene.sendDlightUniform(uniloc.i_lighting);
+            this->m_scene.m_mapChunks2.back().sendSlightUniforms(uniloc.i_lighting);
 
             this->m_fbuffer.renderOnScreen(uniloc);
         }
