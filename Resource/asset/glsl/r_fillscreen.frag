@@ -1,4 +1,5 @@
 #include <i_lighting.glsl>
+#include <i_scattering.glsl>
 
 
 uniform mat4 u_projMat;
@@ -28,38 +29,51 @@ vec3 WorldPosFromDepth() {
     return worldSpacePosition.xyz;
 }
 
-vec3 calcScattering(int index, vec3 albedo, vec3 worldPos) {
-    const int SAMPLE_COUNT = 10;
-    const float MAX_SAMPLE_DIST = 100.0;
-    const float DLIGHT_DISTANCE = 10000.0;
+float _getDitherValue(void) {
+    float ditherPattern[16] = float[](
+        0.0   , 0.5   , 0.125 , 0.625 ,
+        0.75  , 0.22  , 0.875 , 0.375 ,
+        0.1875, 0.6875, 0.0625, 0.5625,
+        0.9375, 0.4375, 0.8125, 0.3125
+    );
 
-    vec3 toFrag = worldPos - u_viewPos;
-    float toFragDist = length(toFrag);
-    vec3 toFrag_n = toFrag / toFragDist;
-    vec3 sampleVec = toFragDist > MAX_SAMPLE_DIST ? toFrag_n * MAX_SAMPLE_DIST : toFrag;
+    int i = int(gl_FragCoord.x) % 4;
+    int j = int(gl_FragCoord.y) % 4;
 
-    float cosTheta = dot(sampleVec, -u_dlight_direcs[index]);
-    vec3 sampleStep = sampleVec / float(SAMPLE_COUNT + 1);
-    vec3 accum = vec3(0.0);
-    vec3 curPos = u_viewPos;
+    int index = 4 * i + j;
+    return ditherPattern[index];
+}
 
-    for ( int i = 0; i < SAMPLE_COUNT; ++i ) {
-        curPos += sampleStep * _getDitherValue();;
+vec3 calcScattering(int index, vec3 fragPos, vec3 viewPos) {
+    const int NUM_STEPS = 5;
+    const float INTENSITY = 2.0;
 
+    vec3 toFragFromView = fragPos - viewPos;
+    vec3 toFargDirec = normalize(toFragFromView);
+    vec3 toLightDirec = normalize(-u_dlight_direcs[index]);
+    vec3 rayStep = toFragFromView / float(NUM_STEPS);
+    float scatterFactor = phase_mie(dot(toFargDirec, toLightDirec));
+
+    vec3 curPos = viewPos;
+    float accumFactor = 0.0;
+
+    for (int i = 0; i < NUM_STEPS; ++i) {
         vec4 curPosInDlight = u_dlight_projViewMat[index] * vec4(curPos, 1.0);
         vec3 projCoords = curPosInDlight.xyz / curPosInDlight.w;
         projCoords = projCoords * 0.5 + 0.5;
+
         float depthFromMap = _sampleDlightDepth(index, projCoords.xy);
         float curDepth = projCoords.z;
-        float inShadow = depthFromMap > curDepth ? 1.0 : 0.0;
 
-        accum += inShadow * transmittance_rayleigh(DLIGHT_DISTANCE + distance(curPos, u_viewPos));
+        if (depthFromMap > curDepth) {
+            accumFactor += 1.0;
+        }
+
+        curPos += rayStep * _getDitherValue();
     }
 
-    vec3 inScatter = u_dlight_colors[index] * phase_rayleigh(cosTheta) * BETA_RAYLEIGH * RHO_RAYLEIGH * accum * length(sampleVec);
-    vec3 materialColor = transmittance_rayleigh(DLIGHT_DISTANCE + toFragDist) * albedo;
-
-    return inScatter + materialColor;
+    accumFactor *= INTENSITY / float(NUM_STEPS);
+    return accumFactor * u_dlight_colors[index] * scatterFactor;
 }
 
 vec3 fixColor(vec3 color) {
@@ -81,7 +95,7 @@ void main() {
 
 #ifdef DAL_VOLUMETRIC_LIGHT
     for ( int i = 0; i < u_dlightCount; ++i ) {
-        f_color.xyz += calcScatterColor_dlight(i, worldPos, u_viewPos);
+        f_color.xyz += calcScattering(i, worldPos, u_viewPos);
     }
 #endif
 
