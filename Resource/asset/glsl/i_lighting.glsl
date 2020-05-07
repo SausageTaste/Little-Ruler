@@ -1,3 +1,6 @@
+#include <i_scattering.glsl>
+
+
 uniform       vec3      u_baseAmbient;
 
 uniform       float     u_roughness;
@@ -123,13 +126,13 @@ vec3 calcToLight_dlight(int i) {
 
 vec3 calcScatterColor_dlight(int index, vec3 fragPos, vec3 viewPos) {
     const int NUM_STEPS = 5;
-    const float INTENSITY = 0.05;
+    const float INTENSITY = 2.0;
 
     vec3 toFragFromView = fragPos - viewPos;
     vec3 toFargDirec = normalize(toFragFromView);
     vec3 toLightDirec = normalize(-u_dlight_direcs[index]);
     vec3 rayStep = toFragFromView / float(NUM_STEPS);
-    float scatterFactor = _computeScattering(dot(toFargDirec, toLightDirec));
+    float scatterFactor = phase_mie(dot(toFargDirec, toLightDirec));
 
     vec3 curPos = viewPos;
     float accumFactor = 0.0;
@@ -150,7 +153,7 @@ vec3 calcScatterColor_dlight(int index, vec3 fragPos, vec3 viewPos) {
     }
 
     accumFactor *= INTENSITY / float(NUM_STEPS);
-    return accumFactor * u_dlight_colors[index];
+    return accumFactor * u_dlight_colors[index] * scatterFactor;
 }
 
 

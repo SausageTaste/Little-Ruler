@@ -1,5 +1,4 @@
 #include <i_lighting.glsl>
-#include <i_scattering.glsl>
 
 
 uniform mat4 u_projMat;
@@ -78,11 +77,11 @@ void main() {
     vec3 texColor = texture(u_texture, v_texCoord).rgb;
     vec3 worldPos = WorldPosFromDepth();
 
-    f_color = vec4(0.0, 0.0, 0.0, 1.0);
+    f_color = vec4(texColor, 1.0);
 
 #ifdef DAL_VOLUMETRIC_LIGHT
     for ( int i = 0; i < u_dlightCount; ++i ) {
-        f_color.xyz += calcScattering(i, texColor, worldPos);
+        f_color.xyz += calcScatterColor_dlight(i, worldPos, u_viewPos);
     }
 #endif
 
