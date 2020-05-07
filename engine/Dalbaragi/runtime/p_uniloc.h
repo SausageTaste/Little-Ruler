@@ -457,13 +457,26 @@ namespace dal {
     class UniRender_FillScreen {
 
     private:
-        SamplerInterf u_texture;
+        GLint u_projMat = -1;
+        GLint u_viewMat = -1;
+
+        SamplerInterf u_texture, u_depthMap;
 
     public:
         void set(const GLuint shader);
 
+        void projMat(const glm::mat4& mat) const {
+            sendMatrix(this->u_projMat, mat);
+        }
+        void viewMat(const glm::mat4& mat) const {
+            sendMatrix(this->u_viewMat, mat);
+        }
+
         auto& texture(void) const {
             return this->u_texture;
+        }
+        auto& depthMap(void) const {
+            return this->u_depthMap;
         }
 
     };

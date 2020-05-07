@@ -15,6 +15,8 @@ namespace dal {
 
     private:
         class MainFramebuffer {
+
+        private:
             float m_renderScale;
             unsigned int m_bufWidth, m_bufHeight;
 
@@ -25,7 +27,7 @@ namespace dal {
             GLuint m_vertexArr = 0;
             GLuint m_texcoordArr = 0;
 
-            Texture* m_tex = nullptr;
+            Texture m_colorMapTex, m_depthMapTex;
 
         public:
             MainFramebuffer(const unsigned int widWidth, const unsigned int widHeight);

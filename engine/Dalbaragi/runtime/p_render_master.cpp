@@ -198,11 +198,15 @@ namespace dal {
             glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, this->m_colorMap, 0);
             glBindTexture(GL_TEXTURE_2D, 0);
 
-            glGenRenderbuffers(1, &this->m_mainRenderbuf);
-            glBindRenderbuffer(GL_RENDERBUFFER, this->m_mainRenderbuf);
-            glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, this->m_bufWidth, this->m_bufHeight);
-            glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, this->m_mainRenderbuf);
-            glBindRenderbuffer(GL_RENDERBUFFER, 0);
+            glGenTextures(1, &this->m_mainRenderbuf);
+            glBindTexture(GL_TEXTURE_2D, this->m_mainRenderbuf);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, this->m_bufWidth, this->m_bufHeight, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_SHORT, nullptr);
+            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, this->m_mainRenderbuf, 0);
+            glBindTexture(GL_TEXTURE_2D, 0);
 
             if ( glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE ) {
                 dalAbort("Failed to create framebuffer.");
@@ -263,7 +267,8 @@ namespace dal {
             glBindVertexArray(0);
         }
 
-        this->m_tex = new Texture{ this->m_colorMap };
+        this->m_colorMapTex.reset(this->m_colorMap);
+        this->m_depthMapTex.reset(this->m_mainRenderbuf);
     }
 
     RenderMaster::MainFramebuffer::~MainFramebuffer(void) {
@@ -286,9 +291,9 @@ namespace dal {
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, this->m_bufWidth, this->m_bufHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
         glBindTexture(GL_TEXTURE_2D, 0);
 
-        glBindRenderbuffer(GL_RENDERBUFFER, this->m_mainRenderbuf);
-        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, this->m_bufWidth, this->m_bufHeight);
-        glBindRenderbuffer(GL_RENDERBUFFER, 0);
+        glBindTexture(GL_TEXTURE_2D, this->m_mainRenderbuf);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, this->m_bufWidth, this->m_bufHeight, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_SHORT, nullptr);
+        glBindTexture(GL_TEXTURE_2D, 0);
 
         dalInfo(fmt::format("In-game framebuffer resized to {} x {}.", this->m_bufWidth, this->m_bufHeight));
     }
@@ -301,7 +306,8 @@ namespace dal {
 
     void RenderMaster::MainFramebuffer::renderOnScreen(const UniRender_FillScreen& uniloc) {
         glBindVertexArray(m_vbo);
-        this->m_tex->sendUniform(uniloc.texture());
+        this->m_colorMapTex.sendUniform(uniloc.texture());
+        this->m_depthMapTex.sendUniform(uniloc.depthMap());
         glDrawArrays(GL_TRIANGLES, 0, 6);
     }
 
@@ -397,6 +403,8 @@ namespace dal {
             glBindFramebuffer(GL_FRAMEBUFFER, 0);
             glViewport(0, 0, this->m_winWidth, this->m_winHeight);
             auto& uniloc = this->m_shader.useFillScreen();
+            uniloc.projMat(this->m_projectMat);
+            uniloc.viewMat(this->m_mainCamera->getViewMat());
             this->m_fbuffer.renderOnScreen(uniloc);
         }
     }
