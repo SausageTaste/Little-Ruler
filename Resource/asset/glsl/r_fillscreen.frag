@@ -2,12 +2,12 @@
 #include <i_scattering.glsl>
 
 
-uniform mat4 u_projMat;
-uniform mat4 u_viewMat;
+uniform highp mat4 u_projMat;
+uniform highp mat4 u_viewMat;
 uniform vec3 u_viewPos;
 
 uniform sampler2D u_texture;
-uniform sampler2D u_depthMap;
+uniform highp sampler2D u_depthMap;
 
 in vec2 v_texCoord;
 
