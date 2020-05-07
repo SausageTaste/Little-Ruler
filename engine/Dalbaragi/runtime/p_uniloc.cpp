@@ -279,7 +279,8 @@ namespace dal {
     }
 
     void UniRender_Skybox::set(const GLuint shader) {
-        this->u_projViewMat = getUniloc(shader, "u_projViewMat");
+        this->u_projMat = getUniloc(shader, "u_projMat");
+        this->u_viewMat = getUniloc(shader, "u_viewMat");
         this->u_modelMat = getUniloc(shader, "u_modelMat");
 
         this->u_viewPos = getUniloc(shader, "u_viewPos");

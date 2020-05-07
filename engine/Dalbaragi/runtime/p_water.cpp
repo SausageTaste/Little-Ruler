@@ -351,7 +351,8 @@ namespace dal {
     void WaterRenderer::startRenderOnReflec(const UniRender_Skybox& uniloc, const ICamera& cam, const glm::mat4& projMat) const {
         auto [reflectedPos, reflectedMat] = cam.makeReflected(this->m_height);
 
-        uniloc.projViewMat(projMat * glm::mat4{ glm::mat3{reflectedMat} });
+        uniloc.projMat(projMat);
+        uniloc.viewMat(glm::mat4{ glm::mat3{reflectedMat} });
 
         this->m_fbuffer.bindReflectionFrameBuffer();
     }

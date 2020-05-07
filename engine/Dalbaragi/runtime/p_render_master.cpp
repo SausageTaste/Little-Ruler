@@ -565,10 +565,16 @@ namespace dal {
             uniloc.modelMat(glm::scale(glm::mat4{ 1 }, glm::vec3{ sqrt2 * this->m_farPlaneDistance }));
             uniloc.viewPos(0, 0, 0);
 
+            glDepthMask(GL_FALSE);
+            glDepthFunc(GL_LEQUAL);
+
             for ( auto water : waters ) {
                 water->startRenderOnReflec(uniloc, *this->m_mainCamera, this->m_projectMat);
                 g_skyRenderer.draw();
             }
+
+            glDepthMask(GL_TRUE);
+            glDepthFunc(GL_LESS);
         }
 
     }
@@ -599,7 +605,8 @@ namespace dal {
 
                     for ( unsigned i = 0; i < 6; ++i ) {
                         e.readyFace(i);
-                        uniloc.projViewMat(projMat * glm::mat4{ glm::mat3{ viewMats[i] } });
+                        uniloc.projMat(projMat);
+                        uniloc.viewMat(glm::mat4{ glm::mat3{ viewMats[i] } });
                         g_skyRenderer.draw();
                     }
                 }
@@ -695,17 +702,18 @@ namespace dal {
             this->m_skyboxTex->sendUniform(uniloc.skyboxTex());
             uniloc.viewPosActual(this->m_mainCamera->m_pos);
 
-            uniloc.projViewMat(this->m_projectMat * glm::mat4(glm::mat3(this->m_mainCamera->getViewMat())));
+            uniloc.projMat(this->m_projectMat);
+            uniloc.viewMat(glm::mat4(glm::mat3(this->m_mainCamera->getViewMat())));
             uniloc.modelMat(glm::scale(glm::mat4{ 1 }, glm::vec3{ sqrt2 * this->m_farPlaneDistance }));
             uniloc.viewPos(0, 0, 0);
 
+            glDepthMask(GL_FALSE);
+            glDepthFunc(GL_LEQUAL);
+
             g_skyRenderer.draw();
 
-            //glDepthMask(GL_FALSE);
-            //glDepthFunc(GL_LEQUAL);
-
-            //glDepthMask(GL_TRUE);
-            //glDepthFunc(GL_LESS);
+            glDepthMask(GL_TRUE);
+            glDepthFunc(GL_LESS);
         }
     }
 

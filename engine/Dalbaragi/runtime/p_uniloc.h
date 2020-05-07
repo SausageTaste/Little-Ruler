@@ -584,7 +584,8 @@ namespace dal {
     class UniRender_Skybox {
 
     private:
-        GLint u_projViewMat = -1;
+        GLint u_projMat = -1;
+        GLint u_viewMat = -1;
         GLint u_modelMat = -1;
 
         GLint u_viewPos = -1;
@@ -594,8 +595,11 @@ namespace dal {
     public:
         void set(const GLuint shader);
 
-        void projViewMat(const glm::mat4& mat) const {
-            sendMatrix(this->u_projViewMat, mat);
+        void projMat(const glm::mat4& mat) const {
+            sendMatrix(this->u_projMat, mat);
+        }
+        void viewMat(const glm::mat4& mat) const {
+            sendMatrix(this->u_viewMat, mat);
         }
         void modelMat(const glm::mat4& mat) const {
             sendMatrix(this->u_modelMat, mat);
