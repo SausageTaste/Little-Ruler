@@ -244,8 +244,11 @@ namespace dal {
     }
 
     void UniRender_FillScreen::set(const GLuint shader) {
+        this->i_lighting.set(shader);
+
         this->u_projMat = getUniloc(shader, "u_projMat");
         this->u_viewMat = getUniloc(shader, "u_viewMat");
+        this->u_viewPos = getUniloc(shader, "u_viewPos");
 
         this->u_texture.init(getUniloc(shader, "u_texture"), -2, g_texUnitReg["u_texture"]);
         this->u_depthMap.init(getUniloc(shader, "u_depthMap"), -2, g_texUnitReg["u_depthMap"]);

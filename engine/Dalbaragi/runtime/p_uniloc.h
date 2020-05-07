@@ -456,9 +456,13 @@ namespace dal {
 
     class UniRender_FillScreen {
 
+    public:
+        UniInterf_Lighting i_lighting;
+
     private:
         GLint u_projMat = -1;
         GLint u_viewMat = -1;
+        GLint u_viewPos = -1;
 
         SamplerInterf u_texture, u_depthMap;
 
@@ -470,6 +474,12 @@ namespace dal {
         }
         void viewMat(const glm::mat4& mat) const {
             sendMatrix(this->u_viewMat, mat);
+        }
+        void viewPos(const float x, const float y, const float z) const {
+            glUniform3f(this->u_viewPos, x, y, z);
+        }
+        void viewPos(const glm::vec3& v) const {
+            this->viewPos(v.x, v.y, v.z);
         }
 
         auto& texture(void) const {

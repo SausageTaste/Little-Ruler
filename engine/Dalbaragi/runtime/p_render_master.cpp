@@ -403,8 +403,12 @@ namespace dal {
             glBindFramebuffer(GL_FRAMEBUFFER, 0);
             glViewport(0, 0, this->m_winWidth, this->m_winHeight);
             auto& uniloc = this->m_shader.useFillScreen();
+
             uniloc.projMat(this->m_projectMat);
             uniloc.viewMat(this->m_mainCamera->getViewMat());
+            uniloc.viewPos(this->m_mainCamera->m_pos);
+            this->m_scene.sendDlightUniform(uniloc.i_lighting);
+
             this->m_fbuffer.renderOnScreen(uniloc);
         }
     }

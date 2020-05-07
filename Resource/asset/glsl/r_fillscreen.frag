@@ -1,5 +1,9 @@
+#include <i_lighting.glsl>
+
+
 uniform mat4 u_projMat;
 uniform mat4 u_viewMat;
+uniform vec3 u_viewPos;
 
 uniform sampler2D u_texture;
 uniform sampler2D u_depthMap;
@@ -36,4 +40,10 @@ void main() {
     mapped = pow(mapped, vec3(1.0 / GAMMA));
 
     f_color = vec4(mapped, 1.0);
+
+#ifdef DAL_VOLUMETRIC_LIGHT
+    for ( int i = 0; i < u_dlightCount; ++i ) {
+        f_color.xyz += calcScatterColor_dlight(i, worldPos, u_viewPos);
+    }
+#endif
 }
