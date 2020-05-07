@@ -68,9 +68,6 @@ void main(void) {
         bool isInShadow = isInShadow_dlight(i, v_fragPos_dlight[i]);
 
         pbrL += isInShadow ? vec3(0.0) : integratePBR(fragNormal, viewDir, F0, L, albedo.rgb, roughness, metallic) * radiance;
-#ifdef DAL_VOLUMETRIC_LIGHT
-        pbrL += calcScatterColor_dlight(i, v_fragPos, u_viewPos);
-#endif
     }
     f_color.rgb = pbrL;
     f_color.a = albedo.a;

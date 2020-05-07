@@ -573,9 +573,6 @@ namespace dal {
 
     class UniRender_Skybox {
 
-    public:
-        UniInterf_Lighting i_lighting;
-
     private:
         GLint u_projViewMat = -1;
         GLint u_modelMat = -1;
