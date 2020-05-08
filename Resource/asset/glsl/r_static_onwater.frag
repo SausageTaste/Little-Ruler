@@ -66,7 +66,7 @@ void main(void) {
         vec3 radiance = calcRadiance_plight(i, v_fragPos);
         vec3 L        = calcToLight_plight(i, v_fragPos);
 
-        pbrL += integratePBR(fragNormal, viewDir, F0, L, albedo.rgb, roughness, metallic) * radiance;
+        pbrL += integratePBR(fragNormal, viewDir, F0, L, albedo.rgb, roughness, metallic, 1.0) * radiance;
     }
     for ( int i = 0; i < u_slightCount; ++i ) {
         vec3 radiance   = calcRadiance_slight(i, v_fragPos);
@@ -76,7 +76,7 @@ void main(void) {
         bool isInShadow = isInShadow_slight(i, v_fragPos_slight[i]);
         pbrL += isInShadow ? vec3(0.0) : integratePBR(fragNormal, viewDir, F0, L, albedo.rgb, roughness, metallic) * radiance;
 # else
-        pbrL += integratePBR(fragNormal, viewDir, F0, L, albedo.rgb, roughness, metallic) * radiance;
+        pbrL += integratePBR(fragNormal, viewDir, F0, L, albedo.rgb, roughness, metallic, 1.0) * radiance;
 # endif
     }
 #endif
@@ -89,7 +89,7 @@ void main(void) {
         bool isInShadow = isInShadow_dlight(i, v_fragPos_dlight[i]);
         pbrL += isInShadow ? vec3(0.0) : integratePBR(fragNormal, viewDir, F0, L, albedo.rgb, roughness, metallic) * radiance;
 #else
-        pbrL += integratePBR(fragNormal, viewDir, F0, L, albedo.rgb, roughness, metallic) * radiance;
+        pbrL += integratePBR(fragNormal, viewDir, F0, L, albedo.rgb, roughness, metallic, 1.0) * radiance;
 #endif
 
     }

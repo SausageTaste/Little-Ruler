@@ -35,7 +35,7 @@ vec3 _fresnelSchlick(float cosTheta, vec3 F0) {
     return F0 + (1.0 - F0) * pow(1.0 - cosTheta, 5.0);
 }
 
-vec3 integratePBR(vec3 N, vec3 V, vec3 F0, vec3 L, vec3 albedo, float roughness, float metallic) {
+vec3 integratePBR(vec3 N, vec3 V, vec3 F0, vec3 L, vec3 albedo, float roughness, float metallic, float specularIntensity) {
     vec3 H = normalize(V + L);
 
     float NdotL = max(dot(N, L), 0.0);
@@ -53,5 +53,5 @@ vec3 integratePBR(vec3 N, vec3 V, vec3 F0, vec3 L, vec3 albedo, float roughness,
     vec3 kD = vec3(1.0) - F;
     kD *= 1.0 - metallic;
 
-    return (kD * albedo / PI + specular) * NdotL;
+    return (kD * albedo / PI + specular * specularIntensity) * NdotL;
 }
