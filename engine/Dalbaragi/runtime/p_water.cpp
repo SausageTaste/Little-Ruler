@@ -298,7 +298,7 @@ namespace dal {
         glm::vec2 size{ info.m_width, info.m_height };
         this->initMesh(info.m_centerPos, size);
 
-        this->m_material.m_roughness = 0.2f;
+        this->m_material.m_roughness = 0.1f;
         this->m_material.m_metallic = 0.f;
         this->m_material.m_texScale = glm::vec2{ info.m_width * TEX_SCALE_FACTOR, info.m_height * TEX_SCALE_FACTOR };
     }

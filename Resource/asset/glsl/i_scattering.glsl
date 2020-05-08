@@ -1,7 +1,7 @@
 
 const vec3 BETA_RAYLEIGH = vec3(0.0000051967317359, 0.0000121426979269, 0.0000296452586105);
 const float RHO_RAYLEIGH = 0.9;
-const float ANISOTROPY = 0.8;
+const float ANISOTROPY = 0.85;
 
 
 
