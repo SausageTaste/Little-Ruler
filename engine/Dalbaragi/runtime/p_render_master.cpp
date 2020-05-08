@@ -198,11 +198,15 @@ namespace dal {
             glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, this->m_colorMap, 0);
             glBindTexture(GL_TEXTURE_2D, 0);
 
-            glGenRenderbuffers(1, &this->m_mainRenderbuf);
-            glBindRenderbuffer(GL_RENDERBUFFER, this->m_mainRenderbuf);
-            glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, this->m_bufWidth, this->m_bufHeight);
-            glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, this->m_mainRenderbuf);
-            glBindRenderbuffer(GL_RENDERBUFFER, 0);
+            glGenTextures(1, &this->m_mainRenderbuf);
+            glBindTexture(GL_TEXTURE_2D, this->m_mainRenderbuf);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, this->m_bufWidth, this->m_bufHeight, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_SHORT, nullptr);
+            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, this->m_mainRenderbuf, 0);
+            glBindTexture(GL_TEXTURE_2D, 0);
 
             if ( glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE ) {
                 dalAbort("Failed to create framebuffer.");
@@ -263,7 +267,8 @@ namespace dal {
             glBindVertexArray(0);
         }
 
-        this->m_tex = new Texture{ this->m_colorMap };
+        this->m_colorMapTex.reset(this->m_colorMap);
+        this->m_depthMapTex.reset(this->m_mainRenderbuf);
     }
 
     RenderMaster::MainFramebuffer::~MainFramebuffer(void) {
@@ -286,9 +291,9 @@ namespace dal {
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, this->m_bufWidth, this->m_bufHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
         glBindTexture(GL_TEXTURE_2D, 0);
 
-        glBindRenderbuffer(GL_RENDERBUFFER, this->m_mainRenderbuf);
-        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, this->m_bufWidth, this->m_bufHeight);
-        glBindRenderbuffer(GL_RENDERBUFFER, 0);
+        glBindTexture(GL_TEXTURE_2D, this->m_mainRenderbuf);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, this->m_bufWidth, this->m_bufHeight, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_SHORT, nullptr);
+        glBindTexture(GL_TEXTURE_2D, 0);
 
         dalInfo(fmt::format("In-game framebuffer resized to {} x {}.", this->m_bufWidth, this->m_bufHeight));
     }
@@ -301,7 +306,8 @@ namespace dal {
 
     void RenderMaster::MainFramebuffer::renderOnScreen(const UniRender_FillScreen& uniloc) {
         glBindVertexArray(m_vbo);
-        this->m_tex->sendUniform(uniloc.texture());
+        this->m_colorMapTex.sendUniform(uniloc.texture());
+        this->m_depthMapTex.sendUniform(uniloc.depthMap());
         glDrawArrays(GL_TRIANGLES, 0, 6);
     }
 
@@ -365,6 +371,11 @@ namespace dal {
     }
 
     void RenderMaster::update(const float deltaTime) {
+        {
+            for ( auto& dlight : this->m_scene.m_dlights ) {
+                dlight.setPos(glm::round(this->m_mainCamera->m_pos));
+            }
+        }
         /*
         const auto mat = glm::rotate(glm::mat4{ 1.0f }, deltaTime * 0.3f, glm::vec3{ 1.0f, 0.5f, 0.0f });
         const glm::vec4 direcBefore{ this->m_dlight1.getDirection(), 0.0f };
@@ -385,7 +396,7 @@ namespace dal {
         this->render_onWater(reg);
 #endif
 
-        if ( this->m_envmapTimer.getElapsed() >= 1.f ) {
+        if ( this->m_envmapTimer.getElapsed() >= 3.f ) {
             this->m_envmapTimer.check();
             this->render_onCubemap();
         }
@@ -397,6 +408,13 @@ namespace dal {
             glBindFramebuffer(GL_FRAMEBUFFER, 0);
             glViewport(0, 0, this->m_winWidth, this->m_winHeight);
             auto& uniloc = this->m_shader.useFillScreen();
+
+            uniloc.projMat(this->m_projectMat);
+            uniloc.viewMat(this->m_mainCamera->getViewMat());
+            uniloc.viewPos(this->m_mainCamera->m_pos);
+            this->m_scene.sendDlightUniform(uniloc.i_lighting);
+            this->m_scene.m_mapChunks2.back().sendSlightUniforms(uniloc.i_lighting);
+
             this->m_fbuffer.renderOnScreen(uniloc);
         }
     }
@@ -553,10 +571,16 @@ namespace dal {
             uniloc.modelMat(glm::scale(glm::mat4{ 1 }, glm::vec3{ sqrt2 * this->m_farPlaneDistance }));
             uniloc.viewPos(0, 0, 0);
 
+            glDepthMask(GL_FALSE);
+            glDepthFunc(GL_LEQUAL);
+
             for ( auto water : waters ) {
                 water->startRenderOnReflec(uniloc, *this->m_mainCamera, this->m_projectMat);
                 g_skyRenderer.draw();
             }
+
+            glDepthMask(GL_TRUE);
+            glDepthFunc(GL_LESS);
         }
 
     }
@@ -587,7 +611,8 @@ namespace dal {
 
                     for ( unsigned i = 0; i < 6; ++i ) {
                         e.readyFace(i);
-                        uniloc.projViewMat(projMat * glm::mat4{ glm::mat3{ viewMats[i] } });
+                        uniloc.projMat(projMat);
+                        uniloc.viewMat(glm::mat4{ glm::mat3{ viewMats[i] } });
                         g_skyRenderer.draw();
                     }
                 }
@@ -681,20 +706,20 @@ namespace dal {
             const float sqrt2 = sqrt(1.0 / 3.0);
 
             this->m_skyboxTex->sendUniform(uniloc.skyboxTex());
-            this->m_scene.sendDlightUniform(uniloc.i_lighting);
             uniloc.viewPosActual(this->m_mainCamera->m_pos);
 
-            uniloc.projViewMat(this->m_projectMat * glm::mat4(glm::mat3(this->m_mainCamera->getViewMat())));
+            uniloc.projMat(this->m_projectMat);
+            uniloc.viewMat(glm::mat4(glm::mat3(this->m_mainCamera->getViewMat())));
             uniloc.modelMat(glm::scale(glm::mat4{ 1 }, glm::vec3{ sqrt2 * this->m_farPlaneDistance }));
             uniloc.viewPos(0, 0, 0);
 
+            glDepthMask(GL_FALSE);
+            glDepthFunc(GL_LEQUAL);
+
             g_skyRenderer.draw();
 
-            //glDepthMask(GL_FALSE);
-            //glDepthFunc(GL_LEQUAL);
-
-            //glDepthMask(GL_TRUE);
-            //glDepthFunc(GL_LESS);
+            glDepthMask(GL_TRUE);
+            glDepthFunc(GL_LESS);
         }
     }
 

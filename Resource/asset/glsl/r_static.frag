@@ -53,24 +53,21 @@ void main(void) {
         vec3 radiance = calcRadiance_plight(i, v_fragPos);
         vec3 L        = calcToLight_plight(i, v_fragPos);
 
-        pbrL += integratePBR(fragNormal, viewDir, F0, L, albedo.rgb, roughness, metallic) * radiance;
+        pbrL += integratePBR(fragNormal, viewDir, F0, L, albedo.rgb, roughness, metallic, 1.0) * radiance;
     }
     for ( int i = 0; i < u_slightCount; ++i ) {
         vec3 radiance   = calcRadiance_slight(i, v_fragPos);
         vec3 L          = calcToLight_slight(i, v_fragPos);
         bool isInShadow = isInShadow_slight(i, v_fragPos_slight[i]);
 
-        pbrL += isInShadow ? vec3(0.0) : integratePBR(fragNormal, viewDir, F0, L, albedo.rgb, roughness, metallic) * radiance;
+        pbrL += isInShadow ? vec3(0.0) : integratePBR(fragNormal, viewDir, F0, L, albedo.rgb, roughness, metallic, 1.0) * radiance;
     }
     for ( int i = 0; i < u_dlightCount; ++i ) {
         vec3 radiance   = calcRadiance_dlight(i);
         vec3 L          = calcToLight_dlight(i);
         bool isInShadow = isInShadow_dlight(i, v_fragPos_dlight[i]);
 
-        pbrL += isInShadow ? vec3(0.0) : integratePBR(fragNormal, viewDir, F0, L, albedo.rgb, roughness, metallic) * radiance;
-#ifdef DAL_VOLUMETRIC_LIGHT
-        pbrL += calcScatterColor_dlight(i, v_fragPos, u_viewPos);
-#endif
+        pbrL += isInShadow ? vec3(0.0) : integratePBR(fragNormal, viewDir, F0, L, albedo.rgb, roughness, metallic, 1.0) * radiance;
     }
     f_color.rgb = pbrL;
     f_color.a = albedo.a;

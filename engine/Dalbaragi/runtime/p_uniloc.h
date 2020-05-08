@@ -456,14 +456,37 @@ namespace dal {
 
     class UniRender_FillScreen {
 
+    public:
+        UniInterf_Lighting i_lighting;
+
     private:
-        SamplerInterf u_texture;
+        GLint u_projMat = -1;
+        GLint u_viewMat = -1;
+        GLint u_viewPos = -1;
+
+        SamplerInterf u_texture, u_depthMap;
 
     public:
         void set(const GLuint shader);
 
+        void projMat(const glm::mat4& mat) const {
+            sendMatrix(this->u_projMat, mat);
+        }
+        void viewMat(const glm::mat4& mat) const {
+            sendMatrix(this->u_viewMat, mat);
+        }
+        void viewPos(const float x, const float y, const float z) const {
+            glUniform3f(this->u_viewPos, x, y, z);
+        }
+        void viewPos(const glm::vec3& v) const {
+            this->viewPos(v.x, v.y, v.z);
+        }
+
         auto& texture(void) const {
             return this->u_texture;
+        }
+        auto& depthMap(void) const {
+            return this->u_depthMap;
         }
 
     };
@@ -560,11 +583,9 @@ namespace dal {
 
     class UniRender_Skybox {
 
-    public:
-        UniInterf_Lighting i_lighting;
-
     private:
-        GLint u_projViewMat = -1;
+        GLint u_projMat = -1;
+        GLint u_viewMat = -1;
         GLint u_modelMat = -1;
 
         GLint u_viewPos = -1;
@@ -574,8 +595,11 @@ namespace dal {
     public:
         void set(const GLuint shader);
 
-        void projViewMat(const glm::mat4& mat) const {
-            sendMatrix(this->u_projViewMat, mat);
+        void projMat(const glm::mat4& mat) const {
+            sendMatrix(this->u_projMat, mat);
+        }
+        void viewMat(const glm::mat4& mat) const {
+            sendMatrix(this->u_viewMat, mat);
         }
         void modelMat(const glm::mat4& mat) const {
             sendMatrix(this->u_modelMat, mat);

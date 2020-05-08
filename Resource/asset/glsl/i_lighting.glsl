@@ -47,30 +47,6 @@ float _calcTotalAttenu(float fragDist, float maxDist) {
     return _calcMaxDistFactor(fragDist, maxDist) * _calcDistAttenu(fragDist, 1.0, 0.0, 1.0);
 }
 
-float _computeScattering(float lightDotView) {
-    const float PI = 3.14159265;
-    const float G_SCATTERING = 10.0;
-
-    float result = 1.0 - G_SCATTERING * G_SCATTERING;
-    result /= (4.0 * PI * pow(1.0 + G_SCATTERING * G_SCATTERING - (2.0 * G_SCATTERING) *  lightDotView, 1.5));
-    return result;
-}
-
-float _getDitherValue(void) {
-    float ditherPattern[16] = float[](
-        0.0   , 0.5   , 0.125 , 0.625 ,
-        0.75  , 0.22  , 0.875 , 0.375 ,
-        0.1875, 0.6875, 0.0625, 0.5625,
-        0.9375, 0.4375, 0.8125, 0.3125
-    );
-
-    int i = int(gl_FragCoord.x) % 4;
-    int j = int(gl_FragCoord.y) % 4;
-
-    int index = 4 * i + j;
-    return ditherPattern[index];
-}
-
 
 // Directional
 
@@ -119,38 +95,6 @@ vec3 calcRadiance_dlight(int i) {
 
 vec3 calcToLight_dlight(int i) {
     return -u_dlight_direcs[i];
-}
-
-vec3 calcScatterColor_dlight(int index, vec3 fragPos, vec3 viewPos) {
-    const int NUM_STEPS = 5;
-    const float INTENSITY = 0.05;
-
-    vec3 toFragFromView = fragPos - viewPos;
-    vec3 toFargDirec = normalize(toFragFromView);
-    vec3 toLightDirec = normalize(-u_dlight_direcs[index]);
-    vec3 rayStep = toFragFromView / float(NUM_STEPS);
-    float scatterFactor = _computeScattering(dot(toFargDirec, toLightDirec));
-
-    vec3 curPos = viewPos;
-    float accumFactor = 0.0;
-
-    for (int i = 0; i < NUM_STEPS; ++i) {
-        vec4 curPosInDlight = u_dlight_projViewMat[index] * vec4(curPos, 1.0);
-        vec3 projCoords = curPosInDlight.xyz / curPosInDlight.w;
-        projCoords = projCoords * 0.5 + 0.5;
-
-        float depthFromMap = _sampleDlightDepth(index, projCoords.xy);
-        float curDepth = projCoords.z;
-
-        if (depthFromMap > curDepth) {
-            accumFactor += 1.0;
-        }
-
-        curPos += rayStep * _getDitherValue();
-    }
-
-    accumFactor *= INTENSITY / float(NUM_STEPS);
-    return accumFactor * u_dlight_colors[index];
 }
 
 
