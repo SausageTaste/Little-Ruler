@@ -46,7 +46,7 @@ float _getDitherValue(void) {
 
 vec3 calcScattering(int index, vec3 fragPos, vec3 viewPos) {
     const int NUM_STEPS = 5;
-    const float INTENSITY = 1.0;
+    const float INTENSITY = 0.5;
     const float MAX_SAMPLE_DIST = 100.0;
 
     vec3 toFrag = fragPos - viewPos;
@@ -105,7 +105,7 @@ vec3 calcScattering_slight(int index, vec3 fragPos, vec3 viewPos) {
 
 vec3 fixColor(vec3 color) {
     const float GAMMA = 2.2;
-    const float EXPOSURE = 0.5;
+    const float EXPOSURE = 0.8;
 
     vec3 mapped = vec3(1.0) - exp(-color * EXPOSURE);
     //vec3 mapped = color / (color + 1.0);
