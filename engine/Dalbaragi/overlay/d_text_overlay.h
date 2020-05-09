@@ -92,12 +92,12 @@ namespace dal {
     public:
         TextOverlay(Widget2D* const parent, overlayDrawFunc_t drawf, loadFileFunc_t filef);
 
-        virtual void render(const float width, const float height, void* userdata) override;
+        virtual void render(const float width, const float height, const void* userdata) override;
 
         void addStr(const char* const str);
 
     private:
-        void render_noWrap(const float width, const float height, void* userdata) const;
+        void render_noWrap(const float width, const float height, const void* userdata) const;
 
     };
 

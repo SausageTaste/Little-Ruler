@@ -451,7 +451,7 @@ namespace dal {
         g_filefunc = filef;
     }
 
-    void TextOverlay::render(const float width, const float height, void* userdata) {
+    void TextOverlay::render(const float width, const float height, const void* userdata) {
         this->render_noWrap(width, height, userdata);
     }
 
@@ -493,7 +493,7 @@ namespace dal {
     }
 
     // Private
-    void TextOverlay::render_noWrap(const float width, const float height, void* userdata) const {
+    void TextOverlay::render_noWrap(const float width, const float height, const void* userdata) const {
         const auto p11 = this->aabb().point11();
         const auto leftMostPos = this->aabb().pos().x + this->m_offset.x;
 

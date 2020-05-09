@@ -21,6 +21,6 @@ namespace dal {
     };
 
 
-    void drawOverlay(const OverlayDrawInfo& info, const UniRender_Overlay* const uniloc);
+    void drawOverlay(const OverlayDrawInfo& info, const void* const uniloc);
 
 }

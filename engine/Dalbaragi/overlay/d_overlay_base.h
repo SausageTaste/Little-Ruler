@@ -32,6 +32,6 @@ namespace dal {
 
     };
 
-    using overlayDrawFunc_t = std::function<void(const OverlayDrawInfo&, void*)>;
+    using overlayDrawFunc_t = std::function<void(const OverlayDrawInfo&, const void*)>;
 
 }

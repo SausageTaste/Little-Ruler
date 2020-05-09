@@ -22,7 +22,7 @@ namespace dal {
         Widget& operator=(Widget&&) = default;
         virtual ~Widget(void) = default;
 
-        virtual void render(const float width, const float height, void* userData) {}
+        virtual void render(const float width, const float height, const void* userData) {}
         virtual auto onTouch(const TouchEvent& e) -> InputDealtFlag {
             return InputDealtFlag::ignored;
         }
@@ -57,7 +57,7 @@ namespace dal {
         }
 
     protected:
-        void draw(const OverlayDrawInfo& info, void* userdata) const {
+        void draw(const OverlayDrawInfo& info, const void* userdata) const {
             if ( this->m_drawfunc )
                 this->m_drawfunc(info, userdata);
         }

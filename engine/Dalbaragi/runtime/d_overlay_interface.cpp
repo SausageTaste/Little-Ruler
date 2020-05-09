@@ -103,9 +103,9 @@ namespace dal {
 
 namespace dal {
 
-    void drawOverlay(const OverlayDrawInfo& info, const UniRender_Overlay* const uniloc) {
+    void drawOverlay(const OverlayDrawInfo& info, const void* const uniloc) {
         dalAssert(nullptr != uniloc);
-        renderQuadOverlay(*uniloc, info);
+        renderQuadOverlay(*reinterpret_cast<const UniRender_Overlay*>(uniloc), info);
     }
 
 }
