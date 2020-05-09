@@ -99,10 +99,21 @@ namespace dal {
         uniloc.bottomLeft(bottomLeft);
         uniloc.rectSize(rectSize);
         uniloc.colorDefault(color);
-        uniloc.yFlip_colorMap(upsideDown_diffuseMap);
-        uniloc.yFlip_maskMap(upsideDown_maskMap);
         uniloc.texOffset(texOffset);
         uniloc.texScale(texScale);
+
+        if ( upsideDown_diffuseMap || upsideDown_maskMap ) {
+            const auto scale = -texScale.y;
+            const auto offset = texOffset.y + texScale.y;
+
+            auto newScale = texScale;
+            newScale.y = scale;
+            auto newOffset = texOffset;
+            newOffset.y = offset;
+
+            uniloc.texOffset(newOffset);
+            uniloc.texScale(newScale);
+        }
 
         if ( nullptr != diffuseMap ) {
             diffuseMap->sendUniform(uniloc.colorMap());
