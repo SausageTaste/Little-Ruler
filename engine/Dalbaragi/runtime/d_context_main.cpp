@@ -12,6 +12,8 @@
 #include "o_widgetmanager.h"
 #include "u_timer.h"
 #include "u_luascript.h"
+#include "d_overlay_interface.h"
+#include "d_text_overlay.h"
 
 
 namespace {
@@ -225,7 +227,7 @@ namespace {
         dal::IContext* m_cnxtPauseMenu;
 
         dal::PlayerControlWidget m_crtlWidget;
-        dal::TextRenderer2 m_testText;
+        dal::TextOverlay m_testText;
 
         unsigned m_winWidth, m_winHeight;
 
@@ -241,13 +243,16 @@ namespace {
             , m_phyworld(phyworld)
             , m_cnxtPauseMenu(nullptr)
             , m_crtlWidget(static_cast<float>(width), static_cast<float>(height))
-            , m_testText(nullptr)
+            , m_testText(nullptr, dal::drawOverlay, dal::loadFileBuf, dal::genOverlayTexture)
             , m_winWidth(width)
             , m_winHeight(height)
         {
-            this->m_testText.setPos(30, 60);
-            this->m_testText.setSize(256, 128);
-            this->m_testText.addStr("alsjfaosjfoajdfdasfaasfasdfasdfasfasfdsfasdfasfasfasdfasfsadfasdfsadfasdfasdfasdfasdfsadfassfasdfasflasjflasfdas\nasdfjasldfjasdfasfdasfdasfaslasjflasjdflasjfa\nlasdjflajsflsdalkfasdfasdfjajfljasl");
+            this->m_testText.aabb().setPosSize(30, 60, 256, 128);
+            this->m_testText.addStr("Bonjour\n");
+            this->m_testText.addStr("\xec\x95\x88\xeb\x85\x95\xed\x95\x98\xec\x84\xb8\xec\x9a\x94\n");  // Korean
+            this->m_testText.addStr("\xce\xa7\xce\xb1\xce\xaf\xcf\x81\xce\xb5\xcf\x84\xce\xb5\n");  // Greek
+            this->m_testText.addStr("\xe3\x81\x93\xe3\x82\x93\xe3\x81\xab\xe3\x81\xa1\xe3\x81\xaf\n");  // Japanese
+            this->m_testText.addStr("\xd0\x9f\xd1\x80\xd0\xb8\xd0\xb2\xd0\xb5\xd1\x82\n");  // Russian
         }
 
         virtual ~InGameCxt(void) override {
@@ -308,7 +313,7 @@ namespace {
                 auto& uniloc = this->m_shaders.useOverlay();
 
                 this->m_crtlWidget.render(uniloc, this->m_winWidth, this->m_winHeight);
-                this->m_testText.render(uniloc, this->m_winWidth, this->m_winHeight);
+                this->m_testText.render(this->m_winWidth, this->m_winHeight, reinterpret_cast<const void*>(&uniloc));
                 g_fcounter.render(uniloc, this->m_winWidth, this->m_winHeight);
             }
 

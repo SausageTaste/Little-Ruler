@@ -13,7 +13,7 @@ namespace dal {
     class OverlayTexInterf : public OverlayTexture {
 
     public:
-        std::shared_ptr<Texture> m_tex;
+        Texture m_tex;
 
     public:
         virtual void init_maskMap(const uint8_t* const image, const unsigned width, const unsigned height) override;
@@ -22,5 +22,7 @@ namespace dal {
 
 
     void drawOverlay(const OverlayDrawInfo& info, const void* const uniloc);
+    bool loadFileBuf(const char* const respath, std::vector<uint8_t>& result);
+    OverlayTexture* genOverlayTexture(void);
 
 }

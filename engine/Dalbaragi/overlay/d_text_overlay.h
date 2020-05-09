@@ -9,6 +9,7 @@
 namespace dal {
 
     using loadFileFunc_t = std::function<bool(const char*, std::vector<uint8_t>&)>;
+    using texGenFunc_t = std::function<OverlayTexture*(void)>;
 
 
     class TextOverlay : public Widget2D {
@@ -90,7 +91,7 @@ namespace dal {
         bool m_wordWrap;
 
     public:
-        TextOverlay(Widget2D* const parent, overlayDrawFunc_t drawf, loadFileFunc_t filef);
+        TextOverlay(Widget2D* const parent, overlayDrawFunc_t drawf, loadFileFunc_t filef, texGenFunc_t texf);
 
         virtual void render(const float width, const float height, const void* userdata) override;
 

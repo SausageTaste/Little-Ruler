@@ -1,6 +1,9 @@
 #include "d_overlay_interface.h"
 
+#include <fmt/format.h>
+
 #include "d_logger.h"
+#include "u_fileutils.h"
 
 
 namespace {
@@ -67,10 +70,9 @@ namespace {
         uniloc.texOffset(info.m_texOffset);
         uniloc.texScale(info.m_texScale);
 
-
         if ( nullptr != info.m_albedoMap ) {
             auto albedomap = dynamic_cast<const dal::OverlayTexInterf*>(info.m_albedoMap);
-            albedomap->m_tex->sendUniform(uniloc.colorMap());
+            albedomap->m_tex.sendUniform(uniloc.colorMap());
         }
         else {
             uniloc.colorMap().setFlagHas(false);
@@ -78,7 +80,7 @@ namespace {
 
         if ( nullptr != info.m_maskMap ) {
             auto maskmap = dynamic_cast<const dal::OverlayTexInterf*>(info.m_maskMap);
-            maskmap->m_tex->sendUniform(uniloc.maskMap());
+            maskmap->m_tex.sendUniform(uniloc.maskMap());
         }
         else {
             uniloc.maskMap().setFlagHas(false);
@@ -94,7 +96,7 @@ namespace dal {
 
     void OverlayTexInterf::init_maskMap(const uint8_t* const image, const unsigned width, const unsigned height) {
         glPixelStorei(GL_UNPACK_ALIGNMENT, 1);  // Text looks broken without this.
-        this->m_tex->init_maskMap(image, width, height);
+        this->m_tex.init_maskMap(image, width, height);
         glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
     }
 
@@ -106,6 +108,18 @@ namespace dal {
     void drawOverlay(const OverlayDrawInfo& info, const void* const uniloc) {
         dalAssert(nullptr != uniloc);
         renderQuadOverlay(*reinterpret_cast<const UniRender_Overlay*>(uniloc), info);
+    }
+
+    bool loadFileBuf(const char* const respath, std::vector<uint8_t>& result) {
+        if ( !dal::loadFileBuffer(respath, result) ) {
+            dalAbort(fmt::format("Failed to load font file: {}", respath));
+        }
+
+        return true;
+    }
+
+    OverlayTexture* genOverlayTexture(void) {
+        return new OverlayTexInterf;
     }
 
 }

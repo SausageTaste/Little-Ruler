@@ -135,6 +135,7 @@ namespace {
     }
 
     dal::loadFileFunc_t g_filefunc;
+    dal::texGenFunc_t g_texgenfunc;
 
 }
 
@@ -230,6 +231,7 @@ namespace {
                     }
 
                     //glPixelStorei(GL_UNPACK_ALIGNMENT, 1);  // Text looks broken without this.
+                    charUnit.m_tex.reset(g_texgenfunc());
                     charUnit.m_tex->init_maskMap(this->m_face->glyph->bitmap.buffer, this->m_face->glyph->bitmap.width, this->m_face->glyph->bitmap.rows);
                     //glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
 
@@ -382,6 +384,74 @@ namespace {
 
 
 
+
+// StrBlock and its iterator
+namespace dal {
+
+    TextOverlay::StrBlock::Iterator::Iterator(const char* const buf)
+        : m_buf(buf)
+    {
+
+    }
+
+    bool TextOverlay::StrBlock::Iterator::operator!=(const Iterator& other) const {
+        return this->m_buf != other.m_buf;
+    }
+
+    uint32_t TextOverlay::StrBlock::Iterator::operator*(void) const {
+        const auto ch = static_cast<uint8_t>(*this->m_buf);
+        const auto codeSize = utf8_codepoint_size(ch);
+        assert(codeSize <= MAX_UTF8_CODE_SIZE);
+
+        if ( codeSize > 1 ) {
+            return convertUTF8to32(reinterpret_cast<const uint8_t*>(this->m_buf));
+        }
+        else {
+            return ch;
+        }
+    }
+
+    TextOverlay::StrBlock::Iterator& TextOverlay::StrBlock::Iterator::operator++(void) {
+        const auto ch = static_cast<uint8_t>(*this->m_buf);
+        const auto codeSize = utf8_codepoint_size(ch);
+        this->m_buf += codeSize;
+        return *this;
+    }
+
+
+    void TextOverlay::StrBlock::clearBuf(void) {
+        this->m_filledSize = 0;
+        this->m_buf[this->m_filledSize] = '\0';
+    }
+
+    void TextOverlay::StrBlock::pushChar(const char c) {
+        static_assert(sizeof(StrBlock) == BLOCK_SIZE);
+        static_assert(MAX_UTF8_CODE_SIZE <= BUF_SIZE);
+
+        assert('\0' != c);
+        assert(0 != this->remainingCap());
+
+        this->m_buf[this->m_filledSize] = c;
+        ++this->m_filledSize;
+        this->m_buf[this->m_filledSize] = '\0';
+    }
+
+    bool TextOverlay::StrBlock::pushStr(const char* const str, size_t size) {
+        if ( this->remainingCap() < size ) {
+            return false;
+        }
+
+        std::memcpy(this->m_buf + this->m_filledSize, str, size);
+        this->m_filledSize += size;
+        this->m_buf[this->m_filledSize] = '\0';
+
+        return true;
+    }
+
+}
+
+
+
 namespace {
 
     enum class CharSkipFlag { skip, dont_skip, finish, carriage_return };
@@ -439,7 +509,7 @@ namespace {
 
 namespace dal {
 
-    TextOverlay::TextOverlay(Widget2D* const parent, overlayDrawFunc_t drawf, loadFileFunc_t filef)
+    TextOverlay::TextOverlay(Widget2D* const parent, overlayDrawFunc_t drawf, loadFileFunc_t filef, texGenFunc_t texf)
         : Widget2D(parent, drawf)
         , m_color(1, 1, 1, 1)
         , m_textSize(15)
@@ -449,6 +519,7 @@ namespace dal {
         this->m_blocks.emplace_back();
 
         g_filefunc = filef;
+        g_texgenfunc = texf;
     }
 
     void TextOverlay::render(const float width, const float height, const void* userdata) {
