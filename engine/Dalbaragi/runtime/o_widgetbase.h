@@ -8,17 +8,10 @@
 #include "p_meshStatic.h"
 #include "p_uniloc.h"
 #include "s_input_queue.h"
-//#include "u_timer.h"
+#include "d_widget.h"
 
 
 namespace dal {
-
-    glm::vec2 screen2device(const glm::vec2& p, const float winWidth, const float winHeight);
-    glm::vec2 screen2device(const glm::vec2& p, const unsigned int winWidth, const unsigned int winHeight);
-    glm::vec2 device2screen(const glm::vec2& p, const float winWidth, const float winHeight);
-    glm::vec2 device2screen(const glm::vec2& p, const unsigned int winWidth, const unsigned int winHeight);
-    glm::vec2 size2device(const glm::vec2& size, const glm::vec2& parentSize);
-
 
     struct QuadRenderInfo {
         glm::vec4 m_color{ 1.0f };

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <d_overlay_base.h>
 #include <d_input_data.h>
 #include <d_aabb_2d.h>
 
@@ -11,30 +12,15 @@ namespace dal {
 
     class Widget {
 
-    private:
-        Widget* m_parent = nullptr;
-
     public:
         Widget(const Widget&) = delete;
         Widget& operator=(const Widget&) = delete;
 
     public:
-        Widget(Widget* const parent)
-            : m_parent(parent)
-        {
-
-        }
-
+        Widget(void) = default;
         Widget(Widget&&) = default;
         Widget& operator=(Widget&&) = default;
         virtual ~Widget(void) = default;
-
-        auto parent(void) -> Widget* {
-            return this->m_parent;
-        }
-        auto parent(void) const -> const Widget* {
-            return this->m_parent;
-        }
 
         virtual void render(const float width, const float height, void* userData) {}
         virtual auto onTouch(const TouchEvent& e) -> InputDealtFlag {
@@ -52,9 +38,16 @@ namespace dal {
 
     private:
         AABB_2D<float> m_aabb;
+        Widget2D* m_parent = nullptr;
+        overlayDrawFunc_t m_drawfunc;
 
     public:
-        using Widget::Widget;
+        Widget2D(Widget2D* const parent, overlayDrawFunc_t drawf)
+            : m_parent(parent)
+            , m_drawfunc(drawf)
+        {
+
+        }
 
         auto aabb(void) -> AABB_2D<float>& {
             return this->m_aabb;
@@ -63,6 +56,19 @@ namespace dal {
             return this->m_aabb;
         }
 
+    protected:
+        void draw(const OverlayDrawInfo& info, void* userdata) const {
+            if ( this->m_drawfunc )
+                this->m_drawfunc(info, userdata);
+        }
+
     };
+
+
+    glm::vec2 screen2device(const glm::vec2& p, const float winWidth, const float winHeight);
+    glm::vec2 screen2device(const glm::vec2& p, const unsigned int winWidth, const unsigned int winHeight);
+    glm::vec2 device2screen(const glm::vec2& p, const float winWidth, const float winHeight);
+    glm::vec2 device2screen(const glm::vec2& p, const unsigned int winWidth, const unsigned int winHeight);
+    glm::vec2 size2device(const glm::vec2& size, const glm::vec2& parentSize);
 
 }

@@ -12,6 +12,8 @@ namespace dal {
     public:
         virtual ~OverlayTexture(void) = default;
 
+        virtual void init_maskMap(const uint8_t* const image, const unsigned width, const unsigned height) = 0;
+
     };
 
     class OverlayDrawInfo {

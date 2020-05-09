@@ -137,3 +137,9 @@ if (NOT TARGET dalbaragi_resparser)
     add_subdirectory(../resparser ${CMAKE_CURRENT_BINARY_DIR}/dalbaragi_resparser)
     target_link_libraries(dalbaragi_runtime PUBLIC dalbaragi_resparser)
 endif()
+
+# Dalbaragi overlay
+if (NOT TARGET dalbaragi_overlay)
+    add_subdirectory(../overlay ${CMAKE_CURRENT_BINARY_DIR}/dalbaragi_overlay)
+endif()
+target_link_libraries(dalbaragi_runtime PUBLIC dalbaragi_overlay)
