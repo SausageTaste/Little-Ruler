@@ -69,6 +69,7 @@ add_library(dalbaragi_runtime
     x_mainloop.cpp
     x_mainloop.h
     d_global_macro.h
+    d_overlay_interface.h    d_overlay_interface.cpp
 )
 target_include_directories(dalbaragi_runtime PUBLIC .)
 target_compile_features(dalbaragi_runtime PUBLIC cxx_std_17)
