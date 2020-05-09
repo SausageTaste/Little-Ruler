@@ -53,6 +53,12 @@ namespace dal {
         }
 
         template <typename U>
+        void setPosSize(const U posX, const U posY, const U width, const U height) {
+            this->m_pos = glm::vec2{ posX, posY };
+            this->m_size = glm::vec2{ width, height };
+            this->validate();
+        }
+        template <typename U>
         void setPosSize(const glm::tvec2<U>& pos, const glm::tvec2<U>& size) {
             this->m_pos = pos;
             this->m_size = size;
