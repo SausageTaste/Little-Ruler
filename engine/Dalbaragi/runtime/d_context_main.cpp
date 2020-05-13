@@ -313,7 +313,7 @@ namespace {
                 glBindFramebuffer(GL_FRAMEBUFFER, 0);
                 auto& uniloc = this->m_shaders.useOverlay();
 
-                this->m_crtlWidget.render(uniloc, this->m_winWidth, this->m_winHeight);
+                this->m_crtlWidget.render(this->m_winWidth, this->m_winHeight, &uniloc);
                 this->m_testText.render(this->m_winWidth, this->m_winHeight, reinterpret_cast<const void*>(&uniloc));
                 g_fcounter.render(uniloc, this->m_winWidth, this->m_winHeight);
             }

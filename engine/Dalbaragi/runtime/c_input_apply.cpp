@@ -4,6 +4,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 #include <d_logger.h>
+#include <d_overlay_interface.h>
 
 #include "u_math.h"
 
@@ -14,44 +15,46 @@ using namespace fmt::literals;
 // MoveDPad
 namespace dal {
 
-    PlayerControlWidget::MoveDPad::MoveDPad(dal::Widget2* const parent, const float winWidth, const float winHeight)
-        : Widget2(parent)
-        , m_fixedCenterPoint(this, 1.0f, 1.0f, 1.0f, 1.0f)
-        , m_touchedPoint(this, 1.0f, 1.0f, 1.0f, 1.0f)
+    PlayerControlWidget::MoveDPad::MoveDPad(dal::Widget2D* const parent, const float winWidth, const float winHeight)
+        : Widget2D(parent, drawOverlay)
+        , m_fixedCenterPoint(this, drawOverlay)
+        , m_touchedPoint(this, drawOverlay)
     {
         this->onParentResize(winWidth, winHeight);
 
-        this->m_fixedCenterPoint.setSize(RENDERED_POINT_EDGE_LEN_HALF * 2.0f, RENDERED_POINT_EDGE_LEN_HALF * 2.0f);
-        this->m_fixedCenterPoint.setPos(this->makeFixedCenterPos() - RENDERED_POINT_EDGE_LEN_HALF);
+        this->m_fixedCenterPoint.aabb().pos() = this->makeFixedCenterPos() - RENDERED_POINT_EDGE_LEN_HALF;
+        this->m_fixedCenterPoint.aabb().size() = glm::vec2{ RENDERED_POINT_EDGE_LEN_HALF * 2, RENDERED_POINT_EDGE_LEN_HALF * 2 };
+        this->m_fixedCenterPoint.m_color = glm::vec4{ 1, 1, 1, 1 };
 
-        this->m_touchedPoint.setSize(RENDERED_POINT_EDGE_LEN_HALF * 2.0f, RENDERED_POINT_EDGE_LEN_HALF * 2.0f);
+        this->m_touchedPoint.aabb().size() = glm::vec2{ RENDERED_POINT_EDGE_LEN_HALF * 2, RENDERED_POINT_EDGE_LEN_HALF * 2 };
+        this->m_touchedPoint.m_color = glm::vec4{ 1, 1, 1, 1 };
     }
 
-    void PlayerControlWidget::MoveDPad::render(const UniRender_Overlay& uniloc, const float width, const float height) {
-        this->m_fixedCenterPoint.render(uniloc, width, height);
+    void PlayerControlWidget::MoveDPad::render(const float width, const float height, const void* uniloc) {
+        this->m_fixedCenterPoint.render(width, height, uniloc);
 
         if ( -1 != this->m_owning ) {
-            this->m_touchedPoint.setPos(this->m_touchedPos - RENDERED_POINT_EDGE_LEN_HALF);
-            this->m_touchedPoint.render(uniloc, width, height);
+            this->m_touchedPoint.aabb().pos() = this->m_touchedPos - RENDERED_POINT_EDGE_LEN_HALF;
+            this->m_touchedPoint.render(width, height, uniloc);
         }
     }
 
-    InputCtrlFlag PlayerControlWidget::MoveDPad::onTouch(const dal::TouchEvent& e) {
+    InputDealtFlag PlayerControlWidget::MoveDPad::onTouch(const dal::TouchEvent& e) {
         if ( this->isActive() ) {
             if ( e.m_id == this->m_owning ) {
                 if ( e.m_actionType == TouchActionType::move ) {
                     this->updateTouchedPos(e.m_pos.x, e.m_pos.y, this->m_touchedPos);
-                    return InputCtrlFlag::owned;
+                    return InputDealtFlag::owned;
                 }
                 else if ( TouchActionType::up == e.m_actionType ) {
                     this->m_owning = -1;
-                    return InputCtrlFlag::consumed;
+                    return InputDealtFlag::consumed;
                 }
                 else {
                     // Else case is when event type is down, which shouldn't happen.
                     // But it's really Android system who is responsible for that so I can't assure.
                     dalWarn("Got touch event type down for the id which was already being processed as down.");
-                    return InputCtrlFlag::ignored;
+                    return InputDealtFlag::ignored;
                 }
             }
             // If else ignores.
@@ -61,21 +64,20 @@ namespace dal {
                 // Start owning the touch id.
                 this->m_owning = e.m_id;
                 this->updateTouchedPos(e.m_pos.x, e.m_pos.y, this->m_touchedPos);
-                return InputCtrlFlag::owned;
+                return InputDealtFlag::owned;
             }
             // If else ignores.
         }
 
-        return InputCtrlFlag::ignored;
+        return InputDealtFlag::ignored;
     }
 
     void PlayerControlWidget::MoveDPad::onParentResize(const float width, const float height) {
         const auto shorter = width < height ? width : height;
         const auto edgeLen = shorter * 0.5f;
-        this->setPos(CORNER_MARGIN, height - edgeLen - CORNER_MARGIN);
-        this->setSize(edgeLen, edgeLen);
+        this->aabb().setPosSize(CORNER_MARGIN, height - edgeLen - CORNER_MARGIN, edgeLen, edgeLen);
 
-        this->m_fixedCenterPoint.setPos(this->makeFixedCenterPos() - RENDERED_POINT_EDGE_LEN_HALF);
+        this->m_fixedCenterPoint.aabb().pos() = this->makeFixedCenterPos() - RENDERED_POINT_EDGE_LEN_HALF;
     }
 
     glm::vec2 PlayerControlWidget::MoveDPad::getRel(void) const {
@@ -83,10 +85,10 @@ namespace dal {
             return glm::vec2{ 0.0f };
         }
 
-        dalAssert(this->getWidth() == this->getHeight());
+        dalAssert(this->aabb().width() == this->aabb().height());
 
         const auto fixedCenter = this->makeFixedCenterPos();
-        return (this->m_touchedPos - fixedCenter) / (this->getWidth() * 0.5f);
+        return (this->m_touchedPos - fixedCenter) / (this->aabb().width() * 0.5f);
     }
 
     bool PlayerControlWidget::MoveDPad::isActive(void) const {
@@ -96,21 +98,21 @@ namespace dal {
     // Private
 
     void PlayerControlWidget::MoveDPad::updateTouchedPos(const float x, const float y, glm::vec2& target) const {
-        dalAssert(this->getWidth() == this->getHeight());
+        dalAssert(this->aabb().width() == this->aabb().height());
 
         const auto fixedCenter = this->makeFixedCenterPos();;
-        target = clampVec(glm::vec2{ x, y } -fixedCenter, this->getWidth() * 0.5f) + fixedCenter;
+        target = clampVec(glm::vec2{ x, y } -fixedCenter, this->aabb().width() * 0.5f) + fixedCenter;
     }
 
     glm::vec2 PlayerControlWidget::MoveDPad::makeFixedCenterPos(void) const {
         return glm::vec2{
-            this->getPosX() + this->getWidth() * 0.5f,
-            this->getPosY() + this->getHeight() * 0.5f
+            this->aabb().pos().x + this->aabb().width() * 0.5f,
+            this->aabb().pos().y + this->aabb().height() * 0.5f
         };
     }
 
     bool PlayerControlWidget::MoveDPad::isInsideCircle(const glm::vec2& v) const {
-        const float radiusSqr = this->getWidth() * this->getWidth() * 0.5f * 0.5f;
+        const float radiusSqr = this->aabb().width() * this->aabb().width() * 0.5f * 0.5f;
         const auto center = this->makeFixedCenterPos();
         const auto rel = v - center;
         const auto lenSqr = glm::dot(rel, rel);
@@ -124,22 +126,21 @@ namespace dal {
 namespace dal {
 
     PlayerControlWidget::PlayerControlWidget(const float winWidth, const float winHeight)
-        : Widget2(nullptr)
+        : Widget2D(nullptr, drawOverlay)
         , m_dpad(this, winWidth, winHeight)
         , m_owningForView(-1)
     {
-        this->setPos(0.0f, 0.0f);
-        this->setSize(winWidth, winHeight);
+        this->aabb().setPosSize<float>(0, 0, winWidth, winHeight);
     }
 
-    void PlayerControlWidget::render(const UniRender_Overlay& uniloc, const float width, const float height) {
-        this->m_dpad.render(uniloc, width, height);
+    void PlayerControlWidget::render(const float width, const float height, const void* uniloc) {
+        this->m_dpad.render(width, height, uniloc);
     }
 
-    InputCtrlFlag PlayerControlWidget::onTouch(const TouchEvent& e) {
+    InputDealtFlag PlayerControlWidget::onTouch(const TouchEvent& e) {
         const auto dpadReturnFlag = this->m_dpad.onTouch(e);
 
-        if ( InputCtrlFlag::ignored != dpadReturnFlag ) {
+        if ( InputDealtFlag::ignored != dpadReturnFlag ) {
             return dpadReturnFlag;
         }
         else {
@@ -148,17 +149,17 @@ namespace dal {
                     if ( e.m_actionType == TouchActionType::move ) {
                         this->m_viewTouchAccum = e.m_pos - this->m_lastViewTouchPos;
                         this->m_lastViewTouchPos = e.m_pos;
-                        return InputCtrlFlag::owned;
+                        return InputDealtFlag::owned;
                     }
                     else if ( TouchActionType::up == e.m_actionType ) {
                         this->m_owningForView = -1;
-                        return InputCtrlFlag::consumed;
+                        return InputDealtFlag::consumed;
                     }
                     else {
                         // Else case is when event type is down, which shouldn't happen.
                         // But it's really Android system who is responsible for that so I can't assure.
                         dalWarn("Got touch event type down for the id which was already being processed as down.");
-                        return InputCtrlFlag::ignored;
+                        return InputDealtFlag::ignored;
                     }
                 }
                 // If else ignores.
@@ -169,16 +170,16 @@ namespace dal {
                     this->m_owningForView = e.m_id;
                     this->m_lastViewTouchPos = e.m_pos;
                     this->m_viewTouchAccum = glm::vec2{ 0.0f };
-                    return InputCtrlFlag::owned;
+                    return InputDealtFlag::owned;
                 }
                 // If else ignores.
             }
 
-            return InputCtrlFlag::ignored;
+            return InputDealtFlag::ignored;
         }
     }
 
-    InputCtrlFlag PlayerControlWidget::onKeyInput(const KeyboardEvent& e, const KeyStatesRegistry& keyStates) {
+    InputDealtFlag PlayerControlWidget::onKeyInput(const KeyboardEvent& e, const KeyStatesRegistry& keyStates) {
         this->m_keyboardMoveInfo.clear();
 
         if ( keyStates[dal::KeySpec::w].m_pressed ) {
@@ -216,14 +217,13 @@ namespace dal {
             this->m_keyboardMoveInfo.m_move = glm::normalize(this->m_keyboardMoveInfo.m_move);
         }
 
-        return InputCtrlFlag::consumed;
+        return InputDealtFlag::consumed;
     }
 
     void PlayerControlWidget::onParentResize(const float width, const float height) {
         this->m_dpad.onParentResize(width, height);
 
-        this->setPos(0.0f, 0.0f);
-        this->setSize(width, height);
+        this->aabb().setPosSize<float>(0, 0, width, height);
     }
 
     void PlayerControlWidget::onFocusChange(const bool v) {
