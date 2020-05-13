@@ -31,27 +31,3 @@ namespace dal {
     }
 
 }
-
-
-namespace dal {
-
-    ColoredTile::ColoredTile(Widget2* const parent, const float r, const float g, const float b, const float a)
-        : Widget2(parent)
-    {
-        this->setColor(r, g, b, a);
-    }
-
-    void ColoredTile::render(const UniRender_Overlay& uniloc, const float width, const float height) {
-        QuadRenderInfo info;
-
-        std::tie(info.m_bottomLeftNormalized, info.m_rectSize) = this->makePosSize(width, height);
-        info.m_color = this->m_color;
-
-        renderQuadOverlay(uniloc, info);
-    }
-
-    void ColoredTile::setColor(const float r, const float g, const float b, const float a) {
-        this->m_color = glm::vec4{ r, g, b, a };
-    }
-
-}

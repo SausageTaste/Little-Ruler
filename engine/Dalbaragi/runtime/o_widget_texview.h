@@ -22,19 +22,4 @@ namespace dal {
 
     };
 
-
-    class ColoredTile : public Widget2 {
-
-    private:
-        glm::vec4 m_color;
-
-    public:
-        ColoredTile(Widget2* const parent, const float r, const float g, const float b, const float a);
-
-        virtual void render(const UniRender_Overlay& uniloc, const float width, const float height) override;
-
-        void setColor(const float r, const float g, const float b, const float a);
-
-    };
-
 }
