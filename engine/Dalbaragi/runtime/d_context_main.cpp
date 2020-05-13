@@ -412,8 +412,11 @@ namespace {
         }
 
         virtual void onWinResize(const unsigned width, const unsigned height) override {
+            glViewport(0, 0, width, height);
+
             this->m_red.onParentResize(width, height);
-            this->m_red.aabb().size() = glm::vec2{ width, height };
+            //this->m_red.aabb().size() = glm::vec2{ width, height };
+            this->m_red.aabb().setPosSize<float>(0, 0, width, height);
 
             this->m_luaConsole.onParentResize(width, height);
 
@@ -441,7 +444,7 @@ namespace {
         // Contexts
         dal::IContext* m_cnxtIngame;
 
-        dal::ColoredTile m_background;
+        dal::ColorView m_background;
         dal::LineEdit m_lineedit;
 
         dal::Timer m_timer;
@@ -452,13 +455,13 @@ namespace {
             : m_shaders(shaders)
             , m_task(taskMas)
             , m_cnxtIngame(nullptr)
-            , m_background(nullptr, 0.1f, 0.1f, 0.1f, 1.f)
+            , m_background(nullptr, dal::drawOverlay)
             , m_lineedit(nullptr)
             , m_winWidth(width)
             , m_winHeight(height)
         {
-            this->m_background.setSize(width, height);
-            this->m_background.setPos(0, 0);
+            this->m_background.aabb().setPosSize<float>(0, 0, width, height);
+            this->m_background.m_color = glm::vec4{ 0.1, 0.1, 0.1, 1 };
 
             this->m_lineedit.setPos(30, 30);
             this->m_lineedit.setSize(500, 500);
@@ -504,14 +507,18 @@ namespace {
 
             glBindFramebuffer(GL_FRAMEBUFFER, 0);
             auto& uniloc = this->m_shaders.useOverlay();
-            this->m_background.render(uniloc, this->m_winWidth, this->m_winHeight);
+            this->m_background.render(this->m_winWidth, this->m_winHeight, &uniloc);
             this->m_lineedit.render(uniloc, this->m_winWidth, this->m_winHeight);
 
             return nextContext;
         }
 
         virtual void onWinResize(const unsigned width, const unsigned height) override {
+            glViewport(0, 0, width, height);
+
             this->m_background.onParentResize(width, height);
+            this->m_background.aabb().setPosSize<float>(0, 0, width, height);
+
             this->m_lineedit.onParentResize(width, height);
 
             this->m_winWidth = width;
