@@ -4,6 +4,7 @@
 
 #include <d_logger.h>
 #include <d_phyworld.h>
+#include <d_widget_view.h>
 
 #include "p_render_master.h"
 #include "c_input_apply.h"
@@ -346,7 +347,7 @@ namespace {
         // Contexts
         dal::IContext* m_cnxtIngame;
 
-        dal::ColoredTile m_red;
+        dal::ColorView m_red;
         LuaConsole m_luaConsole;
 
         unsigned m_winWidth, m_winHeight;
@@ -356,12 +357,12 @@ namespace {
             : m_shaders(shaders)
             , m_task(taskMas)
             , m_cnxtIngame(nullptr)
-            , m_red(nullptr, 1, 0, 0, 1)
+            , m_red(nullptr, dal::drawOverlay)
             , m_winWidth(width)
             , m_winHeight(height)
         {
-            this->m_red.setSize(width, height);
-            this->m_red.setPos(0, 0);
+            this->m_red.aabb().setPosSize<float>(0, 0, width, height);
+            this->m_red.m_color = glm::vec4{ 1, 0, 0, 1 };
         }
 
         virtual dal::IContext* update(const float deltaTime) override {
@@ -403,7 +404,7 @@ namespace {
 
             glBindFramebuffer(GL_FRAMEBUFFER, 0);
             auto& uniloc = this->m_shaders.useOverlay();
-            this->m_red.render(uniloc, this->m_winWidth, this->m_winHeight);
+            this->m_red.render(this->m_winWidth, this->m_winHeight, &uniloc);
             this->m_luaConsole.render(uniloc, this->m_winWidth, this->m_winHeight);
             g_fcounter.render(uniloc, this->m_winWidth, this->m_winHeight);
 
@@ -412,6 +413,8 @@ namespace {
 
         virtual void onWinResize(const unsigned width, const unsigned height) override {
             this->m_red.onParentResize(width, height);
+            this->m_red.aabb().size() = glm::vec2{ width, height };
+
             this->m_luaConsole.onParentResize(width, height);
 
             this->m_winWidth = width;
