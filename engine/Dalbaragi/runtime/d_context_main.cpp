@@ -9,7 +9,6 @@
 #include "p_render_master.h"
 #include "c_input_apply.h"
 #include "o_widget_textbox.h"
-#include "o_widget_texview.h"
 #include "o_widgetmanager.h"
 #include "u_timer.h"
 #include "u_luascript.h"
