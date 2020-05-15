@@ -9,10 +9,6 @@
 
 namespace dal {
 
-    // Returns either last focused or newly focused.
-    // Either or both or none of two can be nullptr.
-    Widget2* resolveNewFocus(Widget2* const lastFocused, Widget2* const newlyFocused);
-
 
     class WidgetStorage {
 

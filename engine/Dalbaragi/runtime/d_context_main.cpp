@@ -6,6 +6,7 @@
 #include <d_phyworld.h>
 #include <d_widget_view.h>
 #include <d_w_text_view.h>
+#include <d_widget_manager.h>
 
 #include "p_render_master.h"
 #include "c_input_apply.h"
@@ -63,7 +64,7 @@ namespace {
     };
 
 
-    class LuaConsole : public dal::Widget2 {
+    class LuaConsole : public dal::Widget2D {
 
     private:
         class TextStreamChannel : public dal::ILoggingChannel {
@@ -111,53 +112,60 @@ namespace {
         };
 
     private:
-        dal::WidgetInputDispatcher m_dispatcher;
-        dal::LineEdit m_lineEdit;
-        dal::TextBox m_textBox;
-        glm::vec4 m_bgColor;
-        Widget2* m_focused;
+        dal::InputDispatcher m_dispatcher;
+
+        dal::LineEdit2 m_lineEdit;
+        dal::TextBox2 m_textBox;
+        dal::ColorView m_bg;
+
+        dal::Widget2D* m_focused;
         dal::LuaState m_luaState;
         dal::StringBufferBasic m_strbuf;
         TextStreamChannel m_stream;
 
+        float m_lineEditHeight = 20;
+
     public:
-        LuaConsole(void)
-            : dal::Widget2(nullptr)
-            , m_lineEdit(this)
-            , m_textBox(this)
-            , m_bgColor(0.0f, 0.0f, 0.0f, 1.0f)
+        LuaConsole(dal::GlyphMaster& glyph)
+            : dal::Widget2D(nullptr, dal::drawOverlay)
+
+            , m_lineEdit(nullptr, dal::drawOverlay, glyph)
+            , m_textBox(nullptr, dal::drawOverlay, glyph)
+            , m_bg(nullptr, dal::drawOverlay)
+
             , m_focused(nullptr)
             , m_stream(m_strbuf)
         {
-            this->m_lineEdit.setHeight(20.0f);
-            this->m_lineEdit.setCallbackOnEnter([this](const char* const text) {
+            this->m_lineEdit.setCallback_onReturn([this](const char* const text) {
                 this->m_luaState.exec(text);
                 });
 
+            this->m_bg.m_color = glm::vec4{ 0, 0, 0, 1 };
+
             this->m_luaState.replaceStrbuf(&this->m_strbuf);
-            this->m_textBox.replaceBuffer(&this->m_strbuf);
             dal::LoggerGod::getinst().addChannel(&this->m_stream);
 
-            this->setPos(10.0f, 50.0f);
-            this->setSize(300.0f, 300.0f);
+            this->m_textBox.m_bg.m_color = glm::vec4{ 0.1, 0.1, 0.1, 1 };
+            this->m_lineEdit.setBGColor(0.1, 0.1, 0.1, 1);
+
+            this->aabb().setPosSize(10, 50, 300, 300);
+            this->onUpdateAABB();
         }
 
         ~LuaConsole(void) {
             dal::LoggerGod::getinst().deleteChannel(&this->m_stream);
         }
 
-        virtual void render(const dal::UniRender_Overlay& uniloc, const float width, const float height) override {
-            dal::QuadRenderInfo info;
-            std::tie(info.m_bottomLeftNormalized, info.m_rectSize) = this->makePosSize(width, height);
-            info.m_color = this->m_bgColor;
-            dal::renderQuadOverlay(uniloc, info);
+        virtual void render(const float width, const float height, const void* uniloc) override {
+            this->fetchText();
 
-            this->m_lineEdit.render(uniloc, width, height);
-            this->m_textBox.render(uniloc, width, height);
+            this->m_bg.render(width, height, uniloc);
+            this->m_lineEdit.render(width, height, uniloc);
+            this->m_textBox.render(width, height, uniloc);
         }
 
-        virtual dal::InputCtrlFlag onTouch(const dal::TouchEvent& e) override {
-            dal::Widget2* widgetArr[2] = { &this->m_lineEdit, &this->m_textBox };
+        virtual auto onTouch(const dal::TouchEvent& e) -> dal::InputDealtFlag override {
+            dal::Widget2D* widgetArr[2] = { &this->m_lineEdit, &this->m_textBox };
             const auto [flag, focused] = this->m_dispatcher.dispatch(widgetArr, widgetArr + 2, e);
 
             this->m_focused = dal::resolveNewFocus(this->m_focused, focused);
@@ -165,14 +173,14 @@ namespace {
             return flag;
         }
 
-        virtual dal::InputCtrlFlag onKeyInput(const dal::KeyboardEvent& e, const dal::KeyStatesRegistry& keyStates) override {
+        virtual auto onKeyInput(const dal::KeyboardEvent& e, const dal::KeyStatesRegistry& keyStates) -> dal::InputDealtFlag override {
             if ( &this->m_lineEdit == this->m_focused ) {
                 const auto iter = &this->m_focused;
                 const auto end = iter + 1;
                 return this->m_dispatcher.dispatch(iter, end, e, keyStates);
             }
 
-            return dal::InputCtrlFlag::ignored;
+            return dal::InputDealtFlag::ignored;
         }
 
         virtual void onFocusChange(const bool v) override {
@@ -188,25 +196,37 @@ namespace {
         }
 
     protected:
-        virtual void onScrSpaceBoxUpdate(void) override {
-            constexpr float INNER_MARGIN = 5.0f;
+        virtual void onUpdateAABB(void) override {
+            constexpr float INNER_MARGIN = 5;
 
-            const auto pp1 = this->getPoint00();
-            const auto pp2 = this->getPoint11();
+            const auto pp1 = this->aabb().point00();
+            const auto pp2 = this->aabb().point11();
 
-            {
-                this->m_lineEdit.setPos(pp1.x + INNER_MARGIN, pp2.y - INNER_MARGIN - this->m_lineEdit.getHeight());
-                this->m_lineEdit.setWidth(this->getWidth() - INNER_MARGIN - INNER_MARGIN);
-            }
-
-            {
-                this->m_textBox.setPos(pp1.x + INNER_MARGIN, pp1.y + INNER_MARGIN);
-                this->m_textBox.setSize(
-                    this->getWidth() - INNER_MARGIN - INNER_MARGIN,
-                    this->getHeight() - this->m_lineEdit.getHeight() - INNER_MARGIN - INNER_MARGIN - INNER_MARGIN
+            this->m_lineEdit.aabb().setPosSize<float>(
+                pp1.x + INNER_MARGIN,
+                pp2.y - INNER_MARGIN - this->m_lineEditHeight,
+                this->aabb().width() - INNER_MARGIN - INNER_MARGIN,
+                this->m_lineEditHeight
                 );
-            }
-        };
+
+            this->m_textBox.aabb().setPosSize<float>(
+                pp1.x + INNER_MARGIN,
+                pp1.y + INNER_MARGIN,
+                this->aabb().width() - INNER_MARGIN - INNER_MARGIN,
+                this->aabb().height() - this->m_lineEditHeight - INNER_MARGIN - INNER_MARGIN - INNER_MARGIN
+                );
+
+            this->m_bg.aabb().setAs(this->aabb());
+
+            this->m_lineEdit.onUpdateAABB();
+            this->m_textBox.onUpdateAABB();
+            this->m_bg.onUpdateAABB();
+        }
+
+        void fetchText(void) {
+            this->m_textBox.m_text.addStr(this->m_strbuf.data());
+            this->m_strbuf.clear();
+        }
 
     };
 
@@ -367,6 +387,7 @@ namespace {
             , m_task(taskMas)
             , m_cnxtIngame(nullptr)
             , m_red(nullptr, dal::drawOverlay)
+            , m_luaConsole(glyph)
             , m_winWidth(width)
             , m_winHeight(height)
         {
@@ -414,7 +435,7 @@ namespace {
             glBindFramebuffer(GL_FRAMEBUFFER, 0);
             auto& uniloc = this->m_shaders.useOverlay();
             this->m_red.render(this->m_winWidth, this->m_winHeight, &uniloc);
-            this->m_luaConsole.render(uniloc, this->m_winWidth, this->m_winHeight);
+            this->m_luaConsole.render(this->m_winWidth, this->m_winHeight, &uniloc);
 
             return nextContext;
         }

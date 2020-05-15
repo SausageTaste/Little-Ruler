@@ -8,29 +8,6 @@
 using namespace fmt::literals;
 
 
-// Header functions
-namespace dal {
-
-    Widget2* resolveNewFocus(Widget2* const lastFocused, Widget2* const newlyFocused) {
-        if ( nullptr == newlyFocused ) {
-            return lastFocused;
-        }
-        else if ( lastFocused == newlyFocused ) {
-            return lastFocused;
-        }
-        else {  // New one has got focus.
-            if ( nullptr != lastFocused ) {
-                lastFocused->onFocusChange(false);
-            }
-            newlyFocused->onFocusChange(true);
-
-            return newlyFocused;
-        }
-    }
-
-}
-
-
 // WidgetStorage
 namespace dal {
 
