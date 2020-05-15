@@ -17,8 +17,6 @@ add_library(dalbaragi_runtime
     g_charastate.h
     m_collider.cpp
     m_collider.h
-    o_widgetbase.cpp
-    o_widgetbase.h
     p_animation.cpp
     p_animation.h
     p_dalopengl.cpp
