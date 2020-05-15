@@ -11,8 +11,6 @@ add_library(dalbaragi_runtime
     d_context.h
     d_context_main.cpp
     d_context_main.h
-    d_widgettext.cpp
-    d_widgettext.h
     g_actor.cpp
     g_actor.h
     g_charastate.cpp
