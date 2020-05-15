@@ -5,6 +5,7 @@
 #include <d_logger.h>
 #include <d_phyworld.h>
 #include <d_widget_view.h>
+#include <d_w_text_view.h>
 
 #include "p_render_master.h"
 #include "c_input_apply.h"
@@ -21,17 +22,19 @@ namespace {
     class FPSCounter : public dal::Widget2D {
 
     private:
-        dal::TextOverlay m_label;
+        dal::Lable m_label;
         dal::Timer m_timerForFPSReport;
         size_t m_frameAccum;
 
     public:
         FPSCounter(dal::GlyphMaster& glyph)
             : dal::Widget2D(nullptr, dal::drawOverlay)
-            , m_label(this, glyph, dal::drawOverlay)
+            , m_label(this, dal::drawOverlay, glyph)
             , m_frameAccum(0)
         {
-            this->aabb().setPosSize<float>(10, 10, 500, 30);
+            this->m_label.setMargin(5);
+
+            this->aabb().setPosSize<float>(10, 10, 50, 30);
             this->onUpdateAABB();
         }
 
@@ -42,7 +45,7 @@ namespace {
 
         virtual void onUpdateAABB(void) override {
             this->m_label.aabb().setAs(this->aabb());
-            this->m_label.m_textSize = this->aabb().height();
+            this->m_label.onUpdateAABB();
         }
 
     private:
@@ -51,8 +54,7 @@ namespace {
             const auto elapsedForFPS = this->m_timerForFPSReport.getElapsed();
             if ( elapsedForFPS > 0.05f ) {
                 const auto fps = static_cast<unsigned int>(static_cast<float>(this->m_frameAccum) / elapsedForFPS);
-                this->m_label.clear();
-                this->m_label.addStr(std::to_string(fps).c_str());
+                this->m_label.setText(std::to_string(fps).c_str());
                 this->m_timerForFPSReport.check();
                 this->m_frameAccum = 0;
             }

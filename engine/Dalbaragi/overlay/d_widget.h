@@ -22,7 +22,7 @@ namespace dal {
         Widget& operator=(Widget&&) = default;
         virtual ~Widget(void) = default;
 
-        virtual void render(const float width, const float height, const void* userData) {}
+        virtual void render(const float width, const float height, const void* userdata) {}
         virtual auto onTouch(const TouchEvent& e) -> InputDealtFlag {
             return InputDealtFlag::ignored;
         }
