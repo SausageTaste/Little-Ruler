@@ -63,7 +63,7 @@ namespace dal {
     };
 
 
-    class LineEdit2 : public Lable {
+    class LineEdit : public Lable {
 
     private:
         std::function<void(const char* const)> m_onReturn;
@@ -84,7 +84,7 @@ namespace dal {
     };
 
 
-    class TextBox2 : public Widget2D {
+    class TextBox : public Widget2D {
 
     public:
         TextOverlay m_text;
@@ -95,7 +95,7 @@ namespace dal {
         glm::vec2 m_lastTouchPos;
 
     public:
-        TextBox2(Widget2D* const parent, overlayDrawFunc_t drawf, GlyphMaster& glyph);
+        TextBox(Widget2D* const parent, overlayDrawFunc_t drawf, GlyphMaster& glyph);
 
         virtual void render(const float width, const float height, const void* userdata) override;
         virtual void onUpdateAABB(void) override;

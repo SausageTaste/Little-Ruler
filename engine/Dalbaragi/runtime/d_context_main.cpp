@@ -113,8 +113,8 @@ namespace {
     private:
         dal::InputDispatcher m_dispatcher;
 
-        dal::LineEdit2 m_lineEdit;
-        dal::TextBox2 m_textBox;
+        dal::LineEdit m_lineEdit;
+        dal::TextBox m_textBox;
         dal::ColorView m_bg;
 
         dal::Widget2D* m_focused;
@@ -247,7 +247,7 @@ namespace {
         dal::IContext* m_cnxtPauseMenu;
 
         dal::PlayerControlWidget m_crtlWidget;
-        dal::TextBox2 m_testText;
+        dal::TextBox m_testText;
         FPSCounter m_fcounter;
 
         unsigned m_winWidth, m_winHeight;
@@ -473,7 +473,7 @@ namespace {
         dal::IContext* m_cnxtIngame;
 
         dal::ColorView m_background;
-        dal::LineEdit2 m_lineedit;
+        dal::LineEdit m_lineedit;
 
         dal::Timer m_timer;
         unsigned m_winWidth, m_winHeight;

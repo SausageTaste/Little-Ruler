@@ -35,7 +35,7 @@ namespace dal {
 
 namespace dal {
 
-    auto LineEdit2::onTouch(const TouchEvent& e) -> InputDealtFlag {
+    auto LineEdit::onTouch(const TouchEvent& e) -> InputDealtFlag {
         if ( e.m_actionType == TouchActionType::down ) {
             return InputDealtFlag::consumed;
         }
@@ -44,7 +44,7 @@ namespace dal {
         }
     }
 
-    auto LineEdit2::onKeyInput(const KeyboardEvent& e, const KeyStatesRegistry& keyStates) -> InputDealtFlag {
+    auto LineEdit::onKeyInput(const KeyboardEvent& e, const KeyStatesRegistry& keyStates) -> InputDealtFlag {
         const auto shifted = keyStates[KeySpec::lshfit].m_pressed;
 
         if ( KeyActionType::down == e.m_actionType ) {
@@ -72,7 +72,7 @@ namespace dal {
 
     // Private
 
-    void LineEdit2::onReturn(void) {
+    void LineEdit::onReturn(void) {
         if ( this->m_onReturn ) {
             this->m_onReturn(this->text().c_str());
         }
@@ -84,7 +84,7 @@ namespace dal {
 
 namespace dal {
 
-    TextBox2::TextBox2(Widget2D* const parent, overlayDrawFunc_t drawf, GlyphMaster& glyph)
+    TextBox::TextBox(Widget2D* const parent, overlayDrawFunc_t drawf, GlyphMaster& glyph)
         : Widget2D(parent, drawf)
         , m_text(this, glyph, drawf)
         , m_bg(this, drawf)
@@ -97,12 +97,12 @@ namespace dal {
         this->onUpdateAABB();
     }
 
-    void TextBox2::render(const float width, const float height, const void* userdata) {
+    void TextBox::render(const float width, const float height, const void* userdata) {
         this->m_bg.render(width, height, userdata);
         this->m_text.render(width, height, userdata);
     }
 
-    void TextBox2::onUpdateAABB(void) {
+    void TextBox::onUpdateAABB(void) {
         this->m_bg.aabb().setAs(this->aabb());
         this->m_bg.onUpdateAABB();
 
@@ -110,7 +110,7 @@ namespace dal {
         this->m_text.onUpdateAABB();
     }
 
-    auto TextBox2::onTouch(const TouchEvent& e) -> InputDealtFlag {
+    auto TextBox::onTouch(const TouchEvent& e) -> InputDealtFlag {
         if ( -1 != this->m_owning ) {
             if ( e.m_id == this->m_owning ) {
                 if ( TouchActionType::move == e.m_actionType ) {
