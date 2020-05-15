@@ -10,6 +10,7 @@ add_library(dalbaragi_overlay
     d_widget.h        d_widget.cpp
     d_text_overlay.h  d_text_overlay.cpp
     d_widget_view.h   d_widget_view.cpp
+    d_glyph.h         d_glyph.cpp
 )
 target_include_directories(dalbaragi_overlay PUBLIC .)
 target_compile_features(dalbaragi_overlay PUBLIC cxx_std_17)

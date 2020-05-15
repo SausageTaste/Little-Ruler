@@ -9,9 +9,6 @@
 
 namespace dal {
 
-    using loadFileFunc_t = std::function<bool(const char*, std::vector<uint8_t>&)>;
-    using texGenFunc_t = std::function<OverlayTexture*(void)>;
-
 
     class TextOverlay : public Widget2D {
 
