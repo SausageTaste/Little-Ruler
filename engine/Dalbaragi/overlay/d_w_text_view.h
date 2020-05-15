@@ -83,4 +83,25 @@ namespace dal {
 
     };
 
+
+    class TextBox2 : public Widget2D {
+
+    public:
+        TextOverlay m_text;
+        ColorView m_bg;
+        float m_margin;
+
+        touchID_t m_owning = -1;
+        glm::vec2 m_lastTouchPos;
+
+    public:
+        TextBox2(Widget2D* const parent, overlayDrawFunc_t drawf, GlyphMaster& glyph);
+
+        virtual void render(const float width, const float height, const void* userdata) override;
+        virtual void onUpdateAABB(void) override;
+
+        virtual auto onTouch(const TouchEvent& e)->InputDealtFlag override;
+
+    };
+
 }

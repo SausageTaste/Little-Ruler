@@ -228,7 +228,7 @@ namespace {
         dal::IContext* m_cnxtPauseMenu;
 
         dal::PlayerControlWidget m_crtlWidget;
-        dal::TextOverlay m_testText;
+        dal::TextBox2 m_testText;
         FPSCounter m_fcounter;
 
         unsigned m_winWidth, m_winHeight;
@@ -245,17 +245,19 @@ namespace {
             , m_phyworld(phyworld)
             , m_cnxtPauseMenu(nullptr)
             , m_crtlWidget(static_cast<float>(width), static_cast<float>(height))
-            , m_testText(nullptr, glyph, dal::drawOverlay)
+            , m_testText(nullptr, dal::drawOverlay, glyph)
             , m_fcounter(glyph)
             , m_winWidth(width)
             , m_winHeight(height)
         {
             this->m_testText.aabb().setPosSize(30, 60, 256, 128);
-            this->m_testText.addStr("Bonjour\n");
-            this->m_testText.addStr("\xec\x95\x88\xeb\x85\x95\xed\x95\x98\xec\x84\xb8\xec\x9a\x94\n");  // Korean
-            this->m_testText.addStr("\xce\xa7\xce\xb1\xce\xaf\xcf\x81\xce\xb5\xcf\x84\xce\xb5\n");  // Greek
-            this->m_testText.addStr("\xe3\x81\x93\xe3\x82\x93\xe3\x81\xab\xe3\x81\xa1\xe3\x81\xaf\n");  // Japanese
-            this->m_testText.addStr("\xd0\x9f\xd1\x80\xd0\xb8\xd0\xb2\xd0\xb5\xd1\x82\n");  // Russian
+            this->m_testText.onUpdateAABB();
+
+            this->m_testText.m_text.addStr("Bonjour\n");
+            this->m_testText.m_text.addStr("\xec\x95\x88\xeb\x85\x95\xed\x95\x98\xec\x84\xb8\xec\x9a\x94\n");  // Korean
+            this->m_testText.m_text.addStr("\xce\xa7\xce\xb1\xce\xaf\xcf\x81\xce\xb5\xcf\x84\xce\xb5\n");  // Greek
+            this->m_testText.m_text.addStr("\xe3\x81\x93\xe3\x82\x93\xe3\x81\xab\xe3\x81\xa1\xe3\x81\xaf\n");  // Japanese
+            this->m_testText.m_text.addStr("\xd0\x9f\xd1\x80\xd0\xb8\xd0\xb2\xd0\xb5\xd1\x82\n");  // Russian
         }
 
         virtual ~InGameCxt(void) override {
@@ -272,6 +274,11 @@ namespace {
 
                     for ( unsigned int i = 0; i < tq.getSize(); i++ ) {
                         const auto& e = tq.at(i);
+
+                        if ( this->m_testText.aabb().isInside(e.m_pos) ) {
+                            this->m_testText.onTouch(e);
+                        }
+
                         this->m_crtlWidget.onTouch(e);
                     }
 
