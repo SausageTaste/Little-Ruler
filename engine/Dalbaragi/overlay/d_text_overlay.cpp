@@ -276,6 +276,11 @@ namespace dal {
         this->render_noWrap(width, height, userdata);
     }
 
+    void TextOverlay::clear(void) {
+        this->m_blocks.clear();
+        this->m_blocks.emplace_back();
+    }
+
     void TextOverlay::addStr(const char* const str) {
         const char* iter = str;
 

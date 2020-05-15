@@ -18,27 +18,26 @@
 
 namespace {
 
-    class FPSCounter : public dal::Widget2 {
+    class FPSCounter : public dal::Widget2D {
 
     private:
-        dal::Label2 m_label;
-
+        dal::TextOverlay m_label;
         dal::Timer m_timerForFPSReport;
         size_t m_frameAccum;
 
     public:
-        FPSCounter(void)
-            : dal::Widget2(nullptr)
-            , m_label(this)
+        FPSCounter(dal::GlyphMaster& glyph)
+            : dal::Widget2D(nullptr, dal::drawOverlay)
+            , m_label(this, glyph, dal::drawOverlay)
             , m_frameAccum(0)
         {
-            this->setPos(10.0f, 10.0f);
-            this->setSize(50.0f, 20.0f);
+            this->aabb().setPosSize<float>(10, 10, 50, 20);
+            this->m_label.aabb().setPosSize<float>(10, 10, 50, 20);
         }
 
-        virtual void render(const dal::UniRender_Overlay& uniloc, const float width, const float height) override {
+        virtual void render(const float width, const float height, const void* uniloc) override {
             this->update();
-            this->m_label.render(uniloc, width, height);
+            this->m_label.render(width, height, uniloc);
         }
 
     private:
@@ -47,19 +46,14 @@ namespace {
             const auto elapsedForFPS = this->m_timerForFPSReport.getElapsed();
             if ( elapsedForFPS > 0.05f ) {
                 const auto fps = static_cast<unsigned int>(static_cast<float>(this->m_frameAccum) / elapsedForFPS);
-                this->m_label.setText(std::to_string(fps));
+                this->m_label.clear();
+                this->m_label.addStr(std::to_string(fps).c_str());
                 this->m_timerForFPSReport.check();
                 this->m_frameAccum = 0;
             }
         }
 
-    protected:
-        virtual void onScrSpaceBoxUpdate(void) override {
-            this->m_label.setSize(this->getSize());
-            this->m_label.setPos(this->getPos());
-        };
-
-    } g_fcounter;
+    };
 
 
     class LuaConsole : public dal::Widget2 {
@@ -228,6 +222,7 @@ namespace {
 
         dal::PlayerControlWidget m_crtlWidget;
         dal::TextOverlay m_testText;
+        FPSCounter m_fcounter;
 
         unsigned m_winWidth, m_winHeight;
 
@@ -244,6 +239,7 @@ namespace {
             , m_cnxtPauseMenu(nullptr)
             , m_crtlWidget(static_cast<float>(width), static_cast<float>(height))
             , m_testText(nullptr, glyph, dal::drawOverlay)
+            , m_fcounter(glyph)
             , m_winWidth(width)
             , m_winHeight(height)
         {
@@ -313,8 +309,8 @@ namespace {
                 auto& uniloc = this->m_shaders.useOverlay();
 
                 this->m_crtlWidget.render(this->m_winWidth, this->m_winHeight, &uniloc);
-                this->m_testText.render(this->m_winWidth, this->m_winHeight, reinterpret_cast<const void*>(&uniloc));
-                g_fcounter.render(uniloc, this->m_winWidth, this->m_winHeight);
+                this->m_testText.render(this->m_winWidth, this->m_winHeight, &uniloc);
+                this->m_fcounter.render(this->m_winWidth, this->m_winHeight, &uniloc);
             }
 
             return nextContext;
@@ -405,7 +401,6 @@ namespace {
             auto& uniloc = this->m_shaders.useOverlay();
             this->m_red.render(this->m_winWidth, this->m_winHeight, &uniloc);
             this->m_luaConsole.render(uniloc, this->m_winWidth, this->m_winHeight);
-            g_fcounter.render(uniloc, this->m_winWidth, this->m_winHeight);
 
             return nextContext;
         }

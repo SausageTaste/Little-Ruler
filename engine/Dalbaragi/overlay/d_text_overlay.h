@@ -94,6 +94,7 @@ namespace dal {
 
         virtual void render(const float width, const float height, const void* userdata) override;
 
+        void clear(void);
         void addStr(const char* const str);
 
     private:
