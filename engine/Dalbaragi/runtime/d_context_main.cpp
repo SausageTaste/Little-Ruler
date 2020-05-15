@@ -31,13 +31,18 @@ namespace {
             , m_label(this, glyph, dal::drawOverlay)
             , m_frameAccum(0)
         {
-            this->aabb().setPosSize<float>(10, 10, 50, 20);
-            this->m_label.aabb().setPosSize<float>(10, 10, 50, 20);
+            this->aabb().setPosSize<float>(10, 10, 500, 30);
+            this->onUpdateAABB();
         }
 
         virtual void render(const float width, const float height, const void* uniloc) override {
             this->update();
             this->m_label.render(width, height, uniloc);
+        }
+
+        virtual void onUpdateAABB(void) override {
+            this->m_label.aabb().setAs(this->aabb());
+            this->m_label.m_textSize = this->aabb().height();
         }
 
     private:

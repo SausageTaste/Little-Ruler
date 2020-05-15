@@ -55,6 +55,7 @@ namespace dal {
         auto aabb(void) const -> const AABB_2D<float> {
             return this->m_aabb;
         }
+        virtual void onUpdateAABB(void) {};
 
     protected:
         void draw(const OverlayDrawInfo& info, const void* userdata) const {
