@@ -71,6 +71,7 @@ namespace dal {
             void clearBuf(void);
             void pushChar(const char c);
             bool pushStr(const char* const str, size_t size);
+            void reduceSize(const unsigned i);
 
             void setType(const FollowingType t) {
                 this->m_type = t;
@@ -96,6 +97,10 @@ namespace dal {
 
         void clear(void);
         void addStr(const char* const str);
+        void addAscii(const char c);
+        void backspace(void);
+
+        auto textWhole(void) const->std::string;
 
     private:
         void render_noWrap(const float width, const float height, const void* userdata) const;

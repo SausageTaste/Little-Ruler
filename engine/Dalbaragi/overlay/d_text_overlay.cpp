@@ -200,6 +200,17 @@ namespace dal {
         return true;
     }
 
+    void TextOverlay::StrBlock::reduceSize(const unsigned i) {
+        if ( this->m_filledSize > i ) {
+            this->m_filledSize -= i;
+        }
+        else {
+            this->m_filledSize = 0;
+        }
+
+        this->m_buf[this->m_filledSize] = '\0';
+    }
+
 }
 
 
@@ -289,18 +300,7 @@ namespace dal {
             const auto codeSize = utf8_codepoint_size(c);
 
             if ( 1 == codeSize ) {
-                if ( '\n' == c ) {
-                    auto& added = this->m_blocks.emplace_back();
-                    added.setType(StrBlock::FollowingType::carriage_return);
-                }
-                else {
-                    // Ensure last block has at least 1 capacity.
-                    if ( 0 == this->m_blocks.back().remainingCap() ) {
-                        this->m_blocks.emplace_back();
-                    }
-
-                    this->m_blocks.back().pushChar(c);
-                }
+                this->addAscii(c);
             }
             else if ( 0 == codeSize ) {
                 assert(false && "Code size if 0, which is not supposed to happen.");
@@ -316,6 +316,54 @@ namespace dal {
 
             iter += codeSize;
         }
+    }
+
+    void TextOverlay::addAscii(const char c) {
+        if ( '\n' == c ) {
+            auto& added = this->m_blocks.emplace_back();
+            added.setType(StrBlock::FollowingType::carriage_return);
+        }
+        else {
+            // Ensure last block has at least 1 capacity.
+            if ( 0 == this->m_blocks.back().remainingCap() ) {
+                this->m_blocks.emplace_back();
+            }
+
+            this->m_blocks.back().pushChar(c);
+        }
+    }
+
+    void TextOverlay::backspace(void) {
+        auto& last = this->m_blocks.back();
+
+        if ( 0 != last.size() ) {
+            last.reduceSize(1);
+        }
+        else {
+            if ( 1 < this->m_blocks.size() ) {
+                const auto followingType = last.type();
+                this->m_blocks.pop_back();
+
+                if ( StrBlock::FollowingType::carriage_return != followingType ) {
+                    this->backspace();
+                }
+            }
+        }
+    }
+
+
+    auto TextOverlay::textWhole(void) const -> std::string {
+        std::string result;
+
+        for ( auto& blck : this->m_blocks ) {
+            if ( StrBlock::FollowingType::carriage_return != blck.type() ) {
+                result += '\n';
+            }
+
+            result += blck.buffer();
+        }
+
+        return result;
     }
 
     // Private

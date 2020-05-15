@@ -40,6 +40,9 @@ namespace dal {
         eof
     };
 
+    char encodeKeySpecToAscii(const dal::KeySpec key, const bool shift);
+
+
     // TODO: Rename this to KeyActionType.
     struct KeyboardEvent {
         KeySpec m_key = KeySpec::unknown;

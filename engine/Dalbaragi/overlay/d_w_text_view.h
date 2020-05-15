@@ -20,10 +20,24 @@ namespace dal {
         virtual void render(const float width, const float height, const void* userdata) override;
         virtual void onUpdateAABB(void) override;
 
+        auto text(void) const -> std::string {
+            return this->m_text.textWhole();
+        }
+
         void setText(const char* const str) {
             this->m_text.clear();
             this->m_text.addStr(str);
         }
+        void addText(const char* const str) {
+            this->m_text.addStr(str);
+        }
+        void addChar(const char c) {
+            this->m_text.addAscii(c);
+        }
+        void backspace(void) {
+            this->m_text.backspace();
+        }
+
         void setMargin(const float v) {
             this->m_margin = v;
         }
@@ -45,6 +59,27 @@ namespace dal {
         void setBGColor(const glm::vec4& color) {
             this->m_bg.m_color = color;
         }
+
+    };
+
+
+    class LineEdit2 : public Lable {
+
+    private:
+        std::function<void(const char* const)> m_onReturn;
+
+    public:
+        using Lable::Lable;
+
+        virtual auto onTouch(const TouchEvent& e)->InputDealtFlag override;
+        virtual auto onKeyInput(const KeyboardEvent& e, const KeyStatesRegistry& keyStates)->InputDealtFlag override;
+
+        void setCallback_onReturn(std::function<void(const char* const)> func) {
+            this->m_onReturn = func;
+        }
+
+    private:
+        void onReturn(void);
 
     };
 

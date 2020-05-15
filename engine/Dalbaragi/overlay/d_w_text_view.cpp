@@ -31,3 +31,52 @@ namespace dal {
     }
 
 }
+
+
+namespace dal {
+
+    auto LineEdit2::onTouch(const TouchEvent& e) -> InputDealtFlag {
+        if ( e.m_actionType == TouchActionType::down ) {
+            return InputDealtFlag::consumed;
+        }
+        else {
+            return InputDealtFlag::ignored;
+        }
+    }
+
+    auto LineEdit2::onKeyInput(const KeyboardEvent& e, const KeyStatesRegistry& keyStates) -> InputDealtFlag {
+        const auto shifted = keyStates[KeySpec::lshfit].m_pressed;
+
+        if ( KeyActionType::down == e.m_actionType ) {
+            const auto c = encodeKeySpecToAscii(e.m_key, shifted);
+
+            switch ( c ) {
+
+            case '\n':
+                this->onReturn();
+                break;
+            case '\b':
+                this->backspace();
+                break;
+            case '\0':
+                break;
+            default:
+                this->addChar(c);
+                break;
+
+            }
+        }
+
+        return InputDealtFlag::consumed;
+    }
+
+    // Private
+
+    void LineEdit2::onReturn(void) {
+        if ( this->m_onReturn ) {
+            this->m_onReturn(this->text().c_str());
+        }
+        this->setText("");
+    }
+
+}
