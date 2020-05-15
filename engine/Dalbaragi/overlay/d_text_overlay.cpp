@@ -261,7 +261,7 @@ namespace {
 
 namespace dal {
 
-    TextOverlay::TextOverlay(Widget2D* const parent, GlyphMaster& const glyph, overlayDrawFunc_t drawf)
+    TextOverlay::TextOverlay(Widget2D* const parent, GlyphMaster& glyph, overlayDrawFunc_t drawf)
         : Widget2D(parent, drawf)
         , m_glyph(&glyph)
         , m_color(1, 1, 1, 1)

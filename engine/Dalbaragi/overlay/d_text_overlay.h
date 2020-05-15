@@ -90,7 +90,7 @@ namespace dal {
         bool m_wordWrap;
 
     public:
-        TextOverlay(Widget2D* const parent, GlyphMaster& const glyph, overlayDrawFunc_t drawf);
+        TextOverlay(Widget2D* const parent, GlyphMaster& glyph, overlayDrawFunc_t drawf);
 
         virtual void render(const float width, const float height, const void* userdata) override;
 

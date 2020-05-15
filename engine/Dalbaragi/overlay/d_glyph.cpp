@@ -2,6 +2,7 @@
 
 #include <array>
 #include <optional>
+#include <unordered_map>
 
 extern "C" {
 #include <ft2build.h>
