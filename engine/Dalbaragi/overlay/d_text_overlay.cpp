@@ -378,7 +378,7 @@ namespace {
             }
         }
 
-    } g_charCache;
+    };
 
 }
 
@@ -509,17 +509,15 @@ namespace {
 
 namespace dal {
 
-    TextOverlay::TextOverlay(Widget2D* const parent, overlayDrawFunc_t drawf, loadFileFunc_t filef, texGenFunc_t texf)
+    TextOverlay::TextOverlay(Widget2D* const parent, GlyphMaster& const glyph, overlayDrawFunc_t drawf)
         : Widget2D(parent, drawf)
+        , m_glyph(&glyph)
         , m_color(1, 1, 1, 1)
         , m_textSize(15)
         , m_lineSpacingRate(1.3)
         , m_wordWrap(false)
     {
         this->m_blocks.emplace_back();
-
-        g_filefunc = filef;
-        g_texgenfunc = texf;
     }
 
     void TextOverlay::render(const float width, const float height, const void* userdata) {
@@ -589,7 +587,7 @@ namespace dal {
                 // Process control char
                 {
                     if ( ' ' == c ) {
-                        currentPos.x += g_charCache.at(c, this->m_textSize).m_advance >> 6;
+                        currentPos.x += this->m_glyph->get(c, this->m_textSize).m_advance >> 6;
                         continue;
                     }
                     else if ( '\t' == c ) {
@@ -598,7 +596,7 @@ namespace dal {
                     }
                 }
 
-                auto& charInfo = g_charCache.at(c, this->m_textSize);
+                auto& charInfo = this->m_glyph->get(c, this->m_textSize);
 
                 // Skip to next line if current line is full.
                 if ( currentPos.x >= p11.x ) {
@@ -658,4 +656,5 @@ namespace dal {
             }
         }
     }
+
 }

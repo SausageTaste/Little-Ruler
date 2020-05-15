@@ -1,5 +1,7 @@
 #pragma once
 
+#include <d_glyph.h>
+
 #include "p_render_master.h"
 #include "c_input_apply.h"
 #include "u_timer.h"
@@ -22,6 +24,7 @@ namespace dal {
         PhysicsWorld m_phyworld;
         SceneGraph m_scene;
         RenderMaster m_renderMan;
+        GlyphMaster m_glyph;
 
         // Contexts
         std::vector<std::unique_ptr<IContext>> m_contexts;

@@ -33,7 +33,7 @@ namespace dal {
 
     private:
         std::vector<FontSizesMap> m_mapLists;
-        std::unique_ptr<FreetypeMaster> m_freetype;
+        FreetypeMaster* m_freetype;
 
     public:
         GlyphMaster(const GlyphMaster&) = delete;
@@ -41,6 +41,7 @@ namespace dal {
 
     public:
         GlyphMaster(loadFileFunc_t loadfunc, texGenFunc_t texfunc);
+        ~GlyphMaster(void);
 
         auto get(const utf32_t c, unsigned int fontSize) -> const CharUnit&;
 

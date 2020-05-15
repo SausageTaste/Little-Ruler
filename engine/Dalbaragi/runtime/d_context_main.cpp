@@ -234,7 +234,7 @@ namespace {
     public:
         InGameCxt(
             const unsigned width, const unsigned height,
-            dal::ShaderMaster& shaders, dal::RenderMaster& renMas, dal::SceneGraph& scene, dal::TaskMaster& taskMas, dal::PhysicsWorld& phyworld
+            dal::ShaderMaster& shaders, dal::RenderMaster& renMas, dal::SceneGraph& scene, dal::TaskMaster& taskMas, dal::PhysicsWorld& phyworld, dal::GlyphMaster& glyph
         )
             : m_shaders(shaders)
             , m_renMas(renMas)
@@ -243,7 +243,7 @@ namespace {
             , m_phyworld(phyworld)
             , m_cnxtPauseMenu(nullptr)
             , m_crtlWidget(static_cast<float>(width), static_cast<float>(height))
-            , m_testText(nullptr, dal::drawOverlay, dal::loadFileBuf, dal::genOverlayTexture)
+            , m_testText(nullptr, glyph, dal::drawOverlay)
             , m_winWidth(width)
             , m_winHeight(height)
         {
@@ -352,7 +352,7 @@ namespace {
         unsigned m_winWidth, m_winHeight;
 
     public:
-        PauseMenu(const unsigned width, const unsigned height, dal::ShaderMaster& shaders, dal::TaskMaster& taskMas)
+        PauseMenu(const unsigned width, const unsigned height, dal::ShaderMaster& shaders, dal::TaskMaster& taskMas, dal::GlyphMaster& glyph)
             : m_shaders(shaders)
             , m_task(taskMas)
             , m_cnxtIngame(nullptr)
@@ -450,7 +450,7 @@ namespace {
         unsigned m_winWidth, m_winHeight;
 
     public:
-        TitleScreen(const unsigned width, const unsigned height, dal::ShaderMaster& shaders, dal::TaskMaster& taskMas)
+        TitleScreen(const unsigned width, const unsigned height, dal::ShaderMaster& shaders, dal::TaskMaster& taskMas, dal::GlyphMaster& glyph)
             : m_shaders(shaders)
             , m_task(taskMas)
             , m_cnxtIngame(nullptr)
@@ -536,13 +536,13 @@ namespace {
 namespace dal {
 
     std::vector <std::unique_ptr<IContext>> initContexts(const unsigned width, const unsigned height,
-        ShaderMaster& shaders, RenderMaster& renMas, SceneGraph& scene, TaskMaster& taskMas, PhysicsWorld& phyworld)
+        ShaderMaster& shaders, RenderMaster& renMas, SceneGraph& scene, TaskMaster& taskMas, PhysicsWorld& phyworld, GlyphMaster& glyph)
     {
         std::vector <std::unique_ptr<IContext>> result;
 
-        std::unique_ptr<TitleScreen> title{ new TitleScreen{ width, height, shaders, taskMas } };
-        std::unique_ptr<InGameCxt> ingame{ new InGameCxt{ width, height, shaders, renMas, scene, taskMas, phyworld } };
-        std::unique_ptr<PauseMenu> pause{ new PauseMenu{ width, height, shaders, taskMas } };
+        std::unique_ptr<TitleScreen> title{ new TitleScreen{ width, height, shaders, taskMas, glyph } };
+        std::unique_ptr<InGameCxt> ingame{ new InGameCxt{ width, height, shaders, renMas, scene, taskMas, phyworld, glyph } };
+        std::unique_ptr<PauseMenu> pause{ new PauseMenu{ width, height, shaders, taskMas, glyph } };
 
         title->registerContexts(ingame.get());
         ingame->registerContexts(pause.get());

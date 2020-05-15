@@ -15,6 +15,7 @@
 #include "p_model.h"
 #include "o_widgetcache.h"
 #include "u_luascript.h"
+#include "d_overlay_interface.h"
 
 
 using namespace fmt::literals;
@@ -171,8 +172,9 @@ namespace dal {
         : m_resMas(m_task)
         , m_scene(m_resMas, m_phyworld, winWidth, winHeight)
         , m_renderMan(m_scene, m_shader, m_resMas, &m_scene.m_playerCam, winWidth, winHeight)
+        , m_glyph(dal::loadFileBuf, dal::genOverlayTexture)
         // Contexts
-        , m_contexts(initContexts(winWidth, winHeight, m_shader, m_renderMan, m_scene, m_task, m_phyworld))
+        , m_contexts(initContexts(winWidth, winHeight, m_shader, m_renderMan, m_scene, m_task, m_phyworld, m_glyph))
         , m_currentContext(m_contexts.front().get())
         // Misc
         , m_flagQuit(false)

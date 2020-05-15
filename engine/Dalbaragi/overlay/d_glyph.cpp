@@ -66,7 +66,7 @@ namespace {
 
         void loadCharData(const dal::utf32_t c, dal::CharUnit& charUnit) const {
             const auto glyphIndex = FT_Get_Char_Index(this->m_face, c);
-            assert(0 != glyphIndex);
+            //assert(0 != glyphIndex);
 
             const auto loadResult = FT_Load_Glyph(this->m_face, glyphIndex, FT_LOAD_RENDER);
             assert(0 == loadResult);
@@ -286,8 +286,13 @@ namespace dal {
         };
 
         for ( auto& name : fonts ) {
-            this->m_mapLists.emplace_back(name, *this->m_freetype.get());
+            this->m_mapLists.emplace_back(name, *this->m_freetype);
         }
+    }
+
+    GlyphMaster::~GlyphMaster(void) {
+        delete this->m_freetype;
+        this->m_freetype = nullptr;
     }
 
     auto GlyphMaster::get(const utf32_t c, unsigned int fontSize) -> const CharUnit& {

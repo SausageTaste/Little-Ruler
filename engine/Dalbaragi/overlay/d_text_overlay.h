@@ -5,10 +5,10 @@
 #include <string>
 
 #include "d_widget.h"
+#include "d_glyph.h"
 
 
 namespace dal {
-
 
     class TextOverlay : public Widget2D {
 
@@ -80,6 +80,7 @@ namespace dal {
 
     private:
         std::list<StrBlock> m_blocks;
+        GlyphMaster* m_glyph;
 
     public:
         glm::vec4 m_color;
@@ -89,7 +90,7 @@ namespace dal {
         bool m_wordWrap;
 
     public:
-        TextOverlay(Widget2D* const parent, overlayDrawFunc_t drawf, loadFileFunc_t filef, texGenFunc_t texf);
+        TextOverlay(Widget2D* const parent, GlyphMaster& const glyph, overlayDrawFunc_t drawf);
 
         virtual void render(const float width, const float height, const void* userdata) override;
 
