@@ -12,7 +12,6 @@
 #include "s_configs.h"
 #include "g_charastate.h"
 #include "p_model.h"
-#include "o_widgetcache.h"
 #include "u_luascript.h"
 #include "d_overlay_interface.h"
 
