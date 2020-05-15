@@ -25,8 +25,6 @@ add_library(dalbaragi_runtime
     o_widgetcache.h
     o_widgetmanager.cpp
     o_widgetmanager.h
-    o_widget_textbox.cpp
-    o_widget_textbox.h
     p_animation.cpp
     p_animation.h
     p_dalopengl.cpp

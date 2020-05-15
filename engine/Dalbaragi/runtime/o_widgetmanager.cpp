@@ -89,15 +89,3 @@ namespace dal {
     }
 
 }
-
-
-// WidgetInputDispatcher
-namespace dal {
-
-    // Private
-
-    void WidgetInputDispatcher::dalLoggerAbort(const char* const formatStr, int value) {
-        dalAbort(fmt::format(formatStr, value));
-    }
-
-}

@@ -10,7 +10,6 @@
 
 #include "p_render_master.h"
 #include "c_input_apply.h"
-#include "o_widget_textbox.h"
 #include "o_widgetmanager.h"
 #include "u_timer.h"
 #include "u_luascript.h"
@@ -474,7 +473,7 @@ namespace {
         dal::IContext* m_cnxtIngame;
 
         dal::ColorView m_background;
-        dal::LineEdit m_lineedit;
+        dal::LineEdit2 m_lineedit;
 
         dal::Timer m_timer;
         unsigned m_winWidth, m_winHeight;
@@ -485,17 +484,17 @@ namespace {
             , m_task(taskMas)
             , m_cnxtIngame(nullptr)
             , m_background(nullptr, dal::drawOverlay)
-            , m_lineedit(nullptr)
+            , m_lineedit(nullptr, dal::drawOverlay, glyph)
             , m_winWidth(width)
             , m_winHeight(height)
         {
             this->m_background.aabb().setPosSize<float>(0, 0, width, height);
             this->m_background.m_color = glm::vec4{ 0.1, 0.1, 0.1, 1 };
 
-            this->m_lineedit.setPos(30, 30);
-            this->m_lineedit.setSize(500, 500);
-            this->m_lineedit.setBackgroundColor(0.1f, 0.1f, 0.1f, 1.f);
+            this->m_lineedit.setBGColor(0.1, 0.1, 0.1, 1);
             this->m_lineedit.setText("Little Ruler");
+            this->m_lineedit.aabb().setPosSize<float>(30, 30, 5000, 100);
+            this->m_lineedit.onUpdateAABB();
         }
 
         virtual dal::IContext* update(const float deltaTime) override {
@@ -537,7 +536,7 @@ namespace {
             glBindFramebuffer(GL_FRAMEBUFFER, 0);
             auto& uniloc = this->m_shaders.useOverlay();
             this->m_background.render(this->m_winWidth, this->m_winHeight, &uniloc);
-            this->m_lineedit.render(uniloc, this->m_winWidth, this->m_winHeight);
+            this->m_lineedit.render(this->m_winWidth, this->m_winHeight, &uniloc);
 
             return nextContext;
         }

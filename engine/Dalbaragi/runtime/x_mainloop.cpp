@@ -10,7 +10,6 @@
 #include <u_math.h>
 
 #include "s_configs.h"
-#include "o_widget_textbox.h"
 #include "g_charastate.h"
 #include "p_model.h"
 #include "o_widgetcache.h"

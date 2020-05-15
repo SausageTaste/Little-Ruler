@@ -1,14 +1,11 @@
 #pragma once
 
-#include <deque>
 #include <vector>
-#include <unordered_map>
 
 #include "o_widgetbase.h"
 
 
 namespace dal {
-
 
     class WidgetStorage {
 
@@ -55,103 +52,6 @@ namespace dal {
         auto getEndIterFront(void) const {
             return this->m_container.rend();
         }
-
-    };
-
-
-    class WidgetInputDispatcher {
-
-    private:
-        struct TouchState {
-            dal::Widget2* m_owner = nullptr;
-        };
-
-    private:
-        using states_t = std::unordered_map<dal::touchID_t, TouchState>;
-        states_t m_states;
-
-    public:
-        // Returns a pointer to a widget that has gotten focus on.
-        // Nullptr if nothing has gotten.
-        template <typename _Iter>
-        std::pair<dal::InputCtrlFlag, Widget2*> dispatch(_Iter frontWidget, const _Iter end, const TouchEvent& e) {
-            auto& state = this->getOrMakeTouchState(e.m_id, this->m_states);
-
-            if ( nullptr != state.m_owner ) {
-                const auto ctrlFlag = state.m_owner->onTouch(e);
-                switch ( ctrlFlag ) {
-
-                case dal::InputCtrlFlag::consumed:
-                    state.m_owner = nullptr;
-                    return { dal::InputCtrlFlag::consumed, nullptr };
-                case dal::InputCtrlFlag::owned:
-                    return { dal::InputCtrlFlag::owned, state.m_owner };
-                case dal::InputCtrlFlag::ignored:
-                    state.m_owner = nullptr;
-                    break;  // Enters widgets loop below.
-                default:
-                    this->dalLoggerAbort("Shouldn't reach here, the enum's index is: {}", static_cast<int>(ctrlFlag));
-
-                }
-            }
-
-            for ( ; end != frontWidget; ++frontWidget ) {
-                Widget2* w = *frontWidget;
-                if ( !w->isPointInside(e.m_pos) ) {
-                    continue;
-                }
-
-                const auto ctrlFlag = w->onTouch(e);
-                switch ( ctrlFlag ) {
-
-                case dal::InputCtrlFlag::consumed:
-                    return { dal::InputCtrlFlag::consumed, w };
-                case dal::InputCtrlFlag::ignored:
-                    continue;
-                case dal::InputCtrlFlag::owned:
-                    state.m_owner = w;
-                    return { dal::InputCtrlFlag::owned, w };
-                default:
-                    this->dalLoggerAbort("Shouldn't reach here, the enum's index is: {}", static_cast<int>(ctrlFlag));
-                }
-            }
-
-            return { dal::InputCtrlFlag::ignored, nullptr };
-        }
-
-        template <typename _Iter>
-        dal::InputCtrlFlag dispatch(_Iter frontWidget, const _Iter end, const KeyboardEvent& e, const KeyStatesRegistry& keyStates) {
-            for ( ; end != frontWidget; ++frontWidget ) {
-                const auto flag = (*frontWidget)->onKeyInput(e, keyStates);
-                if ( dal::InputCtrlFlag::ignored != flag ) {
-                    return flag;
-                }
-            }
-
-            return dal::InputCtrlFlag::ignored;
-        }
-
-        void notifyWidgetRemoved(dal::Widget2* const w) {
-            for ( auto& [id, state] : this->m_states ) {
-                if ( w == state.m_owner ) {
-                    state.m_owner = nullptr;
-                    return;
-                }
-            }
-        }
-
-    private:
-        TouchState& getOrMakeTouchState(const dal::touchID_t id, states_t& states) const {
-            auto found = states.find(id);
-            if ( this->m_states.end() != found ) {
-                return found->second;
-            }
-            else {
-                return states.emplace(id, TouchState{}).first->second;
-            }
-        }
-
-        static void dalLoggerAbort(const char* const formatStr, int value);
 
     };
 
