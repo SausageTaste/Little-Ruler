@@ -7,6 +7,7 @@
 #include <d_widget_view.h>
 #include <d_w_text_view.h>
 #include <d_widget_manager.h>
+#include <s_configs.h>
 
 #include "p_render_master.h"
 #include "c_input_apply.h"
@@ -242,6 +243,7 @@ namespace {
         dal::SceneGraph& m_scene;
         dal::TaskMaster& m_task;
         dal::PhysicsWorld& m_phyworld;
+        dal::Config& m_config;
 
         // Contexts
         dal::IContext* m_cnxtPauseMenu;
@@ -258,13 +260,15 @@ namespace {
             , m_scene(managers.m_scene)
             , m_task(managers.m_taskMas)
             , m_phyworld(managers.m_phyworld)
+            , m_config(managers.m_config)
+
             , m_cnxtPauseMenu(nullptr)
             , m_crtlWidget(static_cast<float>(width), static_cast<float>(height))
             , m_fcounter(managers.m_glyph)
             , m_winWidth(width)
             , m_winHeight(height)
         {
-
+           
         }
 
         virtual IContext* update(const float deltaTime) override {
@@ -328,7 +332,14 @@ namespace {
         }
 
         virtual void onWinResize(const unsigned width, const unsigned height) override {
+
+            const auto uiScale = this->m_config.m_ui.m_uiScale;
+            this->m_fcounter.aabb().setPosSize<float>(10, 10, uiScale * 50, uiScale * 30);
+            this->m_fcounter.onUpdateAABB();
+
+            this->m_crtlWidget.setSquareLength(uiScale * 20);
             this->m_crtlWidget.onParentResize(width, height);
+
             this->m_winWidth = width;
             this->m_winHeight = height;
         }

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <d_glyph.h>
+#include <s_configs.h>
 
 #include "p_render_master.h"
 #include "c_input_apply.h"

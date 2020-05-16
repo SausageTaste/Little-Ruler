@@ -189,7 +189,7 @@ namespace dal {
 
         // Set configs
         {
-            this->m_config.m_ui.m_uiScale = 3;
+            this->m_config.m_ui.m_uiScale = static_cast<double>(winHeight) / 720.0;
         }
 
         // Create contexts

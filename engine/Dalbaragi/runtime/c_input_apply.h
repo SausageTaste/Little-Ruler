@@ -18,11 +18,11 @@ namespace dal {
              */
 
         private:
-            static constexpr float RENDERED_POINT_EDGE_LEN_HALF = 10.0f;
             static constexpr float CORNER_MARGIN = 40.0f;
 
         private:
             dal::ColorView m_fixedCenterPoint, m_touchedPoint;
+            float m_squareLengthHalf = 10;
 
             glm::vec2 m_touchedPos;
             touchID_t m_owning = -1;
@@ -33,6 +33,8 @@ namespace dal {
             virtual void render(const float width, const float height, const void* uniloc) override;
             virtual InputDealtFlag onTouch(const dal::TouchEvent& e) override;
             virtual void onParentResize(const float width, const float height) override;
+
+            void setSquareLength(const float x);
 
             glm::vec2 getRel(void) const;
             bool isActive(void) const;
@@ -65,6 +67,10 @@ namespace dal {
         virtual void onFocusChange(const bool v) override;
 
         MoveInputInfo getMoveInfo(const float deltaTime, const float winWidth, const float winHeight);
+
+        void setSquareLength(const float x) {
+            this->m_dpad.setSquareLength(x);
+        }
 
     private:
         glm::vec2 getMoveVec(void) const;

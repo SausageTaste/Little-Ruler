@@ -22,19 +22,16 @@ namespace dal {
     {
         this->onParentResize(winWidth, winHeight);
 
-        this->m_fixedCenterPoint.aabb().pos() = this->makeFixedCenterPos() - RENDERED_POINT_EDGE_LEN_HALF;
-        this->m_fixedCenterPoint.aabb().size() = glm::vec2{ RENDERED_POINT_EDGE_LEN_HALF * 2, RENDERED_POINT_EDGE_LEN_HALF * 2 };
         this->m_fixedCenterPoint.m_color = glm::vec4{ 1, 1, 1, 1 };
-
-        this->m_touchedPoint.aabb().size() = glm::vec2{ RENDERED_POINT_EDGE_LEN_HALF * 2, RENDERED_POINT_EDGE_LEN_HALF * 2 };
         this->m_touchedPoint.m_color = glm::vec4{ 1, 1, 1, 1 };
+        this->setSquareLength(20);
     }
 
     void PlayerControlWidget::MoveDPad::render(const float width, const float height, const void* uniloc) {
         this->m_fixedCenterPoint.render(width, height, uniloc);
 
         if ( -1 != this->m_owning ) {
-            this->m_touchedPoint.aabb().pos() = this->m_touchedPos - RENDERED_POINT_EDGE_LEN_HALF;
+            this->m_touchedPoint.aabb().pos() = this->m_touchedPos - this->m_squareLengthHalf;
             this->m_touchedPoint.render(width, height, uniloc);
         }
     }
@@ -77,7 +74,18 @@ namespace dal {
         const auto edgeLen = shorter * 0.5f;
         this->aabb().setPosSize(CORNER_MARGIN, height - edgeLen - CORNER_MARGIN, edgeLen, edgeLen);
 
-        this->m_fixedCenterPoint.aabb().pos() = this->makeFixedCenterPos() - RENDERED_POINT_EDGE_LEN_HALF;
+        this->m_fixedCenterPoint.aabb().pos() = this->makeFixedCenterPos() - this->m_squareLengthHalf;
+    }
+
+    void PlayerControlWidget::MoveDPad::setSquareLength(const float x) {
+        this->m_squareLengthHalf = x * 0.5f;
+
+        this->m_fixedCenterPoint.aabb().pos() = this->makeFixedCenterPos() - this->m_squareLengthHalf;
+        this->m_fixedCenterPoint.aabb().size() = glm::vec2{ this->m_squareLengthHalf * 2.f, this->m_squareLengthHalf * 2.f };
+        this->m_fixedCenterPoint.onUpdateAABB();
+
+        this->m_touchedPoint.aabb().size() = glm::vec2{ this->m_squareLengthHalf * 2.f, this->m_squareLengthHalf * 2.f };
+        this->m_touchedPoint.onUpdateAABB();
     }
 
     glm::vec2 PlayerControlWidget::MoveDPad::getRel(void) const {
