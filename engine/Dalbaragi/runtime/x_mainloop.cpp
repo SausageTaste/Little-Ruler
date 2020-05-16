@@ -171,10 +171,8 @@ namespace dal {
         , m_scene(m_resMas, m_phyworld, winWidth, winHeight)
         , m_renderMan(m_scene, m_shader, m_resMas, &m_scene.m_playerCam, winWidth, winHeight)
         , m_glyph(dal::loadFileBuf, dal::genOverlayTexture)
-        // Contexts
-        , m_contexts(initContexts(winWidth, winHeight, m_shader, m_renderMan, m_scene, m_task, m_phyworld, m_glyph))
-        , m_currentContext(m_contexts.front().get())
         // Misc
+        , m_currentContext(nullptr)
         , m_flagQuit(false)
     {
         // This might be done already by SceneGraph or OverlayMaster but still...
@@ -187,6 +185,13 @@ namespace dal {
             if ( !isWhatFilesystemWantsGiven() ) {
                 dalAbort("Please call Mainloop::giveWhatFilesystemWants before constructor!");
             }
+        }
+
+        // Create contexts
+        {
+            Managers managers{ this->m_shader, this->m_renderMan, this->m_scene, this->m_task, this->m_phyworld, this->m_glyph };
+            this->m_contexts = initContexts(winWidth, winHeight, managers);
+            this->m_currentContext = m_contexts.front().get();
         }
 
         // Camera

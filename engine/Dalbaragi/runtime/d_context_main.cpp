@@ -252,18 +252,15 @@ namespace {
         unsigned m_winWidth, m_winHeight;
 
     public:
-        InGameCxt(
-            const unsigned width, const unsigned height,
-            dal::ShaderMaster& shaders, dal::RenderMaster& renMas, dal::SceneGraph& scene, dal::TaskMaster& taskMas, dal::PhysicsWorld& phyworld, dal::GlyphMaster& glyph
-        )
-            : m_shaders(shaders)
-            , m_renMas(renMas)
-            , m_scene(scene)
-            , m_task(taskMas)
-            , m_phyworld(phyworld)
+        InGameCxt(const unsigned width, const unsigned height, dal::Managers& managers)
+            : m_shaders(managers.m_shaders)
+            , m_renMas(managers.m_renMas)
+            , m_scene(managers.m_scene)
+            , m_task(managers.m_taskMas)
+            , m_phyworld(managers.m_phyworld)
             , m_cnxtPauseMenu(nullptr)
             , m_crtlWidget(static_cast<float>(width), static_cast<float>(height))
-            , m_fcounter(glyph)
+            , m_fcounter(managers.m_glyph)
             , m_winWidth(width)
             , m_winHeight(height)
         {
@@ -362,12 +359,12 @@ namespace {
         unsigned m_winWidth, m_winHeight;
 
     public:
-        PauseMenu(const unsigned width, const unsigned height, dal::ShaderMaster& shaders, dal::TaskMaster& taskMas, dal::GlyphMaster& glyph)
-            : m_shaders(shaders)
-            , m_task(taskMas)
+        PauseMenu(const unsigned width, const unsigned height, dal::Managers& managers)
+            : m_shaders(managers.m_shaders)
+            , m_task(managers.m_taskMas)
             , m_cnxtIngame(nullptr)
             , m_red(nullptr, dal::drawOverlay)
-            , m_luaConsole(glyph)
+            , m_luaConsole(managers.m_glyph)
             , m_winWidth(width)
             , m_winHeight(height)
         {
@@ -460,12 +457,12 @@ namespace {
         unsigned m_winWidth, m_winHeight;
 
     public:
-        TitleScreen(const unsigned width, const unsigned height, dal::ShaderMaster& shaders, dal::TaskMaster& taskMas, dal::GlyphMaster& glyph)
-            : m_shaders(shaders)
-            , m_task(taskMas)
+        TitleScreen(const unsigned width, const unsigned height, dal::Managers& managers)
+            : m_shaders(managers.m_shaders)
+            , m_task(managers.m_taskMas)
             , m_cnxtIngame(nullptr)
             , m_background(nullptr, dal::drawOverlay)
-            , m_lineedit(nullptr, dal::drawOverlay, glyph)
+            , m_lineedit(nullptr, dal::drawOverlay, managers.m_glyph)
             , m_winWidth(width)
             , m_winHeight(height)
         {
@@ -545,22 +542,21 @@ namespace {
 
 namespace dal {
 
-    std::vector <std::unique_ptr<IContext>> initContexts(const unsigned width, const unsigned height,
-        ShaderMaster& shaders, RenderMaster& renMas, SceneGraph& scene, TaskMaster& taskMas, PhysicsWorld& phyworld, GlyphMaster& glyph)
-    {
-        std::vector <std::unique_ptr<IContext>> result;
-
-        std::unique_ptr<TitleScreen> title{ new TitleScreen{ width, height, shaders, taskMas, glyph } };
-        std::unique_ptr<InGameCxt> ingame{ new InGameCxt{ width, height, shaders, renMas, scene, taskMas, phyworld, glyph } };
-        std::unique_ptr<PauseMenu> pause{ new PauseMenu{ width, height, shaders, taskMas, glyph } };
+    std::vector<std::unique_ptr<IContext>> initContexts(const unsigned width, const unsigned height, Managers& managers) {
+        std::unique_ptr<TitleScreen> title{ new TitleScreen{ width, height, managers } };
+        std::unique_ptr<InGameCxt> ingame{ new InGameCxt{ width, height, managers } };
+        std::unique_ptr<PauseMenu> pause{ new PauseMenu{ width, height, managers } };
 
         title->registerContexts(ingame.get());
         ingame->registerContexts(pause.get());
         pause->registerContexts(ingame.get());
 
-        result.push_back(std::unique_ptr<IContext>{ title.release() });
-        result.push_back(std::unique_ptr<IContext>{ ingame.release() });
-        result.push_back(std::unique_ptr<IContext>{ pause.release() });
+        std::vector<std::unique_ptr<IContext>> result;
+        result.reserve(3);
+
+        result.push_back(std::unique_ptr<IContext>(title.release()));
+        result.push_back(std::unique_ptr<IContext>(ingame.release()));
+        result.push_back(std::unique_ptr<IContext>(pause.release()));
 
         return result;
     }
