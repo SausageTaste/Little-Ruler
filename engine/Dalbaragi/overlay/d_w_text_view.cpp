@@ -13,7 +13,7 @@ namespace dal {
         this->setBGColor(0, 0, 0);
 
         this->aabb().setPosSize(0, 0, 50, 20);
-        this->onUpdateAABB();
+        this->onUpdateDimens(1);
     }
 
     void Lable::render(const float width, const float height, const void* userdata) {
@@ -21,13 +21,13 @@ namespace dal {
         this->m_text.render(width, height, userdata);
     }
 
-    void Lable::onUpdateAABB(void) {
+    void Lable::onUpdateDimens(const float scale) {
         this->m_bg.aabb().setAs(this->aabb());
-        this->m_bg.onUpdateAABB();
+        this->m_bg.onUpdateDimens(scale);
 
         this->m_text.aabb().setPosSize(this->aabb().point00() + this->m_margin, this->aabb().size() - this->m_margin - this->m_margin);
         this->m_text.m_textSize = this->m_text.aabb().height();
-        this->m_text.onUpdateAABB();
+        this->m_text.onUpdateDimens(scale);
     }
 
 }
@@ -94,7 +94,7 @@ namespace dal {
         this->m_bg.m_color = glm::vec4{ 0, 0, 0, 1 };
 
         this->aabb().setPosSize(0, 0, 100, 100);
-        this->onUpdateAABB();
+        this->onUpdateDimens(1);
     }
 
     void TextBox::render(const float width, const float height, const void* userdata) {
@@ -102,12 +102,12 @@ namespace dal {
         this->m_text.render(width, height, userdata);
     }
 
-    void TextBox::onUpdateAABB(void) {
+    void TextBox::onUpdateDimens(const float scale) {
         this->m_bg.aabb().setAs(this->aabb());
-        this->m_bg.onUpdateAABB();
+        this->m_bg.onUpdateDimens(scale);
 
         this->m_text.aabb().setPosSize(this->aabb().point00() + this->m_margin, this->aabb().size() - this->m_margin - this->m_margin);
-        this->m_text.onUpdateAABB();
+        this->m_text.onUpdateDimens(scale);
     }
 
     auto TextBox::onTouch(const TouchEvent& e) -> InputDealtFlag {

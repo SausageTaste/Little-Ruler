@@ -293,6 +293,8 @@ namespace dal {
 #ifdef _WIN32
             system("chcp 65001");
 #endif
+
+            this->onResize(winWidth, winHeight);
         }
 
         // Test

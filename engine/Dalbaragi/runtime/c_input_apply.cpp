@@ -82,10 +82,10 @@ namespace dal {
 
         this->m_fixedCenterPoint.aabb().pos() = this->makeFixedCenterPos() - this->m_squareLengthHalf;
         this->m_fixedCenterPoint.aabb().size() = glm::vec2{ this->m_squareLengthHalf * 2.f, this->m_squareLengthHalf * 2.f };
-        this->m_fixedCenterPoint.onUpdateAABB();
+        this->m_fixedCenterPoint.onUpdateDimens(1);
 
         this->m_touchedPoint.aabb().size() = glm::vec2{ this->m_squareLengthHalf * 2.f, this->m_squareLengthHalf * 2.f };
-        this->m_touchedPoint.onUpdateAABB();
+        this->m_touchedPoint.onUpdateDimens(1);
     }
 
     glm::vec2 PlayerControlWidget::MoveDPad::getRel(void) const {

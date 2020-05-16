@@ -36,7 +36,7 @@ namespace {
             this->m_label.setMargin(5);
 
             this->aabb().setPosSize<float>(10, 10, 50, 30);
-            this->onUpdateAABB();
+            this->onUpdateDimens(1);
         }
 
         virtual void render(const float width, const float height, const void* uniloc) override {
@@ -44,9 +44,9 @@ namespace {
             this->m_label.render(width, height, uniloc);
         }
 
-        virtual void onUpdateAABB(void) override {
+        virtual void onUpdateDimens(const float scale) override {
             this->m_label.aabb().setAs(this->aabb());
-            this->m_label.onUpdateAABB();
+            this->m_label.onUpdateDimens(scale);
         }
 
     private:
@@ -123,8 +123,6 @@ namespace {
         dal::StringBufferBasic m_strbuf;
         TextStreamChannel m_stream;
 
-        float m_lineEditHeight = 20;
-
     public:
         LuaConsole(dal::GlyphMaster& glyph)
             : dal::Widget2D(nullptr, dal::drawOverlay)
@@ -148,8 +146,8 @@ namespace {
             this->m_textBox.m_bg.m_color = glm::vec4{ 0.1, 0.1, 0.1, 1 };
             this->m_lineEdit.setBGColor(0.1, 0.1, 0.1, 1);
 
-            this->aabb().setPosSize(10, 50, 300, 300);
-            this->onUpdateAABB();
+            this->aabb().setPosSize(10, 10, 128, 128);
+            this->onUpdateDimens(1);
         }
 
         ~LuaConsole(void) {
@@ -195,32 +193,33 @@ namespace {
             this->m_luaState.exec(str);
         }
 
-    protected:
-        virtual void onUpdateAABB(void) override {
-            constexpr float INNER_MARGIN = 5;
+        virtual void onUpdateDimens(const float scale) override {
+            const float INNER_MARGIN = scale * 5;
+            const auto lineEditHeight = scale * 20;
 
             const auto pp1 = this->aabb().point00();
             const auto pp2 = this->aabb().point11();
 
             this->m_lineEdit.aabb().setPosSize<float>(
                 pp1.x + INNER_MARGIN,
-                pp2.y - INNER_MARGIN - this->m_lineEditHeight,
+                pp2.y - INNER_MARGIN - lineEditHeight,
                 this->aabb().width() - INNER_MARGIN - INNER_MARGIN,
-                this->m_lineEditHeight
+                lineEditHeight
                 );
+            this->m_lineEdit.setMargin(scale * 3);
+            this->m_lineEdit.onUpdateDimens(scale);
 
             this->m_textBox.aabb().setPosSize<float>(
                 pp1.x + INNER_MARGIN,
                 pp1.y + INNER_MARGIN,
                 this->aabb().width() - INNER_MARGIN - INNER_MARGIN,
-                this->aabb().height() - this->m_lineEditHeight - INNER_MARGIN - INNER_MARGIN - INNER_MARGIN
+                this->aabb().height() - lineEditHeight - INNER_MARGIN - INNER_MARGIN - INNER_MARGIN
                 );
+            this->m_textBox.m_text.m_textSize = this->m_lineEdit.textSize();
+            this->m_textBox.onUpdateDimens(scale);
 
             this->m_bg.aabb().setAs(this->aabb());
-
-            this->m_lineEdit.onUpdateAABB();
-            this->m_textBox.onUpdateAABB();
-            this->m_bg.onUpdateAABB();
+            this->m_bg.onUpdateDimens(scale);
         }
 
         void fetchText(void) {
@@ -281,6 +280,12 @@ namespace {
 
                     for ( unsigned int i = 0; i < tq.getSize(); i++ ) {
                         const auto& e = tq.at(i);
+
+                        if ( this->m_fcounter.aabb().isInside(e.m_pos) && dal::TouchActionType::up == e.m_actionType ) {
+                            nextContext = this->m_cnxtPauseMenu;
+                            dalVerbose("ingame -> pause");
+                        }
+
                         this->m_crtlWidget.onTouch(e);
                     }
 
@@ -332,13 +337,14 @@ namespace {
         }
 
         virtual void onWinResize(const unsigned width, const unsigned height) override {
-
             const auto uiScale = this->m_config.m_ui.m_uiScale;
+
             this->m_fcounter.aabb().setPosSize<float>(10, 10, uiScale * 50, uiScale * 30);
-            this->m_fcounter.onUpdateAABB();
+            this->m_fcounter.onUpdateDimens(uiScale);
 
             this->m_crtlWidget.setSquareLength(uiScale * 20);
             this->m_crtlWidget.onParentResize(width, height);
+            this->m_crtlWidget.onUpdateDimens(uiScale);
 
             this->m_winWidth = width;
             this->m_winHeight = height;
@@ -360,6 +366,7 @@ namespace {
     private:
         dal::ShaderMaster& m_shaders;
         dal::TaskMaster& m_task;
+        dal::Config& m_config;
 
         // Contexts
         dal::IContext* m_cnxtIngame;
@@ -373,6 +380,8 @@ namespace {
         PauseMenu(const unsigned width, const unsigned height, dal::Managers& managers)
             : m_shaders(managers.m_shaders)
             , m_task(managers.m_taskMas)
+            , m_config(managers.m_config)
+
             , m_cnxtIngame(nullptr)
             , m_red(nullptr, dal::drawOverlay)
             , m_luaConsole(managers.m_glyph)
@@ -431,11 +440,14 @@ namespace {
         virtual void onWinResize(const unsigned width, const unsigned height) override {
             glViewport(0, 0, width, height);
 
+            const auto uiScale = this->m_config.m_ui.m_uiScale;
+
             this->m_red.onParentResize(width, height);
             //this->m_red.aabb().size() = glm::vec2{ width, height };
             this->m_red.aabb().setPosSize<float>(0, 0, width, height);
 
-            this->m_luaConsole.onParentResize(width, height);
+            this->m_luaConsole.aabb().setPosSize<float>(10, 50, uiScale * 600, uiScale * 480);
+            this->m_luaConsole.onUpdateDimens(uiScale);
 
             this->m_winWidth = width;
             this->m_winHeight = height;
@@ -483,7 +495,7 @@ namespace {
             this->m_lineedit.setBGColor(0.1, 0.1, 0.1, 1);
             this->m_lineedit.setText("Little Ruler");
             this->m_lineedit.aabb().setPosSize<float>(30, 30, 5000, 100);
-            this->m_lineedit.onUpdateAABB();
+            this->m_lineedit.onUpdateDimens(managers.m_config.m_ui.m_uiScale);
         }
 
         virtual dal::IContext* update(const float deltaTime) override {

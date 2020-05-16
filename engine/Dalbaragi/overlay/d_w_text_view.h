@@ -18,10 +18,13 @@ namespace dal {
         Lable(Widget2D* const parent, overlayDrawFunc_t drawf, GlyphMaster& glyph);
 
         virtual void render(const float width, const float height, const void* userdata) override;
-        virtual void onUpdateAABB(void) override;
+        virtual void onUpdateDimens(const float scale) override;
 
         auto text(void) const -> std::string {
             return this->m_text.textWhole();
+        }
+        auto textSize(void) const {
+            return this->m_text.m_textSize;
         }
 
         void setText(const char* const str) {
@@ -98,7 +101,7 @@ namespace dal {
         TextBox(Widget2D* const parent, overlayDrawFunc_t drawf, GlyphMaster& glyph);
 
         virtual void render(const float width, const float height, const void* userdata) override;
-        virtual void onUpdateAABB(void) override;
+        virtual void onUpdateDimens(const float scale) override;
 
         virtual auto onTouch(const TouchEvent& e)->InputDealtFlag override;
 
