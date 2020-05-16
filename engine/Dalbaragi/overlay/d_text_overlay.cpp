@@ -5,11 +5,6 @@
 #include <unordered_map>
 
 #include <fmt/format.h>
-extern "C" {
-#include <ft2build.h>
-#include FT_FREETYPE_H
-#include FT_CACHE_H
-}
 
 #include "d_overlay_base.h"
 
