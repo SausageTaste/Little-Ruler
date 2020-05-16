@@ -27,6 +27,7 @@ namespace dal {
         this->setSquareLength(20);
     }
 
+
     void PlayerControlWidget::MoveDPad::render(const float width, const float height, const void* uniloc) {
         this->m_fixedCenterPoint.render(width, height, uniloc);
 
@@ -69,6 +70,7 @@ namespace dal {
         return InputDealtFlag::ignored;
     }
 
+
     void PlayerControlWidget::MoveDPad::onParentResize(const float width, const float height) {
         const auto shorter = width < height ? width : height;
         const auto edgeLen = shorter * 0.5f;
@@ -87,6 +89,7 @@ namespace dal {
         this->m_touchedPoint.aabb().size() = glm::vec2{ this->m_squareLengthHalf * 2.f, this->m_squareLengthHalf * 2.f };
         this->m_touchedPoint.onUpdateDimens(1);
     }
+
 
     glm::vec2 PlayerControlWidget::MoveDPad::getRel(void) const {
         if ( !this->isActive() ) {
@@ -228,17 +231,12 @@ namespace dal {
         return InputDealtFlag::consumed;
     }
 
-    void PlayerControlWidget::onParentResize(const float width, const float height) {
-        this->m_dpad.onParentResize(width, height);
-
-        this->aabb().setPosSize<float>(0, 0, width, height);
-    }
-
     void PlayerControlWidget::onFocusChange(const bool v) {
         if ( v ) {
             this->m_keyboardMoveInfo.clear();
         }
     }
+
 
     MoveInputInfo PlayerControlWidget::getMoveInfo(const float deltaTime, const float winWidth, const float winHeight) {
         MoveInputInfo info;
@@ -262,6 +260,12 @@ namespace dal {
         }
 
         return info;
+    }
+
+    void PlayerControlWidget::onParentResize(const float width, const float height) {
+        this->m_dpad.onParentResize(width, height);
+
+        this->aabb().setPosSize<float>(0, 0, width, height);
     }
 
     // Private

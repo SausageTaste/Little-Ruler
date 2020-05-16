@@ -442,7 +442,6 @@ namespace {
 
             const auto uiScale = this->m_config.m_ui.m_uiScale;
 
-            this->m_red.onParentResize(width, height);
             //this->m_red.aabb().size() = glm::vec2{ width, height };
             this->m_red.aabb().setPosSize<float>(0, 0, width, height);
 
@@ -545,10 +544,7 @@ namespace {
         virtual void onWinResize(const unsigned width, const unsigned height) override {
             glViewport(0, 0, width, height);
 
-            this->m_background.onParentResize(width, height);
             this->m_background.aabb().setPosSize<float>(0, 0, width, height);
-
-            this->m_lineedit.onParentResize(width, height);
 
             this->m_winWidth = width;
             this->m_winHeight = height;

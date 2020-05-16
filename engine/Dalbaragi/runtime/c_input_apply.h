@@ -32,8 +32,8 @@ namespace dal {
 
             virtual void render(const float width, const float height, const void* uniloc) override;
             virtual InputDealtFlag onTouch(const dal::TouchEvent& e) override;
-            virtual void onParentResize(const float width, const float height) override;
 
+            void onParentResize(const float width, const float height);
             void setSquareLength(const float x);
 
             glm::vec2 getRel(void) const;
@@ -63,11 +63,11 @@ namespace dal {
         virtual void render(const float width, const float height, const void* uniloc) override;
         virtual InputDealtFlag onTouch(const dal::TouchEvent& e) override;
         virtual InputDealtFlag onKeyInput(const KeyboardEvent& e, const KeyStatesRegistry& keyStates) override;
-        virtual void onParentResize(const float width, const float height) override;
         virtual void onFocusChange(const bool v) override;
 
         MoveInputInfo getMoveInfo(const float deltaTime, const float winWidth, const float winHeight);
 
+        void onParentResize(const float width, const float height);
         void setSquareLength(const float x) {
             this->m_dpad.setSquareLength(x);
         }

@@ -29,7 +29,6 @@ namespace dal {
         virtual auto onKeyInput(const KeyboardEvent& e, const KeyStatesRegistry& keyStates) -> InputDealtFlag {
             return InputDealtFlag::ignored;
         }
-        virtual void onParentResize(const float width, const float height) {}
         virtual void onFocusChange(const bool v) {}
 
     };
@@ -49,13 +48,14 @@ namespace dal {
 
         }
 
+        virtual void onUpdateDimens(const float scale) {};
+
         auto aabb(void) -> AABB_2D<float>& {
             return this->m_aabb;
         }
         auto aabb(void) const -> const AABB_2D<float> {
             return this->m_aabb;
         }
-        virtual void onUpdateDimens(const float scale) {};
 
     protected:
         void draw(const OverlayDrawInfo& info, const void* userdata) const {
