@@ -14,6 +14,7 @@ namespace dal {
     class TaskMaster;
     class PhysicsWorld;
     class GlyphMaster;
+    class Config;
 
 
     struct Managers {
@@ -23,6 +24,7 @@ namespace dal {
         TaskMaster&    m_taskMas;
         PhysicsWorld&  m_phyworld;
         GlyphMaster&   m_glyph;
+        Config&        m_config;
 
         Managers(
             ShaderMaster& shaders,
@@ -30,7 +32,8 @@ namespace dal {
             SceneGraph& scene,
             TaskMaster& taskMas,
             PhysicsWorld& phyworld,
-            GlyphMaster& glyph
+            GlyphMaster& glyph,
+            Config& config
         )
             : m_shaders(shaders)
             , m_renMas(renMas)
@@ -38,6 +41,7 @@ namespace dal {
             , m_taskMas(taskMas)
             , m_phyworld(phyworld)
             , m_glyph(glyph)
+            , m_config(config)
         {
 
         }

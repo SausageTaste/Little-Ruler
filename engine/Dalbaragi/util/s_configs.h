@@ -103,4 +103,14 @@ namespace dal {
 
     };
 
+
+    class Config {
+
+    public:
+        struct UI {
+            float m_uiScale = 1;
+        } m_ui;
+
+    };
+
 }

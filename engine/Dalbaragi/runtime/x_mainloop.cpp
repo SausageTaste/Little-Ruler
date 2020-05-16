@@ -187,9 +187,14 @@ namespace dal {
             }
         }
 
+        // Set configs
+        {
+            this->m_config.m_ui.m_uiScale = 3;
+        }
+
         // Create contexts
         {
-            Managers managers{ this->m_shader, this->m_renderMan, this->m_scene, this->m_task, this->m_phyworld, this->m_glyph };
+            Managers managers{ this->m_shader, this->m_renderMan, this->m_scene, this->m_task, this->m_phyworld, this->m_glyph, this->m_config };
             this->m_contexts = initContexts(winWidth, winHeight, managers);
             this->m_currentContext = m_contexts.front().get();
         }

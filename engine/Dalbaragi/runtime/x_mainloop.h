@@ -25,6 +25,7 @@ namespace dal {
         SceneGraph m_scene;
         RenderMaster m_renderMan;
         GlyphMaster m_glyph;
+        Config m_config;
 
         // Contexts
         std::vector<std::unique_ptr<IContext>> m_contexts;
