@@ -295,9 +295,6 @@ namespace dal {
         this->u_texOffset = getUniloc(shader, "u_texOffset");
         this->u_texScale = getUniloc(shader, "u_texScale");
 
-        this->u_yFlip_colorMap = getUniloc(shader, "u_yFlip_colorMap");
-        this->u_yFlip_maskMap = getUniloc(shader, "u_yFlip_maskMap");
-
         this->u_colorDefault = getUniloc(shader, "u_colorDefault");
 
         this->u_colorMap.init(getUniloc(shader, "u_colorMap"), getUniloc(shader, "u_hasColorMap"), g_texUnitReg["u_colorMap"]);

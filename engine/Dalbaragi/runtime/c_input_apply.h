@@ -2,36 +2,39 @@
 
 #include <entt/entity/registry.hpp>
 
-#include "o_widget_texview.h"
+#include <d_widget_view.h>
+
 #include "g_charastate.h"
 
 
 namespace dal {
 
-    class PlayerControlWidget : public dal::Widget2 {
+    class PlayerControlWidget : public dal::Widget2D {
 
     private:
-        class MoveDPad : public dal::Widget2 {
+        class MoveDPad : public dal::Widget2D {
             /*
              * Widget2's width and height always must be same, which means it's always sqaure.
              */
 
         private:
-            static constexpr float RENDERED_POINT_EDGE_LEN_HALF = 10.0f;
             static constexpr float CORNER_MARGIN = 40.0f;
 
         private:
-            dal::ColoredTile m_fixedCenterPoint, m_touchedPoint;
+            dal::ColorView m_fixedCenterPoint, m_touchedPoint;
+            float m_squareLengthHalf = 10;
 
             glm::vec2 m_touchedPos;
             touchID_t m_owning = -1;
 
         public:
-            MoveDPad(dal::Widget2* const parent, const float winWidth, const float winHeight);
+            MoveDPad(dal::Widget2D* const parent, const float winWidth, const float winHeight);
 
-            virtual void render(const dal::UniRender_Overlay& uniloc, const float width, const float height) override;
-            virtual dal::InputCtrlFlag onTouch(const dal::TouchEvent& e) override;
-            virtual void onParentResize(const float width, const float height) override;
+            virtual void render(const float width, const float height, const void* uniloc) override;
+            virtual InputDealtFlag onTouch(const dal::TouchEvent& e) override;
+
+            void onParentResize(const float width, const float height);
+            void setSquareLength(const float x);
 
             glm::vec2 getRel(void) const;
             bool isActive(void) const;
@@ -57,13 +60,17 @@ namespace dal {
     public:
         PlayerControlWidget(const float winWidth, const float winHeight);
 
-        virtual void render(const dal::UniRender_Overlay& uniloc, const float width, const float height) override;
-        virtual dal::InputCtrlFlag onTouch(const dal::TouchEvent& e) override;
-        virtual InputCtrlFlag onKeyInput(const KeyboardEvent& e, const KeyStatesRegistry& keyStates) override;
-        virtual void onParentResize(const float width, const float height) override;
+        virtual void render(const float width, const float height, const void* uniloc) override;
+        virtual InputDealtFlag onTouch(const dal::TouchEvent& e) override;
+        virtual InputDealtFlag onKeyInput(const KeyboardEvent& e, const KeyStatesRegistry& keyStates) override;
         virtual void onFocusChange(const bool v) override;
 
         MoveInputInfo getMoveInfo(const float deltaTime, const float winWidth, const float winHeight);
+
+        void onParentResize(const float width, const float height);
+        void setSquareLength(const float x) {
+            this->m_dpad.setSquareLength(x);
+        }
 
     private:
         glm::vec2 getMoveVec(void) const;

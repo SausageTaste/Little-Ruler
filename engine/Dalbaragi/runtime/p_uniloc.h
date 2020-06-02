@@ -632,9 +632,6 @@ namespace dal {
         GLint u_texOffset;
         GLint u_texScale;
 
-        GLint u_yFlip_colorMap;
-        GLint u_yFlip_maskMap;
-
         GLint u_colorDefault;
 
         SamplerInterf u_colorMap, u_maskMap;
@@ -666,13 +663,6 @@ namespace dal {
         }
         void texScale(const glm::vec2& v) const {
             this->texScale(v.x, v.y);
-        }
-
-        void yFlip_colorMap(const bool v) const {
-            sendBool(this->u_yFlip_colorMap, v);
-        }
-        void yFlip_maskMap(const bool v) const {
-            sendBool(this->u_yFlip_maskMap, v);
         }
 
         void colorDefault(const float r, const float g, const float b, const float a) const {

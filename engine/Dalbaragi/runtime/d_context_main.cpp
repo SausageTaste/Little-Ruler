@@ -4,39 +4,49 @@
 
 #include <d_logger.h>
 #include <d_phyworld.h>
+#include <d_widget_view.h>
+#include <d_w_text_view.h>
+#include <d_widget_manager.h>
+#include <s_configs.h>
 
 #include "p_render_master.h"
 #include "c_input_apply.h"
-#include "o_widget_textbox.h"
-#include "o_widget_texview.h"
-#include "o_widgetmanager.h"
 #include "u_timer.h"
 #include "u_luascript.h"
+#include "d_overlay_interface.h"
+#include "d_text_overlay.h"
+#include "s_input_queue.h"
 
 
 namespace {
 
-    class FPSCounter : public dal::Widget2 {
+    class FPSCounter : public dal::Widget2D {
 
     private:
-        dal::Label2 m_label;
-
+        dal::Lable m_label;
         dal::Timer m_timerForFPSReport;
         size_t m_frameAccum;
 
     public:
-        FPSCounter(void)
-            : dal::Widget2(nullptr)
-            , m_label(this)
+        FPSCounter(dal::GlyphMaster& glyph)
+            : dal::Widget2D(nullptr, dal::drawOverlay)
+            , m_label(this, dal::drawOverlay, glyph)
             , m_frameAccum(0)
         {
-            this->setPos(10.0f, 10.0f);
-            this->setSize(50.0f, 20.0f);
+            this->m_label.setMargin(5);
+
+            this->aabb().setPosSize<float>(10, 10, 50, 30);
+            this->onUpdateDimens(1);
         }
 
-        virtual void render(const dal::UniRender_Overlay& uniloc, const float width, const float height) override {
+        virtual void render(const float width, const float height, const void* uniloc) override {
             this->update();
-            this->m_label.render(uniloc, width, height);
+            this->m_label.render(width, height, uniloc);
+        }
+
+        virtual void onUpdateDimens(const float scale) override {
+            this->m_label.aabb().setAs(this->aabb());
+            this->m_label.onUpdateDimens(scale);
         }
 
     private:
@@ -45,22 +55,16 @@ namespace {
             const auto elapsedForFPS = this->m_timerForFPSReport.getElapsed();
             if ( elapsedForFPS > 0.05f ) {
                 const auto fps = static_cast<unsigned int>(static_cast<float>(this->m_frameAccum) / elapsedForFPS);
-                this->m_label.setText(std::to_string(fps));
+                this->m_label.setText(std::to_string(fps).c_str());
                 this->m_timerForFPSReport.check();
                 this->m_frameAccum = 0;
             }
         }
 
-    protected:
-        virtual void onScrSpaceBoxUpdate(void) override {
-            this->m_label.setSize(this->getSize());
-            this->m_label.setPos(this->getPos());
-        };
-
-    } g_fcounter;
+    };
 
 
-    class LuaConsole : public dal::Widget2 {
+    class LuaConsole : public dal::Widget2D {
 
     private:
         class TextStreamChannel : public dal::ILoggingChannel {
@@ -108,53 +112,58 @@ namespace {
         };
 
     private:
-        dal::WidgetInputDispatcher m_dispatcher;
+        dal::InputDispatcher m_dispatcher;
+
         dal::LineEdit m_lineEdit;
         dal::TextBox m_textBox;
-        glm::vec4 m_bgColor;
-        Widget2* m_focused;
+        dal::ColorView m_bg;
+
+        dal::Widget2D* m_focused;
         dal::LuaState m_luaState;
         dal::StringBufferBasic m_strbuf;
         TextStreamChannel m_stream;
 
     public:
-        LuaConsole(void)
-            : dal::Widget2(nullptr)
-            , m_lineEdit(this)
-            , m_textBox(this)
-            , m_bgColor(0.0f, 0.0f, 0.0f, 1.0f)
+        LuaConsole(dal::GlyphMaster& glyph)
+            : dal::Widget2D(nullptr, dal::drawOverlay)
+
+            , m_lineEdit(nullptr, dal::drawOverlay, glyph)
+            , m_textBox(nullptr, dal::drawOverlay, glyph)
+            , m_bg(nullptr, dal::drawOverlay)
+
             , m_focused(nullptr)
             , m_stream(m_strbuf)
         {
-            this->m_lineEdit.setHeight(20.0f);
-            this->m_lineEdit.setCallbackOnEnter([this](const char* const text) {
+            this->m_lineEdit.setCallback_onReturn([this](const char* const text) {
                 this->m_luaState.exec(text);
                 });
 
+            this->m_bg.m_color = glm::vec4{ 0, 0, 0, 1 };
+
             this->m_luaState.replaceStrbuf(&this->m_strbuf);
-            this->m_textBox.replaceBuffer(&this->m_strbuf);
             dal::LoggerGod::getinst().addChannel(&this->m_stream);
 
-            this->setPos(10.0f, 50.0f);
-            this->setSize(300.0f, 300.0f);
+            this->m_textBox.m_bg.m_color = glm::vec4{ 0.1, 0.1, 0.1, 1 };
+            this->m_lineEdit.setBGColor(0.1, 0.1, 0.1, 1);
+
+            this->aabb().setPosSize(10, 10, 128, 128);
+            this->onUpdateDimens(1);
         }
 
         ~LuaConsole(void) {
             dal::LoggerGod::getinst().deleteChannel(&this->m_stream);
         }
 
-        virtual void render(const dal::UniRender_Overlay& uniloc, const float width, const float height) override {
-            dal::QuadRenderInfo info;
-            std::tie(info.m_bottomLeftNormalized, info.m_rectSize) = this->makePosSize(width, height);
-            info.m_color = this->m_bgColor;
-            dal::renderQuadOverlay(uniloc, info);
+        virtual void render(const float width, const float height, const void* uniloc) override {
+            this->fetchText();
 
-            this->m_lineEdit.render(uniloc, width, height);
-            this->m_textBox.render(uniloc, width, height);
+            this->m_bg.render(width, height, uniloc);
+            this->m_lineEdit.render(width, height, uniloc);
+            this->m_textBox.render(width, height, uniloc);
         }
 
-        virtual dal::InputCtrlFlag onTouch(const dal::TouchEvent& e) override {
-            dal::Widget2* widgetArr[2] = { &this->m_lineEdit, &this->m_textBox };
+        virtual auto onTouch(const dal::TouchEvent& e) -> dal::InputDealtFlag override {
+            dal::Widget2D* widgetArr[2] = { &this->m_lineEdit, &this->m_textBox };
             const auto [flag, focused] = this->m_dispatcher.dispatch(widgetArr, widgetArr + 2, e);
 
             this->m_focused = dal::resolveNewFocus(this->m_focused, focused);
@@ -162,14 +171,14 @@ namespace {
             return flag;
         }
 
-        virtual dal::InputCtrlFlag onKeyInput(const dal::KeyboardEvent& e, const dal::KeyStatesRegistry& keyStates) override {
+        virtual auto onKeyInput(const dal::KeyboardEvent& e, const dal::KeyStatesRegistry& keyStates) -> dal::InputDealtFlag override {
             if ( &this->m_lineEdit == this->m_focused ) {
                 const auto iter = &this->m_focused;
                 const auto end = iter + 1;
                 return this->m_dispatcher.dispatch(iter, end, e, keyStates);
             }
 
-            return dal::InputCtrlFlag::ignored;
+            return dal::InputDealtFlag::ignored;
         }
 
         virtual void onFocusChange(const bool v) override {
@@ -184,26 +193,39 @@ namespace {
             this->m_luaState.exec(str);
         }
 
-    protected:
-        virtual void onScrSpaceBoxUpdate(void) override {
-            constexpr float INNER_MARGIN = 5.0f;
+        virtual void onUpdateDimens(const float scale) override {
+            const float INNER_MARGIN = scale * 5;
+            const auto lineEditHeight = scale * 20;
 
-            const auto pp1 = this->getPoint00();
-            const auto pp2 = this->getPoint11();
+            const auto pp1 = this->aabb().point00();
+            const auto pp2 = this->aabb().point11();
 
-            {
-                this->m_lineEdit.setPos(pp1.x + INNER_MARGIN, pp2.y - INNER_MARGIN - this->m_lineEdit.getHeight());
-                this->m_lineEdit.setWidth(this->getWidth() - INNER_MARGIN - INNER_MARGIN);
-            }
-
-            {
-                this->m_textBox.setPos(pp1.x + INNER_MARGIN, pp1.y + INNER_MARGIN);
-                this->m_textBox.setSize(
-                    this->getWidth() - INNER_MARGIN - INNER_MARGIN,
-                    this->getHeight() - this->m_lineEdit.getHeight() - INNER_MARGIN - INNER_MARGIN - INNER_MARGIN
+            this->m_lineEdit.aabb().setPosSize<float>(
+                pp1.x + INNER_MARGIN,
+                pp2.y - INNER_MARGIN - lineEditHeight,
+                this->aabb().width() - INNER_MARGIN - INNER_MARGIN,
+                lineEditHeight
                 );
-            }
-        };
+            this->m_lineEdit.setMargin(scale * 3);
+            this->m_lineEdit.onUpdateDimens(scale);
+
+            this->m_textBox.aabb().setPosSize<float>(
+                pp1.x + INNER_MARGIN,
+                pp1.y + INNER_MARGIN,
+                this->aabb().width() - INNER_MARGIN - INNER_MARGIN,
+                this->aabb().height() - lineEditHeight - INNER_MARGIN - INNER_MARGIN - INNER_MARGIN
+                );
+            this->m_textBox.m_text.m_textSize = this->m_lineEdit.textSize();
+            this->m_textBox.onUpdateDimens(scale);
+
+            this->m_bg.aabb().setAs(this->aabb());
+            this->m_bg.onUpdateDimens(scale);
+        }
+
+        void fetchText(void) {
+            this->m_textBox.m_text.addStr(this->m_strbuf.data());
+            this->m_strbuf.clear();
+        }
 
     };
 
@@ -220,38 +242,32 @@ namespace {
         dal::SceneGraph& m_scene;
         dal::TaskMaster& m_task;
         dal::PhysicsWorld& m_phyworld;
+        dal::Config& m_config;
 
         // Contexts
         dal::IContext* m_cnxtPauseMenu;
 
         dal::PlayerControlWidget m_crtlWidget;
-        dal::TextRenderer2 m_testText;
+        FPSCounter m_fcounter;
 
         unsigned m_winWidth, m_winHeight;
 
     public:
-        InGameCxt(
-            const unsigned width, const unsigned height,
-            dal::ShaderMaster& shaders, dal::RenderMaster& renMas, dal::SceneGraph& scene, dal::TaskMaster& taskMas, dal::PhysicsWorld& phyworld
-        )
-            : m_shaders(shaders)
-            , m_renMas(renMas)
-            , m_scene(scene)
-            , m_task(taskMas)
-            , m_phyworld(phyworld)
+        InGameCxt(const unsigned width, const unsigned height, dal::Managers& managers)
+            : m_shaders(managers.m_shaders)
+            , m_renMas(managers.m_renMas)
+            , m_scene(managers.m_scene)
+            , m_task(managers.m_taskMas)
+            , m_phyworld(managers.m_phyworld)
+            , m_config(managers.m_config)
+
             , m_cnxtPauseMenu(nullptr)
             , m_crtlWidget(static_cast<float>(width), static_cast<float>(height))
-            , m_testText(nullptr)
+            , m_fcounter(managers.m_glyph)
             , m_winWidth(width)
             , m_winHeight(height)
         {
-            this->m_testText.setPos(30, 60);
-            this->m_testText.setSize(256, 128);
-            this->m_testText.addStr("alsjfaosjfoajdfdasfaasfasdfasdfasfasfdsfasdfasfasfasdfasfsadfasdfsadfasdfasdfasdfasdfsadfassfasdfasflasjflasfdas\nasdfjasldfjasdfasfdasfdasfaslasjflasjdflasjfa\nlasdjflajsflsdalkfasdfasdfjajfljasl");
-        }
-
-        virtual ~InGameCxt(void) override {
-
+           
         }
 
         virtual IContext* update(const float deltaTime) override {
@@ -264,6 +280,12 @@ namespace {
 
                     for ( unsigned int i = 0; i < tq.getSize(); i++ ) {
                         const auto& e = tq.at(i);
+
+                        if ( this->m_fcounter.aabb().isInside(e.m_pos) && dal::TouchActionType::up == e.m_actionType ) {
+                            nextContext = this->m_cnxtPauseMenu;
+                            dalVerbose("ingame -> pause");
+                        }
+
                         this->m_crtlWidget.onTouch(e);
                     }
 
@@ -307,16 +329,23 @@ namespace {
                 glBindFramebuffer(GL_FRAMEBUFFER, 0);
                 auto& uniloc = this->m_shaders.useOverlay();
 
-                this->m_crtlWidget.render(uniloc, this->m_winWidth, this->m_winHeight);
-                this->m_testText.render(uniloc, this->m_winWidth, this->m_winHeight);
-                g_fcounter.render(uniloc, this->m_winWidth, this->m_winHeight);
+                this->m_crtlWidget.render(this->m_winWidth, this->m_winHeight, &uniloc);
+                this->m_fcounter.render(this->m_winWidth, this->m_winHeight, &uniloc);
             }
 
             return nextContext;
         }
 
         virtual void onWinResize(const unsigned width, const unsigned height) override {
+            const auto uiScale = this->m_config.m_ui.m_uiScale;
+
+            this->m_fcounter.aabb().setPosSize<float>(10, 10, uiScale * 50, uiScale * 30);
+            this->m_fcounter.onUpdateDimens(uiScale);
+
+            this->m_crtlWidget.setSquareLength(uiScale * 20);
             this->m_crtlWidget.onParentResize(width, height);
+            this->m_crtlWidget.onUpdateDimens(uiScale);
+
             this->m_winWidth = width;
             this->m_winHeight = height;
         }
@@ -337,26 +366,30 @@ namespace {
     private:
         dal::ShaderMaster& m_shaders;
         dal::TaskMaster& m_task;
+        dal::Config& m_config;
 
         // Contexts
         dal::IContext* m_cnxtIngame;
 
-        dal::ColoredTile m_red;
+        dal::ColorView m_red;
         LuaConsole m_luaConsole;
 
         unsigned m_winWidth, m_winHeight;
 
     public:
-        PauseMenu(const unsigned width, const unsigned height, dal::ShaderMaster& shaders, dal::TaskMaster& taskMas)
-            : m_shaders(shaders)
-            , m_task(taskMas)
+        PauseMenu(const unsigned width, const unsigned height, dal::Managers& managers)
+            : m_shaders(managers.m_shaders)
+            , m_task(managers.m_taskMas)
+            , m_config(managers.m_config)
+
             , m_cnxtIngame(nullptr)
-            , m_red(nullptr, 1, 0, 0, 1)
+            , m_red(nullptr, dal::drawOverlay)
+            , m_luaConsole(managers.m_glyph)
             , m_winWidth(width)
             , m_winHeight(height)
         {
-            this->m_red.setSize(width, height);
-            this->m_red.setPos(0, 0);
+            this->m_red.aabb().setPosSize<float>(0, 0, width, height);
+            this->m_red.m_color = glm::vec4{ 1, 0, 0, 1 };
         }
 
         virtual dal::IContext* update(const float deltaTime) override {
@@ -398,16 +431,22 @@ namespace {
 
             glBindFramebuffer(GL_FRAMEBUFFER, 0);
             auto& uniloc = this->m_shaders.useOverlay();
-            this->m_red.render(uniloc, this->m_winWidth, this->m_winHeight);
-            this->m_luaConsole.render(uniloc, this->m_winWidth, this->m_winHeight);
-            g_fcounter.render(uniloc, this->m_winWidth, this->m_winHeight);
+            this->m_red.render(this->m_winWidth, this->m_winHeight, &uniloc);
+            this->m_luaConsole.render(this->m_winWidth, this->m_winHeight, &uniloc);
 
             return nextContext;
         }
 
         virtual void onWinResize(const unsigned width, const unsigned height) override {
-            this->m_red.onParentResize(width, height);
-            this->m_luaConsole.onParentResize(width, height);
+            glViewport(0, 0, width, height);
+
+            const auto uiScale = this->m_config.m_ui.m_uiScale;
+
+            //this->m_red.aabb().size() = glm::vec2{ width, height };
+            this->m_red.aabb().setPosSize<float>(0, 0, width, height);
+
+            this->m_luaConsole.aabb().setPosSize<float>(10, 50, uiScale * 600, uiScale * 480);
+            this->m_luaConsole.onUpdateDimens(uiScale);
 
             this->m_winWidth = width;
             this->m_winHeight = height;
@@ -433,29 +472,29 @@ namespace {
         // Contexts
         dal::IContext* m_cnxtIngame;
 
-        dal::ColoredTile m_background;
+        dal::ColorView m_background;
         dal::LineEdit m_lineedit;
 
         dal::Timer m_timer;
         unsigned m_winWidth, m_winHeight;
 
     public:
-        TitleScreen(const unsigned width, const unsigned height, dal::ShaderMaster& shaders, dal::TaskMaster& taskMas)
-            : m_shaders(shaders)
-            , m_task(taskMas)
+        TitleScreen(const unsigned width, const unsigned height, dal::Managers& managers)
+            : m_shaders(managers.m_shaders)
+            , m_task(managers.m_taskMas)
             , m_cnxtIngame(nullptr)
-            , m_background(nullptr, 0.1f, 0.1f, 0.1f, 1.f)
-            , m_lineedit(nullptr)
+            , m_background(nullptr, dal::drawOverlay)
+            , m_lineedit(nullptr, dal::drawOverlay, managers.m_glyph)
             , m_winWidth(width)
             , m_winHeight(height)
         {
-            this->m_background.setSize(width, height);
-            this->m_background.setPos(0, 0);
+            this->m_background.aabb().setPosSize<float>(0, 0, width, height);
+            this->m_background.m_color = glm::vec4{ 0.1, 0.1, 0.1, 1 };
 
-            this->m_lineedit.setPos(30, 30);
-            this->m_lineedit.setSize(500, 500);
-            this->m_lineedit.setBackgroundColor(0.1f, 0.1f, 0.1f, 1.f);
+            this->m_lineedit.setBGColor(0.1, 0.1, 0.1, 1);
             this->m_lineedit.setText("Little Ruler");
+            this->m_lineedit.aabb().setPosSize<float>(30, 30, 5000, 100);
+            this->m_lineedit.onUpdateDimens(managers.m_config.m_ui.m_uiScale);
         }
 
         virtual dal::IContext* update(const float deltaTime) override {
@@ -496,15 +535,16 @@ namespace {
 
             glBindFramebuffer(GL_FRAMEBUFFER, 0);
             auto& uniloc = this->m_shaders.useOverlay();
-            this->m_background.render(uniloc, this->m_winWidth, this->m_winHeight);
-            this->m_lineedit.render(uniloc, this->m_winWidth, this->m_winHeight);
+            this->m_background.render(this->m_winWidth, this->m_winHeight, &uniloc);
+            this->m_lineedit.render(this->m_winWidth, this->m_winHeight, &uniloc);
 
             return nextContext;
         }
 
         virtual void onWinResize(const unsigned width, const unsigned height) override {
-            this->m_background.onParentResize(width, height);
-            this->m_lineedit.onParentResize(width, height);
+            glViewport(0, 0, width, height);
+
+            this->m_background.aabb().setPosSize<float>(0, 0, width, height);
 
             this->m_winWidth = width;
             this->m_winHeight = height;
@@ -521,22 +561,21 @@ namespace {
 
 namespace dal {
 
-    std::vector <std::unique_ptr<IContext>> initContexts(const unsigned width, const unsigned height,
-        ShaderMaster& shaders, RenderMaster& renMas, SceneGraph& scene, TaskMaster& taskMas, PhysicsWorld& phyworld)
-    {
-        std::vector <std::unique_ptr<IContext>> result;
-
-        std::unique_ptr<TitleScreen> title{ new TitleScreen{ width, height, shaders, taskMas } };
-        std::unique_ptr<InGameCxt> ingame{ new InGameCxt{ width, height, shaders, renMas, scene, taskMas, phyworld } };
-        std::unique_ptr<PauseMenu> pause{ new PauseMenu{ width, height, shaders, taskMas } };
+    std::vector<std::unique_ptr<IContext>> initContexts(const unsigned width, const unsigned height, Managers& managers) {
+        std::unique_ptr<TitleScreen> title{ new TitleScreen{ width, height, managers } };
+        std::unique_ptr<InGameCxt> ingame{ new InGameCxt{ width, height, managers } };
+        std::unique_ptr<PauseMenu> pause{ new PauseMenu{ width, height, managers } };
 
         title->registerContexts(ingame.get());
         ingame->registerContexts(pause.get());
         pause->registerContexts(ingame.get());
 
-        result.push_back(std::unique_ptr<IContext>{ title.release() });
-        result.push_back(std::unique_ptr<IContext>{ ingame.release() });
-        result.push_back(std::unique_ptr<IContext>{ pause.release() });
+        std::vector<std::unique_ptr<IContext>> result;
+        result.reserve(3);
+
+        result.push_back(std::unique_ptr<IContext>(title.release()));
+        result.push_back(std::unique_ptr<IContext>(ingame.release()));
+        result.push_back(std::unique_ptr<IContext>(pause.release()));
 
         return result;
     }

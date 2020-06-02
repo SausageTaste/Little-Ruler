@@ -10,11 +10,10 @@
 #include <u_math.h>
 
 #include "s_configs.h"
-#include "o_widget_textbox.h"
 #include "g_charastate.h"
 #include "p_model.h"
-#include "o_widgetcache.h"
 #include "u_luascript.h"
+#include "d_overlay_interface.h"
 
 
 using namespace fmt::literals;
@@ -171,10 +170,9 @@ namespace dal {
         : m_resMas(m_task)
         , m_scene(m_resMas, m_phyworld, winWidth, winHeight)
         , m_renderMan(m_scene, m_shader, m_resMas, &m_scene.m_playerCam, winWidth, winHeight)
-        // Contexts
-        , m_contexts(initContexts(winWidth, winHeight, m_shader, m_renderMan, m_scene, m_task, m_phyworld))
-        , m_currentContext(m_contexts.front().get())
+        , m_glyph(dal::loadFileBuf, dal::genOverlayTexture)
         // Misc
+        , m_currentContext(nullptr)
         , m_flagQuit(false)
     {
         // This might be done already by SceneGraph or OverlayMaster but still...
@@ -187,6 +185,18 @@ namespace dal {
             if ( !isWhatFilesystemWantsGiven() ) {
                 dalAbort("Please call Mainloop::giveWhatFilesystemWants before constructor!");
             }
+        }
+
+        // Set configs
+        {
+            this->m_config.m_ui.m_uiScale = static_cast<double>(winHeight) / 720.0;
+        }
+
+        // Create contexts
+        {
+            Managers managers{ this->m_shader, this->m_renderMan, this->m_scene, this->m_task, this->m_phyworld, this->m_glyph, this->m_config };
+            this->m_contexts = initContexts(winWidth, winHeight, managers);
+            this->m_currentContext = m_contexts.front().get();
         }
 
         // Camera
@@ -283,6 +293,8 @@ namespace dal {
 #ifdef _WIN32
             system("chcp 65001");
 #endif
+
+            this->onResize(winWidth, winHeight);
         }
 
         // Test

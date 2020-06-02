@@ -428,6 +428,9 @@ namespace dal {
         this->m_winWidth = width;
         this->m_winHeight = height;
 
+        if ( 0 == width || 0 == height )
+            return;
+
         float radio = static_cast<float>(width) / static_cast<float>(height);
         this->m_projectMat = glm::perspective(glm::radians(90.0f), radio, 0.01f, this->m_farPlaneDistance);
 
