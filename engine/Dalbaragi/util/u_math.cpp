@@ -23,7 +23,7 @@ namespace dal {
     glm::vec3 resizeOnlyXZ(const glm::vec3& v, const float sphereRadius) {
         const auto circleOfIntersecRadiusSqr = sphereRadius * sphereRadius - v.y * v.y;
         if ( circleOfIntersecRadiusSqr > 0.0f ) {
-            const auto circleOfIntersecRadius = sqrt(circleOfIntersecRadiusSqr);
+            const float circleOfIntersecRadius = sqrt(circleOfIntersecRadiusSqr);
             const auto resizedVecXZ = glm::normalize(glm::vec2{ v.x, v.z }) * circleOfIntersecRadius;
             return glm::vec3{ resizedVecXZ.x, v.y, resizedVecXZ.y };
         }
