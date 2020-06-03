@@ -307,6 +307,7 @@ namespace {
                 }
 
                 assert(false && "resource folder not found");
+                return "";
             }();
             return path;
         }
@@ -1074,6 +1075,8 @@ namespace {
                 return (std::ios::out | std::ios::app | std::ios::binary);
             default:
                 assert(false);
+                // It shouldn't reach here btw...
+                return std::ios::in;
 
             }
         }

@@ -14,6 +14,7 @@ namespace dal {
     std::pair<unsigned, unsigned> ExternalFuncGod::queryWinSize(void) const {
         if ( !this->m_queryWinSize ) {
             dalWarn("External func not set : queryWinSize");
+            return std::pair<unsigned, unsigned>{ 0, 0 };
         }
         else {
             return this->m_queryWinSize();

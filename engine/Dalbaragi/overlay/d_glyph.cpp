@@ -303,6 +303,8 @@ namespace dal {
         }
 
         assert(false);
+        static CharUnit empty{};
+        return empty;
     }
 
 }

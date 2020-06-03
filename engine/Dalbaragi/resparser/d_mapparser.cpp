@@ -327,7 +327,7 @@ namespace {
 namespace dal {
 
     std::optional<v1::LevelData> parseLevel_v1(const uint8_t* const buf, const size_t bufSize) {
-        constexpr char* const magicBits = "dallvl";
+        const char* const magicBits = "dallvl";
         if ( 0 != std::memcmp(buf, magicBits, 6) ) {
             return std::nullopt;
         }
@@ -359,7 +359,7 @@ namespace dal {
     }
 
     std::optional<v1::MapChunk> parseMapChunk_v1(const uint8_t* const buf, const size_t bufSize) {
-        constexpr char* const magicBits = "dalchk";
+        const char* const magicBits = "dalchk";
         if ( 0 != std::memcmp(buf, magicBits, 6) ) {
             //dalError("Given datablock does not start with magic numbers.");
             return std::nullopt;
