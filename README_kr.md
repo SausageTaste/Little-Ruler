@@ -63,6 +63,7 @@
 
 * 이 레포를 `--recurse-submodules` 옵션을 적용하여 클론 해 주세요. 아래 예시처럼요.
 * `git clone --recurse-submodules -j8 https://github.com/SausageTaste/Little-Ruler`
+* Python 인터프리터를 설치하고 경로를 PATH 환경 변수에 추가하세요. (GLAD 라이브러리를 사용하기 위함입니다)
 
 ### Android
 
