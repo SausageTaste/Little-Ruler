@@ -136,23 +136,15 @@ namespace {
             T m_array[NUM_COLLIDERS][NUM_COLLIDERS] = { 0 };
 
         public:
-            T& at(const dal::ColliderType one, const dal::ColliderType two) {
+            auto get(const dal::ColliderType one, const dal::ColliderType two) const -> T {
                 return this->m_array[this->indexof(one)][this->indexof(two)];
             }
 
-            const T& get(const dal::ColliderType one, const dal::ColliderType two) const {
-                const auto ptr = this->m_array[this->indexof(one)][this->indexof(two)];
-                if ( nullptr == ptr ) {
-                    //const auto indexOfOne = this->indexof(one);
-                    //const auto indexOfTwo = this->indexof(two);
-                    //dalWarn("No {} registered for those colliders: {}, {}"_format(debugStr, indexOfOne, indexOfTwo));
-                    return nullptr;
-                }
-                else {
-                    return ptr;
-                }
+            void set(const dal::ColliderType one, const dal::ColliderType two, T ptr) {
+                this->m_array[this->indexof(one)][this->indexof(two)] = ptr;
             }
 
+        private:
             static size_t indexof(const dal::ColliderType e) {
                 return static_cast<unsigned int>(e);
             }
@@ -174,22 +166,22 @@ namespace {
         ColliderResolver(void) {
             // Collision check functions
             {
-                this->m_checkCol.at(dal::ColliderType::sphere, dal::ColliderType::sphere) = nullptr;
-                this->m_checkCol.at(dal::ColliderType::sphere, dal::ColliderType::aabb) = checkCol_sphere_aabb;
-                this->m_checkCol.at(dal::ColliderType::sphere, dal::ColliderType::triangle_soup) = nullptr;
+                this->m_checkCol.set(dal::ColliderType::sphere, dal::ColliderType::sphere, nullptr);
+                this->m_checkCol.set(dal::ColliderType::sphere, dal::ColliderType::aabb, checkCol_sphere_aabb);
+                this->m_checkCol.set(dal::ColliderType::sphere, dal::ColliderType::triangle_soup, nullptr);
 
-                this->m_checkCol.at(dal::ColliderType::aabb, dal::ColliderType::sphere) = checkCol_aabb_sphere;
-                this->m_checkCol.at(dal::ColliderType::aabb, dal::ColliderType::aabb) = checkCol_aabb_aabb;
-                this->m_checkCol.at(dal::ColliderType::aabb, dal::ColliderType::triangle_soup) = checkCol_aabb_trisoup;
+                this->m_checkCol.set(dal::ColliderType::aabb, dal::ColliderType::sphere, checkCol_aabb_sphere);
+                this->m_checkCol.set(dal::ColliderType::aabb, dal::ColliderType::aabb, checkCol_aabb_aabb);
+                this->m_checkCol.set(dal::ColliderType::aabb, dal::ColliderType::triangle_soup, checkCol_aabb_trisoup);
 
-                this->m_checkCol.at(dal::ColliderType::triangle_soup, dal::ColliderType::sphere) = nullptr;
-                this->m_checkCol.at(dal::ColliderType::triangle_soup, dal::ColliderType::aabb) = nullptr;
-                this->m_checkCol.at(dal::ColliderType::triangle_soup, dal::ColliderType::triangle_soup) = nullptr;
+                this->m_checkCol.set(dal::ColliderType::triangle_soup, dal::ColliderType::sphere, nullptr);
+                this->m_checkCol.set(dal::ColliderType::triangle_soup, dal::ColliderType::aabb, nullptr);
+                this->m_checkCol.set(dal::ColliderType::triangle_soup, dal::ColliderType::triangle_soup, nullptr);
             }
 
             // Collision resolve function
             {
-                this->m_calcResolve.at(dal::ColliderType::aabb, dal::ColliderType::aabb) = calcResolve_aabb_aabb;
+                this->m_calcResolve.set(dal::ColliderType::aabb, dal::ColliderType::aabb, calcResolve_aabb_aabb);
             }
         }
 
