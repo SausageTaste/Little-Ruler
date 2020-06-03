@@ -1,10 +1,20 @@
 #if true
 
+#include <exception>
+
+#include <fmt/format.h>
+
 #include "x_init_windows.h"
 
 
-int main(int argc, char* args[]) {
+int main(int argc, char* args[]) try {
     return dal::main_windows();
+}
+catch ( const std::exception& e ) {
+    fmt::print("exception thrown: {}\n", e.what());
+}
+catch ( ... ) {
+    fmt::print("unknown thrown\n");
 }
 
 #else
