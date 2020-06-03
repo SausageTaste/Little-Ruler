@@ -63,6 +63,7 @@
 
 * Clone this repo with `--recurse-submodules` option like below.
 * `git clone --recurse-submodules -j8 https://github.com/SausageTaste/Little-Ruler`
+* Install python interpreter and add it to PATH environment variable. (GLAD lib requires it)
 
 ### Android
 
