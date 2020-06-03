@@ -1,6 +1,8 @@
 #include "d_filesystem.h"
 
+#include <cassert>
 #include <fstream>
+#include <sys/stat.h>
 
 #include <fmt/format.h>
 
@@ -18,10 +20,13 @@
 #include <windows.h>
 #include <direct.h>  // mkdir
 
+#ifndef WC_ERR_INVALID_CHARS
+#define WC_ERR_INVALID_CHARS 0x00000080
+#endif
+
 #elif defined(__ANDROID__)
 
 #include <dirent.h>
-#include <sys/stat.h>
 
 #include <android/asset_manager.h>
 
@@ -90,7 +95,7 @@ namespace {
     }
 
     bool isdir_stat(const char* const rawpath) {
-        struct stat st;
+        struct stat::stat st;
         stat(rawpath, &st);
         return static_cast<bool>(st.st_mode & S_IFDIR);
     }
@@ -203,7 +208,6 @@ namespace {
                 return std::nullopt;
 
             constexpr DWORD kFlags = WC_ERR_INVALID_CHARS;
-
             const int srcLength = static_cast<int>(src.length());
 
             const int utf8Length = ::WideCharToMultiByte(CP_UTF8, kFlags, src.data(), srcLength, nullptr, 0, nullptr, nullptr);
@@ -301,6 +305,8 @@ namespace {
 
                     pattern.append("../");
                 }
+
+                assert(false && "resource folder not found");
             }();
             return path;
         }
@@ -1066,6 +1072,8 @@ namespace {
                 return (std::ios::out | std::ios::binary);
             case dal::FileMode2::bappend:
                 return (std::ios::out | std::ios::app | std::ios::binary);
+            default:
+                assert(false);
 
             }
         }

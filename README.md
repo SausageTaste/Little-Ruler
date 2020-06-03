@@ -71,7 +71,7 @@
 ### Windows
 
 * Build `{repo_root}/engine/LittleRulerWindows/CMakeLists.txt` with CMake.
-* I only tested on Visual Studio 2019 compiler.
+* I only tested on Visual Studio 2019 and mingw-w64 8.1.0.
 * I don't know why but you need to do `Build Solution (F7)` several times or see error message saying "zlibstatic is not found".
 
 <br>
