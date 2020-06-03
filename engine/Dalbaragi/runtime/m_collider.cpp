@@ -140,7 +140,7 @@ namespace {
                 return this->m_array[this->indexof(one)][this->indexof(two)];
             }
 
-            const T& get(const dal::ColliderType one, const dal::ColliderType two, const char* const debugStr) const {
+            const T& get(const dal::ColliderType one, const dal::ColliderType two) const {
                 const auto ptr = this->m_array[this->indexof(one)][this->indexof(two)];
                 if ( nullptr == ptr ) {
                     //const auto indexOfOne = this->indexof(one);
@@ -194,7 +194,7 @@ namespace {
         }
 
         bool checkCollision(const dal::ICollider& one, const dal::ICollider& two, const dal::Transform& transOne, const dal::Transform& transTwo) const {
-            const auto pFunc = this->m_checkCol.get(one.getColType(), two.getColType(), "collision check function");
+            const auto pFunc = this->m_checkCol.get(one.getColType(), two.getColType());
             if ( nullptr == pFunc ) {
                 return false;
             }
@@ -206,7 +206,9 @@ namespace {
         dal::CollisionResolveInfo calcResolveInfoABS(const dal::ICollider& one, const dal::PhysicalProperty& physicsOne, const dal::Transform& transOne,
             const dal::ICollider& two, const dal::PhysicalProperty& physicsTwo, const dal::Transform& transTwo) const
         {
-            const auto func = this->m_calcResolve.get(one.getColType(), two.getColType(), "collision resolve function");
+            const auto oneType = one.getColType();
+            const auto twoType = two.getColType();
+            const auto func = this->m_calcResolve.get(oneType, twoType);
             if ( nullptr == func ) {
                 return dal::CollisionResolveInfo{};
             }
