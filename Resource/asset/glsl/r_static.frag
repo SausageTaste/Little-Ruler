@@ -69,11 +69,14 @@ void main(void) {
 
         pbrL += isInShadow ? vec3(0.0) : integratePBR(fragNormal, viewDir, F0, L, albedo.rgb, roughness, metallic, 1.0) * radiance;
     }
-    f_color.rgb = pbrL;
-    f_color.a = albedo.a;
 
     if ( u_hasEnvmap ) {
-        vec3 envcolor = getEnvColor(u_viewPos, v_fragPos, fragNormal);
-        f_color.xyz = mix(envcolor, f_color.xyz, roughness * 0.5 + 0.5);
+        float NdotH   = abs(dot(fragNormal, viewDir));
+        vec3 F        = _fresnelSchlick(NdotH, F0);
+        vec3 radiance = getEnvColor(u_viewPos, v_fragPos, fragNormal);
+        pbrL += F * radiance * 2.0;
     }
+
+    f_color.rgb = pbrL;
+    f_color.a = albedo.a;
 }
