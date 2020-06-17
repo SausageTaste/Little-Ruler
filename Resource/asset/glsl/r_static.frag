@@ -74,7 +74,7 @@ void main(void) {
         float NdotH   = abs(dot(fragNormal, viewDir));
         vec3 F        = _fresnelSchlick(NdotH, F0);
         vec3 radiance = getEnvColor(u_viewPos, v_fragPos, fragNormal);
-        pbrL += F * radiance * 2.0;
+        pbrL += F * radiance;
     }
 
     f_color.rgb = pbrL;
