@@ -326,6 +326,7 @@ namespace dal {
 
     void sendEnvmapUniform(const dal::EnvMap& cubemap, const dal::UniInterf_Envmap& uniloc) {
         cubemap.cubemap().sendUniform(uniloc.envmap());
+        cubemap.irradianceMap().sendUniform(uniloc.irradianceMap());
         uniloc.envmapPos(cubemap.m_pos);
 
 #if DAL_PARALLAX_CORRECTED_CUBEMAP == true

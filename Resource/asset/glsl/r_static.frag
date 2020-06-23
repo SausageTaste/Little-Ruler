@@ -44,10 +44,15 @@ void main(void) {
     vec4 albedo = texture(u_diffuseMap, v_texCoord);
     float roughness = u_hasRoughnessMap ? texture(u_roughnessMap, v_texCoord).r : u_roughness;
     float metallic = u_hasMetallicMap ? texture(u_metallicMap, v_texCoord).r : u_metallic;
+    vec3 ambient = u_hasEnvmap ? texture(u_irradianceMap, fragNormal).xyz : u_baseAmbient;
 
     vec3 F0 = vec3(0.04);
     F0 = mix(F0, albedo.rgb, u_metallic);
-    vec3 pbrL = u_baseAmbient * albedo.rgb;
+    vec3 pbrL = vec3(0.0);
+
+    // Ambient
+    vec3 kS = F0 + (max(vec3(1.0 - roughness), F0) - F0) * pow(1.0 - dot(fragNormal, viewDir), 5.0);
+    pbrL += ambient * albedo.xyz;
 
     for ( int i = 0; i < u_plightCount; ++i ) {
         vec3 radiance = calcRadiance_plight(i, v_fragPos);
@@ -70,12 +75,14 @@ void main(void) {
         pbrL += isInShadow ? vec3(0.0) : integratePBR(fragNormal, viewDir, F0, L, albedo.rgb, roughness, metallic, 1.0) * radiance;
     }
 
+/*
     if ( u_hasEnvmap ) {
         float NdotH   = abs(dot(fragNormal, viewDir));
         vec3 F        = _fresnelSchlick(NdotH, F0);
         vec3 radiance = getEnvColor(u_viewPos, v_fragPos, fragNormal);
         pbrL += F * radiance;
     }
+    */
 
     f_color.rgb = pbrL;
     f_color.a = albedo.a;

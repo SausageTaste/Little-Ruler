@@ -44,7 +44,7 @@ namespace dal {
 
     private:
         GLint u_envmapPos = -1;
-        SamplerInterf u_envmap;
+        SamplerInterf u_envmap, u_irradianceMap;
 
         GLint u_numPlanes = -1;
         GLint u_planes = -1;
@@ -61,6 +61,9 @@ namespace dal {
 
         auto& envmap(void) const {
             return this->u_envmap;
+        }
+        auto& irradianceMap(void) const {
+            return this->u_irradianceMap;
         }
 
         void numPlanes(const int x) const {
