@@ -649,7 +649,16 @@ namespace dal {
 
                 // Irradiance
                 {
+                    auto& uniloc = this->m_shader.useCubeIrradiance();
 
+                    uniloc.projMat(projMat);
+                    e.cubemap().sendUniform(uniloc.envmap());
+
+                    for ( unsigned i = 0; i < 6; ++i ) {
+                        g_cubemapFbuf.readyFace(i, e.irradianceMap());
+                        uniloc.viewMat(glm::mat4{ glm::mat3{viewMats[i]} });
+                        g_skyRenderer.draw();
+                    }
                 }
 
                 g_cubemapFbuf.unbind(this->m_winWidth, this->m_winHeight);

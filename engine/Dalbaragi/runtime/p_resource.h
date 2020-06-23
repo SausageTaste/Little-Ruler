@@ -41,6 +41,9 @@ namespace dal {
         auto irradianceMap(void) -> dal::CubeMap& {
             return this->m_irradiance;
         }
+        auto irradianceMap(void) const -> const dal::CubeMap& {
+            return this->m_irradiance;
+        }
 
     };
 

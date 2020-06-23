@@ -681,4 +681,27 @@ namespace dal {
 
     };
 
+    class UniRender_CubeIrradiance {
+
+    private:
+        GLint u_projMat = -1;
+        GLint u_viewMat = -1;
+
+        SamplerInterf u_envmap;
+
+    public:
+        void set(const GLuint shader);
+
+        void projMat(const glm::mat4& mat) const {
+            sendMatrix(this->u_projMat, mat);
+        }
+        void viewMat(const glm::mat4& mat) const {
+            sendMatrix(this->u_viewMat, mat);
+        }
+        auto& envmap(void) const {
+            return this->u_envmap;
+        }
+
+    };
+
 }

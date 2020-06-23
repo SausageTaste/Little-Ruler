@@ -58,9 +58,11 @@ namespace dal {
         ShaderProgram m_overlay;
         UniRender_Overlay u_overlay;
 
+        ShaderProgram m_cube_irradiance;
+        UniRender_CubeIrradiance u_cube_irradiance;
+
     public:
         ShaderMaster(void);
-
 
         const UniRender_Static& useStatic(void) const;
         const UniRender_Animated& useAnimated(void) const;
@@ -72,6 +74,7 @@ namespace dal {
         const UniRender_Water& useWater(void) const;
         const UniRender_Skybox& useSkybox(void) const;
         const UniRender_Overlay& useOverlay(void) const;
+        const UniRender_CubeIrradiance& useCubeIrradiance(void) const;
 
     };
 
