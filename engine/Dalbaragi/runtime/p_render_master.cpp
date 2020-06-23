@@ -595,7 +595,7 @@ namespace dal {
                 };
 
                 g_cubemapFbuf.bind(e.dimension(), e.dimension());
-                g_cubemapFbuf.clearFaces(*e.getCubemap());
+                g_cubemapFbuf.clearFaces(e.cubemap());
 
                 {
                     const auto& uniloc = this->m_shader.useSkybox();
@@ -606,7 +606,7 @@ namespace dal {
                     this->m_skyboxTex->sendUniform(uniloc.skyboxTex());
 
                     for ( unsigned i = 0; i < 6; ++i ) {
-                        g_cubemapFbuf.readyFace(i, *e.getCubemap());
+                        g_cubemapFbuf.readyFace(i, e.cubemap());
                         uniloc.projMat(projMat);
                         uniloc.viewMat(glm::mat4{ glm::mat3{ viewMats[i] } });
                         g_skyRenderer.draw();
@@ -622,7 +622,7 @@ namespace dal {
                     uniloc.i_envmap.envmap().setFlagHas(false);
 
                     for ( unsigned i = 0; i < 6; ++i ) {
-                        g_cubemapFbuf.readyFace(i, *e.getCubemap());
+                        g_cubemapFbuf.readyFace(i, e.cubemap());
                         uniloc.viewMat(viewMats[i]);
                         this->m_scene.render_static(uniloc);
                     }
@@ -637,7 +637,7 @@ namespace dal {
                     uniloc.i_envmap.envmap().setFlagHas(false);
 
                     for ( unsigned i = 0; i < 6; ++i ) {
-                        g_cubemapFbuf.readyFace(i, *e.getCubemap());
+                        g_cubemapFbuf.readyFace(i, e.cubemap());
                         uniloc.viewMat(viewMats[i]);
                         this->m_scene.render_animated(uniloc);
                     }

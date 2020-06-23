@@ -20,7 +20,7 @@ namespace dal {
     private:
         inline static constexpr unsigned DIMENSION = 256;
 
-        std::shared_ptr<dal::CubeMap> m_cubemap;
+        dal::CubeMap m_cubemap;
 
     public:
         glm::vec3 m_pos{ 0 };
@@ -29,13 +29,13 @@ namespace dal {
     public:
         void init(void);
 
-        auto dimension(void) const {
+        auto dimension(void) const -> unsigned {
             return this->DIMENSION;
         }
-        auto& getCubemap(void) {
+        auto cubemap(void) -> dal::CubeMap& {
             return this->m_cubemap;
         }
-        auto& getCubemap(void) const {
+        auto cubemap(void) const -> const dal::CubeMap& {
             return this->m_cubemap;
         }
 

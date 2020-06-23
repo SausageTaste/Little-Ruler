@@ -320,12 +320,11 @@ namespace {
 namespace dal {
 
     void EnvMap::init(void) {
-        this->m_cubemap.reset(new dal::CubeMap);
-        this->m_cubemap->initAttach_colorMap(this->dimension(), this->dimension());
+        this->m_cubemap.initAttach_colorMap(this->dimension(), this->dimension());
     }
 
     void sendEnvmapUniform(const dal::EnvMap& cubemap, const dal::UniInterf_Envmap& uniloc) {
-        cubemap.getCubemap()->sendUniform(uniloc.envmap());
+        cubemap.cubemap().sendUniform(uniloc.envmap());
         uniloc.envmapPos(cubemap.m_pos);
 
 #if DAL_PARALLAX_CORRECTED_CUBEMAP == true
