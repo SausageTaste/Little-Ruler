@@ -101,6 +101,7 @@ namespace {
     } g_skyRenderer;
 
 
+    /*
     class CubeMapFbuf {
 
     private:
@@ -173,6 +174,7 @@ namespace {
         }
 
     };
+    */
 
 }
 
@@ -653,8 +655,6 @@ namespace dal {
                 e.unbindFbuf(this->m_winWidth, this->m_winHeight);
             }
         }
-
-       
     }
 
     void RenderMaster::render_onFbuf(void) {
