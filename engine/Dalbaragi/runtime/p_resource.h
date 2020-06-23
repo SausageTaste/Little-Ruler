@@ -20,7 +20,7 @@ namespace dal {
     private:
         inline static constexpr unsigned DIMENSION = 256;
 
-        dal::CubeMap m_cubemap;
+        dal::CubeMap m_cubemap, m_irradiance;
 
     public:
         glm::vec3 m_pos{ 0 };
@@ -37,6 +37,9 @@ namespace dal {
         }
         auto cubemap(void) const -> const dal::CubeMap& {
             return this->m_cubemap;
+        }
+        auto irradianceMap(void) -> dal::CubeMap& {
+            return this->m_irradiance;
         }
 
     };

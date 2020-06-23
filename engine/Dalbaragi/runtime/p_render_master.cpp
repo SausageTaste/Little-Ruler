@@ -596,7 +596,9 @@ namespace dal {
 
                 g_cubemapFbuf.bind(e.dimension(), e.dimension());
                 g_cubemapFbuf.clearFaces(e.cubemap());
+                g_cubemapFbuf.clearFaces(e.irradianceMap());
 
+                // Skybox
                 {
                     const auto& uniloc = this->m_shader.useSkybox();
                     const float sqrt2 = sqrt(1.0 / 3.0);
@@ -613,6 +615,7 @@ namespace dal {
                     }
                 }
 
+                // Static
                 {
                     auto& uniloc = this->m_shader.useStatic();
 
@@ -628,6 +631,7 @@ namespace dal {
                     }
                 }
 
+                // Animated
                 {
                     auto& uniloc = this->m_shader.useAnimated();
 
@@ -641,6 +645,11 @@ namespace dal {
                         uniloc.viewMat(viewMats[i]);
                         this->m_scene.render_animated(uniloc);
                     }
+                }
+
+                // Irradiance
+                {
+
                 }
 
                 g_cubemapFbuf.unbind(this->m_winWidth, this->m_winHeight);
