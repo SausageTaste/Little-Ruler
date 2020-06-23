@@ -18,9 +18,8 @@ namespace dal {
     class EnvMap {
 
     private:
-        inline static constexpr unsigned WIDTH = 256, HEIGHT = 256;
+        inline static constexpr unsigned DIMENSION = 256;
 
-        GLuint m_fbo = 0;
         std::shared_ptr<dal::CubeMap> m_cubemap;
 
     public:
@@ -30,12 +29,9 @@ namespace dal {
     public:
         void init(void);
 
-        void bindFbuf(void);
-        void unbindFbuf(const unsigned width, const unsigned height);
-
-        void clearFaces(void);
-        void readyFace(const unsigned faceIndex);
-
+        auto dimension(void) const {
+            return this->DIMENSION;
+        }
         auto& getCubemap(void) {
             return this->m_cubemap;
         }

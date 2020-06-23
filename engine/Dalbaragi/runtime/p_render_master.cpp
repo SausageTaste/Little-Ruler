@@ -101,42 +101,35 @@ namespace {
     } g_skyRenderer;
 
 
-    /*
-    class CubeMapFbuf {
+    class CubemapFbuf {
 
     private:
         GLuint m_fbo = 0;
-        std::shared_ptr<dal::CubeMap> m_cubemap;
-        inline static constexpr unsigned WIDTH = 256, HEIGHT = 256;
 
     public:
         void init(void) {
             glGenFramebuffers(1, &this->m_fbo);
-            glBindFramebuffer(GL_FRAMEBUFFER, this->m_fbo);
-
-            this->m_cubemap.reset(new dal::CubeMap);
-            this->m_cubemap->initAttach_colorMap(this->WIDTH, this->HEIGHT);
         }
 
-        void bindFbuf(void) {
+        void bind(const unsigned width, const unsigned height) {
             glBindFramebuffer(GL_FRAMEBUFFER, this->m_fbo);
-            glViewport(0, 0, this->WIDTH, this->HEIGHT);
-        }
-
-        void unbindFbuf(const unsigned width, const unsigned height) {
-            glBindFramebuffer(GL_DRAW_FRAMEBUFFER, this->m_fbo);
             glViewport(0, 0, width, height);
         }
 
-        void clearFaces(void) {
+        void unbind(const unsigned width, const unsigned height) {
+            glBindFramebuffer(GL_FRAMEBUFFER, 0);
+            glViewport(0, 0, width, height);
+        }
+
+        void clearFaces(dal::CubeMap& cubemap) {
             for ( unsigned i = 0; i < 6; ++i ) {
-                glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, this->m_cubemap->get(), 0);
+                glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, cubemap.get(), 0);
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             }
         }
 
-        void readyFace(const unsigned faceIndex) {
-            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + faceIndex, this->m_cubemap->get(), 0);
+        void readyFace(const unsigned faceIndex, dal::CubeMap& cubemap) {
+            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + faceIndex, cubemap.get(), 0);
 
             GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
             if ( status != GL_FRAMEBUFFER_COMPLETE ) {
@@ -169,12 +162,8 @@ namespace {
             }
         }
 
-        auto& getCubemap(void) {
-            return this->m_cubemap;
-        }
 
-    };
-    */
+    } g_cubemapFbuf;
 
 }
 
@@ -363,6 +352,7 @@ namespace dal {
         // Init
         {
             g_skyRenderer.init();
+            g_cubemapFbuf.init();
         }
 
         // Misc
@@ -591,6 +581,8 @@ namespace dal {
     }
 
     void RenderMaster::render_onCubemap(void) {
+        const auto projMat = glm::perspective(glm::radians(90.f), 1.f, 0.01f, 1000.f);
+
         for ( auto& m : this->m_scene.m_mapChunks2 ) {
             for ( auto& e : m.m_envmap ) {
                 std::array<glm::mat4, 6> viewMats = {
@@ -601,10 +593,9 @@ namespace dal {
                     glm::lookAt(e.m_pos, e.m_pos + glm::vec3(0.0, 0.0, 1.0), glm::vec3(0.0, -1.0, 0.0)),
                     glm::lookAt(e.m_pos, e.m_pos + glm::vec3(0.0, 0.0, -1.0), glm::vec3(0.0, -1.0, 0.0))
                 };
-                const auto projMat = glm::perspective(glm::radians(90.f), 1.f, 0.01f, 1000.f);
 
-                e.bindFbuf();
-                e.clearFaces();
+                g_cubemapFbuf.bind(e.dimension(), e.dimension());
+                g_cubemapFbuf.clearFaces(*e.getCubemap());
 
                 {
                     const auto& uniloc = this->m_shader.useSkybox();
@@ -615,7 +606,7 @@ namespace dal {
                     this->m_skyboxTex->sendUniform(uniloc.skyboxTex());
 
                     for ( unsigned i = 0; i < 6; ++i ) {
-                        e.readyFace(i);
+                        g_cubemapFbuf.readyFace(i, *e.getCubemap());
                         uniloc.projMat(projMat);
                         uniloc.viewMat(glm::mat4{ glm::mat3{ viewMats[i] } });
                         g_skyRenderer.draw();
@@ -631,7 +622,7 @@ namespace dal {
                     uniloc.i_envmap.envmap().setFlagHas(false);
 
                     for ( unsigned i = 0; i < 6; ++i ) {
-                        e.readyFace(i);
+                        g_cubemapFbuf.readyFace(i, *e.getCubemap());
                         uniloc.viewMat(viewMats[i]);
                         this->m_scene.render_static(uniloc);
                     }
@@ -646,13 +637,13 @@ namespace dal {
                     uniloc.i_envmap.envmap().setFlagHas(false);
 
                     for ( unsigned i = 0; i < 6; ++i ) {
-                        e.readyFace(i);
+                        g_cubemapFbuf.readyFace(i, *e.getCubemap());
                         uniloc.viewMat(viewMats[i]);
                         this->m_scene.render_animated(uniloc);
                     }
                 }
 
-                e.unbindFbuf(this->m_winWidth, this->m_winHeight);
+                g_cubemapFbuf.unbind(this->m_winWidth, this->m_winHeight);
             }
         }
     }
