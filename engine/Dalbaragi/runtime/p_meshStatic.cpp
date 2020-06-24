@@ -434,6 +434,29 @@ namespace dal {
         glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
     }
 
+    void CubeMap::initColorMipMap(const unsigned width, const unsigned height) {
+        this->genTexture("CubeMap::initColorMipMap");
+        glBindTexture(GL_TEXTURE_CUBE_MAP, this->get());
+
+#if DAL_BLOCKY_TEXTURE
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+#else
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+#endif
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+
+        for ( unsigned int i = 0; i < 6; i++ ) {
+            glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB16F, width, height, 0, GL_RGB, GL_FLOAT, nullptr);
+        }
+        glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
+
+        glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+    }
+
     void CubeMap::sendUniform(const SamplerInterf& uniloc) const {
         if ( this->isReady() ) {
             uniloc.setFlagHas(true);

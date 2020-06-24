@@ -322,6 +322,7 @@ namespace dal {
     void EnvMap::init(void) {
         this->m_cubemap.initAttach_colorMap(this->dimension(), this->dimension());
         this->m_irradiance.initAttach_colorMap(this->dimension(), this->dimension());
+        this->m_prefilterMap.initColorMipMap(this->dimension(), this->dimension());
     }
 
     void sendEnvmapUniform(const dal::EnvMap& cubemap, const dal::UniInterf_Envmap& uniloc) {
