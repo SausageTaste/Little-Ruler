@@ -128,8 +128,8 @@ namespace {
             }
         }
 
-        void readyFace(const unsigned faceIndex, dal::CubeMap& cubemap) {
-            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + faceIndex, cubemap.get(), 0);
+        void readyFace(const unsigned faceIndex, dal::CubeMap& cubemap, const unsigned mip = 0) {
+            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + faceIndex, cubemap.get(), mip);
 
             GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
             if ( status != GL_FRAMEBUFFER_COMPLETE ) {
@@ -321,7 +321,7 @@ namespace dal {
     {
         // OpenGL global switch
         {
-            glClearColor(m_skyColor.x, m_skyColor.y, m_skyColor.z, 1.0f);
+            glClearColor(0, 0, 0, 1);
         }
 
         // Skybox
@@ -581,7 +581,7 @@ namespace dal {
     }
 
     void RenderMaster::render_onCubemap(void) {
-        const auto projMat = glm::perspective(glm::radians(90.f), 1.f, 0.01f, 1000.f);
+        const auto projMat = glm::perspective(glm::radians(90.f), 1.f, 0.5f, 100.f);
 
         for ( auto& m : this->m_scene.m_mapChunks2 ) {
             for ( auto& e : m.m_envmap ) {
@@ -596,16 +596,16 @@ namespace dal {
 
                 g_cubemapFbuf.bind(e.dimension(), e.dimension());
                 g_cubemapFbuf.clearFaces(e.cubemap());
-                g_cubemapFbuf.clearFaces(e.irradianceMap());
 
                 // Skybox
                 {
                     const auto& uniloc = this->m_shader.useSkybox();
                     const float sqrt2 = sqrt(1.0 / 3.0);
 
+                    this->m_skyboxTex->sendUniform(uniloc.skyboxTex());
+                    uniloc.viewPosActual(this->m_mainCamera->m_pos);
                     uniloc.modelMat(glm::scale(glm::mat4{ 1 }, glm::vec3{ sqrt2 * this->m_farPlaneDistance }));
                     uniloc.viewPos(0, 0, 0);
-                    this->m_skyboxTex->sendUniform(uniloc.skyboxTex());
 
                     for ( unsigned i = 0; i < 6; ++i ) {
                         g_cubemapFbuf.readyFace(i, e.cubemap());
@@ -656,8 +656,34 @@ namespace dal {
 
                     for ( unsigned i = 0; i < 6; ++i ) {
                         g_cubemapFbuf.readyFace(i, e.irradianceMap());
+                        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
                         uniloc.viewMat(glm::mat4{ glm::mat3{viewMats[i]} });
                         g_skyRenderer.draw();
+                    }
+                }
+
+                // Prefilter
+                {
+                    auto& uniloc = this->m_shader.useCubePrefilter();
+
+                    uniloc.projMat(projMat);
+                    e.cubemap().sendUniform(uniloc.envmap());
+
+                    constexpr unsigned MAX_MAP_LVL = 5;
+                    for ( unsigned mip = 0; mip < MAX_MAP_LVL; ++mip ) {
+                        const unsigned mipWidth  = 128 * std::pow(0.5, mip);
+                        const unsigned mipHeight = 128 * std::pow(0.5, mip);
+                        glViewport(0, 0, mipWidth, mipHeight);
+
+                        const float roughness = static_cast<float>(mip) / static_cast<float>(MAX_MAP_LVL - 1);
+                        uniloc.roughness(roughness);
+
+                        for ( unsigned i = 0; i < 6; ++i ) {
+                            g_cubemapFbuf.readyFace(i, e.prefilterMap(), mip);
+                            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+                            uniloc.viewMat(glm::mat4{ glm::mat3{viewMats[i]} });
+                            g_skyRenderer.draw();
+                        }
                     }
                 }
 
