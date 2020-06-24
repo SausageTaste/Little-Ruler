@@ -309,4 +309,12 @@ namespace dal {
         this->u_envmap.init(getUniloc(shader, "u_envmap"), -2, g_texUnitReg["u_envmap"]);
     }
 
+    void UniRender_CubePrefilter::set(const GLuint shader) {
+        this->u_projMat = getUniloc(shader, "u_projMat");
+        this->u_viewMat = getUniloc(shader, "u_viewMat");
+
+        this->u_roughness = getUniloc(shader, "u_roughness");
+        this->u_envmap.init(getUniloc(shader, "u_envmap"), -2, g_texUnitReg["u_envmap"]);
+    }
+
 }

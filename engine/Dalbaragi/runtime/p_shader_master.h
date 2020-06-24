@@ -61,6 +61,9 @@ namespace dal {
         ShaderProgram m_cube_irradiance;
         UniRender_CubeIrradiance u_cube_irradiance;
 
+        ShaderProgram m_cube_prefilter;
+        UniRender_CubePrefilter u_cube_prefilter;
+
     public:
         ShaderMaster(void);
 
@@ -75,6 +78,7 @@ namespace dal {
         const UniRender_Skybox& useSkybox(void) const;
         const UniRender_Overlay& useOverlay(void) const;
         const UniRender_CubeIrradiance& useCubeIrradiance(void) const;
+        const UniRender_CubePrefilter& useCubePrefilter(void) const;
 
     };
 
