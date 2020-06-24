@@ -669,13 +669,12 @@ namespace dal {
                     uniloc.projMat(projMat);
                     e.cubemap().sendUniform(uniloc.envmap());
 
-                    constexpr unsigned MAX_MAP_LVL = 5;
-                    for ( unsigned mip = 0; mip < MAX_MAP_LVL; ++mip ) {
-                        const unsigned mipWidth  = 128 * std::pow(0.5, mip);
-                        const unsigned mipHeight = 128 * std::pow(0.5, mip);
-                        glViewport(0, 0, mipWidth, mipHeight);
+                    constexpr unsigned MAX_MIP_LVL = 4;
+                    for ( unsigned mip = 0; mip <= MAX_MIP_LVL; ++mip ) {
+                        const unsigned mipDimension  = e.dimension() * std::pow(0.5, mip);
+                        glViewport(0, 0, mipDimension, mipDimension);
 
-                        const float roughness = static_cast<float>(mip) / static_cast<float>(MAX_MAP_LVL - 1);
+                        const float roughness = static_cast<float>(mip) / static_cast<float>(MAX_MIP_LVL);
                         uniloc.roughness(roughness);
 
                         for ( unsigned i = 0; i < 6; ++i ) {

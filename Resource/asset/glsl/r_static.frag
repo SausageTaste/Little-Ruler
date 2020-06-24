@@ -53,7 +53,9 @@ void main(void) {
         vec3 kS = F0 + (max(vec3(1.0 - roughness), F0) - F0) * pow(1.0 - dot(fragNormal, viewDir), 5.0);
         pbrL += (1.0 - kS) * ambient * albedo.xyz;
         if ( u_hasEnvmap ) {
-            vec3 radiance = getEnvColor(u_viewPos, v_fragPos, fragNormal);
+            vec3  envSampleVec = calcEnvSampleDirec(u_viewPos, v_fragPos, fragNormal);
+            float mip = float(MAX_MIP_LVL) * roughness;
+            vec3  radiance = textureLod(u_prefilterMap, envSampleVec, mip).rgb;
             pbrL += kS * radiance;
         }
     }

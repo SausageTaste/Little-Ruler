@@ -5,10 +5,14 @@ uniform vec3 u_envmapPos;
 
 uniform samplerCube u_envmap;
 uniform samplerCube u_irradianceMap;
+uniform samplerCube u_prefilterMap;
 uniform bool u_hasEnvmap;
 
 uniform int u_numPlanes;
 uniform vec4 u_planes[16];
+
+
+const uint MAX_MIP_LVL = 4;
 
 
 vec3 intersect_seg_envVolume(Segment seg) {
@@ -33,10 +37,14 @@ vec3 intersect_seg_envVolume(Segment seg) {
     return colpoint;
 }
 
-
-vec3 getEnvColor(vec3 viewPos, vec3 fragPos, vec3 fragNormal) {
+vec3 calcEnvSampleDirec(vec3 viewPos, vec3 fragPos, vec3 fragNormal) {
     vec3 I = normalize(fragPos - viewPos);
     vec3 R = reflect(I, fragNormal);
+    return R;
+}
+
+vec3 getEnvColor(vec3 viewPos, vec3 fragPos, vec3 fragNormal) {
+    vec3 R = calcEnvSampleDirec(viewPos, fragPos, fragNormal);
 
     if ( 0 == u_numPlanes ) {
         return texture(u_envmap, R).rgb;
