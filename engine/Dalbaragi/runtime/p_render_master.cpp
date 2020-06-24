@@ -627,7 +627,7 @@ namespace dal {
                     for ( unsigned i = 0; i < 6; ++i ) {
                         g_cubemapFbuf.readyFace(i, e.cubemap());
                         uniloc.viewMat(viewMats[i]);
-                        this->m_scene.render_static(uniloc);
+                        this->m_scene.render_staticOnEnvmap(uniloc);
                     }
                 }
 

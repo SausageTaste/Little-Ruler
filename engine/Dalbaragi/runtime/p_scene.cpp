@@ -478,6 +478,24 @@ namespace dal {
         }
     }
 
+    void SceneGraph::render_staticOnEnvmap(const UniRender_Static& uniloc){
+        this->sendDlightUniform(uniloc.i_lighting);
+        uniloc.i_envmap.envmap().setFlagHas(false);
+
+        for ( auto& map : this->m_mapChunks2 ) {
+            map.render_staticOnEnvmap(uniloc);
+        }
+
+        const auto view = this->m_entities.view<cpnt::Transform, cpnt::StaticModel>();
+        for ( const auto entity : view ) {
+            auto& cpntTrans = view.get<cpnt::Transform>(entity);
+            auto& cpntModel = view.get<cpnt::StaticModel>(entity);
+
+            uniloc.modelMat(cpntTrans.getMat());
+            cpntModel.m_model->render(uniloc);
+        }
+    }
+
 
     void SceneGraph::sendDlightUniform(const UniInterf_Lighting& uniloc) {
         uniloc.dlightCount(this->m_dlights.size());
