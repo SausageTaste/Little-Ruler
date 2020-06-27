@@ -732,6 +732,7 @@ namespace dal {
                     uniloc.viewPos(e.m_pos);
                     uniloc.i_lighting.baseAmbient(this->m_baseAmbientColor);
                     uniloc.i_envmap.envmap().setFlagHas(false);
+                    g_brdfLUT.sendUniform(uniloc.i_envmap.brdfLUT());
 
                     for ( unsigned i = 0; i < 6; ++i ) {
                         g_cubemapFbuf.readyFace(i, e.cubemap());
@@ -796,6 +797,7 @@ namespace dal {
             uniloc.viewPos(this->m_mainCamera->m_pos);
             uniloc.i_lighting.baseAmbient(this->m_baseAmbientColor);
             uniloc.i_envmap.envmap().setFlagHas(false);
+            g_brdfLUT.sendUniform(uniloc.i_envmap.brdfLUT());
 
             this->m_scene.render_static(uniloc);
         }
@@ -809,6 +811,7 @@ namespace dal {
             uniloc.viewPos(this->m_mainCamera->m_pos);
             uniloc.i_lighting.baseAmbient(this->m_baseAmbientColor);
             uniloc.i_envmap.envmap().setFlagHas(false);
+            g_brdfLUT.sendUniform(uniloc.i_envmap.brdfLUT());
 
             this->m_scene.render_animated(uniloc);
         }

@@ -63,7 +63,7 @@ void main(void) {
         pbrL += specular + kD * diffuse;
     }
     else {
-        pbrL += u_baseAmbient;
+        pbrL += u_baseAmbient * albedo.xyz;
     }
 
     for ( int i = 0; i < u_plightCount; ++i ) {
