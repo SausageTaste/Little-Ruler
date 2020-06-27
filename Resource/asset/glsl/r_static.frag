@@ -43,21 +43,27 @@ void main(void) {
     vec4  albedo     = texture(u_diffuseMap, v_texCoord);
     float roughness  = u_hasRoughnessMap ? texture(u_roughnessMap, v_texCoord).r : u_roughness;
     float metallic   = u_hasMetallicMap ? texture(u_metallicMap, v_texCoord).r : u_metallic;
-    vec3  ambient    = u_hasEnvmap ? texture(u_irradianceMap, fragNormal).xyz : u_baseAmbient;
     vec3  F0         = mix(vec3(0.04), albedo.rgb, u_metallic);
 
     vec3 pbrL = vec3(0.0);
 
     // Env mapping
-    {
-        vec3 kS = F0 + (max(vec3(1.0 - roughness), F0) - F0) * pow(1.0 - dot(fragNormal, viewDir), 5.0);
-        pbrL += (1.0 - kS) * ambient * albedo.xyz;
-        if ( u_hasEnvmap ) {
-            vec3  envSampleVec = calcEnvSampleDirec(u_viewPos, v_fragPos, fragNormal);
-            float mip = float(MAX_MIP_LVL) * roughness;
-            vec3  radiance = textureLod(u_prefilterMap, envSampleVec, mip).rgb;
-            pbrL += kS * radiance;
-        }
+    if ( u_hasEnvmap ){
+        float NdotV = dot(fragNormal, viewDir);
+        vec3 kS = F0 + (max(vec3(1.0 - roughness), F0) - F0) * pow(1.0 - NdotV, 5.0);
+        vec3 kD = vec3(1.0) - F0;
+
+        vec3 diffuse = texture(u_irradianceMap, fragNormal).xyz * albedo.xyz;
+
+        vec2 brdf = texture(u_brdfLUT, vec2(max(NdotV, 0.0), roughness)).xy;
+        vec3 envSampleVec = calcEnvSampleDirec(u_viewPos, v_fragPos, fragNormal);
+        vec3 prefiltered = textureLod(u_prefilterMap, envSampleVec, float(MAX_MIP_LVL) * roughness).rgb;
+        vec3 specular = prefiltered * (kS * brdf.x + brdf.y);
+
+        pbrL += specular + kD * diffuse;
+    }
+    else {
+        pbrL += u_baseAmbient;
     }
 
     for ( int i = 0; i < u_plightCount; ++i ) {

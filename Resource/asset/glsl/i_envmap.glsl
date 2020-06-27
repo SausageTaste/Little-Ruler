@@ -6,6 +6,7 @@ uniform vec3 u_envmapPos;
 uniform samplerCube u_envmap;
 uniform samplerCube u_irradianceMap;
 uniform samplerCube u_prefilterMap;
+uniform sampler2D u_brdfLUT;
 uniform bool u_hasEnvmap;
 
 uniform int u_numPlanes;

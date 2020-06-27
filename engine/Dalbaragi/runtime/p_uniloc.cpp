@@ -119,6 +119,7 @@ namespace dal {
         this->u_envmap.init(getUniloc(shader, "u_envmap"), getUniloc(shader, "u_hasEnvmap"), g_texUnitReg["u_envmap"]);
         this->u_irradianceMap.init(getUniloc(shader, "u_irradianceMap"), -2, g_texUnitReg["u_irradianceMap"]);
         this->u_prefilterMap.init(getUniloc(shader, "u_prefilterMap"), -2, g_texUnitReg["u_prefilterMap"]);
+        this->u_brdfLUT.init(getUniloc(shader, "u_brdfLUT"), -2, g_texUnitReg["u_brdfLUT"]);
 
         this->u_numPlanes = getUniloc(shader, "u_numPlanes");
         this->u_planes = getUniloc(shader, "u_planes");

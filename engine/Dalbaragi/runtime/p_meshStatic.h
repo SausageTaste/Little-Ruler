@@ -180,7 +180,6 @@ namespace dal {
             return m_texID;
         }
 
-    protected:
         void genTexture(const char* const str4Log);
 
     };

@@ -64,6 +64,8 @@ namespace dal {
         ShaderProgram m_cube_prefilter;
         UniRender_CubePrefilter u_cube_prefilter;
 
+        ShaderProgram m_brdfLUT;
+
     public:
         ShaderMaster(void);
 
@@ -79,6 +81,7 @@ namespace dal {
         const UniRender_Overlay& useOverlay(void) const;
         const UniRender_CubeIrradiance& useCubeIrradiance(void) const;
         const UniRender_CubePrefilter& useCubePrefilter(void) const;
+        void useBrdfLUT(void) const;
 
     };
 

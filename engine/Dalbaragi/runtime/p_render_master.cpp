@@ -165,6 +165,72 @@ namespace {
 
     } g_cubemapFbuf;
 
+    class VertexBuf_Fillscreen {
+
+    private:
+        GLuint m_vbo = 0;
+        GLuint m_vertexArr = 0;
+        GLuint m_texcoordArr = 0;
+
+    public:
+        void init(void) {
+            glGenVertexArrays(1, &this->m_vbo); dalAssert(this->m_vbo > 0);
+            glGenBuffers(1, &this->m_vertexArr); dalAssert(this->m_vertexArr > 0);
+            glGenBuffers(1, &this->m_texcoordArr); dalAssert(this->m_texcoordArr > 0);
+
+            glBindVertexArray(this->m_vbo);
+
+            // Vertices
+            {
+                GLfloat vertices[12] = {
+                    -1,  1,
+                    -1, -1,
+                     1, -1,
+                    -1,  1,
+                     1, -1,
+                     1,  1
+                };
+                auto size = 12 * sizeof(float);
+
+                glBindBuffer(GL_ARRAY_BUFFER, this->m_vertexArr);
+                glBufferData(GL_ARRAY_BUFFER, size, vertices, GL_STATIC_DRAW);
+
+                glEnableVertexAttribArray(0);
+                glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, nullptr);
+            }
+
+            // TexCoords
+            {
+                GLfloat texCoords[12] = {
+                    0, 1,
+                    0, 0,
+                    1, 0,
+                    0, 1,
+                    1, 0,
+                    1, 1
+                };
+                auto size = 12 * sizeof(float);
+
+                glBindBuffer(GL_ARRAY_BUFFER, this->m_texcoordArr);
+                glBufferData(GL_ARRAY_BUFFER, size, texCoords, GL_STATIC_DRAW);
+
+                glEnableVertexAttribArray(1);
+                glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, nullptr);
+            }
+
+            glBindVertexArray(0);
+        }
+
+        void draw(void) const {
+            glBindVertexArray(this->m_vbo);
+            glDrawArrays(GL_TRIANGLES, 0, 6);
+        }
+
+    } g_vertbuf_fillscreen;
+
+
+    dal::Texture g_brdfLUT;
+
 }
 
 
@@ -324,6 +390,13 @@ namespace dal {
             glClearColor(0, 0, 0, 1);
         }
 
+        // Init
+        {
+            g_skyRenderer.init();
+            g_cubemapFbuf.init();
+            g_vertbuf_fillscreen.init();
+        }
+
         // Skybox
         {
             std::array<std::string, 6> cubeMapImages{
@@ -349,10 +422,29 @@ namespace dal {
             }
         }
 
-        // Init
+        // Generate brdf lut map
         {
-            g_skyRenderer.init();
-            g_cubemapFbuf.init();
+            GLuint fbuf = 0;
+            glGenFramebuffers(1, &fbuf);
+            glBindFramebuffer(GL_FRAMEBUFFER, fbuf);
+
+            g_brdfLUT.genTexture("");
+            glBindTexture(GL_TEXTURE_2D, g_brdfLUT.get());
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RG16F, 512, 512, 0, GL_RG, GL_FLOAT, 0);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, g_brdfLUT.get(), 0);
+
+            glViewport(0, 0, 512, 512);
+            this->m_shader.useBrdfLUT();
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            g_vertbuf_fillscreen.draw();
+
+            glBindFramebuffer(GL_FRAMEBUFFER, 0);
+            glDeleteFramebuffers(1, &fbuf);
         }
 
         // Misc
@@ -623,6 +715,7 @@ namespace dal {
                     uniloc.viewPos(e.m_pos);
                     uniloc.i_lighting.baseAmbient(this->m_baseAmbientColor);
                     uniloc.i_envmap.envmap().setFlagHas(false);
+                    g_brdfLUT.sendUniform(uniloc.i_envmap.brdfLUT());
 
                     for ( unsigned i = 0; i < 6; ++i ) {
                         g_cubemapFbuf.readyFace(i, e.cubemap());

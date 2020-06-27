@@ -226,6 +226,8 @@ namespace dal {
         this->m_cube_irradiance.init(g_loader["r_cubemap.vert"], g_loader["r_cube_irradiance.frag"]);
         this->m_cube_prefilter.init(g_loader["r_cubemap.vert"], g_loader["r_cube_prefilter.frag"]);
 
+        this->m_brdfLUT.init(g_loader["r_fillscreen.vert"], g_loader["r_brdf_lut.frag"]);
+
         this->u_static.set(this->m_static.get());
         this->u_animated.set(this->m_animated.get());
         this->u_static_depth.set(this->m_static_depth.get());
@@ -313,6 +315,10 @@ namespace dal {
         setFor_generalRender();
         this->m_cube_prefilter.use();
         return this->u_cube_prefilter;
+    }
+
+    void ShaderMaster::useBrdfLUT(void) const {
+        this->m_brdfLUT.use();
     }
 
 }
