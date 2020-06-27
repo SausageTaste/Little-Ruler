@@ -32,6 +32,34 @@ namespace {
 
 namespace {
 
+    dal::EnvMap* selectEnvmapToUpdate(const glm::vec3& viewPos, dal::SceneGraph& scene) {
+        double selectedScore = 0.0;
+        dal::EnvMap* selected = nullptr;
+
+        for ( auto& m : scene.m_mapChunks2 ) {
+            for ( auto& e : m.m_envmap ) {
+                const double elapsed = e.m_timer.getElapsed();
+                const double distance = glm::distance(e.m_pos, viewPos);
+                const double score = elapsed / distance;
+
+                if ( score > selectedScore ) {
+                    selectedScore = score;
+                    selected = &e;
+                }
+            }
+        }
+
+        if ( nullptr != selected ) {
+            selected->m_timer.check();
+        }
+        return selected;
+    }
+
+}
+
+
+namespace {
+
     class VertexBuf_Cube {
 
     private:
@@ -441,11 +469,7 @@ namespace dal {
         this->render_onWater(reg);
 #endif
 
-        if ( this->m_envmapTimer.getElapsed() >= 1.f ) {
-            this->m_envmapTimer.check();
-            this->render_onCubemap();
-        }
-
+        this->render_onCubemap();
         this->render_onFbuf();
 
         // Render framebuffer to quad 
@@ -635,131 +659,138 @@ namespace dal {
     }
 
     void RenderMaster::render_onCubemap(void) {
-        const auto projMat = glm::perspective(glm::radians(90.f), 1.f, 0.5f, 50.f);
+        if ( this->m_envmapTimer.getElapsed() < 0.5 ) {
+            return;
+        }
+        else {
+            this->m_envmapTimer.check();
+        }
 
-        g_cubemapFbuf.bind();
+        const auto projMat = glm::perspective(glm::radians(90.f), 1.f, 0.1f, 50.f);
+        const auto envmap = ::selectEnvmapToUpdate(this->m_mainCamera->m_pos, this->m_scene);
 
-        for ( auto& m : this->m_scene.m_mapChunks2 ) {
-            for ( auto& e : m.m_envmap ) {
-                std::array<glm::mat4, 6> viewMats = {
-                    glm::lookAt(e.m_pos, e.m_pos + glm::vec3(1.0, 0.0, 0.0), glm::vec3(0.0, -1.0, 0.0)),
-                    glm::lookAt(e.m_pos, e.m_pos + glm::vec3(-1.0, 0.0, 0.0), glm::vec3(0.0, -1.0, 0.0)),
-                    glm::lookAt(e.m_pos, e.m_pos + glm::vec3(0.0, 1.0, 0.0), glm::vec3(0.0, 0.0, 1.0)),
-                    glm::lookAt(e.m_pos, e.m_pos + glm::vec3(0.0, -1.0, 0.0), glm::vec3(0.0, 0.0, -1.0)),
-                    glm::lookAt(e.m_pos, e.m_pos + glm::vec3(0.0, 0.0, 1.0), glm::vec3(0.0, -1.0, 0.0)),
-                    glm::lookAt(e.m_pos, e.m_pos + glm::vec3(0.0, 0.0, -1.0), glm::vec3(0.0, -1.0, 0.0))
-                };
+        if ( nullptr != envmap ) {
+            g_cubemapFbuf.bind();
 
-                glViewport(0, 0, e.dimension(), e.dimension());
+            std::array<glm::mat4, 6> viewMats = {
+                glm::lookAt(envmap->m_pos, envmap->m_pos + glm::vec3(1.0, 0.0, 0.0), glm::vec3(0.0, -1.0, 0.0)),
+                glm::lookAt(envmap->m_pos, envmap->m_pos + glm::vec3(-1.0, 0.0, 0.0), glm::vec3(0.0, -1.0, 0.0)),
+                glm::lookAt(envmap->m_pos, envmap->m_pos + glm::vec3(0.0, 1.0, 0.0), glm::vec3(0.0, 0.0, 1.0)),
+                glm::lookAt(envmap->m_pos, envmap->m_pos + glm::vec3(0.0, -1.0, 0.0), glm::vec3(0.0, 0.0, -1.0)),
+                glm::lookAt(envmap->m_pos, envmap->m_pos + glm::vec3(0.0, 0.0, 1.0), glm::vec3(0.0, -1.0, 0.0)),
+                glm::lookAt(envmap->m_pos, envmap->m_pos + glm::vec3(0.0, 0.0, -1.0), glm::vec3(0.0, -1.0, 0.0))
+            };
+
+            glViewport(0, 0, envmap->dimension(), envmap->dimension());
+            for ( unsigned i = 0; i < 6; ++i ) {
+                g_cubemapFbuf.clearFaceColor(envmap->cubemap(), i, 0);
+            }
+
+            glEnable(GL_DEPTH_TEST);
+            glDepthFunc(GL_LESS);
+            glEnable(GL_CULL_FACE);
+
+            // Static
+            {
+                auto& uniloc = this->m_shader.useStatic();
+
+                uniloc.projMat(projMat);
+                uniloc.viewPos(envmap->m_pos);
+                uniloc.i_lighting.baseAmbient(this->m_baseAmbientColor);
+                uniloc.i_envmap.envmap().setFlagHas(false);
+                ::g_brdfLUT.sendUniform(uniloc.i_envmap.brdfLUT());
+
                 for ( unsigned i = 0; i < 6; ++i ) {
-                    g_cubemapFbuf.clearFaceColor(e.cubemap(), i, 0);
+                    g_cubemapFbuf.readyFace(i, envmap->cubemap());
+                    glClear(GL_DEPTH_BUFFER_BIT);
+                    uniloc.viewMat(viewMats[i]);
+                    this->m_scene.render_staticOnEnvmap(uniloc);
                 }
+            }
 
-                glEnable(GL_DEPTH_TEST);
-                glDepthFunc(GL_LESS);
-                glEnable(GL_CULL_FACE);
+            // Animated
+            {
+                auto& uniloc = this->m_shader.useAnimated();
 
-                // Static
-                {
-                    auto& uniloc = this->m_shader.useStatic();
+                uniloc.projMat(projMat);
+                uniloc.viewPos(envmap->m_pos);
+                uniloc.i_lighting.baseAmbient(this->m_baseAmbientColor);
+                uniloc.i_envmap.envmap().setFlagHas(false);
+                ::g_brdfLUT.sendUniform(uniloc.i_envmap.brdfLUT());
 
+                for ( unsigned i = 0; i < 6; ++i ) {
+                    g_cubemapFbuf.readyFace(i, envmap->cubemap());
+                    uniloc.viewMat(viewMats[i]);
+                    this->m_scene.render_animated(uniloc);
+                }
+            }
+
+            glDepthFunc(GL_LEQUAL);
+
+            // Skybox
+            {
+                const auto& uniloc = this->m_shader.useSkybox();
+                const float sqrt2 = sqrt(1.0 / 3.0);
+
+                this->m_skyboxTex->sendUniform(uniloc.skyboxTex());
+                uniloc.viewPosActual(this->m_mainCamera->m_pos);
+                uniloc.modelMat(glm::scale(glm::mat4{ 1 }, glm::vec3{ sqrt2 * this->m_farPlaneDistance }));
+                uniloc.viewPos(0, 0, 0);
+
+                for ( unsigned i = 0; i < 6; ++i ) {
+                    g_cubemapFbuf.readyFace(i, envmap->cubemap());
                     uniloc.projMat(projMat);
-                    uniloc.viewPos(e.m_pos);
-                    uniloc.i_lighting.baseAmbient(this->m_baseAmbientColor);
-                    uniloc.i_envmap.envmap().setFlagHas(false);
-                    g_brdfLUT.sendUniform(uniloc.i_envmap.brdfLUT());
-
-                    for ( unsigned i = 0; i < 6; ++i ) {
-                        g_cubemapFbuf.readyFace(i, e.cubemap());
-                        glClear(GL_DEPTH_BUFFER_BIT);
-                        uniloc.viewMat(viewMats[i]);
-                        this->m_scene.render_staticOnEnvmap(uniloc);
-                    }
+                    uniloc.viewMat(glm::mat4{ glm::mat3{ viewMats[i] } });
+                    g_vertbuf_cube.draw();
                 }
+            }
 
-                // Animated
-                {
-                    auto& uniloc = this->m_shader.useAnimated();
+            glDepthFunc(GL_ALWAYS);
 
-                    uniloc.projMat(projMat);
-                    uniloc.viewPos(e.m_pos);
-                    uniloc.i_lighting.baseAmbient(this->m_baseAmbientColor);
-                    uniloc.i_envmap.envmap().setFlagHas(false);
-                    g_brdfLUT.sendUniform(uniloc.i_envmap.brdfLUT());
+            // Irradiance
+            {
+                auto& uniloc = this->m_shader.useCubeIrradiance();
 
-                    for ( unsigned i = 0; i < 6; ++i ) {
-                        g_cubemapFbuf.readyFace(i, e.cubemap());
-                        uniloc.viewMat(viewMats[i]);
-                        this->m_scene.render_animated(uniloc);
-                    }
+                uniloc.projMat(projMat);
+                envmap->cubemap().sendUniform(uniloc.envmap());
+
+                for ( unsigned i = 0; i < 6; ++i ) {
+                    g_cubemapFbuf.readyFace(i, envmap->irradianceMap());
+                    glClear(GL_COLOR_BUFFER_BIT);
+                    uniloc.viewMat(glm::mat4{ glm::mat3{viewMats[i]} });
+                    g_vertbuf_cube.draw();
                 }
+            }
 
-                glDepthFunc(GL_LEQUAL);
+            // Prefilter
+            {
+                auto& uniloc = this->m_shader.useCubePrefilter();
 
-                // Skybox
-                {
-                    const auto& uniloc = this->m_shader.useSkybox();
-                    const float sqrt2 = sqrt(1.0 / 3.0);
+                uniloc.projMat(projMat);
+                envmap->cubemap().sendUniform(uniloc.envmap());
 
-                    this->m_skyboxTex->sendUniform(uniloc.skyboxTex());
-                    uniloc.viewPosActual(this->m_mainCamera->m_pos);
-                    uniloc.modelMat(glm::scale(glm::mat4{ 1 }, glm::vec3{ sqrt2 * this->m_farPlaneDistance }));
-                    uniloc.viewPos(0, 0, 0);
+                constexpr unsigned MAX_MIP_LVL = 4;
+                for ( unsigned mip = 0; mip <= MAX_MIP_LVL; ++mip ) {
+                    const unsigned mipDimension = envmap->dimension() * std::pow(0.5, mip);
+                    glViewport(0, 0, mipDimension, mipDimension);
 
-                    for ( unsigned i = 0; i < 6; ++i ) {
-                        g_cubemapFbuf.readyFace(i, e.cubemap());
-                        uniloc.projMat(projMat);
-                        uniloc.viewMat(glm::mat4{ glm::mat3{ viewMats[i] } });
-                        g_vertbuf_cube.draw();
-                    }
-                }
-
-                glDepthFunc(GL_ALWAYS);
-
-                // Irradiance
-                {
-                    auto& uniloc = this->m_shader.useCubeIrradiance();
-
-                    uniloc.projMat(projMat);
-                    e.cubemap().sendUniform(uniloc.envmap());
+                    const float roughness = static_cast<float>(mip) / static_cast<float>(MAX_MIP_LVL);
+                    uniloc.roughness(roughness);
 
                     for ( unsigned i = 0; i < 6; ++i ) {
-                        g_cubemapFbuf.readyFace(i, e.irradianceMap());
+                        g_cubemapFbuf.readyFace(i, envmap->prefilterMap(), mip);
                         glClear(GL_COLOR_BUFFER_BIT);
                         uniloc.viewMat(glm::mat4{ glm::mat3{viewMats[i]} });
                         g_vertbuf_cube.draw();
                     }
                 }
-
-                // Prefilter
-                {
-                    auto& uniloc = this->m_shader.useCubePrefilter();
-
-                    uniloc.projMat(projMat);
-                    e.cubemap().sendUniform(uniloc.envmap());
-
-                    constexpr unsigned MAX_MIP_LVL = 4;
-                    for ( unsigned mip = 0; mip <= MAX_MIP_LVL; ++mip ) {
-                        const unsigned mipDimension  = e.dimension() * std::pow(0.5, mip);
-                        glViewport(0, 0, mipDimension, mipDimension);
-
-                        const float roughness = static_cast<float>(mip) / static_cast<float>(MAX_MIP_LVL);
-                        uniloc.roughness(roughness);
-
-                        for ( unsigned i = 0; i < 6; ++i ) {
-                            g_cubemapFbuf.readyFace(i, e.prefilterMap(), mip);
-                            glClear(GL_COLOR_BUFFER_BIT);
-                            uniloc.viewMat(glm::mat4{ glm::mat3{viewMats[i]} });
-                            g_vertbuf_cube.draw();
-                        }
-                    }
-                }
             }
+
+            g_cubemapFbuf.unbind();
+            glViewport(0, 0, this->m_winWidth, this->m_winHeight);
+            glDepthFunc(GL_LESS);
         }
 
-        g_cubemapFbuf.unbind();
-        glViewport(0, 0, this->m_winWidth, this->m_winHeight);
-        glDepthFunc(GL_LESS);
     }
 
     void RenderMaster::render_onFbuf(void) {

@@ -11,6 +11,7 @@
 #include "p_water.h"
 #include "p_model.h"
 #include "p_light.h"
+#include "u_timer.h"
 
 
 namespace dal {
@@ -25,6 +26,7 @@ namespace dal {
     public:
         glm::vec3 m_pos{ 0 };
         std::vector<Plane> m_volume;
+        dal::Timer m_timer;
 
     public:
         void init(void);
