@@ -346,7 +346,9 @@ namespace dal {
         // OpenGL global switch
         {
             glClearColor(0, 0, 0, 1);
+#ifdef _WIN32
             glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
+#endif
         }
 
         // Init
