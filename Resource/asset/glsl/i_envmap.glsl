@@ -12,7 +12,7 @@ uniform int u_numPlanes;
 uniform vec4 u_planes[16];
 
 
-const uint MAX_MIP_LVL = 4u;
+const uint MAX_MIP_LVL = 3u;
 
 
 vec3 intersect_seg_envVolume(Segment seg) {

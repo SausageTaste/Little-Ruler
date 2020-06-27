@@ -19,7 +19,7 @@ namespace dal {
     class EnvMap {
 
     private:
-        inline static constexpr unsigned DIMENSION = 128;
+        inline static constexpr unsigned DIMENSION = 64;
 
         dal::CubeMap m_irradiance, m_prefilterMap;
 

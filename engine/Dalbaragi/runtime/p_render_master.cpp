@@ -769,7 +769,7 @@ namespace dal {
                 uniloc.projMat(projMat);
                 envmap->prefilterMap().sendUniform(uniloc.envmap());
 
-                constexpr unsigned MAX_MIP_LVL = 4;
+                constexpr unsigned MAX_MIP_LVL = 3;
                 for ( unsigned mip = 1; mip <= MAX_MIP_LVL; ++mip ) {
                     const unsigned mipDimension = envmap->dimension() * std::pow(0.5, mip);
                     glViewport(0, 0, mipDimension, mipDimension);
