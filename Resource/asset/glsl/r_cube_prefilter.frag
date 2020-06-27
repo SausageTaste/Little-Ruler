@@ -91,7 +91,7 @@ void main() {
         float NdotL = max(dot(N, L), 0.0);
         if(NdotL > 0.0)
         {
-            prefilteredColor += texture(u_envmap, L).rgb * NdotL;
+            prefilteredColor += textureLod(u_envmap, L, 0.0).rgb * NdotL;
             totalWeight      += NdotL;
         }
     }

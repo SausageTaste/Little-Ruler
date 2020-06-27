@@ -320,16 +320,15 @@ namespace {
 namespace dal {
 
     void EnvMap::init(void) {
-        this->m_cubemap.initAttach_colorMap(this->dimension(), this->dimension());
-        this->m_irradiance.initAttach_colorMap(this->dimension(), this->dimension());
         this->m_prefilterMap.initColorMipMap(this->dimension(), this->dimension());
+        this->m_irradiance.initAttach_colorMap(this->dimension(), this->dimension());
     }
 
     void sendEnvmapUniform(const dal::EnvMap& cubemap, const dal::UniInterf_Envmap& uniloc) {
-        cubemap.cubemap().sendUniform(uniloc.envmap());
         cubemap.irradianceMap().sendUniform(uniloc.irradianceMap());
         cubemap.prefilterMap().sendUniform(uniloc.prefilterMap());
         uniloc.envmapPos(cubemap.m_pos);
+        uniloc.hasEnvmap(true);
 
 #if DAL_PARALLAX_CORRECTED_CUBEMAP == true
         uniloc.numPlanes(cubemap.m_volume.size());
@@ -487,7 +486,7 @@ namespace dal {
                     sendEnvmapUniform(cubemap, uniloc.i_envmap);
                 }
                 else {
-                    uniloc.i_envmap.envmap().setFlagHas(false);
+                    uniloc.i_envmap.hasEnvmap(false);
                 }
 
                 uniloc.modelMat(actor.m_transform.getMat());

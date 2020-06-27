@@ -3,7 +3,6 @@
 
 uniform vec3 u_envmapPos;
 
-uniform samplerCube u_envmap;
 uniform samplerCube u_irradianceMap;
 uniform samplerCube u_prefilterMap;
 uniform sampler2D u_brdfLUT;
@@ -42,21 +41,4 @@ vec3 calcEnvSampleDirec(vec3 viewPos, vec3 fragPos, vec3 fragNormal) {
     vec3 I = normalize(fragPos - viewPos);
     vec3 R = reflect(I, fragNormal);
     return R;
-}
-
-vec3 getEnvColor(vec3 viewPos, vec3 fragPos, vec3 fragNormal) {
-    vec3 R = calcEnvSampleDirec(viewPos, fragPos, fragNormal);
-
-    if ( 0 == u_numPlanes ) {
-        return texture(u_envmap, R).rgb;
-    }
-    else {
-        Segment ray;
-        ray.m_pos = fragPos;
-        ray.m_rel = R * 100.0;
-
-        vec3 intersection = intersect_seg_envVolume(ray);
-        vec3 sampleRay = intersection - u_envmapPos;
-        return texture(u_envmap, sampleRay).rgb;
-    }
 }

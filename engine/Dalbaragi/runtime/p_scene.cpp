@@ -385,7 +385,7 @@ namespace dal {
                 sendEnvmapUniform(*envmap, uniloc.i_envmap);
             }
             else {
-                uniloc.i_envmap.envmap().setFlagHas(false);
+                uniloc.i_envmap.hasEnvmap(false);
             }
 
             uniloc.modelMat(cpntTrans.getMat());
@@ -411,7 +411,7 @@ namespace dal {
                 sendEnvmapUniform(*envmap, uniloc.i_envmap);
             }
             else {
-                uniloc.i_envmap.envmap().setFlagHas(false);
+                uniloc.i_envmap.hasEnvmap(false);
             }
 
             uniloc.modelMat(cpntTrans.getMat());
@@ -480,7 +480,7 @@ namespace dal {
 
     void SceneGraph::render_staticOnEnvmap(const UniRender_Static& uniloc){
         this->sendDlightUniform(uniloc.i_lighting);
-        uniloc.i_envmap.envmap().setFlagHas(false);
+        uniloc.i_envmap.hasEnvmap(false);
 
         for ( auto& map : this->m_mapChunks2 ) {
             map.render_staticOnEnvmap(uniloc);

@@ -44,7 +44,9 @@ namespace dal {
 
     private:
         GLint u_envmapPos = -1;
-        SamplerInterf u_envmap, u_irradianceMap, u_prefilterMap, u_brdfLUT;
+
+        SamplerInterf u_irradianceMap, u_prefilterMap, u_brdfLUT;
+        GLint u_hasEnvmap = -1;
 
         GLint u_numPlanes = -1;
         GLint u_planes = -1;
@@ -59,9 +61,6 @@ namespace dal {
             this->envmapPos(v.x, v.y, v.z);
         }
 
-        auto& envmap(void) const {
-            return this->u_envmap;
-        }
         auto& irradianceMap(void) const {
             return this->u_irradianceMap;
         }
@@ -70,6 +69,9 @@ namespace dal {
         }
         auto& brdfLUT(void) const {
             return this->u_brdfLUT;
+        }
+        void hasEnvmap(const bool v) const {
+            sendBool(this->u_hasEnvmap, v);
         }
 
         void numPlanes(const int x) const {

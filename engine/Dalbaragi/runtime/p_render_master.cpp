@@ -168,7 +168,7 @@ namespace {
             glClear(GL_COLOR_BUFFER_BIT);
         }
 
-        void readyFace(const unsigned faceIndex, dal::CubeMap& cubemap, const unsigned mip = 0) {
+        void readyFace(const dal::CubeMap& cubemap, const unsigned faceIndex, const unsigned mip) {
             glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + faceIndex, cubemap.get(), mip);
             glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, this->m_depthMaps[faceIndex].get(), 0);
 
@@ -683,7 +683,7 @@ namespace dal {
 
             glViewport(0, 0, envmap->dimension(), envmap->dimension());
             for ( unsigned i = 0; i < 6; ++i ) {
-                g_cubemapFbuf.clearFaceColor(envmap->cubemap(), i, 0);
+                g_cubemapFbuf.clearFaceColor(envmap->prefilterMap(), i, 0);
             }
 
             glEnable(GL_DEPTH_TEST);
@@ -697,11 +697,11 @@ namespace dal {
                 uniloc.projMat(projMat);
                 uniloc.viewPos(envmap->m_pos);
                 uniloc.i_lighting.baseAmbient(this->m_baseAmbientColor);
-                uniloc.i_envmap.envmap().setFlagHas(false);
+                uniloc.i_envmap.hasEnvmap(false);
                 ::g_brdfLUT.sendUniform(uniloc.i_envmap.brdfLUT());
 
                 for ( unsigned i = 0; i < 6; ++i ) {
-                    g_cubemapFbuf.readyFace(i, envmap->cubemap());
+                    g_cubemapFbuf.readyFace(envmap->prefilterMap(), i, 0);
                     glClear(GL_DEPTH_BUFFER_BIT);
                     uniloc.viewMat(viewMats[i]);
                     this->m_scene.render_staticOnEnvmap(uniloc);
@@ -715,11 +715,11 @@ namespace dal {
                 uniloc.projMat(projMat);
                 uniloc.viewPos(envmap->m_pos);
                 uniloc.i_lighting.baseAmbient(this->m_baseAmbientColor);
-                uniloc.i_envmap.envmap().setFlagHas(false);
+                uniloc.i_envmap.hasEnvmap(false);
                 ::g_brdfLUT.sendUniform(uniloc.i_envmap.brdfLUT());
 
                 for ( unsigned i = 0; i < 6; ++i ) {
-                    g_cubemapFbuf.readyFace(i, envmap->cubemap());
+                    g_cubemapFbuf.readyFace(envmap->prefilterMap(), i, 0);
                     uniloc.viewMat(viewMats[i]);
                     this->m_scene.render_animated(uniloc);
                 }
@@ -738,7 +738,7 @@ namespace dal {
                 uniloc.viewPos(0, 0, 0);
 
                 for ( unsigned i = 0; i < 6; ++i ) {
-                    g_cubemapFbuf.readyFace(i, envmap->cubemap());
+                    g_cubemapFbuf.readyFace(envmap->prefilterMap(), i, 0);
                     uniloc.projMat(projMat);
                     uniloc.viewMat(glm::mat4{ glm::mat3{ viewMats[i] } });
                     g_vertbuf_cube.draw();
@@ -752,10 +752,10 @@ namespace dal {
                 auto& uniloc = this->m_shader.useCubeIrradiance();
 
                 uniloc.projMat(projMat);
-                envmap->cubemap().sendUniform(uniloc.envmap());
+                envmap->prefilterMap().sendUniform(uniloc.envmap());
 
                 for ( unsigned i = 0; i < 6; ++i ) {
-                    g_cubemapFbuf.readyFace(i, envmap->irradianceMap());
+                    g_cubemapFbuf.readyFace(envmap->irradianceMap(), i, 0);
                     glClear(GL_COLOR_BUFFER_BIT);
                     uniloc.viewMat(glm::mat4{ glm::mat3{viewMats[i]} });
                     g_vertbuf_cube.draw();
@@ -767,10 +767,10 @@ namespace dal {
                 auto& uniloc = this->m_shader.useCubePrefilter();
 
                 uniloc.projMat(projMat);
-                envmap->cubemap().sendUniform(uniloc.envmap());
+                envmap->prefilterMap().sendUniform(uniloc.envmap());
 
                 constexpr unsigned MAX_MIP_LVL = 4;
-                for ( unsigned mip = 0; mip <= MAX_MIP_LVL; ++mip ) {
+                for ( unsigned mip = 1; mip <= MAX_MIP_LVL; ++mip ) {
                     const unsigned mipDimension = envmap->dimension() * std::pow(0.5, mip);
                     glViewport(0, 0, mipDimension, mipDimension);
 
@@ -778,7 +778,7 @@ namespace dal {
                     uniloc.roughness(roughness);
 
                     for ( unsigned i = 0; i < 6; ++i ) {
-                        g_cubemapFbuf.readyFace(i, envmap->prefilterMap(), mip);
+                        g_cubemapFbuf.readyFace(envmap->prefilterMap(), i, mip);
                         glClear(GL_COLOR_BUFFER_BIT);
                         uniloc.viewMat(glm::mat4{ glm::mat3{viewMats[i]} });
                         g_vertbuf_cube.draw();
@@ -804,7 +804,7 @@ namespace dal {
             uniloc.viewMat(this->m_mainCamera->getViewMat());
             uniloc.viewPos(this->m_mainCamera->m_pos);
             uniloc.i_lighting.baseAmbient(this->m_baseAmbientColor);
-            uniloc.i_envmap.envmap().setFlagHas(false);
+            uniloc.i_envmap.hasEnvmap(false);
             g_brdfLUT.sendUniform(uniloc.i_envmap.brdfLUT());
             //g_cubemapFbuf.m_depthMaps[0].sendUniform(uniloc.i_envmap.brdfLUT());
 
@@ -819,7 +819,7 @@ namespace dal {
             uniloc.viewMat(this->m_mainCamera->getViewMat());
             uniloc.viewPos(this->m_mainCamera->m_pos);
             uniloc.i_lighting.baseAmbient(this->m_baseAmbientColor);
-            uniloc.i_envmap.envmap().setFlagHas(false);
+            uniloc.i_envmap.hasEnvmap(false);
             g_brdfLUT.sendUniform(uniloc.i_envmap.brdfLUT());
 
             this->m_scene.render_animated(uniloc);
