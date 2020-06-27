@@ -8,6 +8,7 @@
 
 
 #define DAL_BLOCKY_TEXTURE false
+#define DAL_HQ_TEX true
 
 
 using namespace fmt::literals;
@@ -277,10 +278,18 @@ namespace dal {
             glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE, image.width(), image.height(), 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, image.data());
             break;
         case 3:
+#if DAL_HQ_TEX
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, image.width(), image.height(), 0, GL_RGB, GL_UNSIGNED_BYTE, image.data());
+#else
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB565, image.width(), image.height(), 0, GL_RGB, GL_UNSIGNED_BYTE, image.data());
+#endif
             break;
         case 4:
+#if DAL_HQ_TEX
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image.width(), image.height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, image.data());
+#else
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA4, image.width(), image.height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, image.data());
+#endif
             break;
         default:
             dalError("Not supported pixel size: {}"_format(image.pixSize()));
@@ -395,10 +404,18 @@ namespace dal {
                 glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_LUMINANCE, width, height, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, buf);
                 break;
             case 3:
+#if DAL_HQ_TEX
+                glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, buf);
+#else
                 glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB565, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, buf);
+#endif
                 break;
             case 4:
+#if DAL_HQ_TEX
+                glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, buf);
+#else
                 glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGBA4, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, buf);
+#endif
                 break;
             default:
                 dalError("Not supported pixel size: {}"_format(pixSize));
