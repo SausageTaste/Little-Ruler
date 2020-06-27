@@ -32,7 +32,7 @@ namespace {
 
 namespace {
 
-    class SkyboxRenderer {
+    class VertexBuf_Cube {
 
     private:
         GLuint m_vao = 0, m_vbo = 0;
@@ -98,7 +98,7 @@ namespace {
             glDrawArrays(GL_TRIANGLES, 0, 36);
         }
 
-    } g_skyRenderer;
+    } g_vertbuf_cube;
 
 
     class CubemapFbuf {
@@ -162,8 +162,8 @@ namespace {
             }
         }
 
-
     } g_cubemapFbuf;
+
 
     class VertexBuf_Fillscreen {
 
@@ -244,25 +244,25 @@ namespace dal {
     {
         // Establish framebuffer
         {
-            glGenFramebuffers(1, &m_mainFbuf);
-            glBindFramebuffer(GL_FRAMEBUFFER, this->m_mainFbuf);
+            glGenFramebuffers(1, &this->m_fbuf);
+            glBindFramebuffer(GL_FRAMEBUFFER, this->m_fbuf);
 
-            glGenTextures(1, &this->m_colorMap);
-            glBindTexture(GL_TEXTURE_2D, this->m_colorMap);
+            this->m_colorMap.genTexture("MainFramebuffer::MainFramebuffer");
+            glBindTexture(GL_TEXTURE_2D, this->m_colorMap.get());
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, this->m_bufWidth, this->m_bufHeight, 0, GL_RGB, GL_FLOAT, nullptr);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, this->m_colorMap, 0);
+            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, this->m_colorMap.get(), 0);
             glBindTexture(GL_TEXTURE_2D, 0);
 
-            glGenTextures(1, &this->m_mainRenderbuf);
-            glBindTexture(GL_TEXTURE_2D, this->m_mainRenderbuf);
+            this->m_depthMap.genTexture("MainFramebuffer::MainFramebuffer");
+            glBindTexture(GL_TEXTURE_2D, this->m_depthMap.get());
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
             glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, this->m_bufWidth, this->m_bufHeight, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_SHORT, nullptr);
-            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, this->m_mainRenderbuf, 0);
+            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, this->m_depthMap.get(), 0);
             glBindTexture(GL_TEXTURE_2D, 0);
 
             if ( glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE ) {
@@ -271,84 +271,21 @@ namespace dal {
 
             glBindFramebuffer(GL_FRAMEBUFFER, 0);
         }
-
-        // Establish vbo for fbuffer
-        {
-            glGenVertexArrays(1, &this->m_vbo);
-            if ( this->m_vbo <= 0 ) dalAbort("Failed gen vertex array.");
-            glGenBuffers(1, &this->m_vertexArr);
-            if ( m_vertexArr <= 0 ) dalAbort("Failed to gen a vertex buffer.");
-            glGenBuffers(1, &this->m_texcoordArr);
-            if ( this->m_texcoordArr <= 0 ) dalAbort("Failed to gen a texture coordinate buffer.");
-
-            glBindVertexArray(this->m_vbo);
-
-            // Vertices
-            {
-                GLfloat vertices[12] = {
-                    -1,  1,
-                    -1, -1,
-                     1, -1,
-                    -1,  1,
-                     1, -1,
-                     1,  1
-                };
-                auto size = 12 * sizeof(float);
-
-                glBindBuffer(GL_ARRAY_BUFFER, this->m_vertexArr);
-                glBufferData(GL_ARRAY_BUFFER, size, vertices, GL_STATIC_DRAW);
-
-                glEnableVertexAttribArray(0);
-                glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, nullptr);
-            }
-
-            // TexCoords
-            {
-                GLfloat texCoords[12] = {
-                    0, 1,
-                    0, 0,
-                    1, 0,
-                    0, 1,
-                    1, 0,
-                    1, 1
-                };
-                auto size = 12 * sizeof(float);
-
-                glBindBuffer(GL_ARRAY_BUFFER, this->m_texcoordArr);
-                glBufferData(GL_ARRAY_BUFFER, size, texCoords, GL_STATIC_DRAW);
-
-                glEnableVertexAttribArray(1);
-                glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, nullptr);
-            }
-
-            glBindVertexArray(0);
-        }
-
-        this->m_colorMapTex.reset(this->m_colorMap);
-        this->m_depthMapTex.reset(this->m_mainRenderbuf);
     }
 
     RenderMaster::MainFramebuffer::~MainFramebuffer(void) {
-        glDeleteBuffers(1, &this->m_vertexArr);
-        glDeleteBuffers(1, &this->m_texcoordArr);
-        glDeleteVertexArrays(1, &this->m_vbo);
-
-        glDeleteRenderbuffers(1, &this->m_mainRenderbuf);
-        glDeleteTextures(1, &this->m_colorMap);
-        glDeleteFramebuffers(1, &this->m_mainFbuf);
-
-        glDeleteFramebuffers(1, &m_mainFbuf);
+        glDeleteFramebuffers(1, &this->m_fbuf);
     }
 
     void RenderMaster::MainFramebuffer::resizeFbuffer(unsigned int newWin_width, unsigned int newWin_height) {
         this->m_bufWidth = (unsigned int)(float(newWin_width) * this->m_renderScale);
         this->m_bufHeight = (unsigned int)(float(newWin_height) * this->m_renderScale);
 
-        glBindTexture(GL_TEXTURE_2D, this->m_colorMap);
+        glBindTexture(GL_TEXTURE_2D, this->m_colorMap.get());
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, this->m_bufWidth, this->m_bufHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
         glBindTexture(GL_TEXTURE_2D, 0);
 
-        glBindTexture(GL_TEXTURE_2D, this->m_mainRenderbuf);
+        glBindTexture(GL_TEXTURE_2D, this->m_depthMap.get());
         glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, this->m_bufWidth, this->m_bufHeight, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_SHORT, nullptr);
         glBindTexture(GL_TEXTURE_2D, 0);
 
@@ -356,16 +293,14 @@ namespace dal {
     }
 
     void RenderMaster::MainFramebuffer::clearAndstartRenderOn(void) {
-        glBindFramebuffer(GL_FRAMEBUFFER, m_mainFbuf);
-        glViewport(0, 0, m_bufWidth, m_bufHeight);
+        glBindFramebuffer(GL_FRAMEBUFFER, this->m_fbuf);
+        glViewport(0, 0, this->m_bufWidth, this->m_bufHeight);
         glClear(GL_DEPTH_BUFFER_BIT);
     }
 
-    void RenderMaster::MainFramebuffer::renderOnScreen(const UniRender_FillScreen& uniloc) {
-        glBindVertexArray(m_vbo);
-        this->m_colorMapTex.sendUniform(uniloc.texture());
-        this->m_depthMapTex.sendUniform(uniloc.depthMap());
-        glDrawArrays(GL_TRIANGLES, 0, 6);
+    void RenderMaster::MainFramebuffer::sendUniform(const UniRender_FillScreen& uniloc) {
+        this->m_colorMap.sendUniform(uniloc.texture());
+        this->m_depthMap.sendUniform(uniloc.depthMap());
     }
 
 }
@@ -392,7 +327,7 @@ namespace dal {
 
         // Init
         {
-            g_skyRenderer.init();
+            g_vertbuf_cube.init();
             g_cubemapFbuf.init();
             g_vertbuf_fillscreen.init();
         }
@@ -499,7 +434,8 @@ namespace dal {
             this->m_scene.sendDlightUniform(uniloc.i_lighting);
             this->m_scene.m_mapChunks2.back().sendSlightUniforms(uniloc.i_lighting);
 
-            this->m_fbuffer.renderOnScreen(uniloc);
+            this->m_fbuffer.sendUniform(uniloc);
+            g_vertbuf_fillscreen.draw();
         }
     }
 
@@ -663,7 +599,7 @@ namespace dal {
 
             for ( auto water : waters ) {
                 water->startRenderOnReflec(uniloc, *this->m_mainCamera, this->m_projectMat);
-                g_skyRenderer.draw();
+                g_vertbuf_cube.draw();
             }
 
             glDepthMask(GL_TRUE);
@@ -703,7 +639,7 @@ namespace dal {
                         g_cubemapFbuf.readyFace(i, e.cubemap());
                         uniloc.projMat(projMat);
                         uniloc.viewMat(glm::mat4{ glm::mat3{ viewMats[i] } });
-                        g_skyRenderer.draw();
+                        g_vertbuf_cube.draw();
                     }
                 }
 
@@ -752,7 +688,7 @@ namespace dal {
                         g_cubemapFbuf.readyFace(i, e.irradianceMap());
                         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
                         uniloc.viewMat(glm::mat4{ glm::mat3{viewMats[i]} });
-                        g_skyRenderer.draw();
+                        g_vertbuf_cube.draw();
                     }
                 }
 
@@ -775,7 +711,7 @@ namespace dal {
                             g_cubemapFbuf.readyFace(i, e.prefilterMap(), mip);
                             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
                             uniloc.viewMat(glm::mat4{ glm::mat3{viewMats[i]} });
-                            g_skyRenderer.draw();
+                            g_vertbuf_cube.draw();
                         }
                     }
                 }
@@ -849,7 +785,7 @@ namespace dal {
             glDepthMask(GL_FALSE);
             glDepthFunc(GL_LEQUAL);
 
-            g_skyRenderer.draw();
+            g_vertbuf_cube.draw();
 
             glDepthMask(GL_TRUE);
             glDepthFunc(GL_LESS);

@@ -20,14 +20,8 @@ namespace dal {
             float m_renderScale;
             unsigned int m_bufWidth, m_bufHeight;
 
-            GLuint m_mainFbuf = 0;
-            GLuint m_colorMap = 0;
-            GLuint m_mainRenderbuf = 0;
-            GLuint m_vbo = 0;
-            GLuint m_vertexArr = 0;
-            GLuint m_texcoordArr = 0;
-
-            Texture m_colorMapTex, m_depthMapTex;
+            GLuint m_fbuf = 0;
+            Texture m_colorMap, m_depthMap;
 
         public:
             MainFramebuffer(const unsigned int widWidth, const unsigned int widHeight);
@@ -39,7 +33,7 @@ namespace dal {
             void resizeFbuffer(const unsigned int w, const unsigned int h);
 
             void clearAndstartRenderOn(void);
-            void renderOnScreen(const UniRender_FillScreen& uniloc);
+            void sendUniform(const UniRender_FillScreen& uniloc);
 
         };
 
