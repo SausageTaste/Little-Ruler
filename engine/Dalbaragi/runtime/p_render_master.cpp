@@ -480,7 +480,7 @@ namespace dal {
         this->render_onWater(reg);
 #endif
 
-        if ( this->m_envmapTimer.getElapsed() >= 10.f ) {
+        if ( this->m_envmapTimer.getElapsed() >= 1.f ) {
             this->m_envmapTimer.check();
             this->render_onCubemap();
         }
