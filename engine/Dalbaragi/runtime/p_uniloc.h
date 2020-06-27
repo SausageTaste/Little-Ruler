@@ -78,10 +78,10 @@ namespace dal {
             glUniform1i(this->u_numPlanes, x);
         }
         void plane(const int index, const float x, const float y, const float z, const float w) const {
-            glUniform4f(this->u_planes, x, y, z, w);
+            glUniform4f(this->u_planes + index, x, y, z, w);
         }
         void plane(const int index, const glm::vec4& v) const {
-            this->plane(this->u_planes, v.x, v.y, v.z, v.w);
+            this->plane(index, v.x, v.y, v.z, v.w);
         }
 
     };

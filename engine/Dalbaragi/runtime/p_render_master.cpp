@@ -790,7 +790,6 @@ namespace dal {
             glViewport(0, 0, this->m_winWidth, this->m_winHeight);
             glDepthFunc(GL_LESS);
         }
-
     }
 
     void RenderMaster::render_onFbuf(void) {

@@ -17,7 +17,7 @@
 
 
 #define BLOCKY_TEXTURE 0
-#define DAL_PARALLAX_CORRECTED_CUBEMAP false
+#define DAL_PARALLAX_CORRECTED_CUBEMAP true
 
 
 using namespace fmt::literals;
@@ -333,7 +333,8 @@ namespace dal {
 #if DAL_PARALLAX_CORRECTED_CUBEMAP == true
         uniloc.numPlanes(cubemap.m_volume.size());
         for ( size_t i = 0; i < cubemap.m_volume.size(); ++i ) {
-            uniloc.plane(i, cubemap.m_volume[i].getCoeff());
+            const auto plane = cubemap.m_volume[i].getCoeff();
+            uniloc.plane(i, plane);
         }
 #else
         uniloc.numPlanes(0);
