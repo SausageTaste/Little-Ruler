@@ -103,60 +103,73 @@ namespace {
 
     class CubemapFbuf {
 
-    private:
+    public:
         GLuint m_fbo = 0;
+        dal::Texture m_depthMaps[6];
 
     public:
+        CubemapFbuf(void) = default;
+
+        ~CubemapFbuf(void) {
+            glDeleteFramebuffers(1, &this->m_fbo);
+            this->m_fbo = 0;
+        }
+
         void init(void) {
-            glGenFramebuffers(1, &this->m_fbo);
-        }
+            glGenFramebuffers(1, &this->m_fbo); dalAssert(0 != this->m_fbo);
+            glBindFramebuffer(GL_FRAMEBUFFER, this->m_fbo); dalGLWarn();
 
-        void bind(const unsigned width, const unsigned height) {
-            glBindFramebuffer(GL_FRAMEBUFFER, this->m_fbo);
-            glViewport(0, 0, width, height);
-        }
-
-        void unbind(const unsigned width, const unsigned height) {
-            glBindFramebuffer(GL_FRAMEBUFFER, 0);
-            glViewport(0, 0, width, height);
-        }
-
-        void clearFaces(dal::CubeMap& cubemap) {
+            // Depth map
             for ( unsigned i = 0; i < 6; ++i ) {
-                glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, cubemap.get(), 0);
-                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+                this->m_depthMaps[i].init_depthMap(dal::EnvMap::dimension(), dal::EnvMap::dimension());
             }
+
+            glBindFramebuffer(GL_FRAMEBUFFER, 0); dalGLWarn();
+        }
+
+        void bind(void) {
+            glBindFramebuffer(GL_FRAMEBUFFER, this->m_fbo);
+        }
+
+        static void unbind(void) {
+            glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        }
+
+        void clearFaceColor(const dal::CubeMap& cubemap, const unsigned faceIndex, const unsigned mip) {
+            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + faceIndex, cubemap.get(), mip);
+            glClear(GL_COLOR_BUFFER_BIT);
         }
 
         void readyFace(const unsigned faceIndex, dal::CubeMap& cubemap, const unsigned mip = 0) {
             glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + faceIndex, cubemap.get(), mip);
+            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, this->m_depthMaps[faceIndex].get(), 0);
 
-            GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+            const auto status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
             if ( status != GL_FRAMEBUFFER_COMPLETE ) {
                 switch ( status ) {
 
                 case GL_FRAMEBUFFER_UNDEFINED:
-                    dalError("Framebuffer status error: GL_FRAMEBUFFER_UNDEFINED"); break;
+                    dalAbort("CubemapFbuf status error: GL_FRAMEBUFFER_UNDEFINED"); break;
                 case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT:
-                    dalError("Framebuffer status error: GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT"); break;
+                    dalAbort("CubemapFbuf status error: GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT"); break;
                 case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT:
-                    dalError("Framebuffer status error: GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT"); break;
+                    dalAbort("CubemapFbuf status error: GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT"); break;
                 case GL_FRAMEBUFFER_UNSUPPORTED:
-                    dalError("Framebuffer status error: GL_FRAMEBUFFER_UNSUPPORTED"); break;
+                    dalAbort("CubemapFbuf status error: GL_FRAMEBUFFER_UNSUPPORTED"); break;
                 case GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE:
-                    dalError("Framebuffer status error: GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE"); break;
+                    dalAbort("CubemapFbuf status error: GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE"); break;
 
 #ifdef _WIN32
                 case GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER:
-                    dalError("Framebuffer status error: GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER"); break;
+                    dalAbort("CubemapFbuf status error: GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER"); break;
                 case GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER:
-                    dalError("Framebuffer status error: GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER"); break;
+                    dalAbort("CubemapFbuf status error: GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER"); break;
                 case GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS:
-                    dalError("Framebuffer status error: GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS"); break;
+                    dalAbort("CubemapFbuf status error: GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS"); break;
 #endif
 
                 default:
-                    dalError(fmt::format("Framebuffer status error: {}", status)); break;
+                    dalAbort(fmt::format("CubemapFbuf status error: {}", status)); break;
 
                 }
             }
@@ -173,6 +186,16 @@ namespace {
         GLuint m_texcoordArr = 0;
 
     public:
+        ~VertexBuf_Fillscreen(void) {
+            glDeleteBuffers(1, &this->m_vertexArr);
+            glDeleteBuffers(1, &this->m_texcoordArr);
+            glDeleteVertexArrays(1, &this->m_vbo);
+
+            this->m_vertexArr = 0;
+            this->m_texcoordArr = 0;
+            this->m_vbo = 0;
+        }
+
         void init(void) {
             glGenVertexArrays(1, &this->m_vbo); dalAssert(this->m_vbo > 0);
             glGenBuffers(1, &this->m_vertexArr); dalAssert(this->m_vertexArr > 0);
@@ -323,6 +346,7 @@ namespace dal {
         // OpenGL global switch
         {
             glClearColor(0, 0, 0, 1);
+            glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
         }
 
         // Init
@@ -609,7 +633,9 @@ namespace dal {
     }
 
     void RenderMaster::render_onCubemap(void) {
-        const auto projMat = glm::perspective(glm::radians(90.f), 1.f, 0.5f, 100.f);
+        const auto projMat = glm::perspective(glm::radians(90.f), 1.f, 0.5f, 50.f);
+
+        g_cubemapFbuf.bind();
 
         for ( auto& m : this->m_scene.m_mapChunks2 ) {
             for ( auto& e : m.m_envmap ) {
@@ -622,26 +648,14 @@ namespace dal {
                     glm::lookAt(e.m_pos, e.m_pos + glm::vec3(0.0, 0.0, -1.0), glm::vec3(0.0, -1.0, 0.0))
                 };
 
-                g_cubemapFbuf.bind(e.dimension(), e.dimension());
-                g_cubemapFbuf.clearFaces(e.cubemap());
-
-                // Skybox
-                {
-                    const auto& uniloc = this->m_shader.useSkybox();
-                    const float sqrt2 = sqrt(1.0 / 3.0);
-
-                    this->m_skyboxTex->sendUniform(uniloc.skyboxTex());
-                    uniloc.viewPosActual(this->m_mainCamera->m_pos);
-                    uniloc.modelMat(glm::scale(glm::mat4{ 1 }, glm::vec3{ sqrt2 * this->m_farPlaneDistance }));
-                    uniloc.viewPos(0, 0, 0);
-
-                    for ( unsigned i = 0; i < 6; ++i ) {
-                        g_cubemapFbuf.readyFace(i, e.cubemap());
-                        uniloc.projMat(projMat);
-                        uniloc.viewMat(glm::mat4{ glm::mat3{ viewMats[i] } });
-                        g_vertbuf_cube.draw();
-                    }
+                glViewport(0, 0, e.dimension(), e.dimension());
+                for ( unsigned i = 0; i < 6; ++i ) {
+                    g_cubemapFbuf.clearFaceColor(e.cubemap(), i, 0);
                 }
+
+                glEnable(GL_DEPTH_TEST);
+                glDepthFunc(GL_LESS);
+                glEnable(GL_CULL_FACE);
 
                 // Static
                 {
@@ -655,6 +669,7 @@ namespace dal {
 
                     for ( unsigned i = 0; i < 6; ++i ) {
                         g_cubemapFbuf.readyFace(i, e.cubemap());
+                        glClear(GL_DEPTH_BUFFER_BIT);
                         uniloc.viewMat(viewMats[i]);
                         this->m_scene.render_staticOnEnvmap(uniloc);
                     }
@@ -677,6 +692,28 @@ namespace dal {
                     }
                 }
 
+                glDepthFunc(GL_LEQUAL);
+
+                // Skybox
+                {
+                    const auto& uniloc = this->m_shader.useSkybox();
+                    const float sqrt2 = sqrt(1.0 / 3.0);
+
+                    this->m_skyboxTex->sendUniform(uniloc.skyboxTex());
+                    uniloc.viewPosActual(this->m_mainCamera->m_pos);
+                    uniloc.modelMat(glm::scale(glm::mat4{ 1 }, glm::vec3{ sqrt2 * this->m_farPlaneDistance }));
+                    uniloc.viewPos(0, 0, 0);
+
+                    for ( unsigned i = 0; i < 6; ++i ) {
+                        g_cubemapFbuf.readyFace(i, e.cubemap());
+                        uniloc.projMat(projMat);
+                        uniloc.viewMat(glm::mat4{ glm::mat3{ viewMats[i] } });
+                        g_vertbuf_cube.draw();
+                    }
+                }
+
+                glDepthFunc(GL_ALWAYS);
+
                 // Irradiance
                 {
                     auto& uniloc = this->m_shader.useCubeIrradiance();
@@ -686,7 +723,7 @@ namespace dal {
 
                     for ( unsigned i = 0; i < 6; ++i ) {
                         g_cubemapFbuf.readyFace(i, e.irradianceMap());
-                        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+                        glClear(GL_COLOR_BUFFER_BIT);
                         uniloc.viewMat(glm::mat4{ glm::mat3{viewMats[i]} });
                         g_vertbuf_cube.draw();
                     }
@@ -709,16 +746,18 @@ namespace dal {
 
                         for ( unsigned i = 0; i < 6; ++i ) {
                             g_cubemapFbuf.readyFace(i, e.prefilterMap(), mip);
-                            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+                            glClear(GL_COLOR_BUFFER_BIT);
                             uniloc.viewMat(glm::mat4{ glm::mat3{viewMats[i]} });
                             g_vertbuf_cube.draw();
                         }
                     }
                 }
-
-                g_cubemapFbuf.unbind(this->m_winWidth, this->m_winHeight);
             }
         }
+
+        g_cubemapFbuf.unbind();
+        glViewport(0, 0, this->m_winWidth, this->m_winHeight);
+        glDepthFunc(GL_LESS);
     }
 
     void RenderMaster::render_onFbuf(void) {
@@ -734,6 +773,7 @@ namespace dal {
             uniloc.i_lighting.baseAmbient(this->m_baseAmbientColor);
             uniloc.i_envmap.envmap().setFlagHas(false);
             g_brdfLUT.sendUniform(uniloc.i_envmap.brdfLUT());
+            //g_cubemapFbuf.m_depthMaps[0].sendUniform(uniloc.i_envmap.brdfLUT());
 
             this->m_scene.render_static(uniloc);
         }

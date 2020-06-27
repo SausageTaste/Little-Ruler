@@ -29,8 +29,8 @@ namespace dal {
     public:
         void init(void);
 
-        auto dimension(void) const -> unsigned {
-            return this->DIMENSION;
+        static auto dimension(void) -> unsigned {
+            return DIMENSION;
         }
         auto cubemap(void) -> dal::CubeMap& {
             return this->m_cubemap;
