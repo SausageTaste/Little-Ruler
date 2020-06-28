@@ -44,7 +44,9 @@ namespace dal {
 
     private:
         GLint u_envmapPos = -1;
-        SamplerInterf u_envmap;
+
+        SamplerInterf u_irradianceMap, u_prefilterMap, u_brdfLUT;
+        GLint u_hasEnvmap = -1;
 
         GLint u_numPlanes = -1;
         GLint u_planes = -1;
@@ -59,18 +61,27 @@ namespace dal {
             this->envmapPos(v.x, v.y, v.z);
         }
 
-        auto& envmap(void) const {
-            return this->u_envmap;
+        auto& irradianceMap(void) const {
+            return this->u_irradianceMap;
+        }
+        auto& prefilterMap(void) const {
+            return this->u_prefilterMap;
+        }
+        auto& brdfLUT(void) const {
+            return this->u_brdfLUT;
+        }
+        void hasEnvmap(const bool v) const {
+            sendBool(this->u_hasEnvmap, v);
         }
 
         void numPlanes(const int x) const {
             glUniform1i(this->u_numPlanes, x);
         }
         void plane(const int index, const float x, const float y, const float z, const float w) const {
-            glUniform4f(this->u_planes, x, y, z, w);
+            glUniform4f(this->u_planes + index, x, y, z, w);
         }
         void plane(const int index, const glm::vec4& v) const {
-            this->plane(this->u_planes, v.x, v.y, v.z, v.w);
+            this->plane(index, v.x, v.y, v.z, v.w);
         }
 
     };
@@ -677,6 +688,56 @@ namespace dal {
         }
         auto& maskMap(void) const {
             return this->u_maskMap;
+        }
+
+    };
+
+    class UniRender_CubeIrradiance {
+
+    private:
+        GLint u_projMat = -1;
+        GLint u_viewMat = -1;
+
+        SamplerInterf u_envmap;
+
+    public:
+        void set(const GLuint shader);
+
+        void projMat(const glm::mat4& mat) const {
+            sendMatrix(this->u_projMat, mat);
+        }
+        void viewMat(const glm::mat4& mat) const {
+            sendMatrix(this->u_viewMat, mat);
+        }
+        auto& envmap(void) const {
+            return this->u_envmap;
+        }
+
+    };
+
+    class UniRender_CubePrefilter {
+
+    private:
+        GLint u_projMat = -1;
+        GLint u_viewMat = -1;
+
+        GLint u_roughness = -1;
+        SamplerInterf u_envmap;
+
+    public:
+        void set(const GLuint shader);
+
+        void projMat(const glm::mat4& mat) const {
+            sendMatrix(this->u_projMat, mat);
+        }
+        void viewMat(const glm::mat4& mat) const {
+            sendMatrix(this->u_viewMat, mat);
+        }
+        void roughness(const float x) const {
+            glUniform1f(this->u_roughness, x);
+        }
+        auto& envmap(void) const {
+            return this->u_envmap;
         }
 
     };

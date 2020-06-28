@@ -17,7 +17,7 @@
 
 
 #define BLOCKY_TEXTURE 0
-#define DAL_PARALLAX_CORRECTED_CUBEMAP false
+#define DAL_PARALLAX_CORRECTED_CUBEMAP true
 
 
 using namespace fmt::literals;
@@ -320,73 +320,21 @@ namespace {
 namespace dal {
 
     void EnvMap::init(void) {
-        glGenFramebuffers(1, &this->m_fbo);
-        glBindFramebuffer(GL_FRAMEBUFFER, this->m_fbo);
-
-        this->m_cubemap.reset(new dal::CubeMap);
-        this->m_cubemap->initAttach_colorMap(this->WIDTH, this->HEIGHT);
+        this->m_prefilterMap.initColorMipMap(this->dimension(), this->dimension());
+        this->m_irradiance.initAttach_colorMap(this->dimension(), this->dimension());
     }
-
-    void EnvMap::bindFbuf(void) {
-        glBindFramebuffer(GL_FRAMEBUFFER, this->m_fbo);
-        glViewport(0, 0, this->WIDTH, this->HEIGHT);
-    }
-
-    void EnvMap::unbindFbuf(const unsigned width, const unsigned height) {
-        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, this->m_fbo);
-        glViewport(0, 0, width, height);
-    }
-
-    void EnvMap::clearFaces(void) {
-        for ( unsigned i = 0; i < 6; ++i ) {
-            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, this->m_cubemap->get(), 0);
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        }
-    }
-
-    void EnvMap::readyFace(const unsigned faceIndex) {
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + faceIndex, this->m_cubemap->get(), 0);
-
-        GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
-        if ( status != GL_FRAMEBUFFER_COMPLETE ) {
-            switch ( status ) {
-
-            case GL_FRAMEBUFFER_UNDEFINED:
-                dalError("Framebuffer status error: GL_FRAMEBUFFER_UNDEFINED"); break;
-            case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT:
-                dalError("Framebuffer status error: GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT"); break;
-            case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT:
-                dalError("Framebuffer status error: GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT"); break;
-            case GL_FRAMEBUFFER_UNSUPPORTED:
-                dalError("Framebuffer status error: GL_FRAMEBUFFER_UNSUPPORTED"); break;
-            case GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE:
-                dalError("Framebuffer status error: GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE"); break;
-
-#ifdef _WIN32
-            case GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER:
-                dalError("Framebuffer status error: GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER"); break;
-            case GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER:
-                dalError("Framebuffer status error: GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER"); break;
-            case GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS:
-                dalError("Framebuffer status error: GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS"); break;
-#endif
-
-            default:
-                dalError(fmt::format("Framebuffer status error: {}", status)); break;
-
-            }
-        }
-    }
-
 
     void sendEnvmapUniform(const dal::EnvMap& cubemap, const dal::UniInterf_Envmap& uniloc) {
-        cubemap.getCubemap()->sendUniform(uniloc.envmap());
+        cubemap.irradianceMap().sendUniform(uniloc.irradianceMap());
+        cubemap.prefilterMap().sendUniform(uniloc.prefilterMap());
         uniloc.envmapPos(cubemap.m_pos);
+        uniloc.hasEnvmap(true);
 
 #if DAL_PARALLAX_CORRECTED_CUBEMAP == true
         uniloc.numPlanes(cubemap.m_volume.size());
         for ( size_t i = 0; i < cubemap.m_volume.size(); ++i ) {
-            uniloc.plane(i, cubemap.m_volume[i].getCoeff());
+            const auto plane = cubemap.m_volume[i].getCoeff();
+            uniloc.plane(i, plane);
         }
 #else
         uniloc.numPlanes(0);
@@ -539,7 +487,7 @@ namespace dal {
                     sendEnvmapUniform(cubemap, uniloc.i_envmap);
                 }
                 else {
-                    uniloc.i_envmap.envmap().setFlagHas(false);
+                    uniloc.i_envmap.hasEnvmap(false);
                 }
 
                 uniloc.modelMat(actor.m_transform.getMat());
@@ -579,6 +527,18 @@ namespace dal {
 
     void MapChunk2::render_animatedOnWater(const UniRender_AnimatedOnWater& uniloc) {
 
+    }
+
+    void MapChunk2::render_staticOnEnvmap(const UniRender_Static& uniloc) {
+        this->sendPlightUniforms(uniloc.i_lighting);
+        this->sendSlightUniforms(uniloc.i_lighting);
+
+        for ( const auto& [model, actors] : this->m_staticActors ) {
+            for ( const auto& actor : actors ) {
+                uniloc.modelMat(actor.m_transform.getMat());
+                model->render(uniloc);
+            }
+        }
     }
 
 

@@ -8,6 +8,7 @@
 
 
 int main(int argc, char* args[]) try {
+    system("chcp 65001");
     return dal::main_windows();
 }
 catch ( const std::exception& e ) {

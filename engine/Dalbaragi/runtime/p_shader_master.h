@@ -58,20 +58,30 @@ namespace dal {
         ShaderProgram m_overlay;
         UniRender_Overlay u_overlay;
 
+        ShaderProgram m_cube_irradiance;
+        UniRender_CubeIrradiance u_cube_irradiance;
+
+        ShaderProgram m_cube_prefilter;
+        UniRender_CubePrefilter u_cube_prefilter;
+
+        ShaderProgram m_brdfLUT;
+
     public:
         ShaderMaster(void);
 
-
-        const UniRender_Static& useStatic(void) const;
-        const UniRender_Animated& useAnimated(void) const;
-        const UniRender_StaticDepth& useStaticDepth(void) const;
-        const UniRender_AnimatedDepth& useAnimatedDepth(void) const;
-        const UniRender_StaticOnWater& useStaticOnWater(void) const;
-        const UniRender_AnimatedOnWater& useAnimatedOnWater(void) const;
-        const UniRender_FillScreen& useFillScreen(void) const;
-        const UniRender_Water& useWater(void) const;
-        const UniRender_Skybox& useSkybox(void) const;
-        const UniRender_Overlay& useOverlay(void) const;
+        auto useStatic(void) const -> const UniRender_Static&;
+        auto useAnimated(void) const -> const UniRender_Animated&;
+        auto useStaticDepth(void) const -> const UniRender_StaticDepth&;
+        auto useAnimatedDepth(void) const -> const UniRender_AnimatedDepth&;
+        auto useStaticOnWater(void) const -> const UniRender_StaticOnWater&;
+        auto useAnimatedOnWater(void) const -> const UniRender_AnimatedOnWater&;
+        auto useFillScreen(void) const -> const UniRender_FillScreen&;
+        auto useWater(void) const -> const UniRender_Water&;
+        auto useSkybox(void) const -> const UniRender_Skybox&;
+        auto useOverlay(void) const -> const UniRender_Overlay&;
+        auto useCubeIrradiance(void) const -> const UniRender_CubeIrradiance&;
+        auto useCubePrefilter(void) const -> const UniRender_CubePrefilter&;
+        void useBrdfLUT(void) const;
 
     };
 

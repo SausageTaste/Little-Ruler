@@ -180,7 +180,6 @@ namespace dal {
             return m_texID;
         }
 
-    protected:
         void genTexture(const char* const str4Log);
 
     };
@@ -254,7 +253,9 @@ namespace dal {
 
     public:
         void init(const CubeMapData& data);
+        void initColorMap(const unsigned width, const unsigned height);
         void initAttach_colorMap(const unsigned width, const unsigned height);
+        void initColorMipMap(const unsigned width, const unsigned height);
 
         void sendUniform(const SamplerInterf& uniloc) const;
 

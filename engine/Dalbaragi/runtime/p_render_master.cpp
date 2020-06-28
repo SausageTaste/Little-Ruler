@@ -32,7 +32,35 @@ namespace {
 
 namespace {
 
-    class SkyboxRenderer {
+    dal::EnvMap* selectEnvmapToUpdate(const glm::vec3& viewPos, dal::SceneGraph& scene) {
+        double selectedScore = 0.0;
+        dal::EnvMap* selected = nullptr;
+
+        for ( auto& m : scene.m_mapChunks2 ) {
+            for ( auto& e : m.m_envmap ) {
+                const double elapsed = e.m_timer.getElapsed();
+                const double distance = glm::distance(e.m_pos, viewPos);
+                const double score = elapsed / distance;
+
+                if ( score > selectedScore ) {
+                    selectedScore = score;
+                    selected = &e;
+                }
+            }
+        }
+
+        if ( nullptr != selected ) {
+            selected->m_timer.check();
+        }
+        return selected;
+    }
+
+}
+
+
+namespace {
+
+    class VertexBuf_Cube {
 
     private:
         GLuint m_vao = 0, m_vbo = 0;
@@ -98,133 +126,108 @@ namespace {
             glDrawArrays(GL_TRIANGLES, 0, 36);
         }
 
-    } g_skyRenderer;
+    } g_vertbuf_cube;
 
 
-    /*
-    class CubeMapFbuf {
-
-    private:
-        GLuint m_fbo = 0;
-        std::shared_ptr<dal::CubeMap> m_cubemap;
-        inline static constexpr unsigned WIDTH = 256, HEIGHT = 256;
+    class CubemapFbuf {
 
     public:
+        GLuint m_fbo = 0;
+        dal::Texture m_depthMaps[6];
+
+    public:
+        CubemapFbuf(void) = default;
+
+        ~CubemapFbuf(void) {
+            glDeleteFramebuffers(1, &this->m_fbo);
+            this->m_fbo = 0;
+        }
+
         void init(void) {
-            glGenFramebuffers(1, &this->m_fbo);
-            glBindFramebuffer(GL_FRAMEBUFFER, this->m_fbo);
+            glGenFramebuffers(1, &this->m_fbo); dalAssert(0 != this->m_fbo);
+            glBindFramebuffer(GL_FRAMEBUFFER, this->m_fbo); dalGLWarn();
 
-            this->m_cubemap.reset(new dal::CubeMap);
-            this->m_cubemap->initAttach_colorMap(this->WIDTH, this->HEIGHT);
-        }
-
-        void bindFbuf(void) {
-            glBindFramebuffer(GL_FRAMEBUFFER, this->m_fbo);
-            glViewport(0, 0, this->WIDTH, this->HEIGHT);
-        }
-
-        void unbindFbuf(const unsigned width, const unsigned height) {
-            glBindFramebuffer(GL_DRAW_FRAMEBUFFER, this->m_fbo);
-            glViewport(0, 0, width, height);
-        }
-
-        void clearFaces(void) {
+            // Depth map
             for ( unsigned i = 0; i < 6; ++i ) {
-                glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, this->m_cubemap->get(), 0);
-                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+                this->m_depthMaps[i].init_depthMap(dal::EnvMap::dimension(), dal::EnvMap::dimension());
             }
+
+            glBindFramebuffer(GL_FRAMEBUFFER, 0); dalGLWarn();
         }
 
-        void readyFace(const unsigned faceIndex) {
-            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + faceIndex, this->m_cubemap->get(), 0);
+        void bind(void) {
+            glBindFramebuffer(GL_FRAMEBUFFER, this->m_fbo);
+        }
 
-            GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+        static void unbind(void) {
+            glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        }
+
+        void clearFaceColor(const dal::CubeMap& cubemap, const unsigned faceIndex, const unsigned mip) {
+            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + faceIndex, cubemap.get(), mip);
+            glClear(GL_COLOR_BUFFER_BIT);
+        }
+
+        void readyFace(const dal::CubeMap& cubemap, const unsigned faceIndex, const unsigned mip) {
+            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + faceIndex, cubemap.get(), mip);
+            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, this->m_depthMaps[faceIndex].get(), 0);
+
+            const auto status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
             if ( status != GL_FRAMEBUFFER_COMPLETE ) {
                 switch ( status ) {
 
                 case GL_FRAMEBUFFER_UNDEFINED:
-                    dalError("Framebuffer status error: GL_FRAMEBUFFER_UNDEFINED"); break;
+                    dalAbort("CubemapFbuf status error: GL_FRAMEBUFFER_UNDEFINED"); break;
                 case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT:
-                    dalError("Framebuffer status error: GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT"); break;
+                    dalAbort("CubemapFbuf status error: GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT"); break;
                 case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT:
-                    dalError("Framebuffer status error: GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT"); break;
+                    dalAbort("CubemapFbuf status error: GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT"); break;
                 case GL_FRAMEBUFFER_UNSUPPORTED:
-                    dalError("Framebuffer status error: GL_FRAMEBUFFER_UNSUPPORTED"); break;
+                    dalAbort("CubemapFbuf status error: GL_FRAMEBUFFER_UNSUPPORTED"); break;
                 case GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE:
-                    dalError("Framebuffer status error: GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE"); break;
+                    dalAbort("CubemapFbuf status error: GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE"); break;
 
 #ifdef _WIN32
                 case GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER:
-                    dalError("Framebuffer status error: GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER"); break;
+                    dalAbort("CubemapFbuf status error: GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER"); break;
                 case GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER:
-                    dalError("Framebuffer status error: GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER"); break;
+                    dalAbort("CubemapFbuf status error: GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER"); break;
                 case GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS:
-                    dalError("Framebuffer status error: GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS"); break;
+                    dalAbort("CubemapFbuf status error: GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS"); break;
 #endif
 
                 default:
-                    dalError(fmt::format("Framebuffer status error: {}", status)); break;
+                    dalAbort(fmt::format("CubemapFbuf status error: {}", status)); break;
 
                 }
             }
         }
 
-        auto& getCubemap(void) {
-            return this->m_cubemap;
+    } g_cubemapFbuf;
+
+
+    class VertexBuf_Fillscreen {
+
+    private:
+        GLuint m_vbo = 0;
+        GLuint m_vertexArr = 0;
+        GLuint m_texcoordArr = 0;
+
+    public:
+        ~VertexBuf_Fillscreen(void) {
+            glDeleteBuffers(1, &this->m_vertexArr);
+            glDeleteBuffers(1, &this->m_texcoordArr);
+            glDeleteVertexArrays(1, &this->m_vbo);
+
+            this->m_vertexArr = 0;
+            this->m_texcoordArr = 0;
+            this->m_vbo = 0;
         }
 
-    };
-    */
-
-}
-
-
-// Main Framebuffer
-namespace dal {
-
-    RenderMaster::MainFramebuffer::MainFramebuffer(const unsigned int widWidth, const unsigned int widHeight)
-        : m_renderScale(1.0f)
-        , m_bufWidth((unsigned int)(float(widWidth)* m_renderScale))
-        , m_bufHeight((unsigned int)(float(widHeight)* m_renderScale))
-    {
-        // Establish framebuffer
-        {
-            glGenFramebuffers(1, &m_mainFbuf);
-            glBindFramebuffer(GL_FRAMEBUFFER, this->m_mainFbuf);
-
-            glGenTextures(1, &this->m_colorMap);
-            glBindTexture(GL_TEXTURE_2D, this->m_colorMap);
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, this->m_bufWidth, this->m_bufHeight, 0, GL_RGB, GL_FLOAT, nullptr);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, this->m_colorMap, 0);
-            glBindTexture(GL_TEXTURE_2D, 0);
-
-            glGenTextures(1, &this->m_mainRenderbuf);
-            glBindTexture(GL_TEXTURE_2D, this->m_mainRenderbuf);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, this->m_bufWidth, this->m_bufHeight, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_SHORT, nullptr);
-            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, this->m_mainRenderbuf, 0);
-            glBindTexture(GL_TEXTURE_2D, 0);
-
-            if ( glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE ) {
-                dalAbort("Failed to create framebuffer.");
-            }
-
-            glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        }
-
-        // Establish vbo for fbuffer
-        {
-            glGenVertexArrays(1, &this->m_vbo);
-            if ( this->m_vbo <= 0 ) dalAbort("Failed gen vertex array.");
-            glGenBuffers(1, &this->m_vertexArr);
-            if ( m_vertexArr <= 0 ) dalAbort("Failed to gen a vertex buffer.");
-            glGenBuffers(1, &this->m_texcoordArr);
-            if ( this->m_texcoordArr <= 0 ) dalAbort("Failed to gen a texture coordinate buffer.");
+        void init(void) {
+            glGenVertexArrays(1, &this->m_vbo); dalAssert(this->m_vbo > 0);
+            glGenBuffers(1, &this->m_vertexArr); dalAssert(this->m_vertexArr > 0);
+            glGenBuffers(1, &this->m_texcoordArr); dalAssert(this->m_texcoordArr > 0);
 
             glBindVertexArray(this->m_vbo);
 
@@ -269,31 +272,71 @@ namespace dal {
             glBindVertexArray(0);
         }
 
-        this->m_colorMapTex.reset(this->m_colorMap);
-        this->m_depthMapTex.reset(this->m_mainRenderbuf);
+        void draw(void) const {
+            glBindVertexArray(this->m_vbo);
+            glDrawArrays(GL_TRIANGLES, 0, 6);
+        }
+
+    } g_vertbuf_fillscreen;
+
+
+    dal::Texture g_brdfLUT;
+
+}
+
+
+// Main Framebuffer
+namespace dal {
+
+    RenderMaster::MainFramebuffer::MainFramebuffer(const unsigned int widWidth, const unsigned int widHeight)
+        : m_renderScale(1.0f)
+        , m_bufWidth((unsigned int)(float(widWidth)* m_renderScale))
+        , m_bufHeight((unsigned int)(float(widHeight)* m_renderScale))
+    {
+        // Establish framebuffer
+        {
+            glGenFramebuffers(1, &this->m_fbuf);
+            glBindFramebuffer(GL_FRAMEBUFFER, this->m_fbuf);
+
+            this->m_colorMap.genTexture("MainFramebuffer::MainFramebuffer");
+            glBindTexture(GL_TEXTURE_2D, this->m_colorMap.get());
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, this->m_bufWidth, this->m_bufHeight, 0, GL_RGB, GL_FLOAT, nullptr);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, this->m_colorMap.get(), 0);
+            glBindTexture(GL_TEXTURE_2D, 0);
+
+            this->m_depthMap.genTexture("MainFramebuffer::MainFramebuffer");
+            glBindTexture(GL_TEXTURE_2D, this->m_depthMap.get());
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, this->m_bufWidth, this->m_bufHeight, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_SHORT, nullptr);
+            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, this->m_depthMap.get(), 0);
+            glBindTexture(GL_TEXTURE_2D, 0);
+
+            if ( glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE ) {
+                dalAbort("Failed to create framebuffer.");
+            }
+
+            glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        }
     }
 
     RenderMaster::MainFramebuffer::~MainFramebuffer(void) {
-        glDeleteBuffers(1, &this->m_vertexArr);
-        glDeleteBuffers(1, &this->m_texcoordArr);
-        glDeleteVertexArrays(1, &this->m_vbo);
-
-        glDeleteRenderbuffers(1, &this->m_mainRenderbuf);
-        glDeleteTextures(1, &this->m_colorMap);
-        glDeleteFramebuffers(1, &this->m_mainFbuf);
-
-        glDeleteFramebuffers(1, &m_mainFbuf);
+        glDeleteFramebuffers(1, &this->m_fbuf);
     }
 
     void RenderMaster::MainFramebuffer::resizeFbuffer(unsigned int newWin_width, unsigned int newWin_height) {
         this->m_bufWidth = (unsigned int)(float(newWin_width) * this->m_renderScale);
         this->m_bufHeight = (unsigned int)(float(newWin_height) * this->m_renderScale);
 
-        glBindTexture(GL_TEXTURE_2D, this->m_colorMap);
+        glBindTexture(GL_TEXTURE_2D, this->m_colorMap.get());
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, this->m_bufWidth, this->m_bufHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
         glBindTexture(GL_TEXTURE_2D, 0);
 
-        glBindTexture(GL_TEXTURE_2D, this->m_mainRenderbuf);
+        glBindTexture(GL_TEXTURE_2D, this->m_depthMap.get());
         glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, this->m_bufWidth, this->m_bufHeight, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_SHORT, nullptr);
         glBindTexture(GL_TEXTURE_2D, 0);
 
@@ -301,16 +344,14 @@ namespace dal {
     }
 
     void RenderMaster::MainFramebuffer::clearAndstartRenderOn(void) {
-        glBindFramebuffer(GL_FRAMEBUFFER, m_mainFbuf);
-        glViewport(0, 0, m_bufWidth, m_bufHeight);
+        glBindFramebuffer(GL_FRAMEBUFFER, this->m_fbuf);
+        glViewport(0, 0, this->m_bufWidth, this->m_bufHeight);
         glClear(GL_DEPTH_BUFFER_BIT);
     }
 
-    void RenderMaster::MainFramebuffer::renderOnScreen(const UniRender_FillScreen& uniloc) {
-        glBindVertexArray(m_vbo);
-        this->m_colorMapTex.sendUniform(uniloc.texture());
-        this->m_depthMapTex.sendUniform(uniloc.depthMap());
-        glDrawArrays(GL_TRIANGLES, 0, 6);
+    void RenderMaster::MainFramebuffer::sendUniform(const UniRender_FillScreen& uniloc) {
+        this->m_colorMap.sendUniform(uniloc.texture());
+        this->m_depthMap.sendUniform(uniloc.depthMap());
     }
 
 }
@@ -332,7 +373,17 @@ namespace dal {
     {
         // OpenGL global switch
         {
-            glClearColor(m_skyColor.x, m_skyColor.y, m_skyColor.z, 1.0f);
+            glClearColor(0, 0, 0, 1);
+#ifdef _WIN32
+            glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
+#endif
+        }
+
+        // Init
+        {
+            g_vertbuf_cube.init();
+            g_cubemapFbuf.init();
+            g_vertbuf_fillscreen.init();
         }
 
         // Skybox
@@ -360,9 +411,29 @@ namespace dal {
             }
         }
 
-        // Init
+        // Generate brdf lut map
         {
-            g_skyRenderer.init();
+            GLuint fbuf = 0;
+            glGenFramebuffers(1, &fbuf);
+            glBindFramebuffer(GL_FRAMEBUFFER, fbuf);
+
+            g_brdfLUT.genTexture("");
+            glBindTexture(GL_TEXTURE_2D, g_brdfLUT.get());
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RG16F, 512, 512, 0, GL_RG, GL_FLOAT, 0);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, g_brdfLUT.get(), 0);
+
+            glViewport(0, 0, 512, 512);
+            this->m_shader.useBrdfLUT();
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            g_vertbuf_fillscreen.draw();
+
+            glBindFramebuffer(GL_FRAMEBUFFER, 0);
+            glDeleteFramebuffers(1, &fbuf);
         }
 
         // Misc
@@ -398,11 +469,7 @@ namespace dal {
         this->render_onWater(reg);
 #endif
 
-        if ( this->m_envmapTimer.getElapsed() >= 3.f ) {
-            this->m_envmapTimer.check();
-            this->render_onCubemap();
-        }
-
+        this->render_onCubemap();
         this->render_onFbuf();
 
         // Render framebuffer to quad 
@@ -417,7 +484,8 @@ namespace dal {
             this->m_scene.sendDlightUniform(uniloc.i_lighting);
             this->m_scene.m_mapChunks2.back().sendSlightUniforms(uniloc.i_lighting);
 
-            this->m_fbuffer.renderOnScreen(uniloc);
+            this->m_fbuffer.sendUniform(uniloc);
+            g_vertbuf_fillscreen.draw();
         }
     }
 
@@ -581,7 +649,7 @@ namespace dal {
 
             for ( auto water : waters ) {
                 water->startRenderOnReflec(uniloc, *this->m_mainCamera, this->m_projectMat);
-                g_skyRenderer.draw();
+                g_vertbuf_cube.draw();
             }
 
             glDepthMask(GL_TRUE);
@@ -591,69 +659,136 @@ namespace dal {
     }
 
     void RenderMaster::render_onCubemap(void) {
-        for ( auto& m : this->m_scene.m_mapChunks2 ) {
-            for ( auto& e : m.m_envmap ) {
-                std::array<glm::mat4, 6> viewMats = {
-                    glm::lookAt(e.m_pos, e.m_pos + glm::vec3(1.0, 0.0, 0.0), glm::vec3(0.0, -1.0, 0.0)),
-                    glm::lookAt(e.m_pos, e.m_pos + glm::vec3(-1.0, 0.0, 0.0), glm::vec3(0.0, -1.0, 0.0)),
-                    glm::lookAt(e.m_pos, e.m_pos + glm::vec3(0.0, 1.0, 0.0), glm::vec3(0.0, 0.0, 1.0)),
-                    glm::lookAt(e.m_pos, e.m_pos + glm::vec3(0.0, -1.0, 0.0), glm::vec3(0.0, 0.0, -1.0)),
-                    glm::lookAt(e.m_pos, e.m_pos + glm::vec3(0.0, 0.0, 1.0), glm::vec3(0.0, -1.0, 0.0)),
-                    glm::lookAt(e.m_pos, e.m_pos + glm::vec3(0.0, 0.0, -1.0), glm::vec3(0.0, -1.0, 0.0))
-                };
-                const auto projMat = glm::perspective(glm::radians(90.f), 1.f, 0.01f, 1000.f);
+        if ( this->m_envmapTimer.getElapsed() < 0.5 ) {
+            return;
+        }
+        else {
+            this->m_envmapTimer.check();
+        }
 
-                e.bindFbuf();
-                e.clearFaces();
+        const auto projMat = glm::perspective(glm::radians(90.f), 1.f, 0.1f, 50.f);
+        const auto envmap = ::selectEnvmapToUpdate(this->m_mainCamera->m_pos, this->m_scene);
 
-                {
-                    const auto& uniloc = this->m_shader.useSkybox();
-                    const float sqrt2 = sqrt(1.0 / 3.0);
+        if ( nullptr != envmap ) {
+            g_cubemapFbuf.bind();
 
-                    uniloc.modelMat(glm::scale(glm::mat4{ 1 }, glm::vec3{ sqrt2 * this->m_farPlaneDistance }));
-                    uniloc.viewPos(0, 0, 0);
-                    this->m_skyboxTex->sendUniform(uniloc.skyboxTex());
+            std::array<glm::mat4, 6> viewMats = {
+                glm::lookAt(envmap->m_pos, envmap->m_pos + glm::vec3(1.0, 0.0, 0.0), glm::vec3(0.0, -1.0, 0.0)),
+                glm::lookAt(envmap->m_pos, envmap->m_pos + glm::vec3(-1.0, 0.0, 0.0), glm::vec3(0.0, -1.0, 0.0)),
+                glm::lookAt(envmap->m_pos, envmap->m_pos + glm::vec3(0.0, 1.0, 0.0), glm::vec3(0.0, 0.0, 1.0)),
+                glm::lookAt(envmap->m_pos, envmap->m_pos + glm::vec3(0.0, -1.0, 0.0), glm::vec3(0.0, 0.0, -1.0)),
+                glm::lookAt(envmap->m_pos, envmap->m_pos + glm::vec3(0.0, 0.0, 1.0), glm::vec3(0.0, -1.0, 0.0)),
+                glm::lookAt(envmap->m_pos, envmap->m_pos + glm::vec3(0.0, 0.0, -1.0), glm::vec3(0.0, -1.0, 0.0))
+            };
 
-                    for ( unsigned i = 0; i < 6; ++i ) {
-                        e.readyFace(i);
-                        uniloc.projMat(projMat);
-                        uniloc.viewMat(glm::mat4{ glm::mat3{ viewMats[i] } });
-                        g_skyRenderer.draw();
-                    }
-                }
-
-                {
-                    auto& uniloc = this->m_shader.useStatic();
-
-                    uniloc.projMat(projMat);
-                    uniloc.viewPos(e.m_pos);
-                    uniloc.i_lighting.baseAmbient(this->m_baseAmbientColor);
-                    uniloc.i_envmap.envmap().setFlagHas(false);
-
-                    for ( unsigned i = 0; i < 6; ++i ) {
-                        e.readyFace(i);
-                        uniloc.viewMat(viewMats[i]);
-                        this->m_scene.render_static(uniloc);
-                    }
-                }
-
-                {
-                    auto& uniloc = this->m_shader.useAnimated();
-
-                    uniloc.projMat(projMat);
-                    uniloc.viewPos(e.m_pos);
-                    uniloc.i_lighting.baseAmbient(this->m_baseAmbientColor);
-                    uniloc.i_envmap.envmap().setFlagHas(false);
-
-                    for ( unsigned i = 0; i < 6; ++i ) {
-                        e.readyFace(i);
-                        uniloc.viewMat(viewMats[i]);
-                        this->m_scene.render_animated(uniloc);
-                    }
-                }
-
-                e.unbindFbuf(this->m_winWidth, this->m_winHeight);
+            glViewport(0, 0, envmap->dimension(), envmap->dimension());
+            for ( unsigned i = 0; i < 6; ++i ) {
+                g_cubemapFbuf.clearFaceColor(envmap->prefilterMap(), i, 0);
             }
+
+            glEnable(GL_DEPTH_TEST);
+            glDepthFunc(GL_LESS);
+            glEnable(GL_CULL_FACE);
+
+            // Static
+            {
+                auto& uniloc = this->m_shader.useStatic();
+
+                uniloc.projMat(projMat);
+                uniloc.viewPos(envmap->m_pos);
+                uniloc.i_lighting.baseAmbient(this->m_baseAmbientColor);
+                uniloc.i_envmap.hasEnvmap(false);
+                ::g_brdfLUT.sendUniform(uniloc.i_envmap.brdfLUT());
+
+                for ( unsigned i = 0; i < 6; ++i ) {
+                    g_cubemapFbuf.readyFace(envmap->prefilterMap(), i, 0);
+                    glClear(GL_DEPTH_BUFFER_BIT);
+                    uniloc.viewMat(viewMats[i]);
+                    this->m_scene.render_staticOnEnvmap(uniloc);
+                }
+            }
+
+            // Animated
+            {
+                auto& uniloc = this->m_shader.useAnimated();
+
+                uniloc.projMat(projMat);
+                uniloc.viewPos(envmap->m_pos);
+                uniloc.i_lighting.baseAmbient(this->m_baseAmbientColor);
+                uniloc.i_envmap.hasEnvmap(false);
+                ::g_brdfLUT.sendUniform(uniloc.i_envmap.brdfLUT());
+
+                for ( unsigned i = 0; i < 6; ++i ) {
+                    g_cubemapFbuf.readyFace(envmap->prefilterMap(), i, 0);
+                    uniloc.viewMat(viewMats[i]);
+                    this->m_scene.render_animated(uniloc);
+                }
+            }
+
+            glDepthFunc(GL_LEQUAL);
+
+            // Skybox
+            {
+                const auto& uniloc = this->m_shader.useSkybox();
+                const float sqrt2 = sqrt(1.0 / 3.0);
+
+                this->m_skyboxTex->sendUniform(uniloc.skyboxTex());
+                uniloc.viewPosActual(this->m_mainCamera->m_pos);
+                uniloc.modelMat(glm::scale(glm::mat4{ 1 }, glm::vec3{ sqrt2 * this->m_farPlaneDistance }));
+                uniloc.viewPos(0, 0, 0);
+
+                for ( unsigned i = 0; i < 6; ++i ) {
+                    g_cubemapFbuf.readyFace(envmap->prefilterMap(), i, 0);
+                    uniloc.projMat(projMat);
+                    uniloc.viewMat(glm::mat4{ glm::mat3{ viewMats[i] } });
+                    g_vertbuf_cube.draw();
+                }
+            }
+
+            glDepthFunc(GL_ALWAYS);
+
+            // Irradiance
+            {
+                auto& uniloc = this->m_shader.useCubeIrradiance();
+
+                uniloc.projMat(projMat);
+                envmap->prefilterMap().sendUniform(uniloc.envmap());
+
+                for ( unsigned i = 0; i < 6; ++i ) {
+                    g_cubemapFbuf.readyFace(envmap->irradianceMap(), i, 0);
+                    glClear(GL_COLOR_BUFFER_BIT);
+                    uniloc.viewMat(glm::mat4{ glm::mat3{viewMats[i]} });
+                    g_vertbuf_cube.draw();
+                }
+            }
+
+            // Prefilter
+            {
+                auto& uniloc = this->m_shader.useCubePrefilter();
+
+                uniloc.projMat(projMat);
+                envmap->prefilterMap().sendUniform(uniloc.envmap());
+
+                constexpr unsigned MAX_MIP_LVL = 3;
+                for ( unsigned mip = 1; mip <= MAX_MIP_LVL; ++mip ) {
+                    const unsigned mipDimension = envmap->dimension() * std::pow(0.5, mip);
+                    glViewport(0, 0, mipDimension, mipDimension);
+
+                    const float roughness = static_cast<float>(mip) / static_cast<float>(MAX_MIP_LVL);
+                    uniloc.roughness(roughness);
+
+                    for ( unsigned i = 0; i < 6; ++i ) {
+                        g_cubemapFbuf.readyFace(envmap->prefilterMap(), i, mip);
+                        glClear(GL_COLOR_BUFFER_BIT);
+                        uniloc.viewMat(glm::mat4{ glm::mat3{viewMats[i]} });
+                        g_vertbuf_cube.draw();
+                    }
+                }
+            }
+
+            g_cubemapFbuf.unbind();
+            glViewport(0, 0, this->m_winWidth, this->m_winHeight);
+            glDepthFunc(GL_LESS);
         }
     }
 
@@ -668,7 +803,9 @@ namespace dal {
             uniloc.viewMat(this->m_mainCamera->getViewMat());
             uniloc.viewPos(this->m_mainCamera->m_pos);
             uniloc.i_lighting.baseAmbient(this->m_baseAmbientColor);
-            uniloc.i_envmap.envmap().setFlagHas(false);
+            uniloc.i_envmap.hasEnvmap(false);
+            g_brdfLUT.sendUniform(uniloc.i_envmap.brdfLUT());
+            //g_cubemapFbuf.m_depthMaps[0].sendUniform(uniloc.i_envmap.brdfLUT());
 
             this->m_scene.render_static(uniloc);
         }
@@ -681,7 +818,8 @@ namespace dal {
             uniloc.viewMat(this->m_mainCamera->getViewMat());
             uniloc.viewPos(this->m_mainCamera->m_pos);
             uniloc.i_lighting.baseAmbient(this->m_baseAmbientColor);
-            uniloc.i_envmap.envmap().setFlagHas(false);
+            uniloc.i_envmap.hasEnvmap(false);
+            g_brdfLUT.sendUniform(uniloc.i_envmap.brdfLUT());
 
             this->m_scene.render_animated(uniloc);
         }
@@ -719,7 +857,7 @@ namespace dal {
             glDepthMask(GL_FALSE);
             glDepthFunc(GL_LEQUAL);
 
-            g_skyRenderer.draw();
+            g_vertbuf_cube.draw();
 
             glDepthMask(GL_TRUE);
             glDepthFunc(GL_LESS);

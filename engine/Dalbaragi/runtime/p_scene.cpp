@@ -385,7 +385,7 @@ namespace dal {
                 sendEnvmapUniform(*envmap, uniloc.i_envmap);
             }
             else {
-                uniloc.i_envmap.envmap().setFlagHas(false);
+                uniloc.i_envmap.hasEnvmap(false);
             }
 
             uniloc.modelMat(cpntTrans.getMat());
@@ -411,7 +411,7 @@ namespace dal {
                 sendEnvmapUniform(*envmap, uniloc.i_envmap);
             }
             else {
-                uniloc.i_envmap.envmap().setFlagHas(false);
+                uniloc.i_envmap.hasEnvmap(false);
             }
 
             uniloc.modelMat(cpntTrans.getMat());
@@ -475,6 +475,24 @@ namespace dal {
 
             uniloc.modelMat(cpntTrans.getMat());
             cpntModel.m_model->render(uniloc, cpntModel.m_animState.getTransformArray());
+        }
+    }
+
+    void SceneGraph::render_staticOnEnvmap(const UniRender_Static& uniloc){
+        this->sendDlightUniform(uniloc.i_lighting);
+        uniloc.i_envmap.hasEnvmap(false);
+
+        for ( auto& map : this->m_mapChunks2 ) {
+            map.render_staticOnEnvmap(uniloc);
+        }
+
+        const auto view = this->m_entities.view<cpnt::Transform, cpnt::StaticModel>();
+        for ( const auto entity : view ) {
+            auto& cpntTrans = view.get<cpnt::Transform>(entity);
+            auto& cpntModel = view.get<cpnt::StaticModel>(entity);
+
+            uniloc.modelMat(cpntTrans.getMat());
+            cpntModel.m_model->render(uniloc);
         }
     }
 

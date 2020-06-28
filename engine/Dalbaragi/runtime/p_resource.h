@@ -11,6 +11,7 @@
 #include "p_water.h"
 #include "p_model.h"
 #include "p_light.h"
+#include "u_timer.h"
 
 
 namespace dal {
@@ -18,29 +19,33 @@ namespace dal {
     class EnvMap {
 
     private:
-        inline static constexpr unsigned WIDTH = 256, HEIGHT = 256;
+        inline static constexpr unsigned DIMENSION = 64;
 
-        GLuint m_fbo = 0;
-        std::shared_ptr<dal::CubeMap> m_cubemap;
+        dal::CubeMap m_irradiance, m_prefilterMap;
 
     public:
         glm::vec3 m_pos{ 0 };
         std::vector<Plane> m_volume;
+        dal::Timer m_timer;
 
     public:
         void init(void);
 
-        void bindFbuf(void);
-        void unbindFbuf(const unsigned width, const unsigned height);
-
-        void clearFaces(void);
-        void readyFace(const unsigned faceIndex);
-
-        auto& getCubemap(void) {
-            return this->m_cubemap;
+        static auto dimension(void) -> unsigned {
+            return DIMENSION;
         }
-        auto& getCubemap(void) const {
-            return this->m_cubemap;
+
+        auto irradianceMap(void) -> dal::CubeMap& {
+            return this->m_irradiance;
+        }
+        auto irradianceMap(void) const -> const dal::CubeMap& {
+            return this->m_irradiance;
+        }
+        auto prefilterMap(void) -> dal::CubeMap& {
+            return this->m_prefilterMap;
+        }
+        auto prefilterMap(void) const -> const dal::CubeMap& {
+            return this->m_prefilterMap;
         }
 
     };
@@ -102,6 +107,7 @@ namespace dal {
         void render_animatedDepth(const UniRender_AnimatedDepth& uniloc);
         void render_staticOnWater(const UniRender_StaticOnWater& uniloc);
         void render_animatedOnWater(const UniRender_AnimatedOnWater& uniloc);
+        void render_staticOnEnvmap(const UniRender_Static& uniloc);
 
         int sendPlightUniforms(const UniInterf_Lighting& uniloc) const;
         int sendSlightUniforms(const UniInterf_Lighting& uniloc) const;

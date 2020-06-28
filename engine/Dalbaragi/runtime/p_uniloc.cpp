@@ -116,7 +116,11 @@ namespace dal {
 
     void UniInterf_Envmap::set(const GLuint shader) {
         this->u_envmapPos = getUniloc(shader, "u_envmapPos");
-        this->u_envmap.init(getUniloc(shader, "u_envmap"), getUniloc(shader, "u_hasEnvmap"), g_texUnitReg["u_envmap"]);
+
+        this->u_irradianceMap.init(getUniloc(shader, "u_irradianceMap"), -2, g_texUnitReg["u_irradianceMap"]);
+        this->u_prefilterMap.init(getUniloc(shader, "u_prefilterMap"), -2, g_texUnitReg["u_prefilterMap"]);
+        this->u_brdfLUT.init(getUniloc(shader, "u_brdfLUT"), -2, g_texUnitReg["u_brdfLUT"]);
+        this->u_hasEnvmap = getUniloc(shader, "u_hasEnvmap");
 
         this->u_numPlanes = getUniloc(shader, "u_numPlanes");
         this->u_planes = getUniloc(shader, "u_planes");
@@ -299,6 +303,21 @@ namespace dal {
 
         this->u_colorMap.init(getUniloc(shader, "u_colorMap"), getUniloc(shader, "u_hasColorMap"), g_texUnitReg["u_colorMap"]);
         this->u_maskMap.init(getUniloc(shader, "u_maskMap"), getUniloc(shader, "u_hasMaskMap"), g_texUnitReg["u_maskMap"]);
+    }
+
+    void UniRender_CubeIrradiance::set(const GLuint shader) {
+        this->u_projMat = getUniloc(shader, "u_projMat");
+        this->u_viewMat = getUniloc(shader, "u_viewMat");
+
+        this->u_envmap.init(getUniloc(shader, "u_envmap"), -2, g_texUnitReg["u_envmap"]);
+    }
+
+    void UniRender_CubePrefilter::set(const GLuint shader) {
+        this->u_projMat = getUniloc(shader, "u_projMat");
+        this->u_viewMat = getUniloc(shader, "u_viewMat");
+
+        this->u_roughness = getUniloc(shader, "u_roughness");
+        this->u_envmap.init(getUniloc(shader, "u_envmap"), -2, g_texUnitReg["u_envmap"]);
     }
 
 }
