@@ -1,5 +1,7 @@
 #include "p_scene.h"
 
+#include <limits>
+
 #include <fmt/format.h>
 #include <glm/gtc/matrix_transform.hpp>
 
@@ -55,6 +57,23 @@ namespace {
         }
 
         camera.updateViewMat();
+    }
+
+    bool isGoodToBeLoaded(const glm::vec3& campos, const dal::LevelData::ChunkData& mapInfo) {
+        if ( mapInfo.m_aabb.isInside(campos) )
+            return true;
+
+        const auto points = mapInfo.m_aabb.getAllPoints();
+        double closestDist = std::numeric_limits<double>::max();
+
+        for ( const auto& p : points ) {
+            const double dist = glm::distance(p, campos);
+            if ( dist < closestDist ) {
+                closestDist = dist;
+            }
+        }
+
+        return closestDist < 10.0;
     }
 
 }
@@ -270,9 +289,6 @@ namespace dal {
         // New map
         {
             this->openLevel("asset::demo_dal_map.dlb");
-            const auto respath = parseResPath(this->m_activeLevel.respath());
-            const auto chunkPath = respath.m_package + "::" + respath.m_intermPath + this->m_activeLevel.at(0).m_name + ".dmc";
-            this->openChunk(chunkPath.c_str());
         }
 
         // Player
@@ -350,6 +366,20 @@ namespace dal {
                 auto& cpntModel = view.get(entity);
                 auto pModel = cpntModel.m_model;
                 updateAnimeState(cpntModel.m_animState, pModel->getAnimations(), pModel->getSkeletonInterf());
+            }
+        }
+
+        // Find map chunk to load
+        {
+            for ( unsigned i = 0; i < this->m_activeLevel.size(); ++i ) {
+                auto& mapInfo = this->m_activeLevel.at(i);
+                if ( !mapInfo.m_active && ::isGoodToBeLoaded(this->m_playerCam.m_pos, mapInfo) ) {
+                    const auto respath = parseResPath(this->m_activeLevel.respath());
+                    const auto chunkPath = respath.m_package + "::" + respath.m_intermPath + mapInfo.m_name + ".dmc";
+                    this->openChunk(chunkPath.c_str());
+                    mapInfo.m_active = true;
+                    dalInfo(fmt::format("Map chunk activated: {}", mapInfo.m_name));
+                }
             }
         }
     }

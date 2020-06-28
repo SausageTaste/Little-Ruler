@@ -369,6 +369,7 @@ namespace dal {
         //void scale(const float mag);
 
         float calcArea(void) const;
+        bool isInside(const glm::vec3& p) const;
 
     private:
         void validateOrder(void);

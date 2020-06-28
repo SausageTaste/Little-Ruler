@@ -860,6 +860,19 @@ namespace dal {
         return (this->m_p2.x - this->m_p1.x) * (this->m_p2.y - this->m_p1.y) * (this->m_p2.z - this->m_p1.z);
     }
 
+    bool AABB::isInside(const glm::vec3& p) const {
+        for ( int i = 0; i < 3; ++i ) {
+            if ( p[i] <= this->m_p1[i] ) {
+                return false;
+            }
+            else if ( p[i] >= this->m_p2[i] ) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     // Private
 
     void AABB::validateOrder(void) {

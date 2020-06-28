@@ -43,7 +43,8 @@ namespace dal {
         struct ChunkData {
             std::string m_name;
             AABB m_aabb;
-            glm::vec3 m_offsetPos;
+            glm::vec3 m_offsetPos{ 0 };
+            bool m_active = false;
         };
 
     private:
