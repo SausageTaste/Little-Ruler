@@ -482,16 +482,31 @@ namespace dal {
 
         for ( const auto& [model, actors] : this->m_staticActors ) {
             for ( const auto& actor : actors ) {
-                if ( -1 != actor.m_envmapIndex ) {
-                    auto& cubemap = this->m_envmap[actor.m_envmapIndex];
-                    sendEnvmapUniform(cubemap, uniloc.i_envmap);
-                }
-                else {
-                    uniloc.i_envmap.hasEnvmap(false);
+                if ( !model->isReady() ) {
+                    return;
                 }
 
                 uniloc.modelMat(actor.m_transform.getMat());
-                model->render(uniloc);
+
+                for ( int i = 0; i < model->renderUnits().size(); ++i ) {
+                    auto& unit = model->renderUnits()[i];
+                    if ( !unit.m_mesh.isReady() ) {
+                        continue;
+                    }
+
+                    const auto envmapIndex = actor.m_envmapIndices[i];
+                    if ( -1 != envmapIndex ) {
+                        sendEnvmapUniform(this->m_envmap[envmapIndex], uniloc.i_envmap);
+                    }
+                    else {
+                        uniloc.i_envmap.hasEnvmap(false);
+                    }
+
+                    unit.m_material.sendUniform(uniloc.i_lighting);
+                    unit.m_material.sendUniform(uniloc.i_lightmap);
+
+                    unit.m_mesh.draw();
+                }
             }
         }
     }
@@ -986,7 +1001,7 @@ namespace dal {
 
             modelActor.m_actors.back().m_name = sactorInfo.m_name;
             copyTransform(modelActor.m_actors.back().m_transform, sactorInfo.m_trans);
-            modelActor.m_actors.back().m_envmapIndex = sactorInfo.m_envmapIndices[0];
+            modelActor.m_actors.back().m_envmapIndices = sactorInfo.m_envmapIndices;
         }
 
         const auto win_width = GlobalStateGod::getinst().getWinWidth();

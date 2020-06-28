@@ -34,6 +34,10 @@ namespace dal {
         IModel(IModel&&) = default;
         IModel& operator=(IModel&&) = default;
 
+        auto& renderUnits(void) const {
+            return this->m_renderUnits;
+        }
+
         void clearRenderUnits(void) {
             this->m_renderUnits.clear();
         }
