@@ -160,6 +160,16 @@ namespace {
         begin = parseMaterial(info.m_material, begin, end);
         begin = parseMesh(info.m_mesh, begin, end);
 
+        return begin;
+    }
+
+    const uint8_t* parseModel(dal::v1::ModelEmbeded& info, const uint8_t* begin, const uint8_t* const end) {
+        const auto num_units = dal::makeInt4(begin); begin += 4;
+        info.m_renderUnits.resize(num_units);
+        for ( int32_t i = 0; i < num_units; ++i ) {
+            begin = parseRenderUnit(info.m_renderUnits[i], begin, end);
+        }
+
         begin = parseVec3(info.m_aabb.m_min, begin);
         begin = parseVec3(info.m_aabb.m_max, begin);
 
@@ -377,10 +387,10 @@ namespace dal {
 
         try {
             {
-                const auto num_units = dal::makeInt4(header); header += 4;
-                info.m_renderUnits.resize(num_units);
-                for ( int32_t i = 0; i < num_units; ++i ) {
-                    header = parseRenderUnit(info.m_renderUnits[i], header, end);
+                const auto num_models = dal::makeInt4(header); header += 4;
+                info.m_models.resize(num_models);
+                for ( int32_t i = 0; i < num_models; ++i ) {
+                    header = parseModel(info.m_models[i], header, end);
                 }
             }
 

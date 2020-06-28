@@ -51,15 +51,14 @@ namespace dal::v1 {
     public:
         Mesh m_mesh;
         Material m_material;
-        AABB m_aabb;
 
     };
 
     class ModelEmbeded {
 
     public:
-        std::string m_modelID;
         std::vector<RenderUnit> m_renderUnits;
+        AABB m_aabb;
 
     };
 
@@ -184,7 +183,7 @@ namespace dal::v1 {
     class MapChunk {
 
     public:
-        std::vector<RenderUnit> m_renderUnits;
+        std::vector<ModelEmbeded> m_models;
         std::vector<StaticActor> m_staticActors;
         std::vector<WaterPlane> m_waters;
         std::vector<EnvMap> m_envmaps;

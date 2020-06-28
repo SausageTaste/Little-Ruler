@@ -960,19 +960,22 @@ namespace dal {
 
         MapChunk2 map;
 
-        for ( auto& unitInfo : mapInfo->m_renderUnits ) {
+        for ( auto& modelInfo : mapInfo->m_models ) {
             auto model = std::make_shared<ModelStatic>();
 
-            auto& unit = model->newRenderUnit();
-            unit.m_mesh.buildData(
-                unitInfo.m_mesh.m_vertices.data(),
-                unitInfo.m_mesh.m_uvcoords.data(),
-                unitInfo.m_mesh.m_normals.data(),
-                unitInfo.m_mesh.m_vertices.size() / 3
-            );
+            for ( auto& unitInfo : modelInfo.m_renderUnits ) {
+                auto& unit = model->newRenderUnit();
+                unit.m_mesh.buildData(
+                    unitInfo.m_mesh.m_vertices.data(),
+                    unitInfo.m_mesh.m_uvcoords.data(),
+                    unitInfo.m_mesh.m_normals.data(),
+                    unitInfo.m_mesh.m_vertices.size() / 3
+                );
 
-            copyMaterial(unit.m_material, unitInfo.m_material, *this, respathParsed.m_package);
-            model->setBounding(std::unique_ptr<ICollider>{new ColAABB{ unitInfo.m_aabb.m_min, unitInfo.m_aabb.m_max }});
+                copyMaterial(unit.m_material, unitInfo.m_material, *this, respathParsed.m_package);
+            }
+
+            model->setBounding(std::unique_ptr<ICollider>{new ColAABB{ modelInfo.m_aabb.m_min, modelInfo.m_aabb.m_max }});
 
             map.m_staticActors.emplace_back(model);
         }
