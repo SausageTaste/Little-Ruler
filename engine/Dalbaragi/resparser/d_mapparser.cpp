@@ -398,9 +398,16 @@ namespace dal {
                 const auto num_static_actors = dal::makeInt4(header); header += 4;
                 info.m_staticActors.resize(num_static_actors);
                 for ( int32_t i = 0; i < num_static_actors; ++i ) {
-                    header = parseStaticActor(info.m_staticActors[i], header, end);
-                    info.m_staticActors[i].m_modelIndex = dal::makeInt4(header); header += 4;
-                    info.m_staticActors[i].m_envmapIndex = dal::makeInt4(header); header += 4;
+                    auto& actor = info.m_staticActors[i];
+
+                    header = parseStaticActor(actor, header, end);
+                    actor.m_modelIndex = dal::makeInt4(header); header += 4;
+
+                    const auto num_envmaps = dal::makeInt4(header); header += 4;
+                    actor.m_envmapIndices.resize(num_envmaps);
+                    for ( unsigned j = 0; j < num_envmaps; ++j ) {
+                        actor.m_envmapIndices[j] = dal::makeInt4(header); header += 4;
+                    }
                 }
             }
 

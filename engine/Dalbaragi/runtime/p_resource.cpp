@@ -986,7 +986,7 @@ namespace dal {
 
             modelActor.m_actors.back().m_name = sactorInfo.m_name;
             copyTransform(modelActor.m_actors.back().m_transform, sactorInfo.m_trans);
-            modelActor.m_actors.back().m_envmapIndex = sactorInfo.m_envmapIndex;
+            modelActor.m_actors.back().m_envmapIndex = sactorInfo.m_envmapIndices[0];
         }
 
         const auto win_width = GlobalStateGod::getinst().getWinWidth();

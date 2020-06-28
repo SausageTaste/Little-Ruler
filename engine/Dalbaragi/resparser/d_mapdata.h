@@ -102,8 +102,8 @@ namespace dal::v1 {
     public:
         std::string m_name;
         int32_t m_modelIndex = -1;
-        int32_t m_envmapIndex = -1;
         cpnt::Transform m_trans;
+        std::vector<std::int32_t> m_envmapIndices;
 
     };
 
