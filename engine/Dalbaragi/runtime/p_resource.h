@@ -182,7 +182,6 @@ namespace dal {
         std::shared_ptr<const Texture> orderTexture(const char* const respath, const bool gammaCorrect);
         std::shared_ptr<const CubeMap> orderCubeMap(const std::array<std::string, 6>& respathes, const bool gammaCorrect);
 
-        MapChunk2 loadMap(const char* const respath);
         MapChunk2 loadChunk(const char* const respath);
 
     private:

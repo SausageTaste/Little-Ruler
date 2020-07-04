@@ -26,7 +26,6 @@ add_library(dalbaragi_runtime
     p_water.h               p_water.cpp
     s_input_queue.h         s_input_queue.cpp
     s_threader.h            s_threader.cpp
-    u_dlbparser.h           u_dlbparser.cpp
     u_loadinfo.h            u_loadinfo.cpp
     u_luascript.h           u_luascript.cpp
     u_objparser.h           u_objparser.cpp

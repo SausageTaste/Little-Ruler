@@ -12,7 +12,6 @@
 
 #include "u_objparser.h"
 #include "s_configs.h"
-#include "u_dlbparser.h"
 #include "u_fileutils.h"
 
 
@@ -897,67 +896,6 @@ namespace dal {
         this->m_task.orderTask(std::move(task), this);
 
         return tex;
-    }
-
-
-    MapChunk2 ResourceMaster::loadMap(const char* const respath) {
-        std::vector<uint8_t> buffer;
-        loadFileBuffer(respath, buffer);
-        auto mapInfo = parseDLB(buffer.data(), buffer.size());
-        if ( !mapInfo ) {
-            dalAbort(fmt::format("Failed to load map : {}", respath));
-        }
-
-        MapChunk2 map;
-
-        for ( auto& mdlEmbed : mapInfo->m_embeddedModels ) {
-            //std::shared_ptr<ModelStatic> model{ new ModelStatic };
-            auto model = std::make_shared<ModelStatic>();
-
-            // Name
-            {
-                model->setResID(mdlEmbed.m_name);
-            }
-
-            // Render units
-            for ( const auto& unitInfo : mdlEmbed.m_renderUnits ) {
-                auto& unit = model->newRenderUnit();
-                unit.m_mesh.buildData(
-                    unitInfo.m_mesh.m_vertices.data(),
-                    unitInfo.m_mesh.m_texcoords.data(),
-                    unitInfo.m_mesh.m_normals.data(),
-                    unitInfo.m_mesh.m_vertices.size() / 3
-                );
-
-                copyMaterial(unit.m_material, unitInfo.m_material, *this, "");
-            }
-
-            // Colliders
-            {
-                model->setBounding(std::move(mdlEmbed.m_bounding));
-                model->setDetailed(std::move(mdlEmbed.m_detailed));
-            }
-
-            map.addStaticActorModel(std::move(model), std::move(mdlEmbed.m_staticActors));
-        }
-
-        for ( auto& mdlImport : mapInfo->m_importedModels ) {
-            auto model = this->orderModelStatic(mdlImport.m_resourceID.c_str());
-            map.addStaticActorModel(std::move(model), std::move(mdlImport.m_staticActors));
-        }
-
-        for ( auto& water : mapInfo->m_waterPlanes ) {
-            map.addWaterPlane(water);
-        }
-
-        for ( auto& light : mapInfo->m_plights ) {
-            auto& mapLight = map.newPlight();
-            mapLight.mPos = light.m_pos;
-            mapLight.m_color = light.m_color;
-            mapLight.mMaxDistance = light.m_maxDist;
-        }
-
-        return map;
     }
 
     MapChunk2 ResourceMaster::loadChunk(const char* const respath) {
