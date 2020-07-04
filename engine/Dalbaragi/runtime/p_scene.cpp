@@ -405,6 +405,11 @@ namespace dal {
             map.m_map.render_static(uniloc);
         }
 
+        if ( !this->m_mapChunks.empty() ) {
+            this->m_mapChunks.front().m_map.sendPlightUniforms(uniloc.i_lighting);
+            this->m_mapChunks.front().m_map.sendSlightUniforms(uniloc.i_lighting);
+        }
+
         const auto view = this->m_entities.view<cpnt::Transform, cpnt::StaticModel>();
         for ( const auto entity : view ) {
             auto& cpntTrans = view.get<cpnt::Transform>(entity);
@@ -427,8 +432,8 @@ namespace dal {
         this->sendDlightUniform(uniloc.i_lighting);
 
         if ( !this->m_mapChunks.empty() ) {
-            this->m_mapChunks.back().m_map.sendPlightUniforms(uniloc.i_lighting);
-            this->m_mapChunks.back().m_map.sendSlightUniforms(uniloc.i_lighting);
+            this->m_mapChunks.front().m_map.sendPlightUniforms(uniloc.i_lighting);
+            this->m_mapChunks.front().m_map.sendSlightUniforms(uniloc.i_lighting);
         }
 
         const auto viewAnimated = this->m_entities.view<cpnt::Transform, cpnt::AnimatedModel>();
