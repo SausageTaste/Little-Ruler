@@ -67,19 +67,6 @@ namespace dal {
         return glm::dot(this->rel(), this->rel());
     }
 
-    glm::vec3 Segment::findNearestPointOnSeg(const glm::vec3& p) const {
-        // From https://answers.unity.com/questions/62644/distance-between-a-ray-and-a-point.html
-
-        constexpr auto EPSILON = 1E-06f;
-
-        const auto rhs = p - this->pos();
-        const auto magnitude = this->length();
-        const auto lhs = magnitude > EPSILON ? (this->rel() / magnitude) : this->rel();
-        const auto num2 = glm::clamp<float>(glm::dot(lhs, rhs), 0, magnitude);
-
-        return this->m_pos + (lhs * num2);
-    }
-
     void Segment::setPos(const glm::vec3& pos) {
         this->m_pos = pos;
     }
@@ -93,36 +80,52 @@ namespace dal {
         this->m_rel = rel;
     }
 
+    glm::vec3 Segment::findNearestPointOnSeg(const glm::vec3& p) const {
+        // From https://answers.unity.com/questions/62644/distance-between-a-ray-and-a-point.html
+
+        constexpr auto EPSILON = 1E-06f;
+
+        const auto rhs = p - this->pos();
+        const auto magnitude = this->length();
+        const auto lhs = magnitude > EPSILON ? (this->rel() / magnitude) : this->rel();
+        const auto num2 = glm::clamp<float>(glm::dot(lhs, rhs), 0, magnitude);
+
+        return this->m_pos + (lhs * num2);
+    }
+
+    float Segment::calcDistance(const glm::vec3& p) const {
+        const auto projected = this->findNearestPointOnSeg(p);
+        return glm::distance(projected, p);
+    }
+
 }
 
 
 // Plane
 namespace dal {
 
-    Plane::Plane(const glm::vec3& normal, const glm::vec3& point)
-        : m_normal(glm::normalize(normal))
-        , m_point(point)
-    {
-
+    Plane::Plane(const glm::vec3& normal, const glm::vec3& point) {
+        this->set(normal, point);
     }
 
-    Plane::Plane(const glm::vec3& p0, const glm::vec3& p1, const glm::vec3& p2)
-        : Plane(calcNormalCCW(p0, p1, p2), p0)
-    {
+    Plane::Plane(const glm::vec3& p0, const glm::vec3& p1, const glm::vec3& p2) {
+        this->set(p0, p1, p2);
+    }
 
+    Plane::Plane(const float a, const float b, const float c, const float d) {
+        this->set(a, b, c, d);
     }
 
     const glm::vec3& Plane::normal(void) const {
         return this->m_normal;
     }
 
-    glm::vec4 Plane::planeEquation(void) const {
-        const auto d = -glm::dot(this->m_normal, this->m_point);
-        return glm::vec4{ this->normal(), d };
+    glm::vec4 Plane::coeff(void) const {
+        return glm::vec4{ this->normal(), this->m_d };
     }
 
     float Plane::calcSignedDist(const glm::vec3& p) const {
-        return glm::dot(this->planeEquation(), glm::vec4{ p, 1 });
+        return glm::dot(this->coeff(), glm::vec4{ p, 1 });
     }
 
     bool Plane::isInFront(const glm::vec3& p) const {
@@ -131,11 +134,18 @@ namespace dal {
 
     void Plane::set(const glm::vec3& normal, const glm::vec3& point) {
         this->m_normal = glm::normalize(normal);
-        this->m_point = point;
+        this->m_d = -glm::dot(this->m_normal, point);
     }
 
     void Plane::set(const glm::vec3& p0, const glm::vec3& p1, const glm::vec3& p2) {
         this->set(calcNormalCCW(p0, p1, p2), p0);
+    }
+
+    void Plane::set(const float a, const float b, const float c, const float d) {
+        this->m_normal.x = a;
+        this->m_normal.y = b;
+        this->m_normal.z = c;
+        this->m_d = d;
     }
 
 }
@@ -167,6 +177,14 @@ namespace dal {
         return sqrt(s * (s - a) * (s - b) * (s - c));
     }
 
+    Triangle Triangle::transform(const glm::mat4& mat) const {
+        const auto pp0 = mat * glm::vec4(this->point<0>(), 1);
+        const auto pp1 = mat * glm::vec4(this->point<1>(), 1);
+        const auto pp2 = mat * glm::vec4(this->point<2>(), 1);
+
+        return Triangle{ pp0, pp1, pp2 };
+    }
+
 }
 
 
@@ -192,6 +210,13 @@ namespace dal {
     bool Sphere::isInside(const glm::vec3& p) const {
         const auto dist = p - this->m_center;
         return glm::dot(dist, dist) < (this->radius() * this->radius());
+    }
+
+    Sphere Sphere::transform(const glm::vec3& translate, const float scale) const {
+        return Sphere{
+            this->center() + translate,
+            this->radius() * scale
+        };
     }
 
     void Sphere::upscaleToInclude(const glm::vec3& p) {
@@ -226,6 +251,42 @@ namespace dal {
         }
 
         return true;
+    }
+
+    AABB AABB::transform(const glm::vec3& translate, const float scale) const {
+        return AABB{
+            scale * this->min() + translate,
+            scale * this->max() + translate
+        };
+    }
+
+
+    std::array<glm::vec3, 8> AABB::getAllPoints(void) const {
+        return this->getAllPoints([](auto vec) { return vec; });
+    }
+
+    std::array<glm::vec3, 8> AABB::getAllPoints(const glm::vec3& translate, const float scale) const {
+        return this->getAllPoints([&translate, scale](auto vec) { return scale * vec + translate; });
+    }
+
+    std::array<glm::vec3, 8> AABB::getAllPoints(std::function<glm::vec3(const glm::vec3&)> modifier) const {
+        std::array<glm::vec3, 8> result;
+
+        {
+            const auto p000 = this->min();
+            const auto p111 = this->max();
+
+            result[0] = modifier(p000);  // 000
+            result[1] = modifier(glm::vec3{ p000.x, p000.y, p111.z });  // 001
+            result[2] = modifier(glm::vec3{ p000.x, p111.y, p000.z });  // 010
+            result[3] = modifier(glm::vec3{ p000.x, p111.y, p111.z });  // 011
+            result[4] = modifier(glm::vec3{ p111.x, p000.y, p000.z });  // 100
+            result[5] = modifier(glm::vec3{ p111.x, p000.y, p111.z });  // 101
+            result[6] = modifier(glm::vec3{ p111.x, p111.y, p000.z });  // 110
+            result[7] = modifier(p111);  // 111
+        }
+
+        return result;
     }
 
     void AABB::set(const glm::vec3& p0, const glm::vec3& p1) {

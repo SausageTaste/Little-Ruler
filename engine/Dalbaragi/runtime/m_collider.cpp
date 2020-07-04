@@ -3,7 +3,6 @@
 #include <tuple>
 
 #include <fmt/format.h>
-#include <glm/gtc/matrix_transform.hpp>
 
 #include <d_logger.h>
 
@@ -78,7 +77,7 @@ namespace {
     std::array<dal::Triangle, 12> makeTriangles(const dal::AABB& aabb, const dal::Transform & transAABB) {
         std::array<dal::Triangle, 12> result;
 
-        const auto ps = aabb.getAllPoints(transAABB);
+        const auto ps = aabb.getAllPoints([&transAABB](auto vec) { return transAABB.getScale() * vec + transAABB.getPos(); });
 
         makeTrianglesFromRect(ps[3], ps[1], ps[5], ps[7], result[0], result[1]);
         makeTrianglesFromRect(ps[7], ps[5], ps[4], ps[6], result[2], result[3]);
@@ -92,27 +91,27 @@ namespace {
 
     // Param p must be on the plane.
     bool isPointInsideTriangle(const glm::vec3& p, const dal::Triangle& tri) {
-        const auto edge1 = tri.getPoint2() - tri.getPoint1();
-        const auto edge2 = tri.getPoint3() - tri.getPoint2();
+        const auto edge1 = tri.point<1>() - tri.point<0>();
+        const auto edge2 = tri.point<2>() - tri.point<1>();
         
-        const auto toPoint1 = p - tri.getPoint1();
-        const auto toPoint2 = p - tri.getPoint2();
+        const auto toPoint1 = p - tri.point<0>();
+        const auto toPoint2 = p - tri.point<1>();
         
         const auto crossed1 = glm::cross(edge1, toPoint1);
         const auto crossed2 = glm::cross(edge2, toPoint2);
         
         const auto dotted1 = glm::dot(crossed1, crossed2);
         
-        if ( dotted1 < 0.0f ) {
+        if ( dotted1 < 0.f ) {
             return false;
         }
 
-        const auto edge3 = tri.getPoint1() - tri.getPoint3();
-        const auto toPoint3 = p - tri.getPoint3();
+        const auto edge3 = tri.point<0>() - tri.point<2>();
+        const auto toPoint3 = p - tri.point<2>();
         const auto crossed3 = glm::cross(edge3, toPoint3);
         const auto dotted2 = glm::dot(crossed1, crossed3);
 
-        if ( dotted2 < 0.0f ) {
+        if ( dotted2 < 0.f ) {
             return false;
         }
 
@@ -278,8 +277,8 @@ namespace {
         // From https://www.scratchapixel.com/lessons/3d-basic-rendering/minimal-ray-tracer-rendering-simple-shapes/ray-box-intersection
 
         const glm::vec3 bounds[2] = { aabbMin, aabbMax };
-        const auto orig = ray.getStartPos();
-        const auto invdir = 1.f / ray.getRel();
+        const auto orig = ray.pos();
+        const auto invdir = 1.f / ray.rel();
         const int sign[3] = {
             invdir.x < 0,
             invdir.y < 0,
@@ -588,50 +587,6 @@ namespace {
 }
 
 
-// Transform
-namespace dal {
-
-    Transform::Transform(void)
-        : m_scale(1.f)
-        , m_isDefault(true)
-    {
-        this->updateMat();
-    }
-
-    Transform::Transform(const glm::vec3& pos, const glm::quat& quat, const float scale)
-        : m_quat(quat)
-        , m_pos(pos)
-        , m_scale(scale)
-        , m_isDefault(false)
-    {
-        this->updateMat();
-    }
-
-    const glm::mat4& Transform::getMat(void) const {
-        if ( this->needUpdate() ) {
-            this->updateMat();
-        }
-        return this->m_mat.m_mat;
-    }
-
-    void Transform::rotate(const float v, const glm::vec3& selector) {
-        this->m_quat = rotateQuat(this->m_quat, v, selector);
-        this->onValueSet();
-    }
-
-    // Private
-
-    void Transform::updateMat(void) const {
-        const auto identity = glm::mat4{ 1.0f };
-        const auto scaleMat = glm::scale(identity, glm::vec3{ this->m_scale, this->m_scale , this->m_scale });
-        const auto translateMat = glm::translate(identity, this->m_pos);
-        this->m_mat.m_mat = translateMat * glm::mat4_cast(this->m_quat) * scaleMat;
-        this->m_mat.m_needUpdate = false;
-    }
-
-}
-
-
 // ICollider
 namespace dal {
 
@@ -643,290 +598,6 @@ namespace dal {
 
     ColliderType ICollider::getColType(void) const noexcept {
         return this->m_type;
-    }
-
-}
-
-
-// Plane
-namespace dal {
-
-    Plane::Plane(void)
-        : m_normal(0.f, 1.f, 0.f)
-        , m_d(0.f)
-    {
-
-    }
-
-    Plane::Plane(const glm::vec3& normal, const glm::vec3& point) {
-        this->m_normal = glm::normalize(normal);
-        this->m_d = -glm::dot(this->m_normal, point);
-    }
-
-    Plane::Plane(const glm::vec3& p1, const glm::vec3& p2, const glm::vec3& p3)
-        : Plane(glm::cross(p2 - p1, p3 - p1), p1)
-    {
-
-    }
-
-    Plane::Plane(const float a, const float b, const float c, const float d)
-        : m_normal(a, b, c)
-        , m_d(d)
-    {
-
-    }
-
-}
-
-
-// Segment
-namespace dal {
-
-    Segment::Segment(void)
-        : m_pos(0.f, 0.f, 0.f)
-        , m_rel(0.f, 1.f, 0.f)
-        , m_len(1.f)
-    {
-
-    }
-
-    Segment::Segment(const glm::vec3& pos, const glm::vec3& rel)
-        : m_pos(pos)
-        , m_rel(rel)
-        , m_len(glm::length(rel))
-    {
-        dalAssert(this->m_len > 0.0f);
-    }
-
-    void Segment::setRel(const glm::vec3 v) {
-        this->m_rel = v;
-        this->m_len = glm::length(this->m_rel);
-        dalAssert(this->m_len > 0.0f);
-    }
-
-    glm::vec3 Segment::projectPointOn(const glm::vec3 p) const {
-        // From https://answers.unity.com/questions/62644/distance-between-a-ray-and-a-point.html
-
-        const auto rhs = p - this->m_pos;
-        const float magnitude = this->getLength();
-
-        auto lhs = this->m_rel;
-        if ( magnitude > 1E-06f ) {
-            lhs /= magnitude;
-        }
-        float num2 = std::clamp(glm::dot(lhs, rhs), 0.f, magnitude);
-        return this->m_pos + (lhs * num2);
-    }
-
-    float Segment::calcDistance(const glm::vec3 p) const {
-        const auto projected = this->projectPointOn(p);
-        return glm::length(projected - p);
-    }
-
-}
-
-
-// Triangle
-namespace dal {
-
-    Triangle::Triangle(const glm::vec3& p1, const glm::vec3& p2, const glm::vec3& p3) {
-        this->m_points[0] = p1;
-        this->m_points[1] = p2;
-        this->m_points[2] = p3;
-
-        if ( this->calcArea() == 0.0f ) {
-            dalAbort("Triangle area is zero!");
-        }
-    }
-
-    glm::vec3 Triangle::calcNormal(void) const {
-        const auto edge1 = this->m_points[2] - this->m_points[1];
-        const auto edge2 = this->m_points[0] - this->m_points[1];
-        return glm::cross(edge1, edge2);
-    }
-
-    Triangle Triangle::transform(const Transform& trans) const {
-        const auto& mat = trans.getMat();
-
-        const auto pp1 = mat * glm::vec4(this->getPoint1(), 1.0f);
-        const auto pp2 = mat * glm::vec4(this->getPoint2(), 1.0f);
-        const auto pp3 = mat * glm::vec4(this->getPoint3(), 1.0f);
-
-        return Triangle{ pp1, pp2, pp3 };
-    }
-
-    // Private
-
-    float Triangle::calcArea(void) const {
-        const auto a = glm::length(this->getPoint2() - this->getPoint1());
-        const auto b = glm::length(this->getPoint3() - this->getPoint2());
-        const auto c = glm::length(this->getPoint1() - this->getPoint3());
-
-        const auto s = (a + b + c) * 0.5f;
-        return std::sqrt(s * (s - a) * (s - b) * (s - c));
-    }
-
-}
-
-
-// AABB
-namespace dal {
-
-    AABB::AABB(const glm::vec3& p1, const glm::vec3& p2)
-        : m_p1(p1), m_p2(p2)
-    {
-        this->validateOrder();
-    }
-
-    std::array<glm::vec3, 8> AABB::getAllPoints(void) const {
-        return this->getAllPoints([](auto vec) { return vec; });
-    }
-
-    std::array<glm::vec3, 8> AABB::getAllPoints(const Transform& trans) const {
-        return this->getAllPoints([&trans](auto vec) { return trans.getScale() * vec + trans.getPos(); });
-    }
-
-    std::array<glm::vec3, 8> AABB::getAllPoints(std::function<glm::vec3(const glm::vec3&)> modifier) const {
-        std::array<glm::vec3, 8> result;
-
-        {
-            const auto p000 = this->getPoint000();
-            const auto p111 = this->getPoint111();
-
-            result[0] = modifier(p000);  // 000
-            result[1] = modifier(glm::vec3{ p000.x, p000.y, p111.z });  // 001
-            result[2] = modifier(glm::vec3{ p000.x, p111.y, p000.z });  // 010
-            result[3] = modifier(glm::vec3{ p000.x, p111.y, p111.z });  // 011
-            result[4] = modifier(glm::vec3{ p111.x, p000.y, p000.z });  // 100
-            result[5] = modifier(glm::vec3{ p111.x, p000.y, p111.z });  // 101
-            result[6] = modifier(glm::vec3{ p111.x, p111.y, p000.z });  // 110
-            result[7] = modifier(p111);  // 111
-        }
-
-        return result;
-    }
-
-
-    void AABB::set(const glm::vec3& p1, const glm::vec3& p2) {
-        this->m_p1 = p1;
-        this->m_p2 = p2;
-
-        this->validateOrder();
-    }
-
-    AABB AABB::transform(const Transform& trans) const {
-        return AABB{
-            trans.getScale() * this->m_p1 + trans.getPos(),
-            trans.getScale() * this->m_p2 + trans.getPos()
-        };
-    }
-
-    void AABB::resizeToInclude(const float x, const float y, const float z) {
-        if ( this->m_p1.x > x ) {
-            this->m_p1.x = x;
-        }
-        else if ( this->m_p2.x < x ) {
-            this->m_p2.x = x;
-        }
-
-        if ( this->m_p1.y > y ) {
-            this->m_p1.y = y;
-        }
-        else if ( this->m_p2.y < y ) {
-            this->m_p2.y = y;
-        }
-
-        if ( this->m_p1.z > z ) {
-            this->m_p1.z = z;
-        }
-        else if ( this->m_p2.z < z ) {
-            this->m_p2.z = z;
-        }
-    }
-
-    /*
-    void AABB::add(const glm::vec3& offset) {
-        this->m_p1 += offset;
-        this->m_p2 += offset;
-    }
-
-    void AABB::scale(const float mag) {
-        this->m_p1 *= mag;
-        this->m_p2 *= mag;
-    }
-    */
-
-    float AABB::calcArea(void) const {
-        return (this->m_p2.x - this->m_p1.x) * (this->m_p2.y - this->m_p1.y) * (this->m_p2.z - this->m_p1.z);
-    }
-
-    bool AABB::isInside(const glm::vec3& p) const {
-        for ( int i = 0; i < 3; ++i ) {
-            if ( p[i] <= this->m_p1[i] ) {
-                return false;
-            }
-            else if ( p[i] >= this->m_p2[i] ) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    // Private
-
-    void AABB::validateOrder(void) {
-        if ( this->m_p1.x > this->m_p2.x ) {
-            std::swap(this->m_p1.x, this->m_p2.x);
-        }
-        if ( this->m_p1.y > this->m_p2.y ) {
-            std::swap(this->m_p1.y, this->m_p2.y);
-        }
-        if ( this->m_p1.z > this->m_p2.z ) {
-            std::swap(this->m_p1.z, this->m_p2.z);
-        }
-    }
-
-}
-
-
-// Sphere
-namespace dal {
-
-    Sphere::Sphere(void)
-        : m_radius(1.f)
-    {
-
-    }
-
-    Sphere::Sphere(const glm::vec3& center, const float radius)
-        : m_center(center)
-        , m_radius(radius)
-    {
-
-    }
-
-    float Sphere::getDistance(const glm::vec3& p) const {
-        return glm::distance(this->m_center, p) - this->m_radius;
-    }
-
-    bool Sphere::isInside(const glm::vec3& p) const {
-        const auto rel = p - this->m_center;
-        return glm::dot(rel, rel) <= (this->m_radius * this->m_radius);
-    }
-
-    Sphere Sphere::transform(const Transform& trans) const {
-        return Sphere{
-            this->m_center + trans.getPos(),
-            this->m_radius* trans.getScale()
-        };
-    }
-
-    void Sphere::resizeToInclude(const glm::vec3 p) {
-        const auto dist = this->getDistance(p);
-        if ( dist > this->m_radius ) {
-            this->m_radius = dist;
-        }
     }
 
 }
@@ -945,7 +616,7 @@ namespace dal {
 
         case dal::ColliderType::sphere:
         {
-            const auto newSphere = reinterpret_cast<const ColSphere&>(col).transform(transCol);
+            const auto newSphere = reinterpret_cast<const ColSphere&>(col).transform(transCol.getPos(), transCol.getScale());
             return checkCollision(ray, newSphere);
         }
         case dal::ColliderType::aabb:
@@ -965,63 +636,63 @@ namespace dal {
 
 
     bool checkCollision(const Segment& ray, const Plane& plane) {
-        const auto pointA = ray.getStartPos();
-        const auto pointB = pointA + ray.getRel();
+        const auto pointA = ray.pos();
+        const auto pointB = pointA + ray.rel();
 
-        const auto distA = plane.getSignedDist(pointA);
-        const auto distB = plane.getSignedDist(pointB);
+        const auto distA = plane.calcSignedDist(pointA);
+        const auto distB = plane.calcSignedDist(pointB);
 
         return (distA * distB) <= 0.0f;
     }
 
     bool checkCollision(const Segment& ray, const Sphere& sphere) {
-        if ( sphere.isInside(ray.getStartPos()) ) {
+        if ( sphere.isInside(ray.pos()) ) {
             return true;
         }
-        else if ( sphere.isInside(ray.getStartPos() + ray.getRel()) ) {
+        else if ( sphere.isInside(ray.endpoint()) ) {
             return true;
         }
         else {
-            return ray.calcDistance(sphere.getCenter()) <= sphere.getRadius();
+            return ray.calcDistance(sphere.center()) <= sphere.radius();
         }
     }
 
     bool checkCollision(const Segment& ray, const Sphere& sphere, const Transform& transSphere) {
-        return checkCollision(ray, sphere.transform(transSphere));
+        return checkCollision(ray, sphere.transform(transSphere.getPos(), transSphere.getScale()));
     }
 
     bool checkCollision(const Segment& ray, const Triangle& tri) {
-        const Plane plane{ tri.getPoint1(), tri.getPoint2(), tri.getPoint3() };
+        const auto plane = tri.plane();
         const auto planeCollision = calcCollisionInfo(ray, plane);
 
         if ( !planeCollision ) {
             return false;
         }
         else {
-            const auto collisionPoint = ray.getStartPos() + glm::normalize(ray.getRel()) * planeCollision->m_distance;
+            const auto collisionPoint = ray.pos() + glm::normalize(ray.rel()) * planeCollision->m_distance;
             return isPointInsideTriangle(collisionPoint, tri);
         }
     }
 
     bool checkCollision(const Segment& ray, const AABB& aabb) {
-        return checkCollision_rayVsMinMax(ray, aabb.getPoint000(), aabb.getPoint111());
+        return checkCollision_rayVsMinMax(ray, aabb.min(), aabb.max());
     }
 
     bool checkCollision(const Segment& ray, const AABB& aabb, const Transform& transAABB) {
         return checkCollision_rayVsMinMax(ray,
-            transAABB.getScale() * aabb.getPoint000() + transAABB.getPos(),
-            transAABB.getScale() * aabb.getPoint111() + transAABB.getPos()
+            transAABB.getScale() * aabb.min() + transAABB.getPos(),
+            transAABB.getScale() * aabb.max() + transAABB.getPos()
         );
     }
 
 
     bool checkCollision(const Plane& plane, const Sphere& sphere) {
-        const auto distOfCenter = std::abs(plane.getSignedDist(sphere.getCenter()));
-        return distOfCenter <= sphere.getRadius();
+        const auto distOfCenter = std::abs(plane.calcSignedDist(sphere.center()));
+        return distOfCenter <= sphere.radius();
     }
 
     bool checkCollision(const Plane& plane, const Sphere& sphere, const Transform& transSphere) {
-        return checkCollision(plane, sphere.transform(transSphere));
+        return checkCollision(plane, sphere.transform(transSphere.getPos(), transSphere.getScale()));
     }
 
     bool checkCollision(const Plane& plane, const AABB& aabb) {
@@ -1030,21 +701,21 @@ namespace dal {
     }
 
     bool checkCollision(const Plane& plane, const AABB& aabb, const Transform& transAABB) {
-        const auto points = aabb.getAllPoints(transAABB);
+        const auto points = aabb.getAllPoints(transAABB.getPos(), transAABB.getScale());
         return checkCollision_withAllPoints(points, plane);
     }
 
 
     bool checkCollision(const Triangle& tri, const AABB& aabb, const Transform& transTri, const Transform& transAABB) {
-        const auto newTri = tri.transform(transTri);
-        const auto newBox = aabb.transform(transAABB);
+        const auto newTri = tri.transform(transTri.getMat());
+        const auto newBox = aabb.transform(transAABB.getPos(), transAABB.getScale());
 
-        const auto boxCenter = (newBox.getPoint000() + newBox.getPoint111()) * 0.5f;
-        const auto boxHalfSize = (newBox.getPoint111() - newBox.getPoint000()) * 0.5f;
+        const auto boxCenter = (newBox.min() + newBox.max()) * 0.5f;
+        const auto boxHalfSize = (newBox.max() - newBox.min()) * 0.5f;
         const std::array<glm::vec3, 3> triverts = {
-            newTri.getPoint1(),
-            newTri.getPoint2(),
-            newTri.getPoint3()
+            newTri.point<0>(),
+            newTri.point<1>(),
+            newTri.point<2>()
         };
 
         return fileadmin::triBoxOverlap(boxCenter, boxHalfSize, triverts);
@@ -1054,26 +725,26 @@ namespace dal {
     bool checkCollision(const Sphere& sphere, const AABB& aabb, const Transform& transSphere, const Transform& transAABB) {
         // TODO : Sphere's transform is not correct atm.
 
-        const auto newAABB = aabb.transform(transAABB);
+        const auto newAABB = aabb.transform(transAABB.getPos(), transAABB.getScale());
 
-        return doesCubeIntersectSphere(newAABB.getPoint000(), newAABB.getPoint111(), sphere.getCenter() + transSphere.getPos(), sphere.getRadius());
+        return doesCubeIntersectSphere(newAABB.min(), newAABB.max(), sphere.center() + transSphere.getPos(), sphere.radius());
     }
 
 
     bool checkCollision(const AABB& one, const AABB& other) {
-        const auto one1 = one.getPoint000();
-        const auto one2 = one.getPoint111();
-        const auto other1 = other.getPoint000();
-        const auto other2 = other.getPoint111();
+        const auto one1 = one.min();
+        const auto one2 = one.max();
+        const auto other1 = other.min();
+        const auto other2 = other.max();
 
         return checkCollisionWithMinMax(one1, one2, other1, other2);
     }
 
     bool checkCollision(const AABB& one, const AABB& two, const Transform& transOne, const Transform& transTwo) {
-        const auto one1 = transOne.getScale() * one.getPoint000() + transOne.getPos();
-        const auto one2 = transOne.getScale() * one.getPoint111() + transOne.getPos();
-        const auto two1 = transTwo.getScale() * two.getPoint000() + transTwo.getPos();
-        const auto two2 = transTwo.getScale() * two.getPoint111() + transTwo.getPos();
+        const auto one1 = transOne.getScale() * one.min() + transOne.getPos();
+        const auto one2 = transOne.getScale() * one.max() + transOne.getPos();
+        const auto two1 = transTwo.getScale() * two.min() + transTwo.getPos();
+        const auto two2 = transTwo.getScale() * two.max() + transTwo.getPos();
 
         return checkCollisionWithMinMax(one1, one2, two1, two2);
     }
@@ -1135,10 +806,10 @@ namespace dal {
         const auto thisFactor = physicsOne.getMassInv() / sumOfMassInv;
         const auto otherFactor = physicsTwo.getMassInv() / sumOfMassInv;
 
-        const auto one1 = transOne.getScale() * one.getPoint000() + transOne.getPos();
-        const auto one2 = transOne.getScale() * one.getPoint111() + transOne.getPos();
-        const auto other1 = transTwo.getScale() * two.getPoint000() + transTwo.getPos();
-        const auto other2 = transTwo.getScale() * two.getPoint111() + transTwo.getPos();
+        const auto one1 = transOne.getScale() * one.min() + transOne.getPos();
+        const auto one2 = transOne.getScale() * one.max() + transOne.getPos();
+        const auto other1 = transTwo.getScale() * two.min() + transTwo.getPos();
+        const auto other2 = transTwo.getScale() * two.max() + transTwo.getPos();
 
         return calcResolveInfo_withMinMax(one1, one2, other1, other2, thisFactor, otherFactor);
     }
@@ -1176,24 +847,24 @@ namespace dal {
 
 
     std::optional<RayCastingResult> calcCollisionInfo(const Segment& ray, const Plane& plane) {
-        const auto pointA = ray.getStartPos();
-        const auto pointB = pointA + ray.getRel();
+        const auto pointA = ray.pos();
+        const auto pointB = pointA + ray.rel();
 
-        const auto distA = plane.getSignedDist(pointA);
-        const auto distB = plane.getSignedDist(pointB);
+        const auto distA = plane.calcSignedDist(pointA);
+        const auto distB = plane.calcSignedDist(pointB);
 
         if ( (distA * distB) > 0.0f ) {
             return std::nullopt;
         }
 
         const auto absDistA = std::abs(distA);
-        const auto distance = ray.getLength() * absDistA / (absDistA + std::abs(distB));
+        const auto distance = ray.length() * absDistA / (absDistA + std::abs(distB));
 
         return RayCastingResult{ distA > distB, distance };
     }
 
     std::optional<RayCastingResult> calcCollisionInfo(const Segment& ray, const Triangle& tri, const bool ignoreFromBack) {
-        Plane plane{ tri.getPoint1(), tri.getPoint2(), tri.getPoint3() };
+        const auto plane = tri.plane();
         const auto planeCol = calcCollisionInfo(ray, plane);
         if ( !planeCol ) {
             return std::nullopt;
@@ -1215,7 +886,7 @@ namespace dal {
     }
 
     std::optional<RayCastingResult> calcCollisionInfo(const Segment& ray, const AABB& aabb) {
-        if ( aabb.calcArea() == 0.0f ) {
+        if ( aabb.volume() == 0.f ) {
             return std::nullopt;
         }
 
@@ -1231,11 +902,11 @@ namespace dal {
     }
 
     std::optional<RayCastingResult> calcCollisionInfo(const Segment& ray, const AABB& aabb, const Transform& transAABB) {
-        if ( aabb.calcArea() == 0.0f ) {
+        if ( aabb.volume() == 0.0f ) {
             return std::nullopt;
         }
 
-        const auto triangles = makeTriangles(aabb.getAllPoints(transAABB));
+        const auto triangles = makeTriangles(aabb.getAllPoints(transAABB.getPos(), transAABB.getScale()));
         for ( auto& tri : triangles ) {
             const auto triCol = calcCollisionInfo(ray, tri);
             if ( triCol ) {
@@ -1251,7 +922,7 @@ namespace dal {
         float leastDistance = std::numeric_limits<float>::max();
 
         for ( const auto& tri : triSoup ) {
-            const auto newTri = tri.transform(transTriSoup);
+            const auto newTri = tri.transform(transTriSoup.getMat());
             const auto info = dal::calcCollisionInfo(ray, newTri, triSoup.isFaceCullSet());
             if ( info ) {
                 if ( info->m_distance < leastDistance ) {

@@ -7,7 +7,6 @@ project(Dalbaragi-Physics
 
 add_library(dalbaragi_physics
     d_precision.h    d_precision.cpp
-    d_geometrymath.h d_geometrymath.cpp
     d_particle.h     d_particle.cpp
     d_phyworld.h     d_phyworld.cpp
     d_modifierabc.h

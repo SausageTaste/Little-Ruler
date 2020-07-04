@@ -99,7 +99,7 @@ namespace {
             const auto y = vertices[3 * i + 1];
             const auto z = vertices[3 * i + 2];
 
-            aabb.resizeToInclude(x, y, z);
+            aabb.upscaleToInclude(x, y, z);
         }
 
         return std::unique_ptr<dal::ICollider>{ new dal::ColAABB{aabb} };
@@ -114,7 +114,7 @@ namespace {
             const auto y = vertices[3 * i + 1];
             const auto z = vertices[3 * i + 2];
 
-            sphere.resizeToInclude(x, y, z);
+            sphere.upscaleToInclude(x, y, z);
         }
 
         return std::unique_ptr<dal::ICollider>{ new dal::ColSphere{ sphere } };

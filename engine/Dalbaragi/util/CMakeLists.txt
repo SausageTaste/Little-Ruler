@@ -6,25 +6,19 @@ project(Dalbaragi-Util
 
 
 add_library(dalbaragi_util
-    d_filesystem.cpp
-    d_filesystem.h
+    d_filesystem.h       d_filesystem.cpp
     d_fixednum.h
     d_logchannel.h
-    d_logger.cpp
-    d_logger.h
-    d_shaderProcessor.cpp
-    d_shaderProcessor.h
-    s_configs.cpp
-    s_configs.h
-    u_fileutils.cpp
-    u_fileutils.h
-    u_imagebuf.cpp
-    u_imagebuf.h
-    u_math.cpp
-    u_math.h
+    d_logger.h           d_logger.cpp
+    d_shaderProcessor.h  d_shaderProcessor.cpp
+    s_configs.h          s_configs.cpp
+    u_fileutils.h        u_fileutils.cpp
+    u_imagebuf.h         u_imagebuf.cpp
+    u_math.h             u_math.cpp
     u_strbuf.h
-    u_timer.cpp
-    u_timer.h
+    u_timer.h            u_timer.cpp
+    d_geometrymath.h     d_geometrymath.cpp
+    d_transform.h        d_transform.cpp
 )
 target_include_directories(dalbaragi_util PUBLIC .)
 target_compile_features(dalbaragi_util PUBLIC cxx_std_17)

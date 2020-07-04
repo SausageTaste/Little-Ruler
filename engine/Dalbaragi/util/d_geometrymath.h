@@ -2,6 +2,7 @@
 
 #include <array>
 #include <optional>
+#include <functional>
 
 #include <glm/glm.hpp>
 
@@ -33,6 +34,7 @@ namespace dal {
         void set(const glm::vec3& pos, const glm::vec3& rel);
 
         glm::vec3 findNearestPointOnSeg(const glm::vec3& p) const;
+        float calcDistance(const glm::vec3& p) const;
 
     };
 
@@ -40,21 +42,24 @@ namespace dal {
     class Plane {
 
     private:
-        glm::vec3 m_normal{ 0, 1, 0 }, m_point{ 0 };
+        glm::vec3 m_normal{ 0, 1, 0 };
+        float m_d = 0;
 
     public:
         Plane(void) = default;
         Plane(const glm::vec3& normal, const glm::vec3& point);
         Plane(const glm::vec3& p0, const glm::vec3& p1, const glm::vec3& p2);
+        Plane(const float a, const float b, const float c, const float d);
 
         const glm::vec3& normal(void) const;
-        glm::vec4 planeEquation(void) const;
+        glm::vec4 coeff(void) const;
 
         float calcSignedDist(const glm::vec3& p) const;
         bool isInFront(const glm::vec3& v) const;
 
         void set(const glm::vec3& normal, const glm::vec3& point);
         void set(const glm::vec3& p0, const glm::vec3& p1, const glm::vec3& p2);
+        void set(const float a, const float b, const float c, const float d);
 
     };
 
@@ -73,9 +78,11 @@ namespace dal {
             static_assert(I < 3);
             return this->m_points[I];
         }
+
         glm::vec3 normal(void) const;
         Plane plane(void) const;
         float area(void) const;
+        Triangle transform(const glm::mat4& mat) const;
 
     };
 
@@ -100,15 +107,24 @@ namespace dal {
 
         float calcSignedDist(const glm::vec3& p) const;
         bool isInside(const glm::vec3& p) const;
+        Sphere transform(const glm::vec3& translate, const float scale) const;
 
         void setCenter(const glm::vec3& center) {
             this->m_center = center;
+        }
+        void setCenter(const float x, const float y, const float z) {
+            this->m_center.x = x;
+            this->m_center.y = y;
+            this->m_center.z = z;
         }
         void setRadius(const float radius) {
             this->m_radius = radius;
         }
 
         void upscaleToInclude(const glm::vec3& p);
+        void upscaleToInclude(const float x, const float y, const float z) {
+            this->upscaleToInclude(glm::vec3{ x, y, z });
+        }
 
     };
 
@@ -128,13 +144,25 @@ namespace dal {
         const glm::vec3& max(void) const {
             return this->m_max;
         }
-        float volume(void) const;
 
+        float volume(void) const;
         bool isInside(const glm::vec3& p) const;
+        AABB transform(const glm::vec3& translate, const float scale) const;
+
+        // The order is
+        // 000, 001, 010, 011, 100, 101, 110, 111
+        // Each digit means x, y, z, 0 means lower value on the axis, 1 means higher.
+        std::array<glm::vec3, 8> getAllPoints(void) const;
+        std::array<glm::vec3, 8> getAllPoints(const glm::vec3& translate, const float scale) const;
+        std::array<glm::vec3, 8> getAllPoints(std::function<glm::vec3(const glm::vec3&)> modifier) const;
+
 
         void set(const glm::vec3& p0, const glm::vec3& p1);
 
         void upscaleToInclude(const glm::vec3& p);
+        void upscaleToInclude(const float x, const float y, const float z) {
+            this->upscaleToInclude(glm::vec3{ x, y, z });
+        }
 
     };
 

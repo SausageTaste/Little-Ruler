@@ -333,7 +333,7 @@ namespace dal {
 #if DAL_PARALLAX_CORRECTED_CUBEMAP == true
         uniloc.numPlanes(cubemap.m_volume.size());
         for ( size_t i = 0; i < cubemap.m_volume.size(); ++i ) {
-            const auto plane = cubemap.m_volume[i].getCoeff();
+            const auto plane = cubemap.m_volume[i].coeff();
             uniloc.plane(i, plane);
         }
 #else
