@@ -47,68 +47,44 @@ namespace {
         }
     }
 
-    inline void makeTrianglesFromRect(const glm::vec3& p1, const glm::vec3& p2,
-        const glm::vec3& p3, const glm::vec3& p4, dal::Triangle& tri1, dal::Triangle& tri2)
-    {
-        tri1 = dal::Triangle{ p1, p2, p3 };
-        tri2 = dal::Triangle{ p1, p3, p4 };
-    }
+    dal::CollisionResolveInfo calcResolveInfo_withMinMax(
+        const glm::vec3& one1, const glm::vec3& one2,
+        const glm::vec3& other1, const glm::vec3& other2,
+        const float thisFactor, const float otherFactor
+    ) {
+        const auto xOne = one2.x - other1.x;
+        const auto xTwo = one1.x - other2.x;
+        const auto xDistance = abs(xOne) < abs(xTwo) ? xOne : xTwo;
 
-    std::array<dal::Triangle, 12> makeTriangles(std::array<glm::vec3, 8> ps) {
-        std::array<dal::Triangle, 12> result;
+        const auto yOne = one2.y - other1.y;
+        const auto yTwo = one1.y - other2.y;
+        const auto yDistance = abs(yOne) < abs(yTwo) ? yOne : yTwo;
 
-        makeTrianglesFromRect(ps[3], ps[1], ps[5], ps[7], result[0], result[1]);
-        makeTrianglesFromRect(ps[7], ps[5], ps[4], ps[6], result[2], result[3]);
-        makeTrianglesFromRect(ps[6], ps[4], ps[0], ps[2], result[4], result[5]);
-        makeTrianglesFromRect(ps[2], ps[0], ps[1], ps[3], result[6], result[7]);
-        makeTrianglesFromRect(ps[2], ps[3], ps[7], ps[6], result[8], result[9]);
-        makeTrianglesFromRect(ps[4], ps[5], ps[1], ps[0], result[10], result[11]);
+        const auto zOne = one2.z - other1.z;
+        const auto zTwo = one1.z - other2.z;
+        const auto zDistance = abs(zOne) < abs(zTwo) ? zOne : zTwo;
 
-        return result;
-    }
+        const auto xForThis = -xDistance * thisFactor;
+        const auto yForThis = -yDistance * thisFactor;
+        const auto zForThis = -zDistance * thisFactor;
 
-    std::array<dal::Triangle, 12> makeTriangles(const dal::AABB& aabb, const dal::Transform& transAABB) {
-        std::array<dal::Triangle, 12> result;
+        const auto xForOther = xDistance * otherFactor;
+        const auto yForOther = yDistance * otherFactor;
+        const auto zForOther = zDistance * otherFactor;
 
-        const auto ps = aabb.getAllPoints([&transAABB](auto vec) { return transAABB.getScale() * vec + transAABB.getPos(); });
+        const float selector[3] = { std::abs(xForThis), std::abs(yForThis), std::abs(zForThis) };
+        switch ( minValueIndex(selector, 3) ) {
 
-        makeTrianglesFromRect(ps[3], ps[1], ps[5], ps[7], result[0], result[1]);
-        makeTrianglesFromRect(ps[7], ps[5], ps[4], ps[6], result[2], result[3]);
-        makeTrianglesFromRect(ps[6], ps[4], ps[0], ps[2], result[4], result[5]);
-        makeTrianglesFromRect(ps[2], ps[0], ps[1], ps[3], result[6], result[7]);
-        makeTrianglesFromRect(ps[2], ps[3], ps[7], ps[6], result[8], result[9]);
-        makeTrianglesFromRect(ps[4], ps[5], ps[1], ps[0], result[10], result[11]);
+        case 0:
+            return dal::CollisionResolveInfo{ { xForThis, 0.0f, 0.0f }, { xForOther, 0.0f, 0.0f }, true };
+        case 1:
+            return dal::CollisionResolveInfo{ { 0.0f, yForThis, 0.0f }, { 0.0f, yForOther, 0.0f }, true };
+        case 2:
+            return dal::CollisionResolveInfo{ { 0.0f, 0.0f, zForThis }, { 0.0f, 0.0f, zForOther }, true };
+        default:
+            assert(false && "This can't happen!");
 
-        return result;
-    }
-
-    // Param p must be on the plane.
-    bool isPointInsideTriangle(const glm::vec3& p, const dal::Triangle& tri) {
-        const auto edge1 = tri.point<1>() - tri.point<0>();
-        const auto edge2 = tri.point<2>() - tri.point<1>();
-
-        const auto toPoint1 = p - tri.point<0>();
-        const auto toPoint2 = p - tri.point<1>();
-
-        const auto crossed1 = glm::cross(edge1, toPoint1);
-        const auto crossed2 = glm::cross(edge2, toPoint2);
-
-        const auto dotted1 = glm::dot(crossed1, crossed2);
-
-        if ( dotted1 < 0.f ) {
-            return false;
         }
-
-        const auto edge3 = tri.point<0>() - tri.point<2>();
-        const auto toPoint3 = p - tri.point<2>();
-        const auto crossed3 = glm::cross(edge3, toPoint3);
-        const auto dotted2 = glm::dot(crossed1, crossed3);
-
-        if ( dotted2 < 0.f ) {
-            return false;
-        }
-
-        return true;
     }
 
 }
@@ -236,76 +212,6 @@ namespace {
         }
 
     } g_colResolver;
-
-}
-
-
-// Collision fucntions
-namespace {
-
-    bool checkCollisionWithMinMax(const glm::vec3& one1, const glm::vec3& one2, const glm::vec3& other1, const glm::vec3& other2) {
-        if ( one2.x < other1.x ) return false;
-        else if ( one1.x > other2.x ) return false;
-        else if ( one2.y < other1.y ) return false;
-        else if ( one1.y > other2.y ) return false;
-        else if ( one2.z < other1.z ) return false;
-        else if ( one1.z > other2.z ) return false;
-        else return true;
-    }
-
-    bool checkCollision_withAllPoints(const std::array<glm::vec3, 8>& points, const dal::Plane& plane) {
-        const auto firstOne = plane.isInFront(points[0]);
-
-        for ( size_t i = 1; i < points.size(); ++i ) {
-            const auto thisOne = plane.isInFront(points[i]);
-            if ( firstOne != thisOne ) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-
-    dal::CollisionResolveInfo calcResolveInfo_withMinMax(
-        const glm::vec3& one1, const glm::vec3& one2,
-        const glm::vec3& other1, const glm::vec3& other2,
-        const float thisFactor, const float otherFactor
-    ) {
-        const auto xOne = one2.x - other1.x;
-        const auto xTwo = one1.x - other2.x;
-        const auto xDistance = abs(xOne) < abs(xTwo) ? xOne : xTwo;
-
-        const auto yOne = one2.y - other1.y;
-        const auto yTwo = one1.y - other2.y;
-        const auto yDistance = abs(yOne) < abs(yTwo) ? yOne : yTwo;
-
-        const auto zOne = one2.z - other1.z;
-        const auto zTwo = one1.z - other2.z;
-        const auto zDistance = abs(zOne) < abs(zTwo) ? zOne : zTwo;
-
-        const auto xForThis = -xDistance * thisFactor;
-        const auto yForThis = -yDistance * thisFactor;
-        const auto zForThis = -zDistance * thisFactor;
-
-        const auto xForOther = xDistance * otherFactor;
-        const auto yForOther = yDistance * otherFactor;
-        const auto zForOther = zDistance * otherFactor;
-
-        const float selector[3] = { std::abs(xForThis), std::abs(yForThis), std::abs(zForThis) };
-        switch ( minValueIndex(selector, 3) ) {
-
-        case 0:
-            return dal::CollisionResolveInfo{ { xForThis, 0.0f, 0.0f }, { xForOther, 0.0f, 0.0f }, true };
-        case 1:
-            return dal::CollisionResolveInfo{ { 0.0f, yForThis, 0.0f }, { 0.0f, yForOther, 0.0f }, true };
-        case 2:
-            return dal::CollisionResolveInfo{ { 0.0f, 0.0f, zForThis }, { 0.0f, 0.0f, zForOther }, true };
-        default:
-            assert(false && "This can't happen!");
-
-        }
-    }
 
 }
 
@@ -439,96 +345,23 @@ namespace dal {
 
         case dal::ColliderType::sphere:
         {
-            auto newSphere = reinterpret_cast<const ColSphere&>(col);
-            return calcCollisionInfo(ray, newSphere, transCol);
+            auto newSphere = reinterpret_cast<const ColSphere&>(col).transform(transCol.getPos(), transCol.getScale());
+            assert(false && "Not implemented");
         }
         case dal::ColliderType::aabb:
         {
-            auto newAABB = reinterpret_cast<const ColAABB&>(col);
-            return calcCollisionInfo(ray, newAABB, transCol);
+            auto newAABB = reinterpret_cast<const ColAABB&>(col).transform(transCol.getPos(), transCol.getScale());
+            return dal::findIntersection(ray, newAABB);
         }
         case dal::ColliderType::triangle_soup:
         {
             auto newSoup = reinterpret_cast<const ColTriangleSoup&>(col);
-            return calcCollisionInfo(ray, newSoup, transCol);
+            return dal::calcCollisionInfo(ray, newSoup, transCol);
         }
         default:
             assert(false && "Unkown collider type code");
 
         }
-    }
-
-
-    std::optional<RayCastingResult> calcCollisionInfo(const Segment& ray, const Plane& plane) {
-        const auto pointA = ray.pos();
-        const auto pointB = pointA + ray.rel();
-
-        const auto distA = plane.calcSignedDist(pointA);
-        const auto distB = plane.calcSignedDist(pointB);
-
-        if ( (distA * distB) > 0.0f ) {
-            return std::nullopt;
-        }
-
-        const auto absDistA = std::abs(distA);
-        const auto distance = ray.length() * absDistA / (absDistA + std::abs(distB));
-
-        return RayCastingResult{ distance, distA > distB };
-    }
-
-    std::optional<RayCastingResult> calcCollisionInfo(const Segment& ray, const Triangle& tri, const bool ignoreFromBack) {
-        const auto plane = tri.plane();
-        const auto planeCol = calcCollisionInfo(ray, plane);
-        if ( !planeCol ) {
-            return std::nullopt;
-        }
-        else if ( ignoreFromBack && !planeCol->m_isFromFront ) {
-            return std::nullopt;
-        }
-
-        if ( isIntersecting(ray, tri) ) {
-            return planeCol;
-        }
-        else {
-            return std::nullopt;
-        }
-    }
-
-    std::optional<RayCastingResult> calcCollisionInfo(const Segment& ray, const Sphere& sphere, const Transform& transSphere) {
-        assert(false && "Not implemented.");
-        return std::nullopt;
-    }
-
-    std::optional<RayCastingResult> calcCollisionInfo(const Segment& ray, const AABB& aabb) {
-        if ( aabb.volume() == 0.f ) {
-            return std::nullopt;
-        }
-
-        const auto triangles = makeTriangles(aabb.getAllPoints());
-        for ( auto& tri : triangles ) {
-            const auto triCol = calcCollisionInfo(ray, tri);
-            if ( triCol ) {
-                return triCol;
-            }
-        }
-
-        return std::nullopt;
-    }
-
-    std::optional<RayCastingResult> calcCollisionInfo(const Segment& ray, const AABB& aabb, const Transform& transAABB) {
-        if ( aabb.volume() == 0.0f ) {
-            return std::nullopt;
-        }
-
-        const auto triangles = makeTriangles(aabb.getAllPoints(transAABB.getPos(), transAABB.getScale()));
-        for ( auto& tri : triangles ) {
-            const auto triCol = calcCollisionInfo(ray, tri);
-            if ( triCol ) {
-                return triCol;
-            }
-        }
-
-        return std::nullopt;
     }
 
     std::optional<RayCastingResult> calcCollisionInfo(const Segment& ray, const ColTriangleSoup triSoup, const Transform& transTriSoup) {
@@ -537,7 +370,7 @@ namespace dal {
 
         for ( const auto& tri : triSoup ) {
             const auto newTri = tri.transform(transTriSoup.getMat());
-            const auto info = dal::calcCollisionInfo(ray, newTri, triSoup.isFaceCullSet());
+            const auto info = dal::findIntersection(ray, newTri, triSoup.isFaceCullSet());
             if ( info ) {
                 if ( info->m_distance < leastDistance ) {
                     leastDistance = info->m_distance;

@@ -189,7 +189,7 @@ namespace dal {
 }
 
 
-// Calc intersection info
+// Ray casting
 namespace dal {
 
     struct SegIntersecInfo {
@@ -197,9 +197,22 @@ namespace dal {
         bool m_isFromFront = false;
     };
 
+    using RayCastingResult = SegIntersecInfo;
+
     std::optional<SegIntersecInfo> findIntersection(const Segment& seg, const Plane& plane);
-    std::optional<SegIntersecInfo> findIntersection(const Segment& seg, const Triangle& tri);
+    std::optional<SegIntersecInfo> findIntersection(const Segment& seg, const Triangle& tri, const bool ignoreFromBack);
     //std::optional<SegIntersecInfo> findIntersection(const Segment& seg, const Sphere& sphere);
     std::optional<SegIntersecInfo> findIntersection(const Segment& seg, const AABB& aabb);
+
+}
+
+
+// Collision resolve
+namespace dal {
+
+    struct CollisionResolveInfo {
+        glm::vec3 m_this, m_other;
+        bool m_valid = false;
+    };
 
 }

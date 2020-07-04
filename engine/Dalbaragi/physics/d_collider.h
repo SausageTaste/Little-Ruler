@@ -16,14 +16,6 @@
 // Structs
 namespace dal {
 
-    struct CollisionResolveInfo {
-        glm::vec3 m_this, m_other;
-        bool m_valid = false;
-    };
-
-    using RayCastingResult = SegIntersecInfo;
-
-
     class PhysicalProperty {
 
     private:
@@ -213,11 +205,6 @@ namespace dal {
 
     std::optional<RayCastingResult> calcCollisionInfoAbs(const Segment& ray, const ICollider& col, const Transform& transCol);
 
-    std::optional<RayCastingResult> calcCollisionInfo(const Segment& ray, const Triangle& tri, const bool ignoreFromBack = false);
-    std::optional<RayCastingResult> calcCollisionInfo(const Segment& ray, const Sphere& sphere, const Transform& transSphere);
-    std::optional<RayCastingResult> calcCollisionInfo(const Segment& ray, const Plane& plane);
-    std::optional<RayCastingResult> calcCollisionInfo(const Segment& ray, const AABB& aabb);
-    std::optional<RayCastingResult> calcCollisionInfo(const Segment& ray, const AABB& aabb, const Transform& transAABB);
     std::optional<RayCastingResult> calcCollisionInfo(const Segment& ray, const ColTriangleSoup triSoup, const Transform& transTriSoup);
 
 }

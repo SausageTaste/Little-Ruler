@@ -38,6 +38,26 @@ namespace {
         return true;
     }
 
+    inline void makeTrianglesFromRect(const glm::vec3& p1, const glm::vec3& p2,
+        const glm::vec3& p3, const glm::vec3& p4, dal::Triangle& tri1, dal::Triangle& tri2)
+    {
+        tri1 = dal::Triangle{ p1, p2, p3 };
+        tri2 = dal::Triangle{ p1, p3, p4 };
+    }
+
+    std::array<dal::Triangle, 12> makeTriangles(std::array<glm::vec3, 8> ps) {
+        std::array<dal::Triangle, 12> result;
+
+        makeTrianglesFromRect(ps[3], ps[1], ps[5], ps[7], result[0], result[1]);
+        makeTrianglesFromRect(ps[7], ps[5], ps[4], ps[6], result[2], result[3]);
+        makeTrianglesFromRect(ps[6], ps[4], ps[0], ps[2], result[4], result[5]);
+        makeTrianglesFromRect(ps[2], ps[0], ps[1], ps[3], result[6], result[7]);
+        makeTrianglesFromRect(ps[2], ps[3], ps[7], ps[6], result[8], result[9]);
+        makeTrianglesFromRect(ps[4], ps[5], ps[1], ps[0], result[10], result[11]);
+
+        return result;
+    }
+
 }
 
 
@@ -702,40 +722,36 @@ namespace dal {
         return SegIntersecInfo{ distance, distA > distB };
     }
 
-    std::optional<SegIntersecInfo> findIntersection(const Segment& seg, const Triangle& tri) {
+    std::optional<SegIntersecInfo> findIntersection(const Segment& seg, const Triangle& tri, const bool ignoreFromBack) {
         const auto plane = tri.plane();
-        const auto planeCol = findIntersection(seg, plane);
+        const auto planeCol = dal::findIntersection(seg, plane);
 
-        if ( planeCol ) {
-            const auto collisionPoint = seg.pos() + glm::normalize(seg.rel()) * planeCol->m_distance;
-            if ( isPointInsideTri(collisionPoint, tri) ) {
-                return planeCol;
-            }
+        if ( !planeCol )
+            return std::nullopt;
+        if ( ignoreFromBack && !planeCol->m_isFromFront )
+            return std::nullopt;
+
+        const auto collisionPoint = seg.pos() + glm::normalize(seg.rel()) * planeCol->m_distance;
+        if ( ::isPointInsideTri(collisionPoint, tri) ) {
+            return planeCol;
         }
 
         return std::nullopt;
     }
 
-    // Not tested yet.
     std::optional<SegIntersecInfo> findIntersection(const Segment& seg, const AABB& aabb) {
-        Plane planes[6];
-        {
-            planes[0].set(glm::vec3{ -1, 0, 0 }, aabb.min());
-            planes[1].set(glm::vec3{ 0, -1, 0 }, aabb.min());
-            planes[2].set(glm::vec3{ 0, 0, -1 }, aabb.min());
+        if ( 0.f == aabb.volume() )
+            return std::nullopt;
 
-            planes[3].set(glm::vec3{ 1, 0, 0 }, aabb.max());
-            planes[4].set(glm::vec3{ 0, 1, 0 }, aabb.max());
-            planes[5].set(glm::vec3{ 0, 0, 1 }, aabb.max());
-        }
+        std::optional<SegIntersecInfo> result = std::nullopt;
+        float maxDist = std::numeric_limits<float>::max();
 
-        std::optional<SegIntersecInfo> result{ std::nullopt };
-        float distance = std::numeric_limits<float>::max();
-
-        for ( int i = 0; i < 6; ++i ) {
-            const auto col = findIntersection(seg, planes[i]);
-            if ( col && col->m_distance < distance ) {
-                result = col;
+        const auto triangles = ::makeTriangles(aabb.getAllPoints());
+        for ( auto& tri : triangles ) {
+            const auto triCol = dal::findIntersection(seg, tri, false);
+            if ( triCol && triCol->m_distance < maxDist ) {
+                result = triCol;
+                maxDist = triCol->m_distance;
             }
         }
 
