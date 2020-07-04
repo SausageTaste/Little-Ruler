@@ -1,15 +1,8 @@
-#include "m_collider.h"
+#include "d_collider.h"
 
 #include <tuple>
 
-#include <fmt/format.h>
-
-#include <d_logger.h>
-
-#include "u_math.h"
-
-
-using namespace fmt::literals;
+#include <u_math.h>
 
 
 // Global constants
@@ -34,7 +27,7 @@ namespace {
 
     size_t minValueIndex(const float* const arr, const size_t arrSize) {
         if ( 0 == arrSize ) {
-            dalAbort("Are you mad?");
+            assert(false && "Are you mad?");
         }
         else if ( 1 == arrSize ) {
             return 0;
@@ -353,7 +346,7 @@ namespace {
         case 2:
             return dal::CollisionResolveInfo{ { 0.0f, 0.0f, zForThis }, { 0.0f, 0.0f, zForOther }, true };
         default:
-            dalAbort("This can't happen!");
+            assert(false && "This can't happen!");
 
         }
     }
@@ -593,7 +586,7 @@ namespace dal {
     ICollider::ICollider(const ColliderType type)
         : m_type(type)
     {
-        dalAssert(ColliderType::eoe != this->m_type);
+        assert(ColliderType::eoe != this->m_type);
     }
 
     ColliderType ICollider::getColType(void) const noexcept {
@@ -626,10 +619,10 @@ namespace dal {
         }
         case dal::ColliderType::triangle_soup:
         {
-            dalAbort("Not implemented.");
+            assert(false && "Not implemented.");
         }
         default:
-            dalAbort("Unkown collider type code: {}"_format(static_cast<int>(colType)));
+            assert(false && "Unkown collider type code");
 
         }
     }
@@ -840,7 +833,7 @@ namespace dal {
             return calcCollisionInfo(ray, newSoup, transCol);
         }
         default:
-            dalAbort("Unkown collider type code: {}"_format(static_cast<int>(colType)));
+            assert(false && "Unkown collider type code");
 
         }
     }
@@ -882,7 +875,8 @@ namespace dal {
     }
 
     std::optional<RayCastingResult> calcCollisionInfo(const Segment& ray, const Sphere& sphere, const Transform& transSphere) {
-        dalAbort("Not implemented.");
+        assert(false && "Not implemented.");
+        return std::nullopt;
     }
 
     std::optional<RayCastingResult> calcCollisionInfo(const Segment& ray, const AABB& aabb) {

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "p_animation.h"
-#include "m_collider.h"
+#include "d_collider.h"
 
 
 // Camera, Actor classes

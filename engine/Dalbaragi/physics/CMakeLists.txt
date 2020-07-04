@@ -11,6 +11,7 @@ add_library(dalbaragi_physics
     d_phyworld.h     d_phyworld.cpp
     d_modifierabc.h
     d_modifiers.h    d_modifiers.cpp
+    d_collider.h     d_collider.cpp
 )
 target_include_directories(dalbaragi_physics PUBLIC .)
 target_compile_features(dalbaragi_physics PUBLIC cxx_std_17)
@@ -28,3 +29,10 @@ target_link_libraries(dalbaragi_physics PUBLIC EnTT::EnTT)
 
 # GLM
 target_include_directories(dalbaragi_physics PUBLIC ${extern_dir}/glm)
+
+
+# Dalbaragi util
+if (NOT TARGET dalbaragi_util)
+    add_subdirectory(../util ${CMAKE_CURRENT_BINARY_DIR}/dalbaragi_util)
+endif()
+target_link_libraries(dalbaragi_physics PUBLIC dalbaragi_util)
