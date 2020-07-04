@@ -353,8 +353,7 @@ namespace dal {
             return true;
         }
         else {
-            const auto nearestPoint = seg.findNearestPointOnSeg(sphere.center());
-            return glm::distance(nearestPoint, sphere.center()) <= sphere.radius();
+            return seg.calcDistance(sphere.center()) <= sphere.radius();
         }
     }
 

@@ -266,50 +266,6 @@ namespace {
         return false;
     }
 
-    bool checkCollision_rayVsMinMax(const dal::Segment& ray, const glm::vec3& aabbMin, const glm::vec3& aabbMax) {
-        // From https://www.scratchapixel.com/lessons/3d-basic-rendering/minimal-ray-tracer-rendering-simple-shapes/ray-box-intersection
-
-        const glm::vec3 bounds[2] = { aabbMin, aabbMax };
-        const auto orig = ray.pos();
-        const auto invdir = 1.f / ray.rel();
-        const int sign[3] = {
-            invdir.x < 0,
-            invdir.y < 0,
-            invdir.z < 0
-        };
-
-        auto tmin = (bounds[sign[0]].x - orig.x) * invdir.x;
-        auto tmax = (bounds[1 - sign[0]].x - orig.x) * invdir.x;
-
-        const auto tymin = (bounds[sign[1]].y - orig.y) * invdir.y;
-        const auto tymax = (bounds[1 - sign[1]].y - orig.y) * invdir.y;
-
-        if ( (tmin > tymax) || (tymin > tmax) ) {
-            return false;
-        }
-        if ( tymin > tmin ) {
-            tmin = tymin;
-        }
-        if ( tymax < tmax ) {
-            tmax = tymax;
-        }
-
-        const auto tzmin = (bounds[sign[2]].z - orig.z) * invdir.z;
-        const auto tzmax = (bounds[1 - sign[2]].z - orig.z) * invdir.z;
-
-        if ( (tmin > tzmax) || (tzmin > tmax) ) {
-            return false;
-        }
-        if ( tzmin > tmin ) {
-            tmin = tzmin;
-        }
-        if ( tzmax < tmax ) {
-            tmax = tzmax;
-        }
-
-        return true;
-    }
-
 
     dal::CollisionResolveInfo calcResolveInfo_withMinMax(
         const glm::vec3& one1, const glm::vec3& one2,
@@ -603,19 +559,19 @@ namespace dal {
         return g_colResolver.checkCollision(one, two, transOne, transTwo);
     }
 
-    bool checkCollisionAbs(const Segment& ray, const ICollider& col, const Transform& transCol) {
+    bool checkCollisionAbs(const Segment& seg, const ICollider& col, const Transform& transCol) {
         const auto colType = col.getColType();
         switch ( colType ) {
 
         case dal::ColliderType::sphere:
         {
             const auto newSphere = reinterpret_cast<const ColSphere&>(col).transform(transCol.getPos(), transCol.getScale());
-            return checkCollision(ray, newSphere);
+            return isIntersecting(seg, newSphere);
         }
         case dal::ColliderType::aabb:
         {
-            const auto newAABB = reinterpret_cast<const ColAABB&>(col);
-            return checkCollision(ray, newAABB, transCol);
+            const auto newAABB = reinterpret_cast<const ColAABB&>(col).transform(transCol.getPos(), transCol.getScale());
+            return isIntersecting(seg, newAABB);
         }
         case dal::ColliderType::triangle_soup:
         {
@@ -625,57 +581,6 @@ namespace dal {
             assert(false && "Unkown collider type code");
 
         }
-    }
-
-
-    bool checkCollision(const Segment& ray, const Plane& plane) {
-        const auto pointA = ray.pos();
-        const auto pointB = pointA + ray.rel();
-
-        const auto distA = plane.calcSignedDist(pointA);
-        const auto distB = plane.calcSignedDist(pointB);
-
-        return (distA * distB) <= 0.0f;
-    }
-
-    bool checkCollision(const Segment& ray, const Sphere& sphere) {
-        if ( sphere.isInside(ray.pos()) ) {
-            return true;
-        }
-        else if ( sphere.isInside(ray.endpoint()) ) {
-            return true;
-        }
-        else {
-            return ray.calcDistance(sphere.center()) <= sphere.radius();
-        }
-    }
-
-    bool checkCollision(const Segment& ray, const Sphere& sphere, const Transform& transSphere) {
-        return checkCollision(ray, sphere.transform(transSphere.getPos(), transSphere.getScale()));
-    }
-
-    bool checkCollision(const Segment& ray, const Triangle& tri) {
-        const auto plane = tri.plane();
-        const auto planeCollision = calcCollisionInfo(ray, plane);
-
-        if ( !planeCollision ) {
-            return false;
-        }
-        else {
-            const auto collisionPoint = ray.pos() + glm::normalize(ray.rel()) * planeCollision->m_distance;
-            return isPointInsideTriangle(collisionPoint, tri);
-        }
-    }
-
-    bool checkCollision(const Segment& ray, const AABB& aabb) {
-        return checkCollision_rayVsMinMax(ray, aabb.min(), aabb.max());
-    }
-
-    bool checkCollision(const Segment& ray, const AABB& aabb, const Transform& transAABB) {
-        return checkCollision_rayVsMinMax(ray,
-            transAABB.getScale() * aabb.min() + transAABB.getPos(),
-            transAABB.getScale() * aabb.max() + transAABB.getPos()
-        );
     }
 
 
@@ -853,7 +758,7 @@ namespace dal {
         const auto absDistA = std::abs(distA);
         const auto distance = ray.length() * absDistA / (absDistA + std::abs(distB));
 
-        return RayCastingResult{ distA > distB, distance };
+        return RayCastingResult{ distance, distA > distB };
     }
 
     std::optional<RayCastingResult> calcCollisionInfo(const Segment& ray, const Triangle& tri, const bool ignoreFromBack) {
@@ -866,7 +771,7 @@ namespace dal {
             return std::nullopt;
         }
 
-        if ( checkCollision(ray, tri) ) {
+        if ( isIntersecting(ray, tri) ) {
             return planeCol;
         }
         else {

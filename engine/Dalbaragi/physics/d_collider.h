@@ -21,10 +21,7 @@ namespace dal {
         bool m_valid = false;
     };
 
-    struct RayCastingResult {
-        bool m_isFromFront = false;
-        float m_distance = 0.0f;
-    };
+    using RayCastingResult = SegIntersecInfo;
 
 
     class PhysicalProperty {
@@ -186,14 +183,8 @@ namespace dal {
 namespace dal {
 
     bool checkCollisionAbs(const ICollider& one, const ICollider& two, const Transform& transOne, const Transform& transTwo);
-    bool checkCollisionAbs(const Segment& ray, const ICollider& col, const Transform& transCol);
 
-    bool checkCollision(const Segment& ray, const Plane& plane);
-    bool checkCollision(const Segment& ray, const Sphere& sphere);
-    bool checkCollision(const Segment& ray, const Sphere& sphere, const Transform& transSphere);
-    bool checkCollision(const Segment& ray, const Triangle& tri);
-    bool checkCollision(const Segment& ray, const AABB& aabb);
-    bool checkCollision(const Segment& ray, const AABB& aabb, const Transform& transAABB);
+    bool checkCollisionAbs(const Segment& seg, const ICollider& col, const Transform& transCol);
 
     bool checkCollision(const Plane& plane, const Sphere& sphere);
     bool checkCollision(const Plane& plane, const Sphere& sphere, const Transform& transSphere);
