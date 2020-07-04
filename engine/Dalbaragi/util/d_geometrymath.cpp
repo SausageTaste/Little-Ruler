@@ -41,6 +41,231 @@ namespace {
 }
 
 
+// Copied from web
+namespace {
+
+    // From https://stackoverflow.com/questions/4578967/cube-sphere-intersection-test
+    bool doesCubeIntersectSphere(const glm::vec3 C1, const glm::vec3 C2, const glm::vec3 S, const float R) {
+        const auto squared = [](const float v) -> float {
+            return v * v;
+        };
+
+        float dist_squared = R * R;
+        /* assume C1 and C2 are element-wise sorted, if not, do that now */
+        if ( S.x < C1.x )
+            dist_squared -= squared(S.x - C1.x);
+        else if ( S.x > C2.x )
+            dist_squared -= squared(S.x - C2.x);
+        if ( S.y < C1.y )
+            dist_squared -= squared(S.y - C1.y);
+        else if ( S.y > C2.y )
+            dist_squared -= squared(S.y - C2.y);
+        if ( S.z < C1.z )
+            dist_squared -= squared(S.z - C1.z);
+        else if ( S.z > C2.z )
+            dist_squared -= squared(S.z - C2.z);
+        return dist_squared > 0.f;
+    }
+
+
+    // Frome http://fileadmin.cs.lth.se/cs/Personal/Tomas_Akenine-Moller/code/tribox3.txt
+    namespace fileadmin {
+
+        template <typename T>
+        inline std::pair<T, T> findMinMax(const T x0, const T x1, const T x2) {
+            T min, max;
+            min = max = x0;
+
+            if ( x1 < min ) min = x1;
+            if ( x1 > max ) max = x1;
+            if ( x2 < min ) min = x2;
+            if ( x2 > max ) max = x2;
+
+            return { min, max };
+        }
+
+        bool planeBoxOverlap(const glm::vec3 normal, const glm::vec3 vert, const glm::vec3 maxbox) {
+            glm::vec3 vmin, vmax;
+
+            for ( int i = 0; i < 3; i++ ) {
+                auto v = vert[i];
+                if ( normal[i] > 0.0f ) {
+                    vmin[i] = -maxbox[i] - v;
+                    vmax[i] = maxbox[i] - v;
+                }
+                else {
+                    vmin[i] = maxbox[i] - v;
+                    vmax[i] = -maxbox[i] - v;
+                }
+            }
+
+            if ( glm::dot(normal, vmin) > 0.0f )
+                return false;
+            else if ( glm::dot(normal, vmax) >= 0.0f )
+                return true;
+            else
+                return false;
+        }
+
+        bool triBoxOverlap(const glm::vec3 boxcenter, const glm::vec3 boxhalfsize, const std::array<glm::vec3, 3>& triverts) {
+            /*    use separating axis theorem to test overlap between triangle and box */
+            /*    need to test for overlap in these directions: */
+            /*    1) the {x,y,z}-directions (actually, since we use the AABB of the triangle */
+            /*       we do not even need to test these) */
+            /*    2) normal of the triangle */
+            /*    3) crossproduct(edge from tri, {x,y,z}-directin) */
+            /*       this gives 3x3=9 more tests */
+
+            //   float axis[3];
+            float min, max;		// -NJMP- "d" local variable removed
+
+            /* This is the fastest branch on Sun */
+
+            /* move everything so that the boxcenter is in (0,0,0) */
+            const auto v0 = triverts[0] - boxcenter;
+            const auto v1 = triverts[1] - boxcenter;
+            const auto v2 = triverts[2] - boxcenter;
+
+            /* compute triangle edges */
+            auto e0 = v1 - v0;      /* tri edge 0 */
+            auto e1 = v2 - v1;      /* tri edge 1 */
+            auto e2 = v0 - v2;      /* tri edge 2 */
+
+            /* Bullet 3:  */
+            /*  test the 9 tests first (this was faster) */
+
+            auto fex = fabsf(e0.x);
+            auto fey = fabsf(e0.y);
+            auto fez = fabsf(e0.z);
+
+            constexpr int X = 0;
+            constexpr int Y = 1;
+            constexpr int Z = 2;
+
+            auto AXISTEST_X01 = [&](const float a, const float b, const float fa, const float fb) {
+                const auto p0 = a * v0.y - b * v0.z;
+                const auto p2 = a * v2.y - b * v2.z;
+                if ( p0 < p2 ) {
+                    min = p0;
+                    max = p2;
+                }
+                else {
+                    min = p2;
+                    max = p0;
+                }
+
+                const auto rad = fa * boxhalfsize.y + fb * boxhalfsize.z;
+
+                if ( min > rad || max < -rad )
+                    return 0;
+                else
+                    return 1;
+            };
+
+            auto AXISTEST_X2 = [&](const float a, const float b, const float fa, const float fb) {
+                const auto p0 = a * v0[Y] - b * v0[Z];
+                const auto p1 = a * v1[Y] - b * v1[Z];
+                if ( p0 < p1 ) { min = p0; max = p1; }
+                else { min = p1; max = p0; }
+                const auto rad = fa * boxhalfsize[Y] + fb * boxhalfsize[Z];
+                if ( min > rad || max < -rad ) return 0;
+                else return 1;
+            };
+
+            auto AXISTEST_Y1 = [&](const float a, const float b, const float fa, const float fb) {
+                const auto p0 = -a * v0[X] + b * v0[Z];
+                const auto p1 = -a * v1[X] + b * v1[Z];
+                if ( p0 < p1 ) { min = p0; max = p1; }
+                else { min = p1; max = p0; }
+                const auto rad = fa * boxhalfsize[X] + fb * boxhalfsize[Z];
+                if ( min > rad || max < -rad ) return 0;
+                else return 1;
+            };
+
+            auto AXISTEST_Y02 = [&](const float a, const float b, const float fa, const float fb) {
+                const auto p0 = -a * v0[X] + b * v0[Z];
+                const auto p2 = -a * v2[X] + b * v2[Z];
+                if ( p0 < p2 ) { min = p0; max = p2; }
+                else { min = p2; max = p0; }
+                const auto rad = fa * boxhalfsize[X] + fb * boxhalfsize[Z];
+                if ( min > rad || max < -rad ) return 0;
+                else return 1;
+            };
+
+            auto AXISTEST_Z12 = [&](const float a, const float b, const float fa, const float fb) {
+                const auto p1 = a * v1[X] - b * v1[Y];
+                const auto p2 = a * v2[X] - b * v2[Y];
+                if ( p2 < p1 ) { min = p2; max = p1; }
+                else { min = p1; max = p2; }
+                const auto rad = fa * boxhalfsize[X] + fb * boxhalfsize[Y];
+                if ( min > rad || max < -rad ) return 0;
+                else return 1;
+            };
+
+            auto AXISTEST_Z0 = [&](const float a, const float b, const float fa, const float fb) {
+                const auto p0 = a * v0[X] - b * v0[Y];
+                const auto p1 = a * v1[X] - b * v1[Y];
+                if ( p0 < p1 ) { min = p0; max = p1; }
+                else { min = p1; max = p0; }
+                const auto rad = fa * boxhalfsize[X] + fb * boxhalfsize[Y];
+                if ( min > rad || max < -rad ) return 0;
+                else return 1;
+            };
+
+            AXISTEST_X01(e0.z, e0.y, fez, fey);
+            AXISTEST_Y02(e0.z, e0.x, fez, fex);
+            AXISTEST_Z12(e0.y, e0.x, fey, fex);
+
+            fex = fabsf(e1[X]);
+            fey = fabsf(e1[Y]);
+            fez = fabsf(e1[Z]);
+
+            AXISTEST_X01(e1[Z], e1[Y], fez, fey);
+            AXISTEST_Y02(e1[Z], e1[X], fez, fex);
+            AXISTEST_Z0(e1[Y], e1[X], fey, fex);
+
+            fex = fabsf(e2[X]);
+            fey = fabsf(e2[Y]);
+            fez = fabsf(e2[Z]);
+
+            AXISTEST_X2(e2[Z], e2[Y], fez, fey);
+            AXISTEST_Y1(e2[Z], e2[X], fez, fex);
+            AXISTEST_Z12(e2[Y], e2[X], fey, fex);
+
+            /* Bullet 1: */
+            /*  first test overlap in the {x,y,z}-directions */
+            /*  find min, max of the triangle each direction, and test for overlap in */
+            /*  that direction -- this is equivalent to testing a minimal AABB around */
+            /*  the triangle against the AABB */
+
+            /* test in X-direction */
+            std::tie(min, max) = findMinMax(v0[X], v1[X], v2[X]);
+            if ( min > boxhalfsize[X] || max < -boxhalfsize[X] ) return 0;
+
+            /* test in Y-direction */
+            std::tie(min, max) = findMinMax(v0[Y], v1[Y], v2[Y]);
+            if ( min > boxhalfsize[Y] || max < -boxhalfsize[Y] ) return 0;
+
+            /* test in Z-direction */
+            std::tie(min, max) = findMinMax(v0[Z], v1[Z], v2[Z]);
+            if ( min > boxhalfsize[Z] || max < -boxhalfsize[Z] ) return 0;
+
+            /* Bullet 2: */
+            /*  test if the box intersects the plane of the triangle */
+            /*  compute plane equation of triangle: normal*x+d=0 */
+            const auto normal = glm::cross(e0, e1);
+            // -NJMP- (line removed here)
+            if ( !planeBoxOverlap(normal, v0, boxhalfsize) )
+                return 0;
+
+            return 1;   /* box and triangle overlaps */
+        }
+
+    }
+
+}
+
+
 // Segment
 namespace dal {
 
@@ -399,6 +624,59 @@ namespace dal {
         }
 
         return true;
+    }
+
+
+    bool isIntersecting(const Plane& plane, const Sphere& sphere) {
+        const auto distOfCenter = std::abs(plane.calcSignedDist(sphere.center()));
+        return distOfCenter <= sphere.radius();
+    }
+
+    bool isIntersecting(const Plane& plane, const AABB& aabb) {
+        const auto points = aabb.getAllPoints();
+        const auto firstOne = plane.isInFront(points[0]);
+
+        for ( size_t i = 1; i < points.size(); ++i ) {
+            const auto thisOne = plane.isInFront(points[i]);
+            if ( firstOne != thisOne ) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+
+    bool isIntersecting(const Triangle& tri, const AABB& aabb) {
+        const auto boxCenter = (aabb.min() + aabb.max()) * 0.5f;
+        const auto boxHalfSize = (aabb.max() - aabb.min()) * 0.5f;
+        const std::array<glm::vec3, 3> triverts = {
+            tri.point<0>(),
+            tri.point<1>(),
+            tri.point<2>()
+        };
+
+        return fileadmin::triBoxOverlap(boxCenter, boxHalfSize, triverts);
+    }
+
+
+    bool isIntersecting(const Sphere& sphere, const AABB& aabb) {
+        return doesCubeIntersectSphere(aabb.min(), aabb.max(), sphere.center(), sphere.radius());
+    }
+
+    bool isIntersecting(const AABB& one, const AABB& other) {
+        const auto one1 = one.min();
+        const auto one2 = one.max();
+        const auto other1 = other.min();
+        const auto other2 = other.max();
+
+        if ( one2.x < other1.x ) return false;
+        else if ( one1.x > other2.x ) return false;
+        else if ( one2.y < other1.y ) return false;
+        else if ( one1.y > other2.y ) return false;
+        else if ( one2.z < other1.z ) return false;
+        else if ( one1.z > other2.z ) return false;
+        else return true;
     }
 
 }

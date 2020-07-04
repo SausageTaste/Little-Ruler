@@ -177,6 +177,15 @@ namespace dal {
     bool isIntersecting(const Segment& seg, const Sphere& sphere);
     bool isIntersecting(const Segment& seg, const AABB& aabb);
 
+    bool isIntersecting(const Plane& plane, const Sphere& sphere);
+    bool isIntersecting(const Plane& plane, const AABB& aabb);
+
+    bool isIntersecting(const Triangle& tri, const AABB& aabb);
+
+    bool isIntersecting(const Sphere& sphere, const AABB& aabb);
+
+    bool isIntersecting(const AABB& one, const AABB& other);
+
 }
 
 

@@ -186,17 +186,6 @@ namespace dal {
 
     bool checkCollisionAbs(const Segment& seg, const ICollider& col, const Transform& transCol);
 
-    bool checkCollision(const Plane& plane, const Sphere& sphere);
-    bool checkCollision(const Plane& plane, const Sphere& sphere, const Transform& transSphere);
-    bool checkCollision(const Plane& plane, const AABB& aabb);
-    bool checkCollision(const Plane& plane, const AABB& aabb, const Transform& transAABB);
-
-    bool checkCollision(const Triangle& tri, const AABB& aabb, const Transform& transTri, const Transform& transAABB);
-
-    bool checkCollision(const Sphere& sphere, const AABB& aabb, const Transform& transSphere, const Transform& transAABB);
-
-    bool checkCollision(const AABB& one, const AABB& other);
-    bool checkCollision(const AABB& one, const AABB& two, const Transform& transOne, const Transform& transTwo);
     bool checkCollision(const AABB& aabb, const ColTriangleSoup triSoup, const Transform& transAABB, const Transform& transTriSoup);
 
 }
