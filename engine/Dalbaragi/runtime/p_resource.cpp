@@ -368,15 +368,14 @@ namespace dal {
         }
     }
 
-    const EnvMap* MapChunk2::getClosestEnvMap(const glm::vec3& worldPos) const {
-        const EnvMap* result = nullptr;
-        float resultDist = std::numeric_limits<float>::max();
+    auto MapChunk2::getClosestEnvMap(const glm::vec3& worldPos) const->std::pair<const EnvMap*, float> {
+        std::pair<const EnvMap*, float> result{ nullptr, std::numeric_limits<float>::max() };
 
         for ( auto& e : this->m_envmap ) {
             const auto dist = glm::distance(e.m_pos, worldPos);
-            if ( resultDist > dist ) {
-                result = &e;
-                resultDist = dist;
+            if ( result.second > dist ) {
+                result.first = &e;
+                result.second = dist;
             }
         }
 

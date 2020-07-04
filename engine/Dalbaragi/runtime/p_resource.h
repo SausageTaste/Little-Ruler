@@ -94,7 +94,7 @@ namespace dal {
         }
 
         void getWaters(std::vector<WaterRenderer*>& result);
-        const EnvMap* getClosestEnvMap(const glm::vec3& worldPos) const;
+        auto getClosestEnvMap(const glm::vec3& worldPos) const -> std::pair<const EnvMap*, float>;
 
         void applyCollision(const ICollider& inCol, cpnt::Transform& inTrans);
         std::optional<RayCastingResult> castRayToClosest(const Segment& ray) const;

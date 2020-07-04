@@ -72,6 +72,12 @@ namespace dal {
 
     class SceneGraph {
 
+    private:
+        struct MapChunkPack {
+            MapChunk2 m_map;
+            const LevelData::ChunkData* m_info = nullptr;
+        };
+
         //////// Attribs ////////
 
     private:
@@ -80,7 +86,7 @@ namespace dal {
 
     public:
         LevelData m_activeLevel;
-        std::list<MapChunk2> m_mapChunks2;
+        std::list<MapChunkPack> m_mapChunks;
         std::vector<DirectionalLight> m_dlights;
 
         entt::registry m_entities;
@@ -109,11 +115,13 @@ namespace dal {
         void applyCollision(const ICollider& inCol, cpnt::Transform& inTrans);
         std::optional<RayCastingResult> doRayCasting(const Segment& ray);
 
+        auto findClosestEnv(const glm::vec3& pos) const -> const dal::EnvMap*;
+
         void onResize(const unsigned int width, const unsigned int height);
 
     private:
         void openLevel(const char* const respath);
-        void openChunk(const char* const respath);
+        void openChunk(const char* const respath, const LevelData::ChunkData& info);
 
     };
 

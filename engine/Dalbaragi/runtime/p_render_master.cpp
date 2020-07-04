@@ -36,8 +36,8 @@ namespace {
         double selectedScore = 0.0;
         dal::EnvMap* selected = nullptr;
 
-        for ( auto& m : scene.m_mapChunks2 ) {
-            for ( auto& e : m.m_envmap ) {
+        for ( auto& m : scene.m_mapChunks ) {
+            for ( auto& e : m.m_map.m_envmap ) {
                 const double elapsed = e.m_timer.getElapsed();
                 const double distance = glm::distance(e.m_pos, viewPos);
                 const double score = elapsed / distance;
@@ -482,7 +482,7 @@ namespace dal {
             uniloc.viewMat(this->m_mainCamera->getViewMat());
             uniloc.viewPos(this->m_mainCamera->m_pos);
             this->m_scene.sendDlightUniform(uniloc.i_lighting);
-            this->m_scene.m_mapChunks2.back().sendSlightUniforms(uniloc.i_lighting);
+            this->m_scene.m_mapChunks.back().m_map.sendSlightUniforms(uniloc.i_lighting);
 
             this->m_fbuffer.sendUniform(uniloc);
             g_vertbuf_fillscreen.draw();
@@ -529,8 +529,8 @@ namespace dal {
 
         {
             std::vector<SpotLight*> slights;
-            for ( auto& map : this->m_scene.m_mapChunks2 ) {
-                for ( auto& l : map.m_slights ) {
+            for ( auto& map : this->m_scene.m_mapChunks ) {
+                for ( auto& l : map.m_map.m_slights ) {
                     slights.push_back(&l);
                 }
             }
@@ -579,8 +579,8 @@ namespace dal {
 #endif
 
         std::vector<WaterRenderer*> waters;
-        for ( auto& m : this->m_scene.m_mapChunks2 ) {
-            for ( auto& w : m.m_waters ) {
+        for ( auto& m : this->m_scene.m_mapChunks ) {
+            for ( auto& w : m.m_map.m_waters ) {
                 waters.push_back(&w);
             }
         }
@@ -835,8 +835,8 @@ namespace dal {
             uniloc.i_lighting.baseAmbient(this->m_baseAmbientColor);
             this->m_scene.sendDlightUniform(uniloc.i_lighting);
 
-            for ( auto& m : this->m_scene.m_mapChunks2 ) {
-                m.renderWater(uniloc);
+            for ( auto& m : this->m_scene.m_mapChunks ) {
+                m.m_map.renderWater(uniloc);
             }
         }
 #endif

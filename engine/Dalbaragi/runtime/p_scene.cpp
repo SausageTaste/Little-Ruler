@@ -376,7 +376,7 @@ namespace dal {
                 if ( !mapInfo.m_active && ::isGoodToBeLoaded(this->m_playerCam.m_pos, mapInfo) ) {
                     const auto respath = parseResPath(this->m_activeLevel.respath());
                     const auto chunkPath = respath.m_package + "::" + respath.m_intermPath + mapInfo.m_name + ".dmc";
-                    this->openChunk(chunkPath.c_str());
+                    this->openChunk(chunkPath.c_str(), mapInfo);
                     mapInfo.m_active = true;
                     dalInfo(fmt::format("Map chunk activated: {}", mapInfo.m_name));
                 }
@@ -401,8 +401,8 @@ namespace dal {
     void SceneGraph::render_static(const UniRender_Static& uniloc) {
         this->sendDlightUniform(uniloc.i_lighting);
 
-        for ( auto& map : this->m_mapChunks2 ) {
-            map.render_static(uniloc);
+        for ( auto& map : this->m_mapChunks ) {
+            map.m_map.render_static(uniloc);
         }
 
         const auto view = this->m_entities.view<cpnt::Transform, cpnt::StaticModel>();
@@ -410,7 +410,7 @@ namespace dal {
             auto& cpntTrans = view.get<cpnt::Transform>(entity);
             auto& cpntModel = view.get<cpnt::StaticModel>(entity);
 
-            auto envmap = this->m_mapChunks2.back().getClosestEnvMap(cpntTrans.getPos());
+            auto envmap = this->findClosestEnv(cpntTrans.getPos());
             if ( nullptr != envmap ) {
                 sendEnvmapUniform(*envmap, uniloc.i_envmap);
             }
@@ -426,9 +426,9 @@ namespace dal {
     void SceneGraph::render_animated(const UniRender_Animated& uniloc) {
         this->sendDlightUniform(uniloc.i_lighting);
 
-        if ( !this->m_mapChunks2.empty()  ) {
-            this->m_mapChunks2.back().sendPlightUniforms(uniloc.i_lighting);
-            this->m_mapChunks2.back().sendSlightUniforms(uniloc.i_lighting);
+        if ( !this->m_mapChunks.empty() ) {
+            this->m_mapChunks.back().m_map.sendPlightUniforms(uniloc.i_lighting);
+            this->m_mapChunks.back().m_map.sendSlightUniforms(uniloc.i_lighting);
         }
 
         const auto viewAnimated = this->m_entities.view<cpnt::Transform, cpnt::AnimatedModel>();
@@ -436,7 +436,7 @@ namespace dal {
             auto& cpntTrans = viewAnimated.get<cpnt::Transform>(entity);
             auto& cpntModel = viewAnimated.get<cpnt::AnimatedModel>(entity);
 
-            auto envmap = this->m_mapChunks2.back().getClosestEnvMap(cpntTrans.getPos());
+            auto envmap = this->findClosestEnv(cpntTrans.getPos());
             if ( nullptr != envmap ) {
                 sendEnvmapUniform(*envmap, uniloc.i_envmap);
             }
@@ -450,8 +450,8 @@ namespace dal {
     }
 
     void SceneGraph::render_staticDepth(const UniRender_StaticDepth& uniloc) {
-        for ( auto& map : this->m_mapChunks2 ) {
-            map.render_staticDepth(uniloc);
+        for ( auto& map : this->m_mapChunks ) {
+            map.m_map.render_staticDepth(uniloc);
         }
 
         this->m_entities.view<cpnt::Transform, cpnt::StaticModel>().each(
@@ -476,8 +476,8 @@ namespace dal {
     void SceneGraph::render_staticOnWater(const UniRender_StaticOnWater& uniloc) {
         this->sendDlightUniform(uniloc.i_lighting);
 
-        for ( auto& map : this->m_mapChunks2 ) {
-            map.render_staticOnWater(uniloc);
+        for ( auto& map : this->m_mapChunks ) {
+            map.m_map.render_staticOnWater(uniloc);
         }
 
         const auto view = this->m_entities.view<cpnt::Transform, cpnt::StaticModel>();
@@ -493,9 +493,9 @@ namespace dal {
     void SceneGraph::render_animatedOnWater(const UniRender_AnimatedOnWater& uniloc) {
         this->sendDlightUniform(uniloc.i_lighting);
 
-        if ( !this->m_mapChunks2.empty() ) {
-            this->m_mapChunks2.back().sendPlightUniforms(uniloc.i_lighting);
-            this->m_mapChunks2.back().sendSlightUniforms(uniloc.i_lighting);
+        if ( !this->m_mapChunks.empty() ) {
+            this->m_mapChunks.back().m_map.sendPlightUniforms(uniloc.i_lighting);
+            this->m_mapChunks.back().m_map.sendSlightUniforms(uniloc.i_lighting);
         }
 
         const auto viewAnimated = this->m_entities.view<cpnt::Transform, cpnt::AnimatedModel>();
@@ -508,12 +508,12 @@ namespace dal {
         }
     }
 
-    void SceneGraph::render_staticOnEnvmap(const UniRender_Static& uniloc){
+    void SceneGraph::render_staticOnEnvmap(const UniRender_Static& uniloc) {
         this->sendDlightUniform(uniloc.i_lighting);
         uniloc.i_envmap.hasEnvmap(false);
 
-        for ( auto& map : this->m_mapChunks2 ) {
-            map.render_staticOnEnvmap(uniloc);
+        for ( auto& map : this->m_mapChunks ) {
+            map.m_map.render_staticOnEnvmap(uniloc);
         }
 
         const auto view = this->m_entities.view<cpnt::Transform, cpnt::StaticModel>();
@@ -537,8 +537,8 @@ namespace dal {
 
 
     void SceneGraph::applyCollision(const ICollider& inCol, cpnt::Transform& inTrans) {
-        for ( auto& map : this->m_mapChunks2 ) {
-            map.applyCollision(inCol, inTrans);
+        for ( auto& map : this->m_mapChunks ) {
+            map.m_map.applyCollision(inCol, inTrans);
         }
     }
 
@@ -546,8 +546,8 @@ namespace dal {
         std::optional<RayCastingResult> result{ std::nullopt };
         float closestDist = std::numeric_limits<float>::max();
 
-        for ( auto& map : this->m_mapChunks2 ) {
-            auto info = map.castRayToClosest(ray);
+        for ( auto& map : this->m_mapChunks ) {
+            auto info = map.m_map.castRayToClosest(ray);
             if ( info ) {
                 if ( info->m_distance < closestDist ) {
                     result = info;
@@ -559,9 +559,29 @@ namespace dal {
         return result;
     }
 
+
+    auto SceneGraph::findClosestEnv(const glm::vec3& pos) const -> const dal::EnvMap* {
+        const dal::EnvMap* result = nullptr;
+        float maxDist = std::numeric_limits<float>::max();
+
+        for ( auto& map : this->m_mapChunks ) {
+            if ( !map.m_info->m_aabb.isInside(pos) )
+                continue;
+
+            const auto [envmap, dist] = map.m_map.getClosestEnvMap(pos);
+            if ( maxDist > dist ) {
+                result = envmap;
+                maxDist = dist;
+            }
+        }
+
+        return result;
+    }
+
+
     void SceneGraph::onResize(const unsigned int width, const unsigned int height) {
-        for ( auto& map : m_mapChunks2 ) {
-            map.onWinResize(width, height);
+        for ( auto& map : m_mapChunks ) {
+            map.m_map.onWinResize(width, height);
         }
     }
 
@@ -602,9 +622,10 @@ namespace dal {
         }
     }
 
-    void SceneGraph::openChunk(const char* const respath) {
-        auto map = this->m_resMas.loadChunk(respath);
-        this->m_mapChunks2.push_back(std::move(map));
+    void SceneGraph::openChunk(const char* const respath, const LevelData::ChunkData& info) {
+        auto& map = this->m_mapChunks.emplace_back();
+        map.m_map = this->m_resMas.loadChunk(respath);
+        map.m_info = &info;
     }
 
 }
