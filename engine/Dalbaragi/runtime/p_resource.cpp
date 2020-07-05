@@ -386,19 +386,31 @@ namespace dal {
         PhysicalProperty inPhysics, mdlPhysics;
         inPhysics.setMassInv(1.f);
 
-        for ( auto& mdl : this->m_staticActors ) {
-            const auto mdlBounding = mdl.m_model->getBounding();
-            if ( nullptr == mdlBounding ) {
+        for ( auto& modelActor : this->m_staticActors ) {
+            const auto mdlBounding = modelActor.m_model->getBounding();
+            const auto mdlDetailed = modelActor.m_model->getDetailed();
+            if ( nullptr == mdlBounding )
                 continue;
-            }
 
-            const auto mdlDetailed = mdl.m_model->getDetailed();
-            if ( nullptr != mdlDetailed ) {
-                for ( auto& actor : mdl.m_actors ) {
-                    const auto withBounding = checkCollisionAbs(inCol, *mdlBounding, inTrans, actor.m_transform);
-                    if ( !withBounding ) {
+            for ( auto& actor : modelActor.m_actors ) {
+                if ( dal::ActorInfo::ColliderType::aabb == actor.m_colType ) {
+                    const auto result = calcResolveInfoABS(inCol, inPhysics, inTrans, *mdlBounding, mdlPhysics, actor.m_transform);
+                    if ( result.m_valid ) {
+                        inTrans.addPos(result.m_this);
+                        actor.m_transform.addPos(result.m_other);
+                    }
+                }
+                else if ( dal::ActorInfo::ColliderType::mesh == actor.m_colType ) {
+                    if ( nullptr == mdlDetailed ) {
+                        dalAssertm(
+                            nullptr != mdlDetailed,
+                            fmt::format("A actor '{}' with collider type 'mesh' doesn't have defailed collider", actor.m_name)
+                        );
                         continue;
                     }
+
+                    if ( !checkCollisionAbs(inCol, *mdlBounding, inTrans, actor.m_transform) )
+                        continue;
 
                     const auto result = calcResolveInfoABS(inCol, inPhysics, inTrans, *mdlDetailed, mdlPhysics, actor.m_transform);
                     if ( result.m_valid ) {
@@ -406,14 +418,8 @@ namespace dal {
                         actor.m_transform.addPos(result.m_other);
                     }
                 }
-            }
-            else {
-                for ( auto& actor : mdl.m_actors ) {
-                    const auto result = calcResolveInfoABS(inCol, inPhysics, inTrans, *mdlBounding, mdlPhysics, actor.m_transform);
-                    if ( result.m_valid ) {
-                        inTrans.addPos(result.m_this);
-                        actor.m_transform.addPos(result.m_other);
-                    }
+                else {
+                    continue;
                 }
             }
         }
@@ -425,37 +431,41 @@ namespace dal {
 
         for ( auto& modelActor : this->m_staticActors ) {
             const auto mdlBounding = modelActor.m_model->getBounding();
-            if ( nullptr == mdlBounding ) {
-                continue;
-            }
-
             const auto mdlDetailed = modelActor.m_model->getDetailed();
+            if ( nullptr == mdlBounding )
+                continue;
 
-            if ( nullptr != mdlDetailed ) {
-                for ( auto& actor : modelActor.m_actors ) {
-                    if ( !checkCollisionAbs(ray, *mdlBounding, actor.m_transform) ) {
+            for ( auto& actor : modelActor.m_actors ) {
+                if ( dal::ActorInfo::ColliderType::aabb == actor.m_colType ) {
+                    const auto res = calcCollisionInfoAbs(ray, *mdlBounding, actor.m_transform);
+                    if ( !res )
                         continue;
-                    }
-                    const auto res = calcCollisionInfoAbs(ray, *mdlDetailed, actor.m_transform);
-                    if ( !res ) {
-                        continue;
-                    }
+
                     if ( res->m_distance < closestDistance ) {
                         closestDistance = res->m_distance;
                         result = *res;
                     }
                 }
-            }
-            else {
-                for ( auto& actor : modelActor.m_actors ) {
-                    const auto res = calcCollisionInfoAbs(ray, *mdlBounding, actor.m_transform);
-                    if ( !res ) {
+                else if ( dal::ActorInfo::ColliderType::mesh == actor.m_colType ) {
+                    if ( nullptr == mdlDetailed ) {
+                        dalError(fmt::format("A actor '{}' with collider type 'mesh' doesn't have defailed collider", actor.m_name));
                         continue;
                     }
+
+                    if ( !checkCollisionAbs(ray, *mdlBounding, actor.m_transform) )
+                        continue;
+
+                    const auto res = calcCollisionInfoAbs(ray, *mdlDetailed, actor.m_transform);
+                    if ( !res )
+                        continue;
+
                     if ( res->m_distance < closestDistance ) {
                         closestDistance = res->m_distance;
                         result = *res;
                     }
+                }
+                else {
+                    continue;
                 }
             }
         }
@@ -929,16 +939,51 @@ namespace dal {
 
             model->setBounding(std::unique_ptr<ICollider>{new ColAABB{ modelInfo.m_aabb.m_min, modelInfo.m_aabb.m_max }});
 
+            if ( modelInfo.m_hasMeshCollider ) {
+                auto soup = std::make_unique<dal::ColTriangleSoup>();
+
+                for ( auto& unitInfo : modelInfo.m_renderUnits ) {
+                    const auto& vertices = unitInfo.m_mesh.m_vertices;
+                    const auto vertSize = unitInfo.m_mesh.m_vertices.size() / 3;
+                    const auto numTriangles = vertSize / 3;
+
+                    for ( unsigned i = 0; i < numTriangles; ++i ) {
+                        const glm::vec3 p0{ vertices[9 * i + 0], vertices[9 * i + 1], vertices[9 * i + 2] };
+                        const glm::vec3 p1{ vertices[9 * i + 3], vertices[9 * i + 4], vertices[9 * i + 5] };
+                        const glm::vec3 p2{ vertices[9 * i + 6], vertices[9 * i + 7], vertices[9 * i + 8] };
+                        soup->addTriangle(dal::Triangle{ p0, p1, p2 });
+                    }
+                }
+
+                model->setDetailed(std::unique_ptr<ICollider>{ soup.release() });
+            }
+
             map.m_staticActors.emplace_back(model);
         }
 
         for ( auto& sactorInfo : mapInfo->m_staticActors ) {
             auto& modelActor = map.m_staticActors[sactorInfo.m_modelIndex];
-            modelActor.m_actors.emplace_back();
+            auto& actor = modelActor.m_actors.emplace_back();
 
-            modelActor.m_actors.back().m_name = sactorInfo.m_name;
-            copyTransform(modelActor.m_actors.back().m_transform, sactorInfo.m_trans);
-            modelActor.m_actors.back().m_envmapIndices = sactorInfo.m_envmapIndices;
+            actor.m_name = sactorInfo.m_name;
+            copyTransform(actor.m_transform, sactorInfo.m_trans);
+            actor.m_envmapIndices = sactorInfo.m_envmapIndices;
+
+            switch ( sactorInfo.m_colType ) {
+
+            case dal::v1::StaticActor::ColliderType::aabb:
+                actor.m_colType = ActorInfo::ColliderType::aabb;
+                break;
+            case dal::v1::StaticActor::ColliderType::none:
+                actor.m_colType = ActorInfo::ColliderType::none;
+                break;
+            case dal::v1::StaticActor::ColliderType::mesh:
+                actor.m_colType = ActorInfo::ColliderType::mesh;
+                break;
+            default:
+                dalAbort("shit");
+
+            }
         }
 
         const auto win_width = GlobalStateGod::getinst().getWinWidth();

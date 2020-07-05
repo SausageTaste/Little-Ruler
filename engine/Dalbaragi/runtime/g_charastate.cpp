@@ -141,8 +141,8 @@ namespace {
     }
 
     void processCharaHeight(dal::cpnt::Transform& transform, dal::SceneGraph& scene) {
-        constexpr float RAY_Y_OFFSET = 2.0f;
-        const auto ray = dal::Segment{ transform.getPos() + glm::vec3{ 0.f, RAY_Y_OFFSET, 0.f }, glm::vec3{ 0.f, -100.f, 0.f } };
+        constexpr float RAY_Y_OFFSET = 2;
+        const auto ray = dal::Segment{ transform.getPos() + glm::vec3{ 0, RAY_Y_OFFSET, 0 }, glm::vec3{ 0, -10, 0 } };
 
         const auto result = scene.doRayCasting(ray);
         if ( !result ) {

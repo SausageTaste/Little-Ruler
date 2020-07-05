@@ -74,9 +74,17 @@ namespace dal {
     class ActorInfo {
 
     public:
+        enum class ColliderType {
+            aabb = 0,
+            none = 1,
+            mesh = 2,
+        };
+
+    public:
         Transform m_transform;
         std::string m_name;
         std::vector<std::int32_t> m_envmapIndices;
+        ColliderType m_colType = ColliderType::aabb;
 
     public:
         ActorInfo(void) = default;
