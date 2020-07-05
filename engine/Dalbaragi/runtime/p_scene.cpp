@@ -348,15 +348,12 @@ namespace dal {
 
         // Resolve collisions
         {
-            auto& trans = this->m_entities.get<cpnt::Transform>(this->m_player);
-            auto& model = this->m_entities.get<cpnt::AnimatedModel>(this->m_player);
+            static const dal::ColAABB playerAABB{ glm::vec3{-0.3, 0.2, -0.3}, glm::vec3{0.3, 1.3, 0.3} };
 
-            const auto bounding = model.m_model->getBounding();
-            if ( nullptr != bounding ) {
-                const auto lastPos = trans.getPos();
-                this->applyCollision(*bounding, trans);
-                bindCameraPos(this->m_playerCam, trans.getPos(), lastPos);
-            }
+            auto& trans = this->m_entities.get<cpnt::Transform>(this->m_player);
+            const auto lastPos = trans.getPos();
+            this->applyCollision(playerAABB, trans);
+            bindCameraPos(this->m_playerCam, trans.getPos(), lastPos);
         }
 
         // Update animtions of dynamic objects.
