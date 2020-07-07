@@ -361,7 +361,7 @@ namespace dal {
     void WaterRenderer::startRenderOnRefrac(const UniRender_StaticOnWater& uniloc, const ICamera& cam) const {
         uniloc.clipPlane(0.f, -1.f, 0.f, this->m_height);
 
-        uniloc.viewMat(cam.getViewMat());
+        uniloc.viewMat(cam.viewMat());
         uniloc.viewPos(cam.m_pos);
 
         this->m_fbuffer.bindRefractionFrameBuffer();
@@ -370,7 +370,7 @@ namespace dal {
     void WaterRenderer::startRenderOnRefrac(const UniRender_AnimatedOnWater& uniloc, const ICamera& cam) const {
         uniloc.clipPlane(0.f, -1.f, 0.f, this->m_height);
 
-        uniloc.viewMat(cam.getViewMat());
+        uniloc.viewMat(cam.viewMat());
         uniloc.viewPos(cam.m_pos);
 
         this->m_fbuffer.bindRefractionFrameBuffer();

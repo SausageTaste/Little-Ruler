@@ -6,8 +6,8 @@
 #include "p_dalopengl.h"
 #include "p_meshStatic.h"
 #include "p_uniloc.h"
-//#include "p_resource.h"
 #include "u_timer.h"
+#include "d_camera.h"
 
 
 namespace dal {

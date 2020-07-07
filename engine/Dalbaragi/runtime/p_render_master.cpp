@@ -479,7 +479,7 @@ namespace dal {
             auto& uniloc = this->m_shader.useFillScreen();
 
             uniloc.projMat(this->m_projectMat);
-            uniloc.viewMat(this->m_mainCamera->getViewMat());
+            uniloc.viewMat(this->m_mainCamera->viewMat());
             uniloc.viewPos(this->m_mainCamera->m_pos);
             this->m_scene.sendDlightUniform(uniloc.i_lighting);
             this->m_scene.m_mapChunks.back().m_map.sendSlightUniforms(uniloc.i_lighting);
@@ -590,7 +590,7 @@ namespace dal {
             auto& uniloc = this->m_shader.useStaticOnWater();
 
             uniloc.projMat(this->m_projectMat);
-            uniloc.viewMat(this->m_mainCamera->getViewMat());
+            uniloc.viewMat(this->m_mainCamera->viewMat());
             uniloc.viewPos(this->m_mainCamera->m_pos);
             uniloc.i_lighting.baseAmbient(this->m_baseAmbientColor);
 
@@ -614,7 +614,7 @@ namespace dal {
             auto& uniloc = this->m_shader.useAnimatedOnWater();
 
             uniloc.projMat(this->m_projectMat);
-            uniloc.viewMat(this->m_mainCamera->getViewMat());
+            uniloc.viewMat(this->m_mainCamera->viewMat());
             uniloc.viewPos(this->m_mainCamera->m_pos);
             uniloc.i_lighting.baseAmbient(this->m_baseAmbientColor);
 
@@ -800,7 +800,7 @@ namespace dal {
             auto& uniloc = this->m_shader.useStatic();
 
             uniloc.projMat(this->m_projectMat);
-            uniloc.viewMat(this->m_mainCamera->getViewMat());
+            uniloc.viewMat(this->m_mainCamera->viewMat());
             uniloc.viewPos(this->m_mainCamera->m_pos);
             uniloc.i_lighting.baseAmbient(this->m_baseAmbientColor);
             uniloc.i_envmap.hasEnvmap(false);
@@ -815,7 +815,7 @@ namespace dal {
             auto& uniloc = this->m_shader.useAnimated();
 
             uniloc.projMat(this->m_projectMat);
-            uniloc.viewMat(this->m_mainCamera->getViewMat());
+            uniloc.viewMat(this->m_mainCamera->viewMat());
             uniloc.viewPos(this->m_mainCamera->m_pos);
             uniloc.i_lighting.baseAmbient(this->m_baseAmbientColor);
             uniloc.i_envmap.hasEnvmap(false);
@@ -830,7 +830,7 @@ namespace dal {
             auto& uniloc = this->m_shader.useWater();
 
             uniloc.projMat(this->m_projectMat);
-            uniloc.viewMat(this->m_mainCamera->getViewMat());
+            uniloc.viewMat(this->m_mainCamera->viewMat());
             uniloc.viewPos(this->m_mainCamera->m_pos);
             uniloc.i_lighting.baseAmbient(this->m_baseAmbientColor);
             this->m_scene.sendDlightUniform(uniloc.i_lighting);
@@ -850,7 +850,7 @@ namespace dal {
             uniloc.viewPosActual(this->m_mainCamera->m_pos);
 
             uniloc.projMat(this->m_projectMat);
-            uniloc.viewMat(glm::mat4(glm::mat3(this->m_mainCamera->getViewMat())));
+            uniloc.viewMat(glm::mat4(glm::mat3(this->m_mainCamera->viewMat())));
             uniloc.modelMat(glm::scale(glm::mat4{ 1 }, glm::vec3{ sqrt2 * this->m_farPlaneDistance }));
             uniloc.viewPos(0, 0, 0);
 

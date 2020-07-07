@@ -51,7 +51,7 @@ namespace dal {
     }
 
 
-    ICharaState::ICharaState(dal::StrangeEulerCamera& camera, SceneGraph& scene)
+    ICharaState::ICharaState(dal::FPSEulerCamera& camera, SceneGraph& scene)
         : m_camera(camera)
         , m_scene(scene)
     {
@@ -64,7 +64,7 @@ namespace dal {
 // Util functions
 namespace {
 
-    void applybindingCameraToModel(dal::StrangeEulerCamera& camera, const float deltaTime, const dal::MoveInputInfo& totalMoveInfo,
+    void applybindingCameraToModel(dal::FPSEulerCamera& camera, const float deltaTime, const dal::MoveInputInfo& totalMoveInfo,
         const glm::vec3 mdlThisPos, const glm::vec3 mdlLastPos)
     {
         // Apply move direction
@@ -86,14 +86,14 @@ namespace {
             {
                 const auto obj2CamVec = camera.m_pos - camOrigin;
                 const auto len = glm::length(obj2CamVec);
-                auto obj2CamSEuler = dal::vec2StrangeEuler(obj2CamVec);
+                auto obj2CamSEuler = dal::vec2fpsEuler(obj2CamVec);
 
                 obj2CamSEuler.addX(totalMoveInfo.m_view.x);
                 obj2CamSEuler.addY(-totalMoveInfo.m_view.y);
                 //obj2CamSEuler.clampY(glm::radians(50.0f), glm::radians(80.0f));
 
                 obj2CamSEuler.clampY(glm::radians(-MAX_Y_DEGREE), glm::radians(MAX_Y_DEGREE));
-                const auto rotatedVec = dal::strangeEuler2Vec(obj2CamSEuler);
+                const auto rotatedVec = dal::fpsEuler2vec(obj2CamSEuler);
                 camera.m_pos = camOrigin + rotatedVec * len;
             }
 
@@ -101,8 +101,8 @@ namespace {
                 // It break when OBJ_CAM_DISTANCE's value is lower than 3.
 
                 const auto cam2ObjVec = camOrigin - camera.m_pos;
-                const auto cam2ObjSEuler = dal::vec2StrangeEuler(cam2ObjVec);
-                camera.setViewPlane(cam2ObjSEuler.getX(), cam2ObjSEuler.getY());
+                const auto cam2ObjSEuler = dal::vec2fpsEuler(cam2ObjVec);
+                camera.setViewPlane(cam2ObjSEuler.x(), cam2ObjSEuler.y());
 
                 camera.m_pos = camOrigin - dal::resizeOnlyXZ(cam2ObjVec, OBJ_CAM_DISTANCE);
             }
@@ -111,15 +111,15 @@ namespace {
         camera.updateViewMat();
     }
 
-    void applyMove(dal::cpnt::Transform& cpntTrans, dal::cpnt::AnimatedModel& animModel, const dal::StrangeEulerCamera camera,
+    void applyMove(dal::cpnt::Transform& cpntTrans, dal::cpnt::AnimatedModel& animModel, const dal::FPSEulerCamera camera,
         const float deltaTime, const dal::MoveInputInfo& totalMoveInfo)
     {
         constexpr float CAM_ROTATE_SPEED_INV = 1.0f;
         static_assert(0.0f <= CAM_ROTATE_SPEED_INV && CAM_ROTATE_SPEED_INV <= 1.0f);
 
-        // const auto camViewVec = dal::strangeEuler2Vec(camera.getStrangeEuler());
-        // const auto rotatorAsCamX = glm::rotate(glm::mat4{ 1.0f }, camera.getStrangeEuler().getX(), glm::vec3{ 0.0f, 1.0f, 0.0f });
-        const auto rotatedMoveVec = dal::rotateVec2(glm::vec2{ totalMoveInfo.m_move.x, totalMoveInfo.m_move.y }, camera.getStrangeEuler().getX());
+        // const auto camViewVec = dal::strangeEuler2Vec(camera.eulerAngles());
+        // const auto rotatorAsCamX = glm::rotate(glm::mat4{ 1.0f }, camera.eulerAngles().getX(), glm::vec3{ 0.0f, 1.0f, 0.0f });
+        const auto rotatedMoveVec = dal::rotateVec2(glm::vec2{ totalMoveInfo.m_move.x, totalMoveInfo.m_move.y }, camera.eulerAngles().x());
 
         const auto deltaPos = glm::vec3{ rotatedMoveVec.x, 0.0f, rotatedMoveVec.y } *deltaTime * 5.0f;
         cpntTrans.addPos(deltaPos);
@@ -170,7 +170,7 @@ namespace {
     class CharaIdleState : public dal::ICharaState {
 
     public:
-        CharaIdleState(dal::StrangeEulerCamera& camera, dal::SceneGraph& scene)
+        CharaIdleState(dal::FPSEulerCamera& camera, dal::SceneGraph& scene)
             : ICharaState(camera, scene)
         {
 
@@ -203,7 +203,7 @@ namespace {
         glm::vec3 m_lastPos;
 
     public:
-        CharaWalkState(dal::StrangeEulerCamera& camera, dal::SceneGraph& scene)
+        CharaWalkState(dal::FPSEulerCamera& camera, dal::SceneGraph& scene)
             : ICharaState(camera, scene)
         {
 
@@ -280,7 +280,7 @@ namespace {
 
 namespace dal::cpnt {
 
-    CharacterState::CharacterState(cpnt::Transform& transform, cpnt::AnimatedModel& model, dal::StrangeEulerCamera& camera, SceneGraph& scene)
+    CharacterState::CharacterState(cpnt::Transform& transform, cpnt::AnimatedModel& model, dal::FPSEulerCamera& camera, SceneGraph& scene)
         : m_currentState(new CharaIdleState{ camera, scene })
     {
 

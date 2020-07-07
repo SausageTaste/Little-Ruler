@@ -91,7 +91,7 @@ namespace dal {
 
         entt::registry m_entities;
         entt::entity m_player;
-        StrangeEulerCamera m_playerCam;
+        FPSEulerCamera m_playerCam;
 
         //////// Methods ////////
 

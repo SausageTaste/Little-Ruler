@@ -20,7 +20,7 @@ using namespace fmt::literals;
 
 namespace {
 
-    void bindCameraPos(dal::StrangeEulerCamera& camera, const glm::vec3 thisPos, const glm::vec3 lastPos) {
+    void bindCameraPos(dal::FPSEulerCamera& camera, const glm::vec3 thisPos, const glm::vec3 lastPos) {
         // Apply move direction
         {
             const glm::vec3 MODEL_ORIGIN_OFFSET{ 0.0f, 1.3f, 0.0f };
@@ -38,10 +38,10 @@ namespace {
             {
                 const auto obj2CamVec = camera.m_pos - camOrigin;
                 const auto len = glm::length(obj2CamVec);
-                auto obj2CamSEuler = dal::vec2StrangeEuler(obj2CamVec);
+                auto obj2CamSEuler = dal::vec2fpsEuler(obj2CamVec);
 
                 obj2CamSEuler.clampY(glm::radians(-MAX_Y_DEGREE), glm::radians(MAX_Y_DEGREE));
-                const auto rotatedVec = dal::strangeEuler2Vec(obj2CamSEuler);
+                const auto rotatedVec = dal::fpsEuler2vec(obj2CamSEuler);
                 camera.m_pos = camOrigin + rotatedVec * len;
             }
 
@@ -49,8 +49,8 @@ namespace {
                 constexpr float OBJ_CAM_DISTANCE = 3.0f;
 
                 const auto cam2ObjVec = camOrigin - camera.m_pos;
-                const auto cam2ObjSEuler = dal::vec2StrangeEuler(cam2ObjVec);
-                camera.setViewPlane(cam2ObjSEuler.getX(), cam2ObjSEuler.getY());
+                const auto cam2ObjSEuler = dal::vec2fpsEuler(cam2ObjVec);
+                camera.setViewPlane(cam2ObjSEuler.x(), cam2ObjSEuler.y());
 
                 camera.m_pos = camOrigin - dal::resizeOnlyXZ(cam2ObjVec, OBJ_CAM_DISTANCE);
             }

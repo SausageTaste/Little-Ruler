@@ -2,6 +2,7 @@
 
 #include "g_actor.h"
 #include "p_model.h"
+#include "d_camera.h"
 
 
 namespace dal {
@@ -28,7 +29,7 @@ namespace dal {
         // Don't judge me. I love Undertale.
 
     protected:
-        StrangeEulerCamera& m_camera;
+        FPSEulerCamera& m_camera;
         SceneGraph& m_scene;
 
     public:
@@ -38,7 +39,7 @@ namespace dal {
         ICharaState& operator=(ICharaState&&) = delete;
 
     public:
-        ICharaState(StrangeEulerCamera& camera, SceneGraph& scene);
+        ICharaState(FPSEulerCamera& camera, SceneGraph& scene);
         virtual ~ICharaState(void) = default;
 
         virtual void enter(void) = 0;
@@ -57,7 +58,7 @@ namespace dal {
             ICharaState* m_currentState;
 
         public:
-            CharacterState(cpnt::Transform& transform, cpnt::AnimatedModel& model, dal::StrangeEulerCamera& camera, SceneGraph& scene);
+            CharacterState(cpnt::Transform& transform, cpnt::AnimatedModel& model, dal::FPSEulerCamera& camera, SceneGraph& scene);
             void update(const float deltaTime, const MoveInputInfo& info);
 
         };
