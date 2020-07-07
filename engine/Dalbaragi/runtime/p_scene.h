@@ -72,6 +72,11 @@ namespace dal {
 
     class SceneGraph {
 
+    public:
+        struct CameraProp {
+            float m_horizontal = 0, m_vertical = 0;
+        };
+
     private:
         struct MapChunkPack {
             MapChunk2 m_map;
@@ -92,6 +97,7 @@ namespace dal {
         entt::registry m_entities;
         entt::entity m_player;
         FocusCamera m_playerCam;
+        CameraProp m_playerCamInfo;
 
         //////// Methods ////////
 
