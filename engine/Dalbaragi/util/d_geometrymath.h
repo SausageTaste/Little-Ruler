@@ -189,6 +189,14 @@ namespace dal {
 }
 
 
+// Intersecting depth
+namespace dal {
+
+    std::pair<float, glm::vec3> calcIntersectingDepth(const AABB& aabb, const Plane& plane);
+
+}
+
+
 // Ray casting
 namespace dal {
 

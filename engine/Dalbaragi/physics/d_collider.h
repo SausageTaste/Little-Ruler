@@ -197,6 +197,9 @@ namespace dal {
         const AABB& two, const PhysicalProperty& physicsTwo, const Transform& transTwo
     );
 
+    CollisionResolveInfo calcResolveInfo(const AABB& aabb, const PhysicalProperty& physicsOne, const Transform& transOne,
+        const dal::ColTriangleSoup& soup, const PhysicalProperty& physicsTwo, const Transform& transTwo);
+
 }
 
 

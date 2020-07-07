@@ -702,6 +702,25 @@ namespace dal {
 }
 
 
+namespace dal {
+
+    std::pair<float, glm::vec3> calcIntersectingDepth(const AABB& aabb, const Plane& plane) {
+        const auto points = aabb.getAllPoints();
+        float smallestDistValue = 0;
+
+        for ( auto& p : points ) {
+            const auto signedDist = plane.calcSignedDist(p);
+            if ( signedDist < smallestDistValue ) {
+                smallestDistValue = signedDist;
+            }
+        }
+
+        return { std::abs(smallestDistValue), -plane.normal() };
+    }
+
+}
+
+
 // Calc intersection info
 namespace dal {
 

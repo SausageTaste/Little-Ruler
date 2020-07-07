@@ -135,12 +135,12 @@ namespace {
             // Collision check functions
             {
                 this->m_checkCol.set(dal::ColliderType::sphere, dal::ColliderType::sphere, nullptr);
-                this->m_checkCol.set(dal::ColliderType::sphere, dal::ColliderType::aabb, checkCol_sphere_aabb);
+                this->m_checkCol.set(dal::ColliderType::sphere, dal::ColliderType::aabb, this->checkCol_sphere_aabb);
                 this->m_checkCol.set(dal::ColliderType::sphere, dal::ColliderType::triangle_soup, nullptr);
 
-                this->m_checkCol.set(dal::ColliderType::aabb, dal::ColliderType::sphere, checkCol_aabb_sphere);
-                this->m_checkCol.set(dal::ColliderType::aabb, dal::ColliderType::aabb, checkCol_aabb_aabb);
-                this->m_checkCol.set(dal::ColliderType::aabb, dal::ColliderType::triangle_soup, checkCol_aabb_trisoup);
+                this->m_checkCol.set(dal::ColliderType::aabb, dal::ColliderType::sphere, this->checkCol_aabb_sphere);
+                this->m_checkCol.set(dal::ColliderType::aabb, dal::ColliderType::aabb, this->checkCol_aabb_aabb);
+                this->m_checkCol.set(dal::ColliderType::aabb, dal::ColliderType::triangle_soup, this->checkCol_aabb_trisoup);
 
                 this->m_checkCol.set(dal::ColliderType::triangle_soup, dal::ColliderType::sphere, nullptr);
                 this->m_checkCol.set(dal::ColliderType::triangle_soup, dal::ColliderType::aabb, nullptr);
@@ -149,7 +149,8 @@ namespace {
 
             // Collision resolve function
             {
-                this->m_calcResolve.set(dal::ColliderType::aabb, dal::ColliderType::aabb, calcResolve_aabb_aabb);
+                this->m_calcResolve.set(dal::ColliderType::aabb, dal::ColliderType::aabb, this->calcResolve_aabb_aabb);
+                this->m_calcResolve.set(dal::ColliderType::aabb, dal::ColliderType::triangle_soup, this->calcResolve_aabb_soup);
             }
         }
 
@@ -209,6 +210,14 @@ namespace {
             const auto& oneAABB = reinterpret_cast<const dal::ColAABB&>(one);
             const auto& twoAABB = reinterpret_cast<const dal::ColAABB&>(two);
             return dal::calcResolveInfo(oneAABB, physicsOne, transOne, twoAABB, physicsTwo, transTwo);
+        }
+
+        static dal::CollisionResolveInfo calcResolve_aabb_soup(const dal::ICollider& one, const dal::PhysicalProperty& physicsOne, const dal::Transform& transOne,
+            const dal::ICollider& two, const dal::PhysicalProperty& physicsTwo, const dal::Transform& transTwo)
+        {
+            const auto& aabb = reinterpret_cast<const dal::ColAABB&>(one);
+            const auto& soup = reinterpret_cast<const dal::ColTriangleSoup&>(two);
+            return dal::calcResolveInfo(aabb, physicsOne, transOne, soup, physicsTwo, transTwo);
         }
 
     } g_colResolver;
@@ -277,6 +286,8 @@ namespace dal {
 }
 
 
+#include <iostream>
+
 // calcResolveInfo funcs
 namespace dal {
 
@@ -331,6 +342,31 @@ namespace dal {
         const auto other2 = transTwo.getScale() * two.max() + transTwo.getPos();
 
         return calcResolveInfo_withMinMax(one1, one2, other1, other2, thisFactor, otherFactor);
+    }
+
+    CollisionResolveInfo calcResolveInfo(const AABB& aabb, const PhysicalProperty& physicsOne, const Transform& transOne,
+        const dal::ColTriangleSoup& soup, const PhysicalProperty& physicsTwo, const Transform& transTwo)
+    {
+        const auto newAABB = aabb.transform(transOne.getPos(), transOne.getScale());
+        float maxDist = 0;
+        glm::vec3 resolveDirec{ 0 };
+
+        for ( auto& tri : soup ) {
+            const auto newTri = tri.transform(transTwo.getMat());
+            if ( dal::isIntersecting(newTri, newAABB) ) {
+                const auto [dist, direc] = dal::calcIntersectingDepth(newAABB, newTri.plane());
+                if ( dist > maxDist ) {
+                    maxDist = dist;
+                    resolveDirec = direc;
+                }
+            }
+        }
+
+        CollisionResolveInfo result{};
+        result.m_this = -resolveDirec * maxDist;
+        result.m_valid = true;
+
+        return result;
     }
 
 }
