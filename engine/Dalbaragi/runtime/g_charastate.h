@@ -29,7 +29,7 @@ namespace dal {
         // Don't judge me. I love Undertale.
 
     protected:
-        FPSEulerCamera& m_camera;
+        ICamera& m_camera;
         SceneGraph& m_scene;
 
     public:
@@ -39,7 +39,7 @@ namespace dal {
         ICharaState& operator=(ICharaState&&) = delete;
 
     public:
-        ICharaState(FPSEulerCamera& camera, SceneGraph& scene);
+        ICharaState(ICamera& camera, SceneGraph& scene);
         virtual ~ICharaState(void) = default;
 
         virtual void enter(void) = 0;
@@ -58,7 +58,7 @@ namespace dal {
             ICharaState* m_currentState;
 
         public:
-            CharacterState(cpnt::Transform& transform, cpnt::AnimatedModel& model, dal::FPSEulerCamera& camera, SceneGraph& scene);
+            CharacterState(cpnt::Transform& transform, cpnt::AnimatedModel& model, dal::ICamera& camera, SceneGraph& scene);
             void update(const float deltaTime, const MoveInputInfo& info);
 
         };

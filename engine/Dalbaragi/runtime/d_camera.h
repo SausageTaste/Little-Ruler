@@ -59,6 +59,10 @@ namespace dal {
         virtual void updateViewMat(void) = 0;
         virtual std::pair<glm::vec3, glm::mat4> makeReflected(const float planeHeight) const = 0;
 
+        // 0 if camera is heading to -z direction
+        // Value inceases as camera direction rotates cw
+        virtual float calcDirectionXZ(void) const = 0;
+
     };
 
 
@@ -70,6 +74,7 @@ namespace dal {
     public:
         virtual void updateViewMat(void) override;
         virtual std::pair<glm::vec3, glm::mat4> makeReflected(const float planeHeight) const override;
+        virtual float calcDirectionXZ(void) const override;
 
         glm::vec2 getViewPlane(void) const;
         FPSEulerAngles& eulerAngles(void) {
@@ -80,6 +85,23 @@ namespace dal {
         }
         void setViewPlane(const float x, const float y);
         void addViewPlane(const float x, const float y);
+
+    };
+
+
+    class FocusCamera : public ICamera {
+
+    public:
+        glm::vec3 m_focusPoint;
+
+    public:
+        virtual void updateViewMat(void) override;
+        virtual std::pair<glm::vec3, glm::mat4> makeReflected(const float planeHeight) const override;
+        virtual float calcDirectionXZ(void) const override;
+
+        auto vecToFocus(void) const {
+            return this->m_focusPoint - this->m_pos;
+        }
 
     };
 

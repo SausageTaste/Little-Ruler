@@ -351,9 +351,7 @@ namespace dal {
             static const dal::ColAABB playerAABB{ glm::vec3{-0.3, 0.2, -0.3}, glm::vec3{0.3, 1.3, 0.3} };
 
             auto& trans = this->m_entities.get<cpnt::Transform>(this->m_player);
-            const auto lastPos = trans.getPos();
             this->applyCollision(playerAABB, trans);
-            bindCameraPos(this->m_playerCam, trans.getPos(), lastPos);
         }
 
         // Update animtions of dynamic objects.

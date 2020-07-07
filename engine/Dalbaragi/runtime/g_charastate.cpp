@@ -51,7 +51,7 @@ namespace dal {
     }
 
 
-    ICharaState::ICharaState(dal::FPSEulerCamera& camera, SceneGraph& scene)
+    ICharaState::ICharaState(dal::ICamera& camera, SceneGraph& scene)
         : m_camera(camera)
         , m_scene(scene)
     {
@@ -111,7 +111,7 @@ namespace {
         camera.updateViewMat();
     }
 
-    void applyMove(dal::cpnt::Transform& cpntTrans, dal::cpnt::AnimatedModel& animModel, const dal::FPSEulerCamera camera,
+    void applyMove(dal::cpnt::Transform& cpntTrans, dal::cpnt::AnimatedModel& animModel, const dal::ICamera& camera,
         const float deltaTime, const dal::MoveInputInfo& totalMoveInfo)
     {
         constexpr float CAM_ROTATE_SPEED_INV = 1.0f;
@@ -119,7 +119,7 @@ namespace {
 
         // const auto camViewVec = dal::strangeEuler2Vec(camera.eulerAngles());
         // const auto rotatorAsCamX = glm::rotate(glm::mat4{ 1.0f }, camera.eulerAngles().getX(), glm::vec3{ 0.0f, 1.0f, 0.0f });
-        const auto rotatedMoveVec = dal::rotateVec2(glm::vec2{ totalMoveInfo.m_move.x, totalMoveInfo.m_move.y }, camera.eulerAngles().x());
+        const auto rotatedMoveVec = dal::rotateVec2(glm::vec2{ totalMoveInfo.m_move.x, totalMoveInfo.m_move.y }, camera.calcDirectionXZ());
 
         const auto deltaPos = glm::vec3{ rotatedMoveVec.x, 0.0f, rotatedMoveVec.y } *deltaTime * 5.0f;
         cpntTrans.addPos(deltaPos);
@@ -170,7 +170,7 @@ namespace {
     class CharaIdleState : public dal::ICharaState {
 
     public:
-        CharaIdleState(dal::FPSEulerCamera& camera, dal::SceneGraph& scene)
+        CharaIdleState(dal::ICamera& camera, dal::SceneGraph& scene)
             : ICharaState(camera, scene)
         {
 
@@ -189,7 +189,6 @@ namespace {
             auto& transform = getPlayerTransform(this->m_scene);
 
             processCharaHeight(transform, this->m_scene);
-            applybindingCameraToModel(this->m_camera, deltaTime, info, transform.getPos(), transform.getPos());
         }
 
         virtual dal::ICharaState* exec(const float deltaTime, const dal::MoveInputInfo& info) override;
@@ -203,7 +202,7 @@ namespace {
         glm::vec3 m_lastPos;
 
     public:
-        CharaWalkState(dal::FPSEulerCamera& camera, dal::SceneGraph& scene)
+        CharaWalkState(dal::ICamera& camera, dal::SceneGraph& scene)
             : ICharaState(camera, scene)
         {
 
@@ -227,7 +226,6 @@ namespace {
 
             applyMove(transform, model, this->m_camera, deltaTime, info);
             processCharaHeight(transform, this->m_scene);
-            applybindingCameraToModel(this->m_camera, deltaTime, info, transform.getPos(), this->m_lastPos);
             this->m_lastPos = transform.getPos();
         }
 
@@ -280,7 +278,7 @@ namespace {
 
 namespace dal::cpnt {
 
-    CharacterState::CharacterState(cpnt::Transform& transform, cpnt::AnimatedModel& model, dal::FPSEulerCamera& camera, SceneGraph& scene)
+    CharacterState::CharacterState(cpnt::Transform& transform, cpnt::AnimatedModel& model, dal::ICamera& camera, SceneGraph& scene)
         : m_currentState(new CharaIdleState{ camera, scene })
     {
 

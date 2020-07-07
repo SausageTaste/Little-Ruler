@@ -133,6 +133,10 @@ namespace dal {
         return { newCam.m_pos, newCam.viewMat() };
     }
 
+    float FPSEulerCamera::calcDirectionXZ(void) const {
+        return this->eulerAngles().x();
+    }
+
 
     glm::vec2 FPSEulerCamera::getViewPlane(void) const {
         return glm::vec2{ this->m_fpsEuler.x(), this->m_fpsEuler.y() };
@@ -147,6 +151,33 @@ namespace dal {
     void FPSEulerCamera::addViewPlane(const float x, const float y) {
         this->m_fpsEuler.addX(x);
         this->m_fpsEuler.addY(y);
+    }
+
+}
+
+
+// FocusCamera
+namespace dal {
+
+    void FocusCamera::updateViewMat(void) {
+        this->m_viewMat = glm::lookAt(this->m_pos, this->m_focusPoint, glm::vec3{ 0, 1, 0 });
+    }
+
+    std::pair<glm::vec3, glm::mat4> FocusCamera::makeReflected(const float planeHeight) const {
+        dal::FocusCamera newCam = *this;
+
+        newCam.m_pos.y = 2.0f * planeHeight - newCam.m_pos.y;
+        newCam.m_focusPoint.y = 2.0f * planeHeight - newCam.m_focusPoint.y;
+
+        newCam.updateViewMat();
+
+        return { newCam.m_pos, newCam.viewMat() };
+    }
+
+    float FocusCamera::calcDirectionXZ(void) const {
+        const auto direc = this->vecToFocus();
+        const float angle = std::atan2(-direc.z, direc.x);
+        return glm::radians<float>(90) - angle;
     }
 
 }

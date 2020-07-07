@@ -319,16 +319,23 @@ namespace {
             }
 
             this->m_task.update();
-
             this->m_phyworld.update(deltaTime);
             this->m_scene.update(deltaTime);
             this->m_renMas.update(deltaTime);
-            this->m_renMas.render(this->m_scene.m_entities);
 
+            // Camera
             {
+                auto& trans = this->m_scene.m_entities.get<dal::cpnt::Transform>(this->m_scene.m_player);
+                this->m_scene.m_playerCam.m_focusPoint = trans.getPos();
+                this->m_scene.m_playerCam.updateViewMat();
+            }
+
+            // Render
+            {
+                this->m_renMas.render(this->m_scene.m_entities);
+
                 glBindFramebuffer(GL_FRAMEBUFFER, 0);
                 auto& uniloc = this->m_shaders.useOverlay();
-
                 this->m_crtlWidget.render(this->m_winWidth, this->m_winHeight, &uniloc);
                 this->m_fcounter.render(this->m_winWidth, this->m_winHeight, &uniloc);
             }
