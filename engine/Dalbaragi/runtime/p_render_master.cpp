@@ -449,18 +449,19 @@ namespace dal {
                 dlight.setPos(glm::round(this->m_mainCamera->m_pos));
             }
         }
-        /*
+
+        auto& sunlight = this->m_scene.m_dlights.back();
+        
         const auto mat = glm::rotate(glm::mat4{ 1.0f }, deltaTime * 0.3f, glm::vec3{ 1.0f, 0.5f, 0.0f });
-        const glm::vec4 direcBefore{ this->m_dlight1.getDirection(), 0.0f };
+        const glm::vec4 direcBefore{ sunlight.getDirection(), 0.0f };
         const auto newDirec = glm::normalize(glm::vec3{ mat * direcBefore });
-        this->m_dlight1.setDirectin(newDirec);
+        sunlight.setDirectin(newDirec);
 
         const auto diff = glm::dot(newDirec, glm::vec3{ 0.0f, -1.0f, 0.0f });
         m_skyColor = glm::vec3{ 0.5f, 0.5f, 0.8f } *glm::max(diff, 0.0f) + glm::vec3{ 0.1f, 0.1f, 0.2f };
         glClearColor(m_skyColor.x, m_skyColor.y, m_skyColor.z, 1.0f);
 
-        this->m_flagDrawDlight1 = -0.3f < diff;
-        */
+        //this->m_flagDrawDlight1 = -0.3f < diff;
     }
 
     void RenderMaster::render(entt::registry& reg) {

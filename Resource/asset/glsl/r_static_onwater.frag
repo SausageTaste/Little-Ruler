@@ -74,7 +74,7 @@ void main(void) {
 
 # ifdef DAL_SHADOW_ON_WATER_IMAGE
         bool isInShadow = isInShadow_slight(i, v_fragPos_slight[i]);
-        pbrL += isInShadow ? vec3(0.0) : integratePBR(fragNormal, viewDir, F0, L, albedo.rgb, roughness, metallic) * radiance;
+        pbrL += isInShadow ? vec3(0.0) : integratePBR(fragNormal, viewDir, F0, L, albedo.rgb, roughness, metallic, 1.0) * radiance;
 # else
         pbrL += integratePBR(fragNormal, viewDir, F0, L, albedo.rgb, roughness, metallic, 1.0) * radiance;
 # endif
@@ -87,7 +87,7 @@ void main(void) {
 
 #ifdef DAL_SHADOW_ON_WATER_IMAGE
         bool isInShadow = isInShadow_dlight(i, v_fragPos_dlight[i]);
-        pbrL += isInShadow ? vec3(0.0) : integratePBR(fragNormal, viewDir, F0, L, albedo.rgb, roughness, metallic) * radiance;
+        pbrL += isInShadow ? vec3(0.0) : integratePBR(fragNormal, viewDir, F0, L, albedo.rgb, roughness, metallic, 1.0) * radiance;
 #else
         pbrL += integratePBR(fragNormal, viewDir, F0, L, albedo.rgb, roughness, metallic, 1.0) * radiance;
 #endif
