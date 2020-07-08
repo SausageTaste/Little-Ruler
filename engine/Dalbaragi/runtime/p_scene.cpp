@@ -299,7 +299,7 @@ namespace dal {
             auto& transform = this->m_entities.assign<cpnt::Transform>(this->m_player);
             //transform.setScale(1.5f);
 
-            auto ptrModel = this->m_resMas.orderModelAnim("asset::irin.dmd");
+            auto ptrModel = this->m_resMas.orderModelAnim("asset::Character Running.dmd");
             auto& renderable = this->m_entities.assign<cpnt::AnimatedModel>(this->m_player);
             renderable.m_model = ptrModel;
 
