@@ -66,6 +66,9 @@ namespace dal {
 
         ShaderProgram m_brdfLUT;
 
+        ShaderProgram m_d_triangle;
+        UniRender_DTriangle u_d_triangle;
+
     public:
         ShaderMaster(void);
 
@@ -82,6 +85,7 @@ namespace dal {
         auto useCubeIrradiance(void) const -> const UniRender_CubeIrradiance&;
         auto useCubePrefilter(void) const -> const UniRender_CubePrefilter&;
         void useBrdfLUT(void) const;
+        auto useDTriangle(void) const -> const UniRender_DTriangle&;
 
     };
 

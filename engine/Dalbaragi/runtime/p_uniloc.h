@@ -742,4 +742,49 @@ namespace dal {
 
     };
 
+    class UniRender_DTriangle {
+
+    private:
+        GLint u_p0 = -1;
+        GLint u_p1 = -1;
+        GLint u_p2 = -1;
+        GLint u_mat = -1;
+
+        GLint u_color = -1;
+
+    public:
+        void set(const GLuint shader);
+
+        void point0(const float x, const float y, const float z) const {
+            glUniform3f(this->u_p0, x, y, z);
+        }
+        void point0(const glm::vec3& v) const {
+            this->point0(v.x, v.y, v.z);
+        }
+        void point1(const float x, const float y, const float z) const {
+            glUniform3f(this->u_p1, x, y, z);
+        }
+        void point1(const glm::vec3& v) const {
+            this->point1(v.x, v.y, v.z);
+        }
+        void point2(const float x, const float y, const float z) const {
+            glUniform3f(this->u_p2, x, y, z);
+        }
+        void point2(const glm::vec3& v) const {
+            this->point2(v.x, v.y, v.z);
+        }
+
+        void matrix(const glm::mat4& mat) const {
+            sendMatrix(this->u_mat, mat);
+        }
+
+        void color(const float r, const float g, const float b, const float a) const {
+            glUniform4f(this->u_color, r, g, b, a);
+        }
+        void color(const glm::vec4& v) const {
+            this->color(v.x, v.y, v.z, v.w);
+        }
+
+    };
+
 }

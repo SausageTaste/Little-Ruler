@@ -19,6 +19,7 @@ add_library(dalbaragi_util
     u_timer.h            u_timer.cpp
     d_geometrymath.h     d_geometrymath.cpp
     d_transform.h        d_transform.cpp
+    d_debugview.h        d_debugview.cpp
 )
 target_include_directories(dalbaragi_util PUBLIC .)
 target_compile_features(dalbaragi_util PUBLIC cxx_std_17)

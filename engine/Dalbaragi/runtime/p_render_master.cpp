@@ -9,6 +9,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 #include <d_logger.h>
+#include <d_debugview.h>
 
 
 #define DAL_RENDER_WATER true
@@ -473,10 +474,12 @@ namespace dal {
         this->render_onCubemap();
         this->render_onFbuf();
 
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        glViewport(0, 0, this->m_winWidth, this->m_winHeight);
+
         // Render framebuffer to quad 
         {
-            glBindFramebuffer(GL_FRAMEBUFFER, 0);
-            glViewport(0, 0, this->m_winWidth, this->m_winHeight);
+           
             auto& uniloc = this->m_shader.useFillScreen();
 
             uniloc.projMat(this->m_projectMat);
@@ -487,6 +490,23 @@ namespace dal {
 
             this->m_fbuffer.sendUniform(uniloc);
             g_vertbuf_fillscreen.draw();
+        }
+
+        // Debug view
+        {
+            auto& uniloc = this->m_shader.useDTriangle();
+
+            const auto projMat = this->m_projectMat;
+            const auto viewMat = this->m_mainCamera->viewMat();
+            uniloc.matrix(projMat * viewMat);
+            uniloc.color(1, 0, 0, 0.5);
+
+            for ( const auto& tri : dal::DebugViewGod::inst().triangles() ) {
+                uniloc.point0(tri.m_vert[0]);
+                uniloc.point1(tri.m_vert[1]);
+                uniloc.point2(tri.m_vert[2]);
+                glDrawArrays(GL_TRIANGLES, 0, 3);
+            }
         }
     }
 

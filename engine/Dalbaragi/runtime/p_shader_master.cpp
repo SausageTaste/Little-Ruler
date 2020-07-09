@@ -65,6 +65,14 @@ namespace {
         //glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
     }
 
+    void setFor_debug(void) {
+        glDisable(GL_DEPTH_TEST);
+        glDisable(GL_CULL_FACE);
+        glEnable(GL_BLEND);
+        glDisable(GL_POLYGON_OFFSET_FILL);
+        //glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+    }
+
 }
 
 
@@ -226,8 +234,8 @@ namespace dal {
         this->m_overlay.init(g_loader["r_overlay.vert"], g_loader["r_overlay.frag"]);
         this->m_cube_irradiance.init(g_loader["r_cubemap.vert"], g_loader["r_cube_irradiance.frag"]);
         this->m_cube_prefilter.init(g_loader["r_cubemap.vert"], g_loader["r_cube_prefilter.frag"]);
-
         this->m_brdfLUT.init(g_loader["r_fillscreen.vert"], g_loader["r_brdf_lut.frag"]);
+        this->m_d_triangle.init(g_loader["r_d_triangle.vert"], g_loader["r_color.frag"]);
 
         this->u_static.set(this->m_static.get());
         this->u_animated.set(this->m_animated.get());
@@ -241,6 +249,7 @@ namespace dal {
         this->u_overlay.set(this->m_overlay.get());
         this->u_cube_irradiance.set(this->m_cube_irradiance.get());
         this->u_cube_prefilter.set(this->m_cube_prefilter.get());
+        this->u_d_triangle.set(this->m_d_triangle.get());
 
         g_loader.clear();
     }
@@ -320,6 +329,12 @@ namespace dal {
 
     void ShaderMaster::useBrdfLUT(void) const {
         this->m_brdfLUT.use();
+    }
+
+    const UniRender_DTriangle& ShaderMaster::useDTriangle(void) const {
+        ::setFor_debug();
+        this->m_d_triangle.use();
+        return this->u_d_triangle;
     }
 
 }
