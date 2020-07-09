@@ -9,6 +9,7 @@
 #include <d_pool.h>
 #include <d_filesystem.h>
 #include <d_mapparser.h>
+#include <d_debugview.h>
 
 #include "u_objparser.h"
 #include "s_configs.h"
@@ -398,6 +399,14 @@ namespace dal {
                     if ( result.m_valid ) {
                         inTrans.addPos(result.m_this);
                         actor.m_transform.addPos(result.m_other);
+
+                        auto& dview = dal::DebugViewGod::inst();
+                        const auto newBox = dynamic_cast<const ColAABB*>(mdlBounding)->transform(
+                            actor.m_transform.getPos(), actor.m_transform.getScale());
+                        for ( auto& tri : newBox.makeTriangles() ) {
+                            dview.addTriangle(tri.point<0>(), tri.point<1>(), tri.point<2>(),
+                                glm::vec4{ 1, 0, 0, 0.3 });
+                        }
                     }
                 }
                 else if ( dal::ActorInfo::ColliderType::mesh == actor.m_colType ) {

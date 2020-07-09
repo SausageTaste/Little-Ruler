@@ -494,19 +494,23 @@ namespace dal {
 
         // Debug view
         {
+#if DAL_DRAW_DEBUG_VIEW
             auto& uniloc = this->m_shader.useDTriangle();
 
             const auto projMat = this->m_projectMat;
             const auto viewMat = this->m_mainCamera->viewMat();
             uniloc.matrix(projMat * viewMat);
-            uniloc.color(1, 0, 0, 0.5);
 
             for ( const auto& tri : dal::DebugViewGod::inst().triangles() ) {
                 uniloc.point0(tri.m_vert[0]);
                 uniloc.point1(tri.m_vert[1]);
                 uniloc.point2(tri.m_vert[2]);
+                uniloc.color(tri.m_color);
                 glDrawArrays(GL_TRIANGLES, 0, 3);
             }
+
+            dal::DebugViewGod::inst().triangles().clear();
+#endif
         }
     }
 

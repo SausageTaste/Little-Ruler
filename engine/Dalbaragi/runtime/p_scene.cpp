@@ -9,6 +9,7 @@
 #include <d_modifiers.h>
 #include <d_filesystem.h>
 #include <d_mapparser.h>
+#include <d_debugview.h>
 
 #include "s_configs.h"
 #include "g_charastate.h"
@@ -349,9 +350,15 @@ namespace dal {
         // Resolve collisions
         {
             static const dal::ColAABB playerAABB{ glm::vec3{-0.3, 0.2, -0.3}, glm::vec3{0.3, 1.3, 0.3} };
-
             auto& trans = this->m_entities.get<cpnt::Transform>(this->m_player);
             this->applyCollision(playerAABB, trans);
+
+            const auto newBox = playerAABB.transform(trans.getPos(), trans.getScale());
+            const auto triangles = newBox.makeTriangles();
+            for ( auto& tri : triangles ) {
+                dal::DebugViewGod::inst().addTriangle(tri.point<0>(), tri.point<1>(), tri.point<2>(),
+                    glm::vec4{ 0, 1, 0, 0.3 });
+            }
         }
 
         // Update animtions of dynamic objects.

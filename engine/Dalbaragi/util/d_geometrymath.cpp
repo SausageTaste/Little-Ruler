@@ -38,24 +38,11 @@ namespace {
         return true;
     }
 
-    inline void makeTrianglesFromRect(const glm::vec3& p1, const glm::vec3& p2,
+    void makeTrianglesFromRect(const glm::vec3& p1, const glm::vec3& p2,
         const glm::vec3& p3, const glm::vec3& p4, dal::Triangle& tri1, dal::Triangle& tri2)
     {
         tri1 = dal::Triangle{ p1, p2, p3 };
         tri2 = dal::Triangle{ p1, p3, p4 };
-    }
-
-    std::array<dal::Triangle, 12> makeTriangles(std::array<glm::vec3, 8> ps) {
-        std::array<dal::Triangle, 12> result;
-
-        makeTrianglesFromRect(ps[3], ps[1], ps[5], ps[7], result[0], result[1]);
-        makeTrianglesFromRect(ps[7], ps[5], ps[4], ps[6], result[2], result[3]);
-        makeTrianglesFromRect(ps[6], ps[4], ps[0], ps[2], result[4], result[5]);
-        makeTrianglesFromRect(ps[2], ps[0], ps[1], ps[3], result[6], result[7]);
-        makeTrianglesFromRect(ps[2], ps[3], ps[7], ps[6], result[8], result[9]);
-        makeTrianglesFromRect(ps[4], ps[5], ps[1], ps[0], result[10], result[11]);
-
-        return result;
     }
 
 }
@@ -534,6 +521,21 @@ namespace dal {
         return result;
     }
 
+    std::array<dal::Triangle, 12> AABB::makeTriangles(void) const {
+        const auto ps = this->getAllPoints();
+        std::array<dal::Triangle, 12> result;
+
+        makeTrianglesFromRect(ps[3], ps[1], ps[5], ps[7], result[0], result[1]);
+        makeTrianglesFromRect(ps[7], ps[5], ps[4], ps[6], result[2], result[3]);
+        makeTrianglesFromRect(ps[6], ps[4], ps[0], ps[2], result[4], result[5]);
+        makeTrianglesFromRect(ps[2], ps[0], ps[1], ps[3], result[6], result[7]);
+        makeTrianglesFromRect(ps[2], ps[3], ps[7], ps[6], result[8], result[9]);
+        makeTrianglesFromRect(ps[4], ps[5], ps[1], ps[0], result[10], result[11]);
+
+        return result;
+    }
+
+
     void AABB::set(const glm::vec3& p0, const glm::vec3& p1) {
         for ( int i = 0; i < 3; ++i ) {
             const auto value0 = p0[i];
@@ -765,7 +767,7 @@ namespace dal {
         std::optional<SegIntersecInfo> result = std::nullopt;
         float maxDist = std::numeric_limits<float>::max();
 
-        const auto triangles = ::makeTriangles(aabb.getAllPoints());
+        const auto triangles = aabb.makeTriangles();
         for ( auto& tri : triangles ) {
             const auto triCol = dal::findIntersection(seg, tri, false);
             if ( triCol && triCol->m_distance < maxDist ) {

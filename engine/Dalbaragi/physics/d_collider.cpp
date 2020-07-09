@@ -3,6 +3,7 @@
 #include <tuple>
 
 #include <u_math.h>
+#include <d_debugview.h>
 
 
 // Global constants
@@ -83,6 +84,7 @@ namespace {
             return dal::CollisionResolveInfo{ { 0.0f, 0.0f, zForThis }, { 0.0f, 0.0f, zForOther }, true };
         default:
             assert(false && "This can't happen!");
+            return dal::CollisionResolveInfo{};
 
         }
     }
@@ -263,11 +265,11 @@ namespace dal {
             return isIntersecting(seg, newAABB);
         }
         case dal::ColliderType::triangle_soup:
-        {
             assert(false && "Not implemented.");
-        }
+            return false;
         default:
             assert(false && "Unkown collider type code");
+            return false;
 
         }
     }
@@ -354,6 +356,8 @@ namespace dal {
         for ( auto& tri : soup ) {
             const auto newTri = tri.transform(transTwo.getMat());
             if ( dal::isIntersecting(newTri, newAABB) ) {
+                dal::DebugViewGod::inst().addTriangle(newTri.point<0>(), newTri.point<1>(), newTri.point<2>(),
+                    glm::vec4{ 1, 0, 0, 0.3 });
                 const auto [dist, direc] = dal::calcIntersectingDepth(newAABB, newTri.plane());
                 if ( dist > maxDist ) {
                     maxDist = dist;
@@ -396,6 +400,7 @@ namespace dal {
         }
         default:
             assert(false && "Unkown collider type code");
+            return std::nullopt;
 
         }
     }

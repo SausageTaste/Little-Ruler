@@ -155,7 +155,7 @@ namespace dal {
         std::array<glm::vec3, 8> getAllPoints(void) const;
         std::array<glm::vec3, 8> getAllPoints(const glm::vec3& translate, const float scale) const;
         std::array<glm::vec3, 8> getAllPoints(std::function<glm::vec3(const glm::vec3&)> modifier) const;
-
+        std::array<dal::Triangle, 12> makeTriangles(void) const;
 
         void set(const glm::vec3& p0, const glm::vec3& p1);
 

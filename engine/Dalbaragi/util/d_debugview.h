@@ -6,6 +6,9 @@
 #include <glm/glm.hpp>
 
 
+#define DAL_DRAW_DEBUG_VIEW true
+
+
 namespace dal {
 
     class DebugViewGod {
@@ -13,6 +16,7 @@ namespace dal {
     public:
         struct Triangle {
             std::array<glm::vec3, 3> m_vert;
+            glm::vec4 m_color{ 1 };
         };
 
     private:
@@ -32,18 +36,9 @@ namespace dal {
             return i;
         }
 
-        auto& triangles(void) {
-            return this->m_triangles;
-        }
-        auto& triangles(void) const {
-            return this->m_triangles;
-        }
-        void addTriangle(const glm::vec3& p0, const glm::vec3& p1, const glm::vec3& p2) {
-            auto& tri = this->m_triangles.emplace_back();
-            tri.m_vert[0] = p0;
-            tri.m_vert[1] = p1;
-            tri.m_vert[2] = p2;
-        }
+        auto triangles(void) -> std::vector<Triangle>&;
+        auto triangles(void) const -> const std::vector<Triangle>&;
+        void addTriangle(const glm::vec3& p0, const glm::vec3& p1, const glm::vec3& p2, const glm::vec4& color);
 
     };
 
