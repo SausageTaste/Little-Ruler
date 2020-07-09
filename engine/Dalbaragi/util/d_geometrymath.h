@@ -78,10 +78,20 @@ namespace dal {
             static_assert(I < 3);
             return this->m_points[I];
         }
+        auto& point0(void) const {
+            return this->point<0>();
+        }
+        auto& point1(void) const {
+            return this->point<1>();
+        }
+        auto& point2(void) const {
+            return this->point<2>();
+        }
 
         glm::vec3 normal(void) const;
         Plane plane(void) const;
         float area(void) const;
+        std::array<dal::Segment, 3> makeEdges(void) const;
         Triangle transform(const glm::mat4& mat) const;
 
     };
@@ -153,6 +163,7 @@ namespace dal {
         // 000, 001, 010, 011, 100, 101, 110, 111
         // Each digit means x, y, z, 0 means lower value on the axis, 1 means higher.
         std::array<glm::vec3, 8> makePoints(void) const;
+        std::array<dal::Segment, 12> makeEdges(void) const;
         std::array<dal::Triangle, 12> makeTriangles(void) const;
 
         void set(const glm::vec3& p0, const glm::vec3& p1);

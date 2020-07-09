@@ -409,6 +409,16 @@ namespace dal {
         return sqrt(s * (s - a) * (s - b) * (s - c));
     }
 
+    std::array<dal::Segment, 3> Triangle::makeEdges(void) const {
+        std::array<dal::Segment, 3> result;
+
+        result[0].set(this->point0(), this->point1() - this->point0());
+        result[1].set(this->point1(), this->point2() - this->point1());
+        result[2].set(this->point2(), this->point0() - this->point2());
+
+        return result;
+    }
+
     Triangle Triangle::transform(const glm::mat4& mat) const {
         const auto pp0 = mat * glm::vec4(this->point<0>(), 1);
         const auto pp1 = mat * glm::vec4(this->point<1>(), 1);
@@ -513,6 +523,28 @@ namespace dal {
         return result;
     }
 
+    std::array<dal::Segment, 12> AABB::makeEdges(void) const {
+        std::array<dal::Segment, 12> result;
+        const auto [p000, p001, p010, p011, p100, p101, p110, p111] = this->makePoints();
+
+        result[0].set(p000, p100 - p000);
+        result[1].set(p100, p101 - p100);
+        result[2].set(p101, p001 - p101);
+        result[3].set(p001, p000 - p001);
+
+        result[4].set(p000, p010 - p000);
+        result[5].set(p100, p110 - p100);
+        result[6].set(p101, p111 - p101);
+        result[7].set(p001, p011 - p001);
+
+        result[8].set(p010, p110 - p010);
+        result[9].set(p110, p111 - p110);
+        result[10].set(p111, p011 - p111);
+        result[11].set(p011, p010 - p011);
+
+        return result;
+    }
+
     std::array<dal::Triangle, 12> AABB::makeTriangles(void) const {
         const auto ps = this->makePoints();
         std::array<dal::Triangle, 12> result;
@@ -596,7 +628,7 @@ namespace dal {
         }
     }
 
-    bool isIntersecting(const Segment& seg, const AABB& aabb) {
+    bool isIntersecting_old(const Segment& seg, const AABB& aabb) {
         // From https://www.scratchapixel.com/lessons/3d-basic-rendering/minimal-ray-tracer-rendering-simple-shapes/ray-box-intersection
 
         const glm::vec3 bounds[2] = { aabb.min(), aabb.max() };
@@ -640,6 +672,20 @@ namespace dal {
         return true;
     }
 
+    bool isIntersecting(const Segment& seg, const AABB& aabb) {
+        if ( aabb.isInside(seg.pos()) )
+            return true;
+        if ( aabb.isInside(seg.endpoint()) )
+            return true;
+
+        for ( auto& tri : aabb.makeTriangles() ) {
+            if ( dal::isIntersecting(seg, tri) )
+                return true;
+        }
+
+        return false;
+    }
+
 
     bool isIntersecting(const Plane& plane, const Sphere& sphere) {
         const auto distOfCenter = std::abs(plane.calcSignedDist(sphere.center()));
@@ -661,7 +707,7 @@ namespace dal {
     }
 
 
-    bool isIntersecting(const Triangle& tri, const AABB& aabb) {
+    bool isIntersecting_old(const Triangle& tri, const AABB& aabb) {
         const auto boxCenter = (aabb.min() + aabb.max()) * 0.5f;
         const auto boxHalfSize = (aabb.max() - aabb.min()) * 0.5f;
         const std::array<glm::vec3, 3> triverts = {
@@ -671,6 +717,22 @@ namespace dal {
         };
 
         return fileadmin::triBoxOverlap(boxCenter, boxHalfSize, triverts);
+    }
+
+    bool isIntersecting(const Triangle& tri, const AABB& aabb) {
+        for ( const auto& edge : tri.makeEdges() ) {
+            if ( dal::isIntersecting(edge, aabb) ) {
+                return true;
+            }
+        }
+
+        for ( const auto& edge : aabb.makeEdges() ) {
+            if ( dal::isIntersecting(edge, tri) ) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
 
@@ -725,13 +787,15 @@ namespace dal {
         const auto distA = plane.calcSignedDist(pointA);
         const auto distB = plane.calcSignedDist(pointB);
 
-        if ( (distA * distB) > 0.0f ) {
+        if ( (distA * distB) > 0.f )
             return std::nullopt;
-        }
 
         const auto absDistA = std::abs(distA);
-        const auto distance = seg.length() * absDistA / (absDistA + std::abs(distB));
+        const auto denominator = absDistA + std::abs(distB);
+        if ( 0.f == denominator )
+            return SegIntersecInfo{ 0, distA > distB };
 
+        const auto distance = seg.length() * absDistA / denominator;
         return SegIntersecInfo{ distance, distA > distB };
     }
 
