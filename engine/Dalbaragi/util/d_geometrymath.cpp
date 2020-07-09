@@ -494,28 +494,20 @@ namespace dal {
 
 
     std::array<glm::vec3, 8> AABB::makePoints(void) const {
-        return this->makePoints([](auto vec) { return vec; });
-    }
-
-    std::array<glm::vec3, 8> AABB::makePoints(const glm::vec3& translate, const float scale) const {
-        return this->makePoints([&translate, scale](auto vec) { return scale * vec + translate; });
-    }
-
-    std::array<glm::vec3, 8> AABB::makePoints(std::function<glm::vec3(const glm::vec3&)> modifier) const {
         std::array<glm::vec3, 8> result;
 
         {
             const auto p000 = this->min();
             const auto p111 = this->max();
 
-            result[0] = modifier(p000);  // 000
-            result[1] = modifier(glm::vec3{ p000.x, p000.y, p111.z });  // 001
-            result[2] = modifier(glm::vec3{ p000.x, p111.y, p000.z });  // 010
-            result[3] = modifier(glm::vec3{ p000.x, p111.y, p111.z });  // 011
-            result[4] = modifier(glm::vec3{ p111.x, p000.y, p000.z });  // 100
-            result[5] = modifier(glm::vec3{ p111.x, p000.y, p111.z });  // 101
-            result[6] = modifier(glm::vec3{ p111.x, p111.y, p000.z });  // 110
-            result[7] = modifier(p111);  // 111
+            result[0] = p000;  // 000
+            result[1] = glm::vec3{ p000.x, p000.y, p111.z };  // 001
+            result[2] = glm::vec3{ p000.x, p111.y, p000.z };  // 010
+            result[3] = glm::vec3{ p000.x, p111.y, p111.z };  // 011
+            result[4] = glm::vec3{ p111.x, p000.y, p000.z };  // 100
+            result[5] = glm::vec3{ p111.x, p000.y, p111.z };  // 101
+            result[6] = glm::vec3{ p111.x, p111.y, p000.z };  // 110
+            result[7] = p111;  // 111
         }
 
         return result;

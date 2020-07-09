@@ -153,8 +153,6 @@ namespace dal {
         // 000, 001, 010, 011, 100, 101, 110, 111
         // Each digit means x, y, z, 0 means lower value on the axis, 1 means higher.
         std::array<glm::vec3, 8> makePoints(void) const;
-        std::array<glm::vec3, 8> makePoints(const glm::vec3& translate, const float scale) const;
-        std::array<glm::vec3, 8> makePoints(std::function<glm::vec3(const glm::vec3&)> modifier) const;
         std::array<dal::Triangle, 12> makeTriangles(void) const;
 
         void set(const glm::vec3& p0, const glm::vec3& p1);
