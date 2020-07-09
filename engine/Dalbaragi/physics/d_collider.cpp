@@ -29,6 +29,7 @@ namespace {
     size_t minValueIndex(const float* const arr, const size_t arrSize) {
         if ( 0 == arrSize ) {
             assert(false && "Are you mad?");
+            return 0;
         }
         else if ( 1 == arrSize ) {
             return 0;
@@ -356,13 +357,20 @@ namespace dal {
         for ( auto& tri : soup ) {
             const auto newTri = tri.transform(transTwo.getMat());
             if ( dal::isIntersecting(newTri, newAABB) ) {
-                dal::DebugViewGod::inst().addTriangle(newTri.point<0>(), newTri.point<1>(), newTri.point<2>(),
-                    glm::vec4{ 1, 0, 0, 0.3 });
+                dal::DebugViewGod::inst().addTriangle(
+                    newTri.point0(), newTri.point1(), newTri.point2(), glm::vec4{ 0.3, 0, 0, 0.2 }
+                );
+
                 const auto [dist, direc] = dal::calcIntersectingDepth(newAABB, newTri.plane());
                 if ( dist > maxDist ) {
                     maxDist = dist;
                     resolveDirec = direc;
                 }
+            }
+            else {
+                dal::DebugViewGod::inst().addTriangle(
+                    newTri.point0(), newTri.point1(), newTri.point2(), glm::vec4{ 1, 0, 0, 0.2 }
+                );
             }
         }
 
@@ -370,7 +378,7 @@ namespace dal {
         result.m_this = -resolveDirec * maxDist;
         result.m_valid = true;
 
-        return result;
+        return CollisionResolveInfo{};
     }
 
 }

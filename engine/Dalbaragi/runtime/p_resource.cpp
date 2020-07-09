@@ -396,17 +396,25 @@ namespace dal {
             for ( auto& actor : modelActor.m_actors ) {
                 if ( dal::ActorInfo::ColliderType::aabb == actor.m_colType ) {
                     const auto result = calcResolveInfoABS(inCol, inPhysics, inTrans, *mdlBounding, mdlPhysics, actor.m_transform);
+
+                    auto& dview = dal::DebugViewGod::inst();
+                    std::array<dal::Triangle, 12> triangles;
+                    if ( dal::ColliderType::aabb == mdlBounding->getColType() ) {
+                        const auto box = dynamic_cast<const ColAABB*>(mdlBounding);
+                        const auto transformed = box->transform(actor.m_transform.getPos(), actor.m_transform.getScale());
+                        triangles = transformed.makeTriangles();
+                    }
+
                     if ( result.m_valid ) {
                         inTrans.addPos(result.m_this);
                         actor.m_transform.addPos(result.m_other);
 
-                        auto& dview = dal::DebugViewGod::inst();
-                        const auto newBox = dynamic_cast<const ColAABB*>(mdlBounding)->transform(
-                            actor.m_transform.getPos(), actor.m_transform.getScale());
-                        for ( auto& tri : newBox.makeTriangles() ) {
-                            dview.addTriangle(tri.point<0>(), tri.point<1>(), tri.point<2>(),
-                                glm::vec4{ 1, 0, 0, 0.3 });
-                        }
+                        for ( auto& tri : triangles )
+                            dview.addTriangle(tri.point0(), tri.point1(), tri.point2(), glm::vec4{ 0, 0, 1, 0.2 });
+                    }
+                    else {
+                        for ( auto& tri : triangles )
+                            dview.addTriangle(tri.point0(), tri.point1(), tri.point2(), glm::vec4{ 0, 0, 0.3, 0.2 });
                     }
                 }
                 else if ( dal::ActorInfo::ColliderType::mesh == actor.m_colType ) {

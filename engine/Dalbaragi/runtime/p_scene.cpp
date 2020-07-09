@@ -64,6 +64,10 @@ namespace {
         if ( mapInfo.m_aabb.isInside(campos) )
             return true;
 
+        dal::Segment seg{ campos + glm::vec3{0, 500, 0} , glm::vec3{0, -1000, 0} };
+        if ( dal::isIntersecting(seg, mapInfo.m_aabb) )
+            return true;
+
         const auto points = mapInfo.m_aabb.makePoints();
         double closestDist = std::numeric_limits<double>::max();
 
@@ -349,15 +353,14 @@ namespace dal {
 
         // Resolve collisions
         {
-            static const dal::ColAABB playerAABB{ glm::vec3{-0.3, 0.2, -0.3}, glm::vec3{0.3, 1.3, 0.3} };
+            static const dal::ColAABB playerAABB{ glm::vec3{-0.3, 0.00, -0.3}, glm::vec3{0.3, 1.3, 0.3} };
             auto& trans = this->m_entities.get<cpnt::Transform>(this->m_player);
             this->applyCollision(playerAABB, trans);
 
             const auto newBox = playerAABB.transform(trans.getPos(), trans.getScale());
             const auto triangles = newBox.makeTriangles();
             for ( auto& tri : triangles ) {
-                dal::DebugViewGod::inst().addTriangle(tri.point<0>(), tri.point<1>(), tri.point<2>(),
-                    glm::vec4{ 0, 1, 0, 0.3 });
+                dal::DebugViewGod::inst().addTriangle(tri.point0(), tri.point1(), tri.point2(), glm::vec4{ 0, 1, 0, 0.2 });
             }
         }
 
@@ -545,6 +548,14 @@ namespace dal {
 
     void SceneGraph::applyCollision(const ICollider& inCol, cpnt::Transform& inTrans) {
         for ( auto& map : this->m_mapChunks ) {
+            if ( dal::ColliderType::aabb == inCol.getColType() ) {
+                const auto box = dynamic_cast<const dal::ColAABB&>(inCol);
+                const auto newBox = box.transform(inTrans.getPos(), inTrans.getScale());
+                if ( !dal::isIntersecting(newBox, map.m_info->m_aabb) ) {
+                    continue;
+                }
+            }
+
             map.m_map.applyCollision(inCol, inTrans);
         }
     }
