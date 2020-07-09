@@ -64,7 +64,7 @@ namespace {
         if ( mapInfo.m_aabb.isInside(campos) )
             return true;
 
-        const auto points = mapInfo.m_aabb.getAllPoints();
+        const auto points = mapInfo.m_aabb.makePoints();
         double closestDist = std::numeric_limits<double>::max();
 
         for ( const auto& p : points ) {

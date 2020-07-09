@@ -493,15 +493,15 @@ namespace dal {
     }
 
 
-    std::array<glm::vec3, 8> AABB::getAllPoints(void) const {
-        return this->getAllPoints([](auto vec) { return vec; });
+    std::array<glm::vec3, 8> AABB::makePoints(void) const {
+        return this->makePoints([](auto vec) { return vec; });
     }
 
-    std::array<glm::vec3, 8> AABB::getAllPoints(const glm::vec3& translate, const float scale) const {
-        return this->getAllPoints([&translate, scale](auto vec) { return scale * vec + translate; });
+    std::array<glm::vec3, 8> AABB::makePoints(const glm::vec3& translate, const float scale) const {
+        return this->makePoints([&translate, scale](auto vec) { return scale * vec + translate; });
     }
 
-    std::array<glm::vec3, 8> AABB::getAllPoints(std::function<glm::vec3(const glm::vec3&)> modifier) const {
+    std::array<glm::vec3, 8> AABB::makePoints(std::function<glm::vec3(const glm::vec3&)> modifier) const {
         std::array<glm::vec3, 8> result;
 
         {
@@ -522,7 +522,7 @@ namespace dal {
     }
 
     std::array<dal::Triangle, 12> AABB::makeTriangles(void) const {
-        const auto ps = this->getAllPoints();
+        const auto ps = this->makePoints();
         std::array<dal::Triangle, 12> result;
 
         makeTrianglesFromRect(ps[3], ps[1], ps[5], ps[7], result[0], result[1]);
@@ -655,7 +655,7 @@ namespace dal {
     }
 
     bool isIntersecting(const Plane& plane, const AABB& aabb) {
-        const auto points = aabb.getAllPoints();
+        const auto points = aabb.makePoints();
         const auto firstOne = plane.isInFront(points[0]);
 
         for ( size_t i = 1; i < points.size(); ++i ) {
@@ -707,7 +707,7 @@ namespace dal {
 namespace dal {
 
     std::pair<float, glm::vec3> calcIntersectingDepth(const AABB& aabb, const Plane& plane) {
-        const auto points = aabb.getAllPoints();
+        const auto points = aabb.makePoints();
         float smallestDistValue = 0;
 
         for ( auto& p : points ) {
