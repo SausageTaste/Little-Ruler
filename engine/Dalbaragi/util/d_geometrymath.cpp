@@ -195,6 +195,12 @@ namespace dal {
         return glm::distance(projected, p);
     }
 
+    Segment Segment::transform(const glm::mat4& trans) const {
+        const auto spoint = glm::vec3{ trans * glm::vec4{ this->pos(), 1 } };
+        const auto epoint = glm::vec3{ trans * glm::vec4{ this->endpoint(), 1 } };
+        return dal::Segment{ spoint, epoint - spoint };
+    }
+
 }
 
 
@@ -213,6 +219,11 @@ namespace dal {
         this->set(a, b, c, d);
     }
 
+    Plane::Plane(const glm::vec4& p) {
+        this->set(p);
+    }
+
+
     const glm::vec3& Plane::normal(void) const {
         return this->m_normal;
     }
@@ -229,6 +240,12 @@ namespace dal {
         return 0.f < this->calcSignedDist(p);
     }
 
+    Plane Plane::transform(const glm::mat4& trans) const {
+        const auto p = glm::transpose(glm::inverse(trans)) * this->coeff();
+        return Plane{ p };
+    }
+
+
     void Plane::set(const glm::vec3& normal, const glm::vec3& point) {
         this->m_normal = glm::normalize(normal);
         this->m_d = -glm::dot(this->m_normal, point);
@@ -243,6 +260,10 @@ namespace dal {
         this->m_normal.y = b;
         this->m_normal.z = c;
         this->m_d = d;
+    }
+
+    void Plane::set(const glm::vec4& p) {
+        this->set(p.x, p.y, p.z, p.w);
     }
 
 }
@@ -455,6 +476,39 @@ namespace dal {
 }
 
 
+// OBB
+namespace dal {
+
+    OBB::OBB(const glm::vec3& p0, const glm::vec3& p1, const glm::mat4& trans)
+        : m_aabb(p0, p1)
+        , m_trans(trans)
+        , m_transInv(glm::inverse(trans))
+    {
+
+    }
+
+    OBB::OBB(const dal::AABB& aabb, const glm::mat4& trans)
+        : m_aabb(aabb)
+        , m_trans(trans)
+        , m_transInv(glm::inverse(trans))
+    {
+
+    }
+
+    OBB OBB::transform(const glm::mat4& mat) const {
+        auto result = *this;
+        result.setTransMat(mat * result.transMat());
+        return result;
+    }
+
+    void OBB::setTransMat(const glm::mat4& mat) {
+        this->m_trans = mat;
+        this->m_transInv = glm::inverse(mat);
+    }
+
+}
+
+
 // Intersection check
 namespace dal {
 
@@ -551,6 +605,11 @@ namespace dal {
         return false;
     }
 
+    bool isIntersecting(const Segment& seg, const OBB& obb) {
+        const auto newSeg = seg.transform(obb.transMatInv());
+        return dal::isIntersecting(newSeg, obb.aabb());
+    }
+
 
     bool isIntersecting(const Plane& plane, const Sphere& sphere) {
         const auto distOfCenter = std::abs(plane.calcSignedDist(sphere.center()));
@@ -569,6 +628,11 @@ namespace dal {
         }
 
         return false;
+    }
+
+    bool isIntersecting(const Plane& plane, const OBB& obb) {
+        const auto newPlane = plane.transform(obb.transMatInv());
+        return dal::isIntersecting(newPlane, obb.aabb());
     }
 
 
@@ -590,11 +654,20 @@ namespace dal {
 
     bool isIntersecting(const Triangle& tri, const AABB& aabb) {
         const auto boxVertices = aabb.makePoints();
-        return ::IsIntersecting(tri, aabb, boxVertices);
+        return dal::isIntersecting(tri, aabb, boxVertices);
     }
 
     bool isIntersecting(const Triangle& tri, const AABB& aabb, const std::array<glm::vec3, 8>& boxVertices) {
         return ::IsIntersecting(tri, aabb, boxVertices);
+    }
+
+    bool isIntersecting(const Triangle& tri, const OBB& obb) {
+        return dal::isIntersecting(tri, obb, obb.aabb().makePoints());
+    }
+
+    bool isIntersecting(const Triangle& tri, const OBB& obb, const std::array<glm::vec3, 8>& aabbVertices) {
+        const auto newTri = tri.transform(obb.transMatInv());
+        return ::IsIntersecting(newTri, obb.aabb(), aabbVertices);
     }
 
 

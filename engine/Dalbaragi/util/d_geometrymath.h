@@ -35,6 +35,7 @@ namespace dal {
 
         glm::vec3 findNearestPointOnSeg(const glm::vec3& p) const;
         float calcDistance(const glm::vec3& p) const;
+        Segment transform(const glm::mat4& trans) const;
 
     };
 
@@ -50,16 +51,19 @@ namespace dal {
         Plane(const glm::vec3& normal, const glm::vec3& point);
         Plane(const glm::vec3& p0, const glm::vec3& p1, const glm::vec3& p2);
         Plane(const float a, const float b, const float c, const float d);
+        Plane(const glm::vec4& p);
 
         const glm::vec3& normal(void) const;
         glm::vec4 coeff(void) const;
 
         float calcSignedDist(const glm::vec3& p) const;
         bool isInFront(const glm::vec3& v) const;
+        Plane transform(const glm::mat4& trans) const;
 
         void set(const glm::vec3& normal, const glm::vec3& point);
         void set(const glm::vec3& p0, const glm::vec3& p1, const glm::vec3& p2);
         void set(const float a, const float b, const float c, const float d);
+        void set(const glm::vec4& p);
 
     };
 
@@ -181,6 +185,41 @@ namespace dal {
 }
 
 
+namespace dal {
+
+    class OBB {
+
+    private:
+        dal::AABB m_aabb;
+        glm::mat4 m_trans{ 1 }, m_transInv{ 1 };
+
+    public:
+        OBB(void) = default;
+        OBB(const glm::vec3& p0, const glm::vec3& p1, const glm::mat4& trans);
+        OBB(const dal::AABB& aabb, const glm::mat4& trans);
+
+        auto& aabb(void) {
+            return this->m_aabb;
+        }
+        auto& aabb(void) const {
+            return this->m_aabb;
+        }
+        auto& transMat(void) const {
+            return this->m_trans;
+        }
+        auto& transMatInv(void) const {
+            return this->m_transInv;
+        }
+
+        OBB transform(const glm::mat4& mat) const;
+
+        void setTransMat(const glm::mat4& mat);
+
+    };
+
+}
+
+
 // Intersection check
 namespace dal {
 
@@ -188,12 +227,16 @@ namespace dal {
     bool isIntersecting(const Segment& seg, const Triangle& tri);
     bool isIntersecting(const Segment& seg, const Sphere& sphere);
     bool isIntersecting(const Segment& seg, const AABB& aabb);
+    bool isIntersecting(const Segment& seg, const OBB& obb);
 
     bool isIntersecting(const Plane& plane, const Sphere& sphere);
     bool isIntersecting(const Plane& plane, const AABB& aabb);
+    bool isIntersecting(const Plane& plane, const OBB& obb);
 
     bool isIntersecting(const Triangle& tri, const AABB& aabb);
     bool isIntersecting(const Triangle& tri, const AABB& aabb, const std::array<glm::vec3, 8>& boxVertices);
+    bool isIntersecting(const Triangle& tri, const OBB& obb);
+    bool isIntersecting(const Triangle& tri, const OBB& obb, const std::array<glm::vec3, 8>& aabbVertices);
 
     bool isIntersecting(const Sphere& sphere, const AABB& aabb);
 
