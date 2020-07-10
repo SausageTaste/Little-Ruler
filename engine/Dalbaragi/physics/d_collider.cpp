@@ -360,7 +360,7 @@ namespace dal {
             const auto newTri = tri.transform(transTwo.getMat());
             if ( dal::isIntersecting(newTri, newAABB, boxVertices) ) {
                 dal::DebugViewGod::inst().addTriangle(
-                    newTri.point0(), newTri.point1(), newTri.point2(), glm::vec4{ 0.3, 0, 0, 0.2 }
+                    newTri.point0(), newTri.point1(), newTri.point2(), glm::vec4{ 1, 0.3, 0.3, 0.2 }
                 );
 
                 const auto [dist, direc] = dal::calcIntersectingDepth(newAABB, newTri.plane());
@@ -371,7 +371,7 @@ namespace dal {
             }
             else {
                 dal::DebugViewGod::inst().addTriangle(
-                    newTri.point0(), newTri.point1(), newTri.point2(), glm::vec4{ 1, 0, 0, 0.2 }
+                    newTri.point0(), newTri.point1(), newTri.point2(), glm::vec4{ 0.3, 0, 0, 0.2 }
                 );
             }
         }
@@ -380,7 +380,7 @@ namespace dal {
         result.m_this = -resolveDirec * maxDist;
         result.m_valid = true;
 
-        return CollisionResolveInfo{};
+        return result;
     }
 
 }

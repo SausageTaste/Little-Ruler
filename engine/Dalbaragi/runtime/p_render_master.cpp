@@ -13,6 +13,7 @@
 
 
 #define DAL_RENDER_WATER true
+#define DAL_SUN_ORBIT false
 
 
 using namespace fmt::literals;
@@ -451,6 +452,7 @@ namespace dal {
             }
         }
 
+#if DAL_SUN_ORBIT
         auto& sunlight = this->m_scene.m_dlights.back();
         
         const auto mat = glm::rotate(glm::mat4{ 1.0f }, deltaTime * 0.3f, glm::vec3{ 1.0f, 0.5f, 0.0f });
@@ -463,6 +465,7 @@ namespace dal {
         glClearColor(m_skyColor.x, m_skyColor.y, m_skyColor.z, 1.0f);
 
         //this->m_flagDrawDlight1 = -0.3f < diff;
+#endif
     }
 
     void RenderMaster::render(entt::registry& reg) {

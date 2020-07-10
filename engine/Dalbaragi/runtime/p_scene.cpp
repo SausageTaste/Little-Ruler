@@ -353,7 +353,7 @@ namespace dal {
 
         // Resolve collisions
         {
-            static const dal::ColAABB playerAABB{ glm::vec3{-0.3, 0.00, -0.3}, glm::vec3{0.3, 1.3, 0.3} };
+            static const dal::ColAABB playerAABB{ glm::vec3{-0.3, 0.2, -0.3}, glm::vec3{0.3, 1.3, 0.3} };
             auto& trans = this->m_entities.get<cpnt::Transform>(this->m_player);
             this->applyCollision(playerAABB, trans);
 

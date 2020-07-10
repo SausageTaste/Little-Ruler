@@ -394,16 +394,16 @@ namespace dal {
                 continue;
 
             for ( auto& actor : modelActor.m_actors ) {
+                auto& dview = dal::DebugViewGod::inst();
+                std::array<dal::Triangle, 12> triangles;
+                if ( dal::ColliderType::aabb == mdlBounding->getColType() ) {
+                    const auto box = dynamic_cast<const ColAABB*>(mdlBounding);
+                    const auto transformed = box->transform(actor.m_transform.getPos(), actor.m_transform.getScale());
+                    triangles = transformed.makeTriangles();
+                }
+
                 if ( dal::ActorInfo::ColliderType::aabb == actor.m_colType ) {
                     const auto result = calcResolveInfoABS(inCol, inPhysics, inTrans, *mdlBounding, mdlPhysics, actor.m_transform);
-
-                    auto& dview = dal::DebugViewGod::inst();
-                    std::array<dal::Triangle, 12> triangles;
-                    if ( dal::ColliderType::aabb == mdlBounding->getColType() ) {
-                        const auto box = dynamic_cast<const ColAABB*>(mdlBounding);
-                        const auto transformed = box->transform(actor.m_transform.getPos(), actor.m_transform.getScale());
-                        triangles = transformed.makeTriangles();
-                    }
 
                     if ( result.m_valid ) {
                         inTrans.addPos(result.m_this);
@@ -426,8 +426,12 @@ namespace dal {
                         continue;
                     }
 
-                    if ( !checkCollisionAbs(inCol, *mdlBounding, inTrans, actor.m_transform) )
+                    if ( !checkCollisionAbs(inCol, *mdlBounding, inTrans, actor.m_transform) ) {
+                        for ( auto& tri : triangles )
+                            dview.addTriangle(tri.point0(), tri.point1(), tri.point2(), glm::vec4{ 0.3, 0, 0, 0.2 });
+
                         continue;
+                    }
 
                     const auto result = calcResolveInfoABS(inCol, inPhysics, inTrans, *mdlDetailed, mdlPhysics, actor.m_transform);
                     if ( result.m_valid ) {
