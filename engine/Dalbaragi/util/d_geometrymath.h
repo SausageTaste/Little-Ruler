@@ -87,6 +87,9 @@ namespace dal {
         auto& point2(void) const {
             return this->point<2>();
         }
+        auto& points(void) const {
+            return this->m_points;
+        }
 
         glm::vec3 normal(void) const;
         Plane plane(void) const;
@@ -190,6 +193,7 @@ namespace dal {
     bool isIntersecting(const Plane& plane, const AABB& aabb);
 
     bool isIntersecting(const Triangle& tri, const AABB& aabb);
+    bool isIntersecting(const Triangle& tri, const AABB& aabb, const std::array<glm::vec3, 8>& boxVertices);
 
     bool isIntersecting(const Sphere& sphere, const AABB& aabb);
 

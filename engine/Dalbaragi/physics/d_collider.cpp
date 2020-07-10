@@ -351,12 +351,14 @@ namespace dal {
         const dal::ColTriangleSoup& soup, const PhysicalProperty& physicsTwo, const Transform& transTwo)
     {
         const auto newAABB = aabb.transform(transOne.getPos(), transOne.getScale());
+        const auto boxVertices = newAABB.makePoints();
+
         float maxDist = 0;
         glm::vec3 resolveDirec{ 0 };
 
         for ( auto& tri : soup ) {
             const auto newTri = tri.transform(transTwo.getMat());
-            if ( dal::isIntersecting(newTri, newAABB) ) {
+            if ( dal::isIntersecting(newTri, newAABB, boxVertices) ) {
                 dal::DebugViewGod::inst().addTriangle(
                     newTri.point0(), newTri.point1(), newTri.point2(), glm::vec4{ 0.3, 0, 0, 0.2 }
                 );
