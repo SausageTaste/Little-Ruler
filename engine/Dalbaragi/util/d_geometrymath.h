@@ -305,7 +305,8 @@ namespace dal {
 
     std::pair<float, glm::vec3> calcIntersectingDepth(const AABB& aabb, const Plane& plane);
 
-    size_t appendTriIntersec(const AABB& aabb, const TriangleSoup& soup, const glm::mat4& trans, std::vector<dal::Triangle>& result);
+    size_t getIntersectingTriangles(const AABB& aabb, const TriangleSoup& soup, const glm::mat4& trans, std::vector<dal::Triangle>& result);
+    std::vector<dal::Triangle> getIntersectingTriangles(const AABB& aabb, const TriangleSoup& soup, const glm::mat4& trans);
 
 }
 
@@ -324,6 +325,21 @@ namespace dal {
     std::optional<SegIntersecInfo> findIntersection(const Segment& seg, const Triangle& tri, const bool ignoreFromBack);
     //std::optional<SegIntersecInfo> findIntersection(const Segment& seg, const Sphere& sphere);
     std::optional<SegIntersecInfo> findIntersection(const Segment& seg, const AABB& aabb);
+
+}
+
+
+// Resolve collision of aabb againt static objects
+namespace dal {
+
+    struct MovingAABBInfo {
+        dal::AABB m_aabb;
+        glm::vec3 m_thisPos{ 0 }, m_lastPos{ 0 };
+        float m_thisScale = 1, m_lastScale = 1;
+    };
+
+
+    glm::vec3 calcResolveForAABB(const MovingAABBInfo& aabb, const dal::AABB& other);
 
 }
 

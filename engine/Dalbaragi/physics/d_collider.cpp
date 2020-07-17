@@ -99,11 +99,12 @@ namespace {
     class ColliderResolver {
 
     private:
+        static constexpr size_t NUM_COLLIDERS = static_cast<size_t>(dal::ColliderType::eoe);
+
         template <typename T>
         class ColFuncTable {
 
         private:
-            static constexpr size_t NUM_COLLIDERS = static_cast<size_t>(dal::ColliderType::eoe);
             T m_array[NUM_COLLIDERS][NUM_COLLIDERS] = { 0 };
 
         public:
@@ -128,10 +129,12 @@ namespace {
             const dal::ICollider& one, const dal::PhysicalProperty& physicsOne, const dal::Transform& transOne,
             const dal::ICollider& two, const dal::PhysicalProperty& physicsTwo, const dal::Transform& transTwo
             );
+        using aabbResolveFunc_t = glm::vec3(*)(const dal::MovingAABBInfo& aabb, const dal::ICollider& other, const dal::Transform& trans);
 
     private:
         ColFuncTable<checkColFunc_t> m_checkCol;
         ColFuncTable<calcResolveFunc_t> m_calcResolve;
+        std::array<aabbResolveFunc_t, NUM_COLLIDERS> m_resolveAABB = { nullptr };
 
     public:
         ColliderResolver(void) {
@@ -154,6 +157,10 @@ namespace {
             {
                 this->m_calcResolve.set(dal::ColliderType::aabb, dal::ColliderType::aabb, this->calcResolve_aabb_aabb);
                 this->m_calcResolve.set(dal::ColliderType::aabb, dal::ColliderType::triangle_soup, this->calcResolve_aabb_soup);
+            }
+
+            {
+                this->m_resolveAABB[static_cast<unsigned>(dal::ColliderType::aabb)] = this->resolveAABB_aabb;
             }
         }
 
@@ -178,6 +185,17 @@ namespace {
             }
             else {
                 return func(one, physicsOne, transOne, two, physicsTwo, transTwo);
+            }
+        }
+
+        glm::vec3 resolveAABB(const dal::MovingAABBInfo& aabb, const dal::ICollider& other, const dal::Transform& trans) {
+            const auto otherType = other.getColType();
+            const auto func = this->m_resolveAABB[static_cast<unsigned>(otherType)];
+            if ( nullptr == func ) {
+                return glm::vec3{ 0 };
+            }
+            else {
+                return func(aabb, other, trans);
             }
         }
 
@@ -221,6 +239,12 @@ namespace {
             const auto& aabb = reinterpret_cast<const dal::ColAABB&>(one);
             const auto& soup = reinterpret_cast<const dal::ColTriangleSoup&>(two);
             return dal::calcResolveInfo(aabb, physicsOne, transOne, soup, physicsTwo, transTwo);
+        }
+
+    private:
+        static glm::vec3 resolveAABB_aabb(const dal::MovingAABBInfo& aabb, const dal::ICollider& other, const dal::Transform& trans) {
+            const auto newOther = reinterpret_cast<const dal::ColAABB&>(other).transform(trans.getPos(), trans.getScale());
+            return dal::calcResolveForAABB(aabb, newOther);
         }
 
     } g_colResolver;
@@ -369,6 +393,16 @@ namespace dal {
         result.m_valid = true;
 
         return result;
+    }
+
+}
+
+
+//
+namespace dal {
+
+    static glm::vec3 resolveAABB_abs(const dal::MovingAABBInfo& aabb, const dal::ICollider& other, const dal::Transform& trans) {
+        return g_colResolver.resolveAABB(aabb, other, trans);
     }
 
 }

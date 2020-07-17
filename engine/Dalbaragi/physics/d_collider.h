@@ -160,6 +160,14 @@ namespace dal {
 }
 
 
+// Resolve AABB
+namespace dal {
+
+    static glm::vec3 resolveAABB_abs(const dal::MovingAABBInfo& aabb, const dal::ICollider& other, const dal::Transform& trans);
+
+}
+
+
 // calcCollisionInfo funcs
 namespace dal {
 

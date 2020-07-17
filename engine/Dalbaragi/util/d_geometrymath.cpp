@@ -710,7 +710,7 @@ namespace dal {
         return { std::abs(smallestDistValue), -plane.normal() };
     }
 
-    size_t appendTriIntersec(const AABB& aabb, const TriangleSoup& soup, const glm::mat4& trans, std::vector<dal::Triangle>& result) {
+    size_t getIntersectingTriangles(const AABB& aabb, const TriangleSoup& soup, const glm::mat4& trans, std::vector<dal::Triangle>& result) {
         for ( const auto& tri : soup ) {
             const auto newTri = tri.transform(trans);
             if ( dal::isIntersecting(newTri, aabb) ) {
@@ -718,6 +718,12 @@ namespace dal {
             }
         }
         return result.size();
+    }
+
+    std::vector<dal::Triangle> getIntersectingTriangles(const AABB& aabb, const TriangleSoup& soup, const glm::mat4& trans) {
+        std::vector<dal::Triangle> result;
+        dal::getIntersectingTriangles(aabb, soup, trans, result);
+        return result;
     }
 
 }
@@ -779,6 +785,89 @@ namespace dal {
         }
 
         return result;
+    }
+
+}
+
+
+namespace {
+
+    template <size_t _ArrSize>
+    size_t minValueIndex(const float* const arr) {
+        static_assert(_ArrSize > 1);
+
+        float minValue = arr[0];
+        size_t minIndex = 0;
+
+        for ( size_t i = 1; i < _ArrSize; ++i ) {
+            if ( arr[i] < minValue ) {
+                minValue = arr[i];
+                minIndex = i;
+            }
+        }
+
+        return minIndex;
+    }
+
+    dal::CollisionResolveInfo calcResolveInfo_withMinMax(
+        const glm::vec3& one1, const glm::vec3& one2,
+        const glm::vec3& other1, const glm::vec3& other2,
+        const float thisFactor, const float otherFactor
+    ) {
+        const auto xOne = one2.x - other1.x;
+        const auto xTwo = one1.x - other2.x;
+        const auto xDistance = abs(xOne) < abs(xTwo) ? xOne : xTwo;
+
+        const auto yOne = one2.y - other1.y;
+        const auto yTwo = one1.y - other2.y;
+        const auto yDistance = abs(yOne) < abs(yTwo) ? yOne : yTwo;
+
+        const auto zOne = one2.z - other1.z;
+        const auto zTwo = one1.z - other2.z;
+        const auto zDistance = abs(zOne) < abs(zTwo) ? zOne : zTwo;
+
+        const auto xForThis = -xDistance * thisFactor;
+        const auto yForThis = -yDistance * thisFactor;
+        const auto zForThis = -zDistance * thisFactor;
+
+        const auto xForOther = xDistance * otherFactor;
+        const auto yForOther = yDistance * otherFactor;
+        const auto zForOther = zDistance * otherFactor;
+
+        const float selector[3] = { std::abs(xForThis), std::abs(yForThis), std::abs(zForThis) };
+        switch ( ::minValueIndex<3>(selector) ) {
+
+        case 0:
+            return dal::CollisionResolveInfo{ { xForThis, 0.0f, 0.0f }, { xForOther, 0.0f, 0.0f }, true };
+        case 1:
+            return dal::CollisionResolveInfo{ { 0.0f, yForThis, 0.0f }, { 0.0f, yForOther, 0.0f }, true };
+        case 2:
+            return dal::CollisionResolveInfo{ { 0.0f, 0.0f, zForThis }, { 0.0f, 0.0f, zForOther }, true };
+        default:
+            assert(false && "This can't happen!");
+            return dal::CollisionResolveInfo{};
+
+        }
+    }
+
+}
+
+
+// Resolve collision of aabb againt static objects
+namespace dal {
+
+    glm::vec3 calcResolveForAABB(const dal::MovingAABBInfo& aabb, const dal::AABB& other) {
+        const auto newAABB = aabb.m_aabb.transform(aabb.m_thisPos, aabb.m_thisScale);
+
+        if ( !dal::isIntersecting(newAABB, other) ) {
+            return glm::vec3{ 0 };
+        }
+
+        const auto result = calcResolveInfo_withMinMax(newAABB.min(), newAABB.max(), other.min(), other.max(), 1, 0);
+        if ( !result.m_valid )
+            return glm::vec3{ 0 };
+
+        return result.m_this;
     }
 
 }
