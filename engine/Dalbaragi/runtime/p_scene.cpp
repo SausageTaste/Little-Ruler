@@ -68,10 +68,9 @@ namespace {
         if ( dal::isIntersecting(seg, mapInfo.m_aabb) )
             return true;
 
-        const auto points = mapInfo.m_aabb.makePoints();
         double closestDist = std::numeric_limits<double>::max();
 
-        for ( const auto& p : points ) {
+        for ( const auto& p : mapInfo.m_aabb.vertices() ) {
             const double dist = glm::distance(p, campos);
             if ( dist < closestDist ) {
                 closestDist = dist;

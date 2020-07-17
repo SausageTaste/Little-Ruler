@@ -149,6 +149,11 @@ namespace dal {
     class AABB {
 
     private:
+        // The order is
+        // 000, 001, 010, 011, 100, 101, 110, 111
+        // Each digit means x, y, z, 0 means lower value on the axis, 1 means higher.
+        std::array<glm::vec3, 8> m_vertices{ glm::vec3{0} };
+
         glm::vec3 m_min{ 0 }, m_max{ 0 };
 
     public:
@@ -161,15 +166,14 @@ namespace dal {
         const glm::vec3& max(void) const {
             return this->m_max;
         }
+        auto& vertices(void) const {
+            return this->m_vertices;
+        }
 
         float volume(void) const;
         bool isInside(const glm::vec3& p) const;
         AABB transform(const glm::vec3& translate, const float scale) const;
 
-        // The order is
-        // 000, 001, 010, 011, 100, 101, 110, 111
-        // Each digit means x, y, z, 0 means lower value on the axis, 1 means higher.
-        std::array<glm::vec3, 8> makePoints(void) const;
         std::array<dal::Segment, 12> makeEdges(void) const;
         std::array<dal::Triangle, 12> makeTriangles(void) const;
 
@@ -179,6 +183,9 @@ namespace dal {
         void upscaleToInclude(const float x, const float y, const float z) {
             this->upscaleToInclude(glm::vec3{ x, y, z });
         }
+
+    private:
+         void updateVertices(std::array<glm::vec3, 8>& result) const;
 
     };
 
@@ -283,14 +290,12 @@ namespace dal {
     bool isIntersecting(const Plane& plane, const OBB& obb);
 
     bool isIntersecting(const Triangle& tri, const AABB& aabb);
-    bool isIntersecting(const Triangle& tri, const AABB& aabb, const std::array<glm::vec3, 8>& boxVertices);
     bool isIntersecting(const Triangle& tri, const OBB& obb);
-    bool isIntersecting(const Triangle& tri, const OBB& obb, const std::array<glm::vec3, 8>& aabbVertices);
 
     bool isIntersecting(const Sphere& sphere, const AABB& aabb);
 
     bool isIntersecting(const AABB& one, const AABB& other);
-    bool isIntersecting(const AABB& aabb, const std::array<glm::vec3, 8>& boxVert, const TriangleSoup& soup, const glm::mat4& trans);
+    bool isIntersecting(const AABB& aabb, const TriangleSoup& soup, const glm::mat4& trans);
 
 }
 
@@ -300,7 +305,7 @@ namespace dal {
 
     std::pair<float, glm::vec3> calcIntersectingDepth(const AABB& aabb, const Plane& plane);
 
-    size_t appendTriIntersec(const AABB& aabb, const std::array<glm::vec3, 8>& boxVert, const TriangleSoup& soup, const glm::mat4& trans, std::vector<const dal::Triangle&>& result);
+    size_t appendTriIntersec(const AABB& aabb, const TriangleSoup& soup, const glm::mat4& trans, std::vector<dal::Triangle>& result);
 
 }
 

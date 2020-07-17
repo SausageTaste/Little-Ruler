@@ -92,7 +92,7 @@ namespace {
         return { min, max };
     }
 
-    bool IsIntersecting(const dal::Triangle& triangle, const dal::AABB& box, const std::array<glm::vec3, 8>& boxVertices) {
+    bool IsIntersecting(const dal::Triangle& triangle, const dal::AABB& box) {
         // Test the box normals (x-, y- and z-axes)
         static const std::array<glm::vec3, 3> boxNormals{
             glm::vec3{ 1, 0, 0 },
@@ -109,7 +109,7 @@ namespace {
         // Test the triangle normal
         {
             const double triangleOffset = glm::dot(triangle.normal(), triangle.point0());
-            const auto [boxMin, boxMax] = ::Project(boxVertices, triangle.normal());
+            const auto [boxMin, boxMax] = ::Project(box.vertices(), triangle.normal());
             if ( boxMax < triangleOffset || boxMin > triangleOffset )
                 return false; // No intersection possible.
         }
@@ -124,7 +124,7 @@ namespace {
             for ( int j = 0; j < 3; j++ ) {
                 // The box normals are the same as it's edge tangents
                 const glm::vec3 axis = glm::cross(triangleEdges[i], boxNormals[j]);
-                const auto [boxMin, boxMax] = ::Project(boxVertices, axis);
+                const auto [boxMin, boxMax] = ::Project(box.vertices(), axis);
                 const auto [triangleMin, triangleMax] = ::Project(triangle.points(), axis);
                 if ( boxMax < triangleMin || boxMin > triangleMax )
                     return false; // No intersection possible
@@ -389,29 +389,9 @@ namespace dal {
     }
 
 
-    std::array<glm::vec3, 8> AABB::makePoints(void) const {
-        std::array<glm::vec3, 8> result;
-
-        {
-            const auto p000 = this->min();
-            const auto p111 = this->max();
-
-            result[0] = p000;  // 000
-            result[1] = glm::vec3{ p000.x, p000.y, p111.z };  // 001
-            result[2] = glm::vec3{ p000.x, p111.y, p000.z };  // 010
-            result[3] = glm::vec3{ p000.x, p111.y, p111.z };  // 011
-            result[4] = glm::vec3{ p111.x, p000.y, p000.z };  // 100
-            result[5] = glm::vec3{ p111.x, p000.y, p111.z };  // 101
-            result[6] = glm::vec3{ p111.x, p111.y, p000.z };  // 110
-            result[7] = p111;  // 111
-        }
-
-        return result;
-    }
-
     std::array<dal::Segment, 12> AABB::makeEdges(void) const {
         std::array<dal::Segment, 12> result;
-        const auto [p000, p001, p010, p011, p100, p101, p110, p111] = this->makePoints();
+        const auto [p000, p001, p010, p011, p100, p101, p110, p111] = this->vertices();
 
         result[0].set(p000, p100 - p000);
         result[1].set(p100, p101 - p100);
@@ -432,7 +412,7 @@ namespace dal {
     }
 
     std::array<dal::Triangle, 12> AABB::makeTriangles(void) const {
-        const auto ps = this->makePoints();
+        const auto ps = this->vertices();
         std::array<dal::Triangle, 12> result;
 
         makeTrianglesFromRect(ps[3], ps[1], ps[5], ps[7], result[0], result[1]);
@@ -460,6 +440,8 @@ namespace dal {
                 this->m_max[i] = value0;
             }
         }
+
+        this->updateVertices(this->m_vertices);
     }
 
     void AABB::upscaleToInclude(const glm::vec3& p) {
@@ -471,6 +453,24 @@ namespace dal {
                 this->m_max[i] = p[i];
             }
         }
+
+        this->updateVertices(this->m_vertices);
+    }
+
+    // Private
+
+    void AABB::updateVertices(std::array<glm::vec3, 8>& result) const {
+        const auto p000 = this->min();
+        const auto p111 = this->max();
+
+        result[0] = p000;  // 000
+        result[1] = glm::vec3{ p000.x, p000.y, p111.z };  // 001
+        result[2] = glm::vec3{ p000.x, p111.y, p000.z };  // 010
+        result[3] = glm::vec3{ p000.x, p111.y, p111.z };  // 011
+        result[4] = glm::vec3{ p111.x, p000.y, p000.z };  // 100
+        result[5] = glm::vec3{ p111.x, p000.y, p111.z };  // 101
+        result[6] = glm::vec3{ p111.x, p111.y, p000.z };  // 110
+        result[7] = p111;  // 111
     }
 
 }
@@ -617,11 +617,10 @@ namespace dal {
     }
 
     bool isIntersecting(const Plane& plane, const AABB& aabb) {
-        const auto points = aabb.makePoints();
-        const auto firstOne = plane.isInFront(points[0]);
+        const auto firstOne = plane.isInFront(aabb.vertices()[0]);
 
-        for ( size_t i = 1; i < points.size(); ++i ) {
-            const auto thisOne = plane.isInFront(points[i]);
+        for ( size_t i = 1; i < aabb.vertices().size(); ++i ) {
+            const auto thisOne = plane.isInFront(aabb.vertices()[i]);
             if ( firstOne != thisOne ) {
                 return true;
             }
@@ -653,21 +652,12 @@ namespace dal {
     }
 
     bool isIntersecting(const Triangle& tri, const AABB& aabb) {
-        const auto boxVertices = aabb.makePoints();
-        return dal::isIntersecting(tri, aabb, boxVertices);
-    }
-
-    bool isIntersecting(const Triangle& tri, const AABB& aabb, const std::array<glm::vec3, 8>& boxVertices) {
-        return ::IsIntersecting(tri, aabb, boxVertices);
+        return ::IsIntersecting(tri, aabb);
     }
 
     bool isIntersecting(const Triangle& tri, const OBB& obb) {
-        return dal::isIntersecting(tri, obb, obb.aabb().makePoints());
-    }
-
-    bool isIntersecting(const Triangle& tri, const OBB& obb, const std::array<glm::vec3, 8>& aabbVertices) {
         const auto newTri = tri.transform(obb.transMatInv());
-        return ::IsIntersecting(newTri, obb.aabb(), aabbVertices);
+        return ::IsIntersecting(newTri, obb.aabb());
     }
 
 
@@ -691,10 +681,10 @@ namespace dal {
         else return true;
     }
 
-    bool isIntersecting(const AABB& aabb, const std::array<glm::vec3, 8>& boxVert, const TriangleSoup& soup, const glm::mat4& trans) {
+    bool isIntersecting(const AABB& aabb, const TriangleSoup& soup, const glm::mat4& trans) {
         for ( const auto& tri : soup ) {
             const auto newTri = tri.transform(trans);
-            if ( dal::isIntersecting(newTri, aabb, boxVert) ) {
+            if ( dal::isIntersecting(newTri, aabb) ) {
                 return true;
             }
         }
@@ -708,10 +698,9 @@ namespace dal {
 namespace dal {
 
     std::pair<float, glm::vec3> calcIntersectingDepth(const AABB& aabb, const Plane& plane) {
-        const auto points = aabb.makePoints();
         float smallestDistValue = 0;
 
-        for ( auto& p : points ) {
+        for ( auto& p : aabb.vertices() ) {
             const auto signedDist = plane.calcSignedDist(p);
             if ( signedDist < smallestDistValue ) {
                 smallestDistValue = signedDist;
@@ -721,10 +710,10 @@ namespace dal {
         return { std::abs(smallestDistValue), -plane.normal() };
     }
 
-    size_t appendTriIntersec(const AABB& aabb, const std::array<glm::vec3, 8>& boxVert, const TriangleSoup& soup, const glm::mat4& trans, std::vector<const dal::Triangle&>& result) {
+    size_t appendTriIntersec(const AABB& aabb, const TriangleSoup& soup, const glm::mat4& trans, std::vector<dal::Triangle>& result) {
         for ( const auto& tri : soup ) {
             const auto newTri = tri.transform(trans);
-            if ( dal::isIntersecting(newTri, aabb, boxVert) ) {
+            if ( dal::isIntersecting(newTri, aabb) ) {
                 result.push_back(newTri);
             }
         }
