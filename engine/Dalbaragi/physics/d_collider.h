@@ -116,54 +116,13 @@ namespace dal {
 // Complex colliders
 namespace dal {
 
-    class ColTriangleSoup : public ICollider {
-
-    private:
-        std::vector<Triangle> m_triangles;
-        bool m_faceCull = true;
+    class ColTriangleSoup : public ICollider, public dal::TriangleSoup {
 
     public:
         ColTriangleSoup(void)
             : ICollider(ColliderType::triangle_soup)
         {
 
-        }
-
-        const Triangle& operator[](const size_t index) const {
-            return this->m_triangles[index];
-        }
-        const Triangle& at(const size_t index) const {
-            return this->m_triangles.at(index);
-        }
-        size_t getSize(void) const {
-            return this->m_triangles.size();
-        }
-        bool isFaceCullSet(void) const {
-            return this->m_faceCull;
-        }
-
-        auto begin(void) const {
-            return this->m_triangles.begin();
-        }
-        auto end(void) const {
-            return this->m_triangles.end();
-        }
-
-        void addTriangle(const Triangle& tri) {
-            this->m_triangles.push_back(tri);
-        }
-        Triangle& emplaceTriangle(const glm::vec3& p1, const glm::vec3& p2, const glm::vec3& p3) {
-            return this->m_triangles.emplace_back(p1, p2, p3);
-        }
-        void reserve(const size_t size) {
-            this->m_triangles.reserve(size);
-        }
-        void resize(const size_t size) {
-            this->m_triangles.resize(size);
-        }
-        auto data(void) {
-            static_assert(sizeof(float) * 9 == sizeof(Triangle));
-            return this->m_triangles.data();
         }
 
     };
@@ -177,8 +136,6 @@ namespace dal {
     bool checkCollisionAbs(const ICollider& one, const ICollider& two, const Transform& transOne, const Transform& transTwo);
 
     bool checkCollisionAbs(const Segment& seg, const ICollider& col, const Transform& transCol);
-
-    bool checkCollision(const AABB& aabb, const ColTriangleSoup triSoup, const Transform& transAABB, const Transform& transTriSoup);
 
 }
 

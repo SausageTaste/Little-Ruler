@@ -675,6 +675,7 @@ namespace dal {
         return doesCubeIntersectSphere(aabb.min(), aabb.max(), sphere.center(), sphere.radius());
     }
 
+
     bool isIntersecting(const AABB& one, const AABB& other) {
         const auto one1 = one.min();
         const auto one2 = one.max();
@@ -690,9 +691,20 @@ namespace dal {
         else return true;
     }
 
+    bool isIntersecting(const AABB& aabb, const std::array<glm::vec3, 8>& boxVert, const TriangleSoup& soup, const glm::mat4& trans) {
+        for ( const auto& tri : soup ) {
+            const auto newTri = tri.transform(trans);
+            if ( dal::isIntersecting(newTri, aabb, boxVert) ) {
+                return true;
+            }
+        }
+        return false;
+    }
+
 }
 
 
+// Misc
 namespace dal {
 
     std::pair<float, glm::vec3> calcIntersectingDepth(const AABB& aabb, const Plane& plane) {
@@ -707,6 +719,16 @@ namespace dal {
         }
 
         return { std::abs(smallestDistValue), -plane.normal() };
+    }
+
+    size_t appendTriIntersec(const AABB& aabb, const std::array<glm::vec3, 8>& boxVert, const TriangleSoup& soup, const glm::mat4& trans, std::vector<const dal::Triangle&>& result) {
+        for ( const auto& tri : soup ) {
+            const auto newTri = tri.transform(trans);
+            if ( dal::isIntersecting(newTri, aabb, boxVert) ) {
+                result.push_back(newTri);
+            }
+        }
+        return result.size();
     }
 
 }

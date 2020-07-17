@@ -217,6 +217,55 @@ namespace dal {
 
     };
 
+
+    class TriangleSoup {
+
+    private:
+        std::vector<Triangle> m_triangles;
+        bool m_faceCull = true;
+
+    public:
+        TriangleSoup(void) = default; 
+
+        const Triangle& operator[](const size_t index) const {
+            return this->m_triangles[index];
+        }
+        const Triangle& at(const size_t index) const {
+            return this->m_triangles.at(index);
+        }
+        size_t getSize(void) const {
+            return this->m_triangles.size();
+        }
+        bool isFaceCullSet(void) const {
+            return this->m_faceCull;
+        }
+
+        auto begin(void) const {
+            return this->m_triangles.begin();
+        }
+        auto end(void) const {
+            return this->m_triangles.end();
+        }
+
+        void addTriangle(const Triangle& tri) {
+            this->m_triangles.push_back(tri);
+        }
+        Triangle& emplaceTriangle(const glm::vec3& p1, const glm::vec3& p2, const glm::vec3& p3) {
+            return this->m_triangles.emplace_back(p1, p2, p3);
+        }
+        void reserve(const size_t size) {
+            this->m_triangles.reserve(size);
+        }
+        void resize(const size_t size) {
+            this->m_triangles.resize(size);
+        }
+        auto data(void) {
+            static_assert(sizeof(float) * 9 == sizeof(Triangle));
+            return this->m_triangles.data();
+        }
+
+    };
+
 }
 
 
@@ -241,14 +290,17 @@ namespace dal {
     bool isIntersecting(const Sphere& sphere, const AABB& aabb);
 
     bool isIntersecting(const AABB& one, const AABB& other);
+    bool isIntersecting(const AABB& aabb, const std::array<glm::vec3, 8>& boxVert, const TriangleSoup& soup, const glm::mat4& trans);
 
 }
 
 
-// Intersecting depth
+// Misc
 namespace dal {
 
     std::pair<float, glm::vec3> calcIntersectingDepth(const AABB& aabb, const Plane& plane);
+
+    size_t appendTriIntersec(const AABB& aabb, const std::array<glm::vec3, 8>& boxVert, const TriangleSoup& soup, const glm::mat4& trans, std::vector<const dal::Triangle&>& result);
 
 }
 

@@ -201,9 +201,9 @@ namespace {
         }
 
         static bool checkCol_aabb_trisoup(const dal::ICollider& one, const dal::ICollider& two, const dal::Transform& transOne, const dal::Transform& transTwo) {
-            const auto& aabb = reinterpret_cast<const dal::ColAABB&>(one);
+            const auto& aabb = reinterpret_cast<const dal::ColAABB&>(one).transform(transOne.getPos(), transOne.getScale());
             const auto& soup = reinterpret_cast<const dal::ColTriangleSoup&>(two);
-            return dal::checkCollision(aabb, soup, transOne, transTwo);
+            return dal::isIntersecting(aabb, soup, transTwo.getMat());
         }
 
     private:
@@ -273,17 +273,6 @@ namespace dal {
             return false;
 
         }
-    }
-
-    bool checkCollision(const AABB& aabb, const ColTriangleSoup triSoup, const Transform& transAABB, const Transform& transTriSoup) {
-        for ( auto& tri : triSoup ) {
-            const auto newTri = tri.transform(transTriSoup.getMat());
-            const auto newBox = aabb.transform(transAABB.getPos(), transAABB.getScale());
-            if ( dal::isIntersecting(newTri, newBox) ) {
-                return true;
-            }
-        }
-        return false;
     }
 
 }
