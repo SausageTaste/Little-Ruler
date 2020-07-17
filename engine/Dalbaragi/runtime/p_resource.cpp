@@ -446,6 +446,72 @@ namespace dal {
         }
     }
 
+    void MapChunk2::findIntersctionsToStatic(const dal::AABB& aabb, std::vector<dal::AABB>& out_aabbs, std::vector<dal::Triangle>& out_triangles) const {
+        auto& dview = dal::DebugViewGod::inst();
+
+        for ( auto& modelActor : this->m_staticActors ) {
+            const auto colBounding = modelActor.m_model->getBounding();
+            if ( nullptr == colBounding )
+                continue;
+            assert(dal::ColliderType::aabb == colBounding->getColType());
+
+            for ( auto& actor : modelActor.m_actors ) {
+                const auto box = reinterpret_cast<const ColAABB*>(colBounding)->transform(actor.m_transform.getPos(), actor.m_transform.getScale());
+
+                switch ( actor.m_colType ) {
+
+                case dal::ActorInfo::ColliderType::aabb:
+                {
+                    if ( dal::isIntersecting(aabb, box) ) {
+                        out_aabbs.push_back(box);
+
+                        for ( auto& tri : box.makeTriangles() )
+                            dview.addTriangle(tri.point0(), tri.point1(), tri.point2(), glm::vec4{ 0, 0, 1, 0.2 });
+                    }
+                    else {
+                        for ( auto& tri : box.makeTriangles() )
+                            dview.addTriangle(tri.point0(), tri.point1(), tri.point2(), glm::vec4{ 0, 0, 0.3, 0.2 });
+                    }
+                    break;
+                }
+                case dal::ActorInfo::ColliderType::mesh:
+                {
+                    if ( !dal::isIntersecting(aabb, box) ) {
+                        for ( const auto& tri : box.makeTriangles() )
+                            dview.addTriangle(tri.point0(), tri.point1(), tri.point2(), glm::vec4{ 0.3, 0, 0, 0.2 });
+
+                        continue;
+                    }
+
+                    const auto colDetailed = modelActor.m_model->getDetailed();
+                    if ( dal::ColliderType::triangle_soup == colDetailed->getColType() ) {
+                        const auto soup = reinterpret_cast<const dal::ColTriangleSoup*>(colDetailed);
+                        const auto transMat = actor.m_transform.getMat();
+
+                        for ( const auto& rawTri : *soup ) {
+                            const auto tri = rawTri.transform(transMat);
+                            if ( dal::isIntersecting(tri, aabb) ) {
+                                out_triangles.push_back(tri);
+                                dview.addTriangle(tri.point0(), tri.point1(), tri.point2(), glm::vec4{ 1, 0.3, 0.3, 0.2 });
+                            }
+                            else {
+                                dview.addTriangle(tri.point0(), tri.point1(), tri.point2(), glm::vec4{ 0.3, 0, 0, 0.2 });
+                            }
+                        }
+                    }
+                    else {
+
+                    }
+                    break;
+                }
+                default:
+                    break;
+
+                }
+            }
+        }
+    }
+
     std::optional<RayCastingResult> MapChunk2::castRayToClosest(const Segment& ray) const {
         float closestDistance = std::numeric_limits<float>::max();
         std::optional<RayCastingResult> result{ std::nullopt };

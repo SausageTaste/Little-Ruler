@@ -83,6 +83,14 @@ namespace dal {
         std::vector<SpotLight> m_slights;
 
     public:
+        MapChunk2(const MapChunk2&) = delete;
+        MapChunk2& operator=(const MapChunk2&) = delete;
+        MapChunk2(MapChunk2&&) = default;
+        MapChunk2& operator=(MapChunk2&&) = default;
+
+    public:
+        MapChunk2(void) = default;
+
         void onWinResize(const unsigned int winWidth, const unsigned int winHeight);
 
         void addStaticActorModel(std::shared_ptr<const ModelStatic>&& model, std::vector<ActorInfo>&& actors) {
@@ -97,6 +105,7 @@ namespace dal {
         auto getClosestEnvMap(const glm::vec3& worldPos) const -> std::pair<const EnvMap*, float>;
 
         void applyCollision(const ICollider& inCol, cpnt::Transform& inTrans);
+        void findIntersctionsToStatic(const dal::AABB& aabb, std::vector<dal::AABB>& out_aabbs, std::vector<dal::Triangle>& out_triangles) const;
         std::optional<RayCastingResult> castRayToClosest(const Segment& ray) const;
 
         void renderWater(const UniRender_Water& uniloc);

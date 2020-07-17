@@ -21,6 +21,9 @@ using namespace fmt::literals;
 
 namespace {
 
+    const dal::ColAABB PLAYER_AABB{ glm::vec3{-0.3, 0.2, -0.3}, glm::vec3{0.3, 1.3, 0.3} };
+
+
     void bindCameraPos(dal::FPSEulerCamera& camera, const glm::vec3 thisPos, const glm::vec3 lastPos) {
         // Apply move direction
         {
@@ -246,7 +249,7 @@ namespace {
 }
 
 
-//
+// LevelData
 namespace dal {
 
     LevelData::ChunkData& LevelData::newChunk(void) {
@@ -352,15 +355,20 @@ namespace dal {
 
         // Resolve collisions
         {
-            static const dal::ColAABB playerAABB{ glm::vec3{-0.3, 0.2, -0.3}, glm::vec3{0.3, 1.3, 0.3} };
             auto& trans = this->m_entities.get<cpnt::Transform>(this->m_player);
-            this->applyCollision(playerAABB, trans);
+            const auto playerAABB = PLAYER_AABB.transform(trans.getPos(), trans.getScale());
 
-            const auto newBox = playerAABB.transform(trans.getPos(), trans.getScale());
-            const auto triangles = newBox.makeTriangles();
-            for ( auto& tri : triangles ) {
+            std::vector<dal::AABB> aabbs;
+            std::vector<dal::Triangle> triangles;
+            for ( auto& map : this->m_mapChunks )
+                if ( dal::isIntersecting(playerAABB, map.m_info->m_aabb) )
+                    map.m_map.findIntersctionsToStatic(playerAABB, aabbs, triangles);
+
+            // Draw player aabb
+            for ( auto& tri : playerAABB.makeTriangles() )
                 dal::DebugViewGod::inst().addTriangle(tri.point0(), tri.point1(), tri.point2(), glm::vec4{ 0, 1, 0, 0.2 });
-            }
+
+            this->m_playerLastTrans = trans;
         }
 
         // Update animtions of dynamic objects.

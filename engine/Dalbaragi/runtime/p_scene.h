@@ -95,9 +95,12 @@ namespace dal {
         std::vector<DirectionalLight> m_dlights;
 
         entt::registry m_entities;
+
+        // For player
         entt::entity m_player;
         FocusCamera m_playerCam;
         CameraProp m_playerCamInfo;
+        dal::Transform m_playerLastTrans;
 
         //////// Methods ////////
 
