@@ -364,6 +364,11 @@ namespace dal {
                 if ( dal::isIntersecting(playerAABB, map.m_info->m_aabb) )
                     map.m_map.findIntersctionsToStatic(playerAABB, aabbs, triangles);
 
+            // Resolve
+            dal::TriangleSorter sorter;
+            if ( !triangles.empty() )
+                sorter.insert(&triangles.front(), &triangles.back());
+
             // Draw player aabb
             for ( auto& tri : playerAABB.makeTriangles() )
                 dal::DebugViewGod::inst().addTriangle(tri.point0(), tri.point1(), tri.point2(), glm::vec4{ 0, 1, 0, 0.2 });

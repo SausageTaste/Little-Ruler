@@ -509,6 +509,27 @@ namespace dal {
 }
 
 
+// Triangle Sorter
+namespace dal {
+
+    void TriangleSorter::add(const dal::Triangle& tri) {
+        this->m_list.push_back(TrianglePair{ tri });
+        std::sort_heap(this->m_list.begin(), this->m_list.end(), this->sortFunc);
+    }
+
+    void TriangleSorter::insert(const dal::Triangle* const begin, const dal::Triangle* const end) {
+        for ( auto head = begin; end != head; ++head ) {
+            this->add(*head);
+        }
+    }
+
+    bool TriangleSorter::sortFunc(const TrianglePair& one, const TrianglePair& other) {
+        return one.m_dot > other.m_dot;
+    }
+
+}
+
+
 // Intersection check
 namespace dal {
 
