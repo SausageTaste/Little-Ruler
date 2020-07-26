@@ -446,7 +446,7 @@ namespace dal {
         }
     }
 
-    void MapChunk2::findIntersctionsToStatic(const dal::AABB& aabb, std::vector<dal::AABB>& out_aabbs, std::vector<dal::Triangle>& out_triangles) const {
+    void MapChunk2::findIntersctionsToStatic(const dal::AABB& aabb, std::vector<dal::AABB>& out_aabbs, dal::TriangleSorter& out_triangles) const {
         auto& dview = dal::DebugViewGod::inst();
 
         for ( auto& modelActor : this->m_staticActors ) {
@@ -491,7 +491,7 @@ namespace dal {
                         for ( const auto& rawTri : *soup ) {
                             const auto tri = rawTri.transform(transMat);
                             if ( dal::isIntersecting(tri, aabb) ) {
-                                out_triangles.push_back(tri);
+                                out_triangles.add(tri);
                                 dview.addTriangle(tri.point0(), tri.point1(), tri.point2(), glm::vec4{ 1, 0.3, 0.3, 0.2 });
                             }
                             else {

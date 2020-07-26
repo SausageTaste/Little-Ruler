@@ -357,17 +357,25 @@ namespace dal {
         {
             auto& trans = this->m_entities.get<cpnt::Transform>(this->m_player);
             const auto playerAABB = PLAYER_AABB.transform(trans.getPos(), trans.getScale());
+            const auto deltaPlayerMove = trans.getPos() - this->m_playerLastTrans.getPos();
 
             std::vector<dal::AABB> aabbs;
             std::vector<dal::Triangle> triangles;
-            for ( auto& map : this->m_mapChunks )
-                if ( dal::isIntersecting(playerAABB, map.m_info->m_aabb) )
-                    map.m_map.findIntersctionsToStatic(playerAABB, aabbs, triangles);
+
+            // Get sets of colliders
+            {
+                dal::TriangleSorter triangleHeap{ deltaPlayerMove };
+                for ( auto& map : this->m_mapChunks )
+                    if ( dal::isIntersecting(playerAABB, map.m_info->m_aabb) )
+                        map.m_map.findIntersctionsToStatic(playerAABB, aabbs, triangleHeap);
+
+                const auto numTri = triangleHeap.size();
+                for ( size_t i = 0; i < numTri; ++i ) {
+                    triangles.push_back(triangleHeap.pop());
+                }
+            }
 
             // Resolve
-            dal::TriangleSorter sorter;
-            if ( !triangles.empty() )
-                sorter.insert(&triangles.front(), &triangles.back());
 
             // Draw player aabb
             for ( auto& tri : playerAABB.makeTriangles() )

@@ -291,18 +291,16 @@ namespace dal {
         glm::vec3 m_criteria{ 0 };
 
     public:
-        auto& list(void) {
-            return this->m_list;
+        TriangleSorter(const glm::vec3& criteria)
+            : m_criteria(criteria)
+        {
+
         }
 
         void add(const dal::Triangle& tri);
-        void insert(const dal::Triangle* const begin, const dal::Triangle* const end);
-
-        auto begin(void) {
-            return this->m_list.begin();
-        }
-        auto end(void) {
-            return this->m_list.end();
+        auto pop(void)->dal::Triangle;
+        auto size(void) const {
+            return this->m_list.size();
         }
 
     private:
