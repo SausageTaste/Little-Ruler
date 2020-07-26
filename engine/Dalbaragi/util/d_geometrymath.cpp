@@ -102,7 +102,7 @@ namespace {
         for ( int i = 0; i < 3; i++ ) {
             const glm::vec3 n = boxNormals[i];
             const auto [triangleMin, triangleMax] = ::Project(triangle.points(), boxNormals[i]);
-            if ( triangleMax < box.min()[i] || triangleMin > box.max()[i] )
+            if ( triangleMax <= box.min()[i] || triangleMin >= box.max()[i] )
                 return false; // No intersection possible.
         }
 
@@ -110,7 +110,7 @@ namespace {
         {
             const double triangleOffset = glm::dot(triangle.normal(), triangle.point0());
             const auto [boxMin, boxMax] = ::Project(box.vertices(), triangle.normal());
-            if ( boxMax < triangleOffset || boxMin > triangleOffset )
+            if ( boxMax <= triangleOffset || boxMin >= triangleOffset )
                 return false; // No intersection possible.
         }
 
