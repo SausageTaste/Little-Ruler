@@ -63,7 +63,7 @@ namespace {
         camera.updateViewMat();
     }
 
-    bool isGoodToBeLoaded(const glm::vec3& campos, const dal::LevelData::ChunkData& mapInfo) {
+    bool isGoodToBeLoaded(const glm::vec3& campos, const dal::LevelData::ChunkData& mapInfo, const glm::mat4& projViewMat) {
         if ( mapInfo.m_aabb.isInside(campos) )
             return true;
 
@@ -71,16 +71,26 @@ namespace {
         if ( dal::isIntersecting(seg, mapInfo.m_aabb) )
             return true;
 
-        double closestDist = std::numeric_limits<double>::max();
-
-        for ( const auto& p : mapInfo.m_aabb.vertices() ) {
-            const double dist = glm::distance(p, campos);
-            if ( dist < closestDist ) {
-                closestDist = dist;
-            }
+        static const dal::AABB DEVICE_AABB{ glm::vec3{-1}, glm::vec3{1} };
+        for ( const auto p : mapInfo.m_aabb.vertices() ) {
+            const auto p2 = projViewMat * glm::vec4{ p, 1 };
+            const auto p3 = glm::vec3{ p2.x, p2.y, p2.z } / p2.w;
+            if ( DEVICE_AABB.isInside(p3) )
+                return true;
         }
 
-        return closestDist < 10.0;
+        {
+            double closestDist = std::numeric_limits<double>::max();
+
+            for ( const auto& p : mapInfo.m_aabb.vertices() ) {
+                const double dist = glm::distance(p, campos);
+                if ( dist < closestDist ) {
+                    closestDist = dist;
+                }
+            }
+
+            return closestDist < 10.0;
+        }
     }
 
 }
@@ -274,7 +284,7 @@ namespace dal {
 
 }
 
-
+#include <iostream>
 // SceneGraph
 namespace dal {
 
@@ -343,7 +353,7 @@ namespace dal {
     }
 
 
-    void SceneGraph::update(const float deltaTime) {
+    void SceneGraph::update(const float deltaTime, const glm::mat4& projViewMat) {
         // Apply entity controllers
         {
             auto view = this->m_entities.view<cpnt::EntityCtrl>();
@@ -421,17 +431,18 @@ namespace dal {
             }
         }
 
-        // Find map chunk to load
-        {
-            for ( unsigned i = 0; i < this->m_activeLevel.size(); ++i ) {
-                auto& mapInfo = this->m_activeLevel.at(i);
-                if ( !mapInfo.m_active && ::isGoodToBeLoaded(this->m_playerCam.m_pos, mapInfo) ) {
-                    const auto respath = parseResPath(this->m_activeLevel.respath());
-                    const auto chunkPath = respath.m_package + "::" + respath.m_intermPath + mapInfo.m_name + ".dmc";
-                    this->openChunk(chunkPath.c_str(), mapInfo);
-                    mapInfo.m_active = true;
-                    dalInfo(fmt::format("Map chunk activated: {}", mapInfo.m_name));
-                }
+        // Find map chunks to load
+        for ( unsigned i = 0; i < this->m_activeLevel.size(); ++i ) {
+            auto& mapInfo = this->m_activeLevel.at(i);
+            if ( mapInfo.m_active )
+                continue;
+
+            if ( ::isGoodToBeLoaded(this->m_playerCam.m_pos, mapInfo, projViewMat) ) {
+                const auto respath = parseResPath(this->m_activeLevel.respath());
+                const auto chunkPath = respath.m_package + "::" + respath.m_intermPath + mapInfo.m_name + ".dmc";
+                this->openChunk(chunkPath.c_str(), mapInfo);
+                mapInfo.m_active = true;
+                dalInfo(fmt::format("Map chunk activated: {}", mapInfo.m_name));
             }
         }
     }

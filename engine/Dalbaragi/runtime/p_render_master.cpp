@@ -489,7 +489,14 @@ namespace dal {
             uniloc.viewMat(this->m_mainCamera->viewMat());
             uniloc.viewPos(this->m_mainCamera->m_pos);
             this->m_scene.sendDlightUniform(uniloc.i_lighting);
-            this->m_scene.m_mapChunks.back().m_map.sendSlightUniforms(uniloc.i_lighting);
+
+            auto map = this->m_scene.findClosestMapChunk(this->m_scene.m_playerCam.m_pos);
+            if ( nullptr != map ) {
+                map->sendSlightUniforms(uniloc.i_lighting);
+            }
+            else {
+                uniloc.i_lighting.slightCount(0);
+            }
 
             this->m_fbuffer.sendUniform(uniloc);
             g_vertbuf_fillscreen.draw();
