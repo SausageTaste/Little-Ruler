@@ -6,7 +6,7 @@
 #include <glm/glm.hpp>
 
 
-#define DAL_DRAW_DEBUG_VIEW true
+#define DAL_DRAW_DEBUG_VIEW false
 
 
 namespace dal {
