@@ -119,8 +119,11 @@ namespace dal {
         virtual std::pair<glm::vec3, glm::mat4> makeReflected(const float planeHeight) const override;
         virtual float calcDirectionXZ(void) const override;
 
-        auto& focusPoint(void) {
+        auto& focusPoint(void) const {
             return this->m_focusPoint;
+        }
+        auto direction(void) const {
+            return this->focusPoint() - this->pos();
         }
 
         void setFocusPoint(const glm::vec3& v) {

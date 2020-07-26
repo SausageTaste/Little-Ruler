@@ -343,7 +343,7 @@ namespace {
 
             this->m_task.update();
             this->m_phyworld.update(deltaTime);
-            this->m_scene.update(deltaTime, this->m_renMas.projMat() * this->m_scene.m_playerCam.viewMat());
+            this->m_scene.update(deltaTime);
             this->m_renMas.update(deltaTime);
 
             // Camera

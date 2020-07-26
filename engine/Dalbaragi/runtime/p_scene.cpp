@@ -63,7 +63,7 @@ namespace {
         camera.updateViewMat();
     }
 
-    bool isGoodToBeLoaded(const glm::vec3& campos, const dal::LevelData::ChunkData& mapInfo, const glm::mat4& projViewMat) {
+    bool isGoodToBeLoaded(const glm::vec3& campos, const glm::vec3& camdirec, const dal::LevelData::ChunkData& mapInfo) {
         if ( mapInfo.m_aabb.isInside(campos) )
             return true;
 
@@ -71,11 +71,11 @@ namespace {
         if ( dal::isIntersecting(seg, mapInfo.m_aabb) )
             return true;
 
-        static const dal::AABB DEVICE_AABB{ glm::vec3{-1}, glm::vec3{1} };
-        for ( const auto p : mapInfo.m_aabb.vertices() ) {
-            const auto p2 = projViewMat * glm::vec4{ p, 1 };
-            const auto p3 = glm::vec3{ p2.x, p2.y, p2.z } / p2.w;
-            if ( DEVICE_AABB.isInside(p3) )
+        const auto camdirec_n = glm::normalize(camdirec);
+        for ( const auto& p : mapInfo.m_aabb.vertices() ) {
+            const auto toVert = glm::normalize(p - campos);
+            const auto dot = glm::dot(toVert, camdirec_n);
+            if ( dot > std::cos(glm::radians<float>(45)) )
                 return true;
         }
 
@@ -353,14 +353,14 @@ namespace dal {
 
         // Misc
         {
-            this->m_playerCam.setPos(0, 0, 3);
+            this->m_playerCam.setPos(0, 0, -3);
             this->m_playerCam.setFocusPoint(0);
             this->m_playerCam.updateViewMat();
         }
     }
 
 
-    void SceneGraph::update(const float deltaTime, const glm::mat4& projViewMat) {
+    void SceneGraph::update(const float deltaTime) {
         // Apply entity controllers
         {
             auto view = this->m_entities.view<cpnt::EntityCtrl>();
@@ -444,7 +444,7 @@ namespace dal {
             if ( mapInfo.m_active )
                 continue;
 
-            if ( ::isGoodToBeLoaded(this->m_playerCam.pos(), mapInfo, projViewMat) ) {
+            if ( ::isGoodToBeLoaded(this->m_playerCam.pos(), this->m_playerCam.direction(), mapInfo) ) {
                 const auto respath = parseResPath(this->m_activeLevel.respath());
                 const auto chunkPath = respath.m_package + "::" + respath.m_intermPath + mapInfo.m_name + ".dmc";
                 this->openChunk(chunkPath.c_str(), mapInfo);

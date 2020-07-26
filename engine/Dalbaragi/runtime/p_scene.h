@@ -107,7 +107,7 @@ namespace dal {
     public:
         SceneGraph(ResourceMaster& resMas, PhysicsWorld& phyworld, const unsigned int winWidth, const unsigned int winHeight);
 
-        void update(const float deltaTime, const glm::mat4& projViewMat);
+        void update(const float deltaTime);
 
         entt::entity addObj_static(const char* const resid);
 
