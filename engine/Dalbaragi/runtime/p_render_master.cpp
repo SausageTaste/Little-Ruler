@@ -448,7 +448,7 @@ namespace dal {
     void RenderMaster::update(const float deltaTime) {
         {
             for ( auto& dlight : this->m_scene.m_dlights ) {
-                dlight.setPos(glm::round(this->m_mainCamera->m_pos));
+                dlight.setPos(glm::round(this->m_mainCamera->pos()));
             }
         }
 
@@ -487,10 +487,10 @@ namespace dal {
 
             uniloc.projMat(this->m_projectMat);
             uniloc.viewMat(this->m_mainCamera->viewMat());
-            uniloc.viewPos(this->m_mainCamera->m_pos);
+            uniloc.viewPos(this->m_mainCamera->pos());
             this->m_scene.sendDlightUniform(uniloc.i_lighting);
 
-            auto map = this->m_scene.findClosestMapChunk(this->m_scene.m_playerCam.m_pos);
+            auto map = this->m_scene.findClosestMapChunk(this->m_scene.m_playerCam.pos());
             if ( nullptr != map ) {
                 map->sendSlightUniforms(uniloc.i_lighting);
             }
@@ -626,7 +626,7 @@ namespace dal {
 
             uniloc.projMat(this->m_projectMat);
             uniloc.viewMat(this->m_mainCamera->viewMat());
-            uniloc.viewPos(this->m_mainCamera->m_pos);
+            uniloc.viewPos(this->m_mainCamera->pos());
             uniloc.i_lighting.baseAmbient(this->m_baseAmbientColor);
 
             for ( auto water : waters ) {
@@ -650,7 +650,7 @@ namespace dal {
 
             uniloc.projMat(this->m_projectMat);
             uniloc.viewMat(this->m_mainCamera->viewMat());
-            uniloc.viewPos(this->m_mainCamera->m_pos);
+            uniloc.viewPos(this->m_mainCamera->pos());
             uniloc.i_lighting.baseAmbient(this->m_baseAmbientColor);
 
             for ( auto water : waters ) {
@@ -702,7 +702,7 @@ namespace dal {
         }
 
         const auto projMat = glm::perspective(glm::radians(90.f), 1.f, 0.1f, 50.f);
-        const auto envmap = ::selectEnvmapToUpdate(this->m_mainCamera->m_pos, this->m_scene);
+        const auto envmap = ::selectEnvmapToUpdate(this->m_mainCamera->pos(), this->m_scene);
 
         if ( nullptr != envmap ) {
             g_cubemapFbuf.bind();
@@ -768,7 +768,7 @@ namespace dal {
                 const float sqrt2 = sqrt(1.0 / 3.0);
 
                 this->m_skyboxTex->sendUniform(uniloc.skyboxTex());
-                uniloc.viewPosActual(this->m_mainCamera->m_pos);
+                uniloc.viewPosActual(this->m_mainCamera->pos());
                 uniloc.modelMat(glm::scale(glm::mat4{ 1 }, glm::vec3{ sqrt2 * this->m_farPlaneDistance }));
                 uniloc.viewPos(0, 0, 0);
 
@@ -836,7 +836,7 @@ namespace dal {
 
             uniloc.projMat(this->m_projectMat);
             uniloc.viewMat(this->m_mainCamera->viewMat());
-            uniloc.viewPos(this->m_mainCamera->m_pos);
+            uniloc.viewPos(this->m_mainCamera->pos());
             uniloc.i_lighting.baseAmbient(this->m_baseAmbientColor);
             uniloc.i_envmap.hasEnvmap(false);
             g_brdfLUT.sendUniform(uniloc.i_envmap.brdfLUT());
@@ -851,7 +851,7 @@ namespace dal {
 
             uniloc.projMat(this->m_projectMat);
             uniloc.viewMat(this->m_mainCamera->viewMat());
-            uniloc.viewPos(this->m_mainCamera->m_pos);
+            uniloc.viewPos(this->m_mainCamera->pos());
             uniloc.i_lighting.baseAmbient(this->m_baseAmbientColor);
             uniloc.i_envmap.hasEnvmap(false);
             g_brdfLUT.sendUniform(uniloc.i_envmap.brdfLUT());
@@ -866,7 +866,7 @@ namespace dal {
 
             uniloc.projMat(this->m_projectMat);
             uniloc.viewMat(this->m_mainCamera->viewMat());
-            uniloc.viewPos(this->m_mainCamera->m_pos);
+            uniloc.viewPos(this->m_mainCamera->pos());
             uniloc.i_lighting.baseAmbient(this->m_baseAmbientColor);
             this->m_scene.sendDlightUniform(uniloc.i_lighting);
 
@@ -882,7 +882,7 @@ namespace dal {
             const float sqrt2 = sqrt(1.0 / 3.0);
 
             this->m_skyboxTex->sendUniform(uniloc.skyboxTex());
-            uniloc.viewPosActual(this->m_mainCamera->m_pos);
+            uniloc.viewPosActual(this->m_mainCamera->pos());
 
             uniloc.projMat(this->m_projectMat);
             uniloc.viewMat(glm::mat4(glm::mat3(this->m_mainCamera->viewMat())));

@@ -43,7 +43,7 @@ namespace dal {
 
     class ICamera {
 
-    public:
+    private:
         glm::vec3 m_pos;
 
     protected:
@@ -52,8 +52,28 @@ namespace dal {
     public:
         virtual ~ICamera(void) = default;
 
+        auto& pos(void) const {
+            return this->m_pos;
+        }
         const glm::mat4& viewMat(void) const {
             return this->m_viewMat;
+        }
+
+        void setPos(const glm::vec3& v) {
+            this->m_pos = v;
+        }
+        void setPos(const float x, const float y, const float z) {
+            this->m_pos.x = x;
+            this->m_pos.y = y;
+            this->m_pos.z = z;
+        }
+        void addPos(const glm::vec3& v) {
+            this->m_pos += v;
+        }
+        void addPos(const float x, const float y, const float z) {
+            this->m_pos.x += x;
+            this->m_pos.y += y;
+            this->m_pos.z += z;
         }
 
         virtual void updateViewMat(void) = 0;
@@ -91,7 +111,7 @@ namespace dal {
 
     class FocusCamera : public ICamera {
 
-    public:
+    private:
         glm::vec3 m_focusPoint;
 
     public:
@@ -99,8 +119,24 @@ namespace dal {
         virtual std::pair<glm::vec3, glm::mat4> makeReflected(const float planeHeight) const override;
         virtual float calcDirectionXZ(void) const override;
 
+        auto& focusPoint(void) {
+            return this->m_focusPoint;
+        }
+
+        void setFocusPoint(const glm::vec3& v) {
+            this->m_focusPoint = v;
+        }
+        void setFocusPoint(const float x, const float y, const float z) {
+            this->m_focusPoint.x = x;
+            this->m_focusPoint.y = y;
+            this->m_focusPoint.z = z;
+        }
+        void setFocusPoint(const float v) {
+            this->setFocusPoint(v, v, v);
+        }
+
         auto vecToFocus(void) const {
-            return this->m_focusPoint - this->m_pos;
+            return this->m_focusPoint - this->pos();
         }
 
     };

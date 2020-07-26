@@ -362,7 +362,7 @@ namespace dal {
         uniloc.clipPlane(0.f, -1.f, 0.f, this->m_height);
 
         uniloc.viewMat(cam.viewMat());
-        uniloc.viewPos(cam.m_pos);
+        uniloc.viewPos(cam.pos());
 
         this->m_fbuffer.bindRefractionFrameBuffer();
     }
@@ -371,7 +371,7 @@ namespace dal {
         uniloc.clipPlane(0.f, -1.f, 0.f, this->m_height);
 
         uniloc.viewMat(cam.viewMat());
-        uniloc.viewPos(cam.m_pos);
+        uniloc.viewPos(cam.pos());
 
         this->m_fbuffer.bindRefractionFrameBuffer();
     }

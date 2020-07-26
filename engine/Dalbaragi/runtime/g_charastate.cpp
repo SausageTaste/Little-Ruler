@@ -80,11 +80,11 @@ namespace {
 
             {
                 const auto deltaPos = mdlThisPos - mdlLastPos;
-                camera.m_pos += deltaPos * CAM_ROTATE_SPEED_INV;
+                camera.addPos(deltaPos * CAM_ROTATE_SPEED_INV);
             }
 
             {
-                const auto obj2CamVec = camera.m_pos - camOrigin;
+                const auto obj2CamVec = camera.pos() - camOrigin;
                 const auto len = glm::length(obj2CamVec);
                 auto obj2CamSEuler = dal::vec2fpsEuler(obj2CamVec);
 
@@ -94,17 +94,17 @@ namespace {
 
                 obj2CamSEuler.clampY(glm::radians(-MAX_Y_DEGREE), glm::radians(MAX_Y_DEGREE));
                 const auto rotatedVec = dal::fpsEuler2vec(obj2CamSEuler);
-                camera.m_pos = camOrigin + rotatedVec * len;
+                camera.setPos(camOrigin + rotatedVec * len);
             }
 
             {
                 // It break when OBJ_CAM_DISTANCE's value is lower than 3.
 
-                const auto cam2ObjVec = camOrigin - camera.m_pos;
+                const auto cam2ObjVec = camOrigin - camera.pos();
                 const auto cam2ObjSEuler = dal::vec2fpsEuler(cam2ObjVec);
                 camera.setViewPlane(cam2ObjSEuler.x(), cam2ObjSEuler.y());
 
-                camera.m_pos = camOrigin - dal::resizeOnlyXZ(cam2ObjVec, OBJ_CAM_DISTANCE);
+                camera.setPos(camOrigin - dal::resizeOnlyXZ(cam2ObjVec, OBJ_CAM_DISTANCE));
             }
         }
 

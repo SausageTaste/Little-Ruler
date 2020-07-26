@@ -36,27 +36,27 @@ namespace {
 
             {
                 const auto deltaPos = thisPos - lastPos;
-                camera.m_pos += deltaPos * CAM_ROTATE_SPEED_INV;
+                camera.addPos(deltaPos * CAM_ROTATE_SPEED_INV);
             }
 
             {
-                const auto obj2CamVec = camera.m_pos - camOrigin;
+                const auto obj2CamVec = camera.pos() - camOrigin;
                 const auto len = glm::length(obj2CamVec);
                 auto obj2CamSEuler = dal::vec2fpsEuler(obj2CamVec);
 
                 obj2CamSEuler.clampY(glm::radians(-MAX_Y_DEGREE), glm::radians(MAX_Y_DEGREE));
                 const auto rotatedVec = dal::fpsEuler2vec(obj2CamSEuler);
-                camera.m_pos = camOrigin + rotatedVec * len;
+                camera.setPos(camOrigin + rotatedVec * len);
             }
 
             {
                 constexpr float OBJ_CAM_DISTANCE = 3.0f;
 
-                const auto cam2ObjVec = camOrigin - camera.m_pos;
+                const auto cam2ObjVec = camOrigin - camera.pos();
                 const auto cam2ObjSEuler = dal::vec2fpsEuler(cam2ObjVec);
                 camera.setViewPlane(cam2ObjSEuler.x(), cam2ObjSEuler.y());
 
-                camera.m_pos = camOrigin - dal::resizeOnlyXZ(cam2ObjVec, OBJ_CAM_DISTANCE);
+                camera.setPos(camOrigin - dal::resizeOnlyXZ(cam2ObjVec, OBJ_CAM_DISTANCE));
             }
         }
 
@@ -350,6 +350,13 @@ namespace dal {
             auto& enttCtrl = this->m_entities.assign<cpnt::EntityCtrl>(entity);
             enttCtrl.m_ctrler.reset(new EntityToParticle{ enttParticle, this->m_phyworld });
         }
+
+        // Misc
+        {
+            this->m_playerCam.setPos(0, 0, 3);
+            this->m_playerCam.setFocusPoint(0);
+            this->m_playerCam.updateViewMat();
+        }
     }
 
 
@@ -437,7 +444,7 @@ namespace dal {
             if ( mapInfo.m_active )
                 continue;
 
-            if ( ::isGoodToBeLoaded(this->m_playerCam.m_pos, mapInfo, projViewMat) ) {
+            if ( ::isGoodToBeLoaded(this->m_playerCam.pos(), mapInfo, projViewMat) ) {
                 const auto respath = parseResPath(this->m_activeLevel.respath());
                 const auto chunkPath = respath.m_package + "::" + respath.m_intermPath + mapInfo.m_name + ".dmc";
                 this->openChunk(chunkPath.c_str(), mapInfo);

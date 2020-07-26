@@ -117,20 +117,22 @@ namespace dal {
 
     void FPSEulerCamera::updateViewMat(void) {
         const auto rot = this->m_fpsEuler.makeRotateMat();
-        this->m_viewMat = glm::translate(rot, glm::vec3(-this->m_pos.x, -this->m_pos.y, -this->m_pos.z));
+        this->m_viewMat = glm::translate(rot, -this->pos());
     }
 
     std::pair<glm::vec3, glm::mat4> FPSEulerCamera::makeReflected(const float planeHeight) const {
         dal::FPSEulerCamera newCam = *this;
 
-        newCam.m_pos.y = 2.0f * planeHeight - newCam.m_pos.y;
+        auto newPos = newCam.pos();
+        newPos.y = 2.0f * planeHeight - newCam.pos().y;
+        newCam.setPos(newPos);
 
         const auto camViewPlane = newCam.getViewPlane();
         newCam.setViewPlane(camViewPlane.x, -camViewPlane.y);
 
         newCam.updateViewMat();
 
-        return { newCam.m_pos, newCam.viewMat() };
+        return { newCam.pos(), newCam.viewMat() };
     }
 
     float FPSEulerCamera::calcDirectionXZ(void) const {
@@ -160,18 +162,21 @@ namespace dal {
 namespace dal {
 
     void FocusCamera::updateViewMat(void) {
-        this->m_viewMat = glm::lookAt(this->m_pos, this->m_focusPoint, glm::vec3{ 0, 1, 0 });
+        this->m_viewMat = glm::lookAt(this->pos(), this->m_focusPoint, glm::vec3{ 0, 1, 0 });
     }
 
     std::pair<glm::vec3, glm::mat4> FocusCamera::makeReflected(const float planeHeight) const {
         dal::FocusCamera newCam = *this;
 
-        newCam.m_pos.y = 2.0f * planeHeight - newCam.m_pos.y;
+        auto newPos = newCam.pos();
+        newPos.y = 2.0f * planeHeight - newCam.pos().y;
+        newCam.setPos(newPos);
+
         newCam.m_focusPoint.y = 2.0f * planeHeight - newCam.m_focusPoint.y;
 
         newCam.updateViewMat();
 
-        return { newCam.m_pos, newCam.viewMat() };
+        return { newCam.pos(), newCam.viewMat() };
     }
 
     float FocusCamera::calcDirectionXZ(void) const {

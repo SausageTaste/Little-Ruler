@@ -250,8 +250,8 @@ namespace {
         const auto camPosDirec = glm::rotate(glm::mat4{ 1 }, -camInfo.m_horizontal, glm::vec3{ 0, 1, 0 }) *
             glm::rotate(glm::mat4{ 1 }, -camInfo.m_vertical, glm::vec3{ 1, 0, 0 }) * glm::vec4{ 0, 0, -1, 1 };
 
-        cam.m_focusPoint = thisPos + TARGET_FOCUS_OFFSET;
-        cam.m_pos = cam.m_focusPoint + glm::vec3{ camPosDirec } *TARGET_CAM_DISTANCE;
+        cam.setFocusPoint(thisPos + TARGET_FOCUS_OFFSET);
+        cam.setPos(cam.focusPoint() + glm::vec3{ camPosDirec } *TARGET_CAM_DISTANCE);
     }
 
 }
