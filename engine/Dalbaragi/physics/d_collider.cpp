@@ -243,8 +243,9 @@ namespace {
 
     private:
         static glm::vec3 resolveAABB_aabb(const dal::MovingAABBInfo& aabb, const dal::ICollider& other, const dal::Transform& trans) {
+            const auto newAABB = aabb.m_aabb.transform(aabb.m_thisPos, aabb.m_thisScale);
             const auto newOther = reinterpret_cast<const dal::ColAABB&>(other).transform(trans.getPos(), trans.getScale());
-            return dal::calcResolveForAABB(aabb, newOther);
+            return dal::calcResolveForAABB(newAABB, newOther);
         }
 
     } g_colResolver;

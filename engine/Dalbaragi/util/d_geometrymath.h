@@ -374,7 +374,7 @@ namespace dal {
     };
 
 
-    glm::vec3 calcResolveForAABB(const MovingAABBInfo& aabb, const dal::AABB& other);
+    glm::vec3 calcResolveForAABB(const dal::AABB& movingBox, const dal::AABB& staticBox);
 
 }
 

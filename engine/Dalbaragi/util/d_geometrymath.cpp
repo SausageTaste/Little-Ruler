@@ -878,14 +878,12 @@ namespace {
 // Resolve collision of aabb againt static objects
 namespace dal {
 
-    glm::vec3 calcResolveForAABB(const dal::MovingAABBInfo& aabb, const dal::AABB& other) {
-        const auto newAABB = aabb.m_aabb.transform(aabb.m_thisPos, aabb.m_thisScale);
-
-        if ( !dal::isIntersecting(newAABB, other) ) {
+    glm::vec3 calcResolveForAABB(const dal::AABB& movingBox, const dal::AABB& staticBox) {
+        if ( !dal::isIntersecting(movingBox, staticBox) ) {
             return glm::vec3{ 0 };
         }
 
-        const auto result = calcResolveInfo_withMinMax(newAABB.min(), newAABB.max(), other.min(), other.max(), 1, 0);
+        const auto result = calcResolveInfo_withMinMax(movingBox.min(), movingBox.max(), staticBox.min(), staticBox.max(), 1, 0);
         if ( !result.m_valid )
             return glm::vec3{ 0 };
 

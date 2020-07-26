@@ -21,7 +21,7 @@ using namespace fmt::literals;
 
 namespace {
 
-    const dal::ColAABB PLAYER_AABB{ glm::vec3{-0.3, 0.2, -0.3}, glm::vec3{0.3, 1.3, 0.3} };
+    const dal::ColAABB PLAYER_AABB{ glm::vec3{-0.3, 0.3, -0.3}, glm::vec3{0.3, 1.3, 0.3} };
 
 
     void bindCameraPos(dal::FPSEulerCamera& camera, const glm::vec3 thisPos, const glm::vec3 lastPos) {
@@ -355,8 +355,10 @@ namespace dal {
 
         // Resolve collisions
         {
+            constexpr unsigned MAX_ITERATION = 3;
+
             auto& trans = this->m_entities.get<cpnt::Transform>(this->m_player);
-            const auto playerAABB = PLAYER_AABB.transform(trans.getPos(), trans.getScale());
+            auto playerAABB = PLAYER_AABB.transform(trans.getPos(), trans.getScale());
             const auto deltaPlayerMove = trans.getPos() - this->m_playerLastTrans.getPos();
 
             std::vector<dal::AABB> aabbs;
@@ -364,7 +366,7 @@ namespace dal {
 
             // Get sets of colliders
             {
-                dal::TriangleSorter triangleHeap{ deltaPlayerMove };
+                dal::TriangleSorter triangleHeap{ -deltaPlayerMove };
                 for ( auto& map : this->m_mapChunks )
                     if ( dal::isIntersecting(playerAABB, map.m_info->m_aabb) )
                         map.m_map.findIntersctionsToStatic(playerAABB, aabbs, triangleHeap);
@@ -375,7 +377,32 @@ namespace dal {
                 }
             }
 
-            // Resolve
+            // Resolve AABBs
+            for ( const auto& aabb : aabbs ) {
+                const auto result = dal::calcResolveForAABB(playerAABB, aabb);
+                trans.addPos(result);
+                playerAABB = PLAYER_AABB.transform(trans.getPos(), trans.getScale());
+            }
+
+            // Resolve triangles
+            for ( int i = 0; i < MAX_ITERATION; ++i ) {
+                bool resolved = false;
+
+                for ( const auto& tri : triangles ) {
+                    if ( dal::isIntersecting(tri, playerAABB) ) {
+                        const auto [dist, direc] = dal::calcIntersectingDepth(playerAABB, tri.plane());
+                        if ( 0.f == dist )
+                            continue;
+
+                        trans.addPos(-dist * direc);
+                        playerAABB = PLAYER_AABB.transform(trans.getPos(), trans.getScale());
+                        resolved = true;
+                    }
+                }
+
+                if ( !resolved )
+                    break;
+            }
 
             // Draw player aabb
             for ( auto& tri : playerAABB.makeTriangles() )
