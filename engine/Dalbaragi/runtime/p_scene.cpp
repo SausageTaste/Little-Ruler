@@ -457,22 +457,25 @@ namespace dal {
             map.m_map.render_static(uniloc);
         }
 
-        if ( !this->m_mapChunks.empty() ) {
-            this->m_mapChunks.front().m_map.sendPlightUniforms(uniloc.i_lighting);
-            this->m_mapChunks.front().m_map.sendSlightUniforms(uniloc.i_lighting);
-        }
-
         const auto view = this->m_entities.view<cpnt::Transform, cpnt::StaticModel>();
         for ( const auto entity : view ) {
             auto& cpntTrans = view.get<cpnt::Transform>(entity);
             auto& cpntModel = view.get<cpnt::StaticModel>(entity);
 
             auto envmap = this->findClosestEnv(cpntTrans.getPos());
-            if ( nullptr != envmap ) {
+            if ( nullptr != envmap )
                 sendEnvmapUniform(*envmap, uniloc.i_envmap);
+            else
+                uniloc.i_envmap.hasEnvmap(false);
+
+            auto map = this->findClosestMapChunk(cpntTrans.getPos());
+            if ( nullptr != map ) {
+                map->sendPlightUniforms(uniloc.i_lighting);
+                map->sendSlightUniforms(uniloc.i_lighting);
             }
             else {
-                uniloc.i_envmap.hasEnvmap(false);
+                uniloc.i_lighting.plightCount(0);
+                uniloc.i_lighting.slightCount(0);
             }
 
             uniloc.modelMat(cpntTrans.getMat());
@@ -483,22 +486,25 @@ namespace dal {
     void SceneGraph::render_animated(const UniRender_Animated& uniloc) {
         this->sendDlightUniform(uniloc.i_lighting);
 
-        if ( !this->m_mapChunks.empty() ) {
-            this->m_mapChunks.front().m_map.sendPlightUniforms(uniloc.i_lighting);
-            this->m_mapChunks.front().m_map.sendSlightUniforms(uniloc.i_lighting);
-        }
-
         const auto viewAnimated = this->m_entities.view<cpnt::Transform, cpnt::AnimatedModel>();
         for ( const auto entity : viewAnimated ) {
             auto& cpntTrans = viewAnimated.get<cpnt::Transform>(entity);
             auto& cpntModel = viewAnimated.get<cpnt::AnimatedModel>(entity);
 
             auto envmap = this->findClosestEnv(cpntTrans.getPos());
-            if ( nullptr != envmap ) {
+            if ( nullptr != envmap )
                 sendEnvmapUniform(*envmap, uniloc.i_envmap);
+            else
+                uniloc.i_envmap.hasEnvmap(false);
+
+            auto map = this->findClosestMapChunk(cpntTrans.getPos());
+            if ( nullptr != map ) {
+                map->sendPlightUniforms(uniloc.i_lighting);
+                map->sendSlightUniforms(uniloc.i_lighting);
             }
             else {
-                uniloc.i_envmap.hasEnvmap(false);
+                uniloc.i_lighting.plightCount(0);
+                uniloc.i_lighting.slightCount(0);
             }
 
             uniloc.modelMat(cpntTrans.getMat());
@@ -641,6 +647,15 @@ namespace dal {
         }
 
         return result;
+    }
+
+    auto SceneGraph::findClosestMapChunk(const glm::vec3& pos) const -> const dal::MapChunk2* {
+        for ( auto& map : this->m_mapChunks ) {
+            if ( map.m_info->m_aabb.isInside(pos) )
+                return &map.m_map;
+        }
+
+        return nullptr;
     }
 
 

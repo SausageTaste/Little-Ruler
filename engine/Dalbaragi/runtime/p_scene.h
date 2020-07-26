@@ -125,6 +125,7 @@ namespace dal {
         std::optional<RayCastingResult> doRayCasting(const Segment& ray);
 
         auto findClosestEnv(const glm::vec3& pos) const -> const dal::EnvMap*;
+        auto findClosestMapChunk(const glm::vec3& pos) const -> const dal::MapChunk2*;
 
         void onResize(const unsigned int width, const unsigned int height);
 
