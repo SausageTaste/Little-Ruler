@@ -76,7 +76,7 @@ namespace {
 
 
     // From https://stackoverflow.com/questions/17458562/efficient-aabb-triangle-intersection-in-c-sharp
-    template <unsigned _NumPoints>
+    template <size_t _NumPoints>
     std::pair<double, double> Project(const std::array<glm::vec3, _NumPoints>& points, const glm::vec3& axis) {
         double min = std::numeric_limits<double>::infinity();
         double max = -std::numeric_limits<double>::infinity();

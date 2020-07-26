@@ -1,6 +1,7 @@
 #pragma once
 
 #include <array>
+#include <vector>
 #include <optional>
 #include <functional>
 
@@ -228,7 +229,7 @@ namespace dal {
     class TriangleSoup {
 
     private:
-        std::vector<Triangle> m_triangles;
+        std::vector<dal::Triangle> m_triangles;
         bool m_faceCull = true;
 
     public:
