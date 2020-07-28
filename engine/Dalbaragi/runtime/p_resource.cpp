@@ -9,10 +9,10 @@
 #include <d_pool.h>
 #include <d_filesystem.h>
 #include <d_mapparser.h>
+#include <d_debugview.h>
 
 #include "u_objparser.h"
 #include "s_configs.h"
-#include "u_dlbparser.h"
 #include "u_fileutils.h"
 
 
@@ -333,7 +333,7 @@ namespace dal {
 #if DAL_PARALLAX_CORRECTED_CUBEMAP == true
         uniloc.numPlanes(cubemap.m_volume.size());
         for ( size_t i = 0; i < cubemap.m_volume.size(); ++i ) {
-            const auto plane = cubemap.m_volume[i].getCoeff();
+            const auto plane = cubemap.m_volume[i].coeff();
             uniloc.plane(i, plane);
         }
 #else
@@ -383,38 +383,67 @@ namespace dal {
     }
 
 
-    void MapChunk2::applyCollision(const ICollider& inCol, cpnt::Transform& inTrans) {
-        PhysicalProperty inPhysics, mdlPhysics;
-        inPhysics.setMassInv(1.f);
+    void MapChunk2::findIntersctionsToStatic(const dal::AABB& aabb, std::vector<dal::AABB>& out_aabbs, dal::TriangleSorter& out_triangles) const {
+        auto& dview = dal::DebugViewGod::inst();
 
-        for ( auto& mdl : this->m_staticActors ) {
-            const auto mdlBounding = mdl.m_model->getBounding();
-            if ( nullptr == mdlBounding ) {
+        for ( auto& modelActor : this->m_staticActors ) {
+            const auto colBounding = modelActor.m_model->getBounding();
+            if ( nullptr == colBounding )
                 continue;
-            }
+            assert(dal::ColliderType::aabb == colBounding->getColType());
 
-            const auto mdlDetailed = mdl.m_model->getDetailed();
-            if ( nullptr != mdlDetailed ) {
-                for ( auto& actor : mdl.m_actors ) {
-                    const auto withBounding = checkCollisionAbs(inCol, *mdlBounding, inTrans, actor.m_transform);
-                    if ( !withBounding ) {
+            for ( auto& actor : modelActor.m_actors ) {
+                const auto box = reinterpret_cast<const ColAABB*>(colBounding)->transform(actor.m_transform.getPos(), actor.m_transform.getScale());
+
+                switch ( actor.m_colType ) {
+
+                case dal::ActorInfo::ColliderType::aabb:
+                {
+                    if ( dal::isIntersecting(aabb, box) ) {
+                        out_aabbs.push_back(box);
+
+                        for ( auto& tri : box.makeTriangles() )
+                            dview.addTriangle(tri.point0(), tri.point1(), tri.point2(), glm::vec4{ 0, 0, 1, 0.2 });
+                    }
+                    else {
+                        for ( auto& tri : box.makeTriangles() )
+                            dview.addTriangle(tri.point0(), tri.point1(), tri.point2(), glm::vec4{ 0, 0, 0.3, 0.2 });
+                    }
+                    break;
+                }
+                case dal::ActorInfo::ColliderType::mesh:
+                {
+                    if ( !dal::isIntersecting(aabb, box) ) {
+                        for ( const auto& tri : box.makeTriangles() )
+                            dview.addTriangle(tri.point0(), tri.point1(), tri.point2(), glm::vec4{ 0.3, 0, 0, 0.2 });
+
                         continue;
                     }
 
-                    const auto result = calcResolveInfoABS(inCol, inPhysics, inTrans, *mdlDetailed, mdlPhysics, actor.m_transform);
-                    if ( result.m_valid ) {
-                        inTrans.addPos(result.m_this);
-                        actor.m_transform.addPos(result.m_other);
+                    const auto colDetailed = modelActor.m_model->getDetailed();
+                    if ( dal::ColliderType::triangle_soup == colDetailed->getColType() ) {
+                        const auto soup = reinterpret_cast<const dal::ColTriangleSoup*>(colDetailed);
+                        const auto transMat = actor.m_transform.getMat();
+
+                        for ( const auto& rawTri : *soup ) {
+                            const auto tri = rawTri.transform(transMat);
+                            if ( dal::isIntersecting(tri, aabb) ) {
+                                out_triangles.add(tri);
+                                dview.addTriangle(tri.point0(), tri.point1(), tri.point2(), glm::vec4{ 1, 0.3, 0.3, 0.2 });
+                            }
+                            else {
+                                dview.addTriangle(tri.point0(), tri.point1(), tri.point2(), glm::vec4{ 0.3, 0, 0, 0.2 });
+                            }
+                        }
                     }
+                    else {
+
+                    }
+                    break;
                 }
-            }
-            else {
-                for ( auto& actor : mdl.m_actors ) {
-                    const auto result = calcResolveInfoABS(inCol, inPhysics, inTrans, *mdlBounding, mdlPhysics, actor.m_transform);
-                    if ( result.m_valid ) {
-                        inTrans.addPos(result.m_this);
-                        actor.m_transform.addPos(result.m_other);
-                    }
+                default:
+                    break;
+
                 }
             }
         }
@@ -426,37 +455,41 @@ namespace dal {
 
         for ( auto& modelActor : this->m_staticActors ) {
             const auto mdlBounding = modelActor.m_model->getBounding();
-            if ( nullptr == mdlBounding ) {
-                continue;
-            }
-
             const auto mdlDetailed = modelActor.m_model->getDetailed();
+            if ( nullptr == mdlBounding )
+                continue;
 
-            if ( nullptr != mdlDetailed ) {
-                for ( auto& actor : modelActor.m_actors ) {
-                    if ( !checkCollisionAbs(ray, *mdlBounding, actor.m_transform) ) {
+            for ( auto& actor : modelActor.m_actors ) {
+                if ( dal::ActorInfo::ColliderType::aabb == actor.m_colType ) {
+                    const auto res = calcCollisionInfoAbs(ray, *mdlBounding, actor.m_transform);
+                    if ( !res )
                         continue;
-                    }
-                    const auto res = calcCollisionInfoAbs(ray, *mdlDetailed, actor.m_transform);
-                    if ( !res ) {
-                        continue;
-                    }
+
                     if ( res->m_distance < closestDistance ) {
                         closestDistance = res->m_distance;
                         result = *res;
                     }
                 }
-            }
-            else {
-                for ( auto& actor : modelActor.m_actors ) {
-                    const auto res = calcCollisionInfoAbs(ray, *mdlBounding, actor.m_transform);
-                    if ( !res ) {
+                else if ( dal::ActorInfo::ColliderType::mesh == actor.m_colType ) {
+                    if ( nullptr == mdlDetailed ) {
+                        dalError(fmt::format("A actor '{}' with collider type 'mesh' doesn't have defailed collider", actor.m_name));
                         continue;
                     }
+
+                    if ( !checkCollisionAbs(ray, *mdlBounding, actor.m_transform) )
+                        continue;
+
+                    const auto res = calcCollisionInfoAbs(ray, *mdlDetailed, actor.m_transform);
+                    if ( !res )
+                        continue;
+
                     if ( res->m_distance < closestDistance ) {
                         closestDistance = res->m_distance;
                         result = *res;
                     }
+                }
+                else {
+                    continue;
                 }
             }
         }
@@ -899,67 +932,6 @@ namespace dal {
         return tex;
     }
 
-
-    MapChunk2 ResourceMaster::loadMap(const char* const respath) {
-        std::vector<uint8_t> buffer;
-        loadFileBuffer(respath, buffer);
-        auto mapInfo = parseDLB(buffer.data(), buffer.size());
-        if ( !mapInfo ) {
-            dalAbort(fmt::format("Failed to load map : {}", respath));
-        }
-
-        MapChunk2 map;
-
-        for ( auto& mdlEmbed : mapInfo->m_embeddedModels ) {
-            //std::shared_ptr<ModelStatic> model{ new ModelStatic };
-            auto model = std::make_shared<ModelStatic>();
-
-            // Name
-            {
-                model->setResID(mdlEmbed.m_name);
-            }
-
-            // Render units
-            for ( const auto& unitInfo : mdlEmbed.m_renderUnits ) {
-                auto& unit = model->newRenderUnit();
-                unit.m_mesh.buildData(
-                    unitInfo.m_mesh.m_vertices.data(),
-                    unitInfo.m_mesh.m_texcoords.data(),
-                    unitInfo.m_mesh.m_normals.data(),
-                    unitInfo.m_mesh.m_vertices.size() / 3
-                );
-
-                copyMaterial(unit.m_material, unitInfo.m_material, *this, "");
-            }
-
-            // Colliders
-            {
-                model->setBounding(std::move(mdlEmbed.m_bounding));
-                model->setDetailed(std::move(mdlEmbed.m_detailed));
-            }
-
-            map.addStaticActorModel(std::move(model), std::move(mdlEmbed.m_staticActors));
-        }
-
-        for ( auto& mdlImport : mapInfo->m_importedModels ) {
-            auto model = this->orderModelStatic(mdlImport.m_resourceID.c_str());
-            map.addStaticActorModel(std::move(model), std::move(mdlImport.m_staticActors));
-        }
-
-        for ( auto& water : mapInfo->m_waterPlanes ) {
-            map.addWaterPlane(water);
-        }
-
-        for ( auto& light : mapInfo->m_plights ) {
-            auto& mapLight = map.newPlight();
-            mapLight.mPos = light.m_pos;
-            mapLight.m_color = light.m_color;
-            mapLight.mMaxDistance = light.m_maxDist;
-        }
-
-        return map;
-    }
-
     MapChunk2 ResourceMaster::loadChunk(const char* const respath) {
         const auto respathParsed = parseResPath(respath);
 
@@ -991,16 +963,51 @@ namespace dal {
 
             model->setBounding(std::unique_ptr<ICollider>{new ColAABB{ modelInfo.m_aabb.m_min, modelInfo.m_aabb.m_max }});
 
+            if ( modelInfo.m_hasMeshCollider ) {
+                auto soup = std::make_unique<dal::ColTriangleSoup>();
+
+                for ( auto& unitInfo : modelInfo.m_renderUnits ) {
+                    const auto& vertices = unitInfo.m_mesh.m_vertices;
+                    const auto vertSize = unitInfo.m_mesh.m_vertices.size() / 3;
+                    const auto numTriangles = vertSize / 3;
+
+                    for ( unsigned i = 0; i < numTriangles; ++i ) {
+                        const glm::vec3 p0{ vertices[9 * i + 0], vertices[9 * i + 1], vertices[9 * i + 2] };
+                        const glm::vec3 p1{ vertices[9 * i + 3], vertices[9 * i + 4], vertices[9 * i + 5] };
+                        const glm::vec3 p2{ vertices[9 * i + 6], vertices[9 * i + 7], vertices[9 * i + 8] };
+                        soup->addTriangle(dal::Triangle{ p0, p1, p2 });
+                    }
+                }
+
+                model->setDetailed(std::unique_ptr<ICollider>{ soup.release() });
+            }
+
             map.m_staticActors.emplace_back(model);
         }
 
         for ( auto& sactorInfo : mapInfo->m_staticActors ) {
             auto& modelActor = map.m_staticActors[sactorInfo.m_modelIndex];
-            modelActor.m_actors.emplace_back();
+            auto& actor = modelActor.m_actors.emplace_back();
 
-            modelActor.m_actors.back().m_name = sactorInfo.m_name;
-            copyTransform(modelActor.m_actors.back().m_transform, sactorInfo.m_trans);
-            modelActor.m_actors.back().m_envmapIndices = sactorInfo.m_envmapIndices;
+            actor.m_name = sactorInfo.m_name;
+            copyTransform(actor.m_transform, sactorInfo.m_trans);
+            actor.m_envmapIndices = sactorInfo.m_envmapIndices;
+
+            switch ( sactorInfo.m_colType ) {
+
+            case dal::v1::StaticActor::ColliderType::aabb:
+                actor.m_colType = ActorInfo::ColliderType::aabb;
+                break;
+            case dal::v1::StaticActor::ColliderType::none:
+                actor.m_colType = ActorInfo::ColliderType::none;
+                break;
+            case dal::v1::StaticActor::ColliderType::mesh:
+                actor.m_colType = ActorInfo::ColliderType::mesh;
+                break;
+            default:
+                dalAbort("shit");
+
+            }
         }
 
         const auto win_width = GlobalStateGod::getinst().getWinWidth();

@@ -199,11 +199,6 @@ namespace dal {
             this->m_currentContext = m_contexts.front().get();
         }
 
-        // Camera
-        {
-            this->m_scene.m_playerCam.m_pos = { 0.0f, 3.0f, 3.0f };
-        }
-
         // Widgets
         {
             LuaState::giveDependencies(this, &this->m_renderMan);

@@ -1,7 +1,10 @@
 #pragma once
 
+#include <vector>
+
 #include "g_actor.h"
 #include "p_model.h"
+#include "d_camera.h"
 
 
 namespace dal {
@@ -28,7 +31,7 @@ namespace dal {
         // Don't judge me. I love Undertale.
 
     protected:
-        StrangeEulerCamera& m_camera;
+        ICamera& m_camera;
         SceneGraph& m_scene;
 
     public:
@@ -38,7 +41,7 @@ namespace dal {
         ICharaState& operator=(ICharaState&&) = delete;
 
     public:
-        ICharaState(StrangeEulerCamera& camera, SceneGraph& scene);
+        ICharaState(ICamera& camera, SceneGraph& scene);
         virtual ~ICharaState(void) = default;
 
         virtual void enter(void) = 0;
@@ -54,10 +57,13 @@ namespace dal {
         class CharacterState {
 
         private:
+            std::vector<ICharaState*> m_states;
             ICharaState* m_currentState;
 
         public:
-            CharacterState(cpnt::Transform& transform, cpnt::AnimatedModel& model, dal::StrangeEulerCamera& camera, SceneGraph& scene);
+            CharacterState(cpnt::Transform& transform, cpnt::AnimatedModel& model, dal::ICamera& camera, SceneGraph& scene);
+            ~CharacterState(void);
+
             void update(const float deltaTime, const MoveInputInfo& info);
 
         };

@@ -11,7 +11,6 @@ add_library(dalbaragi_runtime
     d_context_main.h        d_context_main.cpp
     g_actor.h               g_actor.cpp
     g_charastate.h          g_charastate.cpp
-    m_collider.h            m_collider.cpp
     p_animation.h           p_animation.cpp
     p_dalopengl.h           p_dalopengl.cpp
     p_globalfsm.h
@@ -26,7 +25,6 @@ add_library(dalbaragi_runtime
     p_water.h               p_water.cpp
     s_input_queue.h         s_input_queue.cpp
     s_threader.h            s_threader.cpp
-    u_dlbparser.h           u_dlbparser.cpp
     u_loadinfo.h            u_loadinfo.cpp
     u_luascript.h           u_luascript.cpp
     u_objparser.h           u_objparser.cpp
@@ -34,6 +32,7 @@ add_library(dalbaragi_runtime
     x_mainloop.h            x_mainloop.cpp
     d_global_macro.h
     d_overlay_interface.h   d_overlay_interface.cpp
+    d_camera.h              d_camera.cpp
 )
 target_include_directories(dalbaragi_runtime PUBLIC .)
 target_compile_features(dalbaragi_runtime PUBLIC cxx_std_17)

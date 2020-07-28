@@ -9,9 +9,11 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 #include <d_logger.h>
+#include <d_debugview.h>
 
 
 #define DAL_RENDER_WATER true
+#define DAL_SUN_ORBIT false
 
 
 using namespace fmt::literals;
@@ -446,21 +448,24 @@ namespace dal {
     void RenderMaster::update(const float deltaTime) {
         {
             for ( auto& dlight : this->m_scene.m_dlights ) {
-                dlight.setPos(glm::round(this->m_mainCamera->m_pos));
+                dlight.setPos(glm::round(this->m_mainCamera->pos()));
             }
         }
-        /*
+
+#if DAL_SUN_ORBIT
+        auto& sunlight = this->m_scene.m_dlights.back();
+        
         const auto mat = glm::rotate(glm::mat4{ 1.0f }, deltaTime * 0.3f, glm::vec3{ 1.0f, 0.5f, 0.0f });
-        const glm::vec4 direcBefore{ this->m_dlight1.getDirection(), 0.0f };
+        const glm::vec4 direcBefore{ sunlight.getDirection(), 0.0f };
         const auto newDirec = glm::normalize(glm::vec3{ mat * direcBefore });
-        this->m_dlight1.setDirectin(newDirec);
+        sunlight.setDirectin(newDirec);
 
         const auto diff = glm::dot(newDirec, glm::vec3{ 0.0f, -1.0f, 0.0f });
         m_skyColor = glm::vec3{ 0.5f, 0.5f, 0.8f } *glm::max(diff, 0.0f) + glm::vec3{ 0.1f, 0.1f, 0.2f };
         glClearColor(m_skyColor.x, m_skyColor.y, m_skyColor.z, 1.0f);
 
-        this->m_flagDrawDlight1 = -0.3f < diff;
-        */
+        //this->m_flagDrawDlight1 = -0.3f < diff;
+#endif
     }
 
     void RenderMaster::render(entt::registry& reg) {
@@ -472,20 +477,50 @@ namespace dal {
         this->render_onCubemap();
         this->render_onFbuf();
 
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        glViewport(0, 0, this->m_winWidth, this->m_winHeight);
+
         // Render framebuffer to quad 
         {
-            glBindFramebuffer(GL_FRAMEBUFFER, 0);
-            glViewport(0, 0, this->m_winWidth, this->m_winHeight);
+           
             auto& uniloc = this->m_shader.useFillScreen();
 
             uniloc.projMat(this->m_projectMat);
-            uniloc.viewMat(this->m_mainCamera->getViewMat());
-            uniloc.viewPos(this->m_mainCamera->m_pos);
+            uniloc.viewMat(this->m_mainCamera->viewMat());
+            uniloc.viewPos(this->m_mainCamera->pos());
             this->m_scene.sendDlightUniform(uniloc.i_lighting);
-            this->m_scene.m_mapChunks.back().m_map.sendSlightUniforms(uniloc.i_lighting);
+
+            auto map = this->m_scene.findClosestMapChunk(this->m_scene.m_playerCam.pos());
+            if ( nullptr != map ) {
+                map->sendSlightUniforms(uniloc.i_lighting);
+            }
+            else {
+                uniloc.i_lighting.slightCount(0);
+            }
 
             this->m_fbuffer.sendUniform(uniloc);
             g_vertbuf_fillscreen.draw();
+        }
+
+        // Debug view
+        {
+#if DAL_DRAW_DEBUG_VIEW
+            auto& uniloc = this->m_shader.useDTriangle();
+
+            const auto projMat = this->m_projectMat;
+            const auto viewMat = this->m_mainCamera->viewMat();
+            uniloc.matrix(projMat * viewMat);
+
+            for ( const auto& tri : dal::DebugViewGod::inst().triangles() ) {
+                uniloc.point0(tri.m_vert[0]);
+                uniloc.point1(tri.m_vert[1]);
+                uniloc.point2(tri.m_vert[2]);
+                uniloc.color(tri.m_color);
+                glDrawArrays(GL_TRIANGLES, 0, 3);
+            }
+
+            dal::DebugViewGod::inst().triangles().clear();
+#endif
         }
     }
 
@@ -590,8 +625,8 @@ namespace dal {
             auto& uniloc = this->m_shader.useStaticOnWater();
 
             uniloc.projMat(this->m_projectMat);
-            uniloc.viewMat(this->m_mainCamera->getViewMat());
-            uniloc.viewPos(this->m_mainCamera->m_pos);
+            uniloc.viewMat(this->m_mainCamera->viewMat());
+            uniloc.viewPos(this->m_mainCamera->pos());
             uniloc.i_lighting.baseAmbient(this->m_baseAmbientColor);
 
             for ( auto water : waters ) {
@@ -614,8 +649,8 @@ namespace dal {
             auto& uniloc = this->m_shader.useAnimatedOnWater();
 
             uniloc.projMat(this->m_projectMat);
-            uniloc.viewMat(this->m_mainCamera->getViewMat());
-            uniloc.viewPos(this->m_mainCamera->m_pos);
+            uniloc.viewMat(this->m_mainCamera->viewMat());
+            uniloc.viewPos(this->m_mainCamera->pos());
             uniloc.i_lighting.baseAmbient(this->m_baseAmbientColor);
 
             for ( auto water : waters ) {
@@ -667,7 +702,7 @@ namespace dal {
         }
 
         const auto projMat = glm::perspective(glm::radians(90.f), 1.f, 0.1f, 50.f);
-        const auto envmap = ::selectEnvmapToUpdate(this->m_mainCamera->m_pos, this->m_scene);
+        const auto envmap = ::selectEnvmapToUpdate(this->m_mainCamera->pos(), this->m_scene);
 
         if ( nullptr != envmap ) {
             g_cubemapFbuf.bind();
@@ -733,7 +768,7 @@ namespace dal {
                 const float sqrt2 = sqrt(1.0 / 3.0);
 
                 this->m_skyboxTex->sendUniform(uniloc.skyboxTex());
-                uniloc.viewPosActual(this->m_mainCamera->m_pos);
+                uniloc.viewPosActual(this->m_mainCamera->pos());
                 uniloc.modelMat(glm::scale(glm::mat4{ 1 }, glm::vec3{ sqrt2 * this->m_farPlaneDistance }));
                 uniloc.viewPos(0, 0, 0);
 
@@ -800,8 +835,8 @@ namespace dal {
             auto& uniloc = this->m_shader.useStatic();
 
             uniloc.projMat(this->m_projectMat);
-            uniloc.viewMat(this->m_mainCamera->getViewMat());
-            uniloc.viewPos(this->m_mainCamera->m_pos);
+            uniloc.viewMat(this->m_mainCamera->viewMat());
+            uniloc.viewPos(this->m_mainCamera->pos());
             uniloc.i_lighting.baseAmbient(this->m_baseAmbientColor);
             uniloc.i_envmap.hasEnvmap(false);
             g_brdfLUT.sendUniform(uniloc.i_envmap.brdfLUT());
@@ -815,8 +850,8 @@ namespace dal {
             auto& uniloc = this->m_shader.useAnimated();
 
             uniloc.projMat(this->m_projectMat);
-            uniloc.viewMat(this->m_mainCamera->getViewMat());
-            uniloc.viewPos(this->m_mainCamera->m_pos);
+            uniloc.viewMat(this->m_mainCamera->viewMat());
+            uniloc.viewPos(this->m_mainCamera->pos());
             uniloc.i_lighting.baseAmbient(this->m_baseAmbientColor);
             uniloc.i_envmap.hasEnvmap(false);
             g_brdfLUT.sendUniform(uniloc.i_envmap.brdfLUT());
@@ -830,8 +865,8 @@ namespace dal {
             auto& uniloc = this->m_shader.useWater();
 
             uniloc.projMat(this->m_projectMat);
-            uniloc.viewMat(this->m_mainCamera->getViewMat());
-            uniloc.viewPos(this->m_mainCamera->m_pos);
+            uniloc.viewMat(this->m_mainCamera->viewMat());
+            uniloc.viewPos(this->m_mainCamera->pos());
             uniloc.i_lighting.baseAmbient(this->m_baseAmbientColor);
             this->m_scene.sendDlightUniform(uniloc.i_lighting);
 
@@ -847,10 +882,10 @@ namespace dal {
             const float sqrt2 = sqrt(1.0 / 3.0);
 
             this->m_skyboxTex->sendUniform(uniloc.skyboxTex());
-            uniloc.viewPosActual(this->m_mainCamera->m_pos);
+            uniloc.viewPosActual(this->m_mainCamera->pos());
 
             uniloc.projMat(this->m_projectMat);
-            uniloc.viewMat(glm::mat4(glm::mat3(this->m_mainCamera->getViewMat())));
+            uniloc.viewMat(glm::mat4(glm::mat3(this->m_mainCamera->viewMat())));
             uniloc.modelMat(glm::scale(glm::mat4{ 1 }, glm::vec3{ sqrt2 * this->m_farPlaneDistance }));
             uniloc.viewPos(0, 0, 0);
 

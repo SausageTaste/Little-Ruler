@@ -320,4 +320,12 @@ namespace dal {
         this->u_envmap.init(getUniloc(shader, "u_envmap"), -2, g_texUnitReg["u_envmap"]);
     }
 
+    void UniRender_DTriangle::set(const GLuint shader) {
+        this->u_p0 = getUniloc(shader, "u_p0");
+        this->u_p1 = getUniloc(shader, "u_p1");
+        this->u_p2 = getUniloc(shader, "u_p2");
+        this->u_mat = getUniloc(shader, "u_mat");
+        this->u_color = getUniloc(shader, "u_color");
+    }
+
 }

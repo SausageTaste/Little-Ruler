@@ -9,6 +9,7 @@
 #include <d_modifiers.h>
 #include <d_filesystem.h>
 #include <d_mapparser.h>
+#include <d_debugview.h>
 
 #include "s_configs.h"
 #include "g_charastate.h"
@@ -20,7 +21,10 @@ using namespace fmt::literals;
 
 namespace {
 
-    void bindCameraPos(dal::StrangeEulerCamera& camera, const glm::vec3 thisPos, const glm::vec3 lastPos) {
+    const dal::ColAABB PLAYER_AABB{ glm::vec3{-0.3, 0.3, -0.3}, glm::vec3{0.3, 1.3, 0.3} };
+
+
+    void bindCameraPos(dal::FPSEulerCamera& camera, const glm::vec3 thisPos, const glm::vec3 lastPos) {
         // Apply move direction
         {
             const glm::vec3 MODEL_ORIGIN_OFFSET{ 0.0f, 1.3f, 0.0f };
@@ -32,48 +36,61 @@ namespace {
 
             {
                 const auto deltaPos = thisPos - lastPos;
-                camera.m_pos += deltaPos * CAM_ROTATE_SPEED_INV;
+                camera.addPos(deltaPos * CAM_ROTATE_SPEED_INV);
             }
 
             {
-                const auto obj2CamVec = camera.m_pos - camOrigin;
+                const auto obj2CamVec = camera.pos() - camOrigin;
                 const auto len = glm::length(obj2CamVec);
-                auto obj2CamSEuler = dal::vec2StrangeEuler(obj2CamVec);
+                auto obj2CamSEuler = dal::vec2fpsEuler(obj2CamVec);
 
                 obj2CamSEuler.clampY(glm::radians(-MAX_Y_DEGREE), glm::radians(MAX_Y_DEGREE));
-                const auto rotatedVec = dal::strangeEuler2Vec(obj2CamSEuler);
-                camera.m_pos = camOrigin + rotatedVec * len;
+                const auto rotatedVec = dal::fpsEuler2vec(obj2CamSEuler);
+                camera.setPos(camOrigin + rotatedVec * len);
             }
 
             {
                 constexpr float OBJ_CAM_DISTANCE = 3.0f;
 
-                const auto cam2ObjVec = camOrigin - camera.m_pos;
-                const auto cam2ObjSEuler = dal::vec2StrangeEuler(cam2ObjVec);
-                camera.setViewPlane(cam2ObjSEuler.getX(), cam2ObjSEuler.getY());
+                const auto cam2ObjVec = camOrigin - camera.pos();
+                const auto cam2ObjSEuler = dal::vec2fpsEuler(cam2ObjVec);
+                camera.setViewPlane(cam2ObjSEuler.x(), cam2ObjSEuler.y());
 
-                camera.m_pos = camOrigin - dal::resizeOnlyXZ(cam2ObjVec, OBJ_CAM_DISTANCE);
+                camera.setPos(camOrigin - dal::resizeOnlyXZ(cam2ObjVec, OBJ_CAM_DISTANCE));
             }
         }
 
         camera.updateViewMat();
     }
 
-    bool isGoodToBeLoaded(const glm::vec3& campos, const dal::LevelData::ChunkData& mapInfo) {
+    bool isGoodToBeLoaded(const glm::vec3& campos, const glm::vec3& camdirec, const dal::LevelData::ChunkData& mapInfo) {
         if ( mapInfo.m_aabb.isInside(campos) )
             return true;
 
-        const auto points = mapInfo.m_aabb.getAllPoints();
-        double closestDist = std::numeric_limits<double>::max();
+        dal::Segment seg{ campos + glm::vec3{0, 500, 0} , glm::vec3{0, -1000, 0} };
+        if ( dal::isIntersecting(seg, mapInfo.m_aabb) )
+            return true;
 
-        for ( const auto& p : points ) {
-            const double dist = glm::distance(p, campos);
-            if ( dist < closestDist ) {
-                closestDist = dist;
-            }
+        const auto camdirec_n = glm::normalize(camdirec);
+        for ( const auto& p : mapInfo.m_aabb.vertices() ) {
+            const auto toVert = glm::normalize(p - campos);
+            const auto dot = glm::dot(toVert, camdirec_n);
+            if ( dot > std::cos(glm::radians<float>(45)) )
+                return true;
         }
 
-        return closestDist < 10.0;
+        {
+            double closestDist = std::numeric_limits<double>::max();
+
+            for ( const auto& p : mapInfo.m_aabb.vertices() ) {
+                const double dist = glm::distance(p, campos);
+                if ( dist < closestDist ) {
+                    closestDist = dist;
+                }
+            }
+
+            return closestDist < 10.0;
+        }
     }
 
 }
@@ -242,7 +259,7 @@ namespace {
 }
 
 
-//
+// LevelData
 namespace dal {
 
     LevelData::ChunkData& LevelData::newChunk(void) {
@@ -267,7 +284,7 @@ namespace dal {
 
 }
 
-
+#include <iostream>
 // SceneGraph
 namespace dal {
 
@@ -299,7 +316,7 @@ namespace dal {
             auto& transform = this->m_entities.assign<cpnt::Transform>(this->m_player);
             //transform.setScale(1.5f);
 
-            auto ptrModel = this->m_resMas.orderModelAnim("asset::irin.dmd");
+            auto ptrModel = this->m_resMas.orderModelAnim("asset::Character Running.dmd");
             auto& renderable = this->m_entities.assign<cpnt::AnimatedModel>(this->m_player);
             renderable.m_model = ptrModel;
 
@@ -333,6 +350,13 @@ namespace dal {
             auto& enttCtrl = this->m_entities.assign<cpnt::EntityCtrl>(entity);
             enttCtrl.m_ctrler.reset(new EntityToParticle{ enttParticle, this->m_phyworld });
         }
+
+        // Misc
+        {
+            this->m_playerCam.setPos(0, 0, -3);
+            this->m_playerCam.setFocusPoint(0);
+            this->m_playerCam.updateViewMat();
+        }
     }
 
 
@@ -348,15 +372,60 @@ namespace dal {
 
         // Resolve collisions
         {
-            auto& trans = this->m_entities.get<cpnt::Transform>(this->m_player);
-            auto& model = this->m_entities.get<cpnt::AnimatedModel>(this->m_player);
+            constexpr unsigned MAX_ITERATION = 3;
 
-            const auto bounding = model.m_model->getBounding();
-            if ( nullptr != bounding ) {
-                const auto lastPos = trans.getPos();
-                this->applyCollision(*bounding, trans);
-                bindCameraPos(this->m_playerCam, trans.getPos(), lastPos);
+            auto& trans = this->m_entities.get<cpnt::Transform>(this->m_player);
+            auto playerAABB = PLAYER_AABB.transform(trans.getPos(), trans.getScale());
+            const auto deltaPlayerMove = trans.getPos() - this->m_playerLastTrans.getPos();
+
+            std::vector<dal::AABB> aabbs;
+            std::vector<dal::Triangle> triangles;
+
+            // Get sets of colliders
+            {
+                dal::TriangleSorter triangleHeap{ -deltaPlayerMove };
+                for ( auto& map : this->m_mapChunks )
+                    if ( dal::isIntersecting(playerAABB, map.m_info->m_aabb) )
+                        map.m_map.findIntersctionsToStatic(playerAABB, aabbs, triangleHeap);
+
+                const auto numTri = triangleHeap.size();
+                for ( size_t i = 0; i < numTri; ++i ) {
+                    triangles.push_back(triangleHeap.pop());
+                }
             }
+
+            // Resolve AABBs
+            for ( const auto& aabb : aabbs ) {
+                const auto result = dal::calcResolveForAABB(playerAABB, aabb);
+                trans.addPos(result);
+                playerAABB = PLAYER_AABB.transform(trans.getPos(), trans.getScale());
+            }
+
+            // Resolve triangles
+            for ( int i = 0; i < MAX_ITERATION; ++i ) {
+                bool resolved = false;
+
+                for ( const auto& tri : triangles ) {
+                    if ( dal::isIntersecting(tri, playerAABB) ) {
+                        const auto [dist, direc] = dal::calcIntersectingDepth(playerAABB, tri.plane());
+                        if ( 0.f == dist )
+                            continue;
+
+                        trans.addPos(-dist * direc);
+                        playerAABB = PLAYER_AABB.transform(trans.getPos(), trans.getScale());
+                        resolved = true;
+                    }
+                }
+
+                if ( !resolved )
+                    break;
+            }
+
+            // Draw player aabb
+            for ( auto& tri : playerAABB.makeTriangles() )
+                dal::DebugViewGod::inst().addTriangle(tri.point0(), tri.point1(), tri.point2(), glm::vec4{ 0, 1, 0, 0.2 });
+
+            this->m_playerLastTrans = trans;
         }
 
         // Update animtions of dynamic objects.
@@ -369,17 +438,18 @@ namespace dal {
             }
         }
 
-        // Find map chunk to load
-        {
-            for ( unsigned i = 0; i < this->m_activeLevel.size(); ++i ) {
-                auto& mapInfo = this->m_activeLevel.at(i);
-                if ( !mapInfo.m_active && ::isGoodToBeLoaded(this->m_playerCam.m_pos, mapInfo) ) {
-                    const auto respath = parseResPath(this->m_activeLevel.respath());
-                    const auto chunkPath = respath.m_package + "::" + respath.m_intermPath + mapInfo.m_name + ".dmc";
-                    this->openChunk(chunkPath.c_str(), mapInfo);
-                    mapInfo.m_active = true;
-                    dalInfo(fmt::format("Map chunk activated: {}", mapInfo.m_name));
-                }
+        // Find map chunks to load
+        for ( unsigned i = 0; i < this->m_activeLevel.size(); ++i ) {
+            auto& mapInfo = this->m_activeLevel.at(i);
+            if ( mapInfo.m_active )
+                continue;
+
+            if ( ::isGoodToBeLoaded(this->m_playerCam.pos(), this->m_playerCam.direction(), mapInfo) ) {
+                const auto respath = parseResPath(this->m_activeLevel.respath());
+                const auto chunkPath = respath.m_package + "::" + respath.m_intermPath + mapInfo.m_name + ".dmc";
+                this->openChunk(chunkPath.c_str(), mapInfo);
+                mapInfo.m_active = true;
+                dalInfo(fmt::format("Map chunk activated: {}", mapInfo.m_name));
             }
         }
     }
@@ -411,11 +481,19 @@ namespace dal {
             auto& cpntModel = view.get<cpnt::StaticModel>(entity);
 
             auto envmap = this->findClosestEnv(cpntTrans.getPos());
-            if ( nullptr != envmap ) {
+            if ( nullptr != envmap )
                 sendEnvmapUniform(*envmap, uniloc.i_envmap);
+            else
+                uniloc.i_envmap.hasEnvmap(false);
+
+            auto map = this->findClosestMapChunk(cpntTrans.getPos());
+            if ( nullptr != map ) {
+                map->sendPlightUniforms(uniloc.i_lighting);
+                map->sendSlightUniforms(uniloc.i_lighting);
             }
             else {
-                uniloc.i_envmap.hasEnvmap(false);
+                uniloc.i_lighting.plightCount(0);
+                uniloc.i_lighting.slightCount(0);
             }
 
             uniloc.modelMat(cpntTrans.getMat());
@@ -426,22 +504,25 @@ namespace dal {
     void SceneGraph::render_animated(const UniRender_Animated& uniloc) {
         this->sendDlightUniform(uniloc.i_lighting);
 
-        if ( !this->m_mapChunks.empty() ) {
-            this->m_mapChunks.back().m_map.sendPlightUniforms(uniloc.i_lighting);
-            this->m_mapChunks.back().m_map.sendSlightUniforms(uniloc.i_lighting);
-        }
-
         const auto viewAnimated = this->m_entities.view<cpnt::Transform, cpnt::AnimatedModel>();
         for ( const auto entity : viewAnimated ) {
             auto& cpntTrans = viewAnimated.get<cpnt::Transform>(entity);
             auto& cpntModel = viewAnimated.get<cpnt::AnimatedModel>(entity);
 
             auto envmap = this->findClosestEnv(cpntTrans.getPos());
-            if ( nullptr != envmap ) {
+            if ( nullptr != envmap )
                 sendEnvmapUniform(*envmap, uniloc.i_envmap);
+            else
+                uniloc.i_envmap.hasEnvmap(false);
+
+            auto map = this->findClosestMapChunk(cpntTrans.getPos());
+            if ( nullptr != map ) {
+                map->sendPlightUniforms(uniloc.i_lighting);
+                map->sendSlightUniforms(uniloc.i_lighting);
             }
             else {
-                uniloc.i_envmap.hasEnvmap(false);
+                uniloc.i_lighting.plightCount(0);
+                uniloc.i_lighting.slightCount(0);
             }
 
             uniloc.modelMat(cpntTrans.getMat());
@@ -536,12 +617,6 @@ namespace dal {
     }
 
 
-    void SceneGraph::applyCollision(const ICollider& inCol, cpnt::Transform& inTrans) {
-        for ( auto& map : this->m_mapChunks ) {
-            map.m_map.applyCollision(inCol, inTrans);
-        }
-    }
-
     std::optional<RayCastingResult> SceneGraph::doRayCasting(const Segment& ray) {
         std::optional<RayCastingResult> result{ std::nullopt };
         float closestDist = std::numeric_limits<float>::max();
@@ -576,6 +651,15 @@ namespace dal {
         }
 
         return result;
+    }
+
+    auto SceneGraph::findClosestMapChunk(const glm::vec3& pos) const -> const dal::MapChunk2* {
+        for ( auto& map : this->m_mapChunks ) {
+            if ( map.m_info->m_aabb.isInside(pos) )
+                return &map.m_map;
+        }
+
+        return nullptr;
     }
 
 

@@ -1,6 +1,7 @@
 #include "d_context_main.h"
 
 #include <fmt/format.h>
+#include <glm/gtc/matrix_transform.hpp>
 
 #include <d_logger.h>
 #include <d_phyworld.h>
@@ -234,6 +235,30 @@ namespace {
 
 namespace {
 
+    constexpr float TARGET_CAM_DISTANCE = 3;
+    const glm::vec3 TARGET_FOCUS_OFFSET{ 0, 1, 0 };
+
+    void updateCamera(dal::FocusCamera& cam, dal::SceneGraph::CameraProp& camInfo, const dal::MoveInputInfo& moveInfo, const glm::vec3& thisPos) {
+        // Apply conrol
+        {
+            camInfo.m_horizontal += moveInfo.m_view.x;
+            camInfo.m_vertical += moveInfo.m_view.y;
+
+            camInfo.m_vertical = glm::clamp(camInfo.m_vertical, glm::radians<float>(-80), glm::radians<float>(80));
+        }
+
+        const auto camPosDirec = glm::rotate(glm::mat4{ 1 }, -camInfo.m_horizontal, glm::vec3{ 0, 1, 0 }) *
+            glm::rotate(glm::mat4{ 1 }, -camInfo.m_vertical, glm::vec3{ 1, 0, 0 }) * glm::vec4{ 0, 0, -1, 1 };
+
+        cam.setFocusPoint(thisPos + TARGET_FOCUS_OFFSET);
+        cam.setPos(cam.focusPoint() + glm::vec3{ camPosDirec } *TARGET_CAM_DISTANCE);
+    }
+
+}
+
+
+namespace {
+
     class InGameCxt : public dal::IContext {
 
     private:
@@ -267,7 +292,7 @@ namespace {
             , m_winWidth(width)
             , m_winHeight(height)
         {
-           
+
         }
 
         virtual IContext* update(const float deltaTime) override {
@@ -309,26 +334,31 @@ namespace {
 
                     kq.clear();
                 }
-
-                {
-                    auto& state = this->m_scene.m_entities.get<dal::cpnt::CharacterState>(this->m_scene.m_player);
-                    const auto winSize = dal::GlobalStateGod::getinst().getWinSizeFloat();
-                    const auto info = this->m_crtlWidget.getMoveInfo(deltaTime, winSize.x, winSize.y);
-                    state.update(deltaTime, info);
-                }
             }
 
-            this->m_task.update();
+            const auto winSize = dal::GlobalStateGod::getinst().getWinSizeFloat();
+            const auto moveInfo = this->m_crtlWidget.getMoveInfo(deltaTime, winSize.x, winSize.y);
 
+            this->m_scene.m_entities.get<dal::cpnt::CharacterState>(this->m_scene.m_player).update(deltaTime, moveInfo);
+
+            this->m_task.update();
             this->m_phyworld.update(deltaTime);
             this->m_scene.update(deltaTime);
             this->m_renMas.update(deltaTime);
-            this->m_renMas.render(this->m_scene.m_entities);
 
+            // Camera
             {
+                auto& trans = this->m_scene.m_entities.get<dal::cpnt::Transform>(this->m_scene.m_player);
+                ::updateCamera(this->m_scene.m_playerCam, this->m_scene.m_playerCamInfo, moveInfo, trans.getPos());
+                this->m_scene.m_playerCam.updateViewMat();
+            }
+
+            // Render
+            {
+                this->m_renMas.render(this->m_scene.m_entities);
+
                 glBindFramebuffer(GL_FRAMEBUFFER, 0);
                 auto& uniloc = this->m_shaders.useOverlay();
-
                 this->m_crtlWidget.render(this->m_winWidth, this->m_winHeight, &uniloc);
                 this->m_fcounter.render(this->m_winWidth, this->m_winHeight, &uniloc);
             }

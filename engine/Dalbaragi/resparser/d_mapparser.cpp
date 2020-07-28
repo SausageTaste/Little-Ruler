@@ -173,6 +173,9 @@ namespace {
         begin = parseVec3(info.m_aabb.m_min, begin);
         begin = parseVec3(info.m_aabb.m_max, begin);
 
+        info.m_hasRotate = dal::makeBool1(begin); begin += 1;
+        info.m_hasMeshCollider = dal::makeBool1(begin); begin += 1;
+
         return begin;
     }
 
@@ -192,6 +195,26 @@ namespace {
             info.m_trans.m_pos = { fbuf[0], fbuf[1], fbuf[2] };
             info.m_trans.m_quat = { fbuf[3], fbuf[4], fbuf[5], fbuf[6] };
             info.m_trans.m_scale = fbuf[7];
+        }
+
+        {
+            const auto colTypeIndex = dal::makeInt4(begin); begin += 4;
+            switch ( colTypeIndex ) {
+
+            case 0:
+                info.m_colType = dal::v1::StaticActor::ColliderType::aabb;
+                break;
+            case 1:
+                info.m_colType = dal::v1::StaticActor::ColliderType::none;
+                break;
+            case 2:
+                info.m_colType = dal::v1::StaticActor::ColliderType::mesh;
+                break;
+            default:
+                assert(false);
+                break;
+
+            }
         }
 
         return begin;

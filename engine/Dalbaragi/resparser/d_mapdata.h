@@ -59,6 +59,8 @@ namespace dal::v1 {
     public:
         std::vector<RenderUnit> m_renderUnits;
         AABB m_aabb;
+        bool m_hasRotate = false;
+        bool m_hasMeshCollider = false;
 
     };
 
@@ -100,10 +102,18 @@ namespace dal::v1 {
     class StaticActor {
 
     public:
+        enum class ColliderType {
+            aabb = 0,
+            none = 1,
+            mesh = 2,
+        };
+
+    public:
         std::string m_name;
         int32_t m_modelIndex = -1;
         cpnt::Transform m_trans;
         std::vector<std::int32_t> m_envmapIndices;
+        ColliderType m_colType = ColliderType::aabb;
 
     };
 

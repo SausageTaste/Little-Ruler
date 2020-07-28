@@ -60,6 +60,10 @@ namespace dal {
         RenderMaster(SceneGraph& scene, ShaderMaster& shader, ResourceMaster& resMas,
             ICamera* const camera, const unsigned int winWidth, const unsigned int winHeight);
 
+        auto& projMat(void) const {
+            return this->m_projectMat;
+        }
+
         void update(const float deltaTime);
         void render(entt::registry& reg);
         void resizeRenderScale(const float v);

@@ -576,6 +576,7 @@ namespace {
                         { "texture", {
                                 {"rustediron1-alt2", {}},
                                 {"metalgrid2-dx", {}},
+                                {"Metal012_1K-PNG", {}},
                                 {"water", {}},
                                 {"irin", {}},
                                 {"skybox", {}}
