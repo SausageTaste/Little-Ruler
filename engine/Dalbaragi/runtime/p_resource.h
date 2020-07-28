@@ -104,7 +104,6 @@ namespace dal {
         void getWaters(std::vector<WaterRenderer*>& result);
         auto getClosestEnvMap(const glm::vec3& worldPos) const -> std::pair<const EnvMap*, float>;
 
-        void applyCollision(const ICollider& inCol, cpnt::Transform& inTrans);
         void findIntersctionsToStatic(const dal::AABB& aabb, std::vector<dal::AABB>& out_aabbs, dal::TriangleSorter& out_triangles) const;
         std::optional<RayCastingResult> castRayToClosest(const Segment& ray) const;
 

@@ -121,7 +121,6 @@ namespace dal {
 
         void sendDlightUniform(const UniInterf_Lighting& uniloc);
 
-        void applyCollision(const ICollider& inCol, cpnt::Transform& inTrans);
         std::optional<RayCastingResult> doRayCasting(const Segment& ray);
 
         auto findClosestEnv(const glm::vec3& pos) const -> const dal::EnvMap*;

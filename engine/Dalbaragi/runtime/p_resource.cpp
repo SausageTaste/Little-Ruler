@@ -383,69 +383,6 @@ namespace dal {
     }
 
 
-    void MapChunk2::applyCollision(const ICollider& inCol, cpnt::Transform& inTrans) {
-        PhysicalProperty inPhysics, mdlPhysics;
-        inPhysics.setMassInv(1.f);
-
-        for ( auto& modelActor : this->m_staticActors ) {
-            const auto mdlBounding = modelActor.m_model->getBounding();
-            const auto mdlDetailed = modelActor.m_model->getDetailed();
-            if ( nullptr == mdlBounding )
-                continue;
-
-            for ( auto& actor : modelActor.m_actors ) {
-                auto& dview = dal::DebugViewGod::inst();
-                std::array<dal::Triangle, 12> triangles;
-                if ( dal::ColliderType::aabb == mdlBounding->getColType() ) {
-                    const auto box = dynamic_cast<const ColAABB*>(mdlBounding);
-                    const auto transformed = box->transform(actor.m_transform.getPos(), actor.m_transform.getScale());
-                    triangles = transformed.makeTriangles();
-                }
-
-                if ( dal::ActorInfo::ColliderType::aabb == actor.m_colType ) {
-                    const auto result = calcResolveInfoABS(inCol, inPhysics, inTrans, *mdlBounding, mdlPhysics, actor.m_transform);
-
-                    if ( result.m_valid ) {
-                        inTrans.addPos(result.m_this);
-                        actor.m_transform.addPos(result.m_other);
-
-                        for ( auto& tri : triangles )
-                            dview.addTriangle(tri.point0(), tri.point1(), tri.point2(), glm::vec4{ 0, 0, 1, 0.2 });
-                    }
-                    else {
-                        for ( auto& tri : triangles )
-                            dview.addTriangle(tri.point0(), tri.point1(), tri.point2(), glm::vec4{ 0, 0, 0.3, 0.2 });
-                    }
-                }
-                else if ( dal::ActorInfo::ColliderType::mesh == actor.m_colType ) {
-                    if ( nullptr == mdlDetailed ) {
-                        dalAssertm(
-                            nullptr != mdlDetailed,
-                            fmt::format("A actor '{}' with collider type 'mesh' doesn't have defailed collider", actor.m_name)
-                        );
-                        continue;
-                    }
-
-                    if ( !checkCollisionAbs(inCol, *mdlBounding, inTrans, actor.m_transform) ) {
-                        for ( auto& tri : triangles )
-                            dview.addTriangle(tri.point0(), tri.point1(), tri.point2(), glm::vec4{ 0.3, 0, 0, 0.2 });
-
-                        continue;
-                    }
-
-                    const auto result = calcResolveInfoABS(inCol, inPhysics, inTrans, *mdlDetailed, mdlPhysics, actor.m_transform);
-                    if ( result.m_valid ) {
-                        inTrans.addPos(result.m_this);
-                        actor.m_transform.addPos(result.m_other);
-                    }
-                }
-                else {
-                    continue;
-                }
-            }
-        }
-    }
-
     void MapChunk2::findIntersctionsToStatic(const dal::AABB& aabb, std::vector<dal::AABB>& out_aabbs, dal::TriangleSorter& out_triangles) const {
         auto& dview = dal::DebugViewGod::inst();
 

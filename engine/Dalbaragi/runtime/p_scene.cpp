@@ -617,20 +617,6 @@ namespace dal {
     }
 
 
-    void SceneGraph::applyCollision(const ICollider& inCol, cpnt::Transform& inTrans) {
-        for ( auto& map : this->m_mapChunks ) {
-            if ( dal::ColliderType::aabb == inCol.getColType() ) {
-                const auto box = dynamic_cast<const dal::ColAABB&>(inCol);
-                const auto newBox = box.transform(inTrans.getPos(), inTrans.getScale());
-                if ( !dal::isIntersecting(newBox, map.m_info->m_aabb) ) {
-                    continue;
-                }
-            }
-
-            map.m_map.applyCollision(inCol, inTrans);
-        }
-    }
-
     std::optional<RayCastingResult> SceneGraph::doRayCasting(const Segment& ray) {
         std::optional<RayCastingResult> result{ std::nullopt };
         float closestDist = std::numeric_limits<float>::max();
