@@ -141,7 +141,7 @@ namespace {
     }
 
 
-    constexpr float HEIGHT_RAY_Y_OFFSET = 2;
+    constexpr float HEIGHT_RAY_Y_OFFSET = 1.2;
     constexpr float STOP_FALLING_OFFSET = 0.1;
     constexpr float SNAP_TO_FLOOR_HEIGHT = 0.5;
 
@@ -353,7 +353,7 @@ namespace {
             ::applyMove(transform, model, this->m_camera, deltaTime, info);
 
             const auto accumTime = dal::getTime_sec() - this->m_fallStartSec;
-            const auto fallDist = 2 * accumTime * accumTime;
+            const auto fallDist = 2 * accumTime;
             const auto fallDistClamped = glm::clamp<float>(fallDist, 0, HEIGHT_RAY_Y_OFFSET * 0.9);
             transform.addPos(0, -fallDistClamped, 0);
 
