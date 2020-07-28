@@ -384,7 +384,7 @@ namespace dal {
             // Get sets of colliders
             {
                 dal::TriangleSorter triangleHeap{ -deltaPlayerMove };
-                for ( auto& map : this->m_mapChunks )
+                for ( const auto& map : this->m_mapChunks )
                     if ( dal::isIntersecting(playerAABB, map.m_info->m_aabb) )
                         map.m_map.findIntersctionsToStatic(playerAABB, aabbs, triangleHeap);
 
