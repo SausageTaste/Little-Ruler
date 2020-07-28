@@ -198,7 +198,18 @@ namespace {
             processCharaHeight(transform, this->m_scene);
         }
 
-        virtual dal::ICharaState* exec(const float deltaTime, const dal::MoveInputInfo& info) override;
+        virtual dal::ICharaState* exec(const float deltaTime, const dal::MoveInputInfo& info) override {
+            dal::ICharaState* next = this;
+
+            if ( info.hasMovement() ) {
+                this->exit();
+                this->m_sWalk->enter();
+                next = this->m_sWalk;
+            }
+
+            next->process(deltaTime, info);
+            return next;
+        }
 
     };
 
@@ -242,43 +253,20 @@ namespace {
             this->m_lastPos = transform.getPos();
         }
 
-        virtual dal::ICharaState* exec(const float deltaTime, const dal::MoveInputInfo& info) override;
+        virtual dal::ICharaState* exec(const float deltaTime, const dal::MoveInputInfo& info) override {
+            dal::ICharaState* next = this;
+
+            if ( !info.hasMovement() ) {
+                this->exit();
+                this->m_sIdle->enter();
+                next = this->m_sIdle;
+            }
+
+            next->process(deltaTime, info);
+            return next;
+        }
 
     };
-
-}
-
-
-// Chara states exec functions
-namespace {
-
-    dal::ICharaState* CharaIdleState::exec(const float deltaTime, const dal::MoveInputInfo& info) {
-        if ( info.hasMovement() ) {
-            this->exit();
-            this->m_sWalk->enter();
-            this->m_sWalk->process(deltaTime, info);
-
-            return this->m_sWalk;
-        }
-        else {
-            this->process(deltaTime, info);
-            return this;
-        }
-    }
-
-    dal::ICharaState* CharaWalkState::exec(const float deltaTime, const dal::MoveInputInfo& info) {
-        if ( !info.hasMovement() ) {
-            this->exit();
-            this->m_sIdle->enter();
-            this->m_sIdle->process(deltaTime, info);
-
-            return this->m_sIdle;
-        }
-        else {
-            this->process(deltaTime, info);
-            return this;
-        }
-    }
 
 }
 
