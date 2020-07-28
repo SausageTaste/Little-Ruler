@@ -285,6 +285,8 @@ namespace dal {
             this->m_timer.setCapFPS(120);
             assertUserdataFolder();
             this->onResize(winWidth, winHeight);
+
+            dalInfo(fmt::format("{} bit system", 8 * sizeof(void*)));
         }
 
         // Test
