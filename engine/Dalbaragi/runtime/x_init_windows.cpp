@@ -200,7 +200,7 @@ namespace {
             if ( 0 == gladLoadGLLoader((GLADloadproc)glfwGetProcAddress) ) {
                 dalAbort("failed to load OpenGL functions");
             }
-            glfwSwapInterval(1);
+            glfwSwapInterval(0);
         }
 
         ~WindowSDL(void) {

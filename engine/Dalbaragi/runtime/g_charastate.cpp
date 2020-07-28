@@ -140,18 +140,23 @@ namespace {
         }
     }
 
-    void processCharaHeight(dal::cpnt::Transform& transform, dal::SceneGraph& scene) {
-        constexpr float RAY_Y_OFFSET = 2;
-        const auto ray = dal::Segment{ transform.getPos() + glm::vec3{ 0, RAY_Y_OFFSET, 0 }, glm::vec3{ 0, -10, 0 } };
 
-        const auto result = scene.doRayCasting(ray);
-        if ( !result ) {
-            return;
-        }
+    constexpr float HEIGHT_RAY_Y_OFFSET = 1.2;
+    constexpr float STOP_FALLING_OFFSET = 0.1;
+    constexpr float SNAP_TO_FLOOR_HEIGHT = 0.5;
 
-        const auto floorDist = result->m_distance - RAY_Y_OFFSET;
-        transform.addPos(0.f, -floorDist, 0.f);
+    auto makeHeightRay(const glm::vec3& pos) {
+        return dal::Segment{ pos + glm::vec3{ 0, HEIGHT_RAY_Y_OFFSET, 0 }, glm::vec3{ 0, -10, 0 } };;
     }
+
+    std::optional<float> findDistanceToFloor(dal::cpnt::Transform& transform, dal::SceneGraph& scene) {
+        const auto result = scene.doRayCasting(::makeHeightRay(transform.getPos()));
+        if ( !result )
+            return std::nullopt;
+        else
+            return result->m_distance - HEIGHT_RAY_Y_OFFSET;
+    }
+
 
     dal::cpnt::Transform& getPlayerTransform(dal::SceneGraph& scene) {
         return scene.m_entities.get<dal::cpnt::Transform>(scene.m_player);
@@ -171,6 +176,7 @@ namespace {
 
     private:
         dal::ICharaState* m_sWalk = nullptr;
+        dal::ICharaState* m_sFall = nullptr;
 
     public:
         CharaIdleState(dal::ICamera& camera, dal::SceneGraph& scene)
@@ -179,13 +185,22 @@ namespace {
 
         }
 
-        void registerNext(dal::ICharaState& sWalk) {
+        void registerNext(dal::ICharaState& sWalk, dal::ICharaState& fall) {
             this->m_sWalk = &sWalk;
+            this->m_sFall = &fall;
         }
 
         virtual void enter(void) override {
+            dalVerbose("Enter idle");
+
             auto& model = this->m_scene.m_entities.get<dal::cpnt::AnimatedModel>(this->m_scene.m_player);
             model.m_animState.setSelectedAnimeIndex(2);
+
+            auto& transform = getPlayerTransform(this->m_scene);
+            const auto height = ::findDistanceToFloor(transform, this->m_scene);
+            if ( height.value_or(SNAP_TO_FLOOR_HEIGHT + 1) <= SNAP_TO_FLOOR_HEIGHT ) {
+                transform.addPos(0, -height.value(), 0);
+            }
         }
 
         virtual void exit(void) override {
@@ -194,11 +209,29 @@ namespace {
 
         virtual void process(const float deltaTime, const dal::MoveInputInfo& info) override {
             auto& transform = getPlayerTransform(this->m_scene);
-
-            processCharaHeight(transform, this->m_scene);
         }
 
-        virtual dal::ICharaState* exec(const float deltaTime, const dal::MoveInputInfo& info) override;
+        virtual dal::ICharaState* exec(const float deltaTime, const dal::MoveInputInfo& info) override {
+            dal::ICharaState* next = this;
+
+            auto& transform = getPlayerTransform(this->m_scene);
+            const auto height = ::findDistanceToFloor(transform, this->m_scene);
+
+            if ( height.value_or(SNAP_TO_FLOOR_HEIGHT + 1) > SNAP_TO_FLOOR_HEIGHT ) {
+                next = this->m_sFall;
+
+                this->exit();
+                next->enter();
+            }
+            else if ( info.hasMovement() ) {
+                this->exit();
+                this->m_sWalk->enter();
+                next = this->m_sWalk;
+            }
+
+            next->process(deltaTime, info);
+            return next;
+        }
 
     };
 
@@ -207,6 +240,7 @@ namespace {
 
     private:
         dal::ICharaState* m_sIdle = nullptr;
+        dal::ICharaState* m_sFall = nullptr;
 
         glm::vec3 m_lastPos;
 
@@ -217,11 +251,14 @@ namespace {
 
         }
 
-        void registerNext(dal::ICharaState& sIdle) {
-            this->m_sIdle = &sIdle;
+        void registerNext(dal::ICharaState& idle, dal::ICharaState& fall) {
+            this->m_sIdle = &idle;
+            this->m_sFall = &fall;
         }
 
         virtual void enter(void) override {
+            dalVerbose("Enter walk");
+
             auto& model = getPlayerModel(this->m_scene);
             auto& transform = getPlayerTransform(this->m_scene);
 
@@ -237,48 +274,109 @@ namespace {
             auto& model = getPlayerModel(this->m_scene);
             auto& transform = getPlayerTransform(this->m_scene);
 
-            applyMove(transform, model, this->m_camera, deltaTime, info);
-            processCharaHeight(transform, this->m_scene);
+            ::applyMove(transform, model, this->m_camera, glm::clamp<float>(deltaTime, 0, 1.0 / 20.0), info);
+            const auto height = ::findDistanceToFloor(transform, this->m_scene);
+            if ( height.value_or(SNAP_TO_FLOOR_HEIGHT + 1) <= SNAP_TO_FLOOR_HEIGHT ) {
+                transform.addPos(0, -height.value(), 0);
+            }
+
             this->m_lastPos = transform.getPos();
         }
 
-        virtual dal::ICharaState* exec(const float deltaTime, const dal::MoveInputInfo& info) override;
+        virtual dal::ICharaState* exec(const float deltaTime, const dal::MoveInputInfo& info) override {
+            dal::ICharaState* next = this;
+
+            auto& transform = getPlayerTransform(this->m_scene);
+            const auto height = ::findDistanceToFloor(transform, this->m_scene);
+
+            if ( height.value_or(SNAP_TO_FLOOR_HEIGHT + 1) > SNAP_TO_FLOOR_HEIGHT ) {
+                next = this->m_sFall;
+
+                this->exit();
+                next->enter();
+            }
+            else if ( !info.hasMovement() ) {
+                next = this->m_sIdle;
+
+                this->exit();
+                next->enter();
+            }
+
+            next->process(deltaTime, info);
+            return next;
+        }
 
     };
 
-}
 
+    class CharaFallingState : public dal::ICharaState {
 
-// Chara states exec functions
-namespace {
+    private:
+        dal::ICharaState* m_sIdle = nullptr;
+        dal::ICharaState* m_sWalk = nullptr;
 
-    dal::ICharaState* CharaIdleState::exec(const float deltaTime, const dal::MoveInputInfo& info) {
-        if ( info.hasMovement() ) {
-            this->exit();
-            this->m_sWalk->enter();
-            this->m_sWalk->process(deltaTime, info);
+        glm::vec3 m_lastPos;
+        double m_fallStartSec = 0;
 
-            return this->m_sWalk;
+    public:
+        CharaFallingState(dal::ICamera& camera, dal::SceneGraph& scene)
+            : ICharaState(camera, scene)
+        {
+
         }
-        else {
-            this->process(deltaTime, info);
-            return this;
-        }
-    }
 
-    dal::ICharaState* CharaWalkState::exec(const float deltaTime, const dal::MoveInputInfo& info) {
-        if ( !info.hasMovement() ) {
-            this->exit();
-            this->m_sIdle->enter();
-            this->m_sIdle->process(deltaTime, info);
+        void registerNext(dal::ICharaState& idle, dal::ICharaState& walk) {
+            this->m_sIdle = &idle;
+            this->m_sWalk = &walk;
+        }
 
-            return this->m_sIdle;
+        virtual void enter(void) override {
+            dalVerbose("Enter falling");
+
+            auto& model = getPlayerModel(this->m_scene);
+            auto& transform = getPlayerTransform(this->m_scene);
+
+            model.m_animState.setSelectedAnimeIndex(1);
+
+            this->m_lastPos = transform.getPos();
+            this->m_fallStartSec = dal::getTime_sec();
         }
-        else {
-            this->process(deltaTime, info);
-            return this;
+
+        virtual void exit(void) override {
+
         }
-    }
+
+        virtual void process(const float deltaTime, const dal::MoveInputInfo& info) override {
+            auto& model = getPlayerModel(this->m_scene);
+            auto& transform = getPlayerTransform(this->m_scene);
+
+            ::applyMove(transform, model, this->m_camera, deltaTime, info);
+
+            const auto accumTime = dal::getTime_sec() - this->m_fallStartSec;
+            const auto fallDist = 2 * accumTime;
+            const auto fallDistClamped = glm::clamp<float>(fallDist, 0, HEIGHT_RAY_Y_OFFSET * 0.9);
+            transform.addPos(0, -fallDistClamped, 0);
+
+            this->m_lastPos = transform.getPos();
+        }
+
+        virtual dal::ICharaState* exec(const float deltaTime, const dal::MoveInputInfo& info) override {
+            dal::ICharaState* next = this;
+
+            auto trans = ::getPlayerTransform(this->m_scene);
+            const auto height = ::findDistanceToFloor(trans, this->m_scene);
+            if ( height.value_or(STOP_FALLING_OFFSET + 1) <= STOP_FALLING_OFFSET ) {
+                next = info.hasMovement() ? this->m_sWalk : this->m_sIdle;
+
+                this->exit();
+                next->enter();
+            }
+
+            next->process(deltaTime, info);
+            return next;
+        }
+
+    };
 
 }
 
@@ -288,12 +386,15 @@ namespace dal::cpnt {
     CharacterState::CharacterState(cpnt::Transform& transform, cpnt::AnimatedModel& model, dal::ICamera& camera, SceneGraph& scene) {
         const auto idle = new CharaIdleState(camera, scene);
         const auto walk = new CharaWalkState(camera, scene);
+        const auto fall = new CharaFallingState(camera, scene);
 
-        idle->registerNext(*walk);
-        walk->registerNext(*idle);
+        idle->registerNext(*walk, *fall);
+        walk->registerNext(*idle, *fall);
+        fall->registerNext(*idle, *walk);
 
         this->m_states.push_back(idle);
         this->m_states.push_back(walk);
+        this->m_states.push_back(fall);
 
         this->m_currentState = this->m_states.front();
     }

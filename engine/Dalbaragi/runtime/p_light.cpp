@@ -92,7 +92,7 @@ namespace dal {
 namespace dal {
 
     DirectionalLight::DirectionalLight(void)
-        : m_halfProjBoxEdgeLen(100.0f)
+        : m_halfProjBoxEdgeLen(50.0f)
         , m_shadowMap(DLIGHT_SHADOW_DIMENSION, DLIGHT_SHADOW_DIMENSION)
     {
         this->m_direction = glm::normalize(this->m_direction);

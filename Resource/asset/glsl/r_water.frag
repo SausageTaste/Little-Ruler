@@ -138,7 +138,7 @@ vec4 calculateWater(vec3 fragNormal, vec2 distortedCoords) {
 
 
 void main(void) {
-    const float SPECULAR_INTENSITY = 50.0;
+    const float SPECULAR_INTENSITY = 500.0;
 
     // Needed values
     vec3 viewDir = normalize(u_viewPos - v_fragPos);
@@ -151,7 +151,7 @@ void main(void) {
 
     // Lighting
     vec3 F0 = vec3(0.04);
-    F0 = mix(F0, texColor.rgb, u_metallic);
+    //F0 = mix(F0, texColor.rgb, u_metallic);
     vec3 pbrL = u_baseAmbient * texColor.rgb;
     for ( int i = 0; i < u_plightCount; ++i ) {
         vec3 radiance = calcRadiance_plight(i, v_fragPos);
@@ -176,5 +176,5 @@ void main(void) {
 
     // Final color
     f_color.rgb = mix(waterImage.rgb, pbrL, 0.5);
-    f_color.a = 1.0;
+    f_color.a = waterImage.a;
 }
