@@ -282,7 +282,7 @@ namespace dal {
 
         // Misc
         {
-            this->m_timer.setCapFPS(50);
+            this->m_timer.setCapFPS(120);
             assertUserdataFolder();
             this->onResize(winWidth, winHeight);
         }
