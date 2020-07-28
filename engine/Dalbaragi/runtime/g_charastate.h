@@ -1,5 +1,7 @@
 #pragma once
 
+#include <vector>
+
 #include "g_actor.h"
 #include "p_model.h"
 #include "d_camera.h"
@@ -55,10 +57,13 @@ namespace dal {
         class CharacterState {
 
         private:
+            std::vector<ICharaState*> m_states;
             ICharaState* m_currentState;
 
         public:
             CharacterState(cpnt::Transform& transform, cpnt::AnimatedModel& model, dal::ICamera& camera, SceneGraph& scene);
+            ~CharacterState(void);
+
             void update(const float deltaTime, const MoveInputInfo& info);
 
         };

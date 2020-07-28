@@ -169,11 +169,18 @@ namespace {
 
     class CharaIdleState : public dal::ICharaState {
 
+    private:
+        dal::ICharaState* m_sWalk = nullptr;
+
     public:
         CharaIdleState(dal::ICamera& camera, dal::SceneGraph& scene)
             : ICharaState(camera, scene)
         {
 
+        }
+
+        void registerNext(dal::ICharaState& sWalk) {
+            this->m_sWalk = &sWalk;
         }
 
         virtual void enter(void) override {
@@ -199,6 +206,8 @@ namespace {
     class CharaWalkState : public dal::ICharaState {
 
     private:
+        dal::ICharaState* m_sIdle = nullptr;
+
         glm::vec3 m_lastPos;
 
     public:
@@ -206,6 +215,10 @@ namespace {
             : ICharaState(camera, scene)
         {
 
+        }
+
+        void registerNext(dal::ICharaState& sIdle) {
+            this->m_sIdle = &sIdle;
         }
 
         virtual void enter(void) override {
@@ -241,14 +254,11 @@ namespace {
 
     dal::ICharaState* CharaIdleState::exec(const float deltaTime, const dal::MoveInputInfo& info) {
         if ( info.hasMovement() ) {
-            std::unique_ptr<CharaIdleState> byebye{ this };
-            auto newState = new CharaWalkState(this->m_camera, this->m_scene);
-
             this->exit();
-            newState->enter();
-            newState->process(deltaTime, info);
+            this->m_sWalk->enter();
+            this->m_sWalk->process(deltaTime, info);
 
-            return newState;
+            return this->m_sWalk;
         }
         else {
             this->process(deltaTime, info);
@@ -258,14 +268,11 @@ namespace {
 
     dal::ICharaState* CharaWalkState::exec(const float deltaTime, const dal::MoveInputInfo& info) {
         if ( !info.hasMovement() ) {
-            std::unique_ptr<CharaWalkState> byebye{ this };
-            auto newState = new CharaIdleState(this->m_camera, this->m_scene);
-
             this->exit();
-            newState->enter();
-            newState->process(deltaTime, info);
+            this->m_sIdle->enter();
+            this->m_sIdle->process(deltaTime, info);
 
-            return newState;
+            return this->m_sIdle;
         }
         else {
             this->process(deltaTime, info);
@@ -278,10 +285,23 @@ namespace {
 
 namespace dal::cpnt {
 
-    CharacterState::CharacterState(cpnt::Transform& transform, cpnt::AnimatedModel& model, dal::ICamera& camera, SceneGraph& scene)
-        : m_currentState(new CharaIdleState{ camera, scene })
-    {
+    CharacterState::CharacterState(cpnt::Transform& transform, cpnt::AnimatedModel& model, dal::ICamera& camera, SceneGraph& scene) {
+        const auto idle = new CharaIdleState(camera, scene);
+        const auto walk = new CharaWalkState(camera, scene);
 
+        idle->registerNext(*walk);
+        walk->registerNext(*idle);
+
+        this->m_states.push_back(idle);
+        this->m_states.push_back(walk);
+
+        this->m_currentState = this->m_states.front();
+    }
+
+    CharacterState::~CharacterState(void) {
+        for ( auto p : this->m_states ) {
+            delete p;
+        }
     }
 
     void CharacterState::update(const float deltaTime, const MoveInputInfo& info) {
