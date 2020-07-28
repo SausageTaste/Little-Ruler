@@ -282,7 +282,7 @@ namespace dal {
 
         // Misc
         {
-            this->m_timer.setCapFPS(0);
+            this->m_timer.setCapFPS(50);
             assertUserdataFolder();
             this->onResize(winWidth, winHeight);
         }
@@ -302,7 +302,7 @@ namespace dal {
             return -1;
         }
 
-        const auto deltaTime = m_timer.checkGetElapsed();
+        const auto deltaTime = m_timer.check_getElapsed_capFPS();
         this->m_currentContext = this->m_currentContext->update(deltaTime);
 
         return 0;

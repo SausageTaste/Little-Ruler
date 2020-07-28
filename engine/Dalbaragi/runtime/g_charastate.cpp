@@ -274,7 +274,7 @@ namespace {
             auto& model = getPlayerModel(this->m_scene);
             auto& transform = getPlayerTransform(this->m_scene);
 
-            ::applyMove(transform, model, this->m_camera, deltaTime, info);
+            ::applyMove(transform, model, this->m_camera, glm::clamp<float>(deltaTime, 0, 1.0 / 20.0), info);
             const auto height = ::findDistanceToFloor(transform, this->m_scene);
             if ( height.value_or(SNAP_TO_FLOOR_HEIGHT + 1) <= SNAP_TO_FLOOR_HEIGHT ) {
                 transform.addPos(0, -height.value(), 0);
