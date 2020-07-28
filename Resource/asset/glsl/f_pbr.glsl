@@ -1,6 +1,6 @@
 
 const float PI = 3.14159265;
-const float EPSILON = 0.001;
+const float EPSILON = 0.0001;
 
 
 float _DistributionGGX(float NdotH, float roughness) {
@@ -48,10 +48,10 @@ vec3 integratePBR(vec3 N, vec3 V, vec3 F0, vec3 L, vec3 albedo, float roughness,
 
     vec3  nominator   = NDF * G * F;
     float denominator = 4.0 * max(dot(N, V), 0.0) * NdotL;
-    vec3  specular    = nominator / max(denominator, EPSILON);
+    vec3  specular    = specularIntensity * nominator / max(denominator, EPSILON);
 
     vec3 kD = vec3(1.0) - F;
     kD *= 1.0 - metallic;
 
-    return (kD * albedo / PI + specular * specularIntensity) * NdotL;
+    return (kD * albedo / PI + specular) * NdotL;
 }
