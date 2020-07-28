@@ -1,6 +1,6 @@
 
 const float PI = 3.14159265;
-const float EPSILON = 0.0001;
+const float EPSILON = 0.001;
 
 
 float _DistributionGGX(float NdotH, float roughness) {
