@@ -138,7 +138,7 @@ vec4 calculateWater(vec3 fragNormal, vec2 distortedCoords) {
 
 
 void main(void) {
-    const float SPECULAR_INTENSITY = 50.0;
+    const float SPECULAR_INTENSITY = 500.0;
 
     // Needed values
     vec3 viewDir = normalize(u_viewPos - v_fragPos);
