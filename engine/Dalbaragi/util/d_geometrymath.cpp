@@ -1,6 +1,7 @@
 #include "d_geometrymath.h"
 
 #include <limits>
+#include <algorithm>
 
 
 namespace {
