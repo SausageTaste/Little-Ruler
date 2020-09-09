@@ -26,6 +26,10 @@ namespace {
     constexpr bool FULLSCREEN = false;
 #endif
 
+    constexpr unsigned int MIN_WIN_WIDTH = 640;
+    constexpr unsigned int MIN_WIN_HEIGHT = 480;
+
+
     dal::Mainloop* g_engine = nullptr;
 
 
@@ -159,6 +163,9 @@ namespace {
     }
 
     void callback_resizeFbuf(GLFWwindow* window, int width, int height) {
+        if ( width < MIN_WIN_WIDTH )  width = MIN_WIN_WIDTH;
+        if ( height < MIN_WIN_HEIGHT ) height = MIN_WIN_HEIGHT;
+
         if ( nullptr != g_engine ) {
             g_engine->onResize(width, height);
         }
@@ -178,7 +185,7 @@ namespace {
         WindowSDL(const char* const title, int winWidth, int winHeight, bool fullscreen) {
             glfwSetErrorCallback(callback_error);
 
-            if (GLFW_FALSE == glfwInit()) {
+            if ( GLFW_FALSE == glfwInit() ) {
                 dalAbort("failed to initialize GLFW");
             }
 
@@ -194,7 +201,7 @@ namespace {
             glfwSetMouseButtonCallback(this->m_window, callback_mouseButton);
             glfwSetFramebufferSizeCallback(this->m_window, callback_resizeFbuf);
 
-            glfwSetWindowSizeLimits(this->m_window, 640, 480, GLFW_DONT_CARE, GLFW_DONT_CARE);
+            glfwSetWindowSizeLimits(this->m_window, MIN_WIN_WIDTH, MIN_WIN_HEIGHT, GLFW_DONT_CARE, GLFW_DONT_CARE);
 
             glfwMakeContextCurrent(this->m_window);
             if ( 0 == gladLoadGLLoader((GLADloadproc)glfwGetProcAddress) ) {
