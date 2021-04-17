@@ -61,7 +61,9 @@ endif()
 
 # zlib
 if (WIN32)
-    add_subdirectory(${extern_dir}/zlib ${CMAKE_CURRENT_BINARY_DIR}/zlib)
+    if (NOT TARGET zlibstatic)
+        add_subdirectory(${extern_dir}/zlib ${CMAKE_CURRENT_BINARY_DIR}/zlib)
+    endif()
     target_link_libraries(dalbaragi_runtime PRIVATE zlibstatic)
     target_include_directories(dalbaragi_runtime PRIVATE ${extern_dir}/zlib ${CMAKE_CURRENT_BINARY_DIR}/zlib)
 else()
