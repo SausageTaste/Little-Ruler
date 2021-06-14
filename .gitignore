@@ -12,3 +12,4 @@ out/
 build/
 CMakeSettings.json
 .idea/
+__pycache__/
