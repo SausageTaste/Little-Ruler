@@ -21,39 +21,19 @@ add_library(dalbaragi_util
     d_transform.h        d_transform.cpp
     d_debugview.h        d_debugview.cpp
 )
-target_include_directories(dalbaragi_util PUBLIC .)
+
 target_compile_features(dalbaragi_util PUBLIC cxx_std_17)
 
+target_include_directories(dalbaragi_util
+    PUBLIC
+        .
+        ${extern_dir}/glm
+        ${extern_dir}/TGA
+)
 
-######## Import libraries ########
-
-set(repoRoot_dir ${CMAKE_CURRENT_SOURCE_DIR}/../../..)
-set(extern_dir ${repoRoot_dir}/extern)
-set(externcpy_dir ${repoRoot_dir}/externcpy)
-set(externtool_dir ${repoRoot_dir}/externtool)
-
-
-# Lodepng
-if (NOT TARGET lib_lodepng)
-    add_subdirectory(${externtool_dir}/lodepng ${CMAKE_CURRENT_BINARY_DIR}/lodepng)
-    target_link_libraries(dalbaragi_util PRIVATE lib_lodepng)
-endif()
-
-# fmt
-if (NOT TARGET fmt::fmt)
-    add_subdirectory(${extern_dir}/fmt ${CMAKE_CURRENT_BINARY_DIR}/fmt)
-    target_link_libraries(dalbaragi_util PUBLIC fmt::fmt)
-endif()
-
-# GLM
-target_include_directories(dalbaragi_util PUBLIC ${extern_dir}/glm)
-
-# TGA
-target_include_directories(dalbaragi_util PRIVATE ${extern_dir}/TGA)
-
-
-# Dalbaragi Lightweight
-if (NOT TARGET dalbaragi_lightweight)
-    add_subdirectory(../lightweight ${CMAKE_CURRENT_BINARY_DIR}/dalbaragi_lightweight)
-    target_link_libraries(dalbaragi_util PUBLIC dalbaragi_lightweight)
-endif()
+target_link_libraries(dalbaragi_util
+    PRIVATE
+        fmt::fmt
+        lib_lodepng
+        dalbaragi_lightweight
+)

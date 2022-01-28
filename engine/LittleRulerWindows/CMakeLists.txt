@@ -10,12 +10,13 @@ project(Little-Ruler
 add_executable(little_ruler
     main.cpp
 )
-target_include_directories(little_ruler PUBLIC .)
+
 target_compile_features(little_ruler PUBLIC cxx_std_17)
 
+target_include_directories(little_ruler PUBLIC .)
 
-# Dalbaragi Runtime
-if (NOT TARGET dalbaragi_runtime)
-    add_subdirectory(../Dalbaragi/runtime ${CMAKE_CURRENT_BINARY_DIR}/dalbaragi_runtime)
-    target_link_libraries(little_ruler PUBLIC dalbaragi_runtime)
-endif()
+target_link_libraries(little_ruler
+    PRIVATE
+        fmt::fmt
+        dalbaragi_runtime
+)

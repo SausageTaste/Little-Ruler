@@ -13,26 +13,17 @@ add_library(dalbaragi_physics
     d_modifiers.h    d_modifiers.cpp
     d_collider.h     d_collider.cpp
 )
-target_include_directories(dalbaragi_physics PUBLIC .)
+
 target_compile_features(dalbaragi_physics PUBLIC cxx_std_17)
 
+target_include_directories(dalbaragi_physics
+    PUBLIC
+        .
+        ${extern_dir}/glm
+)
 
-######## Import libraries ########
-
-set(extern_dir ${CMAKE_CURRENT_SOURCE_DIR}/../../../extern)
-
-# entt
-if (NOT TARGET EnTT::EnTT)
-    add_subdirectory(${extern_dir}/entt ${CMAKE_CURRENT_BINARY_DIR}/entt)
-endif()
-target_link_libraries(dalbaragi_physics PUBLIC EnTT::EnTT)
-
-# GLM
-target_include_directories(dalbaragi_physics PUBLIC ${extern_dir}/glm)
-
-
-# Dalbaragi util
-if (NOT TARGET dalbaragi_util)
-    add_subdirectory(../util ${CMAKE_CURRENT_BINARY_DIR}/dalbaragi_util)
-endif()
-target_link_libraries(dalbaragi_physics PUBLIC dalbaragi_util)
+target_link_libraries(dalbaragi_physics
+    PRIVATE
+        EnTT::EnTT
+        dalbaragi_util
+)

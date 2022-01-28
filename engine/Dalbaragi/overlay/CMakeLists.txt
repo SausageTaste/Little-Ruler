@@ -14,34 +14,20 @@ add_library(dalbaragi_overlay
     d_w_text_view.h     d_w_text_view.cpp
     d_widget_manager.h  d_widget_manager.cpp
 )
-target_include_directories(dalbaragi_overlay PUBLIC .)
+
 target_compile_features(dalbaragi_overlay PUBLIC cxx_std_17)
 
+target_include_directories(dalbaragi_overlay
+    PUBLIC
+        .
+        ${extern_dir}/freetype2/include
+        ${extern_dir}/glm
+)
 
-######## Import libraries ########
-
-set(repoRoot_dir ${CMAKE_CURRENT_SOURCE_DIR}/../../..)
-set(extern_dir ${repoRoot_dir}/extern)
-
-# fmt
-if (NOT TARGET fmt::fmt)
-    add_subdirectory(${extern_dir}/fmt ${CMAKE_CURRENT_BINARY_DIR}/fmt)
-endif()
-target_link_libraries(dalbaragi_overlay PUBLIC fmt::fmt)
-
-# Freetype
-if (NOT TARGET freetype)
-    add_subdirectory(${extern_dir}/freetype2 ${CMAKE_CURRENT_BINARY_DIR}/freetype2)
-endif()
-target_link_libraries(dalbaragi_overlay PRIVATE freetype)
-target_include_directories(dalbaragi_overlay PRIVATE ${extern_dir}/freetype2/include)
-
-# GLM
-target_include_directories(dalbaragi_overlay PUBLIC ${extern_dir}/glm)
-
-
-# Dalbaragi Lightweight
-if (NOT TARGET dalbaragi_lightweight)
-    add_subdirectory(../lightweight ${CMAKE_CURRENT_BINARY_DIR}/dalbaragi_lightweight)
-endif()
-target_link_libraries(dalbaragi_overlay PUBLIC dalbaragi_lightweight)
+target_link_libraries(dalbaragi_overlay
+    PRIVATE
+        fmt::fmt
+        freetype
+    PUBLIC
+        dalbaragi_lightweight
+)

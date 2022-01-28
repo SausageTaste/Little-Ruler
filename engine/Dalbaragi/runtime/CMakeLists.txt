@@ -34,78 +34,38 @@ add_library(dalbaragi_runtime
     d_overlay_interface.h   d_overlay_interface.cpp
     d_camera.h              d_camera.cpp
 )
-target_include_directories(dalbaragi_runtime PUBLIC .)
+
 target_compile_features(dalbaragi_runtime PUBLIC cxx_std_17)
 
+target_include_directories(dalbaragi_runtime
+    PUBLIC
+        .
+        ${extern_dir}/freetype2/include
+)
 
-######## Import libraries ########
+target_link_libraries(dalbaragi_runtime
+    PRIVATE
+        fmt::fmt
+        EnTT::EnTT
+        freetype
+        lua_static
+        dalbaragi_util
+        dalbaragi_physics
+        dalbaragi_resparser
+        dalbaragi_overlay
+)
 
-set(repoRoot_dir ${CMAKE_CURRENT_SOURCE_DIR}/../../..)
-set(extern_dir ${repoRoot_dir}/extern)
-set(externcpy_dir ${repoRoot_dir}/externcpy)
-set(externtool_dir ${repoRoot_dir}/externtool)
-
-
-# Freetype
-if (NOT TARGET freetype)
-    add_subdirectory(${extern_dir}/freetype2 ${CMAKE_CURRENT_BINARY_DIR}/freetype2)
-endif()
-target_link_libraries(dalbaragi_runtime PRIVATE freetype)
-target_include_directories(dalbaragi_runtime PRIVATE ${extern_dir}/freetype2/include)
-
-# Lua
-if (NOT TARGET lua_static)
-    add_subdirectory(${externtool_dir}/lua ${CMAKE_CURRENT_BINARY_DIR}/lua)
-    target_link_libraries(dalbaragi_runtime PRIVATE lua_static)
-endif()
-
-# zlib
 if (WIN32)
-    if (NOT TARGET zlibstatic)
-        add_subdirectory(${extern_dir}/zlib ${CMAKE_CURRENT_BINARY_DIR}/zlib)
-    endif()
-    target_link_libraries(dalbaragi_runtime PRIVATE zlibstatic)
-    target_include_directories(dalbaragi_runtime PRIVATE ${extern_dir}/zlib ${CMAKE_CURRENT_BINARY_DIR}/zlib)
+    target_include_directories(dalbaragi_runtime PRIVATE ${extern_dir}/zlib ${zlib_bin_dir})
+
+    target_link_libraries(dalbaragi_runtime
+        PRIVATE
+            zlibstatic
+            glfw
+            glad
+    )
+
 else()
     target_link_libraries(dalbaragi_runtime PRIVATE z)
+
 endif()
-
-
-if (WIN32)
-    # GLFW
-    if (NOT TARGET glfw)
-        add_subdirectory(${extern_dir}/glfw ${CMAKE_CURRENT_BINARY_DIR}/glfw)
-    endif()
-    target_link_libraries(dalbaragi_runtime PRIVATE glfw)
-
-    # GLaD
-    if (NOT TARGET glad)
-        add_subdirectory(${extern_dir}/glad ${CMAKE_CURRENT_BINARY_DIR}/glad)
-    endif()
-    target_link_libraries(dalbaragi_runtime PRIVATE glad)
-endif (WIN32)
-
-
-# Dalbaragi util
-if (NOT TARGET dalbaragi_util)
-    add_subdirectory(../util ${CMAKE_CURRENT_BINARY_DIR}/dalbaragi_util)
-    target_link_libraries(dalbaragi_runtime PUBLIC dalbaragi_util)
-endif()
-
-# Dalbaragi physics
-if (NOT TARGET dalbaragi_physics)
-    add_subdirectory(../physics ${CMAKE_CURRENT_BINARY_DIR}/dalbaragi_physics)
-    target_link_libraries(dalbaragi_runtime PUBLIC dalbaragi_physics)
-endif()
-
-# Dalbaragi resparser
-if (NOT TARGET dalbaragi_resparser)
-    add_subdirectory(../resparser ${CMAKE_CURRENT_BINARY_DIR}/dalbaragi_resparser)
-    target_link_libraries(dalbaragi_runtime PUBLIC dalbaragi_resparser)
-endif()
-
-# Dalbaragi overlay
-if (NOT TARGET dalbaragi_overlay)
-    add_subdirectory(../overlay ${CMAKE_CURRENT_BINARY_DIR}/dalbaragi_overlay)
-endif()
-target_link_libraries(dalbaragi_runtime PUBLIC dalbaragi_overlay)
