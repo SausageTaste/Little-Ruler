@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.11.0)
 
+include(FetchContent)
 
 set(repoRoot_dir ${CMAKE_CURRENT_SOURCE_DIR}/../..)
 set(extern_dir ${repoRoot_dir}/extern)
@@ -25,11 +26,15 @@ add_subdirectory(${externtool_dir}/lodepng ${CMAKE_CURRENT_BINARY_DIR}/lodepng)
 # Lua
 add_subdirectory(${externtool_dir}/lua ${CMAKE_CURRENT_BINARY_DIR}/lua)
 
-if (WIN32)
-    # zlib
-    set(zlib_bin_dir ${CMAKE_CURRENT_BINARY_DIR}/zlib)
-    add_subdirectory(${extern_dir}/zlib ${zlib_bin_dir})
+# DalbaragiTools
+FetchContent_Declare(
+    fetch_daltools
+    GIT_REPOSITORY https://github.com/SausageTaste/DalbaragiTools
+    GIT_TAG        main
+)
+FetchContent_MakeAvailable(fetch_daltools)
 
+if (WIN32)
     # GLFW
     add_subdirectory(${extern_dir}/glfw ${CMAKE_CURRENT_BINARY_DIR}/glfw)
 

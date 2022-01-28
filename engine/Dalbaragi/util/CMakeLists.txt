@@ -27,11 +27,12 @@ target_compile_features(dalbaragi_util PUBLIC cxx_std_17)
 target_include_directories(dalbaragi_util
     PUBLIC
         .
-        ${extern_dir}/glm
         ${extern_dir}/TGA
 )
 
 target_link_libraries(dalbaragi_util
+    PUBLIC
+        glm::glm
     PRIVATE
         fmt::fmt
         lib_lodepng

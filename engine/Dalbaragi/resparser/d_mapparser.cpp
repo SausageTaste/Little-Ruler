@@ -3,48 +3,21 @@
 #include <array>
 #include <memory>
 
-#define ZLIB_WINAPI
-#include <zlib.h>
+#include <daltools/compression.h>
 
 #include <u_byteutils.h>
 
 
 namespace {
 
-    size_t unzip(uint8_t* const dst, const size_t dstSize, const uint8_t* const src, const size_t srcSize) {
-        static_assert(sizeof(Bytef) == sizeof(uint8_t));
-
-        uLongf decomBufSize = dstSize;
-
-        const auto res = uncompress(dst, &decomBufSize, src, srcSize);
-        switch ( res ) {
-
-        case Z_OK:
-            return decomBufSize;
-        case Z_BUF_ERROR:
-            // dalError("Zlib fail: buffer is not large enough");
-            return 0;
-        case Z_MEM_ERROR:
-            // dalError("Zlib fail: Insufficient memory");
-            return 0;
-        case Z_DATA_ERROR:
-            // dalError("Zlib fail: Corrupted data");
-            return 0;
-        default:
-            // dalError(fmt::format("Zlib fail: Unknown reason ({})", res));
-            return 0;
-
-        }
-    }
-
     // Returns nullptr containing unique_ptr and 0 on failure.
     std::pair<std::unique_ptr<uint8_t[]>, size_t> uncompressMap(const uint8_t* const buf, const size_t bufSize) {
         const auto allocatedSize = static_cast<size_t>(1.01 * dal::makeInt4(buf));  // Just to ensure that buffer never lacks.
         std::unique_ptr<uint8_t[]> decomBuf{ new uint8_t[allocatedSize] };
-        const auto unzippedSize = unzip(decomBuf.get(), allocatedSize, buf + 4, bufSize - 4);
+        const auto decom_result = dal::decompress_zip(decomBuf.get(), allocatedSize, buf + 4, bufSize - 4);
 
-        if ( 0 != unzippedSize ) {
-            return std::make_pair(std::move(decomBuf), static_cast<size_t>(unzippedSize));
+        if (dal::CompressResult::success == decom_result.m_result) {
+            return std::make_pair(std::move(decomBuf), static_cast<size_t>(decom_result.m_output_size));
         }
         else {
             return std::make_pair(nullptr, 0);
@@ -185,7 +158,7 @@ namespace {
             info.m_name = reinterpret_cast<const char*>(begin);
             begin += info.m_name.size() + 1;
         }
-        
+
         // Transform
         {
             constexpr int FBUF_SIZE = 8;

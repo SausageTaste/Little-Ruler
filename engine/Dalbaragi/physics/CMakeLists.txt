@@ -19,7 +19,6 @@ target_compile_features(dalbaragi_physics PUBLIC cxx_std_17)
 target_include_directories(dalbaragi_physics
     PUBLIC
         .
-        ${extern_dir}/glm
 )
 
 target_link_libraries(dalbaragi_physics

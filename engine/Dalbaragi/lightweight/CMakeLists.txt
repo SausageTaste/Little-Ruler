@@ -14,8 +14,6 @@ add_library(dalbaragi_lightweight
 
 target_compile_features(dalbaragi_lightweight PUBLIC cxx_std_17)
 
-target_include_directories(dalbaragi_lightweight
-    PUBLIC
-        .
-        ${extern_dir}/glm
-)
+target_include_directories(dalbaragi_lightweight PUBLIC .)
+
+target_link_libraries(dalbaragi_lightweight PUBLIC glm::glm)

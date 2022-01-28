@@ -2,10 +2,10 @@
 
 #include <unordered_map>
 
-#define ZLIB_WINAPI
-#include <zlib.h>
 #include <fmt/format.h>
 #include <glm/gtc/matrix_transform.hpp>
+
+#include <daltools/compression.h>
 
 #include <d_logger.h>
 
@@ -28,33 +28,6 @@ namespace {
 
 // Utils
 namespace {
-
-    size_t unzip(uint8_t* const dst, const size_t dstSize, const uint8_t* const src, const size_t srcSize) {
-        static_assert(sizeof(Bytef) == sizeof(uint8_t));
-
-        uLongf decomBufSize = dstSize;
-
-        const auto res = uncompress(dst, &decomBufSize, src, srcSize);
-        switch ( res ) {
-
-        case Z_OK:
-            return decomBufSize;
-        case Z_BUF_ERROR:
-            // dalError("Zlib fail: buffer is not large enough");
-            return 0;
-        case Z_MEM_ERROR:
-            // dalError("Zlib fail: Insufficient memory");
-            return 0;
-        case Z_DATA_ERROR:
-            // dalError("Zlib fail: Corrupted data");
-            return 0;
-        default:
-            // dalError(fmt::format("Zlib fail: Unknown reason ({})", res));
-            return 0;
-
-        }
-    }
-
 
     bool checkMagicNumbers(const uint8_t* const begin) {
         for ( unsigned int i = 0; i < MAGIC_NUMBER_COUNT; ++i ) {
@@ -301,8 +274,8 @@ namespace dal {
             const auto zippedBytesOffset = MAGIC_NUMBER_COUNT + 4;
 
             unzipped.resize(fullSize);
-            const auto unzipSize = unzip(unzipped.data(), unzipped.size(), filebuf.data() + zippedBytesOffset, filebuf.size() - zippedBytesOffset);
-            if ( 0 == unzipSize ) {
+            const auto decom_result = dal::decompress_zip(unzipped.data(), unzipped.size(), filebuf.data() + zippedBytesOffset, filebuf.size() - zippedBytesOffset);
+            if (dal::CompressResult::success != decom_result.m_result) {
                 return false;
             }
         }

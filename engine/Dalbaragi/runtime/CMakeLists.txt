@@ -49,6 +49,7 @@ target_link_libraries(dalbaragi_runtime
         EnTT::EnTT
         freetype
         lua_static
+        dalbaragi::daltools
         dalbaragi_util
         dalbaragi_physics
         dalbaragi_resparser
@@ -56,16 +57,9 @@ target_link_libraries(dalbaragi_runtime
 )
 
 if (WIN32)
-    target_include_directories(dalbaragi_runtime PRIVATE ${extern_dir}/zlib ${zlib_bin_dir})
-
     target_link_libraries(dalbaragi_runtime
         PRIVATE
-            zlibstatic
             glfw
             glad
     )
-
-else()
-    target_link_libraries(dalbaragi_runtime PRIVATE z)
-
 endif()
