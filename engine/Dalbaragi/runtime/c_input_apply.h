@@ -24,7 +24,7 @@ namespace dal {
             dal::ColorView m_fixedCenterPoint, m_touchedPoint;
             float m_squareLengthHalf = 10;
 
-            glm::vec2 m_touchedPos;
+            glm::vec2 m_touchedPos{};
             touchID_t m_owning = -1;
 
         public:
@@ -53,7 +53,7 @@ namespace dal {
         MoveDPad m_dpad;
 
         touchID_t m_owningForView;
-        glm::vec2 m_lastViewTouchPos, m_viewTouchAccum;
+        glm::vec2 m_lastViewTouchPos{}, m_viewTouchAccum{};
 
         MoveInputInfo m_keyboardMoveInfo;
 

@@ -95,7 +95,7 @@ namespace dal {
         float m_margin;
 
         touchID_t m_owning = -1;
-        glm::vec2 m_lastTouchPos;
+        glm::vec2 m_lastTouchPos{};
 
     public:
         TextBox(Widget2D* const parent, overlayDrawFunc_t drawf, GlyphMaster& glyph);

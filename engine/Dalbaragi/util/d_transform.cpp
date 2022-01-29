@@ -9,7 +9,9 @@
 namespace dal {
 
     Transform::Transform(void)
-        : m_scale(1.f)
+        : m_quat(1, 0, 0, 0)
+        , m_pos(0)
+        , m_scale(1.f)
         , m_isDefault(true)
     {
         this->updateMat();

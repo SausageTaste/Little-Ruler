@@ -44,7 +44,7 @@ namespace dal {
     class ICamera {
 
     private:
-        glm::vec3 m_pos;
+        glm::vec3 m_pos{};
 
     protected:
         glm::mat4 m_viewMat;
@@ -112,7 +112,7 @@ namespace dal {
     class FocusCamera : public ICamera {
 
     private:
-        glm::vec3 m_focusPoint;
+        glm::vec3 m_focusPoint{};
 
     public:
         virtual void updateViewMat(void) override;

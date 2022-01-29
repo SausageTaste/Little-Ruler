@@ -124,7 +124,7 @@ namespace {
         const auto deltaPos = glm::vec3{ rotatedMoveVec.x, 0.0f, rotatedMoveVec.y } *deltaTime * 5.0f;
         cpntTrans.addPos(deltaPos);
         if ( rotatedMoveVec.x != 0.0f || rotatedMoveVec.y != 0.0f ) {  // If moved position
-            cpntTrans.setQuat(dal::rotateQuat(glm::quat{}, atan2(rotatedMoveVec.x, rotatedMoveVec.y), glm::vec3{ 0.0f, 1.0f, 0.0f }));
+            cpntTrans.setQuat(dal::rotateQuat(glm::quat{1, 0, 0, 0}, atan2(rotatedMoveVec.x, rotatedMoveVec.y), glm::vec3{ 0.0f, 1.0f, 0.0f }));
 
             animModel.m_animState.setSelectedAnimeIndex(1);
 
@@ -242,7 +242,7 @@ namespace {
         dal::ICharaState* m_sIdle = nullptr;
         dal::ICharaState* m_sFall = nullptr;
 
-        glm::vec3 m_lastPos;
+        glm::vec3 m_lastPos{};
 
     public:
         CharaWalkState(dal::ICamera& camera, dal::SceneGraph& scene)
@@ -315,7 +315,7 @@ namespace {
         dal::ICharaState* m_sIdle = nullptr;
         dal::ICharaState* m_sWalk = nullptr;
 
-        glm::vec3 m_lastPos;
+        glm::vec3 m_lastPos{};
         double m_fallStartSec = 0;
 
     public:
