@@ -29,6 +29,7 @@ add_subdirectory(${root_dir}/engine/Dalbaragi ${CMAKE_CURRENT_BINARY_DIR}/dalbar
 
 target_link_libraries(interface4jni
     dalbaragi_util
+    dalbaragi_overlay
     dalbaragi_runtime
 )
 
