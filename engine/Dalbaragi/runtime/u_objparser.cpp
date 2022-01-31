@@ -253,6 +253,24 @@ namespace {
 
 namespace {
 
+    template <typename T>
+    std::vector<T> reduce_joint_count_per_vertex(const std::vector<T>& src) {
+        std::vector<T> output;
+
+        dalAssert(0 == src.size() % 4);
+        const auto vertex_count = src.size() / 4;
+        output.reserve(vertex_count * 3);
+
+        for (size_t i = 0; i < vertex_count; ++i) {
+            auto& vec = *reinterpret_cast<const glm::tvec4<T>*>(src.data() + 4*i);
+            output.push_back(vec[0]);
+            output.push_back(vec[1]);
+            output.push_back(vec[2]);
+        }
+
+        return output;
+    }
+
     void convert_material(dal::binfo::Material& dst, const dal::parser::Material& src) {
         dst.m_roughness = src.m_roughness;
         dst.m_metallic = src.m_metallic;
@@ -465,6 +483,14 @@ namespace dal {
                 for ( unsigned i = 0; i < numTexcoords; ++i ) {
                     texcoords[2 * i + 0] *= scale.x;
                     texcoords[2 * i + 1] *= scale.y;
+                }
+            }
+
+            // Reduce joint count per vertex
+            {
+                for (auto& unit : info.m_model.m_renderUnits) {
+                    unit.m_mesh.m_boneIndex = ::reduce_joint_count_per_vertex(unit.m_mesh.m_boneIndex);
+                    unit.m_mesh.m_boneWeights = ::reduce_joint_count_per_vertex(unit.m_mesh.m_boneWeights);
                 }
             }
         }
