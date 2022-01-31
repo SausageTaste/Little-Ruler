@@ -44,16 +44,17 @@ target_include_directories(dalbaragi_runtime
 )
 
 target_link_libraries(dalbaragi_runtime
-    PRIVATE
+    PUBLIC
         fmt::fmt
         EnTT::EnTT
-        freetype
-        lua_static
         dalbaragi::daltools
         dalbaragi_util
         dalbaragi_physics
         dalbaragi_resparser
         dalbaragi_overlay
+    PRIVATE
+        freetype
+        lua_static
 )
 
 if (WIN32)

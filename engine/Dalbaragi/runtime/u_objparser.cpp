@@ -117,7 +117,7 @@ namespace {
 
             for (size_t i = 0; i < skeleton.getSize(); ++i) {
                 auto& joint_info = skeleton.at(i);
-                auto& src_joint_index = src_anim.find_by_name(joint_info.name());
+                auto src_joint_index = src_anim.find_by_name(joint_info.name());
 
                 if (src_joint_index.has_value()) {
                     auto& src_joint = src_anim.m_joints[src_joint_index.value()];

@@ -28,7 +28,6 @@ target_compile_features(interface4jni PUBLIC cxx_std_17)
 add_subdirectory(${root_dir}/engine/Dalbaragi ${CMAKE_CURRENT_BINARY_DIR}/dalbaragi)
 
 target_link_libraries(interface4jni
-    dalbaragi_util
     dalbaragi_runtime
 )
 
