@@ -328,6 +328,17 @@ namespace {
                 dst_joint.setParentIndex(src_joint.m_parent_index);
                 dst_joint.setType(src_joint.m_joint_type);
             }
+
+            if (dst.m_joints.getSize() > 0) {
+                // Character lies on ground without this line.
+                dst.m_joints.at(0).setParentMat(dst.m_joints.at(0).offset());
+
+                for ( int i = 1; i < dst.m_joints.getSize(); ++i ) {
+                    auto& this_info = dst.m_joints.at(i);
+                    const auto& parent_info = dst.m_joints.at(this_info.parentIndex());
+                    this_info.setParentMat(parent_info);
+                }
+            }
         }
     }
 
@@ -336,6 +347,14 @@ namespace {
         const std::vector<dal::parser::Animation>& src,
         const dal::SkeletonInterface& skeleton
     ) {
+        // Insesrt null animation
+        if (!src.empty()) {
+            auto& anim = dst.emplace_back("nullpos", 0.f, 0.f);
+            for ( int i = 0; i < skeleton.getSize(); ++i ) {
+                anim.newJoint();
+            }
+        }
+
         for (auto& src_anim : src) {
             auto& dst_anim = dst.emplace_back(src_anim.m_name, src_anim.m_ticks_par_sec, src_anim.m_duration_tick);
 
