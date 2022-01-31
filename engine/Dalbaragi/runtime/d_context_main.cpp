@@ -496,6 +496,9 @@ namespace {
     class TitleScreen : public dal::IContext {
 
     private:
+        constexpr static double FREEZE_DURATION_SEC = 0.1;
+
+    private:
         dal::ShaderMaster& m_shaders;
         dal::TaskMaster& m_task;
 
@@ -537,7 +540,7 @@ namespace {
 
                     for ( unsigned int i = 0; i < tq.getSize(); i++ ) {
                         const auto& e = tq.at(i);
-                        if ( dal::TouchActionType::down == e.m_actionType && this->m_timer.getElapsed() > 1.f ) {
+                        if ( dal::TouchActionType::down == e.m_actionType && this->m_timer.getElapsed() > this->FREEZE_DURATION_SEC ) {
                             nextContext = this->m_cnxtIngame;
                         }
                     }
@@ -552,7 +555,7 @@ namespace {
                     for ( unsigned int i = 0; i < kqSize; ++i ) {
                         const auto& e = kq.at(i);
 
-                        if ( dal::KeyActionType::down == e.m_actionType && this->m_timer.getElapsed() > 1.f ) {
+                        if ( dal::KeyActionType::down == e.m_actionType && this->m_timer.getElapsed() > this->FREEZE_DURATION_SEC ) {
                             nextContext = this->m_cnxtIngame;
                         }
                     }
