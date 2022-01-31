@@ -446,6 +446,7 @@ namespace dal {
             return false;
         }
 
+        // Parse model
         {
             const auto parsed_model = dal::parser::parse_dmd(filebuf.data(), filebuf.size());
             if (!parsed_model.has_value())
@@ -455,44 +456,43 @@ namespace dal {
             ::convert_animations(info.m_animations, parsed_model->m_animations, info.m_model.m_joints);
         }
 
-        // Post process
+        // Convert texture names into respath
+        for ( auto& unit : info.m_model.m_renderUnits ) {
+            auto& mat = unit.m_material;
+
+            if ( !mat.m_diffuseMap.empty() ) {
+                mat.m_diffuseMap = "::" + mat.m_diffuseMap;
+            }
+            if ( !mat.m_metallicMap.empty() ) {
+                mat.m_metallicMap = "::" + mat.m_metallicMap;
+            }
+            if ( !mat.m_roughnessMap.empty() ) {
+                mat.m_roughnessMap = "::" + mat.m_roughnessMap;
+            }
+            if ( !mat.m_normalMap.empty() ) {
+                mat.m_normalMap = "::" + mat.m_normalMap;
+            }
+        }
+
+        // Check joint count
         {
-            for ( auto& unit : info.m_model.m_renderUnits ) {
-                auto& mat = unit.m_material;
+            dal::jointID_t max_joint_id = -1;
 
-                if ( !mat.m_diffuseMap.empty() ) {
-                    mat.m_diffuseMap = "::" + mat.m_diffuseMap;
-                }
-                if ( !mat.m_metallicMap.empty() ) {
-                    mat.m_metallicMap = "::" + mat.m_metallicMap;
-                }
-                if ( !mat.m_roughnessMap.empty() ) {
-                    mat.m_roughnessMap = "::" + mat.m_roughnessMap;
-                }
-                if ( !mat.m_normalMap.empty() ) {
-                    mat.m_normalMap = "::" + mat.m_normalMap;
+            for (auto& unit : info.m_model.m_renderUnits) {
+                for (const auto jid : unit.m_mesh.m_boneIndex) {
+                    if (jid > max_joint_id) {
+                        max_joint_id = jid;
+                    }
                 }
             }
 
-            // Apply texcoords resizing.
-            for ( auto& unit : info.m_model.m_renderUnits ) {
-                const auto scale = unit.m_material.m_texScale;
-                auto& texcoords = unit.m_mesh.m_texcoords;
+            dalAssert(max_joint_id + 1 == info.m_model.m_joints.getSize());
+        }
 
-                const auto numTexcoords = texcoords.size() / 2;
-                for ( unsigned i = 0; i < numTexcoords; ++i ) {
-                    texcoords[2 * i + 0] *= scale.x;
-                    texcoords[2 * i + 1] *= scale.y;
-                }
-            }
-
-            // Reduce joint count per vertex
-            {
-                for (auto& unit : info.m_model.m_renderUnits) {
-                    unit.m_mesh.m_boneIndex = ::reduce_joint_count_per_vertex(unit.m_mesh.m_boneIndex);
-                    unit.m_mesh.m_boneWeights = ::reduce_joint_count_per_vertex(unit.m_mesh.m_boneWeights);
-                }
-            }
+        // Reduce joint count per vertex
+        for (auto& unit : info.m_model.m_renderUnits) {
+            unit.m_mesh.m_boneIndex = ::reduce_joint_count_per_vertex(unit.m_mesh.m_boneIndex);
+            unit.m_mesh.m_boneWeights = ::reduce_joint_count_per_vertex(unit.m_mesh.m_boneWeights);
         }
 
         return true;
