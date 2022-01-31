@@ -1,10 +1,8 @@
 #include "u_objparser.h"
 
-#include <unordered_map>
-
 #include <fmt/format.h>
-#include <glm/gtc/matrix_transform.hpp>
 
+#include <daltools/model_parser.h>
 #include <daltools/compression.h>
 
 #include <d_logger.h>
@@ -253,9 +251,99 @@ namespace {
 }
 
 
+namespace {
+
+    void convert_material(dal::binfo::Material& dst, const dal::parser::Material& src) {
+        dst.m_roughness = src.m_roughness;
+        dst.m_metallic = src.m_metallic;
+
+        dst.m_diffuseMap = src.m_albedo_map;
+        dst.m_roughnessMap = src.m_roughness_map;
+        dst.m_metallicMap = src.m_metallic_map;
+        dst.m_normalMap = src.m_normal_map;
+    }
+
+    void convert_model(dal::binfo::Model& dst, const dal::parser::Model& src) {
+        // AABB
+        {
+            dst.m_aabb.set(
+                src.m_aabb.m_min,
+                src.m_aabb.m_max
+            );
+        }
+
+        // Render units
+        {
+            for (auto& src_unit : src.m_units_straight) {
+                auto& dst_unit = dst.m_renderUnits.emplace_back();
+
+                dst_unit.m_name = src_unit.m_name;
+                ::convert_material(dst_unit.m_material, src_unit.m_material);
+
+                dst_unit.m_mesh.m_vertices = src_unit.m_mesh.m_vertices;
+                dst_unit.m_mesh.m_normals = src_unit.m_mesh.m_normals;
+                dst_unit.m_mesh.m_texcoords = src_unit.m_mesh.m_texcoords;
+            }
+
+            for (auto& src_unit : src.m_units_straight_joint) {
+                auto& dst_unit = dst.m_renderUnits.emplace_back();
+
+                dst_unit.m_name = src_unit.m_name;
+                ::convert_material(dst_unit.m_material, src_unit.m_material);
+
+                dst_unit.m_mesh.m_vertices = src_unit.m_mesh.m_vertices;
+                dst_unit.m_mesh.m_normals = src_unit.m_mesh.m_normals;
+                dst_unit.m_mesh.m_texcoords = src_unit.m_mesh.m_texcoords;
+                dst_unit.m_mesh.m_boneWeights = src_unit.m_mesh.m_boneWeights;
+                dst_unit.m_mesh.m_boneIndex = src_unit.m_mesh.m_boneIndex;
+            }
+        }
+
+        // Skeleton
+        {
+            for (auto& src_joint : src.m_skeleton.m_joints) {
+                const auto jid = dst.m_joints.getOrMakeIndexOf(src_joint.m_name);
+                auto& dst_joint = dst.m_joints.at(jid);
+
+                dst_joint.setName(src_joint.m_name);
+                dst_joint.setOffset(src_joint.m_offset_mat);
+                dst_joint.setParentIndex(src_joint.m_parent_index);
+                dst_joint.setType(src_joint.m_joint_type);
+            }
+        }
+    }
+
+    void convert_animations(
+        std::vector<dal::Animation>& dst,
+        const std::vector<dal::parser::Animation>& src,
+        const dal::SkeletonInterface& skeleton
+    ) {
+        for (auto& src_anim : src) {
+            auto& dst_anim = dst.emplace_back(src_anim.m_name, src_anim.m_ticks_par_sec, src_anim.m_duration_tick);
+
+            for (size_t i = 0; i < skeleton.getSize(); ++i) {
+                auto& joint_info = skeleton.at(i);
+                auto& src_joint_index = src_anim.find_by_name(joint_info.name());
+
+                if (src_joint_index.has_value()) {
+                    auto& src_joint = src_anim.m_joints[src_joint_index.value()];
+                    auto& dst_joint = dst_anim.newJoint();
+                    dst_joint.set(src_joint);
+                }
+                else {
+                    auto& dst_joint = dst_anim.newJoint();
+                    dst_joint.setName(joint_info.name());
+                }
+            }
+        }
+    }
+
+}
+
+
 namespace dal {
 
-    bool loadDalModel(const char* const respath, ModelLoadInfo& info) {
+    bool loadDalModel_old(const char* const respath, ModelLoadInfo& info) {
         // Load file contents
         std::vector<uint8_t> filebuf;
         if ( !loadFileBuffer(respath, filebuf) ) {
@@ -296,6 +384,57 @@ namespace dal {
             }
 
             dalAssert(header == end);
+        }
+
+        // Post process
+        {
+            for ( auto& unit : info.m_model.m_renderUnits ) {
+                auto& mat = unit.m_material;
+
+                if ( !mat.m_diffuseMap.empty() ) {
+                    mat.m_diffuseMap = "::" + mat.m_diffuseMap;
+                }
+                if ( !mat.m_metallicMap.empty() ) {
+                    mat.m_metallicMap = "::" + mat.m_metallicMap;
+                }
+                if ( !mat.m_roughnessMap.empty() ) {
+                    mat.m_roughnessMap = "::" + mat.m_roughnessMap;
+                }
+                if ( !mat.m_normalMap.empty() ) {
+                    mat.m_normalMap = "::" + mat.m_normalMap;
+                }
+            }
+
+            // Apply texcoords resizing.
+            for ( auto& unit : info.m_model.m_renderUnits ) {
+                const auto scale = unit.m_material.m_texScale;
+                auto& texcoords = unit.m_mesh.m_texcoords;
+
+                const auto numTexcoords = texcoords.size() / 2;
+                for ( unsigned i = 0; i < numTexcoords; ++i ) {
+                    texcoords[2 * i + 0] *= scale.x;
+                    texcoords[2 * i + 1] *= scale.y;
+                }
+            }
+        }
+
+        return true;
+    }
+
+    bool loadDalModel(const char* const respath, ModelLoadInfo& info) {
+        // Load file contents
+        std::vector<uint8_t> filebuf;
+        if ( !loadFileBuffer(respath, filebuf) ) {
+            return false;
+        }
+
+        {
+            const auto parsed_model = dal::parser::parse_dmd(filebuf.data(), filebuf.size());
+            if (!parsed_model.has_value())
+                return false;
+
+            ::convert_model(info.m_model, parsed_model.value());
+            ::convert_animations(info.m_animations, parsed_model->m_animations, info.m_model.m_joints);
         }
 
         // Post process

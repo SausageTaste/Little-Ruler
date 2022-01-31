@@ -9,6 +9,8 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
 
+#include <daltools/struct.h>
+
 #include "p_uniloc.h"
 #include "u_timer.h"
 
@@ -17,8 +19,8 @@ namespace dal {
 
     using jointID_t = int32_t;
 
+    using JointType = dal::parser::JointType;
 
-    enum class JointType { basic = 0, hair_root = 1, skirt_root = 2 };
 
     class JointInfo {
 
@@ -150,11 +152,7 @@ namespace dal {
         class JointNode {
 
         private:
-            std::string m_name;
-
-            std::vector<std::pair<float, glm::vec3>> m_poses;
-            std::vector<std::pair<float, glm::quat>> m_rotates;
-            std::vector<std::pair<float, float>> m_scales;
+            dal::parser::AnimJoint m_data;
 
         public:
             JointNode(const JointNode&) = delete;
@@ -163,26 +161,30 @@ namespace dal {
             JointNode& operator=(JointNode&&) = default;
 
         public:
-            JointNode(void) = default;;
+            JointNode() = default;
+
+            void set(const dal::parser::AnimJoint& data) {
+                this->m_data = data;
+            }
 
             void setName(const std::string& name) {
-                this->m_name = name;
+                this->m_data.m_name = name;
             }
+
             void addPos(const float timepoint, const glm::vec3& pos) {
-                const std::pair<float, glm::vec3> input{ timepoint, pos };
-                this->m_poses.push_back(input);
+                this->m_data.add_translate(timepoint, pos.x, pos.y, pos.z);
             }
+
             void addRotation(const float timepoint, const glm::quat& rot) {
-                const std::pair<float, glm::quat> input{ timepoint, rot };
-                this->m_rotates.push_back(input);
+                this->m_data.add_rotation(timepoint, rot.w, rot.x, rot.y, rot.z);
             }
+
             void addScale(const float timepoint, const float scale) {
-                const std::pair<float, float> input{ timepoint, scale };
-                this->m_scales.push_back(input);
+                this->m_data.add_scale(timepoint, scale);
             }
-           
+
             const std::string& name(void) const {
-                return this->m_name;
+                return this->m_data.m_name;
             }
 
             glm::mat4 makeTransform(const float animTick) const;
