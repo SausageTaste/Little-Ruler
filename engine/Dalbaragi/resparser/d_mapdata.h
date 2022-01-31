@@ -15,7 +15,7 @@ namespace dal::v1 {
     class AABB {
 
     public:
-        glm::vec3 m_min, m_max;
+        glm::vec3 m_min{}, m_max{};
 
     };
 
@@ -142,7 +142,7 @@ namespace dal::v1 {
     };
 
     struct EnvMap {
-        glm::vec3 m_pos;
+        glm::vec3 m_pos{};
         std::vector<glm::vec4> m_volume;
     };
 
@@ -181,7 +181,7 @@ namespace dal::v1 {
         struct ChunkData {
             std::string m_name;
             AABB m_aabb;
-            glm::vec3 m_offsetPos;
+            glm::vec3 m_offsetPos{};
         };
 
     public:

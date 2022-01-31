@@ -25,7 +25,7 @@ namespace {
     glm::quat interpolate(const glm::quat& start, const glm::quat& end, const float factor) {
         return glm::slerp(start, end, factor);
     }
-    
+
     // Pass it container with size 0 and iterator to index of unsigned{ -1 }.
     // WTF such a broken Engilsh that even I can't understand!!
     template <typename T>
@@ -216,19 +216,19 @@ namespace dal {
     // Private
 
     bool Animation::JointNode::hasKeyframes(void) const {
-        return (this->m_poses.size() + this->m_rotates.size() + this->m_scales.size()) != 0;
+        return (this->m_data.m_translates.size() + this->m_data.m_rotations.size() + this->m_data.m_scales.size()) != 0;
     }
 
     glm::vec3 Animation::JointNode::makePosInterp(const float animTick) const {
-        return this->m_poses.empty() ? glm::vec3{} : makeInterpValue(animTick, this->m_poses);
+        return this->m_data.m_translates.empty() ? glm::vec3{} : makeInterpValue(animTick, this->m_data.m_translates);
     }
 
     glm::quat Animation::JointNode::makeRotateInterp(const float animTick) const {
-        return this->m_rotates.empty() ? glm::quat{} : makeInterpValue(animTick, this->m_rotates);
+        return this->m_data.m_rotations.empty() ? glm::quat{} : makeInterpValue(animTick, this->m_data.m_rotations);
     }
 
     float Animation::JointNode::makeScaleInterp(const float animTick) const {
-        return this->m_scales.empty() ? 1.f : makeInterpValue(animTick, this->m_scales);
+        return this->m_data.m_scales.empty() ? 1.f : makeInterpValue(animTick, this->m_data.m_scales);
     }
 
 }  // namespace dal
@@ -249,8 +249,13 @@ namespace dal {
         }
     }
 
-    void Animation::sample2(const float elapsed, const float animTick, const SkeletonInterface& interf,
-        JointTransformArray& transformArr, const jointModifierRegistry_t& modifiers) const {
+    void Animation::sample2(
+        const float elapsed,
+        const float animTick,
+        const SkeletonInterface& interf,
+        JointTransformArray& transformArr,
+        const jointModifierRegistry_t& modifiers
+    ) const {
         static const auto k_spaceAnim2Model = glm::rotate(glm::mat4{ 1.f }, glm::radians(-90.f), glm::vec3{ 1.f, 0.f, 0.f });
         static const auto k_spaceModel2Anim = glm::inverse(k_spaceAnim2Model);
 

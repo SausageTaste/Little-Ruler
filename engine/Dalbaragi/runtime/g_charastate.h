@@ -15,7 +15,7 @@ namespace dal {
     struct MoveInputInfo {
 
     public:
-        glm::vec2 m_view, m_move;
+        glm::vec2 m_view{}, m_move{};
         bool m_jump = false;
 
     public:

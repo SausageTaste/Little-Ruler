@@ -34,12 +34,12 @@ namespace dal {
     class PositionParticle {
 
     public:
-        vec3_t m_pos;
+        vec3_t m_pos{};
         MassValue m_mass;
         float_t m_damping;
 
     private:
-        vec3_t m_vel, m_acc, m_forceAccum;
+        vec3_t m_vel{}, m_acc{}, m_forceAccum{};
 
     public:
         PositionParticle(void);

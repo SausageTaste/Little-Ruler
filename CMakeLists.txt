@@ -4,4 +4,5 @@ project(Little-Ruler-proj
     LANGUAGES      CXX
 )
 
+add_subdirectory(./engine/Dalbaragi)
 add_subdirectory(./engine/LittleRulerWindows)

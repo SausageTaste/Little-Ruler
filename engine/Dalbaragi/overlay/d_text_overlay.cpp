@@ -404,7 +404,7 @@ namespace dal {
                     continue;
                 }
 
-                std::pair<glm::vec2, glm::vec2> charQuad;
+                std::pair<glm::vec2, glm::vec2> charQuad{};
                 {
                     charQuad.first.x = roundf(currentPos.x + charInfo.m_bearing.x);
                     charQuad.first.y = roundf(currentPos.y - charInfo.m_bearing.y);

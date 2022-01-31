@@ -190,7 +190,7 @@ namespace {
             }
 
             glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-            glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
+            glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
             this->m_window = glfwCreateWindow(winWidth, winHeight, title, NULL, NULL);
             if ( nullptr == this->m_window ) {
                 dalAbort("failed to create window");

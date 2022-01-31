@@ -52,7 +52,7 @@ namespace dal {
     class DirectionalLight : public ILight {
 
     private:
-        glm::vec3 m_pos;
+        glm::vec3 m_pos{};
         glm::vec3 m_direction{ -0.3f, -1.0f, -1.0f };  // This must be always normalized.
         float m_halfProjBoxEdgeLen;
         DepthmapForLights m_shadowMap;
@@ -96,7 +96,7 @@ namespace dal {
     class PointLight : public ILight {
 
     public:
-        glm::vec3 mPos;
+        glm::vec3 mPos{};
         float mMaxDistance = 5.0f;
 
     public:
@@ -108,9 +108,9 @@ namespace dal {
     class SpotLight {
 
     private:
-        glm::vec3 m_pos;
-        glm::vec3 m_direc;
-        glm::vec3 m_color;
+        glm::vec3 m_pos{};
+        glm::vec3 m_direc{};
+        glm::vec3 m_color{};
         float m_maxDist;
         float m_endFadeRadians;
         float m_startFade, m_endFade;
