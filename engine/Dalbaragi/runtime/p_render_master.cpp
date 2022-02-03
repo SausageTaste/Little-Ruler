@@ -370,7 +370,7 @@ namespace dal {
         , m_winWidth(winWidth), m_winHeight(winHeight)
         , m_skyColor(1.0f, 0.3f, 0.3f)
         , m_mainCamera(camera)
-        , m_farPlaneDistance(100.0f)
+        , m_farPlaneDistance(300.0f)
         , m_baseAmbientColor(0.1f)
     {
         // OpenGL global switch
@@ -454,7 +454,7 @@ namespace dal {
 
 #if DAL_SUN_ORBIT
         auto& sunlight = this->m_scene.m_dlights.back();
-        
+
         const auto mat = glm::rotate(glm::mat4{ 1.0f }, deltaTime * 0.3f, glm::vec3{ 1.0f, 0.5f, 0.0f });
         const glm::vec4 direcBefore{ sunlight.getDirection(), 0.0f };
         const auto newDirec = glm::normalize(glm::vec3{ mat * direcBefore });
@@ -480,9 +480,9 @@ namespace dal {
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         glViewport(0, 0, this->m_winWidth, this->m_winHeight);
 
-        // Render framebuffer to quad 
+        // Render framebuffer to quad
         {
-           
+
             auto& uniloc = this->m_shader.useFillScreen();
 
             uniloc.projMat(this->m_projectMat);
@@ -588,7 +588,7 @@ namespace dal {
                     this->m_scene.render_staticDepth(uniloc);
                 }
             }
-          
+
             {
                 auto& uniloc = this->m_shader.useAnimatedDepth();
                 for ( auto s : slights ) {
@@ -830,7 +830,7 @@ namespace dal {
     void RenderMaster::render_onFbuf(void) {
         this->m_fbuffer.clearAndstartRenderOn();
 
-        // Render to framebuffer 
+        // Render to framebuffer
         {
             auto& uniloc = this->m_shader.useStatic();
 
