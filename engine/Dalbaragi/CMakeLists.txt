@@ -11,9 +11,6 @@ set(externtool_dir ${repoRoot_dir}/externtool)
 # Import external libraries
 # ------------------------------------------------------------------------------
 
-# fmt
-add_subdirectory(${extern_dir}/fmt ${CMAKE_CURRENT_BINARY_DIR}/fmt)
-
 # Freetype
 add_subdirectory(${extern_dir}/freetype2 ${CMAKE_CURRENT_BINARY_DIR}/freetype2)
 
