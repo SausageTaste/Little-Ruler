@@ -172,7 +172,7 @@ namespace dal {
             }
 
             void addPos(const float timepoint, const glm::vec3& pos) {
-                this->m_data.add_translate(timepoint, pos.x, pos.y, pos.z);
+                this->m_data.add_position(timepoint, pos.x, pos.y, pos.z);
             }
 
             void addRotation(const float timepoint, const glm::quat& rot) {

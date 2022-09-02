@@ -113,14 +113,14 @@ namespace {
         }
 
         for (auto& src_anim : src) {
-            auto& dst_anim = dst.emplace_back(src_anim.m_name, src_anim.m_ticks_par_sec, src_anim.m_duration_tick);
+            auto& dst_anim = dst.emplace_back(src_anim.m_name, src_anim.m_ticks_per_sec, src_anim.calc_duration_in_ticks());
 
             for (size_t i = 0; i < skeleton.getSize(); ++i) {
                 auto& joint_info = skeleton.at(i);
-                auto src_joint_index = src_anim.find_by_name(joint_info.name());
+                auto src_joint_index = src_anim.find_index_by_name(joint_info.name());
 
-                if (src_joint_index.has_value()) {
-                    auto& src_joint = src_anim.m_joints[src_joint_index.value()];
+                if (dal::parser::NULL_JID != src_joint_index) {
+                    auto& src_joint = src_anim.m_joints[src_joint_index];
                     auto& dst_joint = dst_anim.newJoint();
                     dst_joint.set(src_joint);
                 }

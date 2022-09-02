@@ -311,7 +311,7 @@ namespace dal {
         // Player
         {
             this->m_player = this->m_entities.create();
-            dalInfo(fmt::format("Player's entity id is {}.", this->m_player));
+            dalInfo(fmt::format("Player's entity id is {}.", static_cast<uint32_t>(this->m_player)));
 
             auto& transform = this->m_entities.assign<cpnt::Transform>(this->m_player);
             //transform.setScale(1.5f);

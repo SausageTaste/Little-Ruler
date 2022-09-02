@@ -216,11 +216,11 @@ namespace dal {
     // Private
 
     bool Animation::JointNode::hasKeyframes(void) const {
-        return (this->m_data.m_translates.size() + this->m_data.m_rotations.size() + this->m_data.m_scales.size()) != 0;
+        return (this->m_data.m_positions.size() + this->m_data.m_rotations.size() + this->m_data.m_scales.size()) != 0;
     }
 
     glm::vec3 Animation::JointNode::makePosInterp(const float animTick) const {
-        return this->m_data.m_translates.empty() ? glm::vec3{} : makeInterpValue(animTick, this->m_data.m_translates);
+        return this->m_data.m_positions.empty() ? glm::vec3{} : makeInterpValue(animTick, this->m_data.m_positions);
     }
 
     glm::quat Animation::JointNode::makeRotateInterp(const float animTick) const {
