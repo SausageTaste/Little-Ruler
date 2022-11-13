@@ -256,9 +256,6 @@ namespace dal {
         JointTransformArray& transformArr,
         const jointModifierRegistry_t& modifiers
     ) const {
-        static const auto k_spaceAnim2Model = glm::rotate(glm::mat4{ 1.f }, glm::radians(-90.f), glm::vec3{ 1.f, 0.f, 0.f });
-        static const auto k_spaceModel2Anim = glm::inverse(k_spaceAnim2Model);
-
         const auto numBones = interf.getSize();
         transformArr.setSize(numBones);
 
@@ -281,10 +278,8 @@ namespace dal {
                 totalTrans = interf.at(curBone).toParent() * boneTransforms[curBone] * totalTrans;
                 curBone = interf.at(curBone).parentIndex();
             }
-            transformArr.setTransform(i, k_spaceAnim2Model * totalTrans * k_spaceModel2Anim);
+            transformArr.setTransform(i, totalTrans);
         }
-
-        return;
     }
 
     float Animation::calcAnimTick(const float seconds) const {

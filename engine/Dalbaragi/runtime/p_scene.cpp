@@ -328,7 +328,7 @@ namespace dal {
         }
 
         // Test physics
-        {
+        /*{
             auto playerParticle = this->m_phyworld.newParticle();
             this->m_phyworld.registerUnaryMod(
                 std::shared_ptr<dal::UnaryPhyModifier>{new ParticleToEntity{ this->m_player, this->m_entities }},
@@ -349,7 +349,7 @@ namespace dal {
 
             auto& enttCtrl = this->m_entities.assign<cpnt::EntityCtrl>(entity);
             enttCtrl.m_ctrler.reset(new EntityToParticle{ enttParticle, this->m_phyworld });
-        }
+        }*/
 
         // Misc
         {
