@@ -19,7 +19,7 @@ using namespace fmt::literals;
 // Konstants
 namespace {
 
-    constexpr size_t MAX_JOINTS_NUM = 30;
+    constexpr size_t MAX_JOINTS_NUM = 230;
 
 }
 
