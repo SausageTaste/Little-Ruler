@@ -83,16 +83,42 @@ namespace {
             }
 
             for (auto& src_unit : src.units_straight_joint_) {
-                auto& dst_unit = dst.m_renderUnits.emplace_back();
+                auto& src_mesh = src_unit.mesh_;
+                if (src_mesh.joint_weights_.size() != src_mesh.joint_indices_.size()) {
+                    dalError("Joint weight and index count mismatch.");
+                    continue;
+                }
 
+                const auto joint_value_count = src_mesh.joint_weights_.size();
+                if (joint_value_count % 3 == 0) {
+                    auto& dst_unit = dst.m_renderUnits.emplace_back();
+                    dst_unit.m_mesh.m_boneWeights = src_mesh.joint_weights_;
+                    dst_unit.m_mesh.m_boneIndex = src_mesh.joint_indices_;
+                }
+                else if (joint_value_count % 4 == 0) {
+                    auto& dst_unit = dst.m_renderUnits.emplace_back();
+                    for (size_t i = 0; i < joint_value_count / 4; ++i) {
+                        dst_unit.m_mesh.m_boneWeights.push_back(src_mesh.joint_weights_[4 * i + 0]);
+                        dst_unit.m_mesh.m_boneWeights.push_back(src_mesh.joint_weights_[4 * i + 1]);
+                        dst_unit.m_mesh.m_boneWeights.push_back(src_mesh.joint_weights_[4 * i + 2]);
+
+                        dst_unit.m_mesh.m_boneIndex.push_back(src_mesh.joint_indices_[4 * i + 0]);
+                        dst_unit.m_mesh.m_boneIndex.push_back(src_mesh.joint_indices_[4 * i + 1]);
+                        dst_unit.m_mesh.m_boneIndex.push_back(src_mesh.joint_indices_[4 * i + 2]);
+                    }
+                }
+                else {
+                    dalError("Invalid joint weight count.");
+                    continue;
+                }
+
+                auto& dst_unit = dst.m_renderUnits.back();
                 dst_unit.m_name = src_unit.name_;
                 ::convert_material(dst_unit.m_material, src_unit.material_);
 
-                dst_unit.m_mesh.m_vertices = src_unit.mesh_.vertices_;
-                dst_unit.m_mesh.m_normals = src_unit.mesh_.normals_;
-                dst_unit.m_mesh.m_texcoords = src_unit.mesh_.uv_coordinates_;
-                dst_unit.m_mesh.m_boneWeights = src_unit.mesh_.joint_weights_;
-                dst_unit.m_mesh.m_boneIndex = src_unit.mesh_.joint_indices_;
+                dst_unit.m_mesh.m_vertices = src_mesh.vertices_;
+                dst_unit.m_mesh.m_normals = src_mesh.normals_;
+                dst_unit.m_mesh.m_texcoords = src_mesh.uv_coordinates_;
             }
 
             for (auto& src_unit : src.units_indexed_joint_) {
@@ -118,12 +144,10 @@ namespace {
                     dst_unit.m_mesh.m_boneIndex.push_back(vertex.joint_indices_.x);
                     dst_unit.m_mesh.m_boneIndex.push_back(vertex.joint_indices_.y);
                     dst_unit.m_mesh.m_boneIndex.push_back(vertex.joint_indices_.z);
-                    dst_unit.m_mesh.m_boneIndex.push_back(vertex.joint_indices_.w);
 
                     dst_unit.m_mesh.m_boneWeights.push_back(vertex.joint_weights_.x);
                     dst_unit.m_mesh.m_boneWeights.push_back(vertex.joint_weights_.y);
                     dst_unit.m_mesh.m_boneWeights.push_back(vertex.joint_weights_.z);
-                    dst_unit.m_mesh.m_boneWeights.push_back(vertex.joint_weights_.w);
                 }
             }
         }
