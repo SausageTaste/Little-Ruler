@@ -3,7 +3,7 @@
 #include <time.h>
 #include <unordered_set>
 
-#include <fmt/format.h>
+#include <spdlog/fmt/fmt.h>
 
 #include <d_logger.h>
 #include <d_filesystem.h>
@@ -320,7 +320,7 @@ namespace dal {
             cnxt->onWinResize(width, height);
         }
 
-        dalVerbose("Resize : {} x {}"_format(width, height));
+        dalVerbose(fmt::format("Resize : {} x {}", width, height));
     }
 
 }

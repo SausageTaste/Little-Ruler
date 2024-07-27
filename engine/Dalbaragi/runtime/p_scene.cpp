@@ -2,7 +2,7 @@
 
 #include <limits>
 
-#include <fmt/format.h>
+#include <spdlog/fmt/fmt.h>
 #include <glm/gtc/matrix_transform.hpp>
 
 #include <d_logger.h>
@@ -314,7 +314,7 @@ namespace dal {
             dalInfo(fmt::format("Player's entity id is {}.", static_cast<uint32_t>(this->m_player)));
 
             auto& transform = this->m_entities.assign<cpnt::Transform>(this->m_player);
-            //transform.setScale(1.5f);
+            transform.setScale(0.2f);
 
             auto ptrModel = this->m_resMas.orderModelAnim("asset::Character Running.dmd");
             auto& renderable = this->m_entities.assign<cpnt::AnimatedModel>(this->m_player);
@@ -675,14 +675,14 @@ namespace dal {
         std::vector<uint8_t> buffer;
         {
             auto file = dal::fileopen(respath, dal::FileMode2::bread);
-            dalAssertm(file, "failed to open file: {}"_format(respath));
+            dalAssertm(file, fmt::format("failed to open file: {}", respath));
             buffer.resize(file->getSize());
             const auto readSize = file->read(buffer.data(), buffer.size());
             dalAssert(0 != readSize);
         }
 
         const auto map = dal::parseLevel_v1(buffer.data(), buffer.size());
-        dalAssertm(map, "failed to load level: {}"_format(respath));
+        dalAssertm(map, fmt::format("failed to load level: {}", respath));
 
         this->m_activeLevel.setRespath(respath);
         this->m_activeLevel.clear();

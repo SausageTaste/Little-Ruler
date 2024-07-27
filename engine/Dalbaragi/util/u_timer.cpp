@@ -2,7 +2,7 @@
 
 #include <thread>
 
-#include <fmt/format.h>
+#include <spdlog/fmt/fmt.h>
 
 #include "d_logger.h"
 

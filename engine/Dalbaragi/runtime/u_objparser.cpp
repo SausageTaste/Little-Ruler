@@ -1,7 +1,7 @@
 #include "u_objparser.h"
 
-#include <daltools/model_parser.h>
-#include <daltools/compression.h>
+#include <daltools/dmd/parser.h>
+#include <daltools/common/compression.h>
 
 #include <d_logger.h>
 
@@ -29,115 +29,115 @@ namespace {
     }
 
     void convert_material(dal::binfo::Material& dst, const dal::parser::Material& src) {
-        dst.m_roughness = src.m_roughness;
-        dst.m_metallic = src.m_metallic;
+        dst.m_roughness = src.roughness_;
+        dst.m_metallic = src.metallic_;
 
-        dst.m_diffuseMap = src.m_albedo_map;
-        dst.m_roughnessMap = src.m_roughness_map;
-        dst.m_metallicMap = src.m_metallic_map;
-        dst.m_normalMap = src.m_normal_map;
+        dst.m_diffuseMap = src.albedo_map_;
+        dst.m_roughnessMap = src.roughness_map_;
+        dst.m_metallicMap = src.metallic_map_;
+        dst.m_normalMap = src.normal_map_;
     }
 
     void convert_model(dal::binfo::Model& dst, const dal::parser::Model& src) {
         // AABB
         {
             dst.m_aabb.set(
-                src.m_aabb.m_min,
-                src.m_aabb.m_max
+                src.aabb_.min_,
+                src.aabb_.max_
             );
         }
 
         // Render units
         {
-            for (auto& src_unit : src.m_units_straight) {
+            for (auto& src_unit : src.units_straight_) {
                 auto& dst_unit = dst.m_renderUnits.emplace_back();
 
-                dst_unit.m_name = src_unit.m_name;
-                ::convert_material(dst_unit.m_material, src_unit.m_material);
+                dst_unit.m_name = src_unit.name_;
+                ::convert_material(dst_unit.m_material, src_unit.material_);
 
-                dst_unit.m_mesh.m_vertices = src_unit.m_mesh.m_vertices;
-                dst_unit.m_mesh.m_normals = src_unit.m_mesh.m_normals;
-                dst_unit.m_mesh.m_texcoords = src_unit.m_mesh.m_texcoords;
+                dst_unit.m_mesh.m_vertices = src_unit.mesh_.vertices_;
+                dst_unit.m_mesh.m_normals = src_unit.mesh_.normals_;
+                dst_unit.m_mesh.m_texcoords = src_unit.mesh_.uv_coordinates_;
             }
 
-            for (auto& src_unit : src.m_units_indexed) {
+            for (auto& src_unit : src.units_indexed_) {
                 auto& dst_unit = dst.m_renderUnits.emplace_back();
 
-                dst_unit.m_name = src_unit.m_name;
-                ::convert_material(dst_unit.m_material, src_unit.m_material);
+                dst_unit.m_name = src_unit.name_;
+                ::convert_material(dst_unit.m_material, src_unit.material_);
 
-                for (const auto index : src_unit.m_mesh.m_indices){
-                    auto& vertex = src_unit.m_mesh.m_vertices[index];
+                for (const auto index : src_unit.mesh_.indices_){
+                    auto& vertex = src_unit.mesh_.vertices_[index];
 
-                    dst_unit.m_mesh.m_vertices.push_back(vertex.m_position.x);
-                    dst_unit.m_mesh.m_vertices.push_back(vertex.m_position.y);
-                    dst_unit.m_mesh.m_vertices.push_back(vertex.m_position.z);
+                    dst_unit.m_mesh.m_vertices.push_back(vertex.pos_.x);
+                    dst_unit.m_mesh.m_vertices.push_back(vertex.pos_.y);
+                    dst_unit.m_mesh.m_vertices.push_back(vertex.pos_.z);
 
-                    dst_unit.m_mesh.m_texcoords.push_back(vertex.m_uv_coords.x);
-                    dst_unit.m_mesh.m_texcoords.push_back(vertex.m_uv_coords.y);
+                    dst_unit.m_mesh.m_texcoords.push_back(vertex.uv_.x);
+                    dst_unit.m_mesh.m_texcoords.push_back(vertex.uv_.y);
 
-                    dst_unit.m_mesh.m_normals.push_back(vertex.m_normal.x);
-                    dst_unit.m_mesh.m_normals.push_back(vertex.m_normal.y);
-                    dst_unit.m_mesh.m_normals.push_back(vertex.m_normal.z);
+                    dst_unit.m_mesh.m_normals.push_back(vertex.normal_.x);
+                    dst_unit.m_mesh.m_normals.push_back(vertex.normal_.y);
+                    dst_unit.m_mesh.m_normals.push_back(vertex.normal_.z);
                 }
             }
 
-            for (auto& src_unit : src.m_units_straight_joint) {
+            for (auto& src_unit : src.units_straight_joint_) {
                 auto& dst_unit = dst.m_renderUnits.emplace_back();
 
-                dst_unit.m_name = src_unit.m_name;
-                ::convert_material(dst_unit.m_material, src_unit.m_material);
+                dst_unit.m_name = src_unit.name_;
+                ::convert_material(dst_unit.m_material, src_unit.material_);
 
-                dst_unit.m_mesh.m_vertices = src_unit.m_mesh.m_vertices;
-                dst_unit.m_mesh.m_normals = src_unit.m_mesh.m_normals;
-                dst_unit.m_mesh.m_texcoords = src_unit.m_mesh.m_texcoords;
-                dst_unit.m_mesh.m_boneWeights = src_unit.m_mesh.m_boneWeights;
-                dst_unit.m_mesh.m_boneIndex = src_unit.m_mesh.m_boneIndex;
+                dst_unit.m_mesh.m_vertices = src_unit.mesh_.vertices_;
+                dst_unit.m_mesh.m_normals = src_unit.mesh_.normals_;
+                dst_unit.m_mesh.m_texcoords = src_unit.mesh_.uv_coordinates_;
+                dst_unit.m_mesh.m_boneWeights = src_unit.mesh_.joint_weights_;
+                dst_unit.m_mesh.m_boneIndex = src_unit.mesh_.joint_indices_;
             }
 
-            for (auto& src_unit : src.m_units_indexed_joint) {
+            for (auto& src_unit : src.units_indexed_joint_) {
                 auto& dst_unit = dst.m_renderUnits.emplace_back();
 
-                dst_unit.m_name = src_unit.m_name;
-                ::convert_material(dst_unit.m_material, src_unit.m_material);
+                dst_unit.m_name = src_unit.name_;
+                ::convert_material(dst_unit.m_material, src_unit.material_);
 
-                for (const auto index : src_unit.m_mesh.m_indices){
-                    auto& vertex = src_unit.m_mesh.m_vertices[index];
+                for (const auto index : src_unit.mesh_.indices_){
+                    auto& vertex = src_unit.mesh_.vertices_[index];
 
-                    dst_unit.m_mesh.m_vertices.push_back(vertex.m_position.x);
-                    dst_unit.m_mesh.m_vertices.push_back(vertex.m_position.y);
-                    dst_unit.m_mesh.m_vertices.push_back(vertex.m_position.z);
+                    dst_unit.m_mesh.m_vertices.push_back(vertex.pos_.x);
+                    dst_unit.m_mesh.m_vertices.push_back(vertex.pos_.y);
+                    dst_unit.m_mesh.m_vertices.push_back(vertex.pos_.z);
 
-                    dst_unit.m_mesh.m_texcoords.push_back(vertex.m_uv_coords.x);
-                    dst_unit.m_mesh.m_texcoords.push_back(1.f - vertex.m_uv_coords.y);
+                    dst_unit.m_mesh.m_texcoords.push_back(vertex.uv_.x);
+                    dst_unit.m_mesh.m_texcoords.push_back(1.f - vertex.uv_.y);
 
-                    dst_unit.m_mesh.m_normals.push_back(vertex.m_normal.x);
-                    dst_unit.m_mesh.m_normals.push_back(vertex.m_normal.y);
-                    dst_unit.m_mesh.m_normals.push_back(vertex.m_normal.z);
+                    dst_unit.m_mesh.m_normals.push_back(vertex.normal_.x);
+                    dst_unit.m_mesh.m_normals.push_back(vertex.normal_.y);
+                    dst_unit.m_mesh.m_normals.push_back(vertex.normal_.z);
 
-                    dst_unit.m_mesh.m_boneIndex.push_back(vertex.m_joint_indices.x);
-                    dst_unit.m_mesh.m_boneIndex.push_back(vertex.m_joint_indices.y);
-                    dst_unit.m_mesh.m_boneIndex.push_back(vertex.m_joint_indices.z);
-                    dst_unit.m_mesh.m_boneIndex.push_back(vertex.m_joint_indices.w);
+                    dst_unit.m_mesh.m_boneIndex.push_back(vertex.joint_indices_.x);
+                    dst_unit.m_mesh.m_boneIndex.push_back(vertex.joint_indices_.y);
+                    dst_unit.m_mesh.m_boneIndex.push_back(vertex.joint_indices_.z);
+                    dst_unit.m_mesh.m_boneIndex.push_back(vertex.joint_indices_.w);
 
-                    dst_unit.m_mesh.m_boneWeights.push_back(vertex.m_joint_weights.x);
-                    dst_unit.m_mesh.m_boneWeights.push_back(vertex.m_joint_weights.y);
-                    dst_unit.m_mesh.m_boneWeights.push_back(vertex.m_joint_weights.z);
-                    dst_unit.m_mesh.m_boneWeights.push_back(vertex.m_joint_weights.w);
+                    dst_unit.m_mesh.m_boneWeights.push_back(vertex.joint_weights_.x);
+                    dst_unit.m_mesh.m_boneWeights.push_back(vertex.joint_weights_.y);
+                    dst_unit.m_mesh.m_boneWeights.push_back(vertex.joint_weights_.z);
+                    dst_unit.m_mesh.m_boneWeights.push_back(vertex.joint_weights_.w);
                 }
             }
         }
 
         // Skeleton
         {
-            for (auto& src_joint : src.m_skeleton.m_joints) {
-                const auto jid = dst.m_joints.getOrMakeIndexOf(src_joint.m_name);
+            for (auto& src_joint : src.skeleton_.joints_) {
+                const auto jid = dst.m_joints.getOrMakeIndexOf(src_joint.name_);
                 auto& dst_joint = dst.m_joints.at(jid);
 
-                dst_joint.setName(src_joint.m_name);
-                dst_joint.setOffset(src_joint.m_offset_mat);
-                dst_joint.setParentIndex(src_joint.m_parent_index);
-                dst_joint.setType(src_joint.m_joint_type);
+                dst_joint.setName(src_joint.name_);
+                dst_joint.setOffset(src_joint.offset_mat_);
+                dst_joint.setParentIndex(src_joint.parent_index_);
+                dst_joint.setType(src_joint.joint_type_);
             }
 
             if (dst.m_joints.getSize() > 0) {
@@ -167,14 +167,14 @@ namespace {
         }
 
         for (auto& src_anim : src) {
-            auto& dst_anim = dst.emplace_back(src_anim.m_name, src_anim.m_ticks_per_sec, src_anim.calc_duration_in_ticks());
+            auto& dst_anim = dst.emplace_back(src_anim.name_, src_anim.ticks_per_sec_, src_anim.calc_duration_in_ticks());
 
             for (size_t i = 0; i < skeleton.getSize(); ++i) {
                 auto& joint_info = skeleton.at(i);
                 auto src_joint_index = src_anim.find_index_by_name(joint_info.name());
 
                 if (dal::parser::NULL_JID != src_joint_index) {
-                    auto& src_joint = src_anim.m_joints[src_joint_index];
+                    auto& src_joint = src_anim.joints_[src_joint_index];
                     auto& dst_joint = dst_anim.newJoint();
                     dst_joint.set(src_joint);
                 }
@@ -205,7 +205,7 @@ namespace dal {
                 return false;
 
             ::convert_model(info.m_model, parsed_model.value());
-            ::convert_animations(info.m_animations, parsed_model->m_animations, info.m_model.m_joints);
+            ::convert_animations(info.m_animations, parsed_model->animations_, info.m_model.m_joints);
         }
 
         // Convert texture names into respath
@@ -224,27 +224,6 @@ namespace dal {
             if ( !mat.m_normalMap.empty() ) {
                 mat.m_normalMap = "::" + mat.m_normalMap;
             }
-        }
-
-        // Check joint count
-        {
-            dal::jointID_t max_joint_id = -1;
-
-            for (auto& unit : info.m_model.m_renderUnits) {
-                for (const auto jid : unit.m_mesh.m_boneIndex) {
-                    if (jid > max_joint_id) {
-                        max_joint_id = jid;
-                    }
-                }
-            }
-
-            dalAssert(max_joint_id + 1 == info.m_model.m_joints.getSize());
-        }
-
-        // Reduce joint count per vertex
-        for (auto& unit : info.m_model.m_renderUnits) {
-            unit.m_mesh.m_boneIndex = ::reduce_joint_count_per_vertex(unit.m_mesh.m_boneIndex);
-            unit.m_mesh.m_boneWeights = ::reduce_joint_count_per_vertex(unit.m_mesh.m_boneWeights);
         }
 
         return true;

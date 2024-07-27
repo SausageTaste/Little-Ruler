@@ -9,7 +9,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
 
-#include <daltools/struct.h>
+#include <daltools/scene/struct.h>
 
 #include "p_uniloc.h"
 #include "u_timer.h"
@@ -168,7 +168,7 @@ namespace dal {
             }
 
             void setName(const std::string& name) {
-                this->m_data.m_name = name;
+                this->m_data.name_ = name;
             }
 
             void addPos(const float timepoint, const glm::vec3& pos) {
@@ -184,7 +184,7 @@ namespace dal {
             }
 
             const std::string& name(void) const {
-                return this->m_data.m_name;
+                return this->m_data.name_;
             }
 
             glm::mat4 makeTransform(const float animTick) const;

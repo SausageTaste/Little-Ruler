@@ -1,6 +1,6 @@
 #include "d_overlay_interface.h"
 
-#include <fmt/format.h>
+#include <spdlog/fmt/fmt.h>
 
 #include "d_logger.h"
 #include "u_fileutils.h"

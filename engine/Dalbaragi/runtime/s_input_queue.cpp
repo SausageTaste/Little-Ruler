@@ -1,6 +1,6 @@
 #include "s_input_queue.h"
 
-#include <fmt/format.h>
+#include <spdlog/fmt/fmt.h>
 
 #include <d_logger.h>
 
@@ -44,7 +44,7 @@ namespace dal {
 
     bool TouchEvtQueueGod::emplaceBack(const float x, const float y, const TouchActionType type, const touchID_t id, const float timeSec) {
         if ( 0 > id || id >= 5 ) {
-            dalWarn("Touch id is \"{}\""_format(id));
+            dalWarn(fmt::format("Touch id is \"{}\"", id));
         }
         if ( -1 == id ) {
             dalWarn("Touch id -1 is for null.");
@@ -71,7 +71,7 @@ namespace dal {
             return this->mArray.at(index);
         }
         catch ( const std::out_of_range& e ) {
-            dalAbort("Out of range exception thrown: {}"_format(e.what()));
+            dalAbort(fmt::format("Out of range exception thrown: {}", e.what()));
         }
     }
 
@@ -118,7 +118,7 @@ namespace dal {
             return this->mArray.at(index);
         }
         catch ( const std::out_of_range& e ) {
-            dalAbort("Out of range exception thrown: {}"_format(e.what()));
+            dalAbort(fmt::format("Out of range exception thrown: {}", e.what()));
         }
     }
 

@@ -2,7 +2,7 @@
 
 #include <string>
 
-#include <fmt/format.h>
+#include <spdlog/fmt/fmt.h>
 
 #include <d_logger.h>
 
@@ -250,7 +250,7 @@ namespace dal {
 
         glGenTextures(1, &this->m_texID);
         if ( this->get() == 0 ) {
-            dalAbort("Failed to init dal::Texture::init_depthMap::{}"_format(str4Log));
+            dalAbort(fmt::format("Failed to init dal::Texture::init_depthMap::{}", str4Log));
         }
     }
 
@@ -292,7 +292,7 @@ namespace dal {
 #endif
             break;
         default:
-            dalError("Not supported pixel size: {}"_format(image.pixSize()));
+            dalError(fmt::format("Not supported pixel size: {}", image.pixSize()));
             return;
 
         }
@@ -418,7 +418,7 @@ namespace dal {
 #endif
                 break;
             default:
-                dalError("Not supported pixel size: {}"_format(pixSize));
+                dalError(fmt::format("Not supported pixel size: {}", pixSize));
                 return;
 
             }

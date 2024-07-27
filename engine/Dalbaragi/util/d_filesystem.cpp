@@ -4,7 +4,7 @@
 #include <fstream>
 #include <sys/stat.h>
 
-#include <fmt/format.h>
+#include <spdlog/fmt/fmt.h>
 
 #include "d_logger.h"
 

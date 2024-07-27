@@ -1,6 +1,6 @@
 #include "u_luascript.h"
 
-#include <fmt/format.h>
+#include <spdlog/fmt/fmt.h>
 
 #include <d_logger.h>
 #include <d_filesystem.h>

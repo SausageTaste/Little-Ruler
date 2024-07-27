@@ -3,7 +3,7 @@
 #include <atomic>
 #include <algorithm>
 
-#include <fmt/format.h>
+#include <spdlog/fmt/fmt.h>
 
 #if defined(_WIN32)
 #include <iostream>
@@ -33,7 +33,7 @@ namespace {
 
     public:
         virtual void verbose(const char* const str, const int line, const char* const func, const char* const file) override {
-            const auto text = "[VERBO] {}"_format(str);
+            const auto text = fmt::format("[VERBO] {}", str);
 
 #if defined(_WIN32)
             std::cout << text << '\n';
@@ -43,7 +43,7 @@ namespace {
         }
 
         virtual void debug(const char* const str, const int line, const char* const func, const char* const file) override {
-            const auto text = "[DEBUG] {}"_format(str);
+            const auto text = fmt::format("[DEBUG] {}", str);
 
 #if defined(_WIN32)
             std::cout << text << '\n';
@@ -53,7 +53,7 @@ namespace {
         }
 
         virtual void info(const char* const str, const int line, const char* const func, const char* const file) override {
-            auto newText = "[INFO ] {}"_format(str);
+            auto newText = fmt::format("[INFO ] {}", str);
 
 #if defined(_WIN32)
             std::cout << newText << '\n';
@@ -63,7 +63,7 @@ namespace {
         }
 
         virtual void warn(const char* const str, const int line, const char* const func, const char* const file) override {
-            const auto text = "[WARN ] {}"_format(str);
+            const auto text = fmt::format("[WARN ] {}", str);
 
 #if defined(_WIN32)
             std::cout << text << '\n';
@@ -73,7 +73,7 @@ namespace {
         }
 
         virtual void error(const char* const str, const int line, const char* const func, const char* const file) override {
-            const auto text = "[ERROR] {}"_format(str);
+            const auto text = fmt::format("[ERROR] {}", str);
 
 #if defined(_WIN32)
             std::cout << text << '\n';
@@ -83,7 +83,7 @@ namespace {
         }
 
         virtual void fatal(const char* const str, const int line, const char* const func, const char* const file) override {
-            const auto text = "[FATAL] {}"_format(str);
+            const auto text = fmt::format("[FATAL] {}", str);
 
 #if defined(_WIN32)
             std::cout << text << '\n';

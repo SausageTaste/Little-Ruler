@@ -5,7 +5,7 @@
 #include <array>
 #include <memory>
 
-#include <fmt/format.h>
+#include <spdlog/fmt/fmt.h>
 #include <glm/gtc/matrix_transform.hpp>
 
 #include <d_logger.h>
@@ -441,7 +441,7 @@ namespace dal {
         // Misc
         {
             const auto renderer = reinterpret_cast<const char*>(glGetString(GL_RENDERER));
-            dalVerbose("Graphics device name: {}"_format(renderer));
+            dalVerbose(fmt::format("Graphics device name: {}", renderer));
         }
     }
 

@@ -2,7 +2,7 @@
 
 #include <exception>
 
-#include <fmt/format.h>
+#include <spdlog/fmt/fmt.h>
 
 #include "x_init_windows.h"
 
@@ -30,7 +30,7 @@ catch ( ... ) {
 
 #else
 
-#include <fmt/format.h>
+#include <spdlog/fmt/fmt.h>
 
 #include "u_filesystem.h"
 

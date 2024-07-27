@@ -2,7 +2,7 @@
 
 #include <array>
 
-#include <fmt/format.h>
+#include <spdlog/fmt/fmt.h>
 
 #include <d_logger.h>
 
@@ -17,7 +17,7 @@ namespace {
     dal::Texture* loadTex(const char* const respath) {
         dal::ImageData image;
         if ( !dal::loadFileImage(respath, image) ) {
-            dalAbort("Failed to load a map for water: {}"_format(respath));
+            dalAbort(fmt::format("Failed to load a map for water: {}", respath));
         }
         assert(4 == image.pixSize());
 
@@ -291,7 +291,7 @@ namespace dal {
         , m_reflectivity(info.m_reflectance)
         , m_moveFactor(0.0f)
         , m_dudvMap(getDUDVMap())
-        , m_normalMap(getWaterNormalMap()) 
+        , m_normalMap(getWaterNormalMap())
     {
         constexpr float TEX_SCALE_FACTOR = 0.05f;
 

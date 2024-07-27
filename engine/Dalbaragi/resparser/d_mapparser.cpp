@@ -3,7 +3,7 @@
 #include <array>
 #include <memory>
 
-#include <daltools/compression.h>
+#include <daltools/common/compression.h>
 
 #include <u_byteutils.h>
 
@@ -14,7 +14,7 @@ namespace {
     std::pair<std::unique_ptr<uint8_t[]>, size_t> uncompressMap(const uint8_t* const buf, const size_t bufSize) {
         const auto allocatedSize = static_cast<size_t>(1.01 * dal::makeInt4(buf));  // Just to ensure that buffer never lacks.
         std::unique_ptr<uint8_t[]> decomBuf{ new uint8_t[allocatedSize] };
-        const auto decom_result = dal::decompress_zip(decomBuf.get(), allocatedSize, buf + 4, bufSize - 4);
+        const auto decom_result = dal::decomp_zip(decomBuf.get(), allocatedSize, buf + 4, bufSize - 4);
 
         if (dal::CompressResult::success == decom_result.m_result) {
             return std::make_pair(std::move(decomBuf), static_cast<size_t>(decom_result.m_output_size));

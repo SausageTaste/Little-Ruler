@@ -4,7 +4,7 @@
 #include <unordered_map>
 #include <memory>
 
-#include <fmt/format.h>
+#include <spdlog/fmt/fmt.h>
 
 #include "d_logger.h"
 #include "u_fileutils.h"
@@ -25,14 +25,14 @@ namespace {
             if ( std::string::npos != tail ) {
                 const auto line = text.substr(head, tail - head);
                 {
-                    buffer += "{:0>3}  {}\n"_format(lineNum++, line);
+                    buffer += fmt::format("{:0>3}  {}\n", lineNum++, line);
                 }
                 head = tail + 1;
             }
             else {
                 const auto line = text.substr(head);
                 {
-                    buffer += "{:0>3}  {}\n"_format(lineNum++, line);
+                    buffer += fmt::format("{:0>3}  {}\n", lineNum++, line);
                 }
                 break;
             }
@@ -226,8 +226,8 @@ namespace dal {
         else {
             auto [iter, success] = this->m_soures.emplace(fileName, "");
             dalAssert(success);
-            if ( !dal::loadFileText("asset::glsl/{}"_format(fileName).c_str(), iter->second) ) {
-                dalAbort("Failed to load glsl file: {}"_format(fileName));
+            if ( !dal::loadFileText(fmt::format("asset::glsl/{}", fileName).c_str(), iter->second) ) {
+                dalAbort(fmt::format("Failed to load glsl file: {}", fileName));
             }
             iter->second = this->preprocess(iter->second);
             return iter->second;
@@ -243,7 +243,7 @@ namespace dal {
                 const auto argHead = text.find('<', head);
                 const auto argTail = text.find('>', argHead);
                 if ( std::string::npos == argHead || std::string::npos == argTail ) {
-                    dalError("Error during parsing \"#include\": {}"_format(text));
+                    dalError(fmt::format("Error during parsing \"#include\": {}", text));
                     return Defined::parse_fail;
                 }
 
@@ -267,7 +267,7 @@ namespace dal {
             }
         }
 
-        dalError("Unknown define in shader: {}"_format(text));
+        dalError(fmt::format("Unknown define in shader: {}", text));
         return Defined::parse_fail;
     }
 
@@ -279,7 +279,7 @@ namespace dal {
             return ShaderType::fragment;
         }
         else {
-            dalAbort("Can't determine shader type for: {}"_format(fileName));
+            dalAbort(fmt::format("Can't determine shader type for: {}", fileName));
         }
     }
 
@@ -312,7 +312,7 @@ namespace dal {
             }
 
             for ( auto x : types ) {
-                fileHeader += "precision {} {};\n"_format(pstr, x);
+                fileHeader += fmt::format("precision {} {};\n", pstr, x);
             }
         }
 

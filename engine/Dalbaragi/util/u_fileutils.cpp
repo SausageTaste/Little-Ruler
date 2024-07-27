@@ -7,7 +7,7 @@
 
 #include <tga.h>
 #include <lodepng.h>
-#include <fmt/format.h>
+#include <spdlog/fmt/fmt.h>
 
 #include "d_logger.h"
 #include "d_filesystem.h"
@@ -108,7 +108,7 @@ namespace dal {
             }
             else {
                 const auto extension = findExtension(respath);
-                
+
                 if ( extension == "png" ) {
                     imgtype = ImageType::png;
                 }

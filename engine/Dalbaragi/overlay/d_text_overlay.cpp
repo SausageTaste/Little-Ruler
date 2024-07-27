@@ -4,7 +4,7 @@
 #include <memory>
 #include <unordered_map>
 
-#include <fmt/format.h>
+#include <spdlog/fmt/fmt.h>
 
 #include "d_overlay_base.h"
 

@@ -7,7 +7,7 @@
 #include <unordered_map>
 #include <unordered_set>
 
-#include <fmt/format.h>
+#include <spdlog/fmt/fmt.h>
 
 #include <d_logger.h>
 
@@ -242,7 +242,7 @@ namespace dal {
 
     TaskMaster::TaskMaster(void) {
 
-#if DAL_THREAD_COUNT > 0 
+#if DAL_THREAD_COUNT > 0
             this->m_pimpl = new Impl{ DAL_THREAD_COUNT };
 #else
             this->m_pimpl = nullptr;

@@ -4,7 +4,7 @@
 #include <unordered_map>
 #include <memory>
 
-#include <fmt/format.h>
+#include <spdlog/fmt/fmt.h>
 
 #include <d_logger.h>
 #include <d_shaderProcessor.h>
@@ -88,14 +88,14 @@ namespace {
             if ( std::string::npos != tail ) {
                 const auto line = text.substr(head, tail - head);
                 {
-                    buffer += "{:0>3}  {}\n"_format(lineNum++, line);
+                    buffer += fmt::format("{:0>3}  {}\n", lineNum++, line);
                 }
                 head = tail + 1;
             }
             else {
                 const auto line = text.substr(head);
                 {
-                    buffer += "{:0>3}  {}\n"_format(lineNum++, line);
+                    buffer += fmt::format("{:0>3}  {}\n", lineNum++, line);
                 }
                 break;
             }
@@ -151,7 +151,7 @@ namespace {
             GLsizei length = 0;
             char log[SHADER_COMPILER_LOG_BUF_SIZE];
             glGetShaderInfoLog(shaderID, SHADER_COMPILER_LOG_BUF_SIZE, &length, log);
-            const auto errMsg = "Shader compile failed. Error message from OpenGL is\n{}\n\nAnd shader source is\n\n{}\n"_format(log, makeNumberedText(src));
+            const auto errMsg = fmt::format("Shader compile failed. Error message from OpenGL is\n{}\n\nAnd shader source is\n\n{}\n", log, makeNumberedText(src));
             dalAbort(errMsg);
         }
 
@@ -187,7 +187,7 @@ namespace dal {
             GLsizei length = 0;
             char log[100];
             glGetProgramInfoLog(this->m_id, 100, &length, log);
-            dalAbort("ShaderProgram linking error occured. Here's log:\n{}"_format(log));
+            dalAbort(fmt::format("ShaderProgram linking error occured. Here's log:\n{}", log));
         }
     }
 

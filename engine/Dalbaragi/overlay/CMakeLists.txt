@@ -26,7 +26,7 @@ target_include_directories(dalbaragi_overlay
 
 target_link_libraries(dalbaragi_overlay
     PRIVATE
-        fmt::fmt
+        spdlog::spdlog
         freetype
     PUBLIC
         dalbaragi_lightweight

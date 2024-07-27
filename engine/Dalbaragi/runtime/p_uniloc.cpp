@@ -3,7 +3,7 @@
 #include <string>
 #include <unordered_map>
 
-#include <fmt/format.h>
+#include <spdlog/fmt/fmt.h>
 
 #include <d_logger.h>
 
@@ -31,7 +31,7 @@ namespace {
         const auto tmp = glGetUniformLocation(shader, id);
 #if ASSERT_UNILOC
         if ( asserting && -1 == tmp ) {
-            dalWarn("Failed to find uniloc \'{}\' for shader {}."_format(id, shader));
+            dalWarn(fmt::format("Failed to find uniloc \'{}\' for shader {}.", id, shader));
         }
 #endif
         return tmp;
@@ -172,7 +172,7 @@ namespace dal {
         this->u_jointTrans = getUniloc(shader, "u_jointTrans[0]");
 
         for ( unsigned int i = 1; i < MAX_JOINTS_NUM; ++i ) {
-            const auto id = "u_jointTrans[{}]"_format(i);
+            const auto id = fmt::format("u_jointTrans[{}]", i);
             const auto loc = getUniloc(shader, id.c_str());
             if ( loc != this->u_jointTrans + i ) {
                 dalAbort("u_jointTrans[] is not a continuous array.");

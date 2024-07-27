@@ -1,6 +1,6 @@
 #include "p_resource.h"
 
-#include <fmt/format.h>
+#include <spdlog/fmt/fmt.h>
 #include <glm/gtc/matrix_transform.hpp>
 
 #include <d_logger.h>

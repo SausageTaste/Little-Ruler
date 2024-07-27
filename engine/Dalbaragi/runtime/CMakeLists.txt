@@ -45,7 +45,6 @@ target_include_directories(dalbaragi_runtime
 
 target_link_libraries(dalbaragi_runtime
     PUBLIC
-        fmt::fmt
         EnTT::EnTT
         dalbaragi::daltools
         dalbaragi_util

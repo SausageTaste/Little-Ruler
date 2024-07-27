@@ -17,6 +17,5 @@ target_include_directories(little_ruler PUBLIC .)
 
 target_link_libraries(little_ruler
     PRIVATE
-        fmt::fmt
         dalbaragi_runtime
 )

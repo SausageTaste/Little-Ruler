@@ -27,7 +27,7 @@ add_subdirectory(${externtool_dir}/lua ${CMAKE_CURRENT_BINARY_DIR}/lua)
 FetchContent_Declare(
     fetch_daltools
     GIT_REPOSITORY https://github.com/SausageTaste/DalbaragiTools
-    GIT_TAG        main
+    GIT_TAG        7a08f2291d48c1be651bef4ee7cf72819b158451
 )
 FetchContent_MakeAvailable(fetch_daltools)
 

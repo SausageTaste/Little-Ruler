@@ -1,6 +1,6 @@
 #include "g_charastate.h"
 
-#include <fmt/format.h>
+#include <spdlog/fmt/fmt.h>
 
 #include <d_logger.h>
 

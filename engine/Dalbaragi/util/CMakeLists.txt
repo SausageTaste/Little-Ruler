@@ -33,8 +33,8 @@ target_include_directories(dalbaragi_util
 target_link_libraries(dalbaragi_util
     PUBLIC
         glm::glm
+        spdlog::spdlog
     PRIVATE
-        fmt::fmt
         lib_lodepng
         dalbaragi_lightweight
 )

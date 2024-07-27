@@ -2,7 +2,7 @@
 
 #include <string>
 
-#include <fmt/format.h>
+#include <spdlog/fmt/fmt.h>
 
 #include <d_logger.h>
 
@@ -57,7 +57,7 @@ namespace dal {
             const auto err = glGetError();
             if ( GL_NO_ERROR == err ) {
                 if ( i > 0 ) {
-                    dalWarn("{} glError cleared."_format(i));
+                    dalWarn(fmt::format("{} glError cleared.", i));
                 }
                 return;
             }

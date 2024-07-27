@@ -1,6 +1,6 @@
 #include "p_animation.h"
 
-#include <fmt/format.h>
+#include <spdlog/fmt/fmt.h>
 #include <glm/gtc/matrix_transform.hpp>
 
 #include <d_logger.h>
@@ -216,19 +216,19 @@ namespace dal {
     // Private
 
     bool Animation::JointNode::hasKeyframes(void) const {
-        return (this->m_data.m_positions.size() + this->m_data.m_rotations.size() + this->m_data.m_scales.size()) != 0;
+        return (this->m_data.translations_.size() + this->m_data.rotations_.size() + this->m_data.scales_.size()) != 0;
     }
 
     glm::vec3 Animation::JointNode::makePosInterp(const float animTick) const {
-        return this->m_data.m_positions.empty() ? glm::vec3{} : makeInterpValue(animTick, this->m_data.m_positions);
+        return this->m_data.translations_.empty() ? glm::vec3{} : makeInterpValue(animTick, this->m_data.translations_);
     }
 
     glm::quat Animation::JointNode::makeRotateInterp(const float animTick) const {
-        return this->m_data.m_rotations.empty() ? glm::quat{} : makeInterpValue(animTick, this->m_data.m_rotations);
+        return this->m_data.rotations_.empty() ? glm::quat{} : makeInterpValue(animTick, this->m_data.rotations_);
     }
 
     float Animation::JointNode::makeScaleInterp(const float animTick) const {
-        return this->m_data.m_scales.empty() ? 1.f : makeInterpValue(animTick, this->m_data.m_scales);
+        return this->m_data.scales_.empty() ? 1.f : makeInterpValue(animTick, this->m_data.scales_);
     }
 
 }  // namespace dal
