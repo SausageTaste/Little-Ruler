@@ -1,15 +1,16 @@
+/externcpy
+/Library
 /Resource/log
 /Resource/userdata
-/Library
-/externcpy
 
-/*.bck
 *.xml___jb_tmp___
+/*.bck
 
+__pycache__/
+.DS_Store
+.idea/
 .vs/
 .vscode/
-out/
 build/
 CMakeSettings.json
-.idea/
-__pycache__/
+out/
