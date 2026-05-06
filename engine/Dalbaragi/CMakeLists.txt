@@ -26,8 +26,8 @@ add_subdirectory(${externtool_dir}/lua ${CMAKE_CURRENT_BINARY_DIR}/lua)
 # DalbaragiTools
 FetchContent_Declare(
     fetch_daltools
-    GIT_REPOSITORY https://github.com/SausageTaste/DalbaragiTools
-    GIT_TAG        7a08f2291d48c1be651bef4ee7cf72819b158451
+    GIT_REPOSITORY https://github.com/SausageTaste/dalbaragi.git
+    GIT_TAG        little-ruler
 )
 FetchContent_MakeAvailable(fetch_daltools)
 
