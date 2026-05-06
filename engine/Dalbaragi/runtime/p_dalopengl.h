@@ -3,7 +3,7 @@
 #include <string>
 
 #if defined(_WIN32)
-#include <glad/glad.h>
+#include <glad/gl.h>
 #elif defined(__ANDROID__)
 #include <GLES3/gl3.h>
 #else

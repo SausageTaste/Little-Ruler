@@ -57,9 +57,11 @@ target_link_libraries(dalbaragi_runtime
 )
 
 if (WIN32)
+    target_sources(dalbaragi_runtime PUBLIC ${extern_dir}/glad/src/gl.c)
+    target_include_directories(dalbaragi_runtime PUBLIC ${extern_dir}/glad/include)
+
     target_link_libraries(dalbaragi_runtime
         PRIVATE
             glfw
-            glad
     )
 endif()

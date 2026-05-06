@@ -1,6 +1,6 @@
 #ifdef _WIN32
 
-#include <glad/glad.h>
+#include <glad/gl.h>
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
 #include <spdlog/fmt/fmt.h>
@@ -204,7 +204,7 @@ namespace {
             glfwSetWindowSizeLimits(this->m_window, MIN_WIN_WIDTH, MIN_WIN_HEIGHT, GLFW_DONT_CARE, GLFW_DONT_CARE);
 
             glfwMakeContextCurrent(this->m_window);
-            if ( 0 == gladLoadGLLoader((GLADloadproc)glfwGetProcAddress) ) {
+            if ( 0 == gladLoadGL((GLADloadfunc)glfwGetProcAddress) ) {
                 dalAbort("failed to load OpenGL functions");
             }
             glfwSwapInterval(0);

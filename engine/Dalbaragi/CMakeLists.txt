@@ -34,9 +34,6 @@ FetchContent_MakeAvailable(fetch_daltools)
 if (WIN32)
     # GLFW
     add_subdirectory(${extern_dir}/glfw ${CMAKE_CURRENT_BINARY_DIR}/glfw)
-
-    # GLaD
-    add_subdirectory(${extern_dir}/glad ${CMAKE_CURRENT_BINARY_DIR}/glad)
 endif()
 
 
