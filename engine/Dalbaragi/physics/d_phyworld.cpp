@@ -50,16 +50,14 @@ namespace dal {
             }
 
             static ParticleDrag drag;
-            for ( const auto entity : particleView ) {
-                auto& particle = particleView.get(entity);
+            for ( const auto& [entity, particle] : particleView.each() ) {
                 drag.apply(dt, particle);
             }
         }
 
         // Integrate
         {
-            for ( const auto entity : particleView ) {
-                auto& particle = particleView.get(entity);
+            for ( const auto& [entity, particle] : particleView.each() ) {
                 particle.integrate(dt);
             }
         }
@@ -70,16 +68,11 @@ namespace dal {
     }
 
     void PhysicsWorld::buildParticle(const PhysicsEntity& entity) {
-        auto& posparticle = this->m_reg.assign<PositionParticle>(entity.get());
+        auto& posparticle = this->m_reg.emplace<PositionParticle>(entity.get());
     }
 
     PositionParticle* PhysicsWorld::tryParticleOf(const PhysicsEntity& entity) {
-        if ( this->m_reg.has<PositionParticle>(entity.get()) ) {
-            return &this->m_reg.get<PositionParticle>(entity.get());
-        }
-        else {
-            return nullptr;
-        }
+        return this->m_reg.try_get<PositionParticle>(entity.get());
     }
 
     PositionParticle& PhysicsWorld::getParticleOf(const PhysicsEntity& entity) {

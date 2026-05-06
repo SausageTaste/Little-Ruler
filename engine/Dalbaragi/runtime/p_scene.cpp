@@ -313,16 +313,16 @@ namespace dal {
             this->m_player = this->m_entities.create();
             dalInfo(fmt::format("Player's entity id is {}.", static_cast<uint32_t>(this->m_player)));
 
-            auto& transform = this->m_entities.assign<cpnt::Transform>(this->m_player);
+            auto& transform = this->m_entities.emplace<cpnt::Transform>(this->m_player);
             transform.setScale(0.2f);
 
             auto ptrModel = this->m_resMas.orderModelAnim("asset::Character Running.dmd");
-            auto& renderable = this->m_entities.assign<cpnt::AnimatedModel>(this->m_player);
+            auto& renderable = this->m_entities.emplace<cpnt::AnimatedModel>(this->m_player);
             renderable.m_model = ptrModel;
 
-            this->m_entities.assign<cpnt::CharacterState>(this->m_player, transform, renderable, this->m_playerCam, *this);
+            this->m_entities.emplace<cpnt::CharacterState>(this->m_player, transform, renderable, this->m_playerCam, *this);
 
-            this->m_entities.assign<cpnt::PhysicsObj>(this->m_player);
+            this->m_entities.emplace<cpnt::PhysicsObj>(this->m_player);
 
             g_hairMas.reset(new HairMaster{ this->m_player, this->m_entities });
         }
@@ -347,7 +347,7 @@ namespace dal {
                 playerParticle, enttParticle
             );
 
-            auto& enttCtrl = this->m_entities.assign<cpnt::EntityCtrl>(entity);
+            auto& enttCtrl = this->m_entities.emplace<cpnt::EntityCtrl>(entity);
             enttCtrl.m_ctrler.reset(new EntityToParticle{ enttParticle, this->m_phyworld });
         }*/
 
@@ -364,8 +364,7 @@ namespace dal {
         // Apply entity controllers
         {
             auto view = this->m_entities.view<cpnt::EntityCtrl>();
-            for ( const auto entity : view ) {
-                auto& enttCtrl = view.get(entity);
+            for ( const auto& [entity, enttCtrl] : view.each() ) {
                 enttCtrl.m_ctrler->apply(entity, this->m_entities);
             }
         }
@@ -431,8 +430,7 @@ namespace dal {
         // Update animtions of dynamic objects.
         {
             auto view = this->m_entities.view<cpnt::AnimatedModel>();
-            for ( const auto entity : view ) {
-                auto& cpntModel = view.get(entity);
+            for ( const auto& [entity, cpntModel] : view.each() ) {
                 auto pModel = cpntModel.m_model;
                 updateAnimeState(cpntModel.m_animState, pModel->getAnimations(), pModel->getSkeletonInterf());
             }
@@ -458,10 +456,10 @@ namespace dal {
     entt::entity SceneGraph::addObj_static(const char* const resid) {
         const auto entity = this->m_entities.create();
 
-        auto& transform = this->m_entities.assign<cpnt::Transform>(entity);
+        auto& transform = this->m_entities.emplace<cpnt::Transform>(entity);
 
         auto ptrModel = this->m_resMas.orderModelStatic(resid);
-        auto& renderable = this->m_entities.assign<cpnt::StaticModel>(entity);
+        auto& renderable = this->m_entities.emplace<cpnt::StaticModel>(entity);
         renderable.m_model = ptrModel;
 
         return entity;
@@ -476,10 +474,7 @@ namespace dal {
         }
 
         const auto view = this->m_entities.view<cpnt::Transform, cpnt::StaticModel>();
-        for ( const auto entity : view ) {
-            auto& cpntTrans = view.get<cpnt::Transform>(entity);
-            auto& cpntModel = view.get<cpnt::StaticModel>(entity);
-
+        for ( const auto& [entity, cpntTrans, cpntModel] : view.each() ) {
             auto envmap = this->findClosestEnv(cpntTrans.getPos());
             if ( nullptr != envmap )
                 sendEnvmapUniform(*envmap, uniloc.i_envmap);
@@ -505,10 +500,7 @@ namespace dal {
         this->sendDlightUniform(uniloc.i_lighting);
 
         const auto viewAnimated = this->m_entities.view<cpnt::Transform, cpnt::AnimatedModel>();
-        for ( const auto entity : viewAnimated ) {
-            auto& cpntTrans = viewAnimated.get<cpnt::Transform>(entity);
-            auto& cpntModel = viewAnimated.get<cpnt::AnimatedModel>(entity);
-
+        for ( const auto& [entity, cpntTrans, cpntModel] : viewAnimated.each() ) {
             auto envmap = this->findClosestEnv(cpntTrans.getPos());
             if ( nullptr != envmap )
                 sendEnvmapUniform(*envmap, uniloc.i_envmap);
@@ -545,10 +537,7 @@ namespace dal {
 
     void SceneGraph::render_animatedDepth(const UniRender_AnimatedDepth& uniloc) {
         const auto viewAnimated = this->m_entities.view<cpnt::Transform, cpnt::AnimatedModel>();
-        for ( const auto entity : viewAnimated ) {
-            auto& cpntTrans = viewAnimated.get<cpnt::Transform>(entity);
-            auto& cpntModel = viewAnimated.get<cpnt::AnimatedModel>(entity);
-
+        for ( const auto& [entity, cpntTrans, cpntModel] : viewAnimated.each() ) {
             uniloc.modelMat(cpntTrans.getMat());
             cpntModel.m_model->render(uniloc, cpntModel.m_animState.getTransformArray());
         }
@@ -562,10 +551,7 @@ namespace dal {
         }
 
         const auto view = this->m_entities.view<cpnt::Transform, cpnt::StaticModel>();
-        for ( const auto entity : view ) {
-            auto& cpntTrans = view.get<cpnt::Transform>(entity);
-            auto& cpntModel = view.get<cpnt::StaticModel>(entity);
-
+        for ( const auto& [entity, cpntTrans, cpntModel] : view.each() ) {
             uniloc.modelMat(cpntTrans.getMat());
             cpntModel.m_model->render(uniloc);
         }
@@ -580,10 +566,7 @@ namespace dal {
         }
 
         const auto viewAnimated = this->m_entities.view<cpnt::Transform, cpnt::AnimatedModel>();
-        for ( const auto entity : viewAnimated ) {
-            auto& cpntTrans = viewAnimated.get<cpnt::Transform>(entity);
-            auto& cpntModel = viewAnimated.get<cpnt::AnimatedModel>(entity);
-
+        for ( const auto& [entity, cpntTrans, cpntModel] : viewAnimated.each() ) {
             uniloc.modelMat(cpntTrans.getMat());
             cpntModel.m_model->render(uniloc, cpntModel.m_animState.getTransformArray());
         }
@@ -598,10 +581,7 @@ namespace dal {
         }
 
         const auto view = this->m_entities.view<cpnt::Transform, cpnt::StaticModel>();
-        for ( const auto entity : view ) {
-            auto& cpntTrans = view.get<cpnt::Transform>(entity);
-            auto& cpntModel = view.get<cpnt::StaticModel>(entity);
-
+        for ( const auto& [entity, cpntTrans, cpntModel] : view.each() ) {
             uniloc.modelMat(cpntTrans.getMat());
             cpntModel.m_model->render(uniloc);
         }
